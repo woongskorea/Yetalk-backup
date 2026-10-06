@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>교회 관리자 센터 | 예톡</title>
+    <link rel="stylesheet" href="common.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1d4ed8;
+            --primary-light: #eff6ff;
+            --border-color: #cbd5e1;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --bg-page: #f8fafc;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: #e2e8f0; color: var(--text-main);
+            font-family: "Pretendard", -apple-system, sans-serif;
+            display: flex; justify-content: center; min-height: 100vh;
+        }
+
+        .admin-container {
+            width: 100%; max-width: 780px; background: #ffffff;
+            min-height: 100vh; position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.1);
+            padding-bottom: 60px;
+        }
+
+        /* 1. 최상단 헤더 */
+        .admin-top-header {
+            position: sticky; top: 0; z-index: 100;
+            background: #ffffff;
+            height: calc(54px + max(env(safe-area-inset-top, 0px) + 38px, 42px));
+            display: flex;
+            justify-content: space-between; align-items: center;
+            padding: max(env(safe-area-inset-top, 0px) + 38px, 42px) 14px 0 14px;
+            border-bottom: 1.5px solid var(--border-color);
+        }
+        .admin-nav-btn {
+            background: none; border: none; font-size: 24px; font-weight: 900;
+            color: #334155; cursor: pointer; padding: 4px 8px; line-height: 1;
+        }
+        .admin-header-title { text-align: center; }
+        .admin-header-title strong { display: block; font-size: 15.5px; font-weight: 950; color: #0f172a; }
+        .admin-header-title small { font-size: 11px; color: #2563eb; font-weight: 800; }
+
+        /* 🌟 우측 상단 빨간색 관리자 수정모드 버튼 */
+        .btn-admin-pill-red {
+            background: #dc2626; border: 1px solid #ef4444; color: #ffffff;
+            font-size: 11px; font-weight: 900; padding: 5px 12px; border-radius: 14px;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35); transition: all 0.2s;
+        }
+        .btn-admin-pill-red:active { transform: scale(0.96); background: #b91c1c; }
+
+        /* 2. 관리자 프로필 정보 */
+        .admin-profile-box {
+            background: var(--primary-light); border-bottom: 1px solid #bfdbfe;
+            padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+        }
+        .admin-avatar {
+            width: 44px; height: 44px; border-radius: 50%; background: var(--primary);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 17px; font-weight: 900;
+        }
+        .admin-meta strong { font-size: 15px; font-weight: 900; color: #1e3a8a; }
+        .admin-badge {
+            background: #2563eb; color: white; font-size: 10.5px; font-weight: 800;
+            padding: 2px 7px; border-radius: 10px; margin-left: 5px;
+        }
+        .admin-meta p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+
+        /* 3. 11대 빠른 관리 메뉴 그리드 */
+        .quick-grid-section { padding: 16px; }
+        .section-label { font-size: 11px; font-weight: 900; color: var(--primary); letter-spacing: 0.5px; }
+        .section-h2 { font-size: 18px; font-weight: 950; color: #0f172a; margin: 2px 0 12px 0; }
+
+        .quick-nav-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+        }
+        @media (max-width: 380px) {
+            .quick-nav-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        .quick-menu-btn {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+            padding: 12px 4px; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 5px; cursor: pointer; transition: 0.15s;
+        }
+        .quick-menu-btn:active { background: #e2e8f0; transform: scale(0.97); }
+        .quick-menu-btn span { font-size: 22px; }
+        .quick-menu-btn strong { font-size: 12px; font-weight: 800; color: #1e293b; }
+
+        /* 4. 세부 서브 화면 뷰 */
+        .sub-admin-view { display: none; padding: 14px 16px; }
+        .sub-admin-view.active { display: block; }
+
+        .btn-back-quick {
+            background: #e2e8f0; border: none; padding: 6px 14px; border-radius: 16px;
+            font-size: 12px; font-weight: 800; color: #334155; cursor: pointer; margin-bottom: 12px;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+
+        .admin-card {
+            background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px;
+            padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .admin-card-title { font-size: 15px; font-weight: 900; color: #0f172a; margin-bottom: 8px; }
+        .info-callout {
+            background: #f8fafc; border-left: 3.5px solid #2563eb; padding: 8px 12px;
+            font-size: 12px; color: #475569; line-height: 1.5; margin-bottom: 12px; border-radius: 0 8px 8px 0;
+        }
+        .field-group { margin-bottom: 12px; }
+        .field-group label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 4px; }
+        .field-input, .field-textarea {
+            width: 100%; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px;
+            font-size: 13.5px; outline: none; background: #ffffff;
+        }
+        .field-input:focus, .field-textarea:focus { border-color: var(--primary); }
+
+        .btn-save-main {
+            width: 100%; height: 44px; background: var(--primary); color: white; border: none;
+            border-radius: 10px; font-size: 14px; font-weight: 900; cursor: pointer; margin-top: 6px;
+        }
+
+        .admin-toast-box {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.94); color: white; padding: 10px 20px; border-radius: 20px;
+            font-size: 12.5px; font-weight: 800; opacity: 0; visibility: hidden; transition: 0.25s; z-index: 5000;
+            white-space: nowrap; box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+        }
+        .admin-toast-box.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+
+    <!-- 1. 최상단 헤더 (우측: 파란색 '수정모드 ✏️') -->
+    <header class="admin-top-header">
+        <button type="button" class="admin-nav-btn" onclick="goBackToMain()" aria-label="뒤로가기">‹</button>
+        <div class="admin-header-title">
+            <strong id="topChurchName">예톡행복한교회</strong>
+            <small>통합 관리자 센터</small>
+        </div>
+        <!-- 🌟 요청대로 '관리실' 대신 '수정모드 ✏️'로 변경 -->
+        <button type="button" class="btn-admin-pill-red" onclick="goToHomeEditMode()" title="홈으로 이동하여 실시간 글 수정">
+            <span>수정모드</span> ✏️
+        </button>
+    </header>
+
+    <!-- 2. 관리자 프로필 정보 -->
+    <section class="admin-profile-box">
+        <div class="admin-avatar">목</div>
+        <div class="admin-meta">
+            <div>
+                <strong>이은혜 담임목사</strong>
+                <span class="admin-badge">최고관리자</span>
+            </div>
+            <p>예톡 교회 고유코드: <strong>YETALK-CH001</strong></p>
+        </div>
+    </section>
+
+    <!-- 3. 빠른관리 11대 메뉴 그리드 -->
+    <main class="quick-grid-section" id="adminQuickMain">
+        <div class="section-label">CHURCH BACKOFFICE</div>
+        <h2 class="section-h2">교회 실무 통합 관리</h2>
+
+        <nav class="quick-nav-grid">
+            <button type="button" class="quick-menu-btn" onclick="openSection('sec_basic')">
+                <span>⛪</span><strong>교회정보</strong>
+            </button>
+            <button type="button" class="quick-menu-btn" onclick="openSection('sec_home')">
+                <span>🏠</span><strong>교회홈</strong>
+            </button>
+            <button type="button" class="quick-menu-btn" onclick="openSection('sec_bulletin')">
+                <span>📰</span><strong>주보관리</strong>
+            </button>
+            <button type="button" class="quick-menu-btn" onclick="openSection('sec_notice')">
+                <span>📢</span><strong>공지알림</strong>
+            </button>
+            <button type="button" class="quick-menu-btn" onclick="openSection('sec_calendar')">
+                <span>📅</span><strong>교회달력</strong>
+            </button>
+            <button type="button" class="quick-menu-btn" onclick="openSection('sec_pastor')">
+                <span>📖</span><strong>오늘말씀</strong>
+            </button>
+            <button type="button" class="quick-menu-btn" onclick="openSection('sec_worship')">
+                <span>🎥</span><strong>예배설교</strong>
+            </button>
+            <button type="button" class="quick-menu-btn" onclick="openSection('sec_archive')">
+                <span>📁</span><strong>자료실</strong>
+            </button>
+            <button type="button" class="quick-menu-btn" onclick="openSection('sec_member')">
+                <span>👥</span><strong>회원관리</strong>
+            </button>
+            <button type="button" class="quick-menu-btn" onclick="openSection('sec_chat')">
+                <span>💬</span><strong>채팅관리</strong>
+            </button>
+            <button type="button" class="quick-menu-btn" onclick="openSection('sec_plan')">
+                <span>💳</span><strong>예톡요금</strong>
+            </button>
+        </nav>
+    </main>
+
+    <!-- 세부 서브 화면들 -->
+    <section class="sub-admin-view" id="sec_basic">
+        <button type="button" class="btn-back-quick" onclick="closeSection()">‹ 관리메뉴로</button>
+        <div class="admin-card">
+            <div class="admin-card-title">교회 기본 정보</div>
+            <div class="field-group">
+                <label>교회명</label>
+                <input type="text" id="inpBasicChurchName" class="field-input" value="예톡행복한교회">
+            </div>
+            <div class="field-group">
+                <label>담임목사 성함</label>
+                <input type="text" id="inpBasicPastor" class="field-input" value="이은혜">
+            </div>
+            <div class="field-group">
+                <label>교회 주소</label>
+                <input type="text" id="inpBasicAddress" class="field-input" value="서울특별시 서초구 반포대로 123 예톡빌딩 3층">
+            </div>
+            <div class="field-group">
+                <label>사무실 전화번호</label>
+                <input type="tel" id="inpBasicPhone" class="field-input" value="02-123-4567">
+            </div>
+            <button type="button" class="btn-save-main" onclick="saveBasicSettings()">기본정보 저장하기</button>
+        </div>
+    </section>
+
+    <section class="sub-admin-view" id="sec_home">
+        <button type="button" class="btn-back-quick" onclick="closeSection()">‹ 관리메뉴로</button>
+        <div class="admin-card">
+            <div class="admin-card-title">교회홈 5장 대표카드 관리</div>
+            <div class="info-callout">
+                첫 번째 카드에서 5초마다 자동 회전하는 대표 배너의 제목과 성경구절을 설정합니다.
+            </div>
+            <button type="button" class="btn-save-main" onclick="goToHomeEditMode()">홈 화면에서 직접 사진/글 수정하기</button>
+        </div>
+    </section>
+
+    <section class="sub-admin-view" id="sec_bulletin">
+        <button type="button" class="btn-back-quick" onclick="closeSection()">‹ 관리메뉴로</button>
+        <div class="admin-card">
+            <div class="admin-card-title">온라인 주보 (1면 ~ 10면)</div>
+            <div class="info-callout">
+                온라인에서는 1~10면을 스와이프로 보고, 인쇄 시에는 A5 규격으로 4면/6면/8면을 자동 분할 인쇄합니다.
+            </div>
+            <div class="field-group">
+                <label>주보 발행일</label>
+                <input type="date" class="field-input">
+            </div>
+            <div class="field-group">
+                <label>1면 교회 표어</label>
+                <input type="text" class="field-input" value="하나님께서 기뻐하시는 교회">
+            </div>
+            <button type="button" class="btn-save-main" onclick="showToastMsg('주보 데이터가 저장되었습니다 ✔')">주보 저장</button>
+        </div>
+    </section>
+
+    <section class="sub-admin-view" id="sec_notice">
+        <button type="button" class="btn-back-quick" onclick="closeSection()">‹ 관리메뉴로</button>
+        <div class="admin-card">
+            <div class="admin-card-title">공지사항 등록</div>
+            <div class="field-group">
+                <label>공지 제목</label>
+                <input type="text" class="field-input" placeholder="새로운 교회 공지 제목을 입력하세요">
+            </div>
+            <div class="field-group">
+                <label>공지 본문 내용</label>
+                <textarea class="field-textarea" rows="4" placeholder="공지 세부 내용을 입력하세요"></textarea>
+            </div>
+            <button type="button" class="btn-save-main" onclick="showToastMsg('공지사항이 등록되었습니다 ✔')">공지 등록</button>
+        </div>
+    </section>
+
+    <section class="sub-admin-view" id="sec_plan">
+        <button type="button" class="btn-back-quick" onclick="closeSection()">‹ 관리메뉴로</button>
+        <div class="admin-card">
+            <div class="admin-card-title">예톡 프리미엄 정책</div>
+            <div class="info-callout">
+                <b>표준 이용 요금:</b> 세팅비 60,000원(3개월 포함) + 이후 월 12,100원<br>
+                <b>미자립교회 무료 지원:</b> 성도 30인 이하 교회는 세팅비 전액 무료 지원 정책을 적용합니다.
+            </div>
+            <button type="button" class="btn-save-main" onclick="showToastMsg('요금제 정보가 확인되었습니다.')">요금 상태 확인</button>
+        </div>
+    </section>
+
+</div>
+
+<div class="admin-toast-box" id="adminToastBox"></div>
+
+<script>
+    /* 🌟 파란색 수정모드 버튼 클릭 ➔ 교회홈 이동 후 빨간색 수정모드로 즉시 활성화 */
+    function goToHomeEditMode() {
+        sessionStorage.setItem("yetalkAdminDirectEdit", "Y");
+        showToastMsg("✏️ 교회홈 실시간 카드 수정모드로 전환합니다.");
+        setTimeout(() => {
+            location.href = "churchmain.html";
+        }, 300);
+    }
+
+    function openSection(secId) {
+        document.getElementById("adminQuickMain").style.display = "none";
+        document.querySelectorAll(".sub-admin-view").forEach(s => s.classList.remove("active"));
+        const target = document.getElementById(secId);
+        if (target) {
+            target.classList.add("active");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            showToastMsg("해당 관리 기능 화면을 준비 중입니다.");
+            document.getElementById("adminQuickMain").style.display = "block";
+        }
+    }
+
+    function closeSection() {
+        document.querySelectorAll(".sub-admin-view").forEach(s => s.classList.remove("active"));
+        document.getElementById("adminQuickMain").style.display = "block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showToastMsg(msg) {
+        const t = document.getElementById("adminToastBox");
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => {
+            t.classList.remove("show");
+        }, 2200);
+    }
+
+    function saveBasicSettings() {
+        const name = document.getElementById("inpBasicChurchName").value.trim();
+        if (name) {
+            localStorage.setItem("yetalkChurchName", name);
+            document.getElementById("topChurchName").innerText = name;
+            showToastMsg("교회 정보가 성공적으로 저장되었습니다 ✔");
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedName = localStorage.getItem("yetalkChurchName");
+        if (savedName) {
+            document.getElementById("topChurchName").innerText = savedName;
+            document.getElementById("inpBasicChurchName").value = savedName;
+        }
+    });
+
+    function goBackToMain() {
+        location.href = "churchmain.html";
+    }
+</script>
+
+<script src="church_bottom_bar.js"></script>
+</body>
+</html>

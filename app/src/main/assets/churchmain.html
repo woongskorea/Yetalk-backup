@@ -1,0 +1,986 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>예톡행복한교회</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <link rel="stylesheet" href="churchmain.css">
+    <style>
+        /* ==================================================
+           5색 테마 순환 완벽 구동 스타일
+        ================================================== */
+        body[data-theme="white"] { background: #f1f5f9 !important; color: #0f172a !important; }
+        body[data-theme="white"] .church-shell { background: #ffffff !important; }
+        body[data-theme="white"] .church-fixed-header { background: #ffffff !important; border-bottom: 2px solid #cbd5e1 !important; }
+        body[data-theme="white"] .header-church-title { color: #0f172a !important; }
+        body[data-theme="white"] .btn-header-cross { color: #0284c7 !important; }
+        body[data-theme="white"] .btn-my-info { border-color: #cbd5e1 !important; color: #b45309 !important; background: #f8fafc !important; }
+        body[data-theme="white"] .worship-sub-menu-bar { background: #f8fafc !important; border-color: #cbd5e1 !important; }
+        body[data-theme="white"] .w-sub-chip { background: #ffffff !important; border-color: #cbd5e1 !important; color: #475569 !important; }
+        body[data-theme="white"] .w-sub-chip.active { background: #0284c7 !important; color: #ffffff !important; }
+        body[data-theme="white"] .clean-section-card { background: #ffffff !important; border-color: #e2e8f0 !important; box-shadow: 0 4px 16px rgba(0,0,0,0.06) !important; }
+        body[data-theme="white"] .clean-main-title { color: #0f172a !important; }
+        body[data-theme="white"] .clean-body-text { color: #334155 !important; }
+
+        body[data-theme="pink"] { background: #1a0812 !important; }
+        body[data-theme="pink"] .church-shell { background: #240c19 !important; }
+        body[data-theme="pink"] .church-fixed-header { background: #2b0e1e !important; border-bottom: 2px solid rgba(244, 63, 94, 0.6) !important; }
+        body[data-theme="pink"] .header-church-title { color: #fb7185 !important; }
+        body[data-theme="pink"] .btn-header-cross { color: #f43f5e !important; }
+
+        body[data-theme="yellow"] { background: #141003 !important; }
+        body[data-theme="yellow"] .church-shell { background: #1f1905 !important; }
+        body[data-theme="yellow"] .church-fixed-header { background: #261f06 !important; border-bottom: 2px solid rgba(254, 229, 0, 0.6) !important; }
+        body[data-theme="yellow"] .header-church-title { color: #fee500 !important; }
+        body[data-theme="yellow"] .btn-header-cross { color: #facc15 !important; }
+
+        body[data-theme="blue"] { background: #040d1a !important; }
+        body[data-theme="blue"] .church-shell { background: #071529 !important; }
+        body[data-theme="blue"] .church-fixed-header { background: #0a1c36 !important; border-bottom: 2px solid rgba(56, 189, 248, 0.6) !important; }
+        body[data-theme="blue"] .header-church-title { color: #38bdf8 !important; }
+        body[data-theme="blue"] .btn-header-cross { color: #0284c7 !important; }
+
+        /* 1층 헤더: 좌우 여유 있는 정렬 */
+        .church-fixed-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px 10px 14px;
+            background: #0f172a; border-bottom: 1.5px solid #1e3a5f;
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .header-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+        .btn-header-cross {
+            background: none; border: none; font-size: 24px; font-weight: 900;
+            color: #38bdf8; cursor: pointer; line-height: 1; padding: 0; flex-shrink: 0;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+        }
+        /* 🌟 교회 이름이 절대 줄바꿈되지 않도록 설정 */
+        .header-church-title {
+            font-size: 19px; font-weight: 950; color: #ffffff; letter-spacing: -0.5px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .church-header-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+        .theme-cycle-button {
+            width: 26px !important; height: 26px !important; min-width: 26px !important; border-radius: 50% !important;
+            background: conic-gradient(#111827 0deg 72deg, #ffffff 72deg 144deg, #f43f5e 144deg 216deg, #fee500 216deg 288deg, #0284c7 288deg 360deg) !important;
+            border: 2px solid rgba(255, 255, 255, 0.85) !important; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7) !important;
+            cursor: pointer !important; padding: 0 !important; outline: none !important;
+            transition: transform 0.15s ease !important;
+        }
+        .theme-cycle-button:active { transform: scale(0.88) !important; }
+
+        .btn-my-info {
+            display: flex; align-items: center; gap: 4px;
+            background: #141f33; border: 1.5px solid #475569; border-radius: 18px;
+            padding: 3px 10px; color: #facc15; font-size: 12px; font-weight: 900;
+            cursor: pointer; transition: transform 0.15s ease;
+        }
+        .btn-my-info:active { transform: scale(0.92); }
+
+        /* 🌟 [신설] 1층 헤더 바로 아래 우측 한 줄 성도가입 바 */
+        .church-sub-join-bar {
+            background: #090e1a; padding: 6px 14px 6px 14px;
+            display: flex; justify-content: flex-end; align-items: center;
+            border-bottom: 1px solid #1e293b;
+        }
+        .btn-church-join-member-line {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            border: 1.2px solid #38bdf8; color: #ffffff;
+            border-radius: 8px; font-size: 12.5px; font-weight: 950;
+            padding: 5px 14px; cursor: pointer; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .btn-church-join-member-line:active { transform: scale(0.94); }
+
+        /* 관리실 & 화면수정 버튼 */
+        .btn-admin-room {
+            background: #1e3a5f !important; color: #38bdf8 !important; border: 1.2px solid #0284c7 !important;
+            border-radius: 8px !important; font-weight: 900 !important;
+        }
+        .btn-admin-edit {
+            background: linear-gradient(135deg, #dc2626, #b91c1c) !important; color: #ffffff !important;
+            border: 1.2px solid #ef4444 !important; border-radius: 8px !important; font-weight: 900 !important;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35) !important;
+        }
+
+        /* 예배 하위 6대 메뉴 */
+        .worship-sub-menu-bar {
+            display: none; background: #0c1424; border-bottom: 1.5px solid #1e3a5f;
+            padding: 8px 12px; gap: 6px; overflow-x: auto; white-space: nowrap;
+            scrollbar-width: none; position: sticky; top: 96px; z-index: 900;
+        }
+        .worship-sub-menu-bar::-webkit-scrollbar { display: none; }
+        .worship-sub-menu-bar.show { display: flex; }
+        .w-sub-chip {
+            background: #1a263c; border: 1px solid #334155; color: #cbd5e1;
+            font-size: 12.5px; font-weight: 850; padding: 5px 13px; border-radius: 18px;
+            cursor: pointer; flex-shrink: 0; transition: all 0.15s ease;
+        }
+        .w-sub-chip.active {
+            background: #0284c7; color: #ffffff; border-color: #38bdf8; font-weight: 950;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+        }
+
+        /* 본문 카드 스타일 */
+        .clean-section-card {
+            background: #111a2e; border: 1.5px solid #1e3a5f; border-radius: 16px;
+            padding: 20px 18px; margin: 10px 14px; display: flex; flex-direction: column; gap: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .clean-badge-tag {
+            font-size: 11.5px; font-weight: 950; color: #facc15;
+            background: rgba(250, 204, 21, 0.12); border: 1px solid rgba(250, 204, 21, 0.3);
+            padding: 2px 8px; border-radius: 6px; width: fit-content; margin-bottom: 4px;
+        }
+        .clean-main-title {
+            font-size: 21px; font-weight: 950; color: #ffffff; letter-spacing: -0.4px; line-height: 1.35;
+        }
+        .clean-body-text {
+            font-size: 15.5px; font-weight: 700; line-height: 1.75; color: #e2e8f0;
+            white-space: pre-line; word-break: keep-all;
+        }
+        .clean-bullet-item {
+            display: flex; align-items: flex-start; gap: 6px; font-size: 15px; font-weight: 700;
+            line-height: 1.65; color: #cbd5e1; margin-bottom: 6px; text-align: left;
+        }
+        .clean-bullet-item::before {
+            content: "•"; color: #38bdf8; font-weight: 950; font-size: 18px; line-height: 1.2;
+        }
+
+        .clean-leader-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 6px; }
+        .clean-leader-card {
+            background: #0c1322; border: 1px solid #1e293b; border-radius: 12px;
+            overflow: hidden; display: flex; flex-direction: column;
+        }
+        .clean-leader-img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #1e293b; }
+        .clean-leader-info { padding: 10px; display: flex; flex-direction: column; gap: 2px; text-align: left; }
+        .clean-leader-name { font-size: 15px; font-weight: 950; color: #ffffff; }
+        .clean-leader-role { font-size: 12px; font-weight: 800; color: #38bdf8; }
+        .clean-leader-desc { font-size: 11.5px; color: #94a3b8; line-height: 1.4; margin-top: 2px; }
+
+        .clean-timeline-box {
+            display: flex; flex-direction: column; gap: 14px; position: relative;
+            padding-left: 14px; border-left: 2px solid #0284c7; margin-top: 6px; text-align: left;
+        }
+        .clean-timeline-row { position: relative; display: flex; flex-direction: column; gap: 2px; }
+        .clean-timeline-row::before {
+            content: ""; position: absolute; left: -19px; top: 4px;
+            width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8;
+        }
+        .clean-timeline-year { font-size: 14px; font-weight: 950; color: #fde047; }
+        .clean-timeline-text { font-size: 14px; font-weight: 750; color: #f1f5f9; line-height: 1.5; }
+
+        .daily-grace-card {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.9));
+            border: 1.5px solid rgba(250, 204, 21, 0.65); border-radius: 14px;
+            padding: 16px 14px; margin: 6px 14px; display: flex; flex-direction: column; gap: 6px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.6); text-align: left;
+        }
+        .grace-time-badge {
+            align-self: flex-start; font-size: 11.5px; font-weight: 950;
+            color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 2px 7px; border-radius: 6px;
+        }
+        .grace-verse-text {
+            font-size: 15px; font-weight: 850; line-height: 1.7; color: #ffffff;
+            font-family: "Nanum Myeongjo", serif; word-break: keep-all;
+        }
+        .grace-subtext { font-size: 12px; font-weight: 600; color: #94a3b8; line-height: 1.45; }
+
+        .grace-admob-250-slot {
+            width: calc(100% - 28px); max-width: 380px; height: 250px; margin: 10px auto 20px auto;
+            background: #080d1a; border: 1.5px solid #1e3a5f; border-radius: 14px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: inset 0 0 25px rgba(0,0,0,0.85); gap: 4px;
+        }
+
+        /* 회원가입 모달 스타일 */
+        .my-profile-modal-card {
+            width: 100%; max-width: 460px; background: #0f172a; border: 1.5px solid #38bdf8;
+            border-radius: 18px; padding: 20px 16px; color: #f8fafc; display: flex; flex-direction: column; gap: 12px;
+            max-height: calc(100dvh - 40px); overflow-y: auto; text-align: left;
+            -webkit-overflow-scrolling: touch; box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+        }
+        .my-profile-modal-card::-webkit-scrollbar { width: 4px; }
+        .my-profile-modal-card::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+        .step-section-box {
+            background: #141f33; border: 1.2px solid #233454; border-radius: 12px;
+            padding: 12px; display: flex; flex-direction: column; gap: 8px;
+        }
+        .step-title-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 13px; font-weight: 950; color: #fde047; margin-bottom: 2px;
+        }
+
+        .form-group-line { display: flex; flex-direction: column; gap: 3px; }
+        .form-label-title { font-size: 11.5px; color: #cbd5e1; font-weight: 850; }
+        .form-label-title span { color: #facc15; }
+        .m-input-my {
+            width: 100%; background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+            padding: 9px 12px; color: white; font-size: 13.5px; outline: none;
+        }
+        .m-input-my:focus { border-color: #38bdf8; }
+
+        .job-select-tabs {
+            display: flex; flex-direction: column; gap: 4px;
+            background: #0b1120; padding: 6px; border-radius: 8px; border: 1px solid #334155;
+        }
+        .btn-job-opt {
+            background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+            padding: 8px 12px; border-radius: 6px; font-size: 12.5px; font-weight: 850; text-align: left; cursor: pointer;
+        }
+        .btn-job-opt.active { background: #0284c7; color: white; border-color: #38bdf8; font-weight: 950; }
+
+        .btn-save-my-thick {
+            height: 52px; background: linear-gradient(135deg, #0284c7, #2563eb);
+            color: #ffffff; border: none; border-radius: 12px; font-weight: 950; font-size: 16px;
+            letter-spacing: 0.5px; cursor: pointer; box-shadow: 0 4px 16px rgba(2,132,199,0.5);
+            margin-top: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="church-shell" id="churchApp">
+    <!-- 배경 분위기 효과 레이어 -->
+    <div class="theme-effect-layer" id="themeEffectLayer"></div>
+
+    <!-- 1층 헤더 (십자가 + 교회이름 한 줄 정렬 + 5색 테마 + my) -->
+    <header class="church-fixed-header">
+        <div class="header-left">
+            <button type="button" class="btn-header-cross" onclick="location.href='index.html'" title="예톡 홈으로 이동">✝</button>
+            <strong class="header-church-title" id="churchName">예톡행복한교회</strong>
+        </div>
+        <div class="church-header-controls">
+            <!-- 5색 테마 순환 버튼 -->
+            <button type="button" class="theme-cycle-button" id="themeCycleButton" onclick="cycleChurchTheme()" title="테마 색상 변경"></button>
+            <!-- my 버튼 -->
+            <button type="button" class="btn-my-info" onclick="openMyProfileModalDirect()" title="내 정보 / 비즈니스 앱 관리">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>my</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- 🌟 [신설] 헤더 바로 아래 우측 한 줄 성도가입 바 -->
+    <div class="church-sub-join-bar">
+        <button type="button" class="btn-church-join-member-line" onclick="handleChurchMemberJoinClick()" title="본교회 교인 등록">
+            <span>⛪</span> 성도가입
+        </button>
+    </div>
+
+    <!-- 2층 11대 메뉴 칩 바 -->
+    <nav class="church-nav-bar" id="churchNavBar">
+        <button type="button" class="c-nav-chip active" id="chip_0" onclick="handleChurchNavTab(0)">교회의꿈</button>
+        <button type="button" class="c-nav-chip" id="chip_1" onclick="handleChurchNavTab(1)">예배</button>
+        <button type="button" class="c-nav-chip" id="chip_2" onclick="handleChurchNavTab(2)">주보</button>
+        <button type="button" class="c-nav-chip" id="chip_3" onclick="handleChurchNavTab(3)">공지알림</button>
+        <button type="button" class="c-nav-chip" id="chip_4" onclick="handleChurchNavTab(4)">기도모임</button>
+        <button type="button" class="c-nav-chip" id="chip_5" onclick="handleChurchNavTab(5)">교회초청</button>
+        <button type="button" class="c-nav-chip" id="chip_6" onclick="handleChurchNavTab(6)">예수동행</button>
+        <button type="button" class="c-nav-chip" id="chip_7" onclick="handleChurchNavTab(7)">보배성도</button>
+        <button type="button" class="c-nav-chip" id="chip_8" onclick="handleChurchNavTab(8)">다음세대</button>
+        <button type="button" class="c-nav-chip" id="chip_9" onclick="handleChurchNavTab(9)">선교전도</button>
+        <button type="button" class="c-nav-chip" id="chip_10" onclick="handleChurchNavTab(10)">보물창고</button>
+    </nav>
+
+    <!-- 예배 클릭 시 노출되는 6대 서브 칩 메뉴 -->
+    <div class="worship-sub-menu-bar" id="worshipSubMenuBar">
+        <button type="button" class="w-sub-chip active" onclick="switchWorshipSubTab('welcome')">환영인사</button>
+        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('vision')">교회비전</button>
+        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('servants')">섬기는 이</button>
+        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('ministry')">부서사역</button>
+        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('missionary')">파송선교사</button>
+        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('history')">교회역사</button>
+    </div>
+
+    <!-- 고정 서브 액션 바: 성구 + 관리실(남색) vs 화면수정(다홍색) -->
+    <div class="fixed-action-subbar">
+        <div class="subbar-verse-box" onclick="showToast('오늘의 4대 시간별 성구 말씀입니다.')">
+            <span class="subbar-verse-pill" id="subbarVersePill">🌅 주의 인자하심 들으라</span>
+        </div>
+        <div class="dual-admin-btn-group">
+            <button type="button" class="btn-admin-room" onclick="location.href='admin.html'" title="관리실 이동">◀ 관리실</button>
+            <button type="button" class="btn-admin-edit" onclick="openCurrentSlideEdit()" title="현재 화면 내용 수정">화면수정 ▶</button>
+        </div>
+    </div>
+
+    <!-- 3층 세로 스냅 뷰포트 -->
+    <main class="church-scroll-viewport" id="churchViewport">
+        <div class="touch-guard-shield" id="touchGuardShield" onclick="showLockedAlert()"></div>
+        <div id="worshipSubContentArea" style="display:none; width:100%; flex-direction:column;"></div>
+    </main>
+
+    <!-- 4층-상: 하단 5대 고정 메뉴 바 -->
+    <nav class="church-fixed-footer-nav" id="churchFixedFooterNav">
+        <button type="button" class="nav-tab-item" onclick="handleBottomNav('tv')">
+            <span class="nav-tab-icon">📺</span>
+            <span class="nav-tab-label">예톡TV</span>
+        </button>
+        <button type="button" class="nav-tab-item active" onclick="handleBottomNav('gospel')">
+            <span class="nav-tab-icon">📖</span>
+            <span class="nav-tab-label">복음</span>
+        </button>
+        <button type="button" class="nav-tab-item" onclick="handleBottomNav('map')">
+            <span class="nav-tab-icon">📍</span>
+            <span class="nav-tab-label">약도</span>
+        </button>
+        <button type="button" class="nav-tab-item tab-offering" onclick="handleBottomNav('offering')">
+            <span class="nav-tab-icon">💳</span>
+            <span class="nav-tab-label">헌금</span>
+        </button>
+        <button type="button" class="nav-tab-item tab-coupang" onclick="handleBottomNav('coupang')">
+            <span class="nav-tab-icon">🛒</span>
+            <span class="nav-tab-label">쿠팡</span>
+        </button>
+    </nav>
+
+    <div class="admob-policy-safe-separator"></div>
+
+    <!-- 4층-하: 100px 대형 애드몹 푸터 -->
+    <footer class="church-fixed-admob-footer" id="churchAdmobBox">
+        <span class="ad-title">Google AdMob (300x100 / Large Banner)</span>
+        <span class="ad-desc">선교 사역 및 미디어 영상 방송 공식 후원 슬롯</span>
+    </footer>
+
+    <!-- 쿠팡 복음 전도 게이트 모달 -->
+    <div class="coupang-gate-overlay" id="coupangGateModal">
+        <div class="coupang-gate-card" onclick="openCoupangDirectSafe()">
+            <div class="heaven-coupang-question">
+                <span class="word-heaven">“천국에도</span>
+                <span class="word-coupang">쿠팡이</span>
+                <span class="word-exist">있을까?”</span>
+            </div>
+            <div class="heaven-fast-answer-box">
+                <div class="answer-main-text">정답) 쿠팡은 모르겠고<br>우리 주님이 계신다^^ ✝️</div>
+            </div>
+            <div class="coupang-admob-slot">
+                <span style="font-size:24px;">🎁</span>
+                <strong style="font-size:13.5px; color:#facc15;">Google AdMob Sponsor (300x250)</strong>
+                <span style="font-size:10px; color:#94a3b8;">교회 미디어 및 선교 사역 공식 스폰서 슬롯</span>
+            </div>
+            <span style="font-size:11px; color:#38bdf8; font-weight:800;">잠시 후 쿠팡으로 바로 연결됩니다...</span>
+        </div>
+    </div>
+
+    <!-- 온라인 헌금 간편결제 모달 -->
+    <div class="modal-overlay" id="churchOfferingModal">
+        <div class="modal-card-offering">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:8px;">
+                <strong style="color:#facc15; font-size:16px;">⛪ 온라인 헌금 간편결제</strong>
+                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('churchOfferingModal')">✕</button>
+            </div>
+            <div class="pay-box-giver">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:11.5px; color:#38bdf8; font-weight:900;">💼 헌금하시는 분 (출금 정보)</span>
+                    <button type="button" style="background:#0284c7; color:white; border:none; border-radius:6px; padding:2px 8px; font-size:11px; font-weight:900; cursor:pointer;" onclick="saveGiverInfo()">내정보 저장</button>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:6px;">
+                    <input type="text" class="m-input-church" id="churchGiverName" placeholder="성함">
+                    <select id="churchGiverBank" class="m-input-church">
+                        <option value="국민은행">국민은행</option>
+                        <option value="농협은행">농협은행</option>
+                        <option value="신한은행">신한은행</option>
+                        <option value="우리은행">우리은행</option>
+                        <option value="카카오뱅크">카카오뱅크</option>
+                        <option value="부산은행">부산은행</option>
+                    </select>
+                </div>
+                <input type="text" class="m-input-church" id="churchGiverAcc" placeholder="출금 계좌번호 (- 없이)">
+            </div>
+            <div class="pay-box-church">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:11.5px; color:#facc15; font-weight:900;">🏛️ 받는 분 (교회 계좌)</span>
+                    <button type="button" style="background:#eab308; color:#0f172a; border:none; border-radius:6px; padding:2px 8px; font-size:11px; font-weight:950; cursor:pointer;" onclick="saveChurchReceiverInfo()">저장</button>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:6px;">
+                    <input type="text" class="m-input-church" id="churchReceiverName" placeholder="교회명">
+                    <input type="text" class="m-input-church" id="churchReceiverBank" placeholder="은행명">
+                </div>
+                <div style="display:grid; grid-template-columns: 1.5fr 1fr; gap:6px;">
+                    <input type="text" class="m-input-church" id="churchReceiverAcc" placeholder="계좌번호">
+                    <input type="text" class="m-input-church" id="churchReceiverHolder" placeholder="예금주">
+                </div>
+            </div>
+            <div>
+                <label style="font-size:11px; color:#cbd5e1; font-weight:800; display:block; margin-bottom:2px;">헌금 금액 (원)</label>
+                <input type="number" class="m-input-church" id="churchOfferingAmount" value="50000" style="font-size:16px; color:#facc15; font-weight:950;">
+            </div>
+            <div>
+                <label style="font-size:11px; color:#38bdf8; font-weight:800; display:block; margin-bottom:2px;">🔒 안전 결제 비밀번호 (4자리)</label>
+                <input type="password" class="m-input-church" id="churchOfferingPw" maxlength="4" placeholder="••••" style="letter-spacing:4px; font-size:16px; font-weight:950;">
+            </div>
+            <button type="button" style="width:100%; height:46px; background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; border-radius:11px; font-size:14.5px; font-weight:950; cursor:pointer;" onclick="submitChurchOffering()">
+                즉시 헌금 송금 (수수료 0원)
+            </button>
+        </div>
+    </div>
+
+    <!-- 관리자 슬라이드 편집 모달 -->
+    <div class="modal-overlay" id="churchMainEditModal">
+        <div class="modal-card-edit" style="max-width:480px; padding:20px 18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:6px;">
+                <strong style="color:#38bdf8; font-size:15px;" id="modalCardTitleLabel">✏️ 화면 사진 및 문구 수정</strong>
+                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('churchMainEditModal')">✕</button>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:8px 10px; border-radius:8px;">
+                <span style="font-size:12px; color:#cbd5e1; font-weight:800;">대표 사진</span>
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <img id="prevFirstCardImg" style="width:48px; height:36px; object-fit:cover; border-radius:4px; border:1px solid #38bdf8;" src="" alt="미리보기">
+                    <label for="firstCardFileInput" style="background:#0284c7; color:white; font-size:11px; font-weight:900; padding:6px 10px; border-radius:6px; cursor:pointer;">📷 사진 변경</label>
+                    <input type="file" id="firstCardFileInput" accept="image/*" style="display:none;" onchange="handleFirstCardFile(event)">
+                </div>
+            </div>
+            <div>
+                <label style="font-size:11.5px; color:#facc15; font-weight:800; display:block; margin-bottom:2px;">메인 제목</label>
+                <input type="text" class="m-input-church" id="inpCardTitle">
+            </div>
+            <div>
+                <label style="font-size:11.5px; color:#facc15; font-weight:800; display:block; margin-bottom:2px;">성구 / 소제목 문구</label>
+                <input type="text" class="m-input-church" id="inpCardVerse">
+            </div>
+            <div>
+                <label style="font-size:11.5px; color:#facc15; font-weight:800; display:block; margin-bottom:2px;">소개 본문</label>
+                <textarea class="m-input-church" id="inpCardBody" style="min-height:140px; resize:vertical; line-height:1.6;"></textarea>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+                <button type="button" style="background:#334155; color:white; border:none; padding:9px 16px; border-radius:8px; font-size:13px; cursor:pointer;" onclick="closeModal('churchMainEditModal')">취소</button>
+                <button type="button" style="background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; padding:9px 20px; border-radius:8px; font-size:13.5px; font-weight:950; cursor:pointer;" onclick="saveCurrentCardData()">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 성도가입 & 회원정보 통합 모달 -->
+    <div class="modal-overlay" id="myProfileModal" onclick="closeModal('myProfileModal')">
+        <div class="my-profile-modal-card" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:8px;">
+                <div>
+                    <strong style="color:#38bdf8; font-size:16.5px;">⛪ 본교회 성도등록 & 예톡 회원가입</strong>
+                    <span style="display:block; font-size:11px; color:#94a3b8; margin-top:2px;">등록 즉시 1인 개인앱(onemain.html)이 자동 생성됩니다</span>
+                </div>
+                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer;" onclick="closeModal('myProfileModal')">✕</button>
+            </div>
+
+            <!-- 1단계: 기본 필수 정보 -->
+            <div class="step-section-box">
+                <div class="step-title-badge">
+                    <span>📌 [1단계] 기본 필수 정보</span>
+                    <span style="font-size:10.5px; color:#38bdf8; font-weight:700;">(개인앱 onemain.html 기본 발급)</span>
+                </div>
+
+                <div class="form-group-line">
+                    <label class="form-label-title">성함 / 이름 <span>(필수)</span></label>
+                    <input type="text" id="myInpName" class="m-input-my" placeholder="성함을 입력하세요 (예: 김예톡)">
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                    <div class="form-group-line">
+                        <label class="form-label-title">아이디 <span>(필수)</span></label>
+                        <input type="text" id="myInpId" class="m-input-my" placeholder="아이디 입력">
+                    </div>
+                    <div class="form-group-line">
+                        <label class="form-label-title">비밀번호 <span>(필수)</span></label>
+                        <input type="password" id="myInpPw" class="m-input-my" placeholder="비밀번호 입력">
+                    </div>
+                </div>
+
+                <div class="form-group-line">
+                    <label class="form-label-title">활동 거주지 (시·군·구) <span>(필수)</span></label>
+                    <input type="text" id="myInpRegion" class="m-input-my" placeholder="예: 부산진구, 해운대구, 서초구, 강남구">
+                </div>
+
+                <div class="form-group-line">
+                    <label class="form-label-title">핸드폰 번호 (선택)</label>
+                    <input type="tel" id="myInpPhone" class="m-input-my" placeholder="예: 010-1234-5678">
+                </div>
+            </div>
+
+            <!-- 2단계: 전문앱 무상제작 신청 -->
+            <div class="step-section-box" style="border-color:#0284c7; background:rgba(2, 132, 199, 0.08);">
+                <div class="step-title-badge" style="color:#38bdf8;">
+                    <span>🏢 [2단계] 전문앱 무상제작(유지비 포함 완전 무료) 신청</span>
+                </div>
+                <div style="font-size:11px; color:#cbd5e1; line-height:1.45; word-break:keep-all;">
+                    • 교회, 의원, 상점 등에 필요한 전문 솔루션 앱을 <b>평생 제작비/서버비/유지비 0원</b>으로 만들어드립니다.
+                </div>
+
+                <div class="form-group-line">
+                    <label class="form-label-title">상호명 / 병원·교회·상점·활동명</label>
+                    <input type="text" id="myInpStore" class="m-input-my" placeholder="예: 예톡행복한교회, 부산밀면가, 예톡의원">
+                </div>
+
+                <div class="form-group-line">
+                    <label class="form-label-title">직업 / 직종 선택</label>
+                    <div class="job-select-tabs" id="myJobTabsBox">
+                        <button type="button" class="btn-job-opt active" onclick="selectMyJobType('담임목사')">⛪ 담임목사 (교회 전용 앱)</button>
+                        <button type="button" class="btn-job-opt" onclick="selectMyJobType('기독교사역자')">✝️ 기독교사역자 (이단금지 / 부서·선교)</button>
+                        <button type="button" class="btn-job-opt" onclick="selectMyJobType('개인의원 원장')">🏥 개인의원 원장 / 의사 (의원 전용 앱)</button>
+                        <button type="button" class="btn-job-opt" onclick="selectMyJobType('자영업')">🏢 자영업 / 상점 대표 (상점 전용 앱)</button>
+                        <button type="button" class="btn-job-opt" onclick="selectMyJobType('개인')">👤 개인 / 크리에이터 / 프리랜서 (개인앱)</button>
+                    </div>
+                </div>
+
+                <div style="background:#0f172a; border:1.2px dashed #facc15; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px; margin-top:2px;">
+                    <div style="font-size:12.5px; font-weight:950; color:#fde047;">
+                        🎁 무상으로 전문 앱(교회/의원/상점)도 함께 만드시겠습니까?
+                    </div>
+                    <div style="font-size:11px; color:#94a3b8; line-height:1.4;">
+                        • <b>[예]</b>: 개인앱과 함께 직종에 맞는 맞춤 전문 앱이 무료 개설됩니다.<br>
+                        • <b>[아니오]</b>: 1인 전용 개인 앱(onemain.html)만 개설됩니다.
+                    </div>
+                    <div style="display:flex; gap:6px; margin-top:3px;">
+                        <button type="button" id="btnMyProYes" style="flex:1; height:38px; border-radius:8px; border:1px solid #facc15; background:linear-gradient(135deg, #b45309, #d97706); color:#fff; font-weight:950; font-size:13px; cursor:pointer;" onclick="setMyProAppChoice(true)">예 (전문앱 + 개인앱)</button>
+                        <button type="button" id="btnMyProNo" style="flex:1; height:38px; border-radius:8px; border:1px solid #475569; background:#1e293b; color:#cbd5e1; font-weight:900; font-size:13px; cursor:pointer;" onclick="setMyProAppChoice(false)">아니오 (개인앱만)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 좋은 말씀 카드 & 애드몹 250 배너 -->
+            <div style="background:linear-gradient(135deg, #0b1e36, #081528); border:1.2px solid #0284c7; border-radius:12px; padding:14px; text-align:left;">
+                <span style="font-size:11px; font-weight:900; color:#38bdf8; background:rgba(56,189,248,0.15); padding:2px 7px; border-radius:6px;">✨ 오늘의 은혜 말씀</span>
+                <div style="font-size:13.5px; font-weight:800; color:#ffffff; margin-top:6px; line-height:1.6; font-family:'Nanum Myeongjo', serif;">
+                    "수고하고 무거운 짐 진 자들아 다 내게로 오라 내가 너희를 쉬게 하리라." (마태복음 11:28)
+                </div>
+                <div style="font-size:11.5px; color:#94a3b8; margin-top:4px;">
+                    주님이 주시는 참된 평안과 쉼으로 새 힘을 얻으시기를 축복합니다.
+                </div>
+            </div>
+
+            <div style="width:100%; height:250px; background:#080d1a; border:1.5px solid #1e3a5f; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; flex-shrink:0;">
+                <span style="font-size:10px; color:#64748b; font-weight:850;">SPONSOR BANNER</span>
+                <div style="font-size:24px;">🎁</div>
+                <strong style="color:#ffffff; font-size:14.5px; font-weight:900;">Google AdMob (300 × 250)</strong>
+                <span style="color:#facc15; font-size:11.5px; font-weight:800;">대한민국 소상공인 & 목회자 지원 공식 배너</span>
+            </div>
+
+            <button type="button" class="btn-save-my-thick" onclick="saveMyProfileAndValidateDuplicate()">
+                ✨ 저장 및 나만의 앱 바로가기
+            </button>
+        </div>
+    </div>
+
+    <div class="yetalk-toast" id="yetalkToast"></div>
+</div>
+
+<script>
+    const WORSHIP_SUB_DATA_KEY = "yetalk_church_worship_sub_v1";
+
+    const DEFAULT_WORSHIP_DATA = {
+        welcome: {
+            badge: "환영인사",
+            title: "예수님의 사랑으로 여러분을 환영합니다",
+            body: "하나님의 따뜻한 품으로 오신 모든 분들을 진심으로 축복합니다.\n\n예톡행복한교회는 상처 입은 영혼이 참된 안식을 누리고 치유되는 거룩한 은혜의 공동체입니다. 믿음 안에서 영원한 생명의 기쁨을 함께 나누기를 소망합니다.\n\n언제든지 편안한 마음으로 방문하시어 교제와 기도의 은혜를 함께 누리세요.",
+            bullets: [
+                "말씀과 성령이 살아 숨 쉬는 생명력 넘치는 예배",
+                "이웃을 내 몸과 같이 사랑하며 섬기는 따뜻한 나눔",
+                "다음 세대를 기도의 용사로 세우는 비전 교육"
+            ]
+        },
+        vision: {
+            badge: "교회비전",
+            title: "하나님 나라를 확장하는 3대 핵심 비전",
+            body: "우리는 오직 성경, 오직 믿음, 오직 은혜의 토대 위에서 지역 사회를 섬기고 땅끝까지 복음을 전하는 사명자들의 공동체입니다.",
+            bullets: [
+                "예배의 회복: 온 마음과 정성을 다해 주님을 높이는 예배",
+                "제자 훈련: 삶의 현장에서 그리스도의 향기를 발하는 성도",
+                "선교와 구제: 열방과 이웃을 향해 아낌없이 베푸는 사랑의 실천"
+            ]
+        },
+        servants: {
+            badge: "섬기는 이",
+            title: "교회를 섬기는 사역자 및 직분자",
+            body: "기도와 말씀으로 교회를 든든히 세워가는 귀한 사역팀을 소개합니다.",
+            leaders: [
+                {
+                    name: "최남수 담임목사",
+                    role: "담임목회 및 강단 말씀",
+                    desc: "총신대 신대원 졸, 영혼 구원과 기도 훈련에 헌신",
+                    img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80"
+                },
+                {
+                    name: "최수훈 부목사",
+                    role: "1교구 / 목회행정 / 미디어",
+                    desc: "성도 케어와 온·오프라인 미디어 사역 전담",
+                    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80"
+                },
+                {
+                    name: "표경열 부목사",
+                    role: "2교구 / 방송국 사역",
+                    desc: "방송 선교 및 청년부 찬양 집회 지도",
+                    img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80"
+                },
+                {
+                    name: "김은혜 교육전도사",
+                    role: "교회학교 및 유초등부",
+                    desc: "어린이 말씀 암송 및 성경 캠프 총괄",
+                    img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80"
+                }
+            ]
+        },
+        ministry: {
+            badge: "부서사역",
+            title: "은사와 열정으로 헌신하는 각 사역팀",
+            body: "성도님들의 귀한 은사대로 자원하여 봉사하며 하나님 나라의 기쁨을 누리는 부서 안내입니다.",
+            bullets: [
+                "예배찬양팀: 주일 대예배와 금요성령집회 찬양 인도",
+                "중보기도팀: 환우와 교회, 열방을 위한 릴레이 기도 사역",
+                "차량 및 주차안내팀: 첫 발걸음부터 안전하고 편안한 예배 인도",
+                "새가족환영팀: 등록 교우들의 안정적인 정착과 따뜻한 심방"
+            ]
+        },
+        missionary: {
+            badge: "파송선교사",
+            title: "땅끝까지 복음을 전하는 파송 선교지",
+            body: "교회가 기도로 후원하고 함께 동역하는 열방의 파송 선교사님 현황입니다.",
+            bullets: [
+                "동남아 필리핀: 박바울 선교사 (현지 신학교 및 교회 개척 사역)",
+                "중앙아시아 키르기스스탄: 이모세 선교사 (의료 선교 및 기술 훈련)",
+                "아프리카 케냐: 정에스더 선교사 (어린이 고아원 및 무료 급식 사역)"
+            ]
+        },
+        history: {
+            badge: "교회역사",
+            title: "하나님의 인도하심으로 걸어온 은혜의 발자취",
+            body: "눈물의 기도와 헌신으로 일군 하나님의 살아계신 역사입니다.",
+            historyList: [
+                { year: "2026년", text: "예톡 스마트 미디어 선교 플랫폼 런칭 및 글로벌 비전 선포" },
+                { year: "2020년", text: "온라인 실시간 예배 시스템 구축 및 비전센터 봉헌" },
+                { year: "2015년", text: "제2성전 건축 입당 감사예배 및 해외 단독 선교사 파송" },
+                { year: "2008년", text: "교회 설립 10주년 기념 감사 축제 및 지역 나눔 사역 확대" },
+                { year: "1998년", text: "성령의 인도하심으로 예톡행복한교회 첫 개척 예배" }
+            ]
+        }
+    };
+
+    let activeWorshipSubKey = "welcome";
+
+    function getDailyGraceVerse() {
+        const h = new Date().getHours();
+        if (h >= 5 && h < 11) {
+            return {
+                badge: "🌅 아침의 은혜 말씀",
+                verse: "주의 말씀은 내 발에 등이요 내 길에 빛이니이다. (시편 119:105)",
+                sub: "새 아침, 주님의 밝은 인도하심이 당신의 걸음마다 충만하기를 축복합니다."
+            };
+        } else if (h >= 11 && h < 17) {
+            return {
+                badge: "☀️ 낮의 은혜 말씀",
+                verse: "수고하고 무거운 짐 진 자들아 다 내게로 오라 내가 너희를 쉬게 하리라. (마태복음 11:28)",
+                sub: "분주한 한낮, 주님이 부어주시는 참된 평안과 쉼으로 새 힘을 얻으세요."
+            };
+        } else if (h >= 17 && h < 22) {
+            return {
+                badge: "🌆 저녁의 은혜 말씀",
+                verse: "평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라. (요한복음 14:27)",
+                sub: "오늘 하루도 참 애쓰셨습니다. 주님의 날개 그늘 아래 포근한 안식을 누리세요."
+            };
+        } else {
+            return {
+                badge: "🌙 밤·새벽의 은혜 말씀",
+                verse: "여호와는 너를 지키시는 이시라 주께서 너의 출입을 지금부터 영원까지 지키시리로다. (시편 121:8)",
+                sub: "모든 염려를 주께 맡기고 깊고 평안한 단잠을 청하세요."
+            };
+        }
+    }
+
+    function handleChurchNavTab(index) {
+        document.querySelectorAll("#churchNavBar .c-nav-chip").forEach((chip, i) => {
+            chip.classList.toggle("active", i === index);
+        });
+
+        const subBar = document.getElementById("worshipSubMenuBar");
+        const subArea = document.getElementById("worshipSubContentArea");
+
+        if (index === 1) { // 예배 탭
+            subBar.classList.add("show");
+            subArea.style.display = "flex";
+            renderWorshipSubContent();
+        } else {
+            subBar.classList.remove("show");
+            subArea.style.display = "none";
+            if (typeof scrollToCard === "function") {
+                scrollToCard(index);
+            }
+        }
+    }
+
+    function switchWorshipSubTab(key) {
+        activeWorshipSubKey = key;
+        document.querySelectorAll("#worshipSubMenuBar .w-sub-chip").forEach((chip, idx) => {
+            const keys = ['welcome', 'vision', 'servants', 'ministry', 'missionary', 'history'];
+            chip.classList.toggle("active", keys[idx] === key);
+        });
+        renderWorshipSubContent();
+    }
+
+    function renderWorshipSubContent() {
+        let dataMap = DEFAULT_WORSHIP_DATA;
+        try {
+            const raw = localStorage.getItem(WORSHIP_SUB_DATA_KEY);
+            if (raw) dataMap = JSON.parse(raw);
+        } catch(e){}
+
+        const cur = dataMap[activeWorshipSubKey] || DEFAULT_WORSHIP_DATA[activeWorshipSubKey];
+        const area = document.getElementById("worshipSubContentArea");
+        area.innerHTML = "";
+
+        const card = document.createElement("div");
+        card.className = "clean-section-card";
+
+        let html = `
+            <div>
+                <span class="clean-badge-tag">${cur.badge}</span>
+                <h1 class="clean-main-title">${cur.title}</h1>
+            </div>
+            <p class="clean-body-text">${cur.body}</p>
+        `;
+
+        if (activeWorshipSubKey === 'servants' && cur.leaders) {
+            html += `<div class="clean-leader-grid">`;
+            cur.leaders.forEach(l => {
+                html += `
+                    <div class="clean-leader-card">
+                        <img class="clean-leader-img" src="${l.img}" alt="${l.name}">
+                        <div class="clean-leader-info">
+                            <span class="clean-leader-name">${l.name}</span>
+                            <span class="clean-leader-role">${l.role}</span>
+                            <span class="clean-leader-desc">${l.desc}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        }
+
+        if (activeWorshipSubKey === 'history' && cur.historyList) {
+            html += `<div class="clean-timeline-box">`;
+            cur.historyList.forEach(h => {
+                html += `
+                    <div class="clean-timeline-row">
+                        <span class="clean-timeline-year">${h.year}</span>
+                        <span class="clean-timeline-text">${h.text}</span>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        }
+
+        if (cur.bullets && cur.bullets.length > 0) {
+            html += `<div style="display:flex; flex-direction:column; gap:4px; margin-top:4px; text-align:left;">`;
+            cur.bullets.forEach(b => {
+                html += `<div class="clean-bullet-item">${b}</div>`;
+            });
+            html += `</div>`;
+        }
+
+        card.innerHTML = html;
+        area.appendChild(card);
+
+        const verseInfo = getDailyGraceVerse();
+        const verseCard = document.createElement("div");
+        verseCard.className = "daily-grace-card";
+        verseCard.innerHTML = `
+            <span class="grace-time-badge">${verseInfo.badge}</span>
+            <div class="grace-verse-text">${verseInfo.verse}</div>
+            <div class="grace-subtext">${verseInfo.sub}</div>
+        `;
+        area.appendChild(verseCard);
+
+        const admobCard = document.createElement("div");
+        admobCard.className = "grace-admob-250-slot";
+        admobCard.innerHTML = `
+            <span style="font-size:10px; color:#64748b; font-weight:850; letter-spacing:0.5px;">OFFICIAL SPONSOR AD</span>
+            <div style="font-size:26px;">🎁</div>
+            <strong style="color:#ffffff; font-size:15px; font-weight:900;">Google AdMob (300 × 250)</strong>
+            <span style="color:#facc15; font-size:12px; font-weight:800;">예톡 공식 교회 선교 & 미디어 후원 슬롯</span>
+        `;
+        area.appendChild(admobCard);
+
+        const viewport = document.getElementById("churchViewport");
+        if (viewport) viewport.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* 5종 테마 순환 */
+    const CHURCH_THEMES = ['black', 'white', 'pink', 'yellow', 'blue'];
+    function cycleChurchTheme() {
+        const cur = document.body.getAttribute('data-theme') || 'black';
+        let nextIdx = (CHURCH_THEMES.indexOf(cur) + 1) % CHURCH_THEMES.length;
+        const nextTheme = CHURCH_THEMES[nextIdx];
+        document.body.setAttribute('data-theme', nextTheme);
+        localStorage.setItem('yetalk_active_theme', nextTheme);
+        showToast(`🎨 테마: ${nextTheme.toUpperCase()}`);
+    }
+
+    /* 🌟 성도가입 클릭 시 원클릭 등록 분기 */
+    function handleChurchMemberJoinClick() {
+        const currentChurch = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        const loggedUser = localStorage.getItem("loginUser");
+        const savedUserName = localStorage.getItem("yetalkUserName");
+
+        if (loggedUser || (savedUserName && savedUserName.trim() !== "")) {
+            let uName = savedUserName || "예톡성도";
+            try {
+                if (loggedUser) {
+                    const parsed = JSON.parse(loggedUser);
+                    uName = parsed.displayName || parsed.name || uName;
+                }
+            } catch(e){}
+
+            localStorage.setItem("yetalkIsRegularMember", "true");
+            localStorage.setItem("yetalkMyChurchName", currentChurch);
+            localStorage.setItem("yetalkUserStoreName", currentChurch);
+            localStorage.setItem("yetalkMyBizAppUrl", "churchmain.html");
+
+            alert(`🎉 [정회원 등록 완료]\n\n${uName} 성도님, [${currentChurch}] 본교회 성도로 즉시 등록되었습니다!\n\n이제 예톡TV 메인 홈 1번에서 우리 교회의 예배와 라이브를 언제든 편안히 시청하실 수 있습니다.`);
+            showToast(`✅ [${currentChurch}] 정회원으로 연결되었습니다!`);
+            return;
+        }
+
+        openMyProfileModalDirect();
+    }
+
+    let mySelectedJob = '담임목사';
+    let myWantsProApp = true;
+
+    function openMyProfileModalDirect() {
+        const name = localStorage.getItem("yetalkUserName") || "";
+        document.getElementById("myInpName").value = name;
+        document.getElementById("myInpId").value = localStorage.getItem("yetalkUserId") || name || "";
+        document.getElementById("myInpPw").value = localStorage.getItem("yetalkUserPw") || "";
+        document.getElementById("myInpRegion").value = localStorage.getItem("yetalkUserRegion") || "";
+        document.getElementById("myInpPhone").value = localStorage.getItem("yetalkUserPhone") || "";
+        document.getElementById("myInpStore").value = localStorage.getItem("yetalkUserStoreName") || localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+
+        const savedJob = localStorage.getItem("yetalkUserJobType") || "담임목사";
+        selectMyJobType(savedJob);
+        setMyProAppChoice(true);
+
+        openModal("myProfileModal");
+    }
+
+    function selectMyJobType(job) {
+        mySelectedJob = job;
+        document.querySelectorAll("#myJobTabsBox .btn-job-opt").forEach(btn => {
+            btn.classList.toggle("active", btn.innerText.includes(job));
+        });
+    }
+
+    function setMyProAppChoice(choice) {
+        myWantsProApp = choice;
+        const btnYes = document.getElementById("btnMyProYes");
+        const btnNo = document.getElementById("btnMyProNo");
+        if (choice) {
+            btnYes.style.background = "linear-gradient(135deg, #b45309, #d97706)";
+            btnYes.style.borderColor = "#facc15";
+            btnYes.style.color = "#fff";
+            btnNo.style.background = "#1e293b";
+            btnNo.style.borderColor = "#475569";
+            btnNo.style.color = "#cbd5e1";
+        } else {
+            btnNo.style.background = "linear-gradient(135deg, #b45309, #d97706)";
+            btnNo.style.borderColor = "#facc15";
+            btnNo.style.color = "#fff";
+            btnYes.style.background = "#1e293b";
+            btnYes.style.borderColor = "#475569";
+            btnYes.style.color = "#cbd5e1";
+        }
+    }
+
+    function saveMyProfileAndValidateDuplicate() {
+        const name = document.getElementById("myInpName").value.trim();
+        const id = document.getElementById("myInpId").value.trim();
+        const pw = document.getElementById("myInpPw").value.trim();
+        const region = document.getElementById("myInpRegion").value.trim();
+        const phone = document.getElementById("myInpPhone").value.trim();
+        const store = document.getElementById("myInpStore").value.trim();
+        const currentChurch = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+
+        if (!name) { alert("성함을 입력해 주세요."); return; }
+        if (!id) { alert("아이디를 입력해 주세요."); return; }
+        if (!pw) { alert("비밀번호를 입력해 주세요."); return; }
+        if (!region) { alert("활동 거주지(시·군·구)를 입력해 주세요."); return; }
+
+        const finalStore = store || (name + " 비즈니스");
+
+        if (mySelectedJob === '기독교사역자' && myWantsProApp) {
+            const existingStore = localStorage.getItem("yetalkUserStoreName") || "";
+            const existingRegion = localStorage.getItem("yetalkUserRegion") || "";
+            const existingJob = localStorage.getItem("yetalkUserJobType") || "";
+
+            if (existingJob === '담임목사' && existingStore === finalStore && existingRegion.includes(region)) {
+                alert(`⚠️ 중복 등록 방지 안내\n\n[${region}] 지역에 동일한 이름의 [${finalStore}]가 이미 담임목회자 계정으로 등록되어 있습니다.\n\n동일 교회의 혼선을 방지하기 위해 사역 부서명(예: ${finalStore} 청년부)이나 고유 명칭으로 구분하여 입력해 주세요.`);
+                return;
+            }
+        }
+
+        localStorage.setItem("yetalkUserName", name);
+        localStorage.setItem("yetalkUserId", id);
+        localStorage.setItem("yetalkUserPw", pw);
+        localStorage.setItem("yetalkUserRegion", region);
+        if (phone) localStorage.setItem("yetalkUserPhone", phone);
+        localStorage.setItem("yetalkUserStoreName", finalStore);
+        localStorage.setItem("yetalkOneName", finalStore);
+        localStorage.setItem("yetalkUserJobType", mySelectedJob);
+        localStorage.setItem("yetalkHasRegisteredBiz", "true");
+
+        localStorage.setItem("yetalkIsRegularMember", "true");
+        localStorage.setItem("yetalkMyChurchName", currentChurch);
+
+        let targetUrl = "onemain.html";
+
+        if (myWantsProApp) {
+            if (mySelectedJob === '담임목사' || mySelectedJob === '기독교사역자' || finalStore.includes("교회")) {
+                targetUrl = "churchmain.html";
+                localStorage.setItem("yetalkChurchName", finalStore);
+            } else if (mySelectedJob === '개인의원 원장' || finalStore.includes("의원") || finalStore.includes("병원")) {
+                targetUrl = "doctormain.html";
+                localStorage.setItem("yetalkDoctorName", finalStore);
+            } else if (mySelectedJob === '자영업' || finalStore.includes("점") || finalStore.includes("식당")) {
+                targetUrl = "shopmain.html";
+                localStorage.setItem("yetalkShopName", finalStore);
+            } else {
+                targetUrl = "onemain.html";
+            }
+        } else {
+            targetUrl = "onemain.html";
+        }
+
+        localStorage.setItem("yetalkMyBizAppUrl", targetUrl);
+
+        closeModal("myProfileModal");
+        showToast(`🎉 성도 등록 및 [${finalStore}] 개설 완료! 이동합니다...`);
+
+        setTimeout(() => {
+            window.location.href = targetUrl;
+        }, 700);
+    }
+
+    function openModal(id) { document.getElementById(id)?.classList.add("show"); }
+    function closeModal(id) { document.getElementById(id)?.classList.remove("show"); }
+
+    function showToast(msg) {
+        const t = document.getElementById("yetalkToast");
+        if (!t) return;
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2000);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedTheme = localStorage.getItem('yetalk_active_theme') || 'black';
+        document.body.setAttribute('data-theme', savedTheme);
+
+        const churchName = localStorage.getItem("yetalkChurchName") || localStorage.getItem("yetalkUserStoreName") || "예톡행복한교회";
+        const titleEl = document.getElementById("churchName");
+        if (titleEl) titleEl.innerText = churchName;
+    });
+</script>
+<script src="churchmain.js"></script>
+</body>
+</html>

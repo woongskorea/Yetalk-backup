@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>우리교회 초청장</title>
+    <!-- CSS 경로 -->
+    <link rel="stylesheet" href="src/main/assets/common.css">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #fdf2f8;
+            font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
+            color: #1e293b;
+            transition: background 0.3s ease;
+        }
+
+        /* 상단 헤더 (카메라 구멍 침범 방지 안전 여백 및 테마 적용) */
+        .header {
+            display: flex;
+            align-items: center;
+            height: 65px;
+            padding: calc(16px + env(safe-area-inset-top)) 16px 12px;
+            background: var(--theme-color, #97266d);
+            color: #ffffff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: background 0.3s ease;
+        }
+
+        /* 원형 뒤로가기 버튼 */
+        .header .back {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 900;
+            cursor: pointer;
+            color: #ffffff;
+            flex-shrink: 0;
+            z-index: 10;
+            transition: background 0.2s;
+            user-select: none;
+        }
+        .header .back:active {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .header .title {
+            flex: 1;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-right: 40px;
+            letter-spacing: -0.5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .inviteWrap {
+            max-width: 500px;
+            margin: auto;
+            padding: 24px 16px 80px;
+        }
+
+        /* 상단 타이틀 배너 */
+        .pageHeader {
+            text-align: center;
+            margin-bottom: 24px;
+            padding: 10px 0;
+        }
+        .pageHeader .icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+        .pageHeader h2 {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--theme-color, #97266d);
+            margin: 0;
+            letter-spacing: -0.5px;
+        }
+
+        /* 모던 탭 메뉴 */
+        .modernTabBox {
+            display: flex;
+            background: #e2e8f0;
+            border-radius: 14px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+        .modernTabBtn {
+            flex: 1;
+            height: 44px;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 800;
+            color: #64748b;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .modernTabBtn.active {
+            background: #ffffff;
+            color: var(--theme-color, #97266d);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        /* 초청장 본문 카드 */
+        .contentCard {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 24px 20px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .cardTop {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 12px;
+        }
+        .cardTopTitle {
+            font-size: 18px;
+            font-weight: 900;
+            color: #1e293b;
+        }
+        .editBtn {
+            background: #f1f5f9;
+            color: var(--theme-color, #97266d);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+            display: none;
+        }
+
+        .textContent {
+            font-size: 16.5px;
+            line-height: 1.8;
+            color: #334155;
+            font-weight: 700;
+            white-space: pre-line;
+            min-height: 120px;
+        }
+
+        .editModeTextarea {
+            width: 100%;
+            height: 160px;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1.6;
+            outline: none;
+            resize: vertical;
+            background: #f8fafc;
+            box-sizing: border-box;
+            color: #334155;
+        }
+        .saveBtn {
+            width: 100%;
+            height: 48px;
+            background: #10b981;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* 하단 큼직한 버튼 */
+        .actionGrid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .mainBtn {
+            width: 100%;
+            height: 56px;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            transition: transform 0.1s;
+        }
+        .mainBtn:active {
+            transform: scale(0.98);
+        }
+        .btnKakao {
+            background: #fee500;
+            color: #191919;
+            box-shadow: 0 4px 15px rgba(254, 229, 0, 0.3);
+        }
+
+        /* 하단 가입 박스 */
+        .authBox {
+            background: #ffffff;
+            padding: 24px 20px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+            border: 1px solid #e2e8f0;
+        }
+        .authBox p {
+            font-size: 15px;
+            font-weight: 800;
+            color: #64748b;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        .authRow {
+            display: flex;
+            gap: 10px;
+        }
+        .authBtn {
+            flex: 1;
+            height: 50px;
+            border-radius: 12px;
+            font-size: 15.5px;
+            font-weight: 900;
+            cursor: pointer;
+            border: none;
+        }
+        .btnJoin {
+            background: var(--theme-color, #97266d);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .btnLogin {
+            background: #f1f5f9;
+            color: #475569;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <!-- 뒤로가기 버튼: 주소를 적지 않고 브라우저 히스토리(history.back) 기능 호출 -->
+    <div class="back" id="backBtn">〈</div>
+    <div class="title" id="headerTitle">교회 초청장</div>
+</div>
+
+<div class="inviteWrap">
+
+    <div class="pageHeader">
+        <div class="icon">⛪</div>
+        <h2>우리교회 성도님들 초청합니다</h2>
+    </div>
+
+    <!-- 모던한 탭 메뉴 -->
+    <div class="modernTabBox">
+        <button id="tabA" class="modernTabBtn active" type="button">성도초청</button>
+        <button id="tabB" class="modernTabBtn" type="button">목사초대</button>
+        <button id="tabC" class="modernTabBtn" type="button">전도초청</button>
+    </div>
+
+    <!-- 초청장 본문 카드 -->
+    <div class="contentCard">
+        <div class="cardTop">
+            <span class="cardTopTitle" id="previewCardTitle">우리교회로 초대합니다</span>
+            <button id="editBtn" class="editBtn" type="button">수정</button>
+        </div>
+
+        <div id="textContent" class="textContent">
+            로딩 중...
+        </div>
+
+        <div id="editArea" style="display: none;">
+            <textarea id="editTextarea" class="editModeTextarea"></textarea>
+            <button id="saveEditBtn" class="saveBtn" type="button">내용 저장하기</button>
+        </div>
+    </div>
+
+    <!-- 액션 버튼 (노란색 단일 복사 버튼) -->
+    <div class="actionGrid">
+        <button id="copyInviteTextBtn" class="mainBtn btnKakao" type="button" style="background: #fee500; color: #191919; box-shadow: 0 4px 15px rgba(254, 229, 0, 0.3);">
+            📋 초청글 복사하기 (카카오톡 전송용)
+        </button>
+    </div>
+
+    <!-- 가입/로그인 박스 -->
+    <div class="authBox">
+        <p>초대받고 오셨나요?</p>
+        <div class="authRow">
+            <button id="goToJoinBtn" class="authBtn btnJoin" type="button">간편 회원가입</button>
+            <button id="goToLoginBtn" class="authBtn btnLogin" type="button">로그인</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- ⭐ [브라우저 히스토리 제어] 주소 조합 필요 없이 무조건 이전 페이지로 안전 복귀 -->
+<script>
+    const urlParams = new URLSearchParams(location.search);
+    const churchId = urlParams.get("churchId") || localStorage.getItem("yetalkMyChurchId") || "yetalk-church";
+
+    const savedThemeColor = localStorage.getItem("yetalkThemeColor") || localStorage.getItem("churchThemeColor") || "#97266d";
+    document.documentElement.style.setProperty('--theme-color', savedThemeColor);
+
+    // ⭐ 뒤로가기: 주소를 건드리지 않고 브라우저가 기억하는 직전 페이지로 깔끔하게 돌아감
+    const backBtn = document.getElementById("backBtn");
+    if (backBtn) {
+        backBtn.onclick = () => {
+            history.back();
+        };
+    }
+
+    // 간편 회원가입 버튼
+    const joinBtn = document.getElementById("goToJoinBtn");
+    if (joinBtn) {
+        joinBtn.onclick = () => {
+            location.href = `../../join.html?churchId=${encodeURIComponent(churchId)}`;
+        };
+    }
+
+    // 로그인 버튼
+    const loginBtn = document.getElementById("goToLoginBtn");
+    if (loginBtn) {
+        loginBtn.onclick = () => {
+            location.href = `../../login.html?churchId=${encodeURIComponent(churchId)}`;
+        };
+    }
+</script>
+
+<!-- 외부 자바스크립트 연동 -->
+<script type="module" src="src/main/assets/church/churchmenu/churchinvite.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>예톡 - 교회 이미지 자동 생성기</title>
+    <style>
+        body {
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 480px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        h2 { font-size: 18px; font-weight: 900; margin: 0 0 10px; color: #0f172a; text-align: center; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 12.5px; font-weight: 800; color: #475569; }
+        input, select {
+            width: 100%; height: 44px; padding: 0 12px; border: 1.5px solid #cbd5e1;
+            border-radius: 10px; font-size: 14px; font-weight: 700; box-sizing: border-box;
+            background: #f8fafc;
+        }
+        input:focus, select:focus { border-color: #0284c7; outline: none; background: #ffffff; }
+
+        /* 캔버스 미리보기 영역 */
+        .preview-box {
+            width: 100%;
+            height: 240px;
+            background: #0284c7;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+        }
+        .canvas-badge { font-size: 11px; font-weight: 800; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; margin-bottom: 8px; }
+        .canvas-title { font-size: 20px; font-weight: 900; line-height: 1.35; margin-bottom: 6px; word-break: keep-all; }
+        .canvas-sub { font-size: 12.5px; font-weight: 700; opacity: 0.9; }
+
+        /* 다운로드 버튼 */
+        .download-btn {
+            width: 100%; height: 50px; background: #16a34a; color: #ffffff; border: none;
+            border-radius: 12px; font-size: 15px; font-weight: 900; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(22,163,74,0.3);
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .download-btn:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎨 예톡 이미지 자동 생성 툴</h2>
+
+    <div class="form-group">
+        <label>상단 뱃지 텍스트 (예: 주일설교, 공지사항)</label>
+        <input type="text" id="badgeInput" value="✨ 예톡행복한교회" oninput="updateImage()">
+    </div>
+
+    <div class="form-group">
+        <label>메인 타이틀 텍스트</label>
+        <input type="text" id="titleInput" value="하나님을 기쁘시게 하는 예배" oninput="updateImage()">
+    </div>
+
+    <div class="form-group">
+        <label>서브 타이틀 텍스트</label>
+        <input type="text" id="subInput" value="요한복음 3:16 · 이주 말씀 요약" oninput="updateImage()">
+    </div>
+
+    <div class="form-group">
+        <label>배경 스타일 선택</label>
+        <select id="bgSelect" onchange="updateImage()">
+            <option value="linear-gradient(135deg, #0284c7 0%, #0369a1 100%)">시원한 블루 그라데이션</option>
+            <option value="linear-gradient(135deg, #0f172a 0%, #1e293b 100%)">고급스러운 네이비/다크</option>
+            <option value="linear-gradient(135deg, #16a34a 0%, #15803d 100%)">싱그러운 그린 그라데이션</option>
+            <option value="linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)">우아한 퍼플 그라데이션</option>
+            <option value="linear-gradient(135deg, #d97706 0%, #b45309 100%)">따뜻한 골드/오렌지</option>
+        </select>
+    </div>
+
+    <label>실시간 미리보기 화면</label>
+    <!-- 시각적으로 미리 보여주는 박스 -->
+    <div class="preview-box" id="previewBox">
+        <span class="canvas-badge" id="prevBadge">✨ 예톡행복한교회</span>
+        <div class="canvas-title" id="prevTitle">하나님을 기쁘시게 하는 예배</div>
+        <div class="canvas-sub" id="prevSub">요한복음 3:16 · 이주 말씀 요약</div>
+    </div>
+
+    <!-- 실제 이미지 파일로 만들어주는 숨겨진 캔버스 -->
+    <canvas id="imageCanvas" width="800" height="450" style="display:none;"></canvas>
+
+    <button class="download-btn" type="button" onclick="downloadImage()">
+        📥 이 이미지 파일로 다운로드하기 (PNG)
+    </button>
+</div>
+
+<script>
+    function updateImage() {
+        const badge = document.getElementById('badgeInput').value;
+        const title = document.getElementById('titleInput').value;
+        const sub = document.getElementById('subInput').value;
+        const bg = document.getElementById('bgSelect').value;
+
+        // 화면 미리보기 업데이트
+        document.getElementById('prevBadge').innerText = badge;
+        document.getElementById('prevTitle').innerText = title;
+        document.getElementById('prevSub').innerText = sub;
+        document.getElementById('previewBox').style.background = bg;
+    }
+
+    function downloadImage() {
+        const badge = document.getElementById('badgeInput').value;
+        const title = document.getElementById('titleInput').value;
+        const sub = document.getElementById('subInput').value;
+        const bgType = document.getElementById('bgSelect').value;
+
+        const canvas = document.getElementById('imageCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 1. 고해상도 배경 그리기 (800x450 비율)
+        let gradient = ctx.createLinearGradient(0, 0, 800, 450);
+        if (bgType.includes('#0284c7')) {
+            gradient.addColorStop(0, '#0284c7'); gradient.addColorStop(1, '#0369a1');
+        } else if (bgType.includes('#0f172a')) {
+            gradient.addColorStop(0, '#0f172a'); gradient.addColorStop(1, '#1e293b');
+        } else if (bgType.includes('#16a34a')) {
+            gradient.addColorStop(0, '#16a34a'); gradient.addColorStop(1, '#15803d');
+        } else if (bgType.includes('#7c3aed')) {
+            gradient.addColorStop(0, '#7c3aed'); gradient.addColorStop(1, '#6d28d9');
+        } else {
+            gradient.addColorStop(0, '#d97706'); gradient.addColorStop(1, '#b45309');
+        }
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 800, 450);
+
+        // 2. 뱃지 그리기
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.beginPath();
+        ctx.roundRect(40, 60, 200, 36, 18);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(badge, 140, 84);
+
+        // 3. 메인 타이틀 그리기 (줄바꿈 고려)
+        ctx.font = 'bold 36px -apple-system, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(title, 40, 180);
+
+        // 4. 서브 타이틀 그리기
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.font = 'bold 20px -apple-system, sans-serif';
+        ctx.fillText(sub, 40, 240);
+
+        // 5. 하단 로고/브랜딩 텍스트
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.font = 'bold 14px -apple-system, sans-serif';
+        ctx.fillText('YETALK CHURCH PLATFORM', 40, 390);
+
+        // 6. 다운로드 링크 생성
+        const link = document.createElement('a');
+        link.download = 'yetalk_church_image.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }
+</script>
+
+</body>
+</html>

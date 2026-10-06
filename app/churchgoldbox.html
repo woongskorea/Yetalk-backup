@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>예톡 골드박스</title>
+    <link rel="stylesheet" href="../common.css">
+
+    <script>
+        (function() {
+            const getChurchId = () => localStorage.getItem("yetalkMyChurchId") || localStorage.getItem("currentChurchId") || "yetalk-church";
+            const savedTheme = localStorage.getItem("yetalkChurchTheme_" + getChurchId()) || localStorage.getItem("yetalkThemeColor") || "blue";
+            document.documentElement.className = "theme-" + savedTheme;
+        })();
+    </script>
+
+    <style>
+        :root { --primary: #3b82f6; }
+        html.theme-blue { --primary: #3b82f6; }
+        html.theme-red { --primary: #dc2626; }
+        html.theme-green { --primary: #16a34a; }
+        html.theme-orange { --primary: #ea580c; }
+        html.theme-purple { --primary: #9333ea; }
+        html.theme-pink { --primary: #db2777; }
+        html.theme-black { --primary: #111827; }
+        html.theme-navy { --primary: #1e3a8a; }
+
+        body { margin: 0; padding: 0; background: #f8fafc; font-family: "Pretendard", sans-serif; display: flex; flex-direction: column; min-height: 100vh; }
+        .hidden { display: none !important; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: max(10px, env(safe-area-inset-top)) 16px 10px; background: #fff; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
+        .back-btn { font-size: 24px; background: none; border: none; cursor: pointer; color: #0f172a; }
+        .adminStateBtn { background: #dc2626; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; }
+
+        .tab-menu-wrapper { position: relative; background: #fff; border-bottom: 1px solid #e2e8f0; transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out; max-height: 200px; opacity: 1; overflow: hidden; }
+        .tab-menu-wrapper.collapsed { max-height: 0; opacity: 0; border: none; }
+        .tab-menu-scroll { display: flex; padding: 12px 0; overflow-x: auto; scroll-behavior: smooth; scrollbar-width: none; -ms-overflow-style: none; scroll-snap-type: x mandatory; }
+        .tab-menu-scroll::-webkit-scrollbar { display: none; }
+        .menu-page { flex: 0 0 100%; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; padding: 0 44px; box-sizing: border-box; scroll-snap-align: center; }
+
+        .tab-btn { padding: 12px 6px; border-radius: 10px; font-size: 15.5px; font-weight: 900; color: #64748b; background: #f1f5f9; border: 1px solid #e2e8f0; transition: 0.2s; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .tab-btn.active { color: #ffffff; background: var(--primary); border-color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+        .scroll-arrow { position: absolute; top: 0; bottom: 0; width: 40px; background: rgba(255,255,255,0.95); border: none; font-size: 22px; font-weight: 900; color: var(--primary); z-index: 10; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .scroll-arrow.left { left: 0; box-shadow: 4px 0 8px rgba(0,0,0,0.05); }
+        .scroll-arrow.right { right: 0; box-shadow: -4px 0 8px rgba(0,0,0,0.05); }
+
+        .daily-gold-card { margin: 12px 16px 0; padding: 14px 16px; background: linear-gradient(135deg, #fffbeb 0%, #fef08a 100%); border: 1px solid #fde047; border-radius: 12px; box-shadow: 0 2px 6px rgba(250, 204, 21, 0.2); text-align: center; display: flex; flex-direction: column; gap: 6px; }
+        .gold-title { font-size: 13px; font-weight: 900; color: #b45309; display: flex; align-items: baseline; justify-content: center; gap: 6px; }
+        .gold-ref { font-size: 14px; font-weight: 900; color: #0284c7; }
+        .gold-content { font-size: 16px; font-weight: 800; color: #713f12; line-height: 1.4; word-break: keep-all; }
+
+        .feed-post { background: #fff; padding: 16px; display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+        .feed-header { display: flex; justify-content: space-between; align-items: center; }
+        .feed-category { font-size: 12px; font-weight: 900; color: var(--primary); border: 1px solid var(--primary); background: #ffffff; padding: 3px 8px; border-radius: 6px; }
+        .feed-title { font-size: 20px; font-weight: 900; color: #0f172a; line-height: 1.4; margin: 0; }
+        .feed-content { font-size: 16px; color: #334155; line-height: 1.6; white-space: pre-wrap; word-break: keep-all; max-height: 150px; overflow-y: auto; padding-right: 4px; margin-bottom: 4px; }
+        .feed-content::-webkit-scrollbar { width: 4px; }
+        .feed-content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        .attachment-buttons-wrap { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+        .attach-sm-btn { padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 12px; font-weight: 800; color: #475569; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+
+        .ad-sponsor-msg { text-align: center; font-size: 12px; font-weight: 800; color: #64748b; margin: 8px 0 4px; line-height: 1.4; word-break: keep-all; }
+        .admob-banner { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px; min-height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; color: #64748b; text-align: center; margin-bottom: 12px; }
+
+        .post-actions { display: flex; align-items: center; padding-top: 12px; border-top: 1px solid #f1f5f9; flex-wrap: wrap; gap: 8px; }
+        .action-btn { padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; border: none; display: flex; align-items: center; gap: 4px; }
+        .btn-new { background: #fef08a; color: #a16207; }
+        .btn-edit { background: #e0f2fe; color: #0284c7; }
+        .btn-delete { background: #fee2e2; color: #dc2626; }
+        .btn-copy { background: #f1f5f9; color: #475569; }
+        .btn-print { background: #fef3c7; color: #b45309; }
+
+        .feed-list-item { padding: 16px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; gap: 10px; cursor: pointer; background: #fff; transition: 0.2s; }
+        .feed-list-item:active { background: #f1f5f9; }
+        .feed-list-item .feed-title { font-size: 16px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; margin: 0; }
+
+        .post-nav-buttons { display: flex; gap: 10px; padding: 8px 16px 20px; background: #f8fafc; }
+        .swipe-arrow-btn { width: 100%; padding: 12px 0; background: transparent; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
+        .swipe-arrow-btn span.text { font-size: 13px; font-weight: 800; color: #94a3b8; }
+        .swipe-arrow-btn span.arrow { font-size: 32px; color: var(--primary); animation: bounceUpDown 1.5s infinite; line-height: 1; }
+        .swipe-arrow-btn.up-arrow span.arrow { font-size: 24px; color: #cbd5e1; animation: none; margin-bottom: 4px; }
+        @keyframes bounceUpDown { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+
+        .fullScreenEditor { position: fixed; inset: 0; background: #ffffff; z-index: 99999; display: flex; flex-direction: column; }
+        .editorHeader { display: flex; justify-content: space-between; align-items: center; padding: max(30px, env(safe-area-inset-top)) 16px 16px 16px; border-bottom: 1px solid #f1f5f9; background: #fff; }
+        .editorHeader .btn-cancel { font-size: 16px; font-weight: 800; color: #64748b; background: none; border: none; cursor: pointer; }
+        .editorHeader .editor-title { font-size: 18px; font-weight: 900; color: #0f172a; }
+        .editorHeader .btn-submit { font-size: 16px; font-weight: 800; color: var(--primary); background: none; border: none; cursor: pointer; }
+        .editorCategoryWrap { padding: 16px 16px 0 16px; background: #fff; }
+        .editorCategory { width: 100%; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 15px; font-weight: 800; color: var(--primary); outline: none; background: #fff; }
+        .editorToolbar { padding: 12px 16px; display: flex; gap: 8px; align-items: center; background: #fff; border-bottom: 1px solid #f1f5f9; }
+        .editorToolbar button { padding: 8px 14px; border: 1px solid #e2e8f0; border-radius: 20px; background: #fff; font-size: 14px; font-weight: 800; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        .editorTextarea { flex: 1; width: 100%; padding: 20px 16px; border: none; outline: none; resize: none; font-size: 17px; font-weight: 700; line-height: 1.6; box-sizing: border-box; caret-color: var(--primary); color: #334155; }
+
+        .toast-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.85); color: #fff; padding: 16px 24px; border-radius: 12px; font-size: 16px; font-weight: 800; z-index: 999999; display: none; text-align: center; line-height: 1.5; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+
+        @media print {
+            .header, .tab-menu-wrapper, .post-actions, .admob-banner, .ad-sponsor-msg, .swipe-arrow-btn, .church-bottom-nav, .toast-msg, .attachment-buttons-wrap, .daily-gold-card { display: none !important; }
+            body { background: #fff; color: #000; }
+            #boardListArea { padding: 0 !important; overflow: visible !important; }
+            .feed-post { padding: 0; box-shadow: none; border: none; gap: 10px; margin-top: 0; }
+            .feed-title { font-size: 26px; color: #000; }
+            .feed-content { font-size: 16px; color: #000; line-height: 1.8; max-height: none; overflow: visible; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <button class="back-btn" onclick="location.href='../churchmain.html'">←</button>
+        <div style="display: flex; flex-direction: column;">
+            <span style="font-size: 18px; font-weight: 900;">골드박스</span>
+            <span style="font-size: 13px; color: var(--primary); font-weight: 800;" id="churchNameText">우리 교회</span>
+        </div>
+    </div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+        <button class="adminStateBtn" id="adminStateBtn" onclick="toggleGlobalAdmin()">관리자 OFF</button>
+    </div>
+</header>
+
+<div class="tab-menu-wrapper" id="tabMenuWrapper">
+    <button class="scroll-arrow left" onclick="scrollTabs('left')">❮</button>
+    <div class="tab-menu-scroll" id="tabMenuContainer"></div>
+    <button class="scroll-arrow right" onclick="scrollTabs('right')">❯</button>
+</div>
+
+<main id="boardListArea" style="flex: 1; overflow-y: auto; padding-bottom: 80px;"></main>
+
+<nav class="church-bottom-nav fixed-bottom-nav" style="position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: #fff; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; align-items: center; z-index: 200;">
+    <a href="src/main/assets/church/churchmain.html" class="bottom-nav-item" style="color: #64748b; font-size: 14px; font-weight: 800; text-decoration: none;">교회홈</a>
+    <a href="src/main/assets/index.html" class="bottom-nav-item" style="color: #64748b; font-size: 14px; font-weight: 800; text-decoration: none;">나의홈</a>
+    <a href="src/main/assets/shopping.html" class="bottom-nav-item" style="color: #64748b; font-size: 14px; font-weight: 800; text-decoration: none;">쇼핑</a>
+    <a href="../location.html" class="bottom-nav-item" style="color: #64748b; font-size: 14px; font-weight: 800; text-decoration: none;">오시는길</a>
+    <a href="src/main/assets/mypage.html" class="bottom-nav-item" style="color: #64748b; font-size: 14px; font-weight: 800; text-decoration: none;">내정보</a>
+</nav>
+
+<div id="fullScreenEditor" class="fullScreenEditor hidden">
+    <div class="editorHeader">
+        <button type="button" class="btn-cancel" onclick="closeEditor()">← 취소</button>
+        <span class="editor-title">자료 등록</span>
+        <button type="button" class="btn-submit" onclick="if(window.submitPost) window.submitPost()">등록</button>
+    </div>
+    <div class="editorCategoryWrap">
+        <select id="editorCategory" class="editorCategory"></select>
+    </div>
+    <div class="editorToolbar">
+        <button type="button" onclick="document.getElementById('photoInput').click()">📷 사진</button>
+        <button type="button" onclick="alert('파일 첨부 기능 준비 중입니다.')">📁 파일</button>
+        <span id="attachPreview" style="flex:1; text-align:right; font-size:12px; color:var(--primary); font-weight:800;"></span>
+        <input type="file" id="photoInput" class="hidden" accept="image/*">
+    </div>
+    <textarea id="editorMessageInput" class="editorTextarea" placeholder="내용을 자유롭게 입력하세요. 엔터를 치면 줄이 바뀝니다." autocomplete="off"></textarea>
+</div>
+
+<div id="toastMsg" class="toast-msg"></div>
+
+<!-- 캐시 삭제를 위해 버전명 변경 -->
+<script src="src/main/assets/church/churchmenu/churchgoldbox.js?v=list_btn_fixed"></script>
+</body>
+</html>

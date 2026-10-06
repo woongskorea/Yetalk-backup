@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0d283a">
+    <title>예톡 통합관리자</title>
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-size: 14px; background: #081726; color: #f8fafc; margin: 0; }
+
+        .admin-master-channel-bar {
+            background: #0d283a;
+            border-bottom: 1.5px solid #1a4968;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .master-badge-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13.5px;
+            color: #38bdf8;
+            font-weight: 900;
+        }
+        .master-channel-select {
+            background: #081b28;
+            border: 1.5px solid #23648f;
+            color: #facc15;
+            font-size: 13.5px;
+            font-weight: 900;
+            padding: 5px 8px;
+            border-radius: 6px;
+            outline: none;
+            max-width: 170px;
+        }
+        .btn-quick-add-channel {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        /* 세련된 딥블루 애드몹 배너 */
+        .admob-shortcut-bar {
+            background: linear-gradient(135deg, #1e3a8a, #0f766e);
+            border: 1.5px solid #38bdf8;
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+        .admob-title { font-size: 14px; font-weight: 950; color: #facc15; }
+        .admob-sub { font-size: 12px; color: #e2e8f0; margin-top: 1px; }
+
+        /* 오늘 신규 가입/등록 요약 바 */
+        .today-summary-bar {
+            background: #0f2333;
+            border: 1.5px solid #0284c7;
+            border-radius: 10px;
+            padding: 9px 10px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .today-summary-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12.5px;
+            font-weight: 900;
+            color: #38bdf8;
+        }
+        .today-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            text-align: center;
+        }
+        .today-stat-item {
+            background: #173247;
+            border-radius: 6px;
+            padding: 5px 2px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .today-stat-item span { font-size: 11px; color: #94a3b8; font-weight: 700; }
+        .today-stat-item strong { font-size: 14.5px; color: #facc15; font-weight: 950; }
+
+        /* 콤팩트 전체 누적 현황 그리드 */
+        .compact-executive-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 7px;
+        }
+        .compact-card {
+            background: #0f1e2e;
+            border-radius: 10px;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            border: 1px solid #23425b;
+            text-align: left;
+        }
+        .compact-card-icon { font-size: 20px; }
+        .compact-card-info { display: flex; flex-direction: column; line-height: 1.25; }
+        .compact-card-info span { font-size: 11.5px; color: #cbd5e1; font-weight: 700; }
+        .compact-card-info strong { font-size: 16px; font-weight: 950; margin: 1px 0; }
+        .compact-card-info small { font-size: 10.5px; color: #64748b; }
+
+        /* 관리자 실시간 제어 센터 박스 */
+        .admin-control-box {
+            background: #0f172a;
+            border: 1.5px solid #0284c7;
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .control-item label {
+            font-size: 12px;
+            color: #facc15;
+            font-weight: 800;
+        }
+
+        /* 기도문 카드 */
+        .prayer-card {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #334155;
+            border-left: 4px solid #facc15;
+        }
+        .prayer-card-text { font-size: 12.5px; line-height: 1.45; color: #f8fafc; }
+        .prayer-card-text strong { color: #facc15; font-size: 13px; }
+
+        /* 통장 입금계좌 설정 박스 */
+        .plan-master-config-box {
+            background: #0f172a;
+            border: 1.5px solid #0284c7;
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+        .bank-input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.8fr 1fr;
+            gap: 6px;
+            width: 100%;
+        }
+        .plan-config-input {
+            background: #1e293b;
+            border: 1px solid #38bdf8;
+            color: #facc15;
+            font-size: 13px;
+            font-weight: 800;
+            padding: 7px 8px;
+            border-radius: 6px;
+            outline: none;
+            width: 100%;
+        }
+        .plan-save-btn {
+            background: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 8px 12px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        /* 명단 리스트 박스 */
+        .store-list-box {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 8px;
+            border: 1px solid #334155;
+            display: none;
+        }
+        .store-list-box.show { display: block; }
+        .store-item-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 7px 0; border-bottom: 1px solid #334155;
+            font-size: 13px;
+        }
+
+        /* 모달 스타일 */
+        .admin-profile-modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
+            z-index: 10000; align-items: center; justify-content: center;
+            padding: 14px; backdrop-filter: blur(4px);
+        }
+        .admin-profile-modal-overlay.show { display: flex; }
+        .admin-profile-card {
+            width: 100%; max-width: 420px; max-height: 90vh;
+            background: #0f172a; border: 1.5px solid #38bdf8;
+            border-radius: 14px; padding: 16px 14px;
+            display: flex; flex-direction: column; overflow-y: auto; color: #f8fafc;
+        }
+        .profile-input-group { margin-bottom: 9px; display: flex; flex-direction: column; gap: 3px; }
+        .profile-input-group label { font-size: 12px; color: #facc15; font-weight: 800; }
+        .profile-input-group input {
+            background: #1e293b; border: 1px solid #334155; border-radius: 6px;
+            padding: 7px 9px; color: #ffffff; font-size: 13px; outline: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="adminApp" class="admin-app">
+
+    <!-- GLOBAL HEADER -->
+    <header class="admin-header">
+        <div class="admin-header-main">
+            <div class="admin-brand" onclick="openMasterProfileModal()" style="cursor:pointer;">
+                <div class="admin-brand-symbol" style="font-size:20px;">✝</div>
+                <div class="admin-brand-text">
+                    <small style="font-size:10.5px;">YETALK INTEGRATED MANAGEMENT</small>
+                    <h1 style="font-size:18px;">예톡 통합관리자</h1>
+                </div>
+            </div>
+
+            <div style="display:flex; gap:6px; align-items:center;">
+                <button type="button" class="btn-quick-add-channel" style="background:#0284c7;" onclick="openMasterProfileModal()">
+                    👤 내 정보
+                </button>
+                <button id="adminHomeButton" class="admin-home-button" type="button" onclick="location.href='index.html'" style="font-size:12.5px;">
+                    <span>🏠</span> 예톡홈
+                </button>
+            </div>
+        </div>
+
+        <div class="admin-header-bottom">
+            <div class="admin-live-status" style="font-size:12.5px;">
+                <span class="live-dot"></span>
+                <strong>운영중 (총관리자: <span id="adminMasterNameText" style="color:#facc15; cursor:pointer;" onclick="openMasterProfileModal()">김예톡 원장님</span>)</strong>
+            </div>
+            <span id="businessBoardDate" style="font-size:11.5px;"></span>
+        </div>
+    </header>
+
+    <!-- MASTER MULTI-CHANNEL SWITCHER -->
+    <div class="admin-master-channel-bar">
+        <div class="master-badge-title">
+            <span>👑 연결 앱:</span>
+            <select id="masterCurrentChannelSelect" class="master-channel-select" onchange="handleAdminChannelSwitch(this.value)"></select>
+        </div>
+        <button type="button" class="btn-quick-add-channel" onclick="openNewChannelModal()">
+            ＋ 새 사업장 오픈
+        </button>
+    </div>
+
+    <!-- MAIN BODY -->
+    <div id="churchBusinessArea" class="business-area-panel active" style="padding:10px;">
+
+        <!-- 애드몹 광고 수익 확인 배너 -->
+        <div class="admob-shortcut-bar" onclick="openAdmobConsole()">
+            <div>
+                <div class="admob-title">📊 Google AdMob 광고 수익 실시간 확인</div>
+                <div class="admob-sub">오늘 발생한 광고 노출수 및 실시간 수익 콘솔 열기 ➔</div>
+            </div>
+            <span style="font-size:20px;">💰</span>
+        </div>
+
+        <!-- 오늘 신규 가입/등록 현황 요약 바 -->
+        <div class="today-summary-bar">
+            <div class="today-summary-head">
+                <span>⚡ 오늘 신규 가입 현황</span>
+                <span style="font-size:11px; color:#10b981;">실시간 집계중</span>
+            </div>
+            <div class="today-summary-grid">
+                <div class="today-stat-item">
+                    <span>오늘 회원</span>
+                    <strong id="todayMemberCount">1명</strong>
+                </div>
+                <div class="today-stat-item">
+                    <span>오늘 교회</span>
+                    <strong id="todayChurchCount" style="color:#38bdf8;">0곳</strong>
+                </div>
+                <div class="today-stat-item">
+                    <span>오늘 의원</span>
+                    <strong id="todayClinicCount" style="color:#10b981;">0곳</strong>
+                </div>
+                <div class="today-stat-item">
+                    <span>오늘 상점</span>
+                    <strong id="todayStoreCount" style="color:#facc15;">0곳</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- 전체 누적 가맹처 현황판 -->
+        <section class="executive-board">
+            <div class="compact-executive-grid">
+                <button type="button" class="compact-card" style="border-color:#0284c7;">
+                    <div class="compact-card-icon">👥</div>
+                    <div class="compact-card-info">
+                        <span>전체 회원</span>
+                        <strong id="countMember" style="color:#38bdf8;">4명</strong>
+                        <small>가입 즉시 정회원</small>
+                    </div>
+                </button>
+
+                <button type="button" class="compact-card" style="border-color:#38bdf8;" onclick="toggleStoreList('church')">
+                    <div class="compact-card-icon">⛪</div>
+                    <div class="compact-card-info">
+                        <span>전체 교회</span>
+                        <strong id="countChurch" style="color:#ffffff;">2곳</strong>
+                        <small>명단보기 (클릭)</small>
+                    </div>
+                </button>
+
+                <button type="button" class="compact-card" style="border-color:#10b981;" onclick="toggleStoreList('clinic')">
+                    <div class="compact-card-icon">🏥</div>
+                    <div class="compact-card-info">
+                        <span>전체 의원</span>
+                        <strong id="countClinic" style="color:#10b981;">2곳</strong>
+                        <small>명단보기 (클릭)</small>
+                    </div>
+                </button>
+
+                <button type="button" class="compact-card" style="border-color:#eab308;" onclick="toggleStoreList('store')">
+                    <div class="compact-card-icon">🍽️</div>
+                    <div class="compact-card-info">
+                        <span>식당 · 상점</span>
+                        <strong id="countStore" style="color:#facc15;">2곳</strong>
+                        <small>명단보기 (클릭)</small>
+                    </div>
+                </button>
+            </div>
+
+            <div id="storeListBox" class="store-list-box">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <strong id="storeListTitle" style="color:#38bdf8; font-size:14px;">가맹처 명단</strong>
+                    <button type="button" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;" onclick="document.getElementById('storeListBox').classList.remove('show')">✕</button>
+                </div>
+                <div id="storeListContent"></div>
+            </div>
+        </section>
+
+        <!-- 총관리자 실시간 앱 제어 센터 -->
+        <section class="admin-control-box">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong style="color:#38bdf8; font-size:14px;">👑 총관리자 실시간 앱 제어 센터</strong>
+                <span style="font-size:11px; color:#94a3b8;">원터치 즉시 반영</span>
+            </div>
+
+            <!-- 1. 상단 공지 / 인사말 -->
+            <div class="control-item">
+                <label>📢 메인 상단 한줄 말씀 / 명절 인사 / 공지글</label>
+                <div style="display:flex; gap:6px;">
+                    <input type="text" id="customTopNoticeInput" class="plan-config-input" placeholder="예: 풍성한 한가위 되세요! 주님의 평안을 기원합니다.">
+                    <button type="button" class="plan-save-btn" onclick="saveCustomTopNotice()">적용</button>
+                </div>
+            </div>
+
+            <!-- 2. 유튜브 1번에 영상 꽂기 -->
+            <div class="control-item">
+                <label>🎬 유튜브 영상 1번에 꽂기 (링크 or 영상 ID)</label>
+                <div style="display:flex; gap:6px;">
+                    <input type="text" id="targetYoutubeIdInput" class="plan-config-input" style="flex:2;" placeholder="유튜브 링크 or ID">
+                    <input type="text" id="targetBizNameInput" class="plan-config-input" style="flex:1; text-align:center;" placeholder="상호명">
+                    <button type="button" class="plan-save-btn" style="background:#10b981;" onclick="pinYoutubeFeedTop()">꽂기</button>
+                </div>
+            </div>
+
+            <!-- 3. 영상 재생 시 상단 한줄 광고 문구 -->
+            <div class="control-item">
+                <label>🏷️ 영상 재생 중 최상단 노출 광고 문구</label>
+                <div style="display:flex; gap:6px;">
+                    <input type="text" id="videoPlayingAdInput" class="plan-config-input" placeholder="예: [예톡아름다운의원] 환절기 피부 맞춤 진료 상담">
+                    <button type="button" class="plan-save-btn" onclick="saveVideoTopAd()">저장</button>
+                </div>
+            </div>
+
+            <!-- 4. 애드몹 ON / OFF (월 3만원 무광고 모드) -->
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:8px 10px; border-radius:6px; border:1px solid #334155;">
+                <div>
+                    <div style="font-size:12.5px; font-weight:900; color:#ffffff;">🚫 무광고 모드 (월 30,000원 결제)</div>
+                    <div style="font-size:11px; color:#94a3b8;">활성화 시 메인 화면의 구글 애드몹 배너를 숨깁니다.</div>
+                </div>
+                <button type="button" id="admobToggleBtn" class="plan-save-btn" style="background:#e11d48;" onclick="toggleAdmobMode()">광고 켜짐</button>
+            </div>
+        </section>
+
+        <!-- 은혜로운 재정 관리 기도문 카드 -->
+        <div class="prayer-card">
+            <div style="font-size:18px;">🙏</div>
+            <div class="prayer-card-text">
+                <strong>“하나님의 영광을 위하여 재정을 지혜롭게 관리하도록 인도하옵소서.”</strong><br>
+                정직하고 투명한 관리로 주님의 선한 사역과 섬김의 통로가 되게 하소서.
+            </div>
+        </div>
+
+        <!-- 재정 현황 요약 -->
+        <section class="admin-card featured-card" style="margin-top:12px; padding:12px;">
+            <div class="section-head" style="margin-bottom:8px;">
+                <h3 id="dashboardMonthTitle" style="font-size:15px; margin:0;">2026년 9월 플랫폼 재정 현황</h3>
+            </div>
+            <div class="dashboard-money-grid" style="gap:6px;">
+                <div class="dashboard-money revenue" style="padding:8px;"><span style="font-size:11px;">예톡결제 매출</span><strong id="dashboardRevenue" style="font-size:15px;">0원</strong></div>
+                <div class="dashboard-money expense" style="padding:8px;"><span style="font-size:11px;">서버 운영비용</span><strong id="dashboardExpense" style="font-size:15px;">0원 (무료)</strong></div>
+                <div class="dashboard-money tax" style="padding:8px;"><span style="font-size:11px;">세금 적립</span><strong id="dashboardTaxReserve" style="font-size:15px;">0원</strong></div>
+                <div class="dashboard-money profit" style="padding:8px;"><span style="font-size:11px;">예상 순수익</span><strong id="dashboardProfit" style="font-size:15px; color:#10b981;">0원</strong></div>
+            </div>
+        </section>
+
+        <!-- 공식 입금계좌 관리 -->
+        <div class="plan-master-config-box">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong style="color:#38bdf8; font-size:13px;">💳 예톡결제 공식 입금계좌 관리</strong>
+                <span style="font-size:11px; color:#10b981; font-weight:800;">✓ FHD 1080p 고정</span>
+            </div>
+            <div class="bank-input-grid">
+                <input type="text" id="adminBankNameInput" class="plan-config-input" style="text-align:center;" placeholder="은행명">
+                <input type="text" id="adminGlobalBankAccountInput" class="plan-config-input" style="text-align:center;" placeholder="계좌번호">
+                <input type="text" id="adminAccountHolderInput" class="plan-config-input" style="text-align:center;" placeholder="예금주">
+            </div>
+            <button type="button" class="plan-save-btn" onclick="saveAdminMasterAccount()">계좌 정보 저장 (예톡 메인에 동기화)</button>
+        </div>
+    </div>
+
+    <!-- 내 정보 수정 모달 -->
+    <div id="masterProfileModal" class="admin-profile-modal-overlay">
+        <div class="admin-profile-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:6px; margin-bottom:10px;">
+                <strong style="color:#38bdf8; font-size:15px;">👤 내 정보 수정</strong>
+                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer;" onclick="closeMasterProfileModal()">✕</button>
+            </div>
+
+            <div class="profile-input-group">
+                <label>이름 / 성함</label>
+                <input type="text" id="admProfName" placeholder="예: 김예톡">
+            </div>
+
+            <div class="profile-input-group">
+                <label>아이디 (ID)</label>
+                <input type="text" id="admProfId" placeholder="예: admin_yetalk">
+            </div>
+
+            <div class="profile-input-group">
+                <label>비밀번호</label>
+                <input type="password" id="admProfPw" placeholder="새 비밀번호 입력">
+            </div>
+
+            <div class="profile-input-group">
+                <label>기본 주소</label>
+                <input type="text" id="admProfAddr" placeholder="예: 서울 강남구 테헤란로 123">
+            </div>
+
+            <div class="profile-input-group">
+                <label>상세 주소</label>
+                <input type="text" id="admProfAddrDetail" placeholder="예: 2층 예톡아름다운의원">
+            </div>
+
+            <div class="profile-input-group">
+                <label>핸드폰 번호</label>
+                <input type="tel" id="admProfPhone" placeholder="예: 010-0000-0000">
+            </div>
+
+            <div style="display:flex; gap:6px; margin-top:10px;">
+                <button type="button" class="plan-save-btn" style="flex:1; height:38px; font-size:13.5px;" onclick="saveMasterFullProfile()">정보 저장</button>
+                <button type="button" style="background:#334155; color:white; border:none; border-radius:6px; padding:0 14px; font-size:12.5px; cursor:pointer;" onclick="closeMasterProfileModal()">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="admin-footer" style="font-size:12px; padding:14px 0; text-align:center;">
+        <strong>YETALK</strong>
+        <span>교회 · 의원 · 식당 · 카페 · 그리고 새로운 연결</span>
+    </footer>
+</div>
+
+<script>
+    // 기본 가맹처 명단 데이터 (업종별)
+    let masterStoresData = {
+        church: [
+            { name: "예톡행복한교회", url: "churchmain.html", note: "대표 공식 교회" },
+            { name: "은혜로운새빛교회", url: "churchmain.html", note: "청년부 성경통독 운영" }
+        ],
+        clinic: [
+            { name: "예톡아름다운의원", url: "doctormain.html", note: "대표 의원 (원장님 직영)" },
+            { name: "아름다운의원", url: "doctormain.html", note: "건강검진 및 진료" }
+        ],
+        store: [
+            { name: "부산밀면가", url: "shopmain.html", note: "전통 방식 사골 육수 (대표 상점)" },
+            { name: "서초정성묵집", url: "shopmain.html", note: "국내산 묵 요리 전문" }
+        ]
+    };
+
+    // 총관리자가 자유롭게 전환하며 운영할 수 있는 사업장 목록 (무제한)
+    let adminOwnedChannels = [
+        { name: "예톡아름다운의원", url: "doctormain.html", label: "🏥 예톡아름다운의원 (의원)" },
+        { name: "예톡행복한교회", url: "churchmain.html", label: "⛪ 예톡행복한교회 (교회)" },
+        { name: "부산밀면가", url: "shopmain.html", label: "🍽️ 부산밀면가 (상점/식당)" }
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        let masterName = localStorage.getItem("yetalkUserName") || "김예톡";
+        if (masterName.includes("최웅식")) {
+            masterName = "김예톡";
+            localStorage.setItem("yetalkUserName", "김예톡");
+        }
+        if ((localStorage.getItem("yetalkMasterBankHolder") || "").includes("최웅식")) {
+            localStorage.setItem("yetalkMasterBankHolder", "김예톡");
+        }
+        if ((localStorage.getItem("yetalkAdminAddress") || "").includes("신암로")) {
+            localStorage.setItem("yetalkAdminAddress", "서울 강남구 테헤란로 123");
+        }
+        if ((localStorage.getItem("yetalkAdminAddressDetail") || "").includes("최웅식") || (localStorage.getItem("yetalkAdminAddressDetail") || "").includes("자가지피")) {
+            localStorage.setItem("yetalkAdminAddressDetail", "2층 예톡아름다운의원");
+        }
+        const masterNameEl = document.getElementById("adminMasterNameText");
+        if (masterNameEl) masterNameEl.innerText = `${masterName} 원장님`;
+
+        // 저장된 채널 목록 불러오기
+        const savedChannels = localStorage.getItem("yetalkOwnedChannels");
+        if (savedChannels) {
+            try { adminOwnedChannels = JSON.parse(savedChannels); } catch(e) {}
+        }
+
+        // 저장된 상점 명단 불러오기
+        const savedStoreData = localStorage.getItem("yetalkMasterStoresData");
+        if (savedStoreData) {
+            try { masterStoresData = JSON.parse(savedStoreData); } catch(e) {}
+        }
+
+        // 계좌 정보 불러오기
+        document.getElementById("adminBankNameInput").value = localStorage.getItem("yetalkMasterBankName") || "국민은행";
+        document.getElementById("adminGlobalBankAccountInput").value = localStorage.getItem("yetalkMasterBankAcc") || "51210204987654";
+        document.getElementById("adminAccountHolderInput").value = localStorage.getItem("yetalkMasterBankHolder") || "김예톡";
+
+        // 전체 누적 수치 갱신
+        updateCounts();
+
+        // 실시간 제어 센터 초기값 세팅
+        if (document.getElementById("customTopNoticeInput")) {
+            document.getElementById("customTopNoticeInput").value = localStorage.getItem("yetalkCustomTopNotice") || "";
+        }
+        if (document.getElementById("videoPlayingAdInput")) {
+            document.getElementById("videoPlayingAdInput").value = localStorage.getItem("yetalkVideoPlayingAd") || "";
+        }
+        updateAdmobBtnUI(localStorage.getItem("yetalkNoAdsMode") === "true");
+
+        renderChannelSelect();
+    });
+
+    function updateCounts() {
+        document.getElementById("countChurch").innerText = `${masterStoresData.church.length}곳`;
+        document.getElementById("countClinic").innerText = `${masterStoresData.clinic.length}곳`;
+        document.getElementById("countStore").innerText = `${masterStoresData.store.length}곳`;
+    }
+
+    function renderChannelSelect() {
+        const select = document.getElementById("masterCurrentChannelSelect");
+        if (!select) return;
+
+        const currentActiveBiz = localStorage.getItem("yetalkUserStoreName") || "부산밀면가";
+        select.innerHTML = "";
+
+        adminOwnedChannels.forEach(ch => {
+            const opt = document.createElement("option");
+            opt.value = ch.name;
+            opt.innerText = ch.label || ch.name;
+            opt.dataset.targetUrl = ch.url;
+            if (ch.name === currentActiveBiz) opt.selected = true;
+            select.appendChild(opt);
+        });
+    }
+
+    // 🌟 원장님 사업장 원클릭 스위칭
+    function handleAdminChannelSwitch(selectedBizName) {
+        const selectedCh = adminOwnedChannels.find(c => c.name === selectedBizName) || adminOwnedChannels[0];
+        localStorage.setItem("yetalkUserStoreName", selectedCh.name);
+        localStorage.setItem("yetalkBizName", selectedCh.name);
+        localStorage.setItem("yetalkMyBizAppUrl", selectedCh.url);
+        localStorage.setItem("yetalkSelectedMainAppUrl", selectedCh.url);
+        renderChannelSelect();
+        alert(`🎉 메인홈 연결 앱이 [${selectedCh.name}] (으)로 변경되었습니다!\n예톡 메인 우측 하단 버튼을 누르면 해당 앱으로 바로 이동합니다.`);
+    }
+
+    // 🌟 [핵심] 총관리자 무제한 새 사업장 오픈 (shopmain.html 기본 연동)
+    function openNewChannelModal() {
+        const newName = prompt("새로 등록할 상호명을 입력하세요:\n(예: 부산밀면가, 예톡카페, 행복약국)");
+        if (!newName || !newName.trim()) return;
+        const trimmed = newName.trim();
+
+        // 업종 지능형 판별
+        let targetUrl = "shopmain.html"; // 기본 상점·식당·자영업
+        let catType = "store";
+        let icon = "🍽️";
+
+        if (trimmed.includes("교회")) {
+            targetUrl = "churchmain.html";
+            catType = "church";
+            icon = "⛪";
+        } else if (trimmed.includes("의원") || trimmed.includes("병원") || trimmed.includes("클리닉")) {
+            targetUrl = "doctormain.html";
+            catType = "clinic";
+            icon = "🏥";
+        }
+
+        // 1. 내 운영 채널 목록에 추가
+        adminOwnedChannels.push({
+            name: trimmed,
+            url: targetUrl,
+            label: `${icon} ${trimmed} (${catType === 'church' ? '교회' : catType === 'clinic' ? '의원' : '상점'})`
+        });
+        localStorage.setItem("yetalkOwnedChannels", JSON.stringify(adminOwnedChannels));
+
+        // 2. 가맹처 명단에도 자동 등록
+        if (!masterStoresData[catType].some(item => item.name === trimmed)) {
+            masterStoresData[catType].unshift({
+                name: trimmed,
+                url: targetUrl,
+                note: "총관리자 직영 개설 매장"
+            });
+            localStorage.setItem("yetalkMasterStoresData", JSON.stringify(masterStoresData));
+            updateCounts();
+        }
+
+        // 3. 바로 해당 사업장으로 대표 스위칭
+        handleAdminChannelSwitch(trimmed);
+    }
+
+    function openAdmobConsole() {
+        window.open("https://admob.google.com/home/", "_blank");
+    }
+
+    function saveCustomTopNotice() {
+        const text = document.getElementById("customTopNoticeInput").value.trim();
+        localStorage.setItem("yetalkCustomTopNotice", text);
+        alert("📢 메인 상단 공지글이 즉시 반영되었습니다!");
+    }
+
+    function pinYoutubeFeedTop() {
+        let rawUrl = document.getElementById("targetYoutubeIdInput").value.trim();
+        const biz = document.getElementById("targetBizNameInput").value.trim() || "대표 추천";
+        if (!rawUrl) { alert("유튜브 주소나 영상 ID를 입력하세요."); return; }
+
+        let videoId = rawUrl;
+        if (rawUrl.includes("v=")) { videoId = rawUrl.split("v=")[1].split("&")[0]; }
+        else if (rawUrl.includes("youtu.be/")) { videoId = rawUrl.split("youtu.be/")[1].split("?")[0]; }
+        else if (rawUrl.includes("shorts/")) { videoId = rawUrl.split("shorts/")[1].split("?")[0]; }
+
+        localStorage.setItem("yetalkPinnedVideoId", videoId);
+        localStorage.setItem("yetalkPinnedBizName", biz);
+        alert(`🎬 [${biz}] 영상이 예톡 1번 메인 쇼츠로 꽂혔습니다!`);
+    }
+
+    function saveVideoTopAd() {
+        const adText = document.getElementById("videoPlayingAdInput").value.trim();
+        localStorage.setItem("yetalkVideoPlayingAd", adText);
+        alert("🏷️ 영상 재생 중 한줄 광고 문구가 설정되었습니다!");
+    }
+
+    function toggleAdmobMode() {
+        const current = localStorage.getItem("yetalkNoAdsMode") === "true";
+        const next = !current;
+        localStorage.setItem("yetalkNoAdsMode", next ? "true" : "false");
+        updateAdmobBtnUI(next);
+        alert(next ? "✨ 무광고 모드 활성화! (광고가 완전히 제거됩니다)" : "광고 노출 모드로 복귀되었습니다.");
+    }
+
+    function updateAdmobBtnUI(isNoAds) {
+        const btn = document.getElementById("admobToggleBtn");
+        if (!btn) return;
+        if (isNoAds) {
+            btn.innerText = "무광고 ON";
+            btn.style.background = "#10b981";
+        } else {
+            btn.innerText = "광고 켜짐";
+            btn.style.background = "#e11d48";
+        }
+    }
+
+    function saveAdminMasterAccount() {
+        const bank = document.getElementById("adminBankNameInput").value.trim();
+        const acc = document.getElementById("adminGlobalBankAccountInput").value.trim();
+        const holder = document.getElementById("adminAccountHolderInput").value.trim();
+
+        if (!acc) {
+            alert("계좌번호를 입력해주세요.");
+            return;
+        }
+
+        localStorage.setItem("yetalkMasterBankName", bank);
+        localStorage.setItem("yetalkMasterBankAcc", acc);
+        localStorage.setItem("yetalkMasterBankHolder", holder);
+
+        const fullAccountStr = `${bank} ${acc} (${holder})`.trim();
+        localStorage.setItem("yetalkGlobalMasterStoreAcc", fullAccountStr);
+        localStorage.setItem("yetalkAdminBankAccount", acc);
+
+        alert(`💳 공식 입금계좌가 [${fullAccountStr}] 로 저장되었습니다!\n예톡 메인 [예톡결제] 화면에 즉시 동기화됩니다.`);
+    }
+
+    function toggleStoreList(category) {
+        const box = document.getElementById("storeListBox");
+        const titleEl = document.getElementById("storeListTitle");
+        const contentEl = document.getElementById("storeListContent");
+
+        const titles = { church: "⛪ 등록 교회 명단", clinic: "🏥 등록 의원 명단", store: "🍽️ 등록 식당·카페·상점 명단" };
+        titleEl.innerText = titles[category];
+
+        const list = masterStoresData[category] || [];
+        contentEl.innerHTML = list.map(item => `
+            <div class="store-item-row">
+                <div>
+                    <strong style="color:#ffffff; font-size:13.5px;">${item.name}</strong>
+                    <div style="font-size:11.5px; color:#94a3b8;">${item.note}</div>
+                </div>
+                <button type="button" class="btn-quick-add-channel" onclick="location.href='${item.url}'" style="padding:4px 8px; font-size:11.5px;">
+                    홈 가기
+                </button>
+            </div>
+        `).join("");
+
+        box.classList.add("show");
+        box.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function openMasterProfileModal() {
+        document.getElementById("admProfName").value = localStorage.getItem("yetalkUserName") || "김예톡";
+        document.getElementById("admProfId").value = localStorage.getItem("yetalkAdminId") || "admin_yetalk";
+        document.getElementById("admProfPw").value = localStorage.getItem("yetalkAdminPw") || "";
+        document.getElementById("admProfAddr").value = localStorage.getItem("yetalkAdminAddress") || "서울 강남구 테헤란로 123";
+        document.getElementById("admProfAddrDetail").value = localStorage.getItem("yetalkAdminAddressDetail") || "2층 예톡아름다운의원";
+        document.getElementById("admProfPhone").value = localStorage.getItem("yetalkUserContact") || "010-0000-0000";
+
+        document.getElementById("masterProfileModal").classList.add("show");
+    }
+
+    function closeMasterProfileModal() {
+        document.getElementById("masterProfileModal").classList.remove("show");
+    }
+
+    function saveMasterFullProfile() {
+        const name = document.getElementById("admProfName").value.trim();
+        const id = document.getElementById("admProfId").value.trim();
+        const pw = document.getElementById("admProfPw").value.trim();
+        const addr = document.getElementById("admProfAddr").value.trim();
+        const addrDetail = document.getElementById("admProfAddrDetail").value.trim();
+        const phone = document.getElementById("admProfPhone").value.trim();
+
+        if (!name) {
+            alert("이름을 입력해주세요.");
+            return;
+        }
+
+        localStorage.setItem("yetalkUserName", name);
+        localStorage.setItem("yetalkUserId", name);
+        localStorage.setItem("yetalkAdminId", id);
+        if (pw) localStorage.setItem("yetalkAdminPw", pw);
+        localStorage.setItem("yetalkAdminAddress", addr);
+        localStorage.setItem("yetalkAdminAddressDetail", addrDetail);
+        localStorage.setItem("yetalkUserContact", phone);
+
+        const masterNameEl = document.getElementById("adminMasterNameText");
+        if (masterNameEl) masterNameEl.innerText = `${name} 원장님`;
+
+        closeMasterProfileModal();
+        alert("🎉 회원 정보가 성공적으로 저장되었습니다!");
+    }
+</script>
+
+<script type="module" src="admin.js"></script>
+
+</body>
+
+</html>

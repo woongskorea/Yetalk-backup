@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#075cab">
+    <title>예톡 (Yetalk)</title>
+    <link rel="stylesheet" href="index.css">
+
+    <style>
+        /* ==========================================================
+        인스타 스타일 릴스 피드 & 감성 스토리 바 CSS
+        ========================================================== */
+        body {
+            background-color: #f8fafc !important;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #1e293b;
+        }
+
+        .index-page {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: #ffffff;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.06);
+            padding-bottom: 95px;
+            box-sizing: border-box;
+        }
+
+        /* 1. 상단 인스타 헤더 */
+        .insta-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #ffffff;
+            border-bottom: 1px solid #f1f5f9;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .insta-logo {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+        }
+        .insta-header-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .insta-icon-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* 2. 스토리 트레이 (인스타 감성 완벽 밀착) */
+        .story-tray {
+            display: flex;
+            gap: 12px;
+            padding: 14px 16px;
+            overflow-x: auto;
+            background: #ffffff;
+            border-bottom: 1px solid #f1f5f9;
+            scrollbar-width: none;
+        }
+        .story-tray::-webkit-scrollbar { display: none; }
+
+        .story-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-shrink: 0;
+            cursor: pointer;
+            width: 72px;
+        }
+        .story-ring {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5px;
+            margin-bottom: 5px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        }
+        .story-ring.my-home {
+            background: #cbd5e1;
+        }
+        .story-thumb {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2.5px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 900;
+            color: #0f172a;
+            text-align: center;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        .story-name {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #262626;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+            letter-spacing: -0.3px;
+        }
+
+        /* 3. 릴스 스타일 연속 피드 */
+        .feed-container {
+            padding: 8px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .insta-card {
+            background: #ffffff;
+            border-top: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 8px;
+        }
+        .insta-card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 16px;
+        }
+        .insta-user-info { display: flex; align-items: center; gap: 10px; }
+        .insta-user-avatar {
+            width: 32px; height: 32px; border-radius: 50%; background: #075cab;
+            color: #fff; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 900;
+        }
+        .insta-user-name { font-size: 13.5px; font-weight: 800; color: #0f172a; }
+
+        /* 릴스 미디어 스테이지 */
+        .insta-media-stage {
+            width: 100%;
+            height: 380px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+            cursor: pointer;
+        }
+        .insta-media-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0.2) 100%);
+            z-index: 1;
+        }
+        .insta-media-top {
+            position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center;
+        }
+        .insta-media-tag {
+            font-size: 11px; font-weight: 800; background: rgba(255,255,255,0.25);
+            padding: 4px 10px; border-radius: 8px; color: #fff; backdrop-filter: blur(4px);
+        }
+        .church-visit-btn {
+            background: #16a34a; color: #fff; border: none; padding: 6px 12px;
+            border-radius: 20px; font-size: 12px; font-weight: 900; cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: 0.2s;
+        }
+        .church-visit-btn:active { background: #15803d; }
+        .insta-media-content {
+            position: relative; z-index: 2; color: #ffffff;
+        }
+        .insta-media-title {
+            font-size: 18px; font-weight: 900; line-height: 1.4; margin-bottom: 6px;
+        }
+        .insta-media-desc {
+            font-size: 13.5px; font-weight: 700; opacity: 0.9; line-height: 1.5;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        /* 4. 하단 슬림 도크 */
+        .bottom-fixed-dock {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            z-index: 200;
+            box-sizing: border-box;
+            padding: 4px 8px 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .blessing-ticker {
+            font-size: 11px;
+            font-weight: 800;
+            color: #075cab;
+            text-align: center;
+            padding: 3px 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            letter-spacing: -0.2px;
+        }
+        .admob-slim-box {
+            width: 100%;
+            height: 50px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 800;
+            border: 1px dashed #cbd5e1;
+            box-sizing: border-box;
+        }
+
+        /* 모달 공통 */
+        .yetalk-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300;
+            display: none; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px);
+        }
+        .yetalk-modal-card {
+            background: #fff; border-radius: 18px; width: 100%; max-width: 480px;
+            height: 82vh; max-height: 720px; padding: 22px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-sizing: border-box; display: flex; flex-direction: column;
+        }
+        .yetalk-modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 12px; flex-shrink: 0;
+        }
+        .yetalk-modal-title { font-size: 19px; font-weight: 900; color: #0f172a; }
+        .yetalk-modal-close { background: none; border: none; font-size: 24px; font-weight: 900; color: #64748b; cursor: pointer; }
+        .yetalk-content-body { flex: 1; overflow-y: auto; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; }
+        .admin-switch-btn {
+            background: #ef4444; color: #fff; font-size: 11px; font-weight: 900;
+            padding: 4px 10px; border-radius: 10px; border: none; cursor: pointer;
+        }
+        .admin-switch-btn.off { background: rgba(0,0,0,0.4); color: #cbd5e1; }
+    </style>
+</head>
+
+<body>
+
+<div id="indexPage" class="index-page">
+
+    <!-- 1. 상단 인스타 헤더 -->
+    <header class="insta-header">
+        <div class="insta-logo" onclick="window.scrollTo({top:0, behavior:'smooth'})" style="cursor:pointer;">Yetalk</div>
+        <div class="insta-header-right">
+            <button id="headerAdminBtn" class="admin-switch-btn off admin-only hidden" type="button" onclick="toggleIndexAdmin()">관리자 OFF</button>
+            <button class="insta-icon-btn" type="button" onclick="openChurchSearch()" title="교회 검색">🔍</button>
+            <button class="insta-icon-btn" type="button" onclick="openNoticePopup()">🔔</button>
+            <button class="insta-icon-btn" type="button" onclick="location.href='chatword.html?room=jesusWalk'">💬</button>
+        </div>
+    </header>
+
+    <!-- 2. 스토리 트레이 -->
+    <div class="story-tray" id="storyTrayContainer">
+        <div class="story-item" onclick="goToMyHome()">
+            <div class="story-ring my-home">
+                <div class="story-thumb" style="background:#075cab; color:#fff;">내홈</div>
+            </div>
+            <span class="story-name">마이예톡</span>
+        </div>
+        <div class="story-item" onclick="goToChurchHome()">
+            <div class="story-ring">
+                <div class="story-thumb">우리</div>
+            </div>
+            <span class="story-name">우리교회</span>
+        </div>
+    </div>
+
+    <!-- 3. 릴스 스타일 연속 피드 -->
+    <main class="feed-container">
+        <section class="insta-card">
+            <div class="insta-card-header">
+                <div class="insta-user-info">
+                    <div class="insta-user-avatar">목</div>
+                    <span class="insta-user-name">담임목사님 말씀 묵상</span>
+                </div>
+                <span>⋮</span>
+            </div>
+            <div class="insta-media-stage" style="background-image: url('images/todayword/0.jpg');" onclick="location.href='church/churchmenu/jesuswalking.html'">
+                <div class="insta-media-overlay"></div>
+                <div class="insta-media-top">
+                    <span class="insta-media-tag">📖 오늘 주시는 말씀</span>
+                    <button class="church-visit-btn" type="button" onclick="event.stopPropagation(); goToChurchHome();">🏠 교회 홈</button>
+                </div>
+                <div class="insta-media-content">
+                    <h2 class="insta-media-title">누구든지 주의 이름을 부르는 자는 구원을 받으리라</h2>
+                    <p class="insta-media-desc">로마서 10:13 · 터치하여 예수동행 실시간 나눔방으로 이동합니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="insta-card">
+            <div class="insta-card-header">
+                <div class="insta-user-info">
+                    <div class="insta-user-avatar" style="background:#70259d;">골</div>
+                    <span class="insta-user-name">골드박스 및 전문 시술사례</span>
+                </div>
+                <span>⋮</span>
+            </div>
+            <div class="insta-media-stage" style="background-image: url('images/todayword/1.jpg');" onclick="openGoldBoxPopup()">
+                <div class="insta-media-overlay"></div>
+                <div class="insta-media-top">
+                    <span class="insta-media-tag">✨ 프리미엄 정보</span>
+                    <button class="church-visit-btn" type="button" onclick="event.stopPropagation(); openGoldBoxPopup();">🩺 상세 보기</button>
+                </div>
+                <div class="insta-media-content">
+                    <h2 class="insta-media-title">건강과 회복을 위한 전문 임상 및 교회 소식 모아보기</h2>
+                    <p class="insta-media-desc">풍성한 말씀 자료와 안전하고 정교한 메디컬 뷰티 정보를 확인하세요.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="insta-card">
+            <div class="insta-card-header">
+                <div class="insta-user-info">
+                    <div class="insta-user-avatar" style="background:#16a34a;">교</div>
+                    <span class="insta-user-name">우리교회 바로가기</span>
+                </div>
+                <span>⋮</span>
+            </div>
+            <div class="insta-media-stage" style="background-image: url('images/todayword/2.jpg');" onclick="goToChurchHome()">
+                <div class="insta-media-overlay" style="background: linear-gradient(to top, rgba(22,163,74,0.85) 0%, rgba(0,0,0,0.4) 100%);"></div>
+                <div class="insta-media-top">
+                    <span class="insta-media-tag" style="background: rgba(255,255,255,0.3);">⛪ 우리교회 홈 입장</span>
+                    <span style="color:#fff; font-size:12px; font-weight:900;">화면 터치 ➔</span>
+                </div>
+                <div class="insta-media-content" style="text-align: center; padding-bottom: 20px;">
+                    <h2 class="insta-media-title" style="font-size: 21px;">"오늘도 은혜 가득한 하루 되세요"</h2>
+                    <p class="insta-media-desc" style="font-size: 14.5px; opacity: 1; font-weight: 800;">
+                        👉 화면을 터치하시면 <b>우리교회 홈</b>으로 바로 입장합니다.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 4. 하단 슬림 도크 -->
+    <div class="bottom-fixed-dock">
+        <div id="blessingTicker" class="blessing-ticker">
+            ✨ "오늘 하루도 주님의 은혜와 평강이 원장님 가정과 사역 위에 넘치시기를 축복합니다."
+        </div>
+        <div class="admob-slim-box">
+            Google AdMob 배너 영역 (표준 50px)
+        </div>
+    </div>
+
+    <!-- 모달들 -->
+    <div id="noticePopupModal" class="yetalk-modal-overlay" onclick="closeNoticePopup()">
+        <div class="yetalk-modal-card" onclick="event.stopPropagation()">
+            <div class="yetalk-modal-header">
+                <h3 class="yetalk-modal-title">📢 우리교회 소식</h3>
+                <button class="yetalk-modal-close" type="button" onclick="closeNoticePopup()">×</button>
+            </div>
+            <div id="modalNoticeBody" class="yetalk-content-body">
+                <div style="text-align: center; color: #64748b; padding: 40px; font-weight: 800;">공지사항을 불러오는 중...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="goldBoxModal" class="yetalk-modal-overlay" onclick="closeGoldBoxPopup()">
+        <div class="yetalk-modal-card" onclick="event.stopPropagation()">
+            <div class="yetalk-modal-header">
+                <h3 class="yetalk-modal-title">✨ 골드박스 & 시술사례</h3>
+                <button class="yetalk-modal-close" type="button" onclick="closeGoldBoxPopup()">×</button>
+            </div>
+            <div class="yetalk-content-body">
+                <div style="padding: 14px; background:#f8fafc; border-radius:12px; font-weight:800; cursor:pointer;" onclick="goToChurchHome()">🏠 본교회 홈으로 가기</div>
+                <div style="padding: 14px; background:#f8fafc; border-radius:12px; font-weight:800; cursor:pointer;" onclick="alert('전문 시술 사례 상세 페이지로 연결됩니다.')">🩺 메디컬 전문 시술 및 뷰티 정보</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ⭐ 업그레이드된 교회 검색 모달 -->
+    <div id="churchSearchModal" class="yetalk-modal-overlay" onclick="closeChurchSearch()">
+        <div class="yetalk-modal-card" style="height: 400px;" onclick="event.stopPropagation()">
+            <div class="yetalk-modal-header">
+                <h3 class="yetalk-modal-title">⛪ 내 교회 찾기</h3>
+                <button class="yetalk-modal-close" type="button" onclick="closeChurchSearch()">×</button>
+            </div>
+            <div class="yetalk-content-body">
+                <p style="font-size: 14px; font-weight: 700; color: #64748b; margin-top: 0;">
+                    다니시는 교회를 검색하여 연결해 보세요!
+                </p>
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <input id="churchSearchInput" type="text" placeholder="예) 예톡행복한교회" style="flex: 1; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; font-weight: 700;">
+                    <button type="button" onclick="executeChurchSearch()" style="background: #075cab; color: #fff; border: none; padding: 0 16px; border-radius: 8px; font-weight: 900; cursor: pointer;">검색</button>
+                </div>
+
+                <!-- 검색 결과 리스트 (반응형으로 개선) -->
+                <div id="churchSearchResult" style="margin-top: 24px; display: none; flex-direction: column; gap: 10px;">
+                    <div style="font-size: 13px; color: #16a34a; font-weight: 800; margin-bottom: 4px;">✓ 검색 결과</div>
+
+                    <div style="padding: 16px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);" onclick="saveAndGoChurch('sample-church')">
+                        <div>
+                            <strong style="color: #0f172a; font-size: 16px;">예톡샘플교회</strong>
+                            <div style="font-size: 13px; color: #64748b; margin-top: 6px;">서울시 강남구 예톡로 123</div>
+                        </div>
+                        <span style="background: #075cab; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 900;">입장하기</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="indexToast" class="index-toast"></div>
+
+</div>
+
+<script>
+    const blessings = [
+        "✨ '오늘 하루도 주님의 은혜와 평강이 원장님 가정과 사역 위에 넘치시기를 축복합니다.'",
+        "샬롬! 🙏 '네 시작은 미약하였으나 네 나중은 심히 창대하리라' (욥기 8:7)",
+        "🌿 '여호와는 너를 지키시는 자시라 여호와께서 네 우익에서 네 그늘이 되시나니' (시편 121:5)",
+        "⭐ '두려워하지 말라 내가 너와 함께 함이라 놀라지 말라 나는 네 하나님이 됨이라' (이사야 41:10)"
+    ];
+
+    function updateBlessingTicker() {
+        const ticker = document.getElementById("blessingTicker");
+        if(ticker) {
+            const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+            ticker.textContent = blessings[dayOfYear % blessings.length];
+        }
+    }
+
+    window.openNoticePopup = function() { document.getElementById("noticePopupModal").style.display = "flex"; };
+    window.closeNoticePopup = function() { document.getElementById("noticePopupModal").style.display = "none"; };
+    window.openGoldBoxPopup = function() { document.getElementById("goldBoxModal").style.display = "flex"; };
+    window.closeGoldBoxPopup = function() { document.getElementById("goldBoxModal").style.display = "none"; };
+    window.goToMyHome = function() { location.href = "myinfo.html"; };
+
+    // ⭐ 교회 검색 기능
+    window.openChurchSearch = function() {
+        document.getElementById("churchSearchModal").style.display = "flex";
+        document.getElementById("churchSearchInput").focus();
+    };
+    window.closeChurchSearch = function() {
+        document.getElementById("churchSearchModal").style.display = "none";
+        document.getElementById("churchSearchResult").style.display = "none";
+    };
+
+    window.executeChurchSearch = function() {
+        const keyword = document.getElementById("churchSearchInput").value;
+        if(!keyword) {
+            alert("교회 이름을 입력해 주세요.");
+            return;
+        }
+        // 검색 결과 창을 리셋하고 부드럽게 띄우기
+        const resultBox = document.getElementById("churchSearchResult");
+        resultBox.style.display = "none";
+        setTimeout(() => {
+            resultBox.style.display = "flex";
+        }, 100);
+    };
+
+    window.saveAndGoChurch = function(selectedChurchId) {
+        localStorage.setItem("yetalkMyChurchId", selectedChurchId); // 쾅! 기기에 내 교회 저장
+        location.href = "church/churchmain.html?churchId=" + encodeURIComponent(selectedChurchId); // 교회홈으로 이동!
+    };
+
+    // 아이디 없으면 무조건 검색 팝업!
+    window.goToChurchHome = function() {
+        const churchId = localStorage.getItem("yetalkMyChurchId") || localStorage.getItem("currentChurchId") || localStorage.getItem("churchId");
+        if (!churchId) {
+            openChurchSearch();
+            return;
+        }
+        location.href = "church/churchmain.html?churchId=" + encodeURIComponent(churchId);
+    };
+
+    window.toggleIndexAdmin = function() {
+        const current = localStorage.getItem("yetalk_index_admin_on") === "true";
+        localStorage.setItem("yetalk_index_admin_on", !current);
+        location.reload();
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        updateBlessingTicker();
+
+        // ⭐ 스마트폰 키보드 '엔터' 쳤을 때 바로 검색되도록 이벤트 추가
+        const searchInput = document.getElementById("churchSearchInput");
+        if (searchInput) {
+            searchInput.addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    event.preventDefault(); // 기본 폼 제출 방지
+                    executeChurchSearch();  // 검색 함수 바로 실행
+                }
+            });
+        }
+
+        const isAdmin = localStorage.getItem("yetalk_index_admin_on") === "true";
+        const adminBtn = document.getElementById("headerAdminBtn");
+        if(adminBtn) {
+            adminBtn.classList.remove("hidden");
+            adminBtn.textContent = isAdmin ? "관리자 ON" : "관리자 OFF";
+            if(!isAdmin) adminBtn.classList.add("off");
+            else adminBtn.classList.remove("off");
+        }
+    });
+</script>
+
+<script type="module" src="index.js"></script>
+</body>
+</html>

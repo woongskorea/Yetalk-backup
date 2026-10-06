@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#09090b">
+    <title>성전기도방 | 예톡</title>
+
+    <style>
+        :root {
+            --bg-color: #09090b; --card-bg: #18181b; --card-border: #3f3f46;
+            --text-main: #f8fafc; --text-sub: #a1a1aa;
+            --host-red: #ef4444; --mic-green: #10b981;
+        }
+
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background: var(--bg-color); color: var(--text-main);
+            font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
+        }
+
+        button, textarea, input { font: inherit; outline: none; border: none; background: none; }
+        button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .hidden { display: none !important; }
+
+        .prayer-page {
+            display: flex; flex-direction: column; width: 100%; height: 100dvh; max-width: 700px;
+            margin: 0 auto; position: relative; background: var(--bg-color);
+        }
+
+        /* HEADER */
+        .prayer-header {
+            flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+            padding: max(10px, env(safe-area-inset-top)) 12px 10px; border-bottom: 1px solid #27272a;
+        }
+        .header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+        .back-btn { color: var(--text-main); font-size: 26px; padding: 4px; }
+
+        .room-title-area { display: flex; flex-direction: column; min-width: 0; }
+        .room-title-box { display: flex; align-items: center; gap: 6px; overflow: hidden; }
+        .room-title { font-size: 17px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+        .edit-icon { font-size: 12px; color: var(--text-sub); }
+
+        /* ⭐ 상단 방장 이름 표시 텍스트 */
+        .room-host-display { font-size: 11.5px; font-weight: 800; color: #f87171; margin-top: 1px; white-space: nowrap; }
+
+        .header-right { display: flex; align-items: center; gap: 6px; }
+        .top-ctrl-btn { font-size: 11px; font-weight: 800; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--card-border); color: var(--text-sub); background: var(--card-bg); }
+        .btn-host-claim { border-color: #4f46e5; background: rgba(79,70,229,0.25); color: #a5b4fc; }
+
+        /* ⭐ [모임 종료 버튼 대형화] 눈에 확 띄는 빨간색 큼직한 버튼 */
+        .btn-end-large {
+            background: #dc2626 !important; color: #ffffff !important;
+            border: 1px solid #ef4444 !important; font-size: 12px !important;
+            font-weight: 900 !important; padding: 6px 12px !important;
+            border-radius: 8px !important; box-shadow: 0 0 10px rgba(220,38,38,0.4);
+        }
+
+        /* ROOM TABS */
+        .room-tab-bar {
+            flex-shrink: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+            padding: 8px 12px; background: #121214; border-bottom: 1px solid #27272a;
+        }
+        .room-tab-btn {
+            height: 40px; border-radius: 8px; font-size: 13px; font-weight: 900;
+            background: #1e1e24; color: #a1a1aa; border: 1px solid #3f3f46;
+            display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;
+        }
+        .room-tab-btn.active-room {
+            background: #dc2626; color: #ffffff; border-color: #ef4444;
+            box-shadow: 0 0 14px rgba(220, 38, 38, 0.5);
+        }
+
+        /* NOTICE */
+        .system-notice {
+            flex-shrink: 0; margin: 8px 12px; text-align: center; font-size: 11.5px; font-weight: 700;
+            color: #fde047; background: rgba(250,204,21,0.08); border: 1px solid rgba(250,204,21,0.25);
+            padding: 8px; border-radius: 8px; line-height: 1.4;
+        }
+
+        /* GRID */
+        .participant-grid-wrap {
+            flex: 0 0 auto; padding: 0 12px 8px 12px; border-bottom: 1px solid #27272a;
+            height: 245px; overflow-y: auto; background: #09090b;
+        }
+        .participant-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+        .pt-card {
+            background: linear-gradient(145deg, #1f1f23, #141416);
+            border: 2px solid #52525b; border-radius: 16px;
+            padding: 8px 6px; text-align: center; position: relative;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 72px; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6); transition: 0.2s;
+        }
+        .pt-card.empty { border-style: dashed; border-color: #3f3f46; background: #121214; cursor: default; }
+        .pt-name-main { font-size: 17px; font-weight: 900; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
+        .pt-card.empty .pt-name-main { font-size: 16px; font-weight: 900; color: #fbbf24; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .pt-sub-label { font-size: 10px; font-weight: 700; color: #d4d4d8; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
+        .pt-card.mic-on { border-color: var(--host-red); box-shadow: 0 0 16px rgba(239,68,68,0.3); background: linear-gradient(145deg, #2a1215, #141416); }
+        .mic-badge { font-size: 9.5px; color: var(--host-red); font-weight: 900; margin-top: 2px; display: none; }
+        .pt-card.mic-on .mic-badge { display: block; }
+
+        /* CHAT AREA */
+        .chat-area { flex: 1 1 auto; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+        .chat-msg { display: flex; flex-direction: column; max-width: 85%; }
+        .chat-msg.other { align-items: flex-start; }
+        .chat-msg.me { align-self: flex-end; align-items: flex-end; }
+        .chat-writer { font-size: 11.5px; color: var(--text-sub); font-weight: 700; margin-bottom: 4px; margin-left: 4px; }
+        .chat-msg.me .chat-writer { margin-right: 4px; }
+        .chat-bubble { padding: 10px 14px; border-radius: 14px; font-size: 14.5px; font-weight: 700; line-height: 1.4; word-break: break-word; white-space: pre-wrap; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .chat-msg.other .chat-bubble { background: #27272a; color: var(--text-main); border-top-left-radius: 4px; }
+        .chat-msg.me .chat-bubble { background: #4f46e5; color: #ffffff; border-top-right-radius: 4px; }
+        .chat-time { font-size: 10px; color: #52525b; margin-top: 4px; margin-left: 4px; font-weight: 700; }
+        .chat-msg.me .chat-time { text-align: right; margin-right: 4px; }
+
+        /* BOTTOM SECTION */
+        .bottom-section { flex-shrink: 0; background: var(--bg-color); border-top: 1px solid #27272a; padding-bottom: env(safe-area-inset-bottom); }
+        .host-tools { display: flex; flex-direction: column; gap: 6px; padding: 8px 12px; background: #121214; border-bottom: 1px solid #27272a; }
+        .youtube-btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .host-tool-btn { background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.4); padding: 7px; border-radius: 6px; font-size: 11.5px; font-weight: 800; color: #fca5a5; text-align: center; cursor: pointer; transition: 0.2s; }
+        .host-tool-btn.active-yt { background: #dc2626; color: #fff; box-shadow: 0 0 10px rgba(220,38,38,0.5); }
+
+        .youtube-input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .yt-url-input { background: #1e1e24; border: 1px solid #3f3f46; border-radius: 4px; padding: 4px 8px; font-size: 10.5px; color: #d4d4d8; width: 100%; }
+
+        .input-row { display: grid; grid-template-columns: 40px minmax(0,1fr) 56px; gap: 8px; padding: 10px 12px; align-items: end; }
+        .btn-plus { width: 40px; height: 40px; border: 1px solid #3f3f46; border-radius: 50%; color: var(--text-sub); font-size: 24px; display: flex; align-items: center; justify-content: center; background: var(--card-bg); }
+        .chat-input { width: 100%; min-height: 40px; max-height: 80px; background: var(--card-bg); border: 1px solid #3f3f46; border-radius: 20px; padding: 10px 14px; color: var(--text-main); font-size: 14.5px; resize: none; overflow-y: auto; }
+        .chat-input:focus { border-color: #4f46e5; }
+        .btn-send { height: 40px; background: #4f46e5; color: #fff; border-radius: 20px; font-size: 13px; font-weight: 800; cursor: pointer; }
+
+        /* MODALS */
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9000; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
+        .overlay.hidden { display: none; }
+        .modal-box { background: var(--card-bg); width: 100%; max-width: 320px; border-radius: 18px; padding: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.7); border: 1px solid #3f3f46; }
+        .modal-title { font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 16px; text-align: center; }
+        .modal-btn { width: 100%; height: 48px; border-radius: 10px; font-size: 14.5px; font-weight: 800; margin-bottom: 8px; }
+        .modal-btn.primary { background: #4f46e5; color: #fff; }
+        .modal-btn.cancel { background: transparent; color: var(--text-sub); border: 1px solid #3f3f46; }
+
+        .participant-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #27272a; font-size: 14px; font-weight: 700; }
+        .btn-kick-small { background: #7f1d1d; color: #fca5a5; font-size: 11px; padding: 4px 8px; border-radius: 6px; }
+
+        .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #ffffff; color: #000000; padding: 12px 22px; border-radius: 999px; font-size: 13.5px; font-weight: 900; opacity: 0; pointer-events: none; transition: 0.2s; z-index: 10000; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+<div id="prayerPage" class="prayer-page">
+
+    <!-- HEADER -->
+    <header class="prayer-header">
+        <div class="header-left">
+            <button id="btnBack" class="back-btn">‹</button>
+            <div class="room-title-area">
+                <div class="room-title-box" id="btnEditTitle">
+                    <span id="roomTitleText" class="room-title">성전기도방</span>
+                    <span class="edit-icon hidden" id="titleEditIcon">✏️</span>
+                </div>
+                <!-- ⭐ 상단 방장 이름 실시간 표시 -->
+                <span id="roomHostDisplay" class="room-host-display">👑 방장: 대기중</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <button id="btnHostClaim" class="top-ctrl-btn btn-host-claim">👑 방장 입장</button>
+            <button id="btnParticipantList" class="top-ctrl-btn">👥 참여자 [<span id="participantCount">1</span>]</button>
+            <!-- ⭐ 대형화된 모임 종료 버튼 -->
+            <button id="btnEnd" class="top-ctrl-btn btn-end-large">모임 종료</button>
+        </div>
+    </header>
+
+    <!-- ROOM TABS -->
+    <div class="room-tab-bar">
+        <button id="tabRoomA" class="room-tab-btn active-room" onclick="switchRoom('room-a')">🔥 기도예배모임 A</button>
+        <button id="tabRoomB" class="room-tab-btn" onclick="switchRoom('room-b')">🕊️ 기도예배모임 B</button>
+    </div>
+
+    <!-- NOTICE -->
+    <div class="system-notice">
+        ⚠️ 본 기도방은 모임 종료 또는 자정(밤 12시)에 방이 청소됩니다.<br>보관할 내용은 말풍선을 눌러 [내 홈에 보관] 하세요.
+    </div>
+
+    <!-- GRID -->
+    <div class="participant-grid-wrap">
+        <div id="participantGrid" class="participant-grid"></div>
+    </div>
+
+    <!-- CHAT AREA -->
+    <main id="chatArea" class="chat-area">
+        <div id="chatList" style="display:flex; flex-direction:column; gap:12px;"></div>
+    </main>
+
+    <!-- BOTTOM SECTION -->
+    <footer class="bottom-section">
+        <div class="host-tools">
+            <div class="youtube-btn-row">
+                <button id="btnPrayerA" class="host-tool-btn" onclick="toggleYoutubeAudio('A')">▶ 통성기도 A (소리 ON/OFF)</button>
+                <button id="btnPrayerB" class="host-tool-btn" onclick="toggleYoutubeAudio('B')">▶ 통성기도 B (소리 ON/OFF)</button>
+            </div>
+            <div class="youtube-input-row">
+                <input type="text" id="inputYtA" class="yt-url-input" placeholder="A 유튜브 링크 입력" onchange="updateYtUrl('A', this.value)">
+                <input type="text" id="inputYtB" class="yt-url-input" placeholder="B 유튜브 링크 입력" onchange="updateYtUrl('B', this.value)">
+            </div>
+        </div>
+
+        <div class="input-row">
+            <button id="btnPlus" class="btn-plus">＋</button>
+            <textarea id="chatInput" class="chat-input" rows="1" placeholder="메시지를 입력하세요..."></textarea>
+            <button id="btnSend" class="btn-send" type="button">전송</button>
+        </div>
+    </footer>
+
+    <!-- 백그라운드 오디오 플레이어 -->
+    <div id="audioPlayerWrap" style="display:none;"></div>
+
+    <!-- MODALS -->
+    <div id="participantModal" class="overlay hidden">
+        <div class="modal-box" style="max-height: 70vh; overflow-y: auto;">
+            <div class="modal-title">참여자 관리</div>
+            <div id="participantListContainer"></div>
+            <button id="btnCloseParticipantModal" class="modal-btn cancel" style="margin-top: 12px;">닫기</button>
+        </div>
+    </div>
+
+    <div id="msgActionModal" class="overlay hidden">
+        <div class="modal-box">
+            <div class="modal-title">글 메뉴</div>
+            <button id="btnSaveToHome" class="modal-btn primary">💾 내 홈(로컬)에 저장/복사</button>
+            <button id="btnMsgCancel" class="modal-btn cancel">취소</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+</div>
+
+<script>
+    const FRUITS_OF_SPIRIT = ["사랑 성도", "희락 성도", "화평 성도", "오래참음 성도", "자비 성도", "양선 성도", "충성 성도", "온유 성도", "절제 성도"];
+    const WARM_ICONS = ["❤️", "🙏", "✨", "🌸", "🌿", "🕊️", "💖", "🔥", "⭐"];
+
+    let defaultYtA = "https://www.youtube.com/watch?v=5qap5aO4i9A";
+    let defaultYtB = "https://www.youtube.com/watch?v=jfKfPfyJRdk";
+
+    function showToast(msg) {
+        const toast = document.getElementById("toast");
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2200);
+    }
+
+    function renderBaseGrid() {
+        const grid = document.getElementById("participantGrid");
+        if (!grid) return;
+        let html = "";
+        for (let i = 0; i < 9; i++) {
+            const autoIcon = WARM_ICONS[i % WARM_ICONS.length];
+            html += `<div class="pt-card empty" onclick="showToast('${FRUITS_OF_SPIRIT[i]} 자리입니다.')">
+                        <span class="pt-name-main">${FRUITS_OF_SPIRIT[i]} ${autoIcon}</span>
+                        <span class="pt-sub-label">기도의 자리</span>
+                     </div>`;
+        }
+        grid.innerHTML = html;
+        document.getElementById("participantCount").textContent = "1";
+    }
+
+    window.switchRoom = function(rId) {
+        document.getElementById("tabRoomA").classList.toggle("active-room", rId === "room-a");
+        document.getElementById("tabRoomB").classList.toggle("active-room", rId === "room-b");
+        showToast(rId === 'room-a' ? "기도예배모임 A로 이동" : "기도예배모임 B로 이동");
+        stopYoutubeAudio();
+        // 방 전환 시 방장 이름 업데이트 예시
+        document.getElementById("roomHostDisplay").textContent = "👑 방장: 총관리자 (원장님)";
+    };
+
+    let activeYtType = null;
+    window.toggleYoutubeAudio = function(type) {
+        const btnA = document.getElementById("btnPrayerA");
+        const btnB = document.getElementById("btnPrayerB");
+        const wrap = document.getElementById("audioPlayerWrap");
+
+        if (activeYtType === type) {
+            wrap.innerHTML = "";
+            activeYtType = null;
+            btnA.classList.remove("active-yt");
+            btnB.classList.remove("active-yt");
+            showToast("통성기도 소리가 꺼졌습니다.");
+            return;
+        }
+
+        activeYtType = type;
+        btnA.classList.toggle("active-yt", type === 'A');
+        btnB.classList.toggle("active-yt", type === 'B');
+
+        let url = type === 'A' ? (localStorage.getItem("yt_custom_A") || defaultYtA) : (localStorage.getItem("yt_custom_B") || defaultYtB);
+        let embedUrl = getEmbedUrl(url);
+
+        wrap.innerHTML = `<iframe width="1" height="1" src="${embedUrl}?autoplay=1" allow="autoplay" style="display:none;"></iframe>`;
+        showToast(`통성기도 ${type} 소리가 켜졌습니다.`);
+    };
+
+    function stopYoutubeAudio() {
+        document.getElementById("audioPlayerWrap").innerHTML = "";
+        activeYtType = null;
+        document.getElementById("btnPrayerA").classList.remove("active-yt");
+        document.getElementById("btnPrayerB").classList.remove("active-yt");
+    }
+
+    function getEmbedUrl(url) {
+        if (!url) return "";
+        let videoId = "";
+        if (url.includes("youtu.be/")) {
+            videoId = url.split("youtu.be/")[1]?.split("?")[0];
+        } else if (url.includes("watch?v=")) {
+            videoId = url.split("watch?v=")[1]?.split("&")[0];
+        }
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+    }
+
+    window.updateYtUrl = function(type, val) {
+        if (!val.trim()) return;
+        localStorage.setItem("yt_custom_" + type, val.trim());
+        showToast(`통성기도 ${type} 링크가 교체되었습니다.`);
+        if (activeYtType === type) {
+            toggleYoutubeAudio(type);
+            toggleYoutubeAudio(type);
+        }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        renderBaseGrid();
+
+        document.getElementById("inputYtA").value = localStorage.getItem("yt_custom_A") || defaultYtA;
+        document.getElementById("inputYtB").value = localStorage.getItem("yt_custom_B") || defaultYtB;
+
+        document.getElementById("btnBack").addEventListener("click", () => {
+            stopYoutubeAudio();
+            history.back();
+        });
+
+        const input = document.getElementById("chatInput");
+        const sendBtn = document.getElementById("btnSend");
+
+        function handleSend() {
+            let txt = input.value.trim();
+            if (!txt) return;
+
+            const chatList = document.getElementById("chatList");
+            const div = document.createElement("div");
+            div.className = "chat-msg me";
+            div.innerHTML = `<div class="chat-writer">나</div>
+                             <div class="chat-bubble" onclick="openMsgModal(this)">${txt}<br><br>우리모두 아멘^^ ❤️ 7</div>
+                             <div class="chat-time">방금전</div>`;
+            chatList.appendChild(div);
+
+            input.value = "";
+            input.style.height = "40px";
+            const chatArea = document.getElementById("chatArea");
+            chatArea.scrollTop = chatArea.scrollHeight;
+            showToast("메시지가 전송되었습니다.");
+        }
+
+        sendBtn.addEventListener("click", (e) => { e.preventDefault(); handleSend(); });
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
+
+        let selectedMsgText = "";
+        window.openMsgModal = function(bubbleEl) {
+            selectedMsgText = bubbleEl.innerText;
+            document.getElementById("msgActionModal").classList.remove("hidden");
+        };
+
+        document.getElementById("btnMsgCancel").addEventListener("click", () => {
+            document.getElementById("msgActionModal").classList.add("hidden");
+        });
+
+        document.getElementById("btnSaveToHome").addEventListener("click", () => {
+            let saved = JSON.parse(localStorage.getItem("yetalkSavedPrayers") || "[]");
+            saved.push({ text: selectedMsgText, date: new Date().toLocaleString() });
+            localStorage.setItem("yetalkSavedPrayers", JSON.stringify(saved));
+            showToast("내 홈 보관함에 저장되었습니다.");
+            document.getElementById("msgActionModal").classList.add("hidden");
+        });
+
+        document.getElementById("btnParticipantList").addEventListener("click", () => {
+            const container = document.getElementById("participantListContainer");
+            container.innerHTML = `<div class="participant-list-item"><span>나 (희락 성도 🕊️)</span><b>참여중</b></div>`;
+            document.getElementById("participantModal").classList.remove("hidden");
+        });
+        document.getElementById("btnCloseParticipantModal").addEventListener("click", () => {
+            document.getElementById("participantModal").classList.add("hidden");
+        });
+
+        document.getElementById("btnHostClaim").addEventListener("click", () => {
+            if (confirm("방장(총관리자)으로 입장하시겠습니까?")) {
+                document.getElementById("roomHostDisplay").textContent = "👑 방장: 총관리자 (원장님)";
+                showToast("방장 권한으로 전환되었습니다.");
+            }
+        });
+
+        document.getElementById("btnEnd").addEventListener("click", () => {
+            if (confirm("모임을 종료하시겠습니까?")) {
+                stopYoutubeAudio();
+                showToast("모임이 종료되었습니다.");
+                setTimeout(() => history.back(), 1000);
+            }
+        });
+    });
+</script>
+</body>
+</html>

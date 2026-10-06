@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>오시는 길 (약도) - 예톡행복한교회</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: #090e1a; font-family: "Pretendard", -apple-system, sans-serif;
+            color: #ffffff; display: flex; justify-content: center; min-height: 100vh;
+        }
+        .map-app-shell {
+            width: 100%; max-width: 480px; min-height: 100vh; background: #0b1325;
+            display: flex; flex-direction: column; position: relative; border-left: 1px solid #1e293b; border-right: 1px solid #1e293b;
+            padding-bottom: 40px;
+        }
+
+        /* 헤더 */
+        .map-header {
+            height: 48px; background: #0f172a; border-bottom: 1.5px solid #1e293b;
+            display: flex; justify-content: space-between; align-items: center; padding: 0 16px;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header-title-row {
+            font-size: 16.5px; font-weight: 950; color: #ffffff; display: flex; align-items: center; gap: 4px;
+        }
+        .header-btn-group { display: flex; align-items: center; gap: 6px; }
+        .btn-admin-edit {
+            background: #1e293b; color: #facc15; border: 1.5px solid #facc15;
+            padding: 4px 10px; border-radius: 14px; font-size: 11.5px; font-weight: 900; cursor: pointer;
+        }
+        .btn-go-home {
+            background: #0284c7; color: #ffffff; border: 1px solid #38bdf8;
+            padding: 4px 10px; border-radius: 14px; font-size: 11.5px; font-weight: 900; cursor: pointer;
+        }
+
+        .main-scroll-body {
+            flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 14px;
+        }
+
+        /* 1. 약도 이미지 갤러리 섹션 (2개 이상 등록 가능) */
+        .map-gallery-container {
+            display: flex; flex-direction: column; gap: 10px; width: 100%;
+        }
+        .map-image-wrapper {
+            width: 100%; border-radius: 12px; overflow: hidden; border: 1.5px solid #1e293b;
+            background: #0f172a; box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+        }
+        .map-image-view {
+            width: 100%; height: auto; max-height: 400px; object-fit: contain; display: block;
+        }
+
+        /* 2. 상세 정보 카드 */
+        .info-card-box {
+            background: #101c36; border: 1.5px solid #1e3a8a; border-radius: 14px;
+            padding: 16px; display: flex; flex-direction: column; gap: 12px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+        }
+        .info-title-head {
+            font-size: 16px; font-weight: 950; color: #facc15; display: flex; align-items: center; gap: 6px;
+            padding-bottom: 8px; border-bottom: 1px solid #1e293b;
+        }
+
+        .info-row { display: flex; flex-direction: column; gap: 3px; }
+        .info-label { font-size: 12px; font-weight: 900; color: #38bdf8; }
+        .info-value-text {
+            font-size: 14px; font-weight: 600; color: #f8fafc; line-height: 1.55; white-space: pre-line; word-break: break-all;
+        }
+
+        .btn-copy-address {
+            background: #0284c7; color: white; border: none; border-radius: 8px;
+            padding: 7px 12px; font-size: 12px; font-weight: 900; cursor: pointer; align-self: flex-start; margin-top: 4px;
+        }
+        .btn-copy-address:active { background: #0369a1; }
+
+        /* 하단 축복 카드 */
+        .detail-bless-card {
+            width: 100%; background: #0d1e38; border: 1.5px solid #38bdf8; border-radius: 12px;
+            padding: 12px 14px; text-align: center; display: flex; flex-direction: column; gap: 4px;
+        }
+        .bless-title { font-size: 11px; font-weight: 900; color: #38bdf8; }
+        .bless-text { font-family: 'Nanum Myeongjo', serif; font-size: 13px; color: #ffffff; font-weight: 700; line-height: 1.5; }
+
+        /* 애드몹 배너 (320x100) */
+        .map-admob-banner {
+            width: 100%; height: 95px; background: #0a1120; border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; border: 1.5px dashed #334155; color: white; margin-top: 4px;
+        }
+
+        /* 관리자 수정 풀스크린 모달 */
+        .admin-modal {
+            display: none; position: fixed; inset: 0; background: #090e1a;
+            z-index: 500; flex-direction: column; max-width: 480px; margin: 0 auto; height: 100dvh;
+        }
+        .admin-modal.open { display: flex; }
+        .modal-top-bar {
+            height: 48px; background: #0f172a; border-bottom: 1.5px solid #1e293b;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0;
+        }
+        .modal-body {
+            flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;
+        }
+        .input-group { display: flex; flex-direction: column; gap: 4px; }
+        .input-group label { font-size: 11.5px; font-weight: 900; color: #facc15; }
+        .modal-input {
+            width: 100%; background: #162238; border: 1.5px solid #334155; border-radius: 8px;
+            padding: 9px 10px; color: white; font-size: 13.5px; font-weight: 600; outline: none; font-family: inherit;
+        }
+        .modal-textarea {
+            width: 100%; background: #162238; border: 1.5px solid #334155; border-radius: 8px;
+            padding: 9px 10px; color: white; font-size: 13.5px; line-height: 1.5; outline: none; resize: vertical; min-height: 80px; font-family: inherit;
+        }
+
+        /* 관리자 이미지 관리 목록 */
+        .admin-img-list {
+            display: flex; flex-direction: column; gap: 6px; margin-top: 6px;
+        }
+        .admin-img-row {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #111a2f; border: 1px solid #1e293b; border-radius: 8px; padding: 6px 10px;
+        }
+        .admin-img-thumb {
+            width: 50px; height: 35px; object-fit: cover; border-radius: 4px; border: 1px solid #334155;
+        }
+    </style>
+</head>
+<body>
+
+<div class="map-app-shell">
+    <header class="map-header">
+        <div class="header-title-row" onclick="location.href='churchmain.html'" style="cursor:pointer;">
+            ✝ <span>오시는 길 (약도)</span>
+        </div>
+        <div class="header-btn-group">
+            <button type="button" class="btn-admin-edit" onclick="openAdminModal()">✏️ 약도관리</button>
+            <button type="button" class="btn-go-home" onclick="location.href='churchmain.html'">교회홈</button>
+        </div>
+    </header>
+
+    <main class="main-scroll-body">
+        <!-- 1. 약도 이미지 갤러리 (2장 이상 등록 가능) -->
+        <section class="map-gallery-container" id="mapGalleryView"></section>
+
+        <!-- 2. 상세 주소 및 길 안내 정보 카드 -->
+        <section class="info-card-box">
+            <div class="info-title-head">
+                <span>📍</span> <span id="viewChurchName">예톡행복한교회 안내</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">도로명 주소</span>
+                <div class="info-value-text" id="viewAddressRoad">부산광역시 부산진구 중앙대로 123</div>
+                <button type="button" class="btn-copy-address" onclick="copyAddressText()">📋 주소 복사하기</button>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">대중교통 안내 (지하철 / 버스)</span>
+                <div class="info-value-text" id="viewTransitGuide">지하철 1호선 서면역 1번 출구 도보 5분 거리
+                    버스 88번, 133번 탑승 후 '교회 앞' 하차</div>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">주차장 안내</span>
+                <div class="info-value-text" id="viewParkingGuide">교회 본당 지하 1~2층 주차장 무료 이용 가능
+                    만차 시 맞은편 공영주차장 2시간 지원</div>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">문의 및 전화번호</span>
+                <div class="info-value-text" id="viewContactTel">교회사무실: 051-123-4567 (상담/방문 안내)</div>
+            </div>
+        </section>
+
+        <!-- 하단 축복 카드 -->
+        <section class="detail-bless-card">
+            <span class="bless-title">🕊️ 발걸음을 인도하시는 주님의 평안</span>
+            <div class="bless-text">“사람이 마음으로 자기의 길을 계획할지라도 그의 걸음을 인도하시는 이는 여호와시니라 (잠 16:9)”</div>
+        </section>
+
+        <!-- 애드몹 배너 (320x100) -->
+        <section class="map-admob-banner">
+            <span style="font-size:11px; font-weight:900; color:#38bdf8;">Google AdMob (320x100)</span>
+            <span style="font-size:12.5px; font-weight:950; color:#facc15; margin-top:2px;">교회 공식 스폰서 슬롯</span>
+        </section>
+    </main>
+</div>
+
+<!-- 3. 관리자 약도 및 정보 편집 모달 -->
+<div class="admin-modal" id="adminModal">
+    <header class="modal-top-bar">
+        <button type="button" style="background:none; border:none; color:#38bdf8; font-size:22px; cursor:pointer;" onclick="closeAdminModal()">✕</button>
+        <strong style="color:#ffffff; font-size:15px;">약도 및 오시는 길 정보 편집</strong>
+        <button type="button" style="background:#0284c7; color:white; border:none; padding:5px 12px; border-radius:12px; font-weight:900; font-size:12px; cursor:pointer;" onclick="saveMapData()">저장</button>
+    </header>
+
+    <div class="modal-body">
+        <div class="input-group">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label>약도 그림 파일 (2개 이상 등록 가능)</label>
+                <button type="button" style="background:#0284c7; color:white; border:none; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" onclick="document.getElementById('imgFileInput').click()">📷 그림 추가</button>
+            </div>
+            <input type="file" id="imgFileInput" style="display:none;" accept="image/*" onchange="handleAddMapImage(this)">
+            <div class="admin-img-list" id="adminImgList"></div>
+        </div>
+
+        <div class="input-group">
+            <label>교회 명칭</label>
+            <input type="text" class="modal-input" id="inpChurchName">
+        </div>
+
+        <div class="input-group">
+            <label>도로명 / 지번 주소</label>
+            <input type="text" class="modal-input" id="inpAddressRoad">
+        </div>
+
+        <div class="input-group">
+            <label>대중교통 이용 안내</label>
+            <textarea class="modal-textarea" id="inpTransitGuide" placeholder="지하철, 버스 노선 및 하차 위치를 적어주세요."></textarea>
+        </div>
+
+        <div class="input-group">
+            <label>주차 안내</label>
+            <textarea class="modal-textarea" id="inpParkingGuide" placeholder="교회 내 주차 공간 및 인근 공영주차장 안내를 적어주세요."></textarea>
+        </div>
+
+        <div class="input-group">
+            <label>안내 전화번호 / 사무실 연락처</label>
+            <input type="text" class="modal-input" id="inpContactTel">
+        </div>
+    </div>
+</div>
+
+<script>
+    const MAP_DATA_KEY = "yetalk_church_map_info_v1";
+
+    const DEFAULT_MAP_DATA = {
+        churchName: "예톡행복한교회 오시는 길",
+        addressRoad: "부산광역시 부산진구 중앙대로 123 (행복빌딩 3층)",
+        transitGuide: "• 지하철: 1호선 서면역 1번 출구 도보 5분\n• 버스: 88번, 133번, 54번 탑승 후 '교회 앞' 정류장 하차",
+        parkingGuide: "• 교회 지하 1~2층 주차장 무료 이용 (관리집사님 안내)\n• 주일 만차 시 맞은편 공영주차장 2시간 무료 주차권 지급",
+        contactTel: "교회사무실: 051-123-4567 | 담임목사실 직통 연결 가능",
+        images: [
+            "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1000&q=80",
+            "https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&fit=crop&w=1000&q=80"
+        ]
+    };
+
+    let mapData = {};
+
+    function initMapPage() {
+        const saved = localStorage.getItem(MAP_DATA_KEY);
+        if (saved) {
+            try { mapData = JSON.parse(saved); } catch(e) { mapData = DEFAULT_MAP_DATA; }
+        } else {
+            mapData = DEFAULT_MAP_DATA;
+            localStorage.setItem(MAP_DATA_KEY, JSON.stringify(mapData));
+        }
+        renderView();
+    }
+
+    function renderView() {
+        document.getElementById("viewChurchName").innerText = mapData.churchName || "예톡행복한교회 안내";
+        document.getElementById("viewAddressRoad").innerText = mapData.addressRoad || "";
+        document.getElementById("viewTransitGuide").innerText = mapData.transitGuide || "";
+        document.getElementById("viewParkingGuide").innerText = mapData.parkingGuide || "";
+        document.getElementById("viewContactTel").innerText = mapData.contactTel || "";
+
+        const gallery = document.getElementById("mapGalleryView");
+        gallery.innerHTML = "";
+
+        const imgs = mapData.images || [];
+        if (imgs.length === 0) {
+            gallery.innerHTML = `<div style="text-align:center; padding:30px; background:#111a2f; border-radius:12px; color:#64748b; font-size:13px;">등록된 약도 그림이 없습니다. [✏️ 약도관리]를 눌러 등록해주세요.</div>`;
+        } else {
+            imgs.forEach((src, idx) => {
+                const wrap = document.createElement("div");
+                wrap.className = "map-image-wrapper";
+                wrap.innerHTML = `<img src="${src}" class="map-image-view" alt="약도 ${idx + 1}">`;
+                gallery.appendChild(wrap);
+            });
+        }
+    }
+
+    function copyAddressText() {
+        const text = mapData.addressRoad || "";
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("📋 주소가 클립보드에 복사되었습니다:\n" + text);
+            });
+        } else {
+            alert("주소: " + text);
+        }
+    }
+
+    function openAdminModal() {
+        document.getElementById("inpChurchName").value = mapData.churchName || "";
+        document.getElementById("inpAddressRoad").value = mapData.addressRoad || "";
+        document.getElementById("inpTransitGuide").value = mapData.transitGuide || "";
+        document.getElementById("inpParkingGuide").value = mapData.parkingGuide || "";
+        document.getElementById("inpContactTel").value = mapData.contactTel || "";
+
+        renderAdminImgList();
+        document.getElementById("adminModal").classList.add("open");
+    }
+
+    function closeAdminModal() {
+        document.getElementById("adminModal").classList.remove("open");
+    }
+
+    function renderAdminImgList() {
+        const container = document.getElementById("adminImgList");
+        container.innerHTML = "";
+        const imgs = mapData.images || [];
+
+        imgs.forEach((src, idx) => {
+            const row = document.createElement("div");
+            row.className = "admin-img-row";
+            row.innerHTML = `
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <img src="${src}" class="admin-img-thumb" alt="미리보기">
+                    <span style="font-size:12px; color:#cbd5e1; font-weight:800;">약도 그림 #${idx + 1}</span>
+                </div>
+                <button type="button" style="background:#dc2626; color:white; border:none; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:900; cursor:pointer;" onclick="deleteMapImage(${idx})">삭제</button>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function handleAddMapImage(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                const MAX_WIDTH = 960;
+                let w = img.width, h = img.height;
+                if (w > MAX_WIDTH) { h = Math.round((h * MAX_WIDTH) / w); w = MAX_WIDTH; }
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, w, h);
+
+                const compressed = canvas.toDataURL("image/jpeg", 0.85);
+                if (!mapData.images) mapData.images = [];
+                mapData.images.push(compressed);
+                renderAdminImgList();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function deleteMapImage(idx) {
+        if (!confirm("이 약도 이미지를 삭제하시겠습니까?")) return;
+        mapData.images.splice(idx, 1);
+        renderAdminImgList();
+    }
+
+    function saveMapData() {
+        mapData.churchName = document.getElementById("inpChurchName").value.trim();
+        mapData.addressRoad = document.getElementById("inpAddressRoad").value.trim();
+        mapData.transitGuide = document.getElementById("inpTransitGuide").value.trim();
+        mapData.parkingGuide = document.getElementById("inpParkingGuide").value.trim();
+        mapData.contactTel = document.getElementById("inpContactTel").value.trim();
+
+        localStorage.setItem(MAP_DATA_KEY, JSON.stringify(mapData));
+        renderView();
+        closeAdminModal();
+        alert("🎉 약도 및 오시는 길 정보가 저장되었습니다.");
+    }
+
+    document.addEventListener("DOMContentLoaded", initMapPage);
+</script>
+<script src="church_bottom_bar.js"></script>
+</body>
+</html>

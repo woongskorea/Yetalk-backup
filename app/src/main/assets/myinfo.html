@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>예톡 회원가입 및 앱 등록</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #0f172a; font-family: "Pretendard", -apple-system, sans-serif;
+            color: #f8fafc; display: flex; justify-content: center; min-height: 100vh;
+        }
+        .container {
+            width: 100%; max-width: 480px; min-height: 100vh; background: #1e293b;
+            display: flex; flex-direction: column; padding: 16px; padding-bottom: 120px;
+            box-sizing: border-box; position: relative;
+        }
+
+        .header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 14px; border-bottom: 1px solid #334155; margin-bottom: 16px;
+        }
+        .header-title { font-size: 18px; font-weight: 900; color: #38bdf8; }
+        .btn-close { background: none; border: none; color: #94a3b8; font-size: 18px; cursor: pointer; }
+
+        .form-section {
+            background: #0f172a; border: 1px solid #334155; border-radius: 12px;
+            padding: 16px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .section-badge-title {
+            display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 900; color: #f8fafc;
+        }
+        .badge-req {
+            background: #ef4444; color: white; font-size: 10.5px; font-weight: 800;
+            padding: 2px 6px; border-radius: 4px;
+        }
+
+        .btn-benefit-trigger {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: 1px solid #fbbf24; color: #ffffff;
+            font-size: 11.5px; font-weight: 900; padding: 4px 9px; border-radius: 20px;
+            cursor: pointer; display: flex; align-items: center; gap: 4px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes pulse-glow {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); box-shadow: 0 2px 12px rgba(251, 191, 36, 0.7); }
+            100% { transform: scale(1); }
+        }
+
+        .input-box {
+            width: 100%; padding: 11px 12px; background: #1e293b; border: 1px solid #334155;
+            border-radius: 8px; color: white; font-size: 13.5px; outline: none; box-sizing: border-box;
+        }
+        .input-box:focus { border-color: #38bdf8; }
+
+        .btn-action {
+            width: 100%; padding: 13px; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 900; cursor: pointer; margin-bottom: 10px;
+            display: flex; justify-content: center; align-items: center; gap: 6px;
+        }
+        .btn-free-app {
+            background: #2563eb; color: white; box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+
+        .btn-biz-app {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #ffffff;
+            border: 1px solid #34d399;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+        }
+        .btn-biz-app:active { transform: scale(0.98); }
+
+        .btn-community-app {
+            background: #0f172a;
+            border: 1px solid #475569;
+            color: #94a3b8;
+        }
+
+        .admob-large-fixed {
+            position: fixed; bottom: 0; width: 100%; max-width: 480px; height: 100px;
+            background: #0f172a; border-top: 2px solid #3b82f6; z-index: 100;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #94a3b8; font-size: 12.5px; font-weight: 800; text-align: center;
+        }
+
+        .modal-backdrop {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            z-index: 200; justify-content: center; align-items: center; padding: 16px;
+        }
+        .modal-backdrop.open { display: flex; }
+        .modal-content {
+            background: #1e293b; border: 1px solid #475569; border-radius: 16px;
+            width: 100%; max-width: 400px; padding: 18px; display: flex; flex-direction: column; gap: 12px;
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 900; color: #38bdf8; }
+
+        .pricing-box {
+            background: #0f172a; border: 1px solid #38bdf8; border-radius: 10px; padding: 12px;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .pricing-title { font-size: 14px; font-weight: 900; color: #fbbf24; }
+        .pricing-desc { font-size: 13px; color: #e2e8f0; font-weight: 800; }
+
+        .benefits-list {
+            background: #0f172a; border-radius: 10px; padding: 12px 14px;
+            font-size: 12px; color: #cbd5e1; line-height: 1.6; display: flex; flex-direction: column; gap: 6px;
+        }
+        .benefits-list li { list-style: none; position: relative; padding-left: 16px; }
+        .benefits-list li::before { content: "✔"; position: absolute; left: 0; color: #10b981; font-weight: 900; }
+
+        .bank-info-box {
+            background: #0f172a; border: 1px solid #10b981; border-radius: 10px; padding: 12px;
+            display: flex; flex-direction: column; gap: 4px; font-size: 12.5px;
+        }
+        .modal-btn-confirm {
+            background: #2563eb; border: none; color: white; padding: 12px;
+            border-radius: 8px; font-size: 14px; font-weight: 900; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header-bar">
+        <span class="header-title">✨ 예톡 회원가입 및 앱 등록</span>
+        <button type="button" class="btn-close" onclick="location.href='myapp_home.html'">✕</button>
+    </div>
+
+    <!-- 1. 기본 필수 회원정보 -->
+    <div class="form-section">
+        <div class="section-badge-title">
+            <span>👤 기본 회원정보</span>
+            <span class="badge-req">필수</span>
+        </div>
+        <input type="text" id="userName" class="input-box" placeholder="이름 (실명 입력)">
+        <input type="text" id="userId" class="input-box" placeholder="ID (아이디)">
+        <input type="password" id="userPw" class="input-box" placeholder="비밀번호 (4자리 이상)">
+        <!-- 한 칸에 자유롭게 시·구·군 입력 -->
+        <input type="text" id="userAddress" class="input-box" placeholder="주소 (예: 서울시 강남구 또는 부산시 수영구)">
+    </div>
+
+    <!-- 등록 및 수정 (무료개인앱 제공) 버튼 -->
+    <button type="button" class="btn-action btn-free-app" onclick="registerOrUpdateFreeApp()">
+        등록 및 수정 (무료개인앱 제공) 🎁
+    </button>
+
+    <!-- 2. 프리미엄 비즈니스 정보 (선택) -->
+    <div class="form-section" style="margin-top: 6px;">
+        <div class="section-badge-title">
+            <span>✨ 비즈니스 정보 (선택)</span>
+            <button type="button" class="btn-benefit-trigger" onclick="openBenefitModal()">
+                🎁 프리미엄앱 안내 & 혜택 보기 ❯
+            </button>
+        </div>
+        <input type="tel" id="bizPhone" class="input-box" placeholder="핸드폰번호 (하이픈 없이 숫자만)">
+        <input type="text" id="bizName" class="input-box" placeholder="교회, 의원, 또는 상호명 입력">
+        <div style="font-size:11px; color:#94a3b8; line-height:1.4;">
+            💡 사업체 프리미엄 앱 제작 시 필요한 정보입니다. (복수 신청 가능)
+        </div>
+    </div>
+
+    <!-- 프리미엄앱(교회/의원/상점) 신청하기: 녹색 강조 -->
+    <button type="button" class="btn-action btn-biz-app" onclick="openPaymentModal()">
+        프리미엄앱(교회/의원/상점) 신청하기 💼
+    </button>
+
+    <!-- 교회/모임 커뮤니티 앱 만들기: 다크 톤 -->
+    <button type="button" class="btn-action btn-community-app" onclick="createInstantCommunityApp()">
+        교회/모임 커뮤니티 앱 만들기 ⛪
+    </button>
+
+    <!-- 하단 100px 대형 애드몹 배너 -->
+    <footer class="admob-large-fixed">
+        <span style="color:#38bdf8; font-size:13.5px; font-weight:900;">Google AdMob Large Banner (320x100)</span>
+        <span style="font-size:11px; color:#64748b; margin-top:2px;">지역 맞춤 프리미엄 스폰서 광고 슬롯</span>
+    </footer>
+
+    <!-- 프리미엄앱 가격 및 장점 안내 모달 -->
+    <div class="modal-backdrop" id="benefitModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>🔥 프리미엄 비즈니스앱 가격 및 혜택</span>
+                <span style="cursor:pointer;" onclick="closeBenefitModal()">✕</span>
+            </div>
+
+            <div class="pricing-box">
+                <div class="pricing-title">전국 최저가 실속 패키지 (복수 신청 가능)</div>
+                <div class="pricing-desc">1개 앱당 1년 서버비 50,000원 + 월 12,100원</div>
+            </div>
+
+            <ul class="benefits-list">
+                <li><strong>컴퓨터(PC 웹) + 스마트폰 앱</strong> 동시 지원으로 완벽 관리</li>
+                <li>환자·성도·단골 고객에게 공지사항 및 긴급 알림을 즉시 발송</li>
+                <li>힐링 영상 제작 + <strong>예톡TV 및 유튜브 자동 업로드</strong>를 통한 홍보 극대화</li>
+                <li>예톡 지역 자동 홍보 시스템을 우선 적용받는 프리미엄 혜택</li>
+                <li>여러 사업체(1호점, 2호점 등) 개별 앱 무제한 신청 및 독립 운영 가능</li>
+            </ul>
+
+            <div style="background:#0f172a; border:1px solid #10b981; padding:10px; border-radius:8px; font-size:11.5px; line-height:1.5;">
+                <span style="color:#10b981; font-weight:900;">⚡ 신청 및 활성화 안내</span><br>
+                정보 입력 후 신청하시면 확인 즉시(최대 24시간 이내) 본인 관리 화면에 바로 등록되어 서비스가 시작됩니다.
+            </div>
+
+            <button type="button" class="modal-btn-confirm" onclick="closeBenefitModal()">
+                확인했습니다 (닫기)
+            </button>
+        </div>
+    </div>
+
+    <!-- 결제/입금 안내 모달 창 -->
+    <div class="modal-backdrop" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>💼 프리미엄 비즈니스앱 신청</span>
+                <span style="cursor:pointer;" onclick="closePaymentModal()">✕</span>
+            </div>
+
+            <div style="font-size:12px; color:#cbd5e1; line-height:1.5;">
+                전국 최저가 실속 패키지: <strong style="color:#fbbf24;">1개 앱당 1년 서버비 50,000원 + 월 12,100원</strong><br>
+                신청 확인 후 24시간 이내에 관리자 확인을 거쳐 서비스가 활성화됩니다.
+            </div>
+
+            <div class="bank-info-box">
+                <div style="color:#10b981; font-weight:900;">예톡 공식 입금 계좌 안내</div>
+                <div style="color:#f8fafc; font-size:13px; font-weight:800; margin: 2px 0;">
+                    [계좌 개설 준비 중: 개설 후 계좌정보 노출]
+                </div>
+                <div style="color:#94a3b8; font-size:11px;">(법인/사업자 통장 개설 후 업데이트 예정)</div>
+            </div>
+
+            <button type="button" class="modal-btn-confirm" onclick="submitPremiumPayment()">
+                등록 신청 완료 🚀
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    window.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("userName").value = localStorage.getItem("yetalkUserName") || "";
+        document.getElementById("userId").value = localStorage.getItem("yetalkUserId") || "";
+        document.getElementById("userAddress").value = localStorage.getItem("yetalkUserAddress") || "";
+        document.getElementById("bizPhone").value = localStorage.getItem("yetalkBizPhone") || "";
+        document.getElementById("bizName").value = localStorage.getItem("yetalkBizName") || "";
+    });
+
+    // 주소를 시/도와 구/군으로 자동 정규화 분리하는 지능형 파서
+    function parseRegionAddress(rawAddress) {
+        if (!rawAddress) return { city: "", district: "" };
+
+        // 공백 기준으로 분리
+        const parts = rawAddress.trim().split(/\s+/);
+        let city = parts[0] || "";
+        let district = parts[1] || "";
+
+        // 대표 시/도 명칭 통일
+        if (city.includes("서울")) city = "서울시";
+        else if (city.includes("부산")) city = "부산시";
+        else if (city.includes("대구")) city = "대구시";
+        else if (city.includes("인천")) city = "인천시";
+        else if (city.includes("광주")) city = "광주시";
+        else if (city.includes("대전")) city = "대전시";
+        else if (city.includes("울산")) city = "울산시";
+        else if (city.includes("세종")) city = "세종시";
+        else if (city.includes("경기")) city = "경기도";
+        else if (city.includes("강원")) city = "강원도";
+        else if (city.includes("충북") || city.includes("충청북")) city = "충청북도";
+        else if (city.includes("충남") || city.includes("충청남")) city = "충청남도";
+        else if (city.includes("전북") || city.includes("전라북")) city = "전북특별자치도";
+        else if (city.includes("전남") || city.includes("전라남")) city = "전라남도";
+        else if (city.includes("경북") || city.includes("경상북")) city = "경상북도";
+        else if (city.includes("경남") || city.includes("경상남")) city = "경상남도";
+        else if (city.includes("제주")) city = "제주도";
+
+        return { city, district };
+    }
+
+    // 등록 및 수정 처리
+    function registerOrUpdateFreeApp() {
+        const userName = document.getElementById("userName").value.trim();
+        const userId = document.getElementById("userId").value.trim();
+        const userPw = document.getElementById("userPw").value.trim();
+        const userAddress = document.getElementById("userAddress").value.trim();
+
+        if (!userName || !userId || !userPw || !userAddress) {
+            alert("기본 회원정보(이름, 아이디, 비밀번호, 주소)를 모두 입력해주세요.");
+            return;
+        }
+
+        // 주소에서 시/도, 구/군을 자동 추출하여 각각 보관
+        const { city, district } = parseRegionAddress(userAddress);
+
+        localStorage.setItem("yetalkUserName", userName);
+        localStorage.setItem("yetalkUserId", userId);
+        localStorage.setItem("yetalkUserAddress", userAddress); // 원본 주소 (예: 서울시 강남구)
+        localStorage.setItem("yetalkUserCity", city);          // 시/도 태그 (예: 서울시)
+        localStorage.setItem("yetalkUserDistrict", district);  // 구/군 태그 (예: 강남구)
+
+        alert(`🎉 회원 정보가 성공적으로 등록/수정되었습니다!\n[지역: ${city} ${district}]\n${userName}님의 마이룸으로 이동합니다.`);
+        location.href = "myapp_home.html";
+    }
+
+    function openBenefitModal() {
+        document.getElementById("benefitModal").classList.add("open");
+    }
+    function closeBenefitModal() {
+        document.getElementById("benefitModal").classList.remove("open");
+    }
+
+    function openPaymentModal() {
+        const bizName = document.getElementById("bizName").value.trim();
+        if (!bizName) {
+            alert("추가 정보에 '교회, 의원, 또는 상호명'을 입력해주세요.");
+            document.getElementById("bizName").focus();
+            return;
+        }
+        document.getElementById("paymentModal").classList.add("open");
+    }
+
+    function closePaymentModal() {
+        document.getElementById("paymentModal").classList.remove("open");
+    }
+
+    function submitPremiumPayment() {
+        const bizName = document.getElementById("bizName").value.trim();
+        const bizPhone = document.getElementById("bizPhone").value.trim();
+
+        let bizList = JSON.parse(localStorage.getItem("yetalkBizList") || "[]");
+        bizList.push({ name: bizName, phone: bizPhone, date: new Date().toISOString() });
+
+        localStorage.setItem("yetalkBizList", JSON.stringify(bizList));
+        localStorage.setItem("yetalkBizName", bizName);
+        localStorage.setItem("yetalkBizPhone", bizPhone);
+        localStorage.setItem("yetalkBizStatus", "pending");
+
+        alert(`[${bizName}] 신청이 접수되었습니다!\n\n확인 후 빠른 즉시(최대 24시간 이내) 본인 앱에 프리미엄 기능이 자동 활성화됩니다.`);
+        closePaymentModal();
+        location.href = "myapp_home.html";
+    }
+
+    function createInstantCommunityApp() {
+        alert("⛪ 교회/모임 커뮤니티 앱이 즉시 생성되었습니다!\n소통 공간으로 이동합니다.");
+        location.href = "chatmedigate.html";
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>선교·전도·부서 | 예톡 교회홈</title>
+    <link rel="stylesheet" href="src/main/assets/church/churchmain.css">
+    <style>
+        .church-app {
+            min-height: 100vh;
+            padding-bottom: calc(165px + env(safe-area-inset-bottom));
+        }
+        #churchHeader {
+            background: var(--theme-color, #97266d) !important;
+            backdrop-filter: blur(10px);
+        }
+        .admin-switch-btn {
+            background: #111827; color: #fff; font-size: 13px; font-weight: 900;
+            padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; transition: 0.2s;
+        }
+        .admin-switch-btn.on { background: #dc2626; box-shadow: 0 0 10px rgba(220, 38, 38, 0.5); }
+
+        .hub-menu-section {
+            width: min(100%, 720px);
+            margin: 16px auto 10px auto;
+            padding: 0 13px;
+        }
+
+        .category-main-tabs {
+            display: flex; gap: 8px; margin-bottom: 12px;
+        }
+        .category-btn {
+            flex: 1; height: 50px; background: rgba(255,255,255,0.35); border: 2px solid rgba(255,255,255,0.5);
+            color: #0f172a; font-size: 16px; font-weight: 900; border-radius: 14px; cursor: pointer; transition: 0.2s;
+        }
+        .category-btn.active {
+            background: #ffffff; color: var(--theme-color, #97266d); border-color: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12); font-size: 16.5px;
+        }
+
+        .sub-tab-box {
+            display: none; background: rgba(255, 255, 255, 0.3);
+            border-radius: 14px; padding: 4px; margin-bottom: 14px; overflow-x: auto; gap: 4px;
+        }
+        .sub-tab-box.active { display: flex; }
+        .mission-tab-btn {
+            flex: 1; height: 44px; border: none; background: transparent;
+            font-size: 15px; font-weight: 900; color: #1e293b; border-radius: 10px; cursor: pointer; white-space: nowrap;
+        }
+        .mission-tab-btn.active {
+            background: #ffffff; color: var(--theme-color, #97266d); box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .mission-container {
+            width: min(100%, 720px);
+            margin: 0 auto;
+            padding: 0 13px;
+        }
+
+        .list-item-card {
+            background: rgba(255, 255, 255, 0.15); border: 1.5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px; padding: 18px 20px; margin-bottom: 14px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.2s;
+        }
+        .list-info-area { display: flex; flex-direction: column; gap: 4px; }
+        .list-badge { font-size: 12px; font-weight: 900; background: rgba(255,255,255,0.35); color: #fff; padding: 3px 8px; border-radius: 6px; width: fit-content; }
+        .list-title { font-size: 19px; font-weight: 900; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .list-views { font-size: 13.5px; font-weight: 800; color: #fdf2f8; display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+
+        .detail-enter-btn {
+            background: #ffffff; color: var(--theme-color, #97266d); border: none;
+            padding: 10px 16px; border-radius: 12px; font-size: 14px; font-weight: 900; cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex-shrink: 0;
+        }
+
+        #detailRoomView { display: none; }
+        .back-to-list-btn {
+            background: rgba(255,255,255,0.25); color: #fff; border: 1.5px solid rgba(255,255,255,0.4);
+            padding: 8px 16px; border-radius: 10px; font-size: 14.5px; font-weight: 900; cursor: pointer; margin-bottom: 14px; display: inline-flex; align-items: center; gap: 6px;
+        }
+
+        .room-inner-tabs {
+            display: flex; background: rgba(255, 255, 255, 0.2); border-radius: 14px; padding: 4px; margin-bottom: 16px; gap: 4px;
+        }
+        .room-inner-btn {
+            flex: 1; height: 44px; border: none; background: transparent; font-size: 15.5px; font-weight: 900; color: #1e293b; border-radius: 10px; cursor: pointer;
+        }
+        .room-inner-btn.active {
+            background: #ffffff; color: var(--theme-color, #97266d); box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .room-tab-content { display: none; }
+        .room-tab-content.active { display: block; }
+
+        .cafe-feed-card { background: transparent; margin-bottom: 20px; padding: 0; }
+        .cafe-feed-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .cafe-badge { font-size: 12.5px; font-weight: 900; background: rgba(255,255,255,0.3); color: #fff; padding: 4px 9px; border-radius: 6px; }
+        .cafe-title { font-size: 21px; font-weight: 900; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .cafe-feed-img { width: 100%; max-height: 400px; object-fit: cover; border-radius: 14px; margin-bottom: 14px; display: block; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+
+        .cafe-content-text {
+            font-size: 18.5px; font-weight: 800; color: #ffffff; line-height: 2.0;
+            white-space: pre-line; background: transparent; padding: 0 2px; margin-bottom: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* 💡 눈에 띄지 않고 문구처럼 조용히 들어간 후원 동참하기 스타일 */
+        .subtle-inline-bank {
+            font-size: 14px; font-weight: 800; color: rgba(255, 255, 255, 0.85); margin-bottom: 20px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; text-decoration: underline; text-underline-offset: 4px;
+        }
+        .subtle-inline-bank:hover { color: #ffffff; }
+
+        /* 방문수, 기도손, 수정, 삭제 한 줄 통합 바 */
+        .bottom-action-bar {
+            display: flex; gap: 8px; align-items: center; flex-wrap: wrap; border-top: 1.5px dashed rgba(255,255,255,0.3); padding-top: 16px; margin-bottom: 20px;
+        }
+        .action-pill {
+            background: rgba(255, 255, 255, 0.2); border-radius: 20px; padding: 6px 12px;
+            font-size: 13px; font-weight: 900; color: #ffffff; display: inline-flex; align-items: center; gap: 4px;
+        }
+        .action-btn-inline {
+            background: rgba(255, 255, 255, 0.85); color: var(--theme-color, #97266d); border: none; padding: 6px 12px; border-radius: 10px; font-size: 13px; font-weight: 900; cursor: pointer; margin-left: auto;
+        }
+        .action-btn-inline.del { background: #991b1b; color: #fee2e2; margin-left: 6px; }
+
+        /* 은혜 나눔방 스타일 */
+        .room-chat-box {
+            background: #ffffff; border-radius: 16px; padding: 16px; border: 2px solid #cbd5e1; box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+            margin-bottom: 70px;
+        }
+        .chat-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; max-height: 320px; overflow-y: auto; }
+        .chat-item {
+            font-size: 16.5px; font-weight: 800; background: #f8fafc; padding: 12px 16px;
+            border-radius: 12px; border: 1.5px solid #e2e8f0; color: #0f172a; line-height: 1.6;
+        }
+        .chat-author { font-weight: 900; color: var(--theme-color, #97266d); margin-right: 8px; }
+
+        .chat-bottom-bar {
+            position: fixed;
+            bottom: calc(118px + env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(100% - 26px, 720px);
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 14px;
+            padding: 8px 12px;
+            display: flex;
+            gap: 8px;
+            z-index: 1000;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+        }
+        .chat-input {
+            flex: 1; padding: 10px 12px; border: 1px solid #94a3b8; border-radius: 10px;
+            font-size: 15.5px; font-weight: 800; outline: none; background: #fff; color: #000;
+        }
+        .chat-submit-btn {
+            background: var(--theme-color, #97266d); color: #fff; border: none; padding: 0 18px;
+            border-radius: 10px; font-size: 14.5px; font-weight: 900; cursor: pointer; flex-shrink: 0;
+        }
+
+        .add-new-btn {
+            width: 100%; height: 52px; background: rgba(255,255,255,0.85); border: 2.5px dashed #16a34a; color: #16a34a;
+            border-radius: 16px; font-size: 17px; font-weight: 900; cursor: pointer; margin-bottom: 24px; display: block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .add-new-btn:hover { background: #ffffff; }
+
+        /* 💡 네이버 카페 스타일 상단 풀스크린 글쓰기 폼 */
+        .edit-form-box {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--theme-color, #97266d); z-index: 99999; padding: 20px; box-sizing: border-box;
+            overflow-y: auto; display: none;
+        }
+        .cafe-form-inner {
+            width: min(100%, 720px); margin: 0 auto; background: #ffffff; border-radius: 20px; padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-top: 10px; margin-bottom: 50px;
+        }
+        .cafe-form-inner label { font-size: 15px; font-weight: 900; color: #1e293b; display: block; margin-bottom: 6px; }
+        .cafe-form-inner input, .cafe-form-inner select, .cafe-form-inner textarea {
+            width: 100%; padding: 14px 16px; border: 2px solid #94a3b8; border-radius: 12px; font-size: 16.5px; font-weight: 800; margin-bottom: 14px; box-sizing: border-box; outline: none; background: #fff; color: #000;
+        }
+        .cafe-form-inner textarea { height: 260px; resize: vertical; line-height: 1.7; }
+
+        .cafe-form-header-bar {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 14px;
+        }
+
+        .pending-approval-box {
+            background: #fffbeb; border: 2px solid #f59e0b; border-radius: 16px; padding: 18px; margin-bottom: 18px; color: #1e293b;
+        }
+
+        .admob-banner-box {
+            position: fixed;
+            bottom: calc(75px + env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(100% - 26px, 720px);
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px dashed #94a3b8;
+            border-radius: 14px;
+            padding: 10px;
+            text-align: center;
+            color: #1e293b;
+            font-size: 13px;
+            font-weight: 900;
+            z-index: 999;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.15);
+        }
+
+        #quickToast {
+            position: fixed; bottom: 165px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); color: #fff; padding: 14px 24px; border-radius: 14px; font-size: 16px; font-weight: 900; z-index: 999999; display: none; text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+    </style>
+</head>
+
+<body>
+<div id="churchAppContainer" class="church-app theme-pink">
+
+    <header id="churchHeader">
+        <div class="church-header-inner">
+            <button id="backHomeBtn" type="button" style="background:var(--card); border:1px solid var(--line); border-radius:12px; width:42px; height:42px; font-size:24px; font-weight:900; color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;">‹</button>
+            <button id="churchNameButton" type="button" onclick="history.back()">
+                <span id="churchName">선교·전도·부서 허브</span>
+            </button>
+            <div class="church-header-controls" style="display:flex; align-items:center; gap:8px;">
+                <button id="adminSwitchBtn" class="admin-switch-btn" onclick="toggleAdminMode()">관리자 OFF</button>
+                <span id="authBadge" style="font-size:12px; font-weight:900; background:rgba(255,255,255,0.3); padding:5px 9px; border-radius:8px; color:#fff;">확인중</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="church-main">
+        <div class="hub-menu-section" id="hubMenuSection">
+            <div class="category-main-tabs">
+                <button class="category-btn active" id="catBtn0" onclick="switchCategory(0)">⛪ 선교파트</button>
+                <button class="category-btn" id="catBtn1" onclick="switchCategory(1)">🔥 전도팀</button>
+                <button class="category-btn" id="catBtn2" onclick="switchCategory(2)">🏛️ 교회부서</button>
+            </div>
+
+            <!-- 선교 파트 (0~4) -->
+            <div class="sub-tab-box active" id="subBox0">
+                <button class="mission-tab-btn active" id="tab0" onclick="switchTab(0)">파송선교사</button>
+                <button class="mission-tab-btn" id="tab1" onclick="switchTab(1)">협력선교사</button>
+                <button class="mission-tab-btn" id="tab2" onclick="switchTab(2)">단기선교사</button>
+                <button class="mission-tab-btn" id="tab3" onclick="switchTab(3)">후원단체</button>
+                <button class="mission-tab-btn" id="tab4" onclick="switchTab(4)">후원교회</button>
+            </div>
+
+            <!-- 전도팀 파트 (5~7) -->
+            <div class="sub-tab-box" id="subBox1">
+                <button class="mission-tab-btn" id="tab5" onclick="switchTab(5)">전도1팀</button>
+                <button class="mission-tab-btn" id="tab6" onclick="switchTab(6)">전도2팀</button>
+                <button class="mission-tab-btn" id="tab7" onclick="switchTab(7)">청년전도팀</button>
+            </div>
+
+            <!-- 교회부서 파트 (8~12) -->
+            <div class="sub-tab-box" id="subBox2">
+                <button class="mission-tab-btn" id="tab8" onclick="switchTab(8)">제직회</button>
+                <button class="mission-tab-btn" id="tab9" onclick="switchTab(9)">권사회</button>
+                <button class="mission-tab-btn" id="tab10" onclick="switchTab(10)">남선교회</button>
+                <button class="mission-tab-btn" id="tab11" onclick="switchTab(11)">여선교회</button>
+                <button class="mission-tab-btn" id="tab12" onclick="switchTab(12)">주일학교</button>
+            </div>
+        </div>
+
+        <div class="mission-container">
+            <div id="authLockArea" class="auth-lock-box hidden">
+                <div class="icon">🔒</div>
+                <h3>인정정회원 전용 공간입니다</h3>
+                <p>사역 정보는 교회 관리자의 승인을 받은 성도님만 열람하실 수 있습니다.</p>
+                <button class="request-auth-btn" onclick="requestAuthApproval()">관리자에게 승인 요청하기</button>
+            </div>
+
+            <div id="missionContentArea">
+
+                <button id="addNewMissionaryBtn" class="add-new-btn" onclick="openAddForm()">＋ 선교사 및 부서 등록</button>
+
+                <div id="adminPendingArea" style="display:none;"></div>
+
+                <!-- 💡 네이버 카페 스타일 풀스크린 글쓰기/수정 폼 -->
+                <div id="adminEditFormBox" class="edit-form-box">
+                    <div class="cafe-form-inner">
+                        <div class="cafe-form-header-bar">
+                            <h4 id="formTitleText" style="margin:0; font-size:20px; font-weight:900; color:#0f172a;">새 소식 작성</h4>
+                            <button type="button" onclick="closeAddForm()" style="background:#e2e8f0; border:none; width:36px; height:36px; border-radius:50%; font-size:18px; font-weight:900; cursor:pointer;">✕</button>
+                        </div>
+
+                        <label id="labelName">이름 또는 팀명/부서명</label>
+                        <input type="text" id="inputName" placeholder="">
+
+                        <label id="labelCountry">파송국가 또는 팀장/부서장 이름</label>
+                        <input type="text" id="inputSub" placeholder="">
+
+                        <div id="bankInputWrapper">
+                            <label>후원계좌 정보</label>
+                            <input type="text" id="inputBank" placeholder="예: 우리은행 1002-345-678900 (예금주:홍길동)">
+                        </div>
+
+                        <label>📷 사역 사진 / 첨부 파일</label>
+                        <input type="file" id="inputImage" accept="image/*" style="margin-bottom:14px; padding:10px; background:#f8fafc; border-radius:10px; border:2px solid #94a3b8;">
+
+                        <label>사역 보고 및 좋은 소식 내용</label>
+                        <textarea id="inputReport" placeholder="시원시원하게 소식을 적어주세요..."></textarea>
+
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <button class="save-mission-btn" onclick="saveMissionData()">작성 완료</button>
+                            <button class="save-mission-btn" style="background:#64748b;" onclick="closeAddForm()">취소</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 첫 페이지 리스트 -->
+                <div id="listViewContainer"></div>
+
+                <!-- 자세히 보기 방 -->
+                <div id="detailRoomView">
+                    <button class="back-to-list-btn" onclick="closeDetailRoom()">‹ 목록으로 돌아가기</button>
+
+                    <div class="room-inner-tabs">
+                        <button class="room-inner-btn active" id="roomTab0" onclick="switchRoomTab(0)">📄 좋은 소식</button>
+                        <button class="room-inner-btn" id="roomTab1" onclick="switchRoomTab(1)">💬 은혜 나눔방</button>
+                    </div>
+
+                    <div class="room-tab-content active" id="roomContent0">
+                        <div id="detailRoomContent"></div>
+                    </div>
+
+                    <div class="room-tab-content" id="roomContent1">
+                        <div class="room-chat-box">
+                            <div class="chat-list" id="detailChatList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 대화방 전용 최하단 입력 바 -->
+                <div class="chat-bottom-bar" id="chatBottomBar" style="display:none;">
+                    <input type="text" class="chat-input" id="detailChatInput" placeholder="따뜻한 기도와 은혜의 메시지...">
+                    <button class="chat-submit-btn" onclick="addRoomComment()">전송</button>
+                </div>
+
+                <!-- 최하단 고정 애드몹 광고 -->
+                <div class="admob-banner-box">
+                    💡 광고 영역 (Google AdMob Banner - 스마트폰 수익 창출)
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <nav id="churchBottomNav">
+        <button class="bottom-nav-item" type="button" onclick="history.back()">⛪<br>교회홈</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../../index.html'">🏠<br>나의홈</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../../coupang.html'">🛒<br>쿠팡</button>
+        <button class="bottom-nav-item" type="button" onclick="history.back()">🙏<br>헌금</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../churchintro.html?churchId=${churchId}'">📍<br>오시는길</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../../myinfo.html'">⚙️<br>내정보</button>
+    </nav>
+</div>
+
+<div id="quickToast">알림 메시지</div>
+
+<script type="module">
+    import { db, doc, getDoc, setDoc, serverTimestamp } from "../../firebase.js";
+
+    const urlParams = new URLSearchParams(location.search);
+    const churchId = urlParams.get('churchId') || localStorage.getItem('yetalkMyChurchId') || 'fAKyQftAh3qPnsuRPSVz';
+
+    let currentTab = 0;
+    let churchData = {};
+    let isApprovedMember = true;
+    let isAdminUser = true;
+    let editingItemId = null;
+    let currentDetailId = null;
+
+    function showToast(msg) {
+        const t = document.getElementById("quickToast");
+        if(!t) return;
+        t.innerText = msg;
+        t.style.display = "block";
+        setTimeout(() => { t.style.display = "none"; }, 3000);
+    }
+    window.showToast = showToast;
+
+    const backHomeBtn = document.getElementById('backHomeBtn');
+    if(backHomeBtn) backHomeBtn.onclick = () => { history.back(); };
+
+    window.switchCategory = (catIndex) => {
+        for(let i=0; i<3; i++) {
+            const btn = document.getElementById(`catBtn${i}`);
+            const box = document.getElementById(`subBox${i}`);
+            if(btn) btn.classList.remove("active");
+            if(box) box.classList.remove("active");
+        }
+        document.getElementById(`catBtn${catIndex}`).classList.add("active");
+        document.getElementById(`subBox${catIndex}`).classList.add("active");
+
+        if(catIndex === 0) switchTab(0);
+        else if(catIndex === 1) switchTab(5);
+        else if(catIndex === 2) switchTab(8);
+    };
+
+    window.switchTab = (tabIndex) => {
+        currentTab = tabIndex;
+        for(let i=0; i<=12; i++) {
+            const btn = document.getElementById(`tab${i}`);
+            if(btn) {
+                if(i === tabIndex) btn.classList.add("active");
+                else btn.classList.remove("active");
+            }
+        }
+        closeDetailRoom();
+        updateFormLabels(tabIndex);
+        renderMissionList();
+    };
+
+    window.switchRoomTab = (roomTabIndex) => {
+        for(let i=0; i<2; i++) {
+            const btn = document.getElementById(`roomTab${i}`);
+            const content = document.getElementById(`roomContent${i}`);
+            if(btn) btn.classList.remove("active");
+            if(content) content.classList.remove("active");
+        }
+        document.getElementById(`roomTab${roomTabIndex}`).classList.add("active");
+        document.getElementById(`roomContent${roomTabIndex}`).classList.add("active");
+
+        const chatBar = document.getElementById("chatBottomBar");
+        if(chatBar) {
+            chatBar.style.display = (roomTabIndex === 1) ? "flex" : "none";
+        }
+    };
+
+    function updateFormLabels(tabIndex) {
+        const labelName = document.getElementById("labelName");
+        const labelCountry = document.getElementById("labelCountry");
+        const bankWrapper = document.getElementById("bankInputWrapper");
+
+        if (tabIndex === 0) {
+            if(labelName) labelName.textContent = "선교사 이름";
+            if(labelCountry) labelCountry.textContent = "파송 국가 또는 지역";
+            if(bankWrapper) bankWrapper.style.display = "block";
+        } else if (tabIndex >= 5 && tabIndex <= 7) {
+            if(labelName) labelName.textContent = "전도팀 이름";
+            if(labelCountry) labelCountry.textContent = "팀장 이름";
+            if(bankWrapper) bankWrapper.style.display = "none";
+        } else if (tabIndex >= 8 && tabIndex <= 12) {
+            if(labelName) labelName.textContent = "부서 이름";
+            if(labelCountry) labelCountry.textContent = "부서장 이름";
+            if(bankWrapper) bankWrapper.style.display = "none";
+        } else {
+            if(labelName) labelName.textContent = "이름 또는 단체명";
+            if(labelCountry) labelCountry.textContent = "지역 또는 대표자 이름";
+            if(bankWrapper) bankWrapper.style.display = "none";
+        }
+    }
+
+    window.toggleAdminMode = () => {
+        const current = localStorage.getItem("yetalk_chat_admin_on") === "true";
+        localStorage.setItem("yetalk_chat_admin_on", !current);
+        applyAdminStateUI();
+        renderMissionList();
+        if(currentDetailId) openDetailRoom(currentDetailId);
+    };
+
+    function applyAdminStateUI() {
+        const isAdminOn = localStorage.getItem("yetalk_chat_admin_on") === "true";
+        const btn = document.getElementById("adminSwitchBtn");
+        const pendingArea = document.getElementById("adminPendingArea");
+
+        if (btn) {
+            if (isAdminOn) {
+                btn.textContent = "관리자 ON";
+                btn.className = "admin-switch-btn on";
+            } else {
+                btn.textContent = "관리자 OFF";
+                btn.className = "admin-switch-btn";
+            }
+        }
+        if (pendingArea) {
+            pendingArea.style.display = (isAdminOn && isAdminUser) ? "block" : "none";
+            if (isAdminOn && isAdminUser) renderPendingList();
+        }
+    }
+
+    async function initMissionPage() {
+        const savedTheme = localStorage.getItem(`church_theme_${churchId}`) || 'theme-pink';
+        const appContainer = document.getElementById('churchAppContainer');
+        if(appContainer) appContainer.className = `church-app ${savedTheme}`;
+
+        try {
+            const snap = await getDoc(doc(db, "churches", churchId));
+            if (snap.exists()) {
+                churchData = snap.data();
+            }
+        } catch(e) { console.log("데이터 로드 실패", e); }
+
+        if (!churchData.missionList || churchData.missionList.length === 0) {
+            churchData.missionList = [
+                { id: "1", tab: 0, name: "갈렙 선교사", country: "케냐 파송", bank: "우리은행 1002-345-678900", report: "할렐루야! 현지 사역지에서 전해드리는 은혜로운 소식입니다. 성도님의 기도로 날마다 영혼들이 주께 돌아오는 역사가 일어나고 있습니다.", views: 12, prayers: 15, image: "", comments: [{ author: "김집사", text: "선교사님 늘 건강하세요! 기도합니다." }] }
+            ];
+        }
+
+        const authBadge = document.getElementById("authBadge");
+        const authLockArea = document.getElementById("authLockArea");
+        const missionContentArea = document.getElementById("missionContentArea");
+
+        if(authBadge) authBadge.textContent = "인정정회원";
+        if(authLockArea) authLockArea.classList.add("hidden");
+        if(missionContentArea) missionContentArea.classList.remove("hidden");
+
+        applyAdminStateUI();
+        updateFormLabels(currentTab);
+        renderMissionList();
+    }
+
+    window.requestAuthApproval = async () => {
+        showToast("📩 관리자에게 승인 요청이 전송되었습니다!");
+    };
+
+    function renderPendingList() {
+        const pendingArea = document.getElementById("adminPendingArea");
+        if (!pendingArea) return;
+
+        const pendingList = churchData.pendingMissionList || [];
+        if (pendingList.length === 0) {
+            pendingArea.innerHTML = "";
+            return;
+        }
+
+        let html = `<div class="pending-approval-box"><h4 style="margin:0 0 12px 0; font-size:17px; font-weight:900; color:#b45309;">⚠️ 승인 대기중인 신청 (${pendingList.length})</h4>`;
+        pendingList.forEach(item => {
+            const categoryNames = ["파송선교사", "협력선교사", "단기선교사", "후원단체", "후원교회", "전도1팀", "전도2팀", "청년전도팀", "제직회", "권사회", "남선교회", "여선교회", "주일학교"];
+            const badgeText = categoryNames[item.tab] || "기타";
+            html += `
+                <div style="background:#fff; padding:12px; border-radius:10px; margin-bottom:10px; border:2px solid #fcd34d; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="font-size:12px; background:#fef3c7; color:#b45309; padding:3px 8px; font-weight:900; border-radius:6px;">${badgeText}</span>
+                        <b style="font-size:16px; margin-left:8px;">${item.name}</b> (${item.country || '내용 미기재'})
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button onclick="approveMissionItem('${item.id}')" style="background:#16a34a; color:#fff; border:none; padding:8px 14px; font-size:14px; font-weight:900; border-radius:8px; cursor:pointer;">승인</button>
+                        <button onclick="rejectMissionItem('${item.id}')" style="background:#dc2626; color:#fff; border:none; padding:8px 14px; font-size:14px; font-weight:900; border-radius:8px; cursor:pointer;">반려</button>
+                    </div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        pendingArea.innerHTML = html;
+    }
+
+    window.approveMissionItem = async (id) => {
+        let pending = churchData.pendingMissionList || [];
+        const item = pending.find(p => p.id === id);
+        if(!item) return;
+
+        pending = pending.filter(p => p.id !== id);
+        let list = churchData.missionList || [];
+        list.push(item);
+
+        try {
+            await setDoc(doc(db, "churches", churchId), { pendingMissionList: pending, missionList: list, updatedAt: serverTimestamp() }, { merge: true });
+            churchData.pendingMissionList = pending;
+            churchData.missionList = list;
+            renderPendingList();
+            renderMissionList();
+            showToast("정식 등록이 승인되었습니다!");
+        } catch(e) {
+            alert("승인 실패: " + e.message);
+        }
+    };
+
+    window.rejectMissionItem = async (id) => {
+        if(!confirm("이 신청을 반려하시겠습니까?")) return;
+        let pending = churchData.pendingMissionList || [];
+        pending = pending.filter(p => p.id !== id);
+
+        try {
+            await setDoc(doc(db, "churches", churchId), { pendingMissionList: pending, updatedAt: serverTimestamp() }, { merge: true });
+            churchData.pendingMissionList = pending;
+            renderPendingList();
+            showToast("신청이 반려되었습니다.");
+        } catch(e) {
+            alert("반려 실패: " + e.message);
+        }
+    };
+
+    window.renderMissionList = () => {
+        const container = document.getElementById("listViewContainer");
+        if (!container) return;
+        container.innerHTML = "";
+
+        const missionList = churchData.missionList || [];
+        const filtered = missionList.filter(item => item.tab === currentTab);
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:40px; color:#ffffff; font-size:16px; font-weight:900;">등록된 내용이 없습니다. 상단 버튼을 눌러 등록 신청해 주세요.</div>`;
+            return;
+        }
+
+        const categoryNames = ["파송선교사", "협력선교사", "단기선교사", "후원단체", "후원교회", "전도1팀", "전도2팀", "청년전도팀", "제직회", "권사회", "남선교회", "여선교회", "주일학교"];
+
+        filtered.forEach(item => {
+            const card = document.createElement("div");
+            card.className = "list-item-card";
+
+            const badgeText = categoryNames[item.tab] || "기타";
+            const viewCount = item.views || 0;
+            const prayerCount = item.prayers !== undefined ? item.prayers : 7;
+
+            card.innerHTML = `
+                <div class="list-info-area">
+                    <span class="list-badge">${badgeText}</span>
+                    <span class="list-title">${item.name} ${item.country ? '('+item.country+')' : ''}</span>
+                    <div class="list-views">
+                        <span>❤️ 방문 : ${viewCount}회</span>
+                        <span>🙏 기도손 : ${prayerCount}</span>
+                    </div>
+                </div>
+                <button class="detail-enter-btn" onclick="openDetailRoom('${item.id}')">자세히 보기</button>
+            `;
+            container.appendChild(card);
+        });
+    };
+
+    window.openDetailRoom = async (id) => {
+        currentDetailId = id;
+        document.getElementById("listViewContainer").style.display = "none";
+        document.getElementById("addNewMissionaryBtn").style.display = "none";
+        document.getElementById("hubMenuSection").style.display = "none";
+
+        const detailRoomView = document.getElementById("detailRoomView");
+        detailRoomView.style.display = "block";
+        switchRoomTab(0);
+
+        let list = churchData.missionList || [];
+        let item = list.find(i => i.id === id);
+        if(!item) return;
+
+        item.views = (item.views || 0) + 1;
+        item.prayers = (item.prayers !== undefined ? item.prayers : 7) + 1;
+
+        try {
+            await setDoc(doc(db, "churches", churchId), { missionList: list, updatedAt: serverTimestamp() }, { merge: true });
+            churchData.missionList = list;
+        } catch(e) { console.log("조회수 증가 실패", e); }
+
+        const isAdminOn = localStorage.getItem("yetalk_chat_admin_on") === "true";
+        const categoryNames = ["파송선교사", "협력선교사", "단기선교사", "후원단체", "후원교회", "전도1팀", "전도2팀", "청년전도팀", "제직회", "권사회", "남선교회", "여선교회", "주일학교"];
+        const badgeText = categoryNames[item.tab] || "기타";
+        const showBank = (item.tab === 0 && item.bank);
+
+        const contentEl = document.getElementById("detailRoomContent");
+        contentEl.innerHTML = `
+            <div class="cafe-feed-card">
+                <div class="cafe-feed-header">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="cafe-badge">${badgeText}</span>
+                        <span class="cafe-title">${item.name} ${item.country ? '('+item.country+')' : ''}</span>
+                    </div>
+                </div>
+
+                ${item.image ? `<img src="${item.image}" class="cafe-feed-img">` : ''}
+
+                <div class="cafe-content-text">${item.report}</div>
+
+                <!-- 💡 선교사님 글 맨 밑에 눈에 띄지 않게 조용히 뜨는 후원 동참하기 문구 -->
+                ${showBank ? `
+                    <div style="margin-bottom: 16px;">
+                        <span class="subtle-inline-bank" onclick="copyBankText('${item.bank}')">후원 동참하기 (계좌번호 복사)</span>
+                    </div>
+                ` : ''}
+
+                <!-- 방문수, 기도손, 수정, 삭제 한 줄 통합 -->
+                <div class="bottom-action-bar">
+                    <span class="action-pill">❤️ 방문 ${item.views}회</span>
+                    <span class="action-pill">🙏 기도손 ${item.prayers}</span>
+                    ${isAdminOn ? `
+                        <button class="action-btn-inline" onclick="openEditForm('${item.id}')">수정하기</button>
+                        <button class="action-btn-inline del" onclick="deleteMissionItem('${item.id}')">삭제</button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+
+        renderRoomChat(item);
+    };
+
+    window.closeDetailRoom = () => {
+        currentDetailId = null;
+        document.getElementById("detailRoomView").style.display = "none";
+        document.getElementById("listViewContainer").style.display = "block";
+        document.getElementById("addNewMissionaryBtn").style.display = "block";
+        document.getElementById("hubMenuSection").style.display = "block";
+        document.getElementById("chatBottomBar").style.display = "none";
+        renderMissionList();
+    };
+
+    function renderRoomChat(item) {
+        const chatListEl = document.getElementById("detailChatList");
+        if(!chatListEl) return;
+
+        const comments = item.comments || [];
+        if(comments.length === 0) {
+            chatListEl.innerHTML = `<div style="font-size:15px; color:#94a3b8; text-align:center; padding:20px; font-weight:800;">따뜻한 기도와 은혜의 첫 나눔을 남겨보세요!</div>`;
+            return;
+        }
+
+        chatListEl.innerHTML = comments.map(c => `
+            <div class="chat-item">
+                <span class="chat-author">${c.author}:</span>
+                <span>${c.text}</span>
+            </div>
+        `).join('');
+    }
+
+    window.addRoomComment = async () => {
+        if(!currentDetailId) return;
+        const inputEl = document.getElementById("detailChatInput");
+        const text = inputEl.value.trim();
+        if(!text) {
+            alert("메시지 내용을 입력해주세요.");
+            return;
+        }
+
+        const loginUser = JSON.parse(localStorage.getItem("loginUser") || localStorage.getItem("yetalkUser") || "{}");
+        const authorName = loginUser.name || loginUser.memberName || "성도";
+
+        let list = churchData.missionList || [];
+        let item = list.find(i => i.id === currentDetailId);
+        if(!item) return;
+
+        const coms = item.comments || [];
+        coms.push({ author: authorName, text, createdAt: new Date().toISOString() });
+        item.comments = coms;
+
+        try {
+            await setDoc(doc(db, "churches", churchId), { missionList: list, updatedAt: serverTimestamp() }, { merge: true });
+            churchData.missionList = list;
+            inputEl.value = "";
+            renderRoomChat(item);
+            showToast("메시지가 등록되었습니다.");
+        } catch(e) {
+            alert("메시지 전송 실패: " + e.message);
+        }
+    };
+
+    window.copyBankText = (text) => {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast("📋 후원계좌가 클립보드에 복사되었습니다.");
+        }).catch(() => {
+            showToast("복사 실패 (권한 확인 필요)");
+        });
+    };
+
+    window.openAddForm = () => {
+        editingItemId = null;
+        const titleEl = document.getElementById("formTitleText");
+        if(titleEl) titleEl.textContent = "새 소식 작성";
+        document.getElementById("inputName").value = "";
+        document.getElementById("inputSub").value = "";
+        const bankInput = document.getElementById("inputBank");
+        if(bankInput) bankInput.value = "";
+        const imgInput = document.getElementById("inputImage");
+        if(imgInput) imgInput.value = "";
+        document.getElementById("inputReport").value = "";
+        document.getElementById("adminEditFormBox").style.display = "block";
+    };
+
+    window.closeAddForm = () => {
+        const box = document.getElementById("adminEditFormBox");
+        if(box) box.style.display = "none";
+    };
+
+    window.openEditForm = (id) => {
+        editingItemId = id;
+        const list = churchData.missionList || [];
+        const item = list.find(i => i.id === id);
+        if(!item) return;
+
+        const titleEl = document.getElementById("formTitleText");
+        if(titleEl) titleEl.textContent = "소식 수정하기";
+        document.getElementById("inputName").value = item.name || "";
+        document.getElementById("inputSub").value = item.country || "";
+        const bankInput = document.getElementById("inputBank");
+        if(bankInput) bankInput.value = item.bank || "";
+        document.getElementById("inputReport").value = item.report || "";
+        document.getElementById("adminEditFormBox").style.display = "block";
+    };
+
+    window.saveMissionData = async () => {
+        const name = document.getElementById("inputName").value.trim();
+        const country = document.getElementById("inputSub").value.trim();
+        const bankEl = document.getElementById("inputBank");
+        const bank = (currentTab === 0 && bankEl) ? bankEl.value.trim() : "";
+        const report = document.getElementById("inputReport").value.trim();
+        const fileInput = document.getElementById("inputImage");
+
+        if(!name || !report) {
+            alert("이름(팀명/부서명)과 소식 내용은 필수 입력 항목입니다.");
+            return;
+        }
+
+        let imageUrl = "";
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+            imageUrl = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(fileInput.files[0]);
+            });
+        }
+
+        let list = churchData.missionList || [];
+        const isAdminOn = localStorage.getItem("yetalk_chat_admin_on") === "true";
+
+        if (editingItemId) {
+            list = list.map(i => {
+                if(i.id === editingItemId) {
+                    return { ...i, name, country, bank, report, image: imageUrl || i.image };
+                }
+                return i;
+            });
+            try {
+                await setDoc(doc(db, "churches", churchId), { missionList: list, updatedAt: serverTimestamp() }, { merge: true });
+                churchData.missionList = list;
+                closeAddForm();
+                renderMissionList();
+                if(currentDetailId) openDetailRoom(currentDetailId);
+                showToast("수정되었습니다.");
+            } catch(e) {
+                alert("수정 실패: " + e.message);
+            }
+        } else {
+            const newItem = {
+                id: Date.now().toString(),
+                tab: currentTab,
+                name, country, bank, report,
+                image: imageUrl,
+                views: 0,
+                prayers: 7,
+                comments: []
+            };
+
+            if (isAdminOn) {
+                list.push(newItem);
+                try {
+                    await setDoc(doc(db, "churches", churchId), { missionList: list, updatedAt: serverTimestamp() }, { merge: true });
+                    churchData.missionList = list;
+                    closeAddForm();
+                    renderMissionList();
+                    showToast("✨ 새로운 항목이 즉시 등록되었습니다!");
+                } catch(e) {
+                    alert("등록 실패: " + e.message);
+                }
+            } else {
+                let pending = churchData.pendingMissionList || [];
+                pending.push(newItem);
+                try {
+                    await setDoc(doc(db, "churches", churchId), { pendingMissionList: pending, updatedAt: serverTimestamp() }, { merge: true });
+                    churchData.pendingMissionList = pending;
+                    closeAddForm();
+                    showToast("📩 등록 신청되었습니다.\n관리자가 인정 완료 후 사용이 허가됩니다.");
+                } catch(e) {
+                    alert("신청 실패: " + e.message);
+                }
+            }
+        }
+    };
+
+    window.deleteMissionItem = async (id) => {
+        if(!confirm("정말 이 항목을 삭제하시겠습니까?")) return;
+        let list = churchData.missionList || [];
+        list = list.filter(i => i.id !== id);
+        try {
+            await setDoc(doc(db, "churches", churchId), { missionList: list, updatedAt: serverTimestamp() }, { merge: true });
+            churchData.missionList = list;
+            closeDetailRoom();
+            showToast("삭제되었습니다.");
+        } catch(e) {
+            alert("삭제 실패: " + e.message);
+        }
+    };
+
+    initMissionPage();
+</script>
+
+</body>
+</html>

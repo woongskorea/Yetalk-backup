@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>예톡대화방</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            color: #1e293b; display: flex; justify-content: center; min-height: 100vh;
+        }
+        .medigate-app {
+            width: 100%; max-width: 480px; min-height: 100vh; background: #ffffff;
+            display: flex; flex-direction: column; position: relative; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;
+            padding-bottom: 70px;
+        }
+
+        /* 1. 상단 헤더 */
+        .med-header {
+            height: 50px; display: flex; justify-content: space-between; align-items: center;
+            padding: 0 16px; background: #ffffff; border-bottom: 1px solid #f1f5f9;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .med-logo {
+            font-size: 21px; font-weight: 950; color: #1d4ed8; letter-spacing: -0.5px;
+            cursor: pointer; display: flex; align-items: center; gap: 4px;
+        }
+        .med-logo span { color: #38bdf8; font-size: 13px; font-weight: 800; }
+        .btn-go-home {
+            background: #0f172a; color: #38bdf8; border: 1px solid #334155;
+            padding: 6px 12px; border-radius: 20px; font-size: 12.5px; font-weight: 900;
+            cursor: pointer; display: flex; align-items: center; gap: 4px;
+        }
+
+        /* 2. 베스트글 섹션 */
+        .best-section { padding: 14px 16px 10px 16px; border-bottom: 8px solid #f8fafc; background: #ffffff; }
+        .best-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .best-title { font-size: 15.5px; font-weight: 900; color: #0f172a; display: flex; align-items: center; gap: 5px; }
+        .best-sub-tabs { display: flex; gap: 8px; font-size: 12px; font-weight: 800; color: #94a3b8; }
+        .best-sub-tabs span.active { color: #1d4ed8; font-weight: 900; }
+
+        .best-post-item { padding: 9px 0; border-bottom: 1px solid #f1f5f9; cursor: pointer; }
+        .best-post-item:last-child { border-bottom: none; }
+        .best-post-title { font-size: 13.5px; font-weight: 750; color: #0f172a; line-height: 1.4; margin-bottom: 4px; }
+        .best-post-meta { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #64748b; }
+        .views-highlight { color: #2563eb; font-weight: 800; }
+
+        /* 3. 피드 목록 */
+        .feed-list { display: flex; flex-direction: column; background: #ffffff; }
+        .post-card { padding: 15px 16px; border-bottom: 8px solid #f8fafc; cursor: pointer; background: #ffffff; }
+        .post-card-category { font-size: 12px; font-weight: 900; color: #1d4ed8; margin-bottom: 4px; }
+        .post-card-title { font-size: 15px; font-weight: 900; color: #0f172a; margin-bottom: 6px; line-height: 1.35; }
+
+        .post-card-thumb-wrap {
+            width: 100%; max-height: 200px; border-radius: 8px; overflow: hidden; margin-bottom: 8px; border: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .post-card-thumb { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        .post-card-preview { font-size: 13.5px; color: #475569; line-height: 1.45; margin-bottom: 8px; white-space: pre-line; }
+        .post-card-author-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #94a3b8; font-weight: 700; }
+        .post-card-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 12px; color: #64748b; font-weight: 800; }
+        .actions-left { display: flex; gap: 12px; align-items: center; }
+
+        /* 인피드 애드몹 */
+        .infeed-admob-box {
+            padding: 14px 16px; background: #f8fafc; border-top: 1px solid #e2e8f0; border-bottom: 8px solid #f1f5f9;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+        }
+        .admob-sponsor-title { font-size: 11px; font-weight: 800; color: #0284c7; margin-bottom: 3px; }
+        .admob-main-content { font-size: 13px; font-weight: 900; color: #0f172a; line-height: 1.4; }
+
+        /* 플로팅 버튼 */
+        .floating-group {
+            position: fixed; bottom: 20px; right: 18px; display: flex; flex-direction: column; gap: 10px; z-index: 90;
+        }
+        .float-btn {
+            width: 48px; height: 48px; border-radius: 50%; border: none; display: flex;
+            align-items: center; justify-content: center; font-size: 20px; cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        }
+        .float-top { background: #0f172a; color: white; font-weight: 900; }
+        .float-write { background: #2563eb; color: white; }
+
+        /* 4. 상세 글 모달 */
+        .detail-modal {
+            display: none; position: fixed; inset: 0; background: #ffffff; z-index: 200;
+            flex-direction: column; overflow-y: auto; max-width: 480px; margin: 0 auto; color: #1e293b;
+        }
+        .detail-modal.open { display: flex; }
+        .detail-header {
+            height: 48px; background: #1d4ed8; color: white; display: flex;
+            align-items: center; justify-content: space-between; padding: 0 16px;
+            position: sticky; top: 0; z-index: 210; font-weight: 800;
+        }
+        .detail-body { padding: 18px 16px; flex: 1; display: flex; flex-direction: column; }
+
+        .detail-title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+        .detail-title { font-size: 17px; font-weight: 900; color: #0f172a; line-height: 1.35; flex: 1; }
+
+        .detail-action-btns { display: flex; gap: 6px; flex-shrink: 0; }
+        .btn-post-edit {
+            background: #eff6ff; border: 1px solid #3b82f6; color: #2563eb;
+            font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 4px; cursor: pointer;
+        }
+        .btn-post-del {
+            background: #fee2e2; border: 1px solid #f87171; color: #dc2626;
+            font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 4px; cursor: pointer;
+        }
+
+        .detail-meta { font-size: 12px; color: #94a3b8; margin-bottom: 16px; }
+
+        .detail-img-box {
+            width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 14px; border: 1px solid #e2e8f0; display: none; background: #f8fafc;
+        }
+        .detail-img { width: 100%; max-height: 350px; object-fit: contain; display: block; }
+
+        /* 🌟 본문 내용과 애드몹 사이의 확실한 안전 여백 확보 (margin-bottom: 24px) */
+        .detail-content { font-size: 14.5px; line-height: 1.65; color: #1e293b; white-space: pre-line; margin-bottom: 24px; }
+
+        .detail-reaction-row {
+            display: flex; justify-content: flex-end; gap: 14px; font-size: 13px; color: #64748b; font-weight: 800;
+            padding-bottom: 14px; border-bottom: 1px solid #f1f5f9; margin-bottom: 16px;
+        }
+
+        /* 🌟 본문에서 충분히 떨어져 안전하게 배치된 애드몹 배너 */
+        .detail-admob-banner {
+            width: 100%; height: 95px; background: #0f172a; border-radius: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; margin-bottom: 20px; border: 1px solid #334155; color: white;
+        }
+
+        /* 🌟 댓글창이 애드몹 바로 밑에 직관적으로 이어지도록 정돈 */
+        .medigate-comment-box {
+            border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px;
+            background: #ffffff; display: flex; flex-direction: column; gap: 6px;
+            margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        }
+        .medigate-comment-input-row { display: flex; align-items: flex-start; gap: 8px; }
+        .medigate-cam-icon { font-size: 18px; color: #64748b; cursor: pointer; padding-top: 3px; flex-shrink: 0; }
+        .medigate-comment-textarea {
+            flex: 1; border: none; font-size: 14px; outline: none; background: transparent;
+            color: #0f172a; resize: none; min-height: 38px; max-height: 140px;
+            line-height: 1.5; font-family: inherit; word-break: break-word; white-space: pre-wrap; padding: 2px 0;
+        }
+        .medigate-comment-textarea::placeholder { color: #94a3b8; font-size: 14px; }
+
+        .medigate-comment-bottom-row {
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px solid #f1f5f9; padding-top: 6px; margin-top: 2px;
+        }
+        .comment-id-edit-wrap { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #64748b; font-weight: 800; }
+        .input-comment-author {
+            background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px;
+            padding: 3px 6px; font-size: 12px; font-weight: 800; color: #0f172a; outline: none; max-width: 120px;
+        }
+        .medigate-submit-btn {
+            background: #2563eb; color: white; border: none; padding: 6px 16px; border-radius: 6px;
+            font-size: 13px; font-weight: 900; cursor: pointer;
+        }
+
+        /* 댓글 목록 */
+        .comment-list-container { display: flex; flex-direction: column; }
+        .comment-item { padding: 12px 0; border-bottom: 1px solid #f1f5f9; }
+        .comment-item.reply {
+            margin-left: 20px; padding-left: 10px; border-left: 2px solid #3b82f6; background: #f8fafc; border-radius: 4px;
+        }
+        .comment-author-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .comment-author { font-size: 13px; font-weight: 900; color: #0f172a; }
+        .comment-time { font-size: 11px; color: #94a3b8; font-weight: 600; margin-left: 4px; }
+
+        .comment-btn-group { display: flex; gap: 6px; align-items: center; }
+        .btn-reply-trigger { font-size: 11.5px; font-weight: 800; color: #2563eb; background: none; border: none; cursor: pointer; }
+        .btn-comment-delete { font-size: 11.5px; font-weight: 800; color: #ef4444; background: none; border: none; cursor: pointer; }
+
+        .comment-text { font-size: 14px; color: #334155; line-height: 1.5; margin-bottom: 6px; word-break: break-word; white-space: pre-wrap; }
+
+        .inline-reply-box {
+            display: none; flex-direction: column; gap: 6px; margin-top: 8px; padding: 10px;
+            background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;
+        }
+        .inline-reply-box.open { display: flex; }
+        .inline-reply-textarea {
+            width: 100%; min-height: 42px; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 6px;
+            font-size: 13.5px; outline: none; background: white; font-family: inherit;
+            line-height: 1.45; word-break: break-word; resize: none;
+        }
+        .inline-reply-btn-row { display: flex; justify-content: flex-end; gap: 6px; }
+
+        /* 5. 스마트 글쓰기 화면 */
+        .cafe-write-screen {
+            display: none; position: fixed; inset: 0; background: #ffffff;
+            z-index: 500; flex-direction: column; max-width: 480px; margin: 0 auto;
+            height: 100dvh; overflow: hidden;
+        }
+        .cafe-write-screen.open { display: flex; }
+
+        .cafe-top-bar {
+            height: 48px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 16px; border-bottom: 1px solid #f1f5f9; background: #ffffff; flex-shrink: 0;
+        }
+        .cafe-btn-close { background: none; border: none; font-size: 24px; color: #0f172a; cursor: pointer; line-height: 1; }
+        .cafe-top-title-hint { font-size: 15px; font-weight: 900; color: #0f172a; }
+
+        .cafe-collapsible-header {
+            display: flex; flex-direction: column; flex-shrink: 0; border-bottom: 1px solid #f1f5f9; padding: 10px 16px; gap: 8px; background: #f8fafc;
+        }
+        .cafe-topic-select {
+            width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px;
+            font-size: 14px; font-weight: 800; color: #0f172a; outline: none; background: #ffffff; cursor: pointer;
+        }
+        .cafe-author-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b; font-weight: 800; }
+        .cafe-author-input {
+            border: 1px solid #cbd5e1; border-radius: 4px; padding: 4px 8px; font-size: 12.5px; font-weight: 800;
+            color: #0f172a; outline: none; background: #ffffff; max-width: 140px;
+        }
+
+        .cafe-editor-body {
+            flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px;
+        }
+
+        .cafe-title-input {
+            width: 100%; border: none; border-bottom: 1px solid #e2e8f0; padding: 8px 0;
+            font-size: 15px; font-weight: 900; color: #0f172a; outline: none;
+        }
+        .cafe-title-input::placeholder { color: #94a3b8; font-weight: 700; font-size: 14.5px; }
+
+        .cafe-content-textarea {
+            width: 100%; flex: 1; min-height: 280px; border: none; padding: 8px 0;
+            font-size: 14px; line-height: 1.6; color: #0f172a; outline: none; resize: none;
+            font-family: inherit; font-weight: 500; word-break: break-word; white-space: pre-wrap;
+        }
+
+        .cafe-attached-img-box {
+            display: none; position: relative; width: 100%; margin-top: 6px; border-radius: 8px; overflow: hidden;
+            border: 1px solid #e2e8f0; background: #f8fafc;
+        }
+        .cafe-attached-img { width: 100%; max-height: 240px; object-fit: contain; display: block; }
+        .cafe-img-delete-btn {
+            position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.7); color: white;
+            border: none; border-radius: 50%; width: 26px; height: 26px; font-size: 13px; cursor: pointer;
+        }
+
+        .gemini-bottom-toolbar {
+            height: 52px; border-top: 1px solid #e2e8f0; background: #ffffff;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0;
+        }
+        .gemini-tool-plus {
+            width: 36px; height: 36px; border-radius: 50%; background: #f1f5f9; border: 1px solid #cbd5e1;
+            font-size: 22px; font-weight: 900; color: #0f172a; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; line-height: 1;
+        }
+        .gemini-tool-send {
+            width: 36px; height: 36px; border-radius: 50%; background: #2563eb; border: none;
+            font-size: 18px; font-weight: 900; color: white; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(37,99,235,0.4);
+        }
+        .hidden-file-input { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="medigate-app" id="appRoot">
+
+    <!-- 1. 헤더 -->
+    <header class="med-header">
+        <div class="med-logo" onclick="location.href='index.html'">
+            Yetalk <span>예톡대화방</span>
+        </div>
+        <button type="button" class="btn-go-home" onclick="location.href='index.html'">
+            🏠 예톡홈
+        </button>
+    </header>
+
+    <!-- 3. 실시간 인기 베스트글 -->
+    <section class="best-section">
+        <div class="best-header">
+            <span class="best-title">🔥 실시간 인기 베스트글</span>
+            <div class="best-sub-tabs">
+                <span class="active">조회수 랭킹순</span>
+            </div>
+        </div>
+        <div id="bestPostsContainer"></div>
+    </section>
+
+    <!-- 4. 메인 피드 리스트 -->
+    <main class="feed-list" id="feedListContainer"></main>
+
+    <!-- 인피드 애드몹 -->
+    <div class="infeed-admob-box">
+        <div class="admob-sponsor-title">Google AdMob Large Banner (320x100)</div>
+        <div class="admob-main-content">예톡대화방 소통 & 프리미엄 이웃 광고 공간<br><span style="color:#2563eb; font-size:12px;">예톡 스폰서 광고 슬롯</span></div>
+    </div>
+
+    <!-- 플로팅 버튼 -->
+    <div class="floating-group">
+        <button type="button" class="float-btn float-top" onclick="scrollToTop()" title="맨 위로">↑</button>
+        <button type="button" class="float-btn float-write" onclick="openCafeWriteScreen()" title="새글쓰기">✏️</button>
+    </div>
+
+    <!-- 5. 상세 글 모달 -->
+    <div class="detail-modal" id="detailModal">
+        <div class="detail-header">
+            <span onclick="closeDetailModal()" style="cursor:pointer; font-size:18px;">←</span>
+            <span id="detailHeaderCat">예톡대화방</span>
+            <span onclick="location.href='index.html'" style="cursor:pointer; font-size:12px;">홈으로</span>
+        </div>
+
+        <div class="detail-body">
+            <div class="detail-title-row">
+                <div class="detail-title" id="detailTitleText"></div>
+                <div class="detail-action-btns" id="detailActionBtns" style="display:none;">
+                    <button type="button" class="btn-post-edit" onclick="openEditPostModal()">수정</button>
+                    <button type="button" class="btn-post-del" onclick="deleteActivePost()">삭제</button>
+                </div>
+            </div>
+
+            <div class="detail-meta" id="detailMetaText"></div>
+
+            <div class="detail-img-box" id="detailImgContainer">
+                <img id="detailImgBox" class="detail-img" alt="첨부 이미지">
+            </div>
+
+            <!-- 🌟 본문 내용 (애드몹과 충분한 여백 확보) -->
+            <div class="detail-content" id="detailContentText"></div>
+
+            <div class="detail-reaction-row">
+                <span>👁 본 사람 <strong id="detailViewsCount" style="color:#2563eb;">0</strong>명</span>
+                <span>💬 댓글 <strong id="detailCommentCount">0</strong>개</span>
+            </div>
+
+            <!-- 🌟 본문에서 확실히 떨어진 애드몹 배너 -->
+            <div class="detail-admob-banner">
+                <div style="color:#38bdf8; font-weight:900; font-size:12.5px;">Google AdMob Large Banner (320x100)</div>
+                <div style="font-size:11px; color:#94a3b8; margin-top:2px;">지역 맞춤 프리미엄 스폰서 광고 슬롯</div>
+            </div>
+
+            <!-- 🌟 애드몹 바로 아래에 직관적으로 이어지는 댓글 입력 및 목록 창 -->
+            <div class="medigate-comment-box">
+                <div class="medigate-comment-input-row">
+                    <span class="medigate-cam-icon" onclick="alert('댓글 사진 첨부 준비 중입니다.')">📷</span>
+                    <textarea id="detailCommentInput" class="medigate-comment-textarea" placeholder="댓글을 남겨주세요." oninput="autoResizeCommentArea(this)"></textarea>
+                </div>
+                <div class="medigate-comment-bottom-row">
+                    <div class="comment-id-edit-wrap">
+                        <span>아이디:</span>
+                        <input type="text" id="commentAuthorInput" class="input-comment-author" value="김예톡" onchange="updateSavedAuthorId(this.value)">
+                    </div>
+                    <button type="button" class="medigate-submit-btn" onclick="submitDetailComment()">등록</button>
+                </div>
+            </div>
+
+            <div class="comment-list-container" id="modalCommentList"></div>
+        </div>
+    </div>
+
+    <!-- 6. 스마트 에디터 (글쓰기 화면) -->
+    <div class="cafe-write-screen" id="cafeWriteScreen">
+        <header class="cafe-top-bar">
+            <button type="button" class="cafe-btn-close" onclick="closeCafeWriteScreen()">✕</button>
+            <span class="cafe-top-title-hint" id="writeModalTitle">게시글 작성</span>
+            <span style="width:24px;"></span>
+        </header>
+
+        <div class="cafe-collapsible-header">
+            <select id="cafeTopicSelect" class="cafe-topic-select">
+                <option value="맛집">맛집</option>
+                <option value="멋집">멋집</option>
+                <option value="건강">건강</option>
+                <option value="미용경험담">미용경험담</option>
+                <option value="커피숍">커피숍</option>
+                <option value="사는 이야기">사는 이야기</option>
+                <option value="뉴스">뉴스</option>
+                <option value="좋은집">좋은집</option>
+                <option value="좋은교회">좋은교회</option>
+            </select>
+            <div class="cafe-author-row">
+                <span>아이디:</span>
+                <input type="text" id="cafeAuthorInput" class="cafe-author-input" value="김예톡" onchange="updateSavedAuthorId(this.value)">
+            </div>
+        </div>
+
+        <div class="cafe-editor-body">
+            <input type="text" id="cafeTitleInput" class="cafe-title-input" placeholder="제목을 입력해주세요">
+            <textarea id="cafeContentInput" class="cafe-content-textarea" placeholder="게시글 성격에 맞는 이야기를 남겨주세요."></textarea>
+
+            <div class="cafe-attached-img-box" id="cafeAttachedImgBox">
+                <img id="cafeAttachedImg" class="cafe-attached-img" alt="첨부 사진">
+                <button type="button" class="cafe-img-delete-btn" onclick="removeAttachedImage()">✕</button>
+            </div>
+        </div>
+
+        <footer class="gemini-bottom-toolbar">
+            <button type="button" class="gemini-tool-plus" onclick="document.getElementById('hiddenImageFileInput').click()" title="사진 첨부">
+                +
+            </button>
+            <div style="font-size:12px; color:#94a3b8; font-weight:800;" id="photoStatusText">사진 추가</div>
+            <button type="button" class="gemini-tool-send" onclick="submitCafePost()" title="글 등록">
+                ↑
+            </button>
+        </footer>
+
+        <input type="file" id="hiddenImageFileInput" class="hidden-file-input" accept="image/*" onchange="handleImageOptimization(this)">
+    </div>
+
+</div>
+
+<script>
+    let posts = [
+        {
+            id: 1,
+            topic: "사는 이야기",
+            title: "“죽어라 팔아도 남는 게 없다”... 자영업 진짜 쉽지 않네요",
+            content: "식당 매출 70%가 재료비·인건비로 증발한다는 기사를 보며 깊이 공감합니다. 다들 파이팅입니다.",
+            author: "골목식당사장",
+            time: "10시간 전",
+            views: 3463,
+            img: null,
+            comments: []
+        },
+        {
+            id: 2,
+            topic: "건강",
+            title: "요즘 건강관리 어떻게들 하세요? 운동이 최고인 것 같아요..",
+            content: "매일 15000보 걸으니 몸이 많이 좋아졌어요. 원장님들 조언도 부탁드립니다.",
+            author: "건강지킴이",
+            time: "8분 전",
+            views: 450,
+            img: null,
+            comments: []
+        },
+        {
+            id: 3,
+            topic: "좋은교회",
+            title: "지나간 어제에 머물지 말고 새로운 시작을 누리세요",
+            content: "성도 여러분, 늘 우리 곁에 계시는 따스한 사랑을 기억합시다.",
+            author: "은혜와평강",
+            time: "방금",
+            views: 1120,
+            img: null,
+            comments: []
+        }
+    ];
+
+    let activePostId = null;
+    let isEditingMode = false;
+    let myCurrentUserId = "김예톡";
+    let cafeCompressedImage = null;
+
+    window.addEventListener("DOMContentLoaded", () => {
+        let savedId = localStorage.getItem("yetalkUserId") || localStorage.getItem("yetalkUserName") || "김예톡";
+        if (savedId.includes("최웅식")) savedId = "김예톡";
+        myCurrentUserId = savedId;
+
+        document.getElementById("commentAuthorInput").value = myCurrentUserId;
+        document.getElementById("cafeAuthorInput").value = myCurrentUserId;
+
+        const savedPosts = localStorage.getItem("yetalkYetalkTalkPosts");
+        if (savedPosts) {
+            try { posts = JSON.parse(savedPosts); } catch(e) {}
+        }
+
+        renderBestPosts();
+        renderFeed();
+    });
+
+    function updateSavedAuthorId(newId) {
+        let trimmed = newId.trim() || "김예톡";
+        if (trimmed.includes("최웅식")) trimmed = "김예톡";
+        myCurrentUserId = trimmed;
+        localStorage.setItem("yetalkUserId", trimmed);
+        document.getElementById("commentAuthorInput").value = trimmed;
+        document.getElementById("cafeAuthorInput").value = trimmed;
+    }
+
+    function savePostsToLocal() {
+        localStorage.setItem("yetalkYetalkTalkPosts", JSON.stringify(posts));
+    }
+
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function renderBestPosts() {
+        const bestContainer = document.getElementById("bestPostsContainer");
+        bestContainer.innerHTML = "";
+
+        const sorted = [...posts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 3);
+
+        sorted.forEach(p => {
+            const item = document.createElement("div");
+            item.className = "best-post-item";
+            item.onclick = () => openDetailModal(p.id);
+
+            item.innerHTML = `
+                <div class="best-post-title">[예톡] ${p.title}</div>
+                <div class="best-post-meta">
+                    <span class="views-highlight">👁 ${p.views.toLocaleString()}명 읽음</span>
+                    <span>· ${p.author}</span>
+                    <span>· 💬 ${p.comments ? p.comments.length : 0}</span>
+                </div>
+            `;
+            bestContainer.appendChild(item);
+        });
+    }
+
+    function renderFeed() {
+        const container = document.getElementById("feedListContainer");
+        container.innerHTML = "";
+
+        posts.forEach(p => {
+            const card = document.createElement("div");
+            card.className = "post-card";
+            card.onclick = () => openDetailModal(p.id);
+
+            const imgHtml = p.img ? `<div class="post-card-thumb-wrap"><img src="${p.img}" class="post-card-thumb" alt="첨부 사진"></div>` : "";
+
+            card.innerHTML = `
+                <div class="post-card-category">[${p.topic}]</div>
+                <div class="post-card-title">${p.title}</div>
+                ${imgHtml}
+                <div class="post-card-preview">${p.content.substring(0, 65)}...</div>
+                <div class="post-card-author-row">
+                    <span>${p.author}</span>
+                    <span>·</span>
+                    <span>${p.time}</span>
+                </div>
+                <div class="post-card-actions">
+                    <div class="actions-left">
+                        <span style="color:#2563eb;">👁 본 사람 ${p.views.toLocaleString()}명</span>
+                        <span>💬 ${p.comments ? p.comments.length : 0}</span>
+                    </div>
+                    <span>🔖</span>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function openDetailModal(postId) {
+        activePostId = postId;
+        const p = posts.find(item => item.id === postId);
+        if (!p) return;
+
+        p.views = (p.views || 0) + 1;
+        savePostsToLocal();
+        renderBestPosts();
+
+        document.getElementById("detailHeaderCat").innerText = `[${p.topic}] 예톡대화방`;
+        document.getElementById("detailTitleText").innerText = p.title;
+        document.getElementById("detailMetaText").innerText = `${p.author} · ${p.time}`;
+        document.getElementById("detailContentText").innerText = p.content;
+        document.getElementById("detailViewsCount").innerText = p.views.toLocaleString();
+        document.getElementById("detailCommentCount").innerText = (p.comments ? p.comments.length : 0);
+
+        const actionBtns = document.getElementById("detailActionBtns");
+        if (p.author === myCurrentUserId) {
+            actionBtns.style.display = "flex";
+        } else {
+            actionBtns.style.display = "none";
+        }
+
+        const imgContainer = document.getElementById("detailImgContainer");
+        const imgBox = document.getElementById("detailImgBox");
+
+        if (p.img) {
+            imgBox.src = p.img;
+            imgContainer.style.display = "block";
+        } else {
+            imgContainer.style.display = "none";
+        }
+
+        renderModalComments(p);
+
+        // 🌟 상세창 열릴 때 맨 위로 스크롤 리셋
+        const modal = document.getElementById("detailModal");
+        modal.scrollTop = 0;
+        modal.classList.add("open");
+    }
+
+    function closeDetailModal() {
+        document.getElementById("detailModal").classList.remove("open");
+        renderFeed();
+    }
+
+    function deleteActivePost() {
+        if (!confirm("이 게시글을 삭제하시겠습니까?")) return;
+        posts = posts.filter(p => p.id !== activePostId);
+        savePostsToLocal();
+        closeDetailModal();
+        renderBestPosts();
+        renderFeed();
+    }
+
+    function openEditPostModal() {
+        const p = posts.find(item => item.id === activePostId);
+        if (!p) return;
+
+        isEditingMode = true;
+        document.getElementById("writeModalTitle").innerText = "게시글 수정";
+        document.getElementById("cafeTopicSelect").value = p.topic;
+        document.getElementById("cafeAuthorInput").value = p.author;
+        document.getElementById("cafeTitleInput").value = p.title;
+        document.getElementById("cafeContentInput").value = p.content;
+
+        if (p.img) {
+            cafeCompressedImage = p.img;
+            document.getElementById("cafeAttachedImg").src = p.img;
+            document.getElementById("cafeAttachedImgBox").style.display = "block";
+            document.getElementById("photoStatusText").innerText = "사진 첨부됨 ✔";
+        } else {
+            removeAttachedImage();
+        }
+
+        closeDetailModal();
+        document.getElementById("cafeWriteScreen").classList.add("open");
+    }
+
+    function renderModalComments(post) {
+        const list = document.getElementById("modalCommentList");
+        const comments = post.comments || [];
+        document.getElementById("detailCommentCount").innerText = comments.length;
+        list.innerHTML = "";
+
+        const rootComments = comments.filter(c => !c.parentId);
+
+        rootComments.forEach(c => {
+            const isMyComment = (c.author === myCurrentUserId);
+            const div = document.createElement("div");
+            div.className = "comment-item";
+            div.innerHTML = `
+                <div class="comment-author-row">
+                    <div>
+                        <span class="comment-author">${c.author}</span>
+                        <span class="comment-time">${c.time || '방금'}</span>
+                    </div>
+                    <div class="comment-btn-group">
+                        <button type="button" class="btn-reply-trigger" onclick="toggleInlineReply(${c.id})">↳ 답글</button>
+                        ${isMyComment ? `<button type="button" class="btn-comment-delete" onclick="deleteComment(${c.id})">삭제</button>` : ''}
+                    </div>
+                </div>
+                <div class="comment-text">${c.text}</div>
+
+                <div class="inline-reply-box" id="replyBox_${c.id}">
+                    <div style="font-size:11px; font-weight:800; color:#1d4ed8;">↳ @${c.author}님에게 답글</div>
+                    <textarea id="replyInput_${c.id}" class="inline-reply-textarea" placeholder="답글을 남겨주세요." oninput="autoResizeCommentArea(this)"></textarea>
+                    <div class="inline-reply-btn-row">
+                        <button type="button" style="padding:4px 10px; font-size:11px; background:#e2e8f0; border:none; border-radius:4px; font-weight:800;" onclick="toggleInlineReply(${c.id})">취소</button>
+                        <button type="button" style="padding:4px 12px; font-size:11px; background:#2563eb; color:white; border:none; border-radius:4px; font-weight:800;" onclick="submitInlineReply(${c.id})">등록</button>
+                    </div>
+                </div>
+            `;
+            list.appendChild(div);
+
+            const replies = comments.filter(r => r.parentId === c.id);
+            replies.forEach(r => {
+                const isMyReply = (r.author === myCurrentUserId);
+                const rDiv = document.createElement("div");
+                rDiv.className = "comment-item reply";
+                rDiv.innerHTML = `
+                    <div class="comment-author-row">
+                        <div>
+                            <span class="comment-author">↳ ${r.author}</span>
+                            <span class="comment-time">${r.time || '방금'}</span>
+                        </div>
+                        ${isMyReply ? `<button type="button" class="btn-comment-delete" onclick="deleteComment(${r.id})">삭제</button>` : ''}
+                    </div>
+                    <div class="comment-text">${r.text}</div>
+                `;
+                list.appendChild(rDiv);
+            });
+        });
+    }
+
+    function toggleInlineReply(commentId) {
+        const box = document.getElementById(`replyBox_${commentId}`);
+        if (box) {
+            box.classList.toggle("open");
+            if (box.classList.contains("open")) {
+                document.getElementById(`replyInput_${commentId}`).focus();
+            }
+        }
+    }
+
+    function submitInlineReply(parentId) {
+        const input = document.getElementById(`replyInput_${parentId}`);
+        const text = input.value.trim();
+        if (!text) return;
+
+        const author = document.getElementById("commentAuthorInput").value.trim() || myCurrentUserId;
+        updateSavedAuthorId(author);
+
+        const targetPost = posts.find(p => p.id === activePostId);
+        if (targetPost) {
+            if (!targetPost.comments) targetPost.comments = [];
+            targetPost.comments.push({ id: Date.now(), author: author, time: "방금", text: text, parentId: parentId });
+            savePostsToLocal();
+            renderModalComments(targetPost);
+        }
+    }
+
+    function autoResizeCommentArea(textarea) {
+        textarea.style.height = "auto";
+        textarea.style.height = (textarea.scrollHeight) + "px";
+    }
+
+    function submitDetailComment() {
+        const textarea = document.getElementById("detailCommentInput");
+        const text = textarea.value.trim();
+        if (!text) return;
+
+        const author = document.getElementById("commentAuthorInput").value.trim() || myCurrentUserId;
+        updateSavedAuthorId(author);
+
+        const targetPost = posts.find(p => p.id === activePostId);
+        if (targetPost) {
+            if (!targetPost.comments) targetPost.comments = [];
+            targetPost.comments.push({ id: Date.now(), author: author, time: "방금", text: text, parentId: null });
+            savePostsToLocal();
+            renderModalComments(targetPost);
+            textarea.value = "";
+            textarea.style.height = "38px";
+        }
+    }
+
+    function deleteComment(commentId) {
+        const targetPost = posts.find(p => p.id === activePostId);
+        if (!targetPost || !targetPost.comments) return;
+
+        targetPost.comments = targetPost.comments.filter(c => c.id !== commentId && c.parentId !== commentId);
+        savePostsToLocal();
+        renderModalComments(targetPost);
+    }
+
+    function openCafeWriteScreen() {
+        isEditingMode = false;
+        document.getElementById("writeModalTitle").innerText = "게시글 작성";
+        document.getElementById("cafeAuthorInput").value = myCurrentUserId;
+        document.getElementById("cafeTitleInput").value = "";
+        document.getElementById("cafeContentInput").value = "";
+        removeAttachedImage();
+
+        const screen = document.getElementById("cafeWriteScreen");
+        screen.classList.add("open");
+    }
+
+    function closeCafeWriteScreen() {
+        document.getElementById("cafeWriteScreen").classList.remove("open");
+    }
+
+    function handleImageOptimization(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        document.getElementById("photoStatusText").innerText = "사진 압축 중...";
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                const MAX_WIDTH = 640;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > MAX_WIDTH) {
+                    height = Math.round((height * MAX_WIDTH) / width);
+                    width = MAX_WIDTH;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, width, height);
+
+                cafeCompressedImage = canvas.toDataURL("image/jpeg", 0.72);
+
+                const imgBox = document.getElementById("cafeAttachedImgBox");
+                const preview = document.getElementById("cafeAttachedImg");
+                preview.src = cafeCompressedImage;
+                imgBox.style.display = "block";
+                document.getElementById("photoStatusText").innerText = "사진 첨부 완료 ✔";
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeAttachedImage() {
+        cafeCompressedImage = null;
+        document.getElementById("cafeAttachedImgBox").style.display = "none";
+        document.getElementById("hiddenImageFileInput").value = "";
+        document.getElementById("photoStatusText").innerText = "사진 추가";
+    }
+
+    function submitCafePost() {
+        const author = document.getElementById("cafeAuthorInput").value.trim() || myCurrentUserId;
+        const title = document.getElementById("cafeTitleInput").value.trim();
+        const content = document.getElementById("cafeContentInput").value.trim();
+        const topic = document.getElementById("cafeTopicSelect").value;
+
+        if (!title) {
+            alert("제목을 입력해주세요.");
+            return;
+        }
+
+        if (!content && !cafeCompressedImage) {
+            alert("내용을 입력하거나 사진을 첨부해주세요.");
+            return;
+        }
+
+        updateSavedAuthorId(author);
+
+        if (isEditingMode && activePostId) {
+            const target = posts.find(p => p.id === activePostId);
+            if (target) {
+                target.topic = topic;
+                target.title = title;
+                target.content = content || "사진 게시글입니다.";
+                target.author = author;
+                target.img = cafeCompressedImage;
+            }
+        } else {
+            const newPost = {
+                id: Date.now(),
+                topic: topic,
+                title: title,
+                content: content || "사진 게시글입니다.",
+                author: author,
+                time: "방금",
+                views: 1,
+                img: cafeCompressedImage,
+                comments: []
+            };
+            posts.unshift(newPost);
+        }
+
+        savePostsToLocal();
+        renderFeed();
+        renderBestPosts();
+        closeCafeWriteScreen();
+
+        document.getElementById("cafeTitleInput").value = "";
+        document.getElementById("cafeContentInput").value = "";
+        removeAttachedImage();
+    }
+</script>
+
+</body>
+</html>

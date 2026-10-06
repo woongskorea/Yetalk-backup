@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>매장 관리자 센터 | 예톡</title>
+    <link rel="stylesheet" href="common.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #f59e0b;
+            --primary-dark: #b45309;
+            --primary-light: #fefce8;
+            --border-color: #cbd5e1;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --bg-page: #f8fafc;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: #e2e8f0; color: var(--text-main);
+            font-family: "Pretendard", -apple-system, sans-serif;
+            display: flex; justify-content: center; min-height: 100vh;
+        }
+
+        .admin-container {
+            width: 100%; max-width: 780px; background: #ffffff;
+            min-height: 100vh; position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.1);
+            padding-bottom: 60px;
+        }
+
+        /* 1. 최상단 헤더 */
+        .admin-top-header {
+            position: sticky; top: 0; z-index: 100;
+            background: #ffffff;
+            height: calc(54px + max(env(safe-area-inset-top, 0px) + 38px, 42px));
+            display: flex;
+            justify-content: space-between; align-items: center;
+            padding: max(env(safe-area-inset-top, 0px) + 38px, 42px) 14px 0 14px;
+            border-bottom: 1.5px solid var(--border-color);
+        }
+        .admin-nav-btn {
+            background: none; border: none; font-size: 24px; font-weight: 900;
+            color: #334155; cursor: pointer; padding: 4px 8px; line-height: 1;
+        }
+        .admin-header-title { text-align: center; }
+        .admin-header-title strong { display: block; font-size: 15.5px; font-weight: 950; color: #0f172a; }
+        .admin-header-title small { font-size: 11px; color: #d97706; font-weight: 800; }
+
+        .btn-admin-pill-red {
+            background: #dc2626; border: 1px solid #ef4444; color: #ffffff;
+            font-size: 11.5px; font-weight: 900; padding: 5px 12px; border-radius: 14px;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35); transition: all 0.2s;
+        }
+        .btn-admin-pill-red:active { transform: scale(0.96); background: #b91c1c; }
+
+        /* 2. 관리자 프로필 정보 */
+        .admin-profile-box {
+            background: var(--primary-light); border-bottom: 1px solid #fef08a;
+            padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+        }
+        .admin-avatar {
+            width: 44px; height: 44px; border-radius: 50%; background: #d97706;
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 17px; font-weight: 900;
+        }
+        .admin-meta strong { font-size: 15px; font-weight: 900; color: #92400e; }
+        .admin-badge {
+            background: #d97706; color: white; font-size: 10.5px; font-weight: 800;
+            padding: 2px 7px; border-radius: 10px; margin-left: 5px;
+        }
+        .admin-meta p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+
+        /* 3. 6대 빠른 관리 메뉴 그리드 */
+        .quick-grid-section { padding: 16px; }
+        .section-label { font-size: 11px; font-weight: 900; color: #d97706; letter-spacing: 0.5px; }
+        .section-h2 { font-size: 18px; font-weight: 950; color: #0f172a; margin: 2px 0 12px 0; }
+
+        .quick-nav-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+        }
+        .quick-menu-btn {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+            padding: 14px 6px; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 6px; cursor: pointer; transition: 0.15s;
+        }
+        .quick-menu-btn:active { background: #e2e8f0; transform: scale(0.97); }
+        .quick-menu-btn span { font-size: 24px; }
+        .quick-menu-btn strong { font-size: 12.5px; font-weight: 800; color: #1e293b; }
+
+        /* 4. 세부 서브 화면 뷰 */
+        .sub-admin-view { display: none; padding: 14px 16px; }
+        .sub-admin-view.active { display: block; }
+
+        .btn-back-quick {
+            background: #e2e8f0; border: none; padding: 6px 14px; border-radius: 16px;
+            font-size: 12px; font-weight: 800; color: #334155; cursor: pointer; margin-bottom: 12px;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+
+        .admin-card {
+            background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px;
+            padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .admin-card-title { font-size: 15px; font-weight: 900; color: #0f172a; margin-bottom: 8px; }
+        .info-callout {
+            background: #f8fafc; border-left: 3.5px solid #d97706; padding: 8px 12px;
+            font-size: 12px; color: #475569; line-height: 1.5; margin-bottom: 12px; border-radius: 0 8px 8px 0;
+        }
+        .field-group { margin-bottom: 12px; }
+        .field-group label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 4px; }
+        .field-input, .field-textarea {
+            width: 100%; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px;
+            font-size: 13.5px; color: #0f172a; outline: none; font-family: inherit;
+        }
+        .field-input:focus, .field-textarea:focus { border-color: #d97706; }
+        .field-textarea { min-height: 70px; resize: vertical; }
+
+        .btn-save-section {
+            width: 100%; height: 42px; background: #d97706; color: white;
+            border: none; border-radius: 8px; font-size: 13.5px; font-weight: 900;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            gap: 6px; box-shadow: 0 3px 10px rgba(217, 119, 6, 0.3); margin-top: 6px;
+        }
+        .btn-save-section:active { transform: scale(0.98); background: #b45309; }
+
+        .toast-msg {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: #0f172a; color: white; padding: 10px 20px; border-radius: 20px;
+            font-size: 13px; font-weight: 900; z-index: 99999; opacity: 0; visibility: hidden;
+            transition: all 0.25s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .toast-msg.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <!-- 최상단 헤더 -->
+    <header class="admin-top-header">
+        <button type="button" class="admin-nav-btn" onclick="location.href='shopmain.html'" title="매장 홈으로 이동">◀</button>
+        <div class="admin-header-title">
+            <strong id="hdrShopTitle">비즈니스 매장 관리실</strong>
+            <small>예톡 소상공인·자영업 전용 콘솔</small>
+        </div>
+        <button type="button" class="btn-admin-pill-red" onclick="location.href='index.html'">
+            예톡 메인 ➔
+        </button>
+    </header>
+
+    <!-- 관리자 프로필 박스 -->
+    <section class="admin-profile-box">
+        <div class="admin-avatar">🏢</div>
+        <div class="admin-meta">
+            <div>
+                <strong id="metaShopName">부산밀면가</strong>
+                <span class="admin-badge">대표자</span>
+            </div>
+            <p id="metaShopInfo">업종: 일반음식점 | 대표전화: 051-123-4567</p>
+        </div>
+    </section>
+
+    <!-- 6대 섹션 빠른 바로가기 그리드 -->
+    <main class="quick-grid-section" id="mainQuickSection">
+        <div class="section-label">STORE CONTROL CENTER</div>
+        <h2 class="section-h2">매장 6대 콘텐츠 관리</h2>
+
+        <div class="quick-nav-grid">
+            <div class="quick-menu-btn" onclick="openSubView('viewBasic')">
+                <span>🏢</span>
+                <strong>매장정보</strong>
+            </div>
+            <div class="quick-menu-btn" onclick="openSubView('viewHero')">
+                <span>🖼️</span>
+                <strong>대표배너</strong>
+            </div>
+            <div class="quick-menu-btn" onclick="openSubView('viewMenu5')">
+                <span>📋</span>
+                <strong>5대메뉴</strong>
+            </div>
+            <div class="quick-menu-btn" onclick="openSubView('viewBoard')">
+                <span>💬</span>
+                <strong>소통게시판</strong>
+            </div>
+            <div class="quick-menu-btn" onclick="openSubView('viewQr')">
+                <span>📷</span>
+                <strong>매장QR코드</strong>
+            </div>
+            <div class="quick-menu-btn" onclick="openSubView('viewPay')">
+                <span>💳</span>
+                <strong>간편결제계좌</strong>
+            </div>
+        </div>
+    </main>
+
+    <!-- 1. 매장정보 관리 뷰 -->
+    <section class="sub-admin-view" id="viewBasic">
+        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
+        <div class="admin-card">
+            <h3 class="admin-card-title">🏢 매장 기본정보 설정</h3>
+            <div class="info-callout">매장 상호명, 대표자 성함, 업종 및 연락처를 설정합니다.</div>
+            <div class="field-group">
+                <label>상호명</label>
+                <input type="text" id="inpShopName" class="field-input" placeholder="부산밀면가">
+            </div>
+            <div class="field-group">
+                <label>대표자 성함</label>
+                <input type="text" id="inpShopOwner" class="field-input" placeholder="홍길동 대표">
+            </div>
+            <div class="field-group">
+                <label>업종 / 카테고리</label>
+                <input type="text" id="inpShopCategory" class="field-input" placeholder="전통 밀면 & 손만두 전문점">
+            </div>
+            <div class="field-group">
+                <label>매장 대표 전화</label>
+                <input type="text" id="inpShopPhone" class="field-input" placeholder="051-123-4567">
+            </div>
+            <div class="field-group">
+                <label>매장 주소</label>
+                <input type="text" id="inpShopAddress" class="field-input" placeholder="부산시 부산진구 중앙대로 45">
+            </div>
+            <button type="button" class="btn-save-section" onclick="saveBasicInfo()">💾 매장정보 저장</button>
+        </div>
+    </section>
+
+    <!-- 2. 대표 배너 & 인사말 관리 뷰 -->
+    <section class="sub-admin-view" id="viewHero">
+        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
+        <div class="admin-card">
+            <h3 class="admin-card-title">🖼️ 대표 비주얼 배너 & 인사말</h3>
+            <div class="field-group">
+                <label>환영 타이틀</label>
+                <input type="text" id="inpHeroTitle" class="field-input" placeholder="정성과 신뢰로 모시는 공식 비즈니스 매장">
+            </div>
+            <div class="field-group">
+                <label>환영 인사말 본문</label>
+                <textarea id="inpHeroDesc" class="field-textarea" placeholder="언제나 최상의 품질과 친절한 서비스로 고객님을 섬기겠습니다. 실시간 주문 및 예약 상담을 환영합니다."></textarea>
+            </div>
+            <div class="field-group">
+                <label>대표 배너 이미지 URL</label>
+                <input type="text" id="inpHeroImg" class="field-input" placeholder="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800">
+            </div>
+            <button type="button" class="btn-save-section" onclick="saveHeroSection()">💾 대표배너 저장</button>
+        </div>
+    </section>
+
+    <!-- 3. 가로 5대 메뉴 관리 뷰 -->
+    <section class="sub-admin-view" id="viewMenu5">
+        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
+        <div class="admin-card">
+            <h3 class="admin-card-title">📋 가로 5대 메뉴 아이콘 & 이름 설정</h3>
+            <div class="info-callout">매장 상단에 노출되는 5개의 핵심 바로가기 메뉴를 자유롭게 편집합니다.</div>
+            <div id="menuRowsAdminBox" style="display:flex; flex-direction:column; gap:8px;"></div>
+            <button type="button" class="btn-save-section" onclick="saveMenu5Section()">💾 5대 메뉴 저장</button>
+        </div>
+    </section>
+
+    <!-- 4. 소통 게시판 관리 뷰 -->
+    <section class="sub-admin-view" id="viewBoard">
+        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
+        <div class="admin-card">
+            <h3 class="admin-card-title">💬 단골 소통 & 방문 나눔터 공지</h3>
+            <div class="field-group">
+                <label>사장님 공지 제목</label>
+                <input type="text" id="inpShopNoticeTitle" class="field-input" placeholder="신메뉴 출시 및 단골 고객 할인 이벤트">
+            </div>
+            <div class="field-group">
+                <label>공지 내용</label>
+                <textarea id="inpShopNoticeContent" class="field-textarea" placeholder="매장을 찾아주시는 단골 고객님들을 위한 특별 혜택을 준비했습니다."></textarea>
+            </div>
+            <button type="button" class="btn-save-section" onclick="saveShopNotice()">📢 사장님 공지 등록</button>
+        </div>
+    </section>
+
+    <!-- 5. 매장 QR코드 관리 뷰 -->
+    <section class="sub-admin-view" id="viewQr">
+        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
+        <div class="admin-card">
+            <h3 class="admin-card-title">📷 매장 직통 공식 QR코드</h3>
+            <div class="info-callout">고객이 스마트폰 카메라로 비추면 바로 우리 매장 홈으로 직행하는 QR코드입니다.</div>
+            <div style="text-align:center; padding:16px;">
+                <img id="adminQrImage" src="" alt="매장 전용 QR코드" style="width:180px; height:180px; border-radius:12px; border:2px solid #d97706;">
+                <p id="adminQrTargetUrl" style="font-size:11px; color:#64748b; margin-top:8px; word-break:break-all;"></p>
+            </div>
+            <button type="button" class="btn-save-section" onclick="window.print()">🖨️ A4 용지 즉시 인쇄</button>
+        </div>
+    </section>
+
+    <!-- 6. 간편결제 계좌 관리 뷰 -->
+    <section class="sub-admin-view" id="viewPay">
+        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
+        <div class="admin-card">
+            <h3 class="admin-card-title">💳 간편결제 & 주문 송금 계좌</h3>
+            <div class="info-callout">단골 고객이 매장 홈에서 간편결제 시 표시되는 공식 수납 계좌입니다.</div>
+            <div class="field-group">
+                <label>은행명</label>
+                <input type="text" id="inpShopBank" class="field-input" placeholder="농협은행">
+            </div>
+            <div class="field-group">
+                <label>계좌번호</label>
+                <input type="text" id="inpShopAccount" class="field-input" placeholder="352-0192-8841-03">
+            </div>
+            <div class="field-group">
+                <label>예금주명</label>
+                <input type="text" id="inpShopHolder" class="field-input" placeholder="부산밀면가">
+            </div>
+            <button type="button" class="btn-save-section" onclick="savePayAccount()">💾 결제계좌 저장</button>
+        </div>
+    </section>
+</div>
+
+<div class="toast-msg" id="toastMsg"></div>
+
+<script>
+    const DEFAULT_MENUS = [
+        { icon: "📋", label: "메뉴안내" },
+        { icon: "💬", label: "단골소통" },
+        { icon: "📅", label: "예약/상담" },
+        { icon: "💳", label: "간편결제" },
+        { icon: "📷", label: "매장QR" }
+    ];
+
+    let currentMenus = [];
+
+    function openSubView(viewId) {
+        document.getElementById("mainQuickSection").style.display = "none";
+        document.querySelectorAll(".sub-admin-view").forEach(v => v.classList.remove("active"));
+        const target = document.getElementById(viewId);
+        if (target) target.classList.add("active");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function closeSubView() {
+        document.querySelectorAll(".sub-admin-view").forEach(v => v.classList.remove("active"));
+        document.getElementById("mainQuickSection").style.display = "block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById("toastMsg");
+        if (!t) return;
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2000);
+    }
+
+    function loadShopData() {
+        const store = localStorage.getItem("yetalkShopName") || "부산밀면가";
+        const owner = localStorage.getItem("yetalkShopOwner") || "홍길동 대표";
+        const cat = localStorage.getItem("yetalkShopCategory") || "전통 밀면 & 수제만두";
+        const phone = localStorage.getItem("yetalkShopPhone") || "051-123-4567";
+        let addr = localStorage.getItem("yetalkShopAddress") || "부산시 부산진구 중앙대로 45";
+        if (addr.includes("신암로")) { addr = "부산시 부산진구 중앙대로 45"; localStorage.setItem("yetalkShopAddress", addr); }
+
+        document.getElementById("hdrShopTitle").innerText = `${store} 관리실`;
+        document.getElementById("metaShopName").innerText = store;
+        document.getElementById("metaShopInfo").innerText = `업종: ${cat} | 전화: ${phone}`;
+
+        document.getElementById("inpShopName").value = store;
+        document.getElementById("inpShopOwner").value = owner;
+        document.getElementById("inpShopCategory").value = cat;
+        document.getElementById("inpShopPhone").value = phone;
+        document.getElementById("inpShopAddress").value = addr;
+
+        // 결제계좌
+        document.getElementById("inpShopBank").value = localStorage.getItem("yetalkTargetBank") || "농협은행";
+        document.getElementById("inpShopAccount").value = localStorage.getItem("yetalkTargetAccount") || "352-0192-8841-03";
+        document.getElementById("inpShopHolder").value = localStorage.getItem("yetalkTargetHolder") || store;
+
+        // 5대 메뉴
+        const savedMenus = localStorage.getItem("yetalk_shop_custom_menus_5");
+        currentMenus = savedMenus ? JSON.parse(savedMenus) : DEFAULT_MENUS;
+        renderMenuAdminRows();
+
+        // QR
+        const targetUrl = window.location.href.replace("shopadmin.html", "shopmain.html");
+        document.getElementById("adminQrTargetUrl").innerText = targetUrl;
+        document.getElementById("adminQrImage").src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(targetUrl)}`;
+    }
+
+    function renderMenuAdminRows() {
+        const box = document.getElementById("menuRowsAdminBox");
+        box.innerHTML = currentMenus.map((m, idx) => `
+            <div style="display:flex; flex-direction:column; gap:3px;">
+                <label style="font-size:11.5px; color:#d97706; font-weight:800;">${idx+1}번 메뉴 아이콘 & 이름</label>
+                <div style="display:flex; gap:6px;">
+                    <input type="text" id="inpAdminMenuIcon${idx}" value="${m.icon}" style="width:48px; text-align:center; padding:8px 0; border:1.5px solid #cbd5e1; border-radius:8px; font-size:14px;">
+                    <input type="text" id="inpAdminMenuLabel${idx}" value="${m.label}" style="flex:1; padding:8px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:13.5px; font-weight:800;">
+                </div>
+            </div>
+        `).join("");
+    }
+
+    function saveBasicInfo() {
+        const name = document.getElementById("inpShopName").value.trim();
+        const owner = document.getElementById("inpShopOwner").value.trim();
+        const cat = document.getElementById("inpShopCategory").value.trim();
+        const phone = document.getElementById("inpShopPhone").value.trim();
+        const addr = document.getElementById("inpShopAddress").value.trim();
+
+        if (name) {
+            localStorage.setItem("yetalkUserStoreName", name);
+            localStorage.setItem("yetalkShopName", name);
+        }
+        if (owner) localStorage.setItem("yetalkShopOwner", owner);
+        if (cat) localStorage.setItem("yetalkShopCategory", cat);
+        if (phone) localStorage.setItem("yetalkShopPhone", phone);
+        if (addr) localStorage.setItem("yetalkShopAddress", addr);
+
+        loadShopData();
+        showToast("🎉 매장 기본정보가 저장되었습니다!");
+    }
+
+    function saveHeroSection() {
+        showToast("💾 대표배너 설정이 저장되었습니다!");
+    }
+
+    function saveMenu5Section() {
+        for (let i = 0; i < 5; i++) {
+            currentMenus[i].icon = document.getElementById(`inpAdminMenuIcon${i}`).value.trim() || "📌";
+            currentMenus[i].label = document.getElementById(`inpAdminMenuLabel${i}`).value.trim() || `메뉴${i+1}`;
+        }
+        localStorage.setItem("yetalk_shop_custom_menus_5", JSON.stringify(currentMenus));
+        showToast("🎉 가로 5대 메뉴가 저장되었습니다!");
+    }
+
+    function saveShopNotice() {
+        showToast("📢 사장님 공지가 등록되었습니다!");
+    }
+
+    function savePayAccount() {
+        const bank = document.getElementById("inpShopBank").value.trim();
+        const acc = document.getElementById("inpShopAccount").value.trim();
+        const holder = document.getElementById("inpShopHolder").value.trim();
+
+        if (bank) localStorage.setItem("yetalkTargetBank", bank);
+        if (acc) localStorage.setItem("yetalkTargetAccount", acc);
+        if (holder) localStorage.setItem("yetalkTargetHolder", holder);
+
+        showToast("💳 결제계좌 정보가 안전하게 저장되었습니다!");
+    }
+
+    document.addEventListener("DOMContentLoaded", loadShopData);
+</script>
+
+</body>
+</html>

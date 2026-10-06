@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>보배성도 | 예톡</title>
+
+    <script>
+        (function() {
+            const getChurchId = () => localStorage.getItem("yetalkMyChurchId") || localStorage.getItem("currentChurchId") || "yetalk-church";
+            const savedTheme = localStorage.getItem("yetalkChurchTheme_" + getChurchId()) || localStorage.getItem("yetalkThemeColor") || "blue";
+            document.documentElement.className = "theme-" + savedTheme + " font-normal";
+        })();
+    </script>
+
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff; --border-color: #e2e8f0;
+            --text-main: #0f172a; --text-sub: #64748b;
+            --accent: #3b82f6;
+        }
+
+        html.theme-blue { --accent: #2563eb; --bg-color: #eff6ff; }
+        html.theme-green { --accent: #059669; --bg-color: #f0fdf4; }
+        html.theme-red { --accent: #dc2626; --bg-color: #fef2f2; }
+        html.theme-purple { --accent: #7c3aed; --bg-color: #faf5ff; }
+        html.theme-orange { --accent: #ea580c; --bg-color: #fff7ed; }
+        html.theme-black { --accent: #334155; --bg-color: #f8fafc; }
+        html.theme-pink { --accent: #db2777; --bg-color: #fdf2f8; }
+
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background: var(--bg-color); color: var(--text-main);
+            font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        button, input, textarea { font: inherit; outline: none; border: none; background: none; }
+        button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .hidden { display: none !important; }
+
+        .chat-page {
+            display: flex; flex-direction: column; width: 100%; height: 100dvh; max-width: 700px;
+            margin: 0 auto; background: var(--bg-color); position: relative;
+        }
+
+        /* HEADER */
+        .header {
+            flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+            padding: max(10px, env(safe-area-inset-top)) 16px 10px; background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color); z-index: 10;
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; width: 32px; }
+        .back-btn { font-size: 24px; color: var(--text-main); font-weight: 900; padding: 4px; }
+
+        .title-box { display: flex; flex-direction: column; align-items: center; position: absolute; left: 50%; transform: translateX(-50%); }
+        .title-main { font-size: 19px; font-weight: 900; color: #0f172a; }
+        .title-sub { font-size: 13px; font-weight: 800; color: var(--text-sub); }
+
+        .header-right { width: 32px; display: flex; justify-content: flex-end; }
+        .admin-switch-btn {
+            background: var(--accent); color: #fff; font-size: 12px; font-weight: 800;
+            padding: 6px 12px; border-radius: 8px; transition: 0.2s; white-space: nowrap;
+        }
+        .admin-switch-btn.off { background: #64748b; }
+
+        /* 메인 스크롤 영역 */
+        .main-scroll-area {
+            flex: 1; min-height: 0; overflow-y: auto;
+            padding: 16px 16px 120px 16px;
+            display: flex; flex-direction: column; gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        /* 1. 안구정화용 단독 그림 카드 */
+        .visual-image-card {
+            width: 100%; min-height: 240px; border-radius: 20px;
+            background-color: #e2e8f0; background-size: cover; background-position: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.03);
+            margin-bottom: 4px; flex-shrink: 0;
+        }
+
+        /* 2. 감성 축복글 영역 */
+        .blessing-text-area {
+            padding: 0 12px; margin-bottom: 16px;
+            display: flex; flex-direction: column; align-items: flex-start;
+        }
+        .blessing-title {
+            font-size: 16.5px; font-weight: 900; color: var(--accent);
+            margin-bottom: 14px; text-align: left;
+        }
+        .blessing-text {
+            font-size: 19px; font-weight: 700; color: #0f172a; line-height: 1.7;
+            text-align: left; white-space: pre-wrap; word-break: keep-all;
+            margin-bottom: 20px; width: 100%;
+        }
+
+        /* 성도 리액션 버튼 */
+        .reaction-row {
+            width: 100%; display: flex; gap: 10px; justify-content: flex-start;
+        }
+        .reaction-btn {
+            background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px;
+            padding: 8px 16px; font-size: 14.5px; font-weight: 800; color: #475569; transition: 0.2s;
+            display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .reaction-btn.active.heart { background: #fee2e2; border-color: #fca5a5; color: #e11d48; }
+        .reaction-btn.active.amen { background: #e0e7ff; border-color: #a5b4fc; color: #4f46e5; }
+
+
+        /* ⭐ 3. 가로로 꽉 차는 풀박스 버튼 형태의 설교 카드 (클릭 시 아코디언 작동) */
+        .sermon-card {
+            background: #ffffff; border-radius: 20px; padding: 22px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #e2e8f0;
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+            cursor: pointer; transition: transform 0.2s, background-color 0.2s;
+        }
+        .sermon-card:active { transform: scale(0.99); background-color: #f8fafc; }
+        .sermon-card::before { content: ""; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: #8b5cf6; }
+
+        .sermon-main-title { font-size: 20px; font-weight: 900; color: #0f172a; margin-bottom: 4px; letter-spacing: -0.5px; line-height: 1.4; }
+        .sermon-sub-ref { font-size: 15px; font-weight: 800; color: var(--accent); margin-bottom: 12px; }
+
+        /* 가로 꽉 찬 안내 버튼 스타일 */
+        .full-width-toggle-btn {
+            width: 100%; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 12px;
+            padding: 12px 16px; font-size: 15px; font-weight: 800; color: #334155;
+            display: flex; align-items: center; justify-content: space-between; transition: 0.2s;
+        }
+        .sermon-card.open .full-width-toggle-btn { background: #e0e7ff; border-color: #a5b4fc; color: #4f46e5; }
+        .full-width-toggle-btn span { font-size: 16px; transition: transform 0.3s; }
+        .sermon-card.open .full-width-toggle-btn span { transform: rotate(180deg); }
+
+        /* ⭐ 성경 본문 숨김/펼침 영역 (아코디언) */
+        .sermon-body-area {
+            max-height: 0; opacity: 0; overflow: hidden;
+            display: flex; flex-direction: column; gap: 16px;
+            transition: max-height 0.4s ease-out, opacity 0.3s ease-out, padding 0.3s, margin 0.3s;
+        }
+        .sermon-card.open .sermon-body-area {
+            max-height: 1500px; opacity: 1;
+            padding-top: 20px; margin-top: 16px; border-top: 1px dashed #cbd5e1;
+            transition: max-height 0.6s ease-in, opacity 0.4s ease-in, padding 0.3s, margin 0.3s;
+        }
+
+        .verse-row {
+            display: flex; align-items: flex-start; gap: 8px; text-align: left;
+            font-size: 18px; font-weight: 600; color: #1e293b; line-height: 1.6; word-break: keep-all;
+        }
+        .verse-num {
+            color: var(--accent); font-weight: 900; font-size: 15px;
+            min-width: 18px; text-align: right; padding-top: 2px; flex-shrink: 0;
+        }
+
+
+        /* 4. 선교 및 무료 홈페이지 재정을 위한 애드몹 박스 */
+        .admob-donation-box {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 2px dashed #cbd5e1; border-radius: 16px; padding: 20px;
+            text-align: center; margin-top: 10px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .admob-notice {
+            font-size: 13.5px; font-weight: 800; color: #475569; line-height: 1.5;
+            margin-bottom: 14px; word-break: keep-all;
+        }
+        .admob-notice span { color: var(--accent); font-weight: 900; }
+
+        .admob-banner-placeholder {
+            width: 100%; height: 60px; background: #e2e8f0; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 800; color: #64748b;
+        }
+
+
+        /* INPUT AREA */
+        .input-area {
+            flex-shrink: 0; background: var(--card-bg); padding: 10px 16px max(10px, env(safe-area-inset-bottom));
+            display: flex; gap: 8px; align-items: flex-end; border-top: 1px solid var(--border-color);
+        }
+        .chat-input {
+            flex: 1; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 22px;
+            padding: 14px 16px; font-size: 16px; font-weight: 600; max-height: 120px; resize: none;
+            overflow-y: auto; outline: none; color: #0f172a;
+        }
+        .send-btn {
+            background: var(--accent); color: #fff; font-weight: 900; font-size: 16px;
+            padding: 0 20px; height: 50px; border-radius: 22px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="chat-page">
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()">‹</button>
+        </div>
+        <div class="title-box">
+            <span class="title-main">보배성도</span>
+            <span class="title-sub">우리교회 · 은혜 나눔방</span>
+        </div>
+        <div class="header-right">
+            <button id="adminToggleBtn" class="admin-switch-btn off" onclick="toggleAdmin()">관리자 OFF</button>
+        </div>
+    </header>
+
+    <!-- MAIN AREA -->
+    <main class="main-scroll-area" id="mainArea">
+
+        <!-- 1. 안구정화용 단독 그림 카드 -->
+        <div class="visual-image-card" id="blessingImage"></div>
+
+        <!-- 2. 감성 축복글 영역 -->
+        <div class="blessing-text-area">
+            <span class="blessing-title" id="blessingTitle">[보배성도를 위한 오늘의 축복]</span>
+            <div class="blessing-text" id="blessingText">축복의 메시지를 불러오는 중입니다...</div>
+
+            <!-- 성도 리액션 버튼 -->
+            <div class="reaction-row">
+                <button class="reaction-btn heart" onclick="react(this)">❤️ 은혜입니다 <span class="cnt">12</span></button>
+                <button class="reaction-btn amen" onclick="react(this)">🙏 아멘 <span class="cnt">24</span></button>
+            </div>
+        </div>
+
+        <!-- ⭐ 3. 가로 꽉 찬 풀박스 버튼 형태의 주일설교 묵상 카드 -->
+        <div class="sermon-card" id="sermonCard" onclick="toggleSermon()">
+            <div class="sermon-main-title">반드시 승리하는 믿음의 법칙</div>
+            <div class="sermon-sub-ref">요한일서 5장 1절 ~ 5절</div>
+
+            <!-- 가로 넓은 버튼 박스 -->
+            <div class="full-width-toggle-btn">
+                <span>이번 주 설교 본문 다시 읽고 묵상해봐요 📖</span>
+                <span>▼</span>
+            </div>
+
+            <!-- 클릭 시 스르륵 열리는 본문 영역 -->
+            <div class="sermon-body-area">
+                <div class="verse-row">
+                    <span class="verse-num">1</span>
+                    <div>예수께서 그리스도이심을 믿는 자마다 하나님께로부터 난 자니 또한 낳으신 이를 사랑하는 자마다 그에게서 난 자를 사랑하느니라</div>
+                </div>
+                <div class="verse-row">
+                    <span class="verse-num">2</span>
+                    <div>우리가 하나님을 사랑하고 그의 계명들을 지킬 때에 이로써 우리가 하나님의 자녀를 사랑하는 줄을 아느니라</div>
+                </div>
+                <div class="verse-row">
+                    <span class="verse-num">3</span>
+                    <div>하나님을 사랑하는 것은 이것이니 우리가 그의 계명들을 지키는 것이라 그의 계명들은 무거운 것이 아니로다</div>
+                </div>
+                <div class="verse-row">
+                    <span class="verse-num">4</span>
+                    <div>무릇 하나님께로부터 난 자마다 세상을 이기느니라 세상을 이기는 승리는 이것이니 곧 우리의 믿음이니라</div>
+                </div>
+                <div class="verse-row">
+                    <span class="verse-num">5</span>
+                    <div>예수께서 하나님의 아들이심을 믿는 자가 아니면 세상을 이기는 자가 누구냐</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 선교 및 무료 홈페이지 재정을 위한 애드몹 박스 -->
+        <div class="admob-donation-box">
+            <div class="admob-notice">
+                💡 본 앱의 하단 광고 수익은 전액 <span>교회 선교 후원</span>과 <span>무료 홈페이지 유지 재정</span>으로 소중하게 사용됩니다.
+            </div>
+            <div class="admob-banner-placeholder" id="admobBannerArea">
+                [ 애드몹 광고 영역 (Banner Ads) ]
+            </div>
+        </div>
+
+    </main>
+
+    <!-- INPUT AREA -->
+    <footer class="input-area hidden" id="inputArea">
+        <textarea class="chat-input" id="chatInput" rows="1" placeholder="성도들을 위한 사랑의 메시지를 남겨주세요." oninput="autoResize(this)"></textarea>
+        <button class="send-btn" onclick="alert('전송 완료')">전송</button>
+    </footer>
+
+</div>
+
+<script>
+    const dailyBlessings = [
+        "사랑하는 성도님, 오늘 하루도 주님의 은혜가 머무는 따뜻한 발걸음이 되기를 기도합니다.",
+        "언제나 당신을 향한 하나님의 사랑은 변함이 없습니다. 오늘 하루도 평안하세요.",
+        "비록 작은 일상일지라도 주님이 함께하시면 가장 특별한 기적이 됩니다. 힘내세요!",
+        "성도님의 삶이 예수님의 향기로 가득 채워지는 복된 하루가 되기를 소망합니다.",
+        "수고하고 무거운 짐을 주님께 맡기고, 참된 쉼을 누리는 오늘이 되시길 바랍니다.",
+        "눈물을 기쁨으로 바꾸시는 하나님의 위로가 성도님의 가정에 가득하길 축복합니다.",
+        "당신은 하나님께서 이 땅에 보내신 가장 귀하고 보배로운 사람입니다. 사랑합니다.",
+        "세상의 소리보다 세미한 주님의 음성에 귀 기울이며 영적 평안을 누리세요.",
+        "어떤 상황 속에서도 합력하여 선을 이루시는 주님을 온전히 신뢰하는 하루 되십시오.",
+        "성도님의 작은 신음에도 귀 기울이시는 하늘 아버지의 넓은 품을 묵상해 보세요.",
+        "오늘 하루, 만나는 모든 사람에게 예수님의 따뜻한 미소를 전하는 축복의 통로가 되길 바랍니다.",
+        "두려워하지 마세요. 주님의 강하고 의로운 오른손이 성도님을 굳게 붙들고 계십니다.",
+        "마음의 염려를 내려놓고, 하늘의 평강이 당신의 생각을 지키시기를 간절히 기도합니다.",
+        "당신이 걷는 모든 길이 하나님 보시기에 아름다운 꽃길이 되기를 축복합니다.",
+        "때로는 넘어질지라도 다시 일으켜 세우시는 주님의 강한 손길을 경험하는 하루 되세요.",
+        "성도님의 눈물의 기도가 기쁨의 단차로 거두어지는 놀라운 은혜가 임하기를 소망합니다.",
+        "오늘 피어나는 꽃망울처럼, 당신의 삶 속에서도 하나님의 아름다운 뜻이 활짝 피어나기를!",
+        "주님의 날개 아래에서 가장 안전하고 포근한 위로를 얻는 하루 보내시길 바랍니다.",
+        "당신의 삶 자체가 누군가에게는 희망이 되고 기쁨이 됩니다. 귀한 하루를 응원합니다.",
+        "구하고 찾고 두드리는 성도님의 모든 간구에 가장 좋은 것으로 응답하실 줄 믿습니다.",
+        "새 아침의 밝은 햇살처럼, 성도님의 영혼에 주님의 밝은 빛이 가득 비추기를 축복합니다.",
+        "우리의 작은 신음조차 아름다운 찬양으로 바꾸시는 주님의 은혜를 찬양합니다.",
+        "성도님의 가정이 작은 천국이 되어, 웃음과 감사와 찬양이 끊이지 않기를 기도합니다.",
+        "광야 같은 세상 속에서도 맑은 샘물을 내시는 주님의 동행하심을 굳게 믿으세요.",
+        "당신을 향한 하나님의 계획은 언제나 선하시고 완벽하십니다. 오늘 하루도 기대하세요!",
+        "마음속에 품은 작은 소망들까지도 잊지 않으시는 섬세하신 하나님을 찬양합니다.",
+        "주님의 사랑 안에서 어제보다 오늘 더, 오늘보다 내일 더 행복하시기를 축복합니다.",
+        "성도님의 따뜻한 기도와 섬김이 우리 교회를 더욱 아름답게 세워가고 있습니다. 감사합니다.",
+        "모든 지각에 뛰어난 하나님의 평강이 당신의 마음과 생각을 온전히 지켜주시길 기도합니다.",
+        "오늘 하루도 주님이 베푸신 식탁에서 영적인 배부름을 누리는 복된 날 되십시오.",
+        "당신의 존재만으로도 큰 위로가 됩니다. 하나님 안에서 빛나는 보석 같은 하루 보내세요."
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        checkAdminState();
+
+        const today = new Date().getDate();
+        document.getElementById("blessingText").textContent = dailyBlessings[today - 1];
+
+        let imgNum = localStorage.getItem("todayBg");
+        if (!imgNum || isNaN(imgNum)) {
+            imgNum = Math.floor(Math.random() * 11);
+        }
+        document.getElementById("blessingImage").style.backgroundImage = `url('../../images/todayword/${imgNum}.jpg')`;
+    });
+
+    // ⭐ 카드 클릭 시 아코디언 열고 스크롤 업
+    window.toggleSermon = function() {
+        const card = document.getElementById("sermonCard");
+        const container = document.getElementById("mainArea");
+
+        card.classList.toggle('open');
+
+        if (card.classList.contains('open')) {
+            setTimeout(() => {
+                container.scrollTo({
+                    top: card.offsetTop - 16,
+                    behavior: 'smooth'
+                });
+            }, 250);
+        }
+    }
+
+    window.react = function(btn) {
+        btn.classList.toggle('active');
+        let cntSpan = btn.querySelector('.cnt');
+        let current = parseInt(cntSpan.textContent);
+        if(btn.classList.contains('active')) {
+            cntSpan.textContent = current + 1;
+        } else {
+            cntSpan.textContent = current - 1;
+        }
+    }
+
+    const adminToggleBtn = document.getElementById("adminToggleBtn");
+    const inputArea = document.getElementById("inputArea");
+
+    function checkAdminState() {
+        const isAdmin = localStorage.getItem("yetalk_chat_admin_on") === "true";
+        if (isAdmin) {
+            adminToggleBtn.textContent = "관리자 ON";
+            adminToggleBtn.classList.remove("off");
+            inputArea.classList.remove("hidden");
+        } else {
+            adminToggleBtn.textContent = "관리자 OFF";
+            adminToggleBtn.classList.add("off");
+            inputArea.classList.add("hidden");
+        }
+    }
+
+    window.toggleAdmin = function() {
+        const current = localStorage.getItem("yetalk_chat_admin_on") === "true";
+        localStorage.setItem("yetalk_chat_admin_on", !current);
+        checkAdminState();
+    }
+
+    window.autoResize = function(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = (textarea.scrollHeight < 120 ? textarea.scrollHeight : 120) + 'px';
+    }
+</script>
+</body>
+</html>

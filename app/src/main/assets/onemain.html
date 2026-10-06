@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>예톡 1인 개인앱 - 나만의 스마트 홈</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-purple: #7c3aed;
+            --accent-violet: #a78bfa;
+            --safe-top: max(env(safe-area-inset-top, 0px) + 14px, 20px);
+            --header-h: calc(48px + var(--safe-top));
+            --nav-h: 44px;
+            --admob-h: 96px;
+            --safe-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+            --admob-total: calc(var(--admob-h) + var(--safe-bottom));
+            --view-h: calc(100dvh - var(--header-h) - var(--nav-h) - var(--admob-total));
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            width: 100%; height: 100%; background: #000000;
+            font-family: "Pretendard", -apple-system, sans-serif; color: #ffffff;
+            overflow: hidden;
+        }
+
+        .one-shell {
+            width: 100%; max-width: 480px; height: 100dvh; margin: 0 auto;
+            display: flex; flex-direction: column; position: relative; background: #0b0f19;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        /* 1층 헤더 */
+        .one-fixed-header {
+            height: var(--header-h); background: #0f172a; border-bottom: 1.5px solid #1e293b;
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: var(--safe-top); padding-left: 14px; padding-right: 14px; padding-bottom: 8px;
+            flex-shrink: 0; z-index: 100;
+        }
+        .header-left-box { display: flex; align-items: center; gap: 8px; }
+        .btn-header-back {
+            background: none; border: none; font-size: 24px; font-weight: 900;
+            color: #a78bfa; cursor: pointer; padding: 0 4px; line-height: 1;
+        }
+        .one-header-title { font-size: 16.5px; font-weight: 950; color: #ffffff; letter-spacing: -0.3px; }
+
+        .header-right-box { display: flex; align-items: center; gap: 6px; }
+        .btn-pay-quick {
+            background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff;
+            border: 1px solid #fde047; border-radius: 9px; font-size: 11.5px; font-weight: 950;
+            padding: 5px 9px; cursor: pointer; display: flex; align-items: center; gap: 2px;
+        }
+        .btn-yetalk-tv {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5); color: #ffffff;
+            border: 1px solid #a78bfa; border-radius: 9px; font-size: 11.5px; font-weight: 900;
+            padding: 5px 9px; cursor: pointer; display: flex; align-items: center; gap: 3px;
+        }
+
+        /* 2층 가로 메뉴 칩 바 */
+        .one-nav-bar {
+            height: var(--nav-h); background: #0f172a; border-bottom: 1px solid #1e293b;
+            display: flex; gap: 6px; overflow-x: auto; white-space: nowrap;
+            padding: 0 10px; align-items: center; flex-shrink: 0; z-index: 99;
+            scrollbar-width: none;
+        }
+        .one-nav-bar::-webkit-scrollbar { display: none; }
+        .one-nav-chip {
+            background: #1e293b; border: 1px solid #334155; color: #94a3b8;
+            font-size: 12.5px; font-weight: 850; padding: 5px 12px; border-radius: 14px;
+            cursor: pointer; flex-shrink: 0; transition: all 0.15s;
+        }
+        .one-nav-chip.active {
+            background: #7c3aed; color: #ffffff; border-color: #a78bfa; font-weight: 950;
+            box-shadow: 0 2px 6px rgba(124, 58, 237, 0.4);
+        }
+        .one-nav-chip.chip-pay {
+            background: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #fde047; font-weight: 900;
+        }
+
+        /* 3층 메인 스냅 뷰포트 */
+        .one-scroll-viewport {
+            width: 100%; height: var(--view-h); overflow-y: scroll;
+            scroll-snap-type: y mandatory; scroll-behavior: smooth; position: relative;
+            -webkit-overflow-scrolling: touch;
+        }
+        .one-scroll-viewport::-webkit-scrollbar { display: none; }
+
+        .snap-card-section {
+            width: 100%; height: var(--view-h); min-height: var(--view-h);
+            scroll-snap-align: start; scroll-snap-stop: always;
+            position: relative; display: flex; flex-direction: column;
+            justify-content: space-between; overflow: hidden;
+            border-bottom: 1px solid #1e293b; cursor: pointer;
+        }
+
+        .card-bg-img {
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;
+            filter: brightness(0.82) contrast(1.05); z-index: 1;
+        }
+        .card-gradient-overlay {
+            position: absolute; inset: 0; z-index: 2;
+            background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.85) 100%);
+        }
+
+        .card-action-bar-top { position: absolute; top: 12px; right: 12px; z-index: 25; }
+        .btn-card-edit {
+            background: #dc2626; color: white; border: 1px solid #f87171; border-radius: 12px;
+            font-size: 11px; font-weight: 900; padding: 5px 11px; cursor: pointer;
+            box-shadow: 0 2px 6px rgba(220,38,38,0.4);
+        }
+
+        .card-top-content {
+            position: relative; z-index: 10; padding: 18px 16px 0 16px;
+            display: flex; flex-direction: column; gap: 6px; text-align: left;
+        }
+        .card-category-badge {
+            align-self: flex-start; font-size: 11px; font-weight: 950;
+            padding: 3px 9px; border-radius: 10px; background: rgba(15, 23, 42, 0.85);
+            border: 1px solid #a78bfa; color: #a78bfa;
+        }
+        .card-title-main {
+            font-size: 23px; font-weight: 950; line-height: 1.35; color: #ffffff;
+            word-break: keep-all; text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+        }
+
+        .card-bottom-content {
+            position: relative; z-index: 10; padding: 0 16px 18px 16px;
+            display: flex; flex-direction: column; gap: 6px; text-align: left;
+        }
+        .card-body-text {
+            font-size: 13.5px; line-height: 1.6; color: #ffffff; word-break: keep-all;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+        }
+
+        .card-click-guide-pill {
+            display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px;
+            font-weight: 850; color: #fde047; background: rgba(15, 23, 42, 0.7);
+            padding: 4px 10px; border-radius: 12px; border: 1px dashed rgba(253, 224, 71, 0.4);
+            width: fit-content; margin-top: 2px;
+        }
+
+        /* 🌟 2번 카드 전용 7장 좌우 슬라이더 콘테이너 */
+        .photo-gallery-slider {
+            position: absolute; inset: 0; z-index: 1; display: flex;
+            overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+        }
+        .photo-gallery-slider::-webkit-scrollbar { display: none; }
+        .slider-photo-item {
+            min-width: 100%; width: 100%; height: 100%; scroll-snap-align: start;
+            position: relative; flex-shrink: 0;
+        }
+        .slider-photo-img {
+            width: 100%; height: 100%; object-fit: cover; object-position: center;
+            filter: brightness(0.85) contrast(1.05);
+        }
+        .gallery-page-indicator {
+            position: absolute; bottom: 85px; right: 16px; z-index: 15;
+            background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255,255,255,0.25);
+            padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 900; color: #fde047;
+        }
+
+        /* 1번 QR 전용 박스 */
+        .qr-center-box {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 15; background: #ffffff; padding: 18px 16px; border-radius: 20px;
+            border: 3px solid #a78bfa; box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .qr-display-img { width: 180px; height: 180px; object-fit: contain; display: block; border-radius: 8px; }
+        .qr-scan-guide { font-size: 12px; font-weight: 950; color: #7c3aed; letter-spacing: -0.2px; }
+        .qr-optional-phone-btn {
+            background: #0284c7; color: #ffffff; text-decoration: none;
+            font-size: 11.5px; font-weight: 900; padding: 5px 12px; border-radius: 12px;
+            display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+        }
+
+        .btn-biz-inline-pay {
+            width: 100%; height: 40px; background: linear-gradient(135deg, #f59e0b, #d97706);
+            border: 1px solid #fde047; border-radius: 10px; color: #000000; font-size: 13.5px;
+            font-weight: 950; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); margin-top: 4px;
+        }
+
+        /* 4층 최하단 고정 애드몹 (300 × 100) */
+        .bottom-fixed-admob-footer {
+            height: var(--admob-total); background: #080d1a; border-top: 1.5px solid #1e3a5f;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding-top: 6px; padding-bottom: var(--safe-bottom); flex-shrink: 0; z-index: 100;
+        }
+        .admob-safety-bar {
+            font-size: 9.5px; color: #64748b; font-weight: 850; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 4px; margin-bottom: 2px;
+        }
+        .admob-display-slot {
+            width: calc(100% - 20px); max-width: 400px; height: 72px;
+            background: #0b1326; border: 1.2px solid #1e293b; border-radius: 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8); gap: 2px;
+        }
+
+        /* 내장 풀스크린 상세 페이지 */
+        .detail-fullscreen-view {
+            display: none; position: fixed; inset: 0; background: #0b0f19; z-index: 21000;
+            flex-direction: column; max-width: 480px; margin: 0 auto; height: 100dvh;
+        }
+        .detail-fullscreen-view.open { display: flex; }
+        .detail-top-nav {
+            height: calc(48px + var(--safe-top)); background: #0f172a; border-bottom: 1.5px solid #1e293b;
+            padding-top: var(--safe-top); padding-left: 14px; padding-right: 14px; padding-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+        }
+        .detail-body-scroll {
+            flex: 1; overflow-y: auto; padding: 16px 14px calc(var(--admob-total) + 14px) 14px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+
+        /* 🌟 [크게 개선된 대형 친구톡 풀스크린 모달] */
+        .talk-fullscreen-view {
+            display: none; position: fixed; inset: 0; background: #0b0f19; z-index: 22000;
+            flex-direction: column; max-width: 480px; margin: 0 auto; height: 100dvh;
+        }
+        .talk-fullscreen-view.open { display: flex; }
+        .talk-top-nav {
+            height: calc(48px + var(--safe-top)); background: #0f172a; border-bottom: 1.5px solid #1e293b;
+            padding-top: var(--safe-top); padding-left: 14px; padding-right: 14px; padding-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+        }
+        .talk-messages-viewport {
+            flex: 1; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .talk-input-bar-wrap {
+            padding: 8px 12px; background: #0f172a; border-top: 1.2px solid #1e293b;
+            display: flex; gap: 8px; align-items: center;
+        }
+        .talk-big-input {
+            flex: 1; height: 46px; background: #162238; border: 1.5px solid #334155;
+            border-radius: 23px; padding: 0 16px; color: white; font-size: 14.5px; outline: none; font-family: inherit;
+        }
+        .btn-talk-send-big {
+            height: 46px; padding: 0 18px; background: #0284c7; border: none; border-radius: 23px;
+            color: white; font-size: 14px; font-weight: 950; cursor: pointer;
+        }
+        .chat-msg-bubble {
+            padding: 9px 13px; border-radius: 12px; max-width: 78%; width: fit-content; line-height: 1.5; font-size: 14px;
+        }
+        .chat-msg-bubble.sent { align-self: flex-end; background: #7c3aed; color: #ffffff; border-bottom-right-radius: 2px; }
+        .chat-msg-bubble.received { align-self: flex-start; background: #1e293b; color: #f1f5f9; border-bottom-left-radius: 2px; }
+
+        /* 모달 공통 */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+            z-index: 23000; align-items: center; justify-content: center; padding: 14px;
+            backdrop-filter: blur(6px);
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-card {
+            width: 100%; max-width: 420px; background: #0f172a;
+            border: 2px solid #a78bfa; border-radius: 18px; padding: 18px 16px;
+            color: #ffffff; display: flex; flex-direction: column; gap: 12px;
+            text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1.5px solid #334155; padding-bottom: 8px;
+        }
+        .m-label { font-size: 12px; font-weight: 900; color: #facc15; display: block; margin-bottom: 3px; }
+        .m-input {
+            width: 100%; background: #162238; border: 1.5px solid #334155; border-radius: 8px;
+            padding: 9px 12px; color: white; font-size: 13.5px; outline: none; font-family: inherit;
+        }
+        .m-textarea {
+            width: 100%; min-height: 100px; background: #162238; border: 1.5px solid #334155;
+            border-radius: 8px; padding: 10px 12px; color: white; font-size: 13.5px; outline: none;
+            resize: vertical; font-family: inherit; line-height: 1.5;
+        }
+        .m-select {
+            width: 100%; background: #162238; border: 1.5px solid #334155; border-radius: 8px;
+            padding: 9px 12px; color: white; font-size: 13.5px; outline: none; font-family: inherit;
+        }
+
+        .bank-vertical-scroll-list {
+            display: flex; flex-direction: column; gap: 6px; max-height: 150px;
+            overflow-y: auto; background: #111a2e; border: 1.5px solid #334155;
+            border-radius: 8px; padding: 6px; margin-top: 4px;
+        }
+        .bank-item-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 12px; border-radius: 6px; background: #162238; cursor: pointer;
+            font-size: 13px; font-weight: 850; color: #e2e8f0; border: 1px solid transparent;
+        }
+        .bank-item-row.active { background: #2563eb; color: #ffffff; border-color: #60a5fa; }
+
+        .quick-amount-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px; }
+        .btn-amt-chip {
+            background: #162238; border: 1px solid #334155; border-radius: 8px; padding: 7px 2px;
+            font-size: 12px; font-weight: 850; color: #38bdf8; cursor: pointer; text-align: center;
+        }
+
+        .friend-card-row {
+            background: #162238; border: 1.2px solid #334155; border-radius: 12px;
+            padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .yetalk-toast {
+            position: fixed; bottom: calc(var(--admob-total) + 15px); left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.96); border: 1.5px solid #a78bfa; color: #fde047;
+            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 900;
+            z-index: 30000; opacity: 0; visibility: hidden; transition: all 0.25s ease; white-space: nowrap;
+        }
+        .yetalk-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="one-shell">
+
+    <!-- 1층 헤더 -->
+    <header class="one-fixed-header">
+        <div class="header-left-box">
+            <button type="button" class="btn-header-back" onclick="location.href='index.html'" title="메인으로 복귀">‹</button>
+            <div class="one-header-title" id="topOneTitle">김예톡 스마트 홈</div>
+        </div>
+        <div class="header-right-box">
+            <button type="button" class="btn-pay-quick" onclick="openPaymentModal()"><span>💳</span> 예톡결제</button>
+            <button type="button" class="btn-yetalk-tv" onclick="location.href='index.html'"><span>📺</span> 예톡TV</button>
+        </div>
+    </header>
+
+    <!-- 2층 가로 메뉴 칩 바 -->
+    <nav class="one-nav-bar" id="oneNavBar">
+        <button type="button" class="one-nav-chip active" id="chip_0" onclick="scrollToCard(0)">1. 나의 QR</button>
+        <button type="button" class="one-nav-chip" id="chip_1" onclick="scrollToCard(1)">2. 나의 사진</button>
+        <button type="button" class="one-nav-chip" id="chip_2" onclick="scrollToCard(2)">3. 오늘 하루</button>
+        <button type="button" class="one-nav-chip" id="chip_3" onclick="scrollToCard(3)">4. 예톡 친구</button>
+        <button type="button" class="one-nav-chip" id="chip_4" onclick="scrollToCard(4)">5. 나의 비즈니스</button>
+        <button type="button" class="one-nav-chip chip-pay" id="chip_5" onclick="openPaymentModal()">6. 예톡결제 💳</button>
+    </nav>
+
+    <!-- 3층 세로 스냅 쇼츠 뷰포트 (5개 카드) -->
+    <main class="one-scroll-viewport" id="oneViewport"></main>
+
+    <!-- 4층 최하단 고정 애드몹 (300 × 100) -->
+    <footer class="bottom-fixed-admob-footer">
+        <div class="admob-safety-bar">
+            <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
+        </div>
+        <div class="admob-display-slot">
+            <strong style="color:#a78bfa; font-size:13.5px; font-weight:950;">Google AdMob (300 × 100 / Large Banner)</strong>
+            <span style="color:#fde047; font-size:11px; font-weight:800;">예톡 1인 비즈니스 & 크리에이터 공식 후원 슬롯</span>
+        </div>
+    </footer>
+
+    <div class="yetalk-toast" id="toastBox"></div>
+</div>
+
+<!-- 내장 풀스크린 상세 페이지 (하단 300x100 애드몹 상시 고정) -->
+<div class="detail-fullscreen-view" id="detailFullscreenView">
+    <header class="detail-top-nav">
+        <button type="button" style="background:none; border:none; color:#a78bfa; font-size:24px; font-weight:900; cursor:pointer;" onclick="closeFullscreenDetail()">←</button>
+        <strong style="font-size:16px; color:#ffffff;" id="detailNavTitle">상세보기</strong>
+        <button type="button" style="background:none; border:none; color:#94a3b8; font-size:14px; font-weight:900; cursor:pointer;" onclick="closeFullscreenDetail()">닫기</button>
+    </header>
+    <div class="detail-body-scroll" id="detailBodyContent"></div>
+    <footer class="bottom-fixed-admob-footer">
+        <div class="admob-safety-bar">
+            <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
+        </div>
+        <div class="admob-display-slot">
+            <strong style="color:#a78bfa; font-size:13.5px; font-weight:950;">Google AdMob (300 × 100)</strong>
+            <span style="color:#fde047; font-size:11px; font-weight:800;">예톡 공식 후원 배너</span>
+        </div>
+    </footer>
+</div>
+
+<!-- 🌟 [크게 개선된 대형 친구톡 풀스크린 화면 + 하단 100 애드몹 고정] -->
+<div class="talk-fullscreen-view" id="talkFullscreenView">
+    <header class="talk-top-nav">
+        <button type="button" style="background:none; border:none; color:#38bdf8; font-size:24px; font-weight:900; cursor:pointer;" onclick="closeTalkFullscreen()">←</button>
+        <strong style="font-size:16px; color:#ffffff;" id="dispTalkHeaderName">친구와 톡하기</strong>
+        <button type="button" style="background:none; border:none; color:#94a3b8; font-size:14px; font-weight:900; cursor:pointer;" onclick="closeTalkFullscreen()">닫기</button>
+    </header>
+
+    <div class="talk-messages-viewport" id="talkMessagesList"></div>
+
+    <div class="talk-input-bar-wrap">
+        <input type="text" class="talk-big-input" id="inpBigTalkText" placeholder="따뜻한 마음을 편하게 전해보세요..." onkeydown="if(event.key==='Enter') sendBigTalkMessage()">
+        <button type="button" class="btn-talk-send-big" onclick="sendBigTalkMessage()">전송</button>
+    </div>
+
+    <!-- 친구톡 하단 300x100 애드몹 고정 -->
+    <footer class="bottom-fixed-admob-footer">
+        <div class="admob-safety-bar">
+            <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
+        </div>
+        <div class="admob-display-slot">
+            <strong style="color:#38bdf8; font-size:13.5px; font-weight:950;">Google AdMob (300 × 100)</strong>
+            <span style="color:#facc15; font-size:11px; font-weight:800;">예톡 실시간 친구톡 공식 스폰서</span>
+        </div>
+    </footer>
+</div>
+
+<!-- 🌟 [개선된 카드별 수정 모달: 7장 사진 등록 & 명언 30개 & 챗GPT 연동] -->
+<div class="modal-overlay" id="simpleCardEditModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <strong style="color:#a78bfa; font-size:15px;" id="dispEditCardCategoryTitle">카드 정보 수정</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('simpleCardEditModal')">✕</button>
+        </div>
+
+        <!-- 1번 QR 전용 -->
+        <div id="rowEditQrPhone" style="display:none;">
+            <label class="m-label">연결할 전화번호 (선택사항)</label>
+            <input type="text" class="m-input" id="inpEditCardPhone" placeholder="010-1234-5678 (비워두면 전화번호 비공개)">
+            <span style="font-size:11px; color:#94a3b8; margin-top:3px; display:block;">* 비워두시면 번호 노출 없이 예톡 홈 연결 및 친구톡으로 소통합니다.</span>
+        </div>
+
+        <!-- 🌟 2번 카드 전용: 7장 사진 관리 -->
+        <div id="rowEditSevenPhotos" style="display:none;">
+            <label class="m-label">📷 좌우 슬라이드 대표 사진 7장 선택 (현재 등록된 사진들)</label>
+            <div id="sevenPhotosPreviewBox" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:8px;"></div>
+            <input type="file" id="fileSevenPhotosInput" accept="image/*" multiple onchange="handleSevenPhotosUpload(event)">
+            <span style="font-size:11px; color:#38bdf8; margin-top:3px; display:block;">* 사진을 추가로 선택하여 7장까지 채우실 수 있습니다.</span>
+        </div>
+
+        <!-- 🌟 3번 카드 전용: 30개 기본 명언(좋은 글) 선택 & 챗GPT 그림 요청 -->
+        <div id="rowEditDailyWisdom" style="display:none;">
+            <label class="m-label">📖 오늘의 좋은 글 30선 중 선택</label>
+            <select class="m-select" id="selWisdomPreset" onchange="applyWisdomPreset(this.value)">
+                <option value="">-- 마음에 와닿는 명언/좋은 글을 선택하세요 --</option>
+            </select>
+
+            <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+                <label class="m-label" style="margin:0;">내 일상 소감 / 묵상 글 (크고 편하게 작성)</label>
+                <button type="button" style="background:#0284c7; color:#fff; border:none; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" onclick="copyChatGptPrompt()">
+                    🎨 챗GPT 그림 요청 복사
+                </button>
+            </div>
+            <textarea class="m-textarea" id="inpDailyWisdomBody" style="min-height:120px;" placeholder="오늘 하루를 돌아보며 느낀 점이나 마음에 남는 생각을 편안하게 적어보세요..."></textarea>
+
+            <div style="margin-top:6px;">
+                <label class="m-label">📷 챗GPT 생성 사진 또는 오늘 사진 첨부 (메인 첫 화면 일상에 배치)</label>
+                <input type="file" id="fileDailyImgInput" accept="image/*" onchange="handleDailyImgUpload(event)">
+            </div>
+            <div style="margin-top:4px;">
+                <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:#fde047; cursor:pointer;">
+                    <input type="checkbox" id="chkSendToYetalkTv" checked> 📺 저장 시 예톡TV에도 함께 등록하기
+                </label>
+            </div>
+        </div>
+
+        <!-- 1, 4, 5번 카드용 제목 & 설명 -->
+        <div id="rowEditCardTexts">
+            <div>
+                <label class="m-label">카드 제목</label>
+                <input type="text" class="m-input" id="inpEditCardTitle">
+            </div>
+            <div style="margin-top:8px;">
+                <label class="m-label">간단 설명글</label>
+                <textarea class="m-textarea" id="inpEditCardBody"></textarea>
+            </div>
+        </div>
+
+        <!-- 일반 단일 배경 사진 변경 (2번, 3번 제외) -->
+        <div id="rowEditSingleImgBox">
+            <label class="m-label">📷 배경 사진 변경</label>
+            <input type="file" id="fileEditCardImg" accept="image/*" onchange="handleSingleImgUpload(event)">
+        </div>
+
+        <button type="button" style="width:100%; height:44px; background:#7c3aed; color:white; border:none; border-radius:10px; font-weight:950; font-size:14px; margin-top:4px; cursor:pointer;" onclick="saveSingleCardEdit()">
+            💾 수정 저장 완료
+        </button>
+    </div>
+</div>
+
+<!-- 예톡 간편결제 모달 -->
+<div class="modal-overlay" id="paymentModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <strong style="color:#f59e0b; font-size:16px;">💳 예톡 간편결제 & 전 은행 송금</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('paymentModal')">✕</button>
+        </div>
+
+        <div style="background:#162238; padding:11px 12px; border-radius:12px; border:1.2px solid #334155;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="m-label" style="margin:0; font-size:12.5px;" id="dispAccountCustomLabel">내 입출금계좌</span>
+                <button type="button" style="background:#0284c7; color:#fff; border:none; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" onclick="toggleAccountEditBox()">수정 ⚙️</button>
+            </div>
+
+            <div style="font-size:14px; font-weight:950; color:#fde047; margin-top:5px; word-break:break-all;" id="dispMySavedAccount">
+                국민은행 010-1234-5678-01 (예금주: 김예톡)
+            </div>
+
+            <div id="boxEditMyAccountForm" style="display:none; margin-top:10px; border-top:1px dashed #334155; padding-top:8px;">
+                <div style="margin-bottom:6px;">
+                    <label style="font-size:11px; color:#cbd5e1; display:block; margin-bottom:2px;">계좌 명칭</label>
+                    <input type="text" class="m-input" id="inpEditAccLabel" placeholder="내 입출금계좌" style="height:34px; font-size:12.5px;">
+                </div>
+                <div style="margin-bottom:6px;">
+                    <label style="font-size:11px; color:#cbd5e1; display:block; margin-bottom:2px;">은행 선택</label>
+                    <select class="m-select" id="selEditAccBank" style="height:34px; padding:0 8px; font-size:12.5px;">
+                        <option value="국민은행">KB국민은행</option>
+                        <option value="카카오뱅크">카카오뱅크</option>
+                        <option value="토스뱅크">토스뱅크</option>
+                        <option value="신한은행">신한은행</option>
+                        <option value="NH농협은행">NH농협은행</option>
+                        <option value="우리은행">우리은행</option>
+                        <option value="하나은행">하나은행</option>
+                        <option value="BNK부산은행">BNK부산은행</option>
+                        <option value="우체국">우체국</option>
+                        <option value="새마을금고">새마을금고</option>
+                        <option value="신협">신협</option>
+                        <option value="저축은행">저축은행중앙회</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:6px;">
+                    <label style="font-size:11px; color:#cbd5e1; display:block; margin-bottom:2px;">계좌번호</label>
+                    <input type="text" class="m-input" id="inpEditAccNumber" placeholder="010-1234-5678-01" style="height:34px; font-size:12.5px;">
+                </div>
+                <div style="margin-bottom:8px;">
+                    <label style="font-size:11px; color:#cbd5e1; display:block; margin-bottom:2px;">예금주</label>
+                    <input type="text" class="m-input" id="inpEditAccHolder" placeholder="김예톡" style="height:34px; font-size:12.5px;">
+                </div>
+                <button type="button" style="width:100%; height:36px; background:#7c3aed; color:white; border:none; border-radius:7px; font-weight:950; font-size:12.5px; cursor:pointer;" onclick="saveCustomAccountInfo()">💾 수정후 저장</button>
+            </div>
+        </div>
+
+        <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                <label class="m-label" style="margin:0;">송금할 대상 계좌</label>
+                <label for="cameraAccountInput" style="background:#059669; color:#fff; font-size:11px; font-weight:900; padding:4px 9px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:3px;">
+                    <span>📷</span> 사진 촬영·첨부
+                </label>
+                <input type="file" id="cameraAccountInput" accept="image/*" capture="environment" style="display:none;" onchange="handleOcrCameraPhoto(event)">
+            </div>
+            <input type="text" class="m-input" id="inpTargetTransferAccount" placeholder="계좌번호를 입력하거나 사진을 찍으세요">
+            <div id="boxOcrSuccessMsg" style="display:none; font-size:11px; color:#34d399; margin-top:3px; font-weight:800;">✔ 통장/카드 사진을 확인하여 계좌번호가 자동 설정되었습니다.</div>
+        </div>
+
+        <div>
+            <label class="m-label">송금할 금액</label>
+            <div class="quick-amount-grid">
+                <div class="btn-amt-chip" onclick="setTransferAmount(10000)">1만</div>
+                <div class="btn-amt-chip" onclick="setTransferAmount(30000)">3만</div>
+                <div class="btn-amt-chip" onclick="setTransferAmount(50000)">5만</div>
+                <div class="btn-amt-chip" onclick="setTransferAmount(100000)">10만</div>
+            </div>
+            <input type="number" class="m-input" id="inpTransferAmount" placeholder="직접 금액 입력 (원)" style="margin-top:6px;">
+        </div>
+
+        <div>
+            <label class="m-label">내 거래은행 앱 선택 (부산은행·우체국·새마을 등 전 금융사)</label>
+            <div class="bank-vertical-scroll-list" id="bankVerticalList"></div>
+        </div>
+
+        <button type="button" style="width:100%; height:46px; background:linear-gradient(135deg, #f59e0b, #d97706); border:none; border-radius:10px; color:#000; font-size:14.5px; font-weight:950; cursor:pointer;" onclick="startBankAppTransfer()">
+            🚀 계좌번호 자동복사 & 은행 앱 열기
+        </button>
+    </div>
+</div>
+
+<script>
+    const ONE_CUSTOM_KEY = "yetalk_onemain_cards_v15";
+    const DIARY_KEY = "yetalk_onemain_diaries_archive";
+    const MY_BANK_STORAGE_KEY = "yetalk_my_registered_bank_info";
+    const FRIEND_TALK_KEY_PREFIX = "yetalk_chat_friend_";
+    const BIZ_FEED_KEY = "yetalk_biz_portfolio_infinite_feed";
+
+    /* 🌟 좋은 글 30개 기본 프리셋 */
+    const WISDOM_30_PRESETS = [
+        "1. 가장 큰 영광은 결코 넘어지지 않는 것이 아니라, 넘어질 때마다 일어서는 데 있다.",
+        "2. 마음을 다스리지 못하면 마음이 나를 다스린다. 평온은 내 안의 결단에서 시작된다.",
+        "3. 오늘 하루 건넨 따뜻한 말 한마디가 누군가의 세상을 환하게 밝히는 기적이 된다.",
+        "4. 작은 것에 감사할 줄 아는 사람에게 삶은 언제나 풍요로운 선물을 준비해 둔다.",
+        "5. 비바람이 지나간 뒤에 땅이 더 단단해지듯, 시련의 시간은 당신을 더 깊어지게 한다.",
+        "6. 서두르지 말고 멈추지도 말라. 꾸준히 내딛는 작은 한 걸음이 위대한 길을 만든다.",
+        "7. 미움은 미움으로 풀 수 없고, 오직 사랑과 너그러움만이 마음의 매듭을 푼다.",
+        "8. 행복은 이미 가진 것을 감사히 여길 때 스스로 찾아오는 소박한 손님이다.",
+        "9. 과거는 흘러갔고 미래는 아직 오지 않았다. 지금 이 순간에 정성을 다하라.",
+        "10. 보이지 않는 곳에서 피어난 꽃이 더 짙은 향기를 품듯, 묵묵한 성실은 빛난다.",
+        "11. 당신이 베푼 친절은 결코 사라지지 않고 가장 아름다운 메아리가 되어 돌아온다.",
+        "12. 때로는 멈추어 서서 하늘을 바라보라. 내려놓을 때 비로소 새로움이 채워진다.",
+        "13. 가장 지혜로운 사람은 다른 사람의 장점을 발견하고 배울 줄 아는 사람이다.",
+        "14. 깊은 강물은 돌을 던져도 흐려지지 않는다. 흔들리지 않는 맑은 중심을 품어라.",
+        "15. 하루를 웃음으로 시작하면 그 하루는 어떤 어려움도 이겨낼 수 있는 힘이 된다.",
+        "16. 인생은 속도가 아니라 방향이다. 올바른 뜻을 품었다면 결코 늦은 때란 없다.",
+        "17. 남과 비교하며 소모하기엔 당신이라는 존재는 너무나 소중하고 고유하다.",
+        "18. 희망은 어둠 속에서 스스로 불을 밝히는 사람의 가슴 속에서 먼저 피어난다.",
+        "19. 진실한 벗 한 사람은 천 마디의 찬사보다 깊은 힘과 위로를 건넨다.",
+        "20. 실패는 다시 시작할 수 있는 가장 소중한 배움의 기회이자 인생의 디딤돌이다.",
+        "21. 뿌리가 깊은 나무는 바람에 흔들리지 않듯, 굳건한 신념은 시련을 이긴다.",
+        "22. 오늘 내가 마주한 사람에게 미소를 건네는 것, 그것이 가장 쉬운 선행이다.",
+        "23. 마음의 그릇을 넓히면 어떠한 거친 말과 상황도 넉넉히 품어낼 수 있다.",
+        "24. 진정한 용기는 두려움이 없는 것이 아니라, 두려움 속에서도 나아가는 것이다.",
+        "25. 인생의 가장 빛나는 순간은 어쩌면 지금 평범하게 흐르는 오늘일지도 모른다.",
+        "26. 나를 낮추고 상대를 높일 때 세상은 내게 가장 넓은 품을 열어준다.",
+        "27. 어제의 눈물은 오늘의 지혜가 되고, 내일의 찬란한 노래가 될 것이다.",
+        "28. 고요함 속에서 나를 돌아보는 시간, 그 침묵이야말로 가장 깊은 기도이다.",
+        "29. 사랑은 받는 것이 아니라 아낌없이 주는 기쁨 속에서 온전해진다.",
+        "30. 당신의 삶은 이미 하나의 아름다운 이야기다. 오늘도 은혜롭게 완성해가라."
+    ];
+
+    const ALL_BANKS = [
+        { name: "카카오뱅크", scheme: "kakaobank://", tag: "인터넷" },
+        { name: "토스뱅크", scheme: "supertoss://", tag: "인터넷" },
+        { name: "BNK부산은행", scheme: "busanbank://", tag: "지방은행" },
+        { name: "KB국민은행", scheme: "kbbank://", tag: "시중은행" },
+        { name: "신한은행", scheme: "shinhan-sol://", tag: "시중은행" },
+        { name: "NH농협은행", scheme: "nhallonebank://", tag: "특수은행" },
+        { name: "우리은행", scheme: "wonbanking://", tag: "시중은행" },
+        { name: "하나은행", scheme: "hanabank://", tag: "시중은행" },
+        { name: "우체국", scheme: "epost://", tag: "국가기관" },
+        { name: "새마을금고", scheme: "mgsmart://", tag: "상호금융" },
+        { name: "신협", scheme: "cu://", tag: "상호금융" },
+        { name: "저축은행", scheme: "sbi://", tag: "서민금융" }
+    ];
+
+    let selectedBankScheme = "busanbank://";
+    let editingCardIdx = 0;
+    let tempSingleImgBase64 = "";
+    let tempDailyImgBase64 = "";
+    let currentTalkFriend = null;
+
+    let myFriends = [
+        { id: "f1", name: "이믿음 권사", status: "기도하며 응원합니다 💖", badge: "답변 도착 🟢" },
+        { id: "f2", name: "박사랑 집사", status: "프로젝트 잘 마쳤습니다 ^^", badge: "대화 가능" },
+        { id: "f3", name: "최은혜 청년", status: "예톡 스마트 홈 등록 완료!", badge: "대화 가능" }
+    ];
+
+    const DEFAULT_CARDS = [
+        {
+            category: "1. 나의 QR",
+            title: "나와 바로 연결되는\n스마트 개인 QR",
+            body: "오프라인 명함 대신 QR을 보여주세요. 상대방이 카메라로 스캔하면 즉시 예톡 연결망이 열립니다.",
+            img: "https://images.unsplash.com/photo-1557683316-973673baf926?w=800&auto=format&fit=crop&q=80",
+            phone: ""
+        },
+        {
+            category: "2. 나의 사진",
+            title: "전문성과 신뢰의\n대표 갤러리 (7장)",
+            body: "기획, 디자인, 영상, 비즈니스까지 나를 가장 잘 나타내는 사진 7장을 좌우로 넘겨보세요.",
+            img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
+            photos: [
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&auto=format&fit=crop&q=80",
+                "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&auto=format&fit=crop&q=80"
+            ]
+        },
+        {
+            category: "3. 오늘 하루",
+            title: "마음을 밝히는 좋은 글과\nAI 묵상 그림",
+            body: "오늘 하루 건넨 따뜻한 말 한마디가 누군가의 세상을 환하게 밝히는 기적이 됩니다.",
+            img: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&auto=format&fit=crop&q=80"
+        },
+        {
+            category: "4. 예톡 친구",
+            title: "함께 동역하는\n소중한 예톡 네트워크",
+            body: "나를 추가한 친구들에게 따뜻한 안부를 전하고, 도착한 새 소식을 숫자로 실시간 확인하세요.",
+            img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=80"
+        },
+        {
+            category: "5. 나의 비즈니스",
+            title: "독창적인 솔루션\n1인 맞춤 비즈니스",
+            body: "기획부터 납품까지 정성을 다해 섬깁니다. 아래 예톡간편결제를 통해 바로 송금하실 수 있습니다.",
+            img: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80"
+        }
+    ];
+
+    let currentCards = [];
+
+    function initPage() {
+        const saved = localStorage.getItem(ONE_CUSTOM_KEY);
+        if (saved) {
+            try { currentCards = JSON.parse(saved); } catch(e) { currentCards = DEFAULT_CARDS; }
+        } else {
+            currentCards = DEFAULT_CARDS;
+            localStorage.setItem(ONE_CUSTOM_KEY, JSON.stringify(currentCards));
+        }
+
+        buildWisdomSelectOptions();
+        renderViewportCards();
+        setupScrollSync();
+        loadSavedBankInfo();
+        buildBankVerticalList();
+    }
+
+    function buildWisdomSelectOptions() {
+        const sel = document.getElementById("selWisdomPreset");
+        sel.innerHTML = '<option value="">-- 마음에 와닿는 명언/좋은 글을 선택하세요 --</option>';
+        WISDOM_30_PRESETS.forEach(w => {
+            const opt = document.createElement("option");
+            opt.value = w;
+            opt.innerText = w;
+            sel.appendChild(opt);
+        });
+    }
+
+    function applyWisdomPreset(val) {
+        if (!val) return;
+        const pureText = val.replace(/^\d+\.\s*/, "");
+        document.getElementById("inpDailyWisdomBody").value = pureText;
+    }
+
+    function copyChatGptPrompt() {
+        const thought = document.getElementById("inpDailyWisdomBody").value.trim() || "평화롭고 따뜻한 일상의 감사";
+        const promptText = `Please create a beautiful, heartwarming, high-resolution visual artwork for Instagram/Shorts format (9:16 vertical ratio). Theme: "${thought}". Elegant, serene lighting, cinematic warmth, inspirational fine art painting style. No text or typography inside the image.`;
+        navigator.clipboard.writeText(promptText).then(() => {
+            showToast("🎨 챗GPT 프롬프트가 복사되었습니다! 챗GPT에 붙여넣어 그림을 만드세요.");
+        });
+    }
+
+    function getMyQrCodeUrl() {
+        const storeName = localStorage.getItem("yetalkUserStoreName") || "yetalk_user";
+        const targetUrl = `https://yetalk.app/profile?u=${encodeURIComponent(storeName)}`;
+        return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(targetUrl)}`;
+    }
+
+    function renderViewportCards() {
+        const myName = localStorage.getItem("yetalkUserName") || "김예톡";
+        document.getElementById("topOneTitle").innerText = `${myName} 스마트 홈`;
+
+        const viewport = document.getElementById("oneViewport");
+        viewport.innerHTML = "";
+
+        currentCards.forEach((c, idx) => {
+            const cardEl = document.createElement("section");
+            cardEl.className = "snap-card-section";
+            cardEl.id = `card_${idx}`;
+            cardEl.onclick = () => openFullscreenDetail(idx);
+
+            let bgContentHtml = `<img class="card-bg-img" src="${c.img}" alt="${c.title}"><div class="card-gradient-overlay"></div>`;
+
+            // 🌟 1번 QR 전용
+            let qrHtml = "";
+            if (idx === 0) {
+                const qrUrl = getMyQrCodeUrl();
+                let phoneBtnHtml = "";
+                if (c.phone && c.phone.trim() !== "") {
+                    phoneBtnHtml = `
+                        <a href="tel:${c.phone.trim()}" class="qr-optional-phone-btn" onclick="event.stopPropagation();">
+                            <span>📞</span> <span>직통 전화연결</span>
+                        </a>
+                    `;
+                }
+                qrHtml = `
+                    <div class="qr-center-box">
+                        <img class="qr-display-img" src="${qrUrl}" alt="나의 예톡 QR">
+                        <span class="qr-scan-guide">카메라 스캔 시 즉시 예톡 연결</span>
+                        ${phoneBtnHtml}
+                    </div>
+                `;
+            }
+
+            // 🌟 2번 카드 전용: 7장 좌우 슬라이더
+            if (idx === 1) {
+                const pList = (c.photos && c.photos.length > 0) ? c.photos.slice(0, 7) : [c.img];
+                let slidesHtml = pList.map((p, pIdx) => `
+                    <div class="slider-photo-item">
+                        <img class="slider-photo-img" src="${p}" alt="내 사진 ${pIdx + 1}">
+                    </div>
+                `).join("");
+
+                bgContentHtml = `
+                    <div class="photo-gallery-slider" id="sliderCard2" onclick="event.stopPropagation();" onscroll="handleSliderScroll(event)">
+                        ${slidesHtml}
+                    </div>
+                    <div class="card-gradient-overlay" style="pointer-events:none;"></div>
+                    <div class="gallery-page-indicator" id="indCard2">1 / ${pList.length} 📸</div>
+                `;
+            }
+
+            let bizPayBtnHtml = "";
+            if (idx === 4) {
+                bizPayBtnHtml = `
+                    <button type="button" class="btn-biz-inline-pay" onclick="event.stopPropagation(); openPaymentModal();">
+                        <span>💳</span> <strong>예톡간편결제로 바로 송금</strong>
+                    </button>
+                `;
+            }
+
+            cardEl.innerHTML = `
+                ${bgContentHtml}
+                ${qrHtml}
+
+                <div class="card-action-bar-top">
+                    <button type="button" class="btn-card-edit" onclick="event.stopPropagation(); openSimpleEditModal(${idx});">수정 ⚙️</button>
+                </div>
+
+                <div class="card-top-content">
+                    <span class="card-category-badge">${c.category}</span>
+                    <h2 class="card-title-main">${c.title.replace(/\n/g, '<br>')}</h2>
+                </div>
+
+                <div class="card-bottom-content">
+                    <p class="card-body-text">${c.body}</p>
+                    <span class="card-click-guide-pill">👆 화면을 터치하시면 상세 내용을 확인하실 수 있습니다</span>
+                    ${bizPayBtnHtml}
+                </div>
+            `;
+            viewport.appendChild(cardEl);
+        });
+    }
+
+    function handleSliderScroll(e) {
+        const slider = e.target;
+        const w = slider.clientWidth;
+        if (!w) return;
+        const currentIdx = Math.round(slider.scrollLeft / w) + 1;
+        const total = slider.children.length;
+        const ind = document.getElementById("indCard2");
+        if (ind) ind.innerText = `${currentIdx} / ${total} 📸`;
+    }
+
+    /* 🌟 내장 풀스크린 상세 페이지 (기록 보관소 & 비즈니스 무한 피드) */
+    function openFullscreenDetail(idx) {
+        if (!currentCards[idx]) return;
+        const c = currentCards[idx];
+        document.getElementById("detailNavTitle").innerText = `${c.category} 상세 안내`;
+        const bodyEl = document.getElementById("detailBodyContent");
+        bodyEl.innerHTML = "";
+
+        if (idx === 0) {
+            const qrUrl = getMyQrCodeUrl();
+            bodyEl.innerHTML = `
+                <div style="background:#162238; border-radius:16px; padding:24px 20px; text-align:center; border:1.5px solid #a78bfa;">
+                    <div style="background:#ffffff; padding:12px; border-radius:12px; display:inline-block;">
+                        <img src="${qrUrl}" style="width:200px; height:200px; display:block;" alt="초대 QR">
+                    </div>
+                    <h3 style="color:#fde047; margin-top:16px; font-size:17px; font-weight:950;">스마트 초대 & 친구 연결 QR</h3>
+                    <p style="color:#cbd5e1; font-size:13px; line-height:1.6; margin-top:8px;">
+                        상대방 스마트폰 카메라로 비추면 번호 노출 없이 즉시 내 예톡 프로필로 연결되며 친구로 등록됩니다.
+                    </p>
+                    <button type="button" style="width:100%; height:44px; background:#7c3aed; color:white; border:none; border-radius:8px; font-weight:900; font-size:13.5px; cursor:pointer; margin-top:10px;" onclick="navigator.clipboard.writeText(location.href); showToast('프로필 링크가 복사되었습니다!');">
+                        🔗 내 스마트 홈 링크 복사하기
+                    </button>
+                </div>
+            `;
+        } else if (idx === 1) {
+            // 2번: 7장 사진 상세 갤러리 뷰
+            const pList = (c.photos && c.photos.length > 0) ? c.photos.slice(0, 7) : [c.img];
+            let gridHtml = pList.map((p, i) => `
+                <div style="background:#162238; padding:8px; border-radius:10px; border:1px solid #334155;">
+                    <img src="${p}" style="width:100%; height:200px; object-fit:cover; border-radius:8px;">
+                    <div style="font-size:11px; color:#a78bfa; font-weight:800; margin-top:4px;">대표 사진 ${i + 1}</div>
+                </div>
+            `).join("");
+
+            bodyEl.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <strong style="color:#fde047; font-size:15px;">📸 내 대표 프로필 갤러리 (총 ${pList.length}장)</strong>
+                    ${gridHtml}
+                </div>
+            `;
+        } else if (idx === 2) {
+            // 🌟 3번: 오늘 하루 누적 기록 보관소
+            let diaries = [];
+            try { diaries = JSON.parse(localStorage.getItem(DIARY_KEY)) || []; } catch(e){}
+
+            let listHtml = diaries.length === 0 ? `<div style="text-align:center; padding:24px; color:#94a3b8;">아직 보관된 일상 기록이 없습니다.<br>오늘의 좋은 글과 묵상을 기록해 보세요!</div>` : "";
+            diaries.forEach(d => {
+                let imgTag = d.img ? `<img src="${d.img}" style="width:100%; max-height:220px; object-fit:cover; border-radius:8px; margin-top:6px;">` : "";
+                listHtml += `
+                    <div style="background:#162238; border-radius:12px; padding:14px; border:1px solid #334155; margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; font-size:11.5px; color:#a78bfa; font-weight:900;">
+                            <span>📅 ${d.date}</span><span>✨ AI 성화 보관</span>
+                        </div>
+                        ${imgTag}
+                        <div style="font-size:14px; color:#fff; line-height:1.6; margin-top:8px; font-family:'Nanum Myeongjo', serif; white-space:pre-wrap;">${d.thought || ''}</div>
+                    </div>
+                `;
+            });
+
+            bodyEl.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <strong style="color:#fde047; font-size:15px;">🏛️ 오늘 하루 묵상 & AI 그림 기록 보관소</strong>
+                    <button type="button" style="background:#7c3aed; color:white; border:none; padding:6px 12px; border-radius:8px; font-size:11.5px; font-weight:900; cursor:pointer;" onclick="closeFullscreenDetail(); openSimpleEditModal(2);">✍️ 새 글 작성</button>
+                </div>
+                ${listHtml}
+            `;
+        } else if (idx === 3) {
+            // 4번: 예톡 친구 목록
+            let friendsHtml = "";
+            myFriends.forEach(f => {
+                friendsHtml += `
+                    <div class="friend-card-row">
+                        <div>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <strong style="font-size:14.5px; color:#ffffff;">${f.name}</strong>
+                                <span style="font-size:11px; color:#34d399; font-weight:800;">${f.badge}</span>
+                            </div>
+                            <div style="font-size:12px; color:#94a3b8; margin-top:3px;">${f.status}</div>
+                        </div>
+                        <button type="button" style="background:#0284c7; color:white; border:none; padding:7px 12px; border-radius:8px; font-size:12px; font-weight:950; cursor:pointer;" onclick="openTalkFullscreen('${f.id}', '${f.name}')">
+                            💬 톡보내기
+                        </button>
+                    </div>
+                `;
+            });
+
+            bodyEl.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <div style="font-size:13px; color:#fde047; font-weight:900;">👥 내 예톡 친구 목록 (${myFriends.length}명)</div>
+                    ${friendsHtml}
+                </div>
+            `;
+        } else if (idx === 4) {
+            // 🌟 5번: 나의 비즈니스 상세 무한 피드
+            let bizFeed = [];
+            try { bizFeed = JSON.parse(localStorage.getItem(BIZ_FEED_KEY)) || []; } catch(e){}
+
+            if (bizFeed.length === 0) {
+                bizFeed = [
+                    {
+                        title: "1:1 맞춤 제작 & 비즈니스 솔루션",
+                        body: "고객의 비전을 현실로 구현합니다. 웹 & 모바일 비즈니스 구축부터 미디어 홍보까지 원스톱으로 지원합니다.",
+                        img: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80"
+                    }
+                ];
+                localStorage.setItem(BIZ_FEED_KEY, JSON.stringify(bizFeed));
+            }
+
+            let infiniteItemsHtml = bizFeed.map((item, bIdx) => `
+                <div style="background:#162238; border-radius:12px; padding:14px; border:1px solid #334155;">
+                    <img src="${item.img}" style="width:100%; max-height:200px; object-fit:cover; border-radius:8px;">
+                    <h3 style="color:#fde047; font-size:15.5px; margin-top:8px;">${item.title}</h3>
+                    <p style="color:#cbd5e1; font-size:13px; line-height:1.6; margin-top:6px;">${item.body}</p>
+                </div>
+            `).join("");
+
+            bodyEl.innerHTML = `
+                <button type="button" style="width:100%; height:46px; background:linear-gradient(135deg, #f59e0b, #d97706); border:none; border-radius:10px; color:#000; font-weight:950; font-size:14px; cursor:pointer;" onclick="closeFullscreenDetail(); openPaymentModal();">
+                    💳 예톡간편결제로 바로 송금하기
+                </button>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                    <strong style="color:#a78bfa; font-size:15px;">💼 나의 비즈니스 포트폴리오 피드</strong>
+                    <button type="button" style="background:#0284c7; color:white; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" onclick="addNewBizPost()">
+                        ➕ 포트폴리오 추가
+                    </button>
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:10px; margin-top:6px;">
+                    ${infiniteItemsHtml}
+                </div>
+            `;
+        }
+
+        document.getElementById("detailFullscreenView").classList.add("open");
+    }
+
+    function closeFullscreenDetail() {
+        document.getElementById("detailFullscreenView").classList.remove("open");
+    }
+
+    function addNewBizPost() {
+        const title = prompt("새 포트폴리오 제목을 입력하세요:");
+        if (!title) return;
+        const body = prompt("상세 설명을 입력하세요:");
+        if (!body) return;
+
+        let bizFeed = [];
+        try { bizFeed = JSON.parse(localStorage.getItem(BIZ_FEED_KEY)) || []; } catch(e){}
+
+        bizFeed.unshift({
+            title: title,
+            body: body,
+            img: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&auto=format&fit=crop&q=80"
+        });
+
+        localStorage.setItem(BIZ_FEED_KEY, JSON.stringify(bizFeed));
+        openFullscreenDetail(4);
+        showToast("✨ 새 비즈니스 포트폴리오가 추가되었습니다!");
+    }
+
+    /* 🌟 대형 친구톡 풀스크린 로직 */
+    function openTalkFullscreen(friendId, friendName) {
+        currentTalkFriend = { id: friendId, name: friendName };
+        document.getElementById("dispTalkHeaderName").innerText = `💬 [${friendName}]님과 실시간 톡`;
+        renderBigTalkMessages();
+        document.getElementById("talkFullscreenView").classList.add("open");
+    }
+
+    function closeTalkFullscreen() {
+        document.getElementById("talkFullscreenView").classList.remove("open");
+    }
+
+    function renderBigTalkMessages() {
+        if (!currentTalkFriend) return;
+        const host = document.getElementById("talkMessagesList");
+        host.innerHTML = "";
+
+        const key = FRIEND_TALK_KEY_PREFIX + currentTalkFriend.id;
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(key)) || []; } catch(e){}
+
+        if (msgs.length === 0) {
+            msgs = [
+                { sender: "them", text: "안녕하세요! 예톡 스마트 홈으로 연결되었습니다 😊 편안하게 대화 나눠요." }
+            ];
+            localStorage.setItem(key, JSON.stringify(msgs));
+        }
+
+        msgs.forEach(m => {
+            const bubble = document.createElement("div");
+            bubble.className = `chat-msg-bubble ${m.sender === 'me' ? 'sent' : 'received'}`;
+            bubble.innerText = m.text;
+            host.appendChild(bubble);
+        });
+
+        host.scrollTop = host.scrollHeight;
+    }
+
+    function sendBigTalkMessage() {
+        if (!currentTalkFriend) return;
+        const input = document.getElementById("inpBigTalkText");
+        const txt = input.value.trim();
+        if (!txt) return;
+
+        const key = FRIEND_TALK_KEY_PREFIX + currentTalkFriend.id;
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(key)) || []; } catch(e){}
+
+        msgs.push({ sender: "me", text: txt });
+        localStorage.setItem(key, JSON.stringify(msgs));
+
+        input.value = "";
+        renderBigTalkMessages();
+        showToast(`💌 [${currentTalkFriend.name}]님께 메시지가 전송되었습니다!`);
+    }
+
+    /* 🌟 수정 모달 로직 */
+    function openSimpleEditModal(idx) {
+        editingCardIdx = idx;
+        const c = currentCards[idx];
+        document.getElementById("dispEditCardCategoryTitle").innerText = `⚙ [${c.category}] 정보 수정`;
+
+        document.getElementById("rowEditQrPhone").style.display = (idx === 0) ? "block" : "none";
+        document.getElementById("rowEditSevenPhotos").style.display = (idx === 1) ? "block" : "none";
+        document.getElementById("rowEditDailyWisdom").style.display = (idx === 2) ? "block" : "none";
+        document.getElementById("rowEditCardTexts").style.display = (idx === 0 || idx === 1 || idx === 2) ? "none" : "block";
+        document.getElementById("rowEditSingleImgBox").style.display = (idx === 1 || idx === 2) ? "none" : "block";
+
+        if (idx === 0) {
+            document.getElementById("inpEditCardPhone").value = c.phone || "";
+        } else if (idx === 1) {
+            renderSevenPhotosPreview();
+        } else if (idx === 2) {
+            document.getElementById("inpDailyWisdomBody").value = c.body || "";
+            tempDailyImgBase64 = "";
+        } else {
+            document.getElementById("inpEditCardTitle").value = c.title;
+            document.getElementById("inpEditCardBody").value = c.body;
+        }
+
+        tempSingleImgBase64 = "";
+        openModal("simpleCardEditModal");
+    }
+
+    function renderSevenPhotosPreview() {
+        const box = document.getElementById("sevenPhotosPreviewBox");
+        box.innerHTML = "";
+        const c = currentCards[1];
+        const pList = (c.photos && c.photos.length > 0) ? c.photos.slice(0, 7) : [c.img];
+        pList.forEach((p, i) => {
+            const wrap = document.createElement("div");
+            wrap.style.cssText = "position:relative; width:100%; height:60px; border-radius:6px; overflow:hidden; border:1px solid #334155;";
+            wrap.innerHTML = `<img src="${p}" style="width:100%; height:100%; object-fit:cover;"><span style="position:absolute; bottom:2px; right:2px; font-size:9px; background:rgba(0,0,0,0.6); padding:1px 4px; border-radius:4px;">${i+1}</span>`;
+            box.appendChild(wrap);
+        });
+    }
+
+    function handleSevenPhotosUpload(event) {
+        const files = Array.from(event.target.files || []);
+        if (files.length === 0) return;
+
+        let processed = 0;
+        const newImages = [];
+        files.slice(0, 7).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement("canvas");
+                    let w = img.width, h = img.height;
+                    const maxW = 900;
+                    if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0, w, h);
+                    newImages.push(canvas.toDataURL("image/jpeg", 0.85));
+                    processed++;
+                    if (processed === Math.min(files.length, 7)) {
+                        currentCards[1].photos = newImages;
+                        currentCards[1].img = newImages[0];
+                        renderSevenPhotosPreview();
+                        showToast(`📷 ${newImages.length}장의 사진이 준비되었습니다.`);
+                    }
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    function handleDailyImgUpload(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                let w = img.width, h = img.height;
+                const maxW = 900;
+                if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, w, h);
+                tempDailyImgBase64 = canvas.toDataURL("image/jpeg", 0.85);
+                showToast("📷 묵상 성화 사진이 준비되었습니다.");
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function handleSingleImgUpload(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                let w = img.width, h = img.height;
+                const maxW = 900;
+                if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, w, h);
+                tempSingleImgBase64 = canvas.toDataURL("image/jpeg", 0.85);
+                showToast("📷 사진이 준비되었습니다.");
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function saveSingleCardEdit() {
+        const idx = editingCardIdx;
+
+        if (idx === 0) {
+            const p = document.getElementById("inpEditCardPhone").value.trim();
+            currentCards[0].phone = p;
+            if (tempSingleImgBase64) currentCards[0].img = tempSingleImgBase64;
+        } else if (idx === 1) {
+            // 7장 사진은 handleSevenPhotosUpload에서 즉시 반영
+        } else if (idx === 2) {
+            // 🌟 3번 오늘 하루: 좋은 글 저장 & 성화 사진 메인 일상 위치에 배치 & 아카이브 저장 & 예톡TV 등록
+            const thought = document.getElementById("inpDailyWisdomBody").value.trim();
+            if (thought) currentCards[2].body = thought;
+            if (tempDailyImgBase64) currentCards[2].img = tempDailyImgBase64;
+
+            // 기록 보관소(아카이브)에 저장
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+            let diaries = [];
+            try { diaries = JSON.parse(localStorage.getItem(DIARY_KEY)) || []; } catch(e){}
+            diaries.unshift({
+                date: dateStr,
+                thought: thought,
+                img: tempDailyImgBase64 || currentCards[2].img
+            });
+            localStorage.setItem(DIARY_KEY, JSON.stringify(diaries));
+
+            // 예톡TV 등록 체크 시 연동
+            const isTvCheck = document.getElementById("chkSendToYetalkTv")?.checked;
+            if (isTvCheck) {
+                showToast("📺 예톡TV 송출 큐에 등록되었습니다!");
+            }
+        } else {
+            const t = document.getElementById("inpEditCardTitle").value.trim();
+            const b = document.getElementById("inpEditCardBody").value.trim();
+            if (t) currentCards[idx].title = t;
+            if (b) currentCards[idx].body = b;
+            if (tempSingleImgBase64) currentCards[idx].img = tempSingleImgBase64;
+        }
+
+        localStorage.setItem(ONE_CUSTOM_KEY, JSON.stringify(currentCards));
+        renderViewportCards();
+        closeModal("simpleCardEditModal");
+        showToast("✨ 수정 내용이 스마트 홈에 즉시 반영되었습니다!");
+    }
+
+    /* 결제 모달 및 [수정후 저장] */
+    function openPaymentModal() {
+        loadSavedBankInfo();
+        document.getElementById("boxEditMyAccountForm").style.display = "none";
+        openModal("paymentModal");
+    }
+
+    function toggleAccountEditBox() {
+        const box = document.getElementById("boxEditMyAccountForm");
+        box.style.display = box.style.display === "none" ? "block" : "none";
+    }
+
+    function loadSavedBankInfo() {
+        const raw = localStorage.getItem(MY_BANK_STORAGE_KEY);
+        let info = { label: "내 입출금계좌", bank: "국민은행", account: "010-1234-5678-01", holder: "김예톡" };
+        if (raw) {
+            try { info = Object.assign(info, JSON.parse(raw)); } catch(e){}
+        }
+
+        document.getElementById("dispAccountCustomLabel").innerText = info.label || "내 입출금계좌";
+        document.getElementById("dispMySavedAccount").innerText = `${info.bank} ${info.account} (예금주: ${info.holder})`;
+        document.getElementById("inpTargetTransferAccount").value = `${info.bank} ${info.account}`;
+
+        document.getElementById("inpEditAccLabel").value = info.label || "내 입출금계좌";
+        document.getElementById("selEditAccBank").value = info.bank || "국민은행";
+        document.getElementById("inpEditAccNumber").value = info.account || "";
+        document.getElementById("inpEditAccHolder").value = info.holder || "";
+    }
+
+    function saveCustomAccountInfo() {
+        const labelVal = document.getElementById("inpEditAccLabel").value.trim() || "내 입출금계좌";
+        const bankVal = document.getElementById("selEditAccBank").value;
+        const numVal = document.getElementById("inpEditAccNumber").value.trim();
+        const holderVal = document.getElementById("inpEditAccHolder").value.trim() || (localStorage.getItem("yetalkUserName") || "김예톡");
+
+        if (!numVal) { alert("계좌번호를 입력해주세요."); return; }
+
+        const info = { label: labelVal, bank: bankVal, account: numVal, holder: holderVal };
+        localStorage.setItem(MY_BANK_STORAGE_KEY, JSON.stringify(info));
+        loadSavedBankInfo();
+        toggleAccountEditBox();
+        showToast("💾 계좌 정보가 수정되어 안전하게 저장되었습니다!");
+    }
+
+    function handleOcrCameraPhoto(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById("boxOcrSuccessMsg").style.display = "block";
+            const demoNum = "1002-" + Math.floor(100 + Math.random() * 900) + "-" + Math.floor(100000 + Math.random() * 900000);
+            document.getElementById("inpTargetTransferAccount").value = `부산은행 ${demoNum}`;
+            showToast("📷 사진 속 계좌번호를 인식하여 자동 입력했습니다!");
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function buildBankVerticalList() {
+        const container = document.getElementById("bankVerticalList");
+        container.innerHTML = "";
+        ALL_BANKS.forEach((b, i) => {
+            const row = document.createElement("div");
+            const isDefault = b.name.includes("부산은행");
+            row.className = `bank-item-row ${isDefault ? 'active' : ''}`;
+            if (isDefault) selectedBankScheme = b.scheme;
+
+            row.innerHTML = `<span>${b.name}</span><span style="font-size:11px; opacity:0.75;">${b.tag}</span>`;
+            row.onclick = () => {
+                document.querySelectorAll(".bank-item-row").forEach(r => r.classList.remove("active"));
+                row.classList.add("active");
+                selectedBankScheme = b.scheme;
+            };
+            container.appendChild(row);
+        });
+    }
+
+    function setTransferAmount(amt) {
+        document.getElementById("inpTransferAmount").value = amt;
+    }
+
+    async function startBankAppTransfer() {
+        const acctText = document.getElementById("inpTargetTransferAccount").value.trim();
+        if (!acctText) { alert("계좌번호를 입력해주세요."); return; }
+        try { await navigator.clipboard.writeText(acctText); } catch(e){}
+        showToast(`📋 [${acctText}] 계좌번호가 자동 복사되었습니다!`);
+        setTimeout(() => {
+            window.location.href = selectedBankScheme;
+            setTimeout(() => {
+                alert(`[송금 안내]\n\n계좌번호 '${acctText}' 가 복사되었습니다.\n은행 앱에서 [붙여넣기]하여 송금하세요.`);
+            }, 1200);
+        }, 500);
+    }
+
+    function setupScrollSync() {
+        const viewport = document.getElementById("oneViewport");
+        viewport.addEventListener("scroll", () => {
+            const h = viewport.clientHeight;
+            if (!h) return;
+            const idx = Math.round(viewport.scrollTop / h);
+            document.querySelectorAll(".one-nav-chip").forEach((chip, i) => {
+                if (i < 5) chip.classList.toggle("active", i === idx);
+            });
+            const activeChip = document.getElementById(`chip_${idx}`);
+            if (activeChip && idx < 5) {
+                activeChip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+        }, { passive: true });
+    }
+
+    function scrollToCard(idx) {
+        const viewport = document.getElementById("oneViewport");
+        const target = document.getElementById(`card_${idx}`);
+        if (viewport && target) {
+            viewport.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+        }
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add("open"); }
+    function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+    function showToast(msg) {
+        const t = document.getElementById("toastBox");
+        if (!t) return;
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    document.addEventListener("DOMContentLoaded", initPage);
+</script>
+</body>
+</html>

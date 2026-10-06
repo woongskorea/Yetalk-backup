@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#c44d71">
+    <title>교회소개 | 예톡 교회홈</title>
+    <link rel="stylesheet" href="src/main/assets/church/churchmain.css">
+    <style>
+        .church-app {
+            min-height: 100vh;
+            padding-bottom: calc(95px + env(safe-area-inset-bottom));
+        }
+        /* 상단 헤더 불투명 배경 보강 */
+        #churchHeader {
+            background: rgba(224, 91, 130, 0.95) !important;
+            backdrop-filter: blur(10px);
+        }
+        /* 첫페이지와 완벽히 일치하는 헤더 및 십자가 마크 정렬 */
+        #churchNameButton {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            padding: 0 3px 0 37px !important;
+            border: 0;
+            background: transparent;
+            color: var(--text);
+            text-align: left;
+            cursor: pointer;
+        }
+        #churchNameButton::before {
+            content: "✝";
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-53%);
+            font-size: 32px;
+            line-height: 1;
+            font-weight: 400;
+            color: var(--accent);
+            text-shadow: 0 0 14px rgba(255,210,120,.25);
+        }
+        #churchName {
+            display: block;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 21px;
+            line-height: 1.15;
+            font-weight: 900;
+            letter-spacing: -.6px;
+        }
+        /* 퀵 메뉴 그리드 */
+        .intro-quick-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 7px;
+            width: min(100%, 720px);
+            margin: 12px auto 18px auto;
+            padding: 0 13px;
+        }
+        .intro-quick-btn {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            border-radius: 13px;
+            padding: 12px 2px;
+            color: #1f2937;
+            font-size: 0.9rem;
+            font-weight: 950;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            cursor: pointer;
+        }
+        .intro-quick-btn:active {
+            transform: scale(0.95);
+            background: #ffffff;
+        }
+        /* 본문 컨테이너 및 카드 박스 */
+        .intro-container {
+            width: min(100%, 720px);
+            margin: 0 auto;
+            padding: 0 13px;
+        }
+        .intro-content-card {
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            padding: 20px 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            scroll-margin-top: 80px; /* 메뉴 클릭 시 헤더에 가리지 않도록 상단 여백 확보 */
+        }
+        /* 카드 안의 대제목 색상 차별화 */
+        .intro-section-title {
+            font-size: 1.25rem;
+            font-weight: 950;
+            color: #9a294b;
+            margin-bottom: 12px;
+            border-bottom: 2px solid #f3f4f6;
+            padding-bottom: 8px;
+            cursor: pointer !important;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .intro-section-title:hover {
+            color: #e05b82;
+        }
+        .intro-section-title::after {
+            content: '▲ 맨위로';
+            font-size: 0.75rem;
+            color: #9ca3af;
+            font-weight: normal;
+            cursor: pointer !important;
+        }
+        /* 이미지(위)와 본문(아래) 배치 */
+        .intro-section-img {
+            width: 100%;
+            max-height: 260px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            display: none;
+        }
+        /* 본문 글자 정렬 */
+        .intro-section-body {
+            font-size: 1.02rem;
+            font-weight: 800;
+            color: #374151;
+            line-height: 1.8;
+            text-align: left;
+            white-space: pre-line;
+            word-break: keep-all;
+            background: #f8fafc;
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 10px;
+        }
+        /* 관리자 모드 스타일 */
+        .field-container {
+            position: relative;
+            z-index: 2;
+        }
+        .edit-mode-input {
+            width: 100%;
+            background: #ffffff;
+            border: 1.5px solid #16a34a;
+            border-radius: 10px;
+            color: #1f2937;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 800;
+            line-height: 1.6;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            outline: none;
+            position: relative;
+            z-index: 10;
+        }
+        .edit-mode-img-input {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #1f2937;
+            position: relative;
+            z-index: 10;
+            cursor: pointer;
+        }
+        /* 하단 전체 저장 버튼 배너 */
+        .global-save-banner {
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+        .global-save-btn {
+            background: #16a34a;
+            color: #ffffff;
+            border: none;
+            padding: 14px 36px;
+            border-radius: 25px;
+            font-weight: 950;
+            font-size: 1.05rem;
+            box-shadow: 0 4px 18px rgba(22, 163, 74, 0.35);
+            cursor: pointer;
+        }
+        .global-save-btn:active {
+            transform: scale(0.95);
+            background: #15803d;
+        }
+        /* 최상단 이동 버튼 */
+        .top-scroll-banner {
+            text-align: center;
+            margin: 20px 0 10px 0;
+        }
+        .top-scroll-btn {
+            background: rgba(255, 255, 255, 0.9);
+            color: #1f2937;
+            border: 1px solid rgba(0,0,0,0.1);
+            padding: 12px 28px;
+            border-radius: 25px;
+            font-weight: 950;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+        .top-scroll-btn:active {
+            transform: scale(0.95);
+            background: #ffffff;
+        }
+    </style>
+</head>
+
+<body>
+<div id="churchAppContainer" class="church-app theme-pink">
+
+    <!-- 상단 헤더 -->
+    <header id="churchHeader">
+        <div class="church-header-inner">
+            <!-- 뒤로가기 화살표: 확실하게 브라우저 이전 페이지로 이동 -->
+            <button id="backHomeBtn" type="button" style="background:var(--card); border:1px solid var(--line); border-radius:12px; width:38px; height:38px; font-size:22px; font-weight:900; color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;">‹</button>
+            <button id="churchNameButton" type="button" onclick="goChurchHome()">
+                <span id="churchName">교회 소개</span>
+            </button>
+            <div class="church-header-controls">
+                <button id="adminToggleBtn" class="hidden" type="button" style="background:#16a34a; color:#fff; font-size:0.85rem; font-weight:900; padding:6px 14px; border-radius:10px; border:none; cursor:pointer;">수정</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 영역 -->
+    <main class="church-main">
+
+        <!-- 8개 퀵버튼 (클릭 시 해당 섹션이 상단에 딱 맞게 스크롤 이동) -->
+        <nav class="intro-quick-grid">
+            <button class="intro-quick-btn" type="button" onclick="scrollToSection('sec-welcome')">인사말</button>
+            <button class="intro-quick-btn" type="button" onclick="scrollToSection('sec-vision')">교회비젼</button>
+            <button class="intro-quick-btn" type="button" onclick="scrollToSection('sec-history')">교회연혁</button>
+            <button class="intro-quick-btn" type="button" onclick="scrollToSection('sec-prayer')">기도제목</button>
+            <button class="intro-quick-btn" type="button" onclick="scrollToSection('sec-serving')">섬기는이</button>
+            <button class="intro-quick-btn" type="button" onclick="scrollToSection('sec-worship')">예배시간</button>
+            <button class="intro-quick-btn" type="button" onclick="scrollToSection('sec-newcomer')">새가족등록</button>
+            <button class="intro-quick-btn" type="button" onclick="scrollToSection('sec-location')">오시는길</button>
+        </nav>
+
+        <div class="intro-container">
+
+            <!-- 1. 목사님 인사 -->
+            <section id="sec-welcome" class="intro-content-card">
+                <h2 class="intro-section-title" onclick="scrollToSection('sec-welcome')">담임목사 인사말</h2>
+                <div class="field-container" data-field-index="0" data-txt-key="introWelcome" data-img-key="introWelcomeImg">
+                    <img id="imgWelcome" class="intro-section-img" alt="사진">
+                    <div class="intro-section-body view-field" id="txtWelcome">상처 입은 영혼이 치유되고, 참된 안식을 얻는 생명의 동산에 당신을 초대합니다.
+
+                        예톡행복한교회는 예수 그리스도의 십자가 사랑과 따뜻한 위로가 넘치는 공동체입니다. 이곳에서 하나님 아버지의 평안을 누리시길 축복합니다.</div>
+                </div>
+            </section>
+
+            <!-- 2. 교회 비젼 -->
+            <section id="sec-vision" class="intro-content-card">
+                <h2 class="intro-section-title" onclick="scrollToSection('sec-vision')">교회 비젼</h2>
+                <div class="field-container" data-field-index="1" data-txt-key="introVision" data-img-key="introVisionImg">
+                    <img id="imgVision" class="intro-section-img" alt="사진">
+                    <div class="intro-section-body view-field" id="txtVision">1. 예배의 감격이 살아있는 교회
+                        2. 사랑으로 서로를 섬기는 공동체
+                        3. 이웃과 세상을 향한 축복의 통로
+                        4. 다음세대를 믿음의 일꾼으로 세우는 교회</div>
+                </div>
+            </section>
+
+            <!-- 3. 교회 연혁 -->
+            <section id="sec-history" class="intro-content-card">
+                <h2 class="intro-section-title" onclick="scrollToSection('sec-history')">교회 연혁</h2>
+                <div class="field-container" data-field-index="2" data-txt-key="introHistory" data-img-key="introHistoryImg">
+                    <img id="imgHistory" class="intro-section-img" alt="사진">
+                    <div class="intro-section-body view-field" id="txtHistory">- 2020. 01. 교회 설립 예배
+                        - 2022. 05. 새성전 이전 감사예배
+                        - 2026. 01. 모바일 앱(Yetalk) 선교 도입</div>
+                </div>
+            </section>
+
+            <!-- 4. 기도 제목 -->
+            <section id="sec-prayer" class="intro-content-card">
+                <h2 class="intro-section-title" onclick="scrollToSection('sec-prayer')">기도 제목</h2>
+                <div class="field-container" data-field-index="3" data-txt-key="introPrayer" data-img-key="introPrayerImg">
+                    <img id="imgPrayer" class="intro-section-img" alt="사진">
+                    <div class="intro-section-body view-field" id="txtPrayer">1. 모든 성도가 날마다 성령 충만하게 하소서.
+                        2. 예배마다 하늘의 은혜가 넘치게 하소서.
+                        3. 다음세대 자녀들이 믿음 위에 든든히 서게 하소서.</div>
+                </div>
+            </section>
+
+            <!-- 5. 섬기는 이 -->
+            <section id="sec-serving" class="intro-content-card">
+                <h2 class="intro-section-title" onclick="scrollToSection('sec-serving')">섬기는 사람들</h2>
+                <div class="field-container" data-field-index="4" data-txt-key="introServing" data-img-key="introServingImg">
+                    <img id="imgServing" class="intro-section-img" alt="사진">
+                    <div class="intro-section-body view-field" id="txtServing">- 담임목사 : 홍길동 목사
+                        - 시무장로 : 박믿음 장로
+                        - 전도사 : 안은혜 전도사</div>
+                </div>
+            </section>
+
+            <!-- 6. 예배 시간 -->
+            <section id="sec-worship" class="intro-content-card">
+                <h2 class="intro-section-title" onclick="scrollToSection('sec-worship')">예배 안내</h2>
+                <div class="field-container" data-field-index="5" data-txt-key="introWorship" data-img-key="introWorshipImg">
+                    <img id="imgWorship" class="intro-section-img" alt="사진">
+                    <div class="intro-section-body view-field" id="txtWorship">- 주일 1부 예배 : 오전 9:00
+                        - 주일 2부 예배 : 오전 11:00
+                        - 수요기도회 : 수요일 저녁 7:30
+                        - 새벽기도회 : 월~금 오전 5:30</div>
+                </div>
+            </section>
+
+            <!-- 7. 새가족 등록 -->
+            <section id="sec-newcomer" class="intro-content-card">
+                <h2 class="intro-section-title" onclick="scrollToSection('sec-newcomer')">새가족 등록 안내</h2>
+                <div class="field-container" data-field-index="6" data-txt-key="introNewcomer" data-img-key="introNewcomerImg">
+                    <img id="imgNewcomer" class="intro-section-img" alt="사진">
+                    <div class="intro-section-body view-field" id="txtNewcomer">예톡행복한교회에 오신 것을 진심으로 환영합니다! 예배 후 안내위원의 도움을 받아 새가족실로 향해 주시면 따뜻하게 맞이해 드립니다.</div>
+                </div>
+            </section>
+
+            <!-- 8. 오시는 길 -->
+            <section id="sec-location" class="intro-content-card">
+                <h2 class="intro-section-title" onclick="scrollToSection('sec-location')">찾아오시는 길</h2>
+                <div class="field-container" data-field-index="7" data-txt-key="introLocation" data-img-key="introLocationImg">
+                    <img id="imgLocation" class="intro-section-img" alt="사진">
+                    <div class="intro-section-body view-field" id="txtLocation">주소: 부산광역시 동구 좌천동 123-4
+                        전화: 051-123-4567
+
+                        - 지하철 1호선 좌천역 3번 출구 도보 5분</div>
+                </div>
+            </section>
+
+            <!-- 수정 모드일 때만 나타나는 전체 저장 버튼 배너 -->
+            <div id="globalSaveBanner" class="global-save-banner">
+                <button id="saveAllBtn" class="global-save-btn" type="button">💾 전체 저장하기</button>
+            </div>
+
+            <!-- 최상단 이동 버튼 -->
+            <div class="top-scroll-banner">
+                <button class="top-scroll-btn" type="button" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">▲ 맨 위로 올라가기</button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- 하단 고정 6메뉴 -->
+    <nav id="churchBottomNav">
+        <button class="bottom-nav-item active" type="button" onclick="goChurchHome()">⛪<br>교회홈</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../../index.html'">🏠<br>나의홈</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../../coupang.html'">🛒<br>쿠팡</button>
+        <button class="bottom-nav-item" type="button" onclick="goChurchHome()">🙏<br>헌금</button>
+        <button class="bottom-nav-item" type="button" onclick="scrollToSection('sec-location')">📍<br>오시는길</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../../myinfo.html'">⚙️<br>내정보</button>
+    </nav>
+
+</div>
+
+<script type="module">
+    import { db, doc, getDoc, setDoc, serverTimestamp } from "../../firebase.js";
+
+        const urlParams = new URLSearchParams(location.search);
+        const churchId = urlParams.get('churchId') || localStorage.getItem('yetalkMyChurchId') || 'fAKyQftAh3qPnsuRPSVz';
+
+        let isEditMode = false;
+        let churchData = {};
+
+        // 클릭 시 해당 카드가 맨 위에 정확히 오도록 스크롤하는 함수 (상단 헤더 높이 여유 반영)
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                const headerOffset = 70;
+                const elementPosition = el.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                window.scrollTo({
+                    top: offsetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        }
+        window.scrollToSection = scrollToSection;
+
+        function goChurchHome() {
+            location.href = `../churchmain.html?churchId=${encodeURIComponent(churchId)}`;
+        }
+        window.goChurchHome = goChurchHome;
+
+        // 뒤로가기 화살표: 확실하게 한 칸 뒤(이전 페이지)로 이동
+        document.getElementById('backHomeBtn').onclick = () => {
+            window.history.back();
+        };
+
+        async function loadChurchInfo() {
+            const savedTheme = localStorage.getItem(`church_theme_${churchId}`) || 'theme-pink';
+            document.getElementById('churchAppContainer').className = `church-app ${savedTheme}`;
+
+            const cached = localStorage.getItem(`church_cache_${churchId}`);
+            if (cached) {
+                churchData = JSON.parse(cached);
+                applyChurchInfoToDOM();
+            }
+
+            try {
+                const snap = await getDoc(doc(db, "churches", churchId));
+                if (snap.exists()) {
+                    churchData = snap.data();
+                    localStorage.setItem(`church_cache_${churchId}`, JSON.stringify(churchData));
+                    applyChurchInfoToDOM();
+                }
+            } catch (e) {
+                console.warn("교회 정보 로드 실패:", e);
+            }
+
+            const loginUser = JSON.parse(localStorage.getItem("loginUser") || "{}");
+            const memberNo = loginUser.memberNo || loginUser.uid;
+            const subManagers = churchData.subManagers || [];
+            const isOwner = memberNo && churchData.ownerMemberNo === memberNo;
+            const isAdmin = loginUser.isAdmin === true;
+            const isSubManager = memberNo && subManagers.includes(memberNo);
+
+            if (isOwner || isAdmin || isSubManager) {
+                document.getElementById('adminToggleBtn').classList.remove('hidden');
+            }
+        }
+
+        function applyChurchInfoToDOM() {
+            const name = churchData.churchName || churchData.name || "예톡행복한교회";
+            document.getElementById('churchName').textContent = name + " 소개";
+
+            const fields = [
+                { txtKey: 'introWelcome', imgKey: 'introWelcomeImg', txtId: 'txtWelcome', imgId: 'imgWelcome' },
+                { txtKey: 'introVision', imgKey: 'introVisionImg', txtId: 'txtVision', imgId: 'imgVision' },
+                { txtKey: 'introHistory', imgKey: 'introHistoryImg', txtId: 'txtHistory', imgId: 'imgHistory' },
+                { txtKey: 'introPrayer', imgKey: 'introPrayerImg', txtId: 'txtPrayer', imgId: 'imgPrayer' },
+                { txtKey: 'introServing', imgKey: 'introServingImg', txtId: 'txtServing', imgId: 'imgServing' },
+                { txtKey: 'introWorship', imgKey: 'introWorshipImg', txtId: 'txtWorship', imgId: 'imgWorship' },
+                { txtKey: 'introNewcomer', imgKey: 'introNewcomerImg', txtId: 'txtNewcomer', imgId: 'imgNewcomer' },
+                { txtKey: 'introLocation', imgKey: 'introLocationImg', txtId: 'txtLocation', imgId: 'imgLocation' }
+            ];
+
+            fields.forEach(f => {
+                if (churchData[f.txtKey]) {
+                    const el = document.getElementById(f.txtId);
+                    if (el) el.textContent = churchData[f.txtKey];
+                }
+                const imgEl = document.getElementById(f.imgId);
+                if (churchData[f.imgKey]) {
+                    imgEl.src = churchData[f.imgKey];
+                    imgEl.style.display = 'block';
+                } else {
+                    imgEl.style.display = 'none';
+                }
+            });
+        }
+
+        // 관리자 수정 모드: 기존 글이 사라지지 않고 텍스트박스에 그대로 남아있어 수정이 편리하도록 함
+        const adminToggleBtn = document.getElementById('adminToggleBtn');
+        adminToggleBtn.onclick = () => {
+            isEditMode = !isEditMode;
+            const saveBanner = document.getElementById('globalSaveBanner');
+            const containers = document.querySelectorAll('.field-container');
+
+            if (isEditMode) {
+                adminToggleBtn.textContent = "관리모드 ON";
+                adminToggleBtn.style.background = "#dc2626";
+                saveBanner.style.display = "block";
+                containers.forEach(container => {
+                    const txtEl = container.querySelector('.view-field');
+                    const imgEl = container.querySelector('.intro-section-img');
+                    const currentText = txtEl ? txtEl.textContent.trim() : '';
+                    const currentImgSrc = imgEl && imgEl.style.display !== 'none' ? imgEl.src : '';
+
+                    container.innerHTML = `
+                        <div style="font-size:0.85rem; color:#4b5563; margin-bottom:6px; font-weight:800;">📷 사진 변경 (선택사항):</div>
+                        <input type="file" class="edit-mode-img-input" accept="image/*">
+                        <textarea class="edit-mode-input" rows="5">${currentText}</textarea>
+                    `;
+                    if(currentImgSrc) {
+                        container.dataset.existingImg = currentImgSrc;
+                    }
+                });
+            } else {
+                adminToggleBtn.textContent = "수정";
+                adminToggleBtn.style.background = "#16a34a";
+                saveBanner.style.display = "none";
+                loadChurchInfo();
+            }
+        };
+
+        const saveAllBtn = document.getElementById('saveAllBtn');
+        saveAllBtn.onclick = async () => {
+            if (!confirm("수정하신 모든 내용과 사진을 한 번에 저장하시겠습니까?")) return;
+
+            const containers = document.querySelectorAll('.field-container');
+            const keys = [
+                { txt: 'introWelcome', img: 'introWelcomeImg' },
+                { txt: 'introVision', img: 'introVisionImg' },
+                { txt: 'introHistory', img: 'introHistoryImg' },
+                { txt: 'introPrayer', img: 'introPrayerImg' },
+                { txt: 'introServing', img: 'introServingImg' },
+                { txt: 'introWorship', img: 'introWorshipImg' },
+                { txt: 'introNewcomer', img: 'introNewcomerImg' },
+                { txt: 'introLocation', img: 'introLocationImg' }
+            ];
+
+            const updatePayload = { updatedAt: serverTimestamp() };
+
+            const processFile = (file) => {
+                return new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+            };
+
+            try {
+                for (let i = 0; i < containers.length; i++) {
+                    const container = containers[i];
+                    const textarea = container.querySelector('.edit-mode-input');
+                    const fileInput = container.querySelector('.edit-mode-img-input');
+
+                    if (textarea) {
+                        updatePayload[keys[i].txt] = textarea.value;
+                    }
+
+                    if (fileInput && fileInput.files && fileInput.files[0]) {
+                        const base64 = await processFile(fileInput.files[0]);
+                        updatePayload[keys[i].img] = base64;
+                    } else if (container.dataset.existingImg) {
+                        updatePayload[keys[i].img] = container.dataset.existingImg;
+                    }
+                }
+
+                await setDoc(doc(db, "churches", churchId), updatePayload, { merge: true });
+                Object.assign(churchData, updatePayload);
+                localStorage.setItem(`church_cache_${churchId}`, JSON.stringify(churchData));
+                alert("성공적으로 전체 저장되었습니다!");
+                location.reload();
+            } catch (e) {
+                alert("저장 중 오류가 발생했습니다: " + e.message);
+            }
+        };
+
+        loadChurchInfo();
+</script>
+
+</body>
+</html>

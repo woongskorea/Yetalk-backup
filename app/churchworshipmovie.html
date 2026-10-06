@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>예배 영상 | 예톡 교회홈</title>
+    <link rel="stylesheet" href="src/main/assets/church/churchmain.css">
+    <style>
+        .church-app {
+            min-height: 100vh;
+            padding-bottom: calc(165px + env(safe-area-inset-bottom));
+        }
+        #churchHeader {
+            background: var(--theme-color, #97266d) !important;
+            backdrop-filter: blur(10px);
+        }
+        .admin-switch-btn {
+            background: #111827; color: #fff; font-size: 13px; font-weight: 900;
+            padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; transition: 0.2s;
+        }
+        .admin-switch-btn.on { background: #dc2626; box-shadow: 0 0 10px rgba(220, 38, 38, 0.5); }
+
+        .hub-menu-section {
+            width: min(100%, 720px);
+            margin: 16px auto 10px auto;
+            padding: 0 13px;
+        }
+
+        /* 주일/수요/금요/새벽 예배 탭 */
+        .category-main-tabs {
+            display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto;
+        }
+        .category-btn {
+            flex: 1; height: 46px; background: rgba(255,255,255,0.35); border: 2px solid rgba(255,255,255,0.5);
+            color: #0f172a; font-size: 15px; font-weight: 900; border-radius: 12px; cursor: pointer; white-space: nowrap; transition: 0.2s;
+        }
+        .category-btn.active {
+            background: #ffffff; color: var(--theme-color, #97266d); border-color: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12); font-size: 15.5px;
+        }
+
+        .worship-container {
+            width: min(100%, 720px);
+            margin: 0 auto;
+            padding: 0 13px;
+        }
+
+        /* 💡 유튜브 영상 항상 노출되는 시원한 플레이어 박스 */
+        .youtube-player-box {
+            width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 16px; overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2); margin-bottom: 16px; border: 2px solid rgba(255,255,255,0.4);
+        }
+        .youtube-player-box iframe {
+            width: 100%; height: 100%; border: none;
+        }
+
+        /* 💡 설교 제목 & 설교자 정보 공간 (박스 없이 배경톤 일체형) */
+        .sermon-info-box {
+            background: rgba(0, 0, 0, 0.12); border-radius: 16px; padding: 20px; margin-bottom: 20px;
+        }
+        .sermon-title {
+            font-size: 21px; font-weight: 900; color: #ffffff; margin-bottom: 8px; line-height: 1.4; text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .sermon-preacher {
+            font-size: 15.5px; font-weight: 800; color: #fdf2f8; display: flex; align-items: center; gap: 6px;
+        }
+
+        /* 관리자용 새 영상 등록 버튼 */
+        .add-new-btn {
+            width: 100%; height: 50px; background: rgba(255,255,255,0.9); border: 2.5px dashed #16a34a; color: #16a34a;
+            border-radius: 16px; font-size: 16.5px; font-weight: 900; cursor: pointer; margin-bottom: 20px; display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .add-new-btn.show { display: block; }
+
+        /* 등록/수정 폼 (네이버 카페 스타일 풀스크린 모드) */
+        .edit-form-box {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: var(--theme-color, #97266d); z-index: 99999; padding: 20px; box-sizing: border-box;
+            overflow-y: auto; display: none;
+        }
+        .cafe-form-inner {
+            width: min(100%, 720px); margin: 0 auto; background: #ffffff; border-radius: 20px; padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); margin-top: 20px;
+        }
+        .cafe-form-inner label { font-size: 15px; font-weight: 900; color: #1e293b; display: block; margin-bottom: 6px; }
+        .cafe-form-inner input {
+            width: 100%; padding: 14px 16px; border: 2px solid #94a3b8; border-radius: 12px; font-size: 16.5px; font-weight: 800; margin-bottom: 14px; box-sizing: border-box; outline: none; background: #fff; color: #000;
+        }
+        .cafe-form-header-bar {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 14px;
+        }
+        .save-worship-btn {
+            width: 100%; height: 50px; background: #16a34a; color: #fff; border: none; border-radius: 12px; font-size: 17.5px; font-weight: 900; cursor: pointer;
+        }
+
+        /* ⭐ [원칙 준수] 맨 밑바닥 (하단 네비 바로 위)에 고정되는 겸손한 애드몹 */
+        .admob-banner-box {
+            position: fixed;
+            bottom: calc(75px + env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(100% - 26px, 720px);
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px dashed #94a3b8;
+            border-radius: 14px;
+            padding: 10px;
+            text-align: center;
+            color: #1e293b;
+            font-size: 13px;
+            font-weight: 900;
+            z-index: 999;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.15);
+        }
+
+        #quickToast {
+            position: fixed; bottom: 165px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); color: #fff; padding: 14px 24px; border-radius: 14px; font-size: 16px; font-weight: 900; z-index: 999999; display: none; text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        }
+    </style>
+</head>
+
+<body>
+<div id="churchAppContainer" class="church-app theme-pink">
+
+    <!-- 상단 헤더 (뒤로가기 포함) -->
+    <header id="churchHeader">
+        <div class="church-header-inner">
+            <button id="backHomeBtn" type="button" style="background:var(--card); border:1px solid var(--line); border-radius:12px; width:42px; height:42px; font-size:24px; font-weight:900; color:var(--text); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;">‹</button>
+            <button id="churchNameButton" type="button" onclick="history.back()">
+                <span id="churchName">예배 영상실</span>
+            </button>
+            <div class="church-header-controls" style="display:flex; align-items:center; gap:8px;">
+                <button id="adminSwitchBtn" class="admin-switch-btn" onclick="toggleAdminMode()">관리자 OFF</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="church-main">
+        <div class="hub-menu-section">
+            <!-- 예배 종류 탭 (주일 / 수요 / 금요 / 새벽) -->
+            <div class="category-main-tabs">
+                <button class="category-btn active" id="worshipTab0" onclick="switchWorshipTab(0)">주일예배</button>
+                <button class="category-btn" id="worshipTab1" onclick="switchWorshipTab(1)">수요예배</button>
+                <button class="category-btn" id="worshipTab2" onclick="switchWorshipTab(2)">금요예배</button>
+                <button class="category-btn" id="worshipTab3" onclick="switchWorshipTab(3)">새벽예배</button>
+            </div>
+        </div>
+
+        <div class="worship-container">
+            <!-- 관리자용 새 영상 등록 버튼 -->
+            <button id="addNewWorshipBtn" class="add-new-btn" onclick="openAddForm()">＋ 새 예배 영상 등록</button>
+
+            <!-- 등록/수정 폼 (풀스크린 모드) -->
+            <div id="worshipEditFormBox" class="edit-form-box">
+                <div class="cafe-form-inner">
+                    <div class="cafe-form-header-bar">
+                        <h4 style="margin:0; font-size:20px; font-weight:900; color:#0f172a;">예배 영상 등록</h4>
+                        <button type="button" onclick="closeAddForm()" style="background:#e2e8f0; border:none; width:36px; height:36px; border-radius:50%; font-size:18px; font-weight:900; cursor:pointer;">✕</button>
+                    </div>
+
+                    <label>설교 제목</label>
+                    <input type="text" id="inputTitle" placeholder="예: 하나님의 은혜와 사랑">
+
+                    <label>설교자 (예: 김장로 목사)</label>
+                    <input type="text" id="inputPreacher" placeholder="예: 담임목사님">
+
+                    <label>유튜브 영상 주소 (URL 또는 비디오 ID)</label>
+                    <input type="text" id="inputYoutubeUrl" placeholder="예: https://youtu.be/xxxx 또는 11자리 ID">
+
+                    <div style="display:flex; gap:10px; margin-top:14px;">
+                        <button class="save-worship-btn" onclick="saveWorshipData()">저장하기</button>
+                        <button class="save-worship-btn" style="background:#64748b;" onclick="closeAddForm()">취소</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 💡 첫 화면에 항상 시원하게 뜨는 유튜브 영상 및 설교 정보 영역 -->
+            <div id="currentWorshipDisplay">
+                <div class="youtube-player-box" id="youtubePlayerArea">
+                    <iframe id="youtubeIframe" src="" allowfullscreen></iframe>
+                </div>
+                <div class="sermon-info-box">
+                    <div class="sermon-title" id="displayTitle">설교 제목이 로딩 중입니다...</div>
+                    <div class="sermon-preacher" id="displayPreacher">🙏 설교자 정보</div>
+                </div>
+            </div>
+
+            <!-- 최하단 고정 겸손한 애드몹 광고 -->
+            <div class="admob-banner-box">
+                💡 광고 영역 (Google AdMob Banner - 스마트폰 수익 창출)
+            </div>
+        </div>
+    </main>
+
+    <nav id="churchBottomNav">
+        <button class="bottom-nav-item" type="button" onclick="history.back()">⛪<br>교회홈</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../../index.html'">🏠<br>나의홈</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../../coupang.html'">🛒<br>쿠팡</button>
+        <button class="bottom-nav-item" type="button" onclick="history.back()">🙏<br>헌금</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../churchintro.html?churchId=${churchId}'">📍<br>오시는길</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../../myinfo.html'">⚙️<br>내정보</button>
+    </nav>
+</div>
+
+<div id="quickToast">알림 메시지</div>
+
+<script type="module">
+    import { db, doc, getDoc, setDoc, serverTimestamp } from "../../firebase.js";
+
+    const urlParams = new URLSearchParams(location.search);
+    const churchId = urlParams.get('churchId') || localStorage.getItem('yetalkMyChurchId') || 'fAKyQftAh3qPnsuRPSVz';
+
+    let currentTab = 0; // 0: 주일, 1: 수요, 2: 금요, 3: 새벽
+    let churchData = {};
+
+    function showToast(msg) {
+        const t = document.getElementById("quickToast");
+        if(!t) return;
+        t.innerText = msg;
+        t.style.display = "block";
+        setTimeout(() => { t.style.display = "none"; }, 3000);
+    }
+    window.showToast = showToast;
+
+    const backHomeBtn = document.getElementById('backHomeBtn');
+    if(backHomeBtn) backHomeBtn.onclick = () => { history.back(); };
+
+    window.switchWorshipTab = (tabIndex) => {
+        currentTab = tabIndex;
+        for(let i=0; i<4; i++) {
+            const btn = document.getElementById(`worshipTab${i}`);
+            if(btn) {
+                if(i === tabIndex) btn.classList.add("active");
+                else btn.classList.remove("active");
+            }
+        }
+        renderWorshipContent();
+    };
+
+    window.toggleAdminMode = () => {
+        const current = localStorage.getItem("yetalk_chat_admin_on") === "true";
+        localStorage.setItem("yetalk_chat_admin_on", !current);
+        applyAdminStateUI();
+    };
+
+    function applyAdminStateUI() {
+        const isAdminOn = localStorage.getItem("yetalk_chat_admin_on") === "true";
+        const btn = document.getElementById("adminSwitchBtn");
+        const addBtn = document.getElementById("addNewWorshipBtn");
+
+        if (btn) {
+            if (isAdminOn) {
+                btn.textContent = "관리자 ON";
+                btn.className = "admin-switch-btn on";
+                if(addBtn) addBtn.classList.add("show");
+            } else {
+                btn.textContent = "관리자 OFF";
+                btn.className = "admin-switch-btn";
+                if(addBtn) addBtn.classList.remove("show");
+            }
+        }
+    }
+
+    async function initWorshipPage() {
+        const savedTheme = localStorage.getItem(`church_theme_${churchId}`) || 'theme-pink';
+        const appContainer = document.getElementById('churchAppContainer');
+        if(appContainer) appContainer.className = `church-app ${savedTheme}`;
+
+        try {
+            const snap = await getDoc(doc(db, "churches", churchId));
+            if (snap.exists()) {
+                churchData = snap.data();
+            }
+        } catch(e) { console.log("데이터 로드 실패", e); }
+
+        // 데이터가 없을 때 기본 샘플 예배 영상 세팅 (유튜브 기본 샘플 ID 활용)
+        if (!churchData.worshipList || churchData.worshipList.length === 0) {
+            churchData.worshipList = [
+                { tab: 0, title: "하나님께서 사랑하시는 교회 (주일예배)", preacher: "담임목사님", youtubeId: "jfKfPfyJRdk" },
+                { tab: 1, title: "수요기도회 은혜의 말씀", preacher: "부목사님", youtubeId: "jfKfPfyJRdk" },
+                { tab: 2, title: "금요찬양 및 성령집회", preacher: "찬양팀", youtubeId: "jfKfPfyJRdk" },
+                { tab: 3, title: "주의 음성을 듣는 새벽기도", preacher: "담임목사님", youtubeId: "jfKfPfyJRdk" }
+            ];
+        }
+
+        applyAdminStateUI();
+        renderWorshipContent();
+    }
+
+    // 유튜브 주소에서 11자리 비디오 ID 추출 함수
+    function extractYoutubeId(urlOrId) {
+        if (!urlOrId) return "jfKfPfyJRdk";
+        let match = urlOrId.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+        if (match && match[1]) return match[1];
+        if (urlOrId.length === 11) return urlOrId;
+        return "jfKfPfyJRdk";
+    }
+
+    window.renderWorshipContent = () => {
+        const worshipList = churchData.worshipList || [];
+        const currentItem = worshipList.find(item => item.tab === currentTab) || {
+            title: "등록된 예배 영상이 없습니다.",
+            preacher: "관리자 모드에서 영상을 등록해주세요.",
+            youtubeId: "jfKfPfyJRdk"
+        };
+
+        const iframe = document.getElementById("youtubeIframe");
+        const titleEl = document.getElementById("displayTitle");
+        const preacherEl = document.getElementById("displayPreacher");
+
+        const ytId = extractYoutubeId(currentItem.youtubeId);
+        if(iframe) iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=0&rel=0`;
+        if(titleEl) titleEl.textContent = currentItem.title;
+        if(preacherEl) preacherEl.textContent = `🙏 설교자: ${currentItem.preacher}`;
+    };
+
+    window.openAddForm = () => {
+        const worshipList = churchData.worshipList || [];
+        const currentItem = worshipList.find(item => item.tab === currentTab) || {};
+
+        document.getElementById("inputTitle").value = currentItem.title || "";
+        document.getElementById("inputPreacher").value = currentItem.preacher || "";
+        document.getElementById("inputYoutubeUrl").value = currentItem.youtubeId || "";
+        document.getElementById("worshipEditFormBox").style.display = "block";
+    };
+
+    window.closeAddForm = () => {
+        document.getElementById("worshipEditFormBox").style.display = "none";
+    };
+
+    window.saveWorshipData = async () => {
+        const title = document.getElementById("inputTitle").value.trim();
+        const preacher = document.getElementById("inputPreacher").value.trim();
+        const youtubeUrl = document.getElementById("inputYoutubeUrl").value.trim();
+
+        if(!title || !youtubeUrl) {
+            alert("설교 제목과 유튜브 영상 주소는 필수 입력 항목입니다.");
+            return;
+        }
+
+        let list = churchData.worshipList || [];
+        // 현재 탭에 해당하는 항목이 있으면 수정, 없으면 추가
+        let existingIndex = list.findIndex(i => i.tab === currentTab);
+
+        const newObj = {
+            tab: currentTab,
+            title,
+            preacher: preacher || "교회",
+            youtubeId: extractYoutubeId(youtubeUrl),
+            updatedAt: new Date().toISOString()
+        };
+
+        if (existingIndex >= 0) {
+            list[existingIndex] = newObj;
+        } else {
+            list.push(newObj);
+        }
+
+        try {
+            await setDoc(doc(db, "churches", churchId), { worshipList: list, updatedAt: serverTimestamp() }, { merge: true });
+            churchData.worshipList = list;
+            closeAddForm();
+            renderWorshipContent();
+            showToast("✨ 예배 영상이 성공적으로 등록되었습니다!");
+        } catch(e) {
+            alert("저장 실패: " + e.message);
+        }
+    };
+
+    initWorshipPage();
+</script>
+
+</body>
+</html>

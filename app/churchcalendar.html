@@ -1,0 +1,2066 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <meta
+            name="theme-color"
+            content="#ffffff">
+
+    <title>우리교회 일정 | 예톡</title>
+
+    <style>
+
+        /*==================================================
+        RESET
+        ==================================================*/
+
+        *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+        font-family:"Pretendard","Noto Sans KR",Arial,sans-serif;
+        }
+
+        html{
+        width:100%;
+        min-width:320px;
+        min-height:100%;
+        background:#edf3f8;
+        scroll-behavior:smooth;
+        }
+
+        body{
+        width:100%;
+        min-width:320px;
+        min-height:100vh;
+        min-height:100dvh;
+        background:#edf3f8;
+        color:#171717;
+        word-break:keep-all;
+        -webkit-font-smoothing:antialiased;
+        text-rendering:optimizeLegibility;
+        }
+
+        button{
+        margin:0;
+        padding:0;
+        border:0;
+        outline:0;
+        background:transparent;
+        color:inherit;
+        font:inherit;
+        cursor:pointer;
+        -webkit-tap-highlight-color:transparent;
+        }
+
+        .hidden{
+        display:none!important;
+        }
+
+        /*==================================================
+        PAGE
+        ==================================================*/
+
+        .calendar-page{
+        width:100%;
+        max-width:760px;
+        min-height:100vh;
+        min-height:100dvh;
+        margin:0 auto;
+        background:#f5f8fb;
+        }
+
+        /*==================================================
+        HEADER
+        ==================================================*/
+
+        .calendar-header{
+        position:sticky;
+        top:0;
+        z-index:100;
+        display:grid;
+        grid-template-columns:48px minmax(0,1fr) 48px;
+        align-items:center;
+        width:100%;
+        min-height:66px;
+        padding:env(safe-area-inset-top) 10px 0;
+        border-bottom:1px solid #dce5ec;
+        background:rgba(255,255,255,.97);
+        box-shadow:0 3px 12px rgba(35,65,90,.08);
+        backdrop-filter:blur(10px);
+        }
+
+        .header-btn{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        width:44px;
+        height:44px;
+        border-radius:50%;
+        color:#18354d;
+        font-size:27px;
+        font-weight:950;
+        }
+
+        .header-btn:active{
+        background:#edf3f7;
+        transform:scale(.96);
+        }
+
+        .header-center{
+        min-width:0;
+        padding:7px 8px;
+        text-align:center;
+        }
+
+        .header-title{
+        overflow:hidden;
+        color:#075cab;
+        font-size:21px;
+        font-weight:950;
+        line-height:1.2;
+        letter-spacing:-.7px;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        }
+
+        .header-church-name{
+        overflow:hidden;
+        margin-top:4px;
+        color:#526778;
+        font-size:13px;
+        font-weight:850;
+        line-height:1.2;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        }
+
+        /*==================================================
+        CONTENT
+        ==================================================*/
+
+        .calendar-wrap{
+        width:100%;
+        padding:13px 9px calc(45px + env(safe-area-inset-bottom));
+        }
+
+        /*==================================================
+        MONTH NAVIGATION
+        ==================================================*/
+
+        .month-card{
+        overflow:hidden;
+        border:1px solid #d7e2eb;
+        border-radius:18px;
+        background:#fff;
+        box-shadow:0 4px 15px rgba(35,70,100,.08);
+        }
+
+        .month-navigation{
+        display:grid;
+        grid-template-columns:52px minmax(0,1fr) 52px;
+        align-items:center;
+        min-height:67px;
+        padding:4px 8px;
+        border-bottom:1px solid #e3eaf0;
+        background:linear-gradient(180deg,#fff 0%,#f3f8fc 100%);
+        }
+
+        .month-arrow-btn{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        width:44px;
+        height:44px;
+        margin:0 auto;
+        border:1px solid #d4e0e9;
+        border-radius:50%;
+        background:#fff;
+        color:#075cab;
+        font-size:26px;
+        font-weight:950;
+        box-shadow:0 2px 7px rgba(30,70,110,.08);
+        }
+
+        .month-arrow-btn:active{
+        background:#eaf3fb;
+        transform:scale(.95);
+        }
+
+        .month-title-btn{
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        min-height:51px;
+        border-radius:13px;
+        }
+
+        .month-title{
+        color:#132e45;
+        font-size:25px;
+        font-weight:950;
+        line-height:1.1;
+        letter-spacing:-1px;
+        }
+
+        .month-today-guide{
+        margin-top:5px;
+        color:#6e7e89;
+        font-size:11px;
+        font-weight:800;
+        }
+
+        /*==================================================
+        WEEKDAY
+        ==================================================*/
+
+        .weekday-row{
+        display:grid;
+        grid-template-columns:repeat(7,minmax(0,1fr));
+        border-bottom:1px solid #dfe7ed;
+        background:#f7fafc;
+        }
+
+        .weekday{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        min-height:39px;
+        color:#536573;
+        font-size:13px;
+        font-weight:950;
+        }
+
+        .weekday.sunday{
+        color:#d52737;
+        }
+
+        .weekday.saturday{
+        color:#176ac0;
+        }
+
+        /*==================================================
+        CALENDAR GRID
+        ==================================================*/
+
+        .calendar-grid{
+        display:grid;
+        grid-template-columns:repeat(7,minmax(0,1fr));
+        align-items:stretch;
+        background:#dfe7ed;
+        gap:1px;
+        }
+
+        .calendar-day{
+        position:relative;
+        display:flex;
+        flex-direction:column;
+        align-items:stretch;
+        justify-content:flex-start;
+        min-width:0;
+        min-height:112px;
+        padding:7px 4px 6px;
+        overflow:hidden;
+        background:#fff;
+        text-align:left;
+        }
+
+        .calendar-day:active{
+        background:#edf6ff;
+        }
+
+        .calendar-day.other-month{
+        background:#f5f7f9;
+        }
+
+        .calendar-day.other-month .day-number{
+        color:#b0bac1;
+        }
+
+        .calendar-day.selected{
+        z-index:2;
+        background:#eef7ff;
+        box-shadow:inset 0 0 0 2px #1378cc;
+        }
+
+        .calendar-day.today{
+        background:#fffcef;
+        }
+
+        .calendar-day.today.selected{
+        background:#eef7ff;
+        }
+
+        .day-header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        min-height:24px;
+        margin-bottom:4px;
+        }
+
+        .day-number{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        min-width:24px;
+        height:24px;
+        border-radius:50%;
+        color:#1d2d39;
+        font-size:14px;
+        font-weight:950;
+        line-height:1;
+        }
+
+        .calendar-day.sunday .day-number{
+        color:#d42334;
+        }
+
+        .calendar-day.saturday .day-number{
+        color:#126abe;
+        }
+
+        .calendar-day.today .day-number{
+        background:#075cab;
+        color:#fff;
+        box-shadow:0 2px 7px rgba(7,92,171,.25);
+        }
+
+        .today-label{
+        display:none;
+        color:#075cab;
+        font-size:8px;
+        font-weight:950;
+        }
+
+        .calendar-day.today .today-label{
+        display:block;
+        }
+
+        /*==================================================
+        DAY EVENTS
+        ==================================================*/
+
+        .day-events{
+        display:flex;
+        flex-direction:column;
+        gap:4px;
+        min-width:0;
+        }
+
+        .day-event{
+        display:block;
+        min-width:0;
+        padding:4px;
+        overflow:hidden;
+        border-left:3px solid #2378bd;
+        border-radius:4px;
+        background:#edf6ff;
+        }
+
+        .day-event-title{
+        display:block;
+        overflow:hidden;
+        color:#133b5c;
+        font-size:10px;
+        font-weight:950;
+        line-height:1.18;
+        letter-spacing:-.2px;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        }
+
+        .day-event-time{
+        display:block;
+        margin-top:2px;
+        overflow:hidden;
+        color:#526b7d;
+        font-size:9px;
+        font-weight:850;
+        line-height:1.15;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        }
+
+        .day-event.worship{
+        border-left-color:#075cab;
+        background:#edf6ff;
+        }
+
+        .day-event.prayer{
+        border-left-color:#7a2ba3;
+        background:#f7effb;
+        }
+
+        .day-event.education{
+        border-left-color:#168541;
+        background:#eef9f1;
+        }
+
+        .day-event.fellowship{
+        border-left-color:#d77a00;
+        background:#fff6e8;
+        }
+
+        .day-event.notice{
+        border-left-color:#d12837;
+        background:#fff0f1;
+        }
+
+        .day-event.general{
+        border-left-color:#647683;
+        background:#f1f4f6;
+        }
+
+        .more-events{
+        display:block;
+        margin-top:1px;
+        overflow:hidden;
+        color:#6a7380;
+        font-size:9px;
+        font-weight:950;
+        line-height:1.15;
+        text-align:center;
+        text-overflow:ellipsis;
+        white-space:nowrap;
+        }
+
+        /*==================================================
+        MONTH SUMMARY
+        ==================================================*/
+
+        .month-summary{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        margin-top:13px;
+        padding:13px 15px;
+        border:1px solid #d8e4ed;
+        border-radius:14px;
+        background:#fff;
+        box-shadow:0 3px 10px rgba(35,70,95,.06);
+        }
+
+        .month-summary-title{
+        color:#244359;
+        font-size:15px;
+        font-weight:950;
+        }
+
+        .month-summary-count{
+        color:#075cab;
+        font-size:15px;
+        font-weight:950;
+        }
+
+        /*==================================================
+        SELECTED DATE DETAILS
+        ==================================================*/
+
+        .selected-section{
+        margin-top:13px;
+        scroll-margin-top:83px;
+        }
+
+        .selected-header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:10px;
+        min-height:57px;
+        padding:12px 15px;
+        border:1px solid #cddfeb;
+        border-radius:16px 16px 0 0;
+        background:linear-gradient(135deg,#eaf5ff,#fff);
+        }
+
+        .selected-date{
+        color:#075cab;
+        font-size:20px;
+        font-weight:950;
+        line-height:1.25;
+        letter-spacing:-.6px;
+        }
+
+        .selected-count{
+        flex:0 0 auto;
+        color:#4a6275;
+        font-size:12px;
+        font-weight:900;
+        }
+
+        .selected-events{
+        overflow:hidden;
+        border:solid #d8e3eb;
+        border-width:0 1px 1px;
+        border-radius:0 0 16px 16px;
+        background:#fff;
+        box-shadow:0 4px 14px rgba(35,70,95,.07);
+        }
+
+        .detail-event{
+        display:grid;
+        grid-template-columns:45px minmax(0,1fr);
+        gap:11px;
+        padding:16px 14px;
+        border-bottom:1px solid #e5ebf0;
+        }
+
+        .detail-event:last-child{
+        border-bottom:0;
+        }
+
+        .detail-icon{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        width:43px;
+        height:43px;
+        border-radius:13px;
+        background:#edf5fb;
+        font-size:23px;
+        }
+
+        .detail-content{
+        min-width:0;
+        }
+
+        .detail-title{
+        color:#172c3a;
+        font-size:18px;
+        font-weight:950;
+        line-height:1.35;
+        letter-spacing:-.4px;
+        }
+
+        .detail-meta{
+        display:flex;
+        flex-wrap:wrap;
+        gap:5px 9px;
+        margin-top:6px;
+        color:#526776;
+        font-size:13px;
+        font-weight:850;
+        line-height:1.45;
+        }
+
+        .detail-description{
+        margin-top:9px;
+        color:#343e45;
+        font-size:14px;
+        font-weight:750;
+        line-height:1.65;
+        white-space:pre-line;
+        }
+
+        .empty-detail{
+        padding:34px 18px;
+        color:#73818c;
+        font-size:15px;
+        font-weight:850;
+        line-height:1.65;
+        text-align:center;
+        }
+
+        /*==================================================
+        LOADING
+        ==================================================*/
+
+        .loading-overlay{
+        position:fixed;
+        inset:0;
+        z-index:500;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:20px;
+        background:rgba(245,248,251,.88);
+        backdrop-filter:blur(3px);
+        }
+
+        .loading-box{
+        min-width:180px;
+        padding:24px 20px;
+        border:1px solid #d7e1e9;
+        border-radius:17px;
+        background:#fff;
+        color:#254156;
+        font-size:15px;
+        font-weight:900;
+        line-height:1.5;
+        text-align:center;
+        box-shadow:0 8px 25px rgba(35,65,90,.15);
+        }
+
+        .loading-spinner{
+        width:38px;
+        height:38px;
+        margin:0 auto 13px;
+        border:4px solid #dbe8f2;
+        border-top-color:#075cab;
+        border-radius:50%;
+        animation:calendar-spin .75s linear infinite;
+        }
+
+        @keyframes calendar-spin{
+        to{
+        transform:rotate(360deg);
+        }
+        }
+
+        /*==================================================
+        TOAST
+        ==================================================*/
+
+        .calendar-toast{
+        position:fixed;
+        right:15px;
+        bottom:calc(20px + env(safe-area-inset-bottom));
+        left:15px;
+        z-index:1000;
+        max-width:440px;
+        margin:0 auto;
+        padding:14px 16px;
+        border-radius:13px;
+        background:rgba(25,34,40,.96);
+        color:#fff;
+        font-size:14px;
+        font-weight:850;
+        line-height:1.5;
+        text-align:center;
+        opacity:0;
+        pointer-events:none;
+        transform:translateY(14px);
+        transition:opacity .2s ease,transform .2s ease;
+        }
+
+        .calendar-toast.show{
+        opacity:1;
+        transform:translateY(0);
+        }
+
+        /*==================================================
+        MOBILE
+        ==================================================*/
+
+        @media(max-width:480px){
+
+        .calendar-wrap{
+        padding-right:6px;
+        padding-left:6px;
+        }
+
+        .month-card{
+        border-radius:15px;
+        }
+
+        .calendar-day{
+        min-height:104px;
+        padding:6px 3px 5px;
+        }
+
+        .day-event{
+        padding:4px 3px;
+        }
+
+        .day-event-title{
+        font-size:9.5px;
+        }
+
+        .day-event-time{
+        font-size:8.5px;
+        }
+
+        }
+
+        /*==================================================
+        SMALL MOBILE
+        ==================================================*/
+
+        @media(max-width:360px){
+
+        .header-title{
+        font-size:19px;
+        }
+
+        .header-church-name{
+        font-size:11px;
+        }
+
+        .month-title{
+        font-size:22px;
+        }
+
+        .calendar-day{
+        min-height:94px;
+        }
+
+        .day-number{
+        min-width:21px;
+        height:21px;
+        font-size:12px;
+        }
+
+        .day-event-title{
+        font-size:8px;
+        }
+
+        .day-event-time{
+        font-size:7.5px;
+        }
+
+        .more-events{
+        font-size:8px;
+        }
+
+        }
+
+        /*==================================================
+        DESKTOP
+        ==================================================*/
+
+        @media(min-width:761px){
+
+        body{
+        background:linear-gradient(135deg,#e3edf5,#f8fafc);
+        }
+
+        .calendar-page{
+        box-shadow:0 0 30px rgba(25,60,90,.16);
+        }
+
+        .calendar-day{
+        min-height:128px;
+        }
+
+        .day-event-title{
+        font-size:12px;
+        }
+
+        .day-event-time{
+        font-size:11px;
+        }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="calendar-page">
+
+    <header class="calendar-header">
+
+        <button
+                id="backBtn"
+                class="header-btn"
+                type="button"
+                aria-label="뒤로가기">
+            ←
+        </button>
+
+        <div class="header-center">
+
+            <div class="header-title">
+                우리교회 일정
+            </div>
+
+            <div
+                    id="headerChurchName"
+                    class="header-church-name">
+                교회 정보를 불러오는 중입니다.
+            </div>
+
+        </div>
+
+        <button
+                id="homeBtn"
+                class="header-btn"
+                type="button"
+                aria-label="예톡 홈">
+            🏠
+        </button>
+
+    </header>
+
+    <main class="calendar-wrap">
+
+        <section class="month-card">
+
+            <div class="month-navigation">
+
+                <button
+                        id="previousMonthBtn"
+                        class="month-arrow-btn"
+                        type="button"
+                        aria-label="이전 달">
+                    ‹
+                </button>
+
+                <button
+                        id="todayMonthBtn"
+                        class="month-title-btn"
+                        type="button"
+                        aria-label="이번 달로 이동">
+
+                    <strong
+                            id="monthTitle"
+                            class="month-title">
+                        2026년 8월
+                    </strong>
+
+                    <span class="month-today-guide">
+누르면 이번 달로 이동
+</span>
+
+                </button>
+
+                <button
+                        id="nextMonthBtn"
+                        class="month-arrow-btn"
+                        type="button"
+                        aria-label="다음 달">
+                    ›
+                </button>
+
+            </div>
+
+            <div class="weekday-row">
+                <div class="weekday sunday">일</div>
+                <div class="weekday">월</div>
+                <div class="weekday">화</div>
+                <div class="weekday">수</div>
+                <div class="weekday">목</div>
+                <div class="weekday">금</div>
+                <div class="weekday saturday">토</div>
+            </div>
+
+            <div
+                    id="calendarGrid"
+                    class="calendar-grid">
+            </div>
+
+        </section>
+
+        <section class="month-summary">
+
+<span class="month-summary-title">
+이번 달 교회 일정
+</span>
+
+            <strong
+                    id="monthEventCount"
+                    class="month-summary-count">
+                0개
+            </strong>
+
+        </section>
+
+        <section
+                id="selectedSection"
+                class="selected-section">
+
+            <div class="selected-header">
+
+                <strong
+                        id="selectedDate"
+                        class="selected-date">
+                    오늘 일정
+                </strong>
+
+                <span
+                        id="selectedCount"
+                        class="selected-count">
+0개
+</span>
+
+            </div>
+
+            <div
+                    id="selectedEvents"
+                    class="selected-events">
+
+                <div class="empty-detail">
+                    날짜를 누르면 해당 날짜의<br>
+                    자세한 일정이 표시됩니다.
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<div
+        id="loadingOverlay"
+        class="loading-overlay">
+
+    <div class="loading-box">
+
+        <div class="loading-spinner"></div>
+
+        교회 일정을<br>
+        불러오고 있습니다.
+
+    </div>
+
+</div>
+
+<div
+        id="calendarToast"
+        class="calendar-toast"
+        role="status"
+        aria-live="polite">
+</div>
+
+<script type="module">
+
+    import{
+    db,
+    doc,
+    getDoc,
+    collection,
+    getDocs
+    }from"../firebase.js";
+
+    /*==================================================
+    PAGE LINKS
+    ==================================================*/
+
+    const PAGE_LINKS={
+    home:"../index.html",
+    churchMain:"churchmain.html",
+    churchSearch:"../churchlist.html"
+    };
+
+    /*==================================================
+    DOM
+    ==================================================*/
+
+    const $=id=>document.getElementById(id);
+
+    const dom={
+    backBtn:$("backBtn"),
+    homeBtn:$("homeBtn"),
+    headerChurchName:$("headerChurchName"),
+    previousMonthBtn:$("previousMonthBtn"),
+    nextMonthBtn:$("nextMonthBtn"),
+    todayMonthBtn:$("todayMonthBtn"),
+    monthTitle:$("monthTitle"),
+    calendarGrid:$("calendarGrid"),
+    monthEventCount:$("monthEventCount"),
+    selectedSection:$("selectedSection"),
+    selectedDate:$("selectedDate"),
+    selectedCount:$("selectedCount"),
+    selectedEvents:$("selectedEvents"),
+    loadingOverlay:$("loadingOverlay"),
+    calendarToast:$("calendarToast")
+    };
+
+    /*==================================================
+    STATE
+    ==================================================*/
+
+    const now=new Date();
+
+    let churchId="";
+    let churchName="";
+    let displayYear=now.getFullYear();
+    let displayMonth=now.getMonth();
+    let selectedDateKey=formatDateKey(now);
+    let monthEvents=[];
+    let toastTimer=null;
+
+    /*==================================================
+    UTILITY
+    ==================================================*/
+
+    function cleanText(value){
+    return String(value??"").trim();
+    }
+
+    function padNumber(number){
+    return String(number).padStart(2,"0");
+    }
+
+    function formatDateKey(date){
+    return(
+    date.getFullYear()+
+    "-"+
+    padNumber(date.getMonth()+1)+
+    "-"+
+    padNumber(date.getDate())
+    );
+    }
+
+    function getMonthKey(year,month){
+    return(
+    year+
+    "-"+
+    padNumber(month+1)
+    );
+    }
+
+    function getQueryValue(key){
+    const params=
+    new URLSearchParams(
+    window.location.search
+    );
+
+    return cleanText(
+    params.get(key)
+    );
+    }
+
+    function getCurrentChurchId(){
+    return cleanText(
+    getQueryValue("churchId")||
+    localStorage.getItem("currentChurchId")||
+    localStorage.getItem("yetalkMyChurchId")
+    );
+    }
+
+    /*==================================================
+    TOAST
+    ==================================================*/
+
+    function showToast(message){
+    if(!dom.calendarToast)return;
+
+    dom.calendarToast.textContent=
+    cleanText(message);
+
+    dom.calendarToast.classList.add("show");
+
+    if(toastTimer){
+    clearTimeout(toastTimer);
+    }
+
+    toastTimer=
+    setTimeout(
+    ()=>{
+    dom.calendarToast.classList.remove("show");
+    },
+    2500
+    );
+    }
+
+    /*==================================================
+    LOADING
+    ==================================================*/
+
+    function showLoading(){
+    dom.loadingOverlay
+    ?.classList
+    .remove("hidden");
+    }
+
+    function hideLoading(){
+    dom.loadingOverlay
+    ?.classList
+    .add("hidden");
+    }
+
+    /*==================================================
+    LOAD CHURCH
+    ==================================================*/
+
+    async function loadChurchInformation(){
+    churchId=getCurrentChurchId();
+
+    if(!churchId){
+    churchName=
+    "등록된 본교회가 없습니다.";
+
+    if(dom.headerChurchName){
+    dom.headerChurchName.textContent=
+    churchName;
+    }
+
+    return false;
+    }
+
+    try{
+    const churchReference=
+    doc(
+    db,
+    "churches",
+    churchId
+    );
+
+    const churchSnapshot=
+    await getDoc(
+    churchReference
+    );
+
+    if(churchSnapshot.exists()){
+    const churchData=
+    churchSnapshot.data();
+
+    churchName=
+    cleanText(
+    churchData.churchName||
+    churchData.name||
+    churchId
+    );
+
+    }else{
+    churchName=
+    cleanText(
+    localStorage.getItem(
+    "yetalkMyChurchName"
+    )||
+    churchId
+    );
+    }
+
+    }catch(error){
+    console.warn(
+    "교회 정보 불러오기 오류:",
+    error
+    );
+
+    churchName=
+    cleanText(
+    localStorage.getItem(
+    "yetalkMyChurchName"
+    )||
+    churchId
+    );
+    }
+
+    if(dom.headerChurchName){
+    dom.headerChurchName.textContent=
+    churchName;
+    }
+
+    document.title=
+    `${churchName} 일정 | 예톡`;
+
+    return true;
+    }
+
+    /*==================================================
+    EVENT HELPERS
+    ==================================================*/
+
+    function getEventDateKey(event){
+    const directDate=
+    cleanText(
+    event.date||
+    event.eventDate||
+    event.startDate||
+    event.dateKey
+    );
+
+    if(
+    /^\d{4}-\d{2}-\d{2}$/.test(
+    directDate
+    )
+    ){
+    return directDate;
+    }
+
+    const timestamp=
+    event.startAt?.toDate?.()||
+    event.eventAt?.toDate?.()||
+    event.createdAt?.toDate?.()||
+    null;
+
+    if(
+    timestamp instanceof Date&&
+    !Number.isNaN(
+    timestamp.getTime()
+    )
+    ){
+    return formatDateKey(timestamp);
+    }
+
+    return"";
+    }
+
+    function getEventTime(event){
+    return cleanText(
+    event.startTime||
+    event.time||
+    event.worshipTime||
+    event.eventTime
+    );
+    }
+
+    function getEventTitle(event){
+    return cleanText(
+    event.title||
+    event.eventTitle||
+    event.name||
+    "교회 일정"
+    );
+    }
+
+    function getEventCategory(event){
+    const category=
+    cleanText(
+    event.category||
+    event.type||
+    event.eventType||
+    "general"
+    ).toLowerCase();
+
+    if(
+    category.includes("예배")||
+    category.includes("worship")
+    ){
+    return"worship";
+    }
+
+    if(
+    category.includes("기도")||
+    category.includes("prayer")
+    ){
+    return"prayer";
+    }
+
+    if(
+    category.includes("교육")||
+    category.includes("성경")||
+    category.includes("education")
+    ){
+    return"education";
+    }
+
+    if(
+    category.includes("교제")||
+    category.includes("행사")||
+    category.includes("fellowship")
+    ){
+    return"fellowship";
+    }
+
+    if(
+    category.includes("공지")||
+    category.includes("notice")
+    ){
+    return"notice";
+    }
+
+    return"general";
+    }
+
+    function getEventIcon(event){
+    const category=
+    getEventCategory(event);
+
+    const icons={
+    worship:"⛪",
+    prayer:"🙏",
+    education:"📖",
+    fellowship:"❤️",
+    notice:"📢",
+    general:"📅"
+    };
+
+    return icons[category]||"📅";
+    }
+
+    function getEventSortValue(event){
+    const time=
+    getEventTime(event)
+    .replace(/[^0-9]/g,"");
+
+    return Number(time)||9999;
+    }
+
+    /*==================================================
+    LOAD MONTH EVENTS
+    ==================================================*/
+
+    async function loadMonthEvents(){
+    monthEvents=[];
+
+    if(!churchId){
+    renderCalendar();
+    renderSelectedDate();
+    return;
+    }
+
+    const monthKey=
+    getMonthKey(
+    displayYear,
+    displayMonth
+    );
+
+    try{
+    const eventsReference=
+    collection(
+    db,
+    "churches",
+    churchId,
+    "calendarMonths",
+    monthKey,
+    "events"
+    );
+
+    const eventsSnapshot=
+    await getDocs(
+    eventsReference
+    );
+
+    eventsSnapshot.forEach(
+    eventDocument=>{
+    const data=
+    eventDocument.data();
+
+    if(
+    cleanText(
+    data.status
+    ).toLowerCase()==="deleted"
+    ){
+    return;
+    }
+
+    const dateKey=
+    getEventDateKey(data);
+
+    if(!dateKey){
+    return;
+    }
+
+    monthEvents.push({
+    id:eventDocument.id,
+    ...data,
+    dateKey
+    });
+    }
+    );
+
+    monthEvents.sort(
+    (first,second)=>{
+    if(
+    first.dateKey!==
+    second.dateKey
+    ){
+    return first.dateKey.localeCompare(
+    second.dateKey
+    );
+    }
+
+    return(
+    getEventSortValue(first)-
+    getEventSortValue(second)
+    );
+    }
+    );
+
+    }catch(error){
+    console.error(
+    "교회 일정 불러오기 오류:",
+    error
+    );
+
+    showToast(
+    "교회 일정을 불러오지 못했습니다."
+    );
+    }
+
+    renderCalendar();
+    renderMonthSummary();
+    renderSelectedDate();
+    }
+
+    /*==================================================
+    EVENTS BY DATE
+    ==================================================*/
+
+    function getEventsByDate(dateKey){
+    return monthEvents.filter(
+    event=>
+    event.dateKey===dateKey
+    );
+    }
+
+    /*==================================================
+    CREATE DAY EVENT
+    ==================================================*/
+
+    function createDayEvent(event){
+    const eventElement=
+    document.createElement("span");
+
+    eventElement.className=
+    "day-event "+
+    getEventCategory(event);
+
+    const titleElement=
+    document.createElement("strong");
+
+    titleElement.className=
+    "day-event-title";
+
+    titleElement.textContent=
+    getEventTitle(event);
+
+    const timeElement=
+    document.createElement("span");
+
+    timeElement.className=
+    "day-event-time";
+
+    timeElement.textContent=
+    getEventTime(event)||
+    "시간 미정";
+
+    eventElement.append(
+    titleElement,
+    timeElement
+    );
+
+    return eventElement;
+    }
+
+    /*==================================================
+    CREATE CALENDAR DAY
+    ==================================================*/
+
+    function createCalendarDay(
+    date,
+    isCurrentMonth
+    ){
+    const dateKey=
+    formatDateKey(date);
+
+    const events=
+    getEventsByDate(dateKey);
+
+    const dayButton=
+    document.createElement("button");
+
+    dayButton.type="button";
+    dayButton.className=
+    "calendar-day";
+
+    if(!isCurrentMonth){
+    dayButton.classList.add(
+    "other-month"
+    );
+    }
+
+    if(date.getDay()===0){
+    dayButton.classList.add(
+    "sunday"
+    );
+    }
+
+    if(date.getDay()===6){
+    dayButton.classList.add(
+    "saturday"
+    );
+    }
+
+    if(
+    dateKey===
+    formatDateKey(now)
+    ){
+    dayButton.classList.add(
+    "today"
+    );
+    }
+
+    if(
+    dateKey===
+    selectedDateKey
+    ){
+    dayButton.classList.add(
+    "selected"
+    );
+    }
+
+    dayButton.dataset.date=
+    dateKey;
+
+    dayButton.setAttribute(
+    "aria-label",
+    `${date.getMonth()+1}월 ${date.getDate()}일 일정 ${events.length}개`
+    );
+
+    const dayHeader=
+    document.createElement("div");
+
+    dayHeader.className=
+    "day-header";
+
+    const numberElement=
+    document.createElement("span");
+
+    numberElement.className=
+    "day-number";
+
+    numberElement.textContent=
+    String(date.getDate());
+
+    const todayLabel=
+    document.createElement("span");
+
+    todayLabel.className=
+    "today-label";
+
+    todayLabel.textContent=
+    "오늘";
+
+    dayHeader.append(
+    numberElement,
+    todayLabel
+    );
+
+    const eventsElement=
+    document.createElement("div");
+
+    eventsElement.className=
+    "day-events";
+
+    events
+    .slice(0,2)
+    .forEach(event=>{
+    eventsElement.appendChild(
+    createDayEvent(event)
+    );
+    });
+
+    if(events.length>2){
+    const moreElement=
+    document.createElement("span");
+
+    moreElement.className=
+    "more-events";
+
+    moreElement.textContent=
+    `외 ${events.length-2}개`;
+
+    eventsElement.appendChild(
+    moreElement
+    );
+    }
+
+    dayButton.append(
+    dayHeader,
+    eventsElement
+    );
+
+    dayButton.addEventListener(
+    "click",
+    ()=>{
+    selectedDateKey=
+    dateKey;
+
+    if(
+    date.getFullYear()!==
+    displayYear||
+    date.getMonth()!==
+    displayMonth
+    ){
+    displayYear=
+    date.getFullYear();
+
+    displayMonth=
+    date.getMonth();
+
+    loadCurrentMonth();
+    return;
+    }
+
+    renderCalendar();
+    renderSelectedDate();
+
+    dom.selectedSection
+    ?.scrollIntoView({
+    behavior:"smooth",
+    block:"start"
+    });
+    }
+    );
+
+    return dayButton;
+    }
+
+    /*==================================================
+    RENDER CALENDAR
+    ==================================================*/
+
+    function renderCalendar(){
+    if(!dom.calendarGrid)return;
+
+    dom.calendarGrid.innerHTML="";
+
+    if(dom.monthTitle){
+    dom.monthTitle.textContent=
+    `${displayYear}년 ${displayMonth+1}월`;
+    }
+
+    const firstDate=
+    new Date(
+    displayYear,
+    displayMonth,
+    1
+    );
+
+    const firstWeekday=
+    firstDate.getDay();
+
+    const calendarStart=
+    new Date(
+    displayYear,
+    displayMonth,
+    1-firstWeekday
+    );
+
+    for(
+    let index=0;
+    index<42;
+    index+=1
+    ){
+    const date=
+    new Date(
+    calendarStart.getFullYear(),
+    calendarStart.getMonth(),
+    calendarStart.getDate()+index
+    );
+
+    const isCurrentMonth=
+    date.getFullYear()===
+    displayYear&&
+    date.getMonth()===
+    displayMonth;
+
+    dom.calendarGrid.appendChild(
+    createCalendarDay(
+    date,
+    isCurrentMonth
+    )
+    );
+    }
+    }
+
+    /*==================================================
+    MONTH SUMMARY
+    ==================================================*/
+
+    function renderMonthSummary(){
+    if(dom.monthEventCount){
+    dom.monthEventCount.textContent=
+    `${monthEvents.length}개`;
+    }
+    }
+
+    /*==================================================
+    SELECTED DATE TITLE
+    ==================================================*/
+
+    function getSelectedDateTitle(){
+    const parts=
+    selectedDateKey
+    .split("-")
+    .map(Number);
+
+    if(parts.length!==3){
+    return"선택한 날짜";
+    }
+
+    const date=
+    new Date(
+    parts[0],
+    parts[1]-1,
+    parts[2]
+    );
+
+    const weekdays=[
+    "일","월","화","수","목","금","토"
+    ];
+
+    return(
+    `${date.getMonth()+1}월 `+
+    `${date.getDate()}일 `+
+    `(${weekdays[date.getDay()]})`
+    );
+    }
+
+    /*==================================================
+    CREATE DETAIL EVENT
+    ==================================================*/
+
+    function createDetailEvent(event){
+    const detail=
+    document.createElement("article");
+
+    detail.className=
+    "detail-event";
+
+    const icon=
+    document.createElement("div");
+
+    icon.className=
+    "detail-icon";
+
+    icon.textContent=
+    getEventIcon(event);
+
+    const content=
+    document.createElement("div");
+
+    content.className=
+    "detail-content";
+
+    const title=
+    document.createElement("h3");
+
+    title.className=
+    "detail-title";
+
+    title.textContent=
+    getEventTitle(event);
+
+    const meta=
+    document.createElement("div");
+
+    meta.className=
+    "detail-meta";
+
+    const time=
+    getEventTime(event);
+
+    const place=
+    cleanText(
+    event.place||
+    event.location||
+    event.room
+    );
+
+    if(time){
+    const timeElement=
+    document.createElement("span");
+
+    timeElement.textContent=
+    `🕐 ${time}`;
+
+    meta.appendChild(
+    timeElement
+    );
+    }
+
+    if(place){
+    const placeElement=
+    document.createElement("span");
+
+    placeElement.textContent=
+    `📍 ${place}`;
+
+    meta.appendChild(
+    placeElement
+    );
+    }
+
+    const description=
+    cleanText(
+    event.description||
+    event.content||
+    event.detail||
+    event.memo
+    );
+
+    content.appendChild(title);
+
+    if(meta.children.length>0){
+    content.appendChild(meta);
+    }
+
+    if(description){
+    const descriptionElement=
+    document.createElement("p");
+
+    descriptionElement.className=
+    "detail-description";
+
+    descriptionElement.textContent=
+    description;
+
+    content.appendChild(
+    descriptionElement
+    );
+    }
+
+    detail.append(
+    icon,
+    content
+    );
+
+    return detail;
+    }
+
+    /*==================================================
+    RENDER SELECTED DATE
+    ==================================================*/
+
+    function renderSelectedDate(){
+    const events=
+    getEventsByDate(
+    selectedDateKey
+    );
+
+    if(dom.selectedDate){
+    dom.selectedDate.textContent=
+    getSelectedDateTitle();
+    }
+
+    if(dom.selectedCount){
+    dom.selectedCount.textContent=
+    `${events.length}개`;
+    }
+
+    if(!dom.selectedEvents)return;
+
+    dom.selectedEvents.innerHTML="";
+
+    if(events.length===0){
+    const empty=
+    document.createElement("div");
+
+    empty.className=
+    "empty-detail";
+
+    empty.innerHTML=
+    "등록된 교회 일정이 없습니다.<br>"+
+    "새 일정이 등록되면 이곳에 표시됩니다.";
+
+    dom.selectedEvents.appendChild(
+    empty
+    );
+
+    return;
+    }
+
+    events.forEach(event=>{
+    dom.selectedEvents.appendChild(
+    createDetailEvent(event)
+    );
+    });
+    }
+
+    /*==================================================
+    DEFAULT SELECTED DATE
+    ==================================================*/
+
+    function setDefaultSelectedDate(){
+    const currentMonthIsToday=
+    displayYear===
+    now.getFullYear()&&
+    displayMonth===
+    now.getMonth();
+
+    if(currentMonthIsToday){
+    selectedDateKey=
+    formatDateKey(now);
+    return;
+    }
+
+    const firstEvent=
+    monthEvents[0];
+
+    if(firstEvent?.dateKey){
+    selectedDateKey=
+    firstEvent.dateKey;
+    return;
+    }
+
+    selectedDateKey=
+    displayYear+
+    "-"+
+    padNumber(
+    displayMonth+1
+    )+
+    "-01";
+    }
+
+    /*==================================================
+    LOAD CURRENT MONTH
+    ==================================================*/
+
+    async function loadCurrentMonth(){
+    showLoading();
+
+    await loadMonthEvents();
+
+    setDefaultSelectedDate();
+    renderCalendar();
+    renderMonthSummary();
+    renderSelectedDate();
+
+    hideLoading();
+    }
+
+    /*==================================================
+    MONTH MOVE
+    ==================================================*/
+
+    function goPreviousMonth(){
+    displayMonth-=1;
+
+    if(displayMonth<0){
+    displayMonth=11;
+    displayYear-=1;
+    }
+
+    loadCurrentMonth();
+    }
+
+    function goNextMonth(){
+    displayMonth+=1;
+
+    if(displayMonth>11){
+    displayMonth=0;
+    displayYear+=1;
+    }
+
+    loadCurrentMonth();
+    }
+
+    function goTodayMonth(){
+    displayYear=
+    now.getFullYear();
+
+    displayMonth=
+    now.getMonth();
+
+    selectedDateKey=
+    formatDateKey(now);
+
+    loadCurrentMonth();
+    }
+
+    /*==================================================
+    BIND EVENTS
+    ==================================================*/
+
+    function bindEvents(){
+    dom.backBtn?.addEventListener(
+    "click",
+    ()=>{
+    if(
+    window.history.length>1
+    ){
+    window.history.back();
+    return;
+    }
+
+    location.href=
+    PAGE_LINKS.home;
+    }
+    );
+
+    dom.homeBtn?.addEventListener(
+    "click",
+    ()=>{
+    location.href=
+    PAGE_LINKS.home;
+    }
+    );
+
+    dom.previousMonthBtn?.addEventListener(
+    "click",
+    goPreviousMonth
+    );
+
+    dom.nextMonthBtn?.addEventListener(
+    "click",
+    goNextMonth
+    );
+
+    dom.todayMonthBtn?.addEventListener(
+    "click",
+    goTodayMonth
+    );
+
+    dom.headerChurchName?.addEventListener(
+    "click",
+    ()=>{
+    if(!churchId){
+    location.href=
+    PAGE_LINKS.churchSearch;
+    return;
+    }
+
+    location.href=
+    PAGE_LINKS.churchMain+
+    "?churchId="+
+    encodeURIComponent(
+    churchId
+    );
+    }
+    );
+    }
+
+    /*==================================================
+    INITIALIZE
+    ==================================================*/
+
+    async function initializeCalendar(){
+    showLoading();
+
+    bindEvents();
+
+    const hasChurch=
+    await loadChurchInformation();
+
+    if(!hasChurch){
+    renderCalendar();
+    renderMonthSummary();
+    renderSelectedDate();
+    hideLoading();
+
+    showToast(
+    "먼저 본교회를 등록해 주세요."
+    );
+
+    return;
+    }
+
+    await loadCurrentMonth();
+    }
+
+    /*==================================================
+    START
+    ==================================================*/
+
+    document.addEventListener(
+    "DOMContentLoaded",
+    ()=>{
+    initializeCalendar()
+    .catch(error=>{
+    console.error(
+    "교회 달력 초기화 오류:",
+    error
+    );
+
+    hideLoading();
+
+    showToast(
+    "교회 달력을 불러오는 중 오류가 발생했습니다."
+    );
+    });
+    }
+    );
+
+</script>
+
+</body>
+</html>

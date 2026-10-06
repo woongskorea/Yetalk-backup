@@ -1,0 +1,502 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>말씀과 보물창고 | 예톡행복한교회</title>
+    <link rel="stylesheet" href="common.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --safe-top: max(env(safe-area-inset-top, 0px) + 38px, 42px);
+            --header-base-h: 52px;
+            --header-h: calc(var(--header-base-h) + var(--safe-top));
+            --tab-h: 44px;
+            --bottom-bar-h: 154px;
+            --view-h: calc(100dvh - var(--header-h) - var(--tab-h) - var(--bottom-bar-h));
+            --primary: #1d4ed8;
+            --primary-amber: #d97706;
+            --border-line: #cbd5e1;
+            --text-dark: #0f172a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            width: 100%; height: 100%; overflow: hidden;
+            background: #0f172a; font-family: "Pretendard", -apple-system, sans-serif;
+        }
+
+        .archive-app-shell {
+            width: 100%; max-width: 520px; height: 100dvh; margin: 0 auto;
+            display: flex; flex-direction: column; position: relative; background: #ffffff;
+        }
+
+        /* 1. 상단 헤더 */
+        .archive-header {
+            height: var(--header-h); background: #ffffff; border-bottom: 1.5px solid var(--border-line);
+            display: flex; justify-content: space-between; align-items: center; padding: var(--safe-top) 14px 0 14px;
+            flex-shrink: 0; z-index: 100;
+        }
+        .btn-header-back {
+            background: none; border: none; font-size: 26px; font-weight: 900;
+            color: #334155; cursor: pointer; line-height: 1; padding: 4px;
+        }
+        .archive-header-title { font-size: 16.5px; font-weight: 950; color: var(--text-dark); display: flex; align-items: center; gap: 5px; }
+
+        .dual-admin-btn-group {
+            display: inline-flex; align-items: center; background: #dc2626; border-radius: 9999px;
+            padding: 2px; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+        }
+        .btn-admin-room {
+            background: transparent; border: none; color: #ffffff; font-size: 11px; font-weight: 900;
+            padding: 4px 8px; cursor: pointer; border-right: 1px solid rgba(255, 255, 255, 0.35);
+        }
+        .btn-admin-edit {
+            background: transparent; color: #fef08a; border: none;
+            font-size: 11px; font-weight: 900; padding: 4px 8px; cursor: pointer;
+        }
+
+        /* 2. 가로 탭 바 ('교회소개' 삭제 완료) */
+        .archive-nav-tabs {
+            height: var(--tab-h); background: #fffbeb; border-bottom: 1.5px solid #fef3c7;
+            display: flex; gap: 6px; overflow-x: auto; white-space: nowrap;
+            padding: 0 12px; align-items: center; flex-shrink: 0; z-index: 90;
+            scrollbar-width: none;
+        }
+        .archive-nav-tabs::-webkit-scrollbar { display: none; }
+        .arc-tab-chip {
+            background: #ffffff; border: 1px solid #fde68a; color: #92400e;
+            font-size: 12.5px; font-weight: 800; padding: 5px 12px; border-radius: 18px;
+            cursor: pointer; flex-shrink: 0; transition: all 0.2s;
+        }
+        .arc-tab-chip.active {
+            background: var(--primary-amber) !important; color: #ffffff !important; border-color: var(--primary-amber) !important;
+            font-weight: 900; box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
+        }
+
+        /* 3. 세로 스냅 뷰포트 (한 화면씩 탁탁) */
+        .archive-scroll-viewport {
+            flex: 1; height: var(--view-h); overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch; scroll-behavior: smooth;
+        }
+        .archive-scroll-viewport::-webkit-scrollbar { display: none; }
+
+        .arc-page-section {
+            width: 100%; min-height: var(--view-h);
+            scroll-snap-align: start; scroll-snap-stop: always;
+            padding: 16px 14px 20px 14px; display: flex; flex-direction: column;
+            background: #ffffff; box-sizing: border-box; justify-content: space-between;
+        }
+
+        .page-title-box {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1.5px solid #e2e8f0; padding-bottom: 8px; flex-shrink: 0;
+        }
+        .page-main-title { font-size: 16.5px; font-weight: 950; color: #0f172a; display: flex; align-items: center; gap: 6px; }
+
+        /* 5개 카드 리스트 */
+        .arc-item-list {
+            display: flex; flex-direction: column; gap: 9px; flex: 1; margin: 10px 0;
+        }
+        .arc-item-card {
+            background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px;
+            padding: 12px; display: flex; flex-direction: column; gap: 5px; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .arc-item-card:active { background: #eff6ff; }
+        .arc-item-header { display: flex; justify-content: space-between; align-items: center; }
+        .arc-cat-tag { font-size: 10.5px; font-weight: 900; color: #d97706; background: #fef3c7; padding: 2px 6px; border-radius: 4px; }
+        .arc-item-title { font-size: 14.5px; font-weight: 900; color: #0f172a; line-height: 1.35; }
+        .arc-item-content {
+            font-size: 12.5px; color: #64748b; line-height: 1.45;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        .arc-bottom-nav-row {
+            display: flex; gap: 8px; align-items: center; padding-top: 6px; flex-shrink: 0;
+        }
+        .btn-arc-action {
+            flex: 1; height: 42px; border-radius: 10px; font-size: 12.5px; font-weight: 900;
+            display: inline-flex; align-items: center; justify-content: center; gap: 4px; cursor: pointer; border: none;
+        }
+
+        /* 🌟 4. 최하단 고정창: 풀스크린 애드몹 & 오늘의 말씀 */
+        .fullscreen-mrec-page {
+            background: #090d16 !important;
+            height: var(--view-h) !important;
+            min-height: var(--view-h) !important;
+            max-height: var(--view-h) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            text-align: center !important;
+            color: #ffffff !important;
+            padding: 14px 14px 16px 14px !important;
+            overflow: hidden !important;
+        }
+        .sponsor-top-notice {
+            font-size: 11.5px; color: #94a3b8; font-weight: 700; display: flex; align-items: center; gap: 4px;
+        }
+        .mrec-ad-wrapper {
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
+        }
+        .mrec-ad-box {
+            width: 300px; height: 250px; background: #131d31; border: 1.5px dashed #38bdf8;
+            border-radius: 12px; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 4px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .mrec-ad-bottom-label {
+            font-size: 10px; font-weight: 800; color: #64748b; letter-spacing: 0.5px;
+        }
+        .today-word-hero-card {
+            width: 100%; max-width: 340px; background: rgba(30, 41, 59, 0.95);
+            border: 1.5px solid #facc15; border-radius: 12px; padding: 10px 14px;
+            text-align: center; box-shadow: 0 0 16px rgba(250, 204, 21, 0.15);
+        }
+        .today-word-tag {
+            font-size: 11px; font-weight: 900; color: #facc15; margin-bottom: 3px;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .today-word-text {
+            font-family: "Nanum Myeongjo", serif; font-size: 13.5px; font-weight: 800;
+            color: #ffffff; line-height: 1.6; word-break: keep-all;
+        }
+        .btn-scroll-top-action {
+            width: 100%; max-width: 340px; height: 42px;
+            background: #1e293b; color: #ffffff; border: 1px solid #475569; border-radius: 21px;
+            font-size: 12.5px; font-weight: 900; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            transition: all 0.15s;
+        }
+        .btn-scroll-top-action:active { background: #334155; transform: scale(0.98); }
+
+        /* 상세 보기 모달 */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            z-index: 9000; align-items: center; justify-content: center; padding: 8px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-card {
+            background: #ffffff; width: 100%; max-width: 490px; height: 92vh;
+            border-radius: 16px; padding: 18px 16px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .modal-body-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+
+        .yetalk-toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.94); color: white; padding: 9px 18px; border-radius: 20px;
+            font-size: 12px; font-weight: 800; z-index: 10000; opacity: 0; visibility: hidden;
+            transition: all 0.25s ease; white-space: nowrap;
+        }
+        .yetalk-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="archive-app-shell">
+
+    <!-- 1. 상단 헤더 -->
+    <header class="archive-header">
+        <button type="button" class="btn-header-back" onclick="goBackToMain()" aria-label="뒤로가기">‹</button>
+        <div class="dual-admin-btn-group">
+            <button type="button" class="btn-admin-room" onclick="location.href='churchadmin.html'" title="관리실 전체설정">◀ 관리실</button>
+            <button type="button" class="btn-admin-edit" onclick="location.href='churchadmin.html'" title="보물창고 관리">화면수정 ▶</button>
+        </div>
+    </header>
+
+    <!-- 2. 가로 탭 바 ('교회소개' 제외 5개 카테고리) -->
+    <nav class="archive-nav-tabs" id="archiveTabs">
+        <button type="button" class="arc-tab-chip active" data-cat="all">📋 전체 보관함</button>
+        <button type="button" class="arc-tab-chip" data-cat="worship">✝️ 설교·예배</button>
+        <button type="button" class="arc-tab-chip" data-cat="group">📑 소모임 사랑방</button>
+        <button type="button" class="arc-tab-chip" data-cat="nextgen">🌱 다음세대</button>
+        <button type="button" class="arc-tab-chip" data-cat="mission">🌍 선교·전도</button>
+    </nav>
+
+    <!-- 3. 세로 스냅 뷰포트 (한 화면씩 탁탁) -->
+    <main class="archive-scroll-viewport" id="archiveViewport">
+
+        <!-- 자료 리스트 1페이지 (5개 단위 스냅) -->
+        <section class="arc-page-section" id="sec_arc_page1">
+            <div class="page-title-box">
+                <span class="page-main-title" id="dispCurrentCatTitle">📋 전체 보물자료 목록</span>
+                <small style="font-size:11.5px; color:#64748b;" id="txtCatCount">0건</small>
+            </div>
+
+            <!-- 자료 리스트 -->
+            <div class="arc-item-list" id="arcItemList"></div>
+
+            <div class="arc-bottom-nav-row">
+                <button type="button" class="btn-arc-action" style="background:#f1f5f9; color:#334155;" onclick="loadMorePosts()">
+                    이전 자료 5개 더보기 ▾
+                </button>
+                <button type="button" class="btn-arc-action" style="background:#d97706; color:white;" onclick="scrollToAdmobSection()">
+                    스폰서 후원 ❯
+                </button>
+            </div>
+        </section>
+
+        <!-- 🌟 4. 최하단 고정창: 풀스크린 애드몹 300x250 & 하루 4번 말씀 & 제일 위로 가기 -->
+        <section class="arc-page-section fullscreen-mrec-page" id="sec_archive_admob">
+            <div class="sponsor-top-notice">
+                <span>🕊️</span> 교회 미디어 선교를 후원하는 공식 스폰서 공간입니다
+            </div>
+
+            <div class="mrec-ad-wrapper">
+                <div class="mrec-ad-box">
+                    <div style="font-size:32px;">🎁</div>
+                    <div style="font-size:16px; font-weight:950; color:#38bdf8;">Google AdMob Premium</div>
+                    <div style="font-size:11.5px; color:#cbd5e1; font-weight:700;">지역 맞춤형 공식 스폰서 배너</div>
+                </div>
+                <span class="mrec-ad-bottom-label">광고 | SPONSORED</span>
+            </div>
+
+            <!-- 하루 4번 시간대별 말씀 -->
+            <div class="today-word-hero-card">
+                <div class="today-word-tag" id="dispArcTimeTag">🕊️ 오늘의 약속 말씀</div>
+                <div class="today-word-text" id="dispArcTimeWord">
+                    “두려워하지 말라 내가 너와 함께 함이라 놀라지 말라 나는 네 하나님이 됨이라 내가 너를 굳세게 하리라 (이사야 41:10)”
+                </div>
+            </div>
+
+            <button type="button" class="btn-scroll-top-action" onclick="scrollToTop()">
+                <span>⌃</span> <strong>제일 위로 가기</strong>
+            </button>
+        </section>
+
+    </main>
+
+    <!-- 자료 상세 보기 모달 -->
+    <div class="modal-overlay" id="modalArchiveDetail">
+        <div class="modal-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #e2e8f0; padding-bottom:8px;">
+                <span id="arcDetailBadge" class="arc-cat-tag">분류</span>
+                <button type="button" style="background:none; border:none; font-size:22px; cursor:pointer;" onclick="closeModal('modalArchiveDetail')">×</button>
+            </div>
+            <div class="modal-body-scroll">
+                <h1 style="font-size:17px; font-weight:950; color:#0f172a; line-height:1.35;" id="arcDetailTitle"></h1>
+                <div style="font-size:11.5px; color:#94a3b8; font-weight:700;" id="arcDetailDate"></div>
+                <img id="arcDetailImg" style="width:100%; border-radius:8px; display:none;" alt="첨부자료">
+                <div id="arcDetailFileBox" style="display:none; background:#f0f9ff; border:1px solid #bae6fd; padding:10px; border-radius:8px;">
+                    <a href="javascript:void(0)" id="arcDetailFileLink" style="font-size:12.5px; font-weight:900; color:#0284c7; text-decoration:underline;">첨부 문서 열람하기</a>
+                </div>
+                <div style="font-size:14px; line-height:1.8; color:#1e293b; white-space:pre-line;" id="arcDetailContent"></div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #e2e8f0; padding-top:8px;">
+                <button type="button" class="btn-arc-action" style="background:#0284c7; color:white; max-width:120px;" onclick="window.print()">🖨️ 인쇄</button>
+                <button type="button" class="btn-arc-action" style="background:#e2e8f0; color:#334155; max-width:80px;" onclick="closeModal('modalArchiveDetail')">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="yetalk-toast" id="yetalkToast"></div>
+
+</div>
+
+<script>
+    /* 1. 하루 4번 시간대별 말씀 DB */
+    const DAILY_HOURLY_WORDS = {
+        0: { morning: "여호와는 나의 목자시니 내게 부족함이 없으리로다. (시편 23:1)", noon: "내게 능력 주시는 자 안에서 내가 모든 것을 할 수 있느니라. (빌립보서 4:13)", evening: "수고하고 무거운 짐 진 자들아 다 내게로 오라. (마태복음 11:28)", night: "내가 평안히 눕고 자기도 하리니 나를 살게 하시는 이는 오직 여호와이시니이다. (시편 4:8)" },
+        1: { morning: "두려워하지 말라 내가 너와 함께 함이라. (이사야 41:10)", noon: "오직 여호와를 앙망하는 자는 새 힘을 얻으리니. (이사야 40:31)", evening: "너의 길을 여호와께 맡기라 그를 의지하면 그가 이루시고. (시편 37:5)", night: "여호와께서 너를 지켜 모든 환난을 면하게 하시며. (시편 121:7)" },
+        2: { morning: "너는 마음을 다하여 여호와를 신뢰하라. (잠언 3:5)", noon: "사람이 마음으로 자기의 길을 계획할지라도 그의 걸음을 인도하시는 이는 여호와시니라. (잠언 16:9)", evening: "하나님은 우리의 피난처시요 힘이시니 환난 중에 만날 큰 도움이시라. (시편 46:1)", night: "주의 말씀은 내 발에 등이요 내 길에 빛이니이다. (시편 119:105)" },
+        3: { morning: "아무 것도 염려하지 말고 기도와 간구로 아뢰라. (빌립보서 4:6)", noon: "모든 지각에 뛰어난 하나님의 평강이 너희 마음과 생각을 지키시리라. (빌립보서 4:7)", evening: "여호와는 마음이 상한 자를 가까이 하시고 충심으로 통회하는 자를 구원하시는도다. (시편 34:18)", night: "내가 너를 지명하여 불렀나니 너는 내 것이라. (이사야 43:1)" },
+        4: { morning: "하나님을 사랑하는 자들에게는 모든 것이 합력하여 선을 이루느니라. (로마서 8:28)", noon: "난 여호와로 말미암아 즐거워하며 내 구원의 하나님으로 말미암아 기뻐하리로다. (하박국 3:18)", evening: "항상 기뻐하라 쉬지 말고 기도하라 범사에 감사하라. (데살로니가전서 5:16-18)", night: "여호와는 네게 복을 주시고 너를 지키시기를 원하노라. (민수기 6:24)" },
+        5: { morning: "너희 안에서 착한 일을 시작하신 이가 그리스도 예수의 날까지 이루실 줄을 확신하노라. (빌립보서 1:6)", noon: "또 여호와를 기뻐하라 그가 네 마음의 소원을 네게 이루어 주시리로다. (시편 37:4)", evening: "내 영혼아 네가 어찌하여 낙심하며 어찌하여 내 속에서 불안해 하는가 너는 하나님께 소망을 두라. (시편 42:5)", night: "여호와께서 그의 사랑하시는 자에게는 잠을 주시는도다. (시편 127:2)" },
+        6: { morning: "여호와를 경외하는 것이 지혜의 근본이요 거룩하신 자를 아는 것이 명철이니라. (잠언 9:10)", noon: "평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라. (요한복음 14:27)", evening: "보라 형제가 연합하여 동거함이 어찌 그리 선하고 아름다운고. (시편 133:1)", night: "내 영혼아 여호와를 송축하며 그의 모든 은택을 잊지 말지어다. (시편 103:2)" }
+    };
+
+    function updateDailyWord() {
+        const now = new Date();
+        const day = now.getDay();
+        const hour = now.getHours();
+
+        let slot = "morning";
+        let tag = "🌅 오늘 아침의 축복 약속";
+        if (hour >= 5 && hour < 11) { slot = "morning"; tag = "🌅 오늘 아침의 축복 약속"; }
+        else if (hour >= 11 && hour < 17) { slot = "noon"; tag = "☀️ 한낮의 평안과 능력의 말씀"; }
+        else if (hour >= 17 && hour < 22) { slot = "evening"; tag = "🌆 저녁의 위로와 감사의 말씀"; }
+        else { slot = "night"; tag = "🌙 평안한 밤을 위한 쉼의 약속"; }
+
+        const word = (DAILY_HOURLY_WORDS[day] || DAILY_HOURLY_WORDS[0])[slot];
+        document.getElementById("dispArcTimeTag").innerText = tag;
+        document.getElementById("dispArcTimeWord").innerText = `“${word}”`;
+    }
+
+    /* 2. 보물창고 데이터 및 카테고리 필터링 엔진 */
+    let fullArchiveList = [];
+    let currentCategory = "all";
+    let currentDisplayLimit = 5;
+
+    const CAT_MAP = {
+        all: { title: "📋 전체 보물자료 목록", label: "전체" },
+        worship: { title: "✝️ 주일·주간 설교 말씀 자료", label: "설교·예배" },
+        group: { title: "📑 소모임 사랑방 구역 나눔지", label: "소모임·구역" },
+        nextgen: { title: "🌱 다음세대 주일학교 교육 자료", label: "다음세대" },
+        mission: { title: "🌍 국내외 선교·전도 사역 보고", label: "선교·전도" }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        updateDailyWord();
+        loadArchiveData();
+        initCategoryTabs();
+        renderCurrentCategoryView();
+    });
+
+    function loadArchiveData() {
+        try {
+            const saved = localStorage.getItem("yetalkArchiveList");
+            fullArchiveList = saved ? JSON.parse(saved) : [
+                { id: "a1", mainCategory: "worship", subCategory: "sermon", title: "하나님의 사랑과 성도의 사명 (주일설교 요약)", content: "독생자를 주신 십자가의 확실한 사랑을 기억하며 세상 속에서 빛과 소금의 사명을 다합시다.", publishDate: "2026-09-20", media: null },
+                { id: "a2", mainCategory: "department", subCategory: "smallGroup", title: "9월 3주차 사랑방 소모임 나눔지", content: "한 주간 염려 대신 주님을 신뢰하고 승리했던 감사 제목을 서로 나누어 봅시다.", publishDate: "2026-09-20", media: null },
+                { id: "a3", mainCategory: "worship", subCategory: "wed", title: "수요 성경 강해: 믿음의 반석 위에 서라", content: "비가 내리고 바람이 불어도 결코 무너지지 않는 든든한 반석 위에 집을 지은 지혜로운 성도가 됩시다.", publishDate: "2026-09-16", media: null },
+                { id: "a4", mainCategory: "nextgen", subCategory: "notice", title: "가을 주일학교 성경골든벨 대회 안내", content: "다음세대 자녀들이 말씀으로 무장하는 성경골든벨 대회가 이번 달 마지막 주일에 개최됩니다.", publishDate: "2026-09-15", media: null },
+                { id: "a5", mainCategory: "mission", subCategory: "notice", title: "필리핀 단기선교 사역 보고 및 기도제목", content: "현지 교회 건축과 어린이 성경학교 사역을 은혜 가운데 마쳤습니다. 지속적인 중보기도를 부탁드립니다.", publishDate: "2026-09-10", media: null }
+            ];
+        } catch(e) {
+            fullArchiveList = [];
+        }
+    }
+
+    // 🌟 상단 탭 누를 때 즉시 본문 리스트 교체
+    function initCategoryTabs() {
+        const chips = document.querySelectorAll(".arc-tab-chip");
+        chips.forEach(chip => {
+            chip.addEventListener("click", () => {
+                chips.forEach(c => c.classList.remove("active"));
+                chip.classList.add("active");
+                currentCategory = chip.dataset.cat;
+                currentDisplayLimit = 5; // 탭 변경 시 5개부터 다시 시작
+                renderCurrentCategoryView();
+                document.getElementById("archiveViewport").scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+    }
+
+    function renderCurrentCategoryView() {
+        const container = document.getElementById("arcItemList");
+        container.innerHTML = "";
+
+        // 카테고리 필터링
+        let filtered = fullArchiveList.filter(item => {
+            if (currentCategory === "all") return true;
+            if (currentCategory === "worship") return item.mainCategory === "worship";
+            if (currentCategory === "group") return item.mainCategory === "department" || item.subCategory === "smallGroup";
+            if (currentCategory === "nextgen") return item.mainCategory === "nextgen";
+            if (currentCategory === "mission") return item.mainCategory === "mission";
+            return item.mainCategory === currentCategory;
+        });
+
+        // 헤더 타이틀 및 총 건수 갱신
+        const catInfo = CAT_MAP[currentCategory] || { title: "자료 목록", label: "자료" };
+        document.getElementById("dispCurrentCatTitle").innerText = catInfo.title;
+        document.getElementById("txtCatCount").innerText = `${filtered.length}건`;
+
+        // 5개씩 슬라이스
+        const sliced = filtered.slice(0, currentDisplayLimit);
+
+        if (sliced.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:50px 10px; color:#94a3b8; font-size:13px;">
+                    등록된 자료가 없습니다.
+                </div>`;
+            return;
+        }
+
+        sliced.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "arc-item-card";
+            div.onclick = () => openArchiveDetailModal(item.id);
+
+            let badgeName = catInfo.label;
+            if (item.mainCategory === "department" || item.subCategory === "smallGroup") badgeName = "소모임·구역";
+            else if (item.mainCategory === "worship") badgeName = "설교·예배";
+
+            div.innerHTML = `
+                <div class="arc-item-header">
+                    <span class="arc-cat-tag">${badgeName}</span>
+                    <span style="font-size:11px; color:#94a3b8;">${item.publishDate || ''}</span>
+                </div>
+                <strong class="arc-item-title">${item.title}</strong>
+                <p class="arc-item-content">${item.content}</p>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // 5개 단위 페이징 더보기
+    function loadMorePosts() {
+        currentDisplayLimit += 5;
+        renderCurrentCategoryView();
+        showToast("이전 자료 5개를 추가로 불러왔습니다.");
+    }
+
+    function scrollToAdmobSection() {
+        const el = document.getElementById("sec_archive_admob");
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function scrollToTop() {
+        document.getElementById("archiveViewport").scrollTo({ top: 0, behavior: 'smooth' });
+        showToast("⌃ 최상단으로 이동했습니다.");
+    }
+
+    /* 3. 상세 보기 모달 */
+    function openArchiveDetailModal(id) {
+        const item = fullArchiveList.find(a => a.id === id);
+        if (!item) return;
+
+        document.getElementById("arcDetailTitle").innerText = item.title;
+        document.getElementById("arcDetailDate").innerText = item.publishDate || '';
+        document.getElementById("arcDetailContent").innerText = item.content;
+
+        const catInfo = CAT_MAP[item.mainCategory] || { label: "보물자료" };
+        document.getElementById("arcDetailBadge").innerText = catInfo.label;
+
+        const imgEl = document.getElementById("arcDetailImg");
+        const fileBox = document.getElementById("arcDetailFileBox");
+        const fileLink = document.getElementById("arcDetailFileLink");
+
+        if (item.media && item.media.type === "image") {
+            imgEl.src = item.media.data;
+            imgEl.style.display = "block";
+            fileBox.style.display = "none";
+        } else if (item.media && item.media.type === "file") {
+            imgEl.style.display = "none";
+            fileBox.style.display = "block";
+            fileLink.innerText = `${item.media.name} 열람하기`;
+            fileLink.onclick = () => {
+                const w = window.open("");
+                w.document.write(`<iframe src="${item.media.data}" style="width:100%; height:100%; border:none;"></iframe>`);
+            };
+        } else {
+            imgEl.style.display = "none";
+            fileBox.style.display = "none";
+        }
+
+        document.getElementById("modalArchiveDetail").classList.add("open");
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove("open");
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById("yetalkToast");
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    function goBackToMain() {
+        sessionStorage.setItem("church_last_active_card_idx", "10");
+        location.href = "churchmain.html";
+    }
+</script>
+
+<script src="church_bottom_bar.js"></script>
+</body>
+</html>

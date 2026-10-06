@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>예톡 다음세대 공간</title>
+    <link rel="stylesheet" href="../common.css">
+
+    <script>
+        (function() {
+            const getChurchId = () => localStorage.getItem("yetalkMyChurchId") || localStorage.getItem("currentChurchId") || "yetalk-church";
+            const savedTheme = localStorage.getItem("yetalkChurchTheme_" + getChurchId()) || localStorage.getItem("yetalkThemeColor") || "blue";
+            document.documentElement.className = "theme-" + savedTheme;
+        })();
+    </script>
+
+    <style>
+        :root { --primary: #3b82f6; }
+        html.theme-blue { --primary: #3b82f6; }
+        html.theme-red { --primary: #dc2626; }
+        html.theme-green { --primary: #16a34a; }
+        html.theme-orange { --primary: #ea580c; }
+        html.theme-purple { --primary: #9333ea; }
+        html.theme-pink { --primary: #db2777; }
+        html.theme-black { --primary: #111827; }
+        html.theme-navy { --primary: #1e3a8a; }
+
+        body { margin: 0; padding: 0; background: #f1f5f9; font-family: "Pretendard", sans-serif; display: flex; flex-direction: column; min-height: 100vh; }
+        .hidden { display: none !important; }
+
+        /* 상단 헤더 및 관리자 ON/OFF 버튼 */
+        .med-header { background: var(--primary); color: #fff; padding: max(10px, env(safe-area-inset-top)) 16px 10px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .med-header-left { display: flex; align-items: center; gap: 10px; }
+        .med-back-btn { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
+        .med-header-title { font-size: 18px; font-weight: 900; }
+        .adminStateBtn { background: #111827; color: #fff; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; }
+
+        /* ⭐ 부서별 1차 탭 (조금 더 크게 확대) */
+        .dept-tab-bar { background: #fff; display: flex; overflow-x: auto; border-bottom: 1px solid #e2e8f0; scrollbar-width: none; }
+        .dept-tab-bar::-webkit-scrollbar { display: none; }
+        .dept-tab { padding: 14px 20px; font-size: 17px; font-weight: 900; color: #64748b; background: none; border: none; cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; }
+        .dept-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* ⭐ 2차 서브 탭 및 부서장 버튼 (조금 더 큼직하게 개선) */
+        .sub-tab-bar { background: #f8fafc; display: flex; padding: 12px 16px; gap: 10px; border-bottom: 1px solid #e2e8f0; justify-content: space-between; align-items: center; }
+        .sub-tab-group { display: flex; gap: 8px; }
+        .sub-tab { padding: 10px 18px; border-radius: 20px; font-size: 14.5px; font-weight: 900; background: #e2e8f0; color: #475569; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .sub-tab.active { background: var(--primary); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
+        .leader-register-btn { background: #fef08a; color: #a16207; border: 1px solid #fde047; padding: 8px 14px; border-radius: 16px; font-size: 13px; font-weight: 900; cursor: pointer; }
+
+        /* 메인 컨테이너 (은은한 미색 배경 톤) */
+        .med-container { flex: 1; padding: 16px; max-width: 600px; width: 100%; margin: 0 auto; box-sizing: border-box; padding-bottom: 90px; background: #f8fafc; }
+
+        /* 잠금 화면 (시크릿 채팅방 보호용) */
+        .lock-screen { background: #fff; border-radius: 12px; padding: 40px 20px; text-align: center; margin-top: 20px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .lock-icon { font-size: 48px; margin-bottom: 12px; }
+        .lock-title { font-size: 18px; font-weight: 900; color: #0f172a; margin-bottom: 8px; }
+        .lock-desc { font-size: 14px; color: #64748b; line-height: 1.5; margin-bottom: 20px; }
+        .request-invite-btn { background: var(--primary); color: #fff; border: none; padding: 12px 24px; border-radius: 10px; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+        /* 게시글 카드 */
+        .med-post-card { background: #ffffff; border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); border: 1px solid #cbd5e1; }
+        .post-meta-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: #64748b; font-weight: 700; }
+        .post-author { color: #334155; font-weight: 800; }
+        .post-title { font-size: 18px; font-weight: 900; color: #0f172a; margin-bottom: 8px; line-height: 1.4; }
+        .post-body { font-size: 15px; color: #1e293b; line-height: 1.6; white-space: pre-wrap; word-break: keep-all; margin-bottom: 12px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
+
+        .post-photo-slider { width: 100%; height: 260px; background: #e2e8f0; border-radius: 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; color: #64748b; font-weight: 900; font-size: 16px; border: 1px dashed #94a3b8; }
+
+        /* ⭐ 관리자/부서장 전용 수정/삭제/새글 버튼 바 */
+        .admin-action-bar { display: flex; gap: 8px; margin-bottom: 12px; justify-content: flex-end; }
+        .admin-btn { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 900; border: none; cursor: pointer; }
+        .btn-edit { background: #e0f2fe; color: #0284c7; }
+        .btn-delete { background: #fee2e2; color: #dc2626; }
+
+        /* 애드몹 광고 */
+        .med-ad-box { background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 10px; padding: 14px; margin: 12px 0; text-align: center; }
+        .med-ad-title { font-size: 12px; font-weight: 900; color: #64748b; margin-bottom: 4px; }
+        .med-ad-content { font-size: 13.5px; font-weight: 800; color: var(--primary); line-height: 1.4; }
+
+        /* ⭐ 아래 화살표 및 바로 위 새글 올리기 메뉴 */
+        .page-nav-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 20px 0 30px; }
+        .new-post-inline-btn { background: #fef08a; color: #a16207; border: 1px solid #fde047; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 900; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+        .swipe-arrow-btn { background: transparent; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; }
+        .swipe-arrow-btn span.text { font-size: 13px; font-weight: 800; color: #64748b; }
+        .swipe-arrow-btn span.arrow { font-size: 32px; color: var(--primary); animation: bounceUpDown 1.5s infinite; line-height: 1; }
+        @keyframes bounceUpDown { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+
+        /* 댓글 섹션 */
+        .comment-section { margin-top: 12px; background: #f1f5f9; border-radius: 8px; padding: 10px; border: 1px solid #e2e8f0; }
+        .comment-item { padding: 8px 0; border-bottom: 1px solid #cbd5e1; font-size: 13px; }
+        .comment-item:last-child { border-bottom: none; }
+        .comment-writer { font-weight: 800; color: #334155; margin-bottom: 2px; }
+        .comment-text { color: #475569; line-height: 1.4; }
+
+        .comment-input-row { display: flex; gap: 6px; margin-top: 8px; }
+        .comment-textarea { flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 13px; outline: none; background: #fff; }
+        .comment-submit-btn { padding: 0 14px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<header class="med-header">
+    <div class="med-header-left">
+        <button class="med-back-btn" onclick="history.back()">←</button>
+        <span class="med-header-title">다음세대 공간</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+        <button type="button" class="adminStateBtn" id="adminStateBtn" onclick="toggleGlobalAdmin()">관리자 OFF</button>
+        <span style="font-size: 13px; font-weight: 800;" id="churchNameText">우리 교회</span>
+    </div>
+</header>
+
+<!-- 1차 부서별 탭 (확대됨) -->
+<div class="dept-tab-bar" id="deptTabBar">
+    <button class="dept-tab active" onclick="switchDept('kinder')">유치부</button>
+    <button class="dept-tab" onclick="switchDept('children')">어린이부</button>
+    <button class="dept-tab" onclick="switchDept('youth')">중고등부</button>
+    <button class="dept-tab" onclick="switchDept('youngadult')">열린청년부</button>
+</div>
+
+<!-- 2차 서브 탭 및 부서장 등록 버튼 (확대됨) -->
+<div class="sub-tab-bar">
+    <div class="sub-tab-group">
+        <button class="sub-tab active" id="subTabPhoto" onclick="switchSubTab('photo')">📸 부서 사진</button>
+        <button class="sub-tab" id="subTabChat" onclick="switchSubTab('chat')">💬 은혜 채팅방</button>
+    </div>
+    <button class="leader-register-btn" id="leaderRegBtn" onclick="registerAsLeader()">👑 부서장 등록</button>
+</div>
+
+<main class="med-container" id="medContainer">
+    <!-- 동적 렌더링 -->
+</main>
+
+<script>
+    let currentDept = 'kinder';
+    let currentSubTab = 'photo';
+    let isUserInvited = false;
+    let isUserLeader = false;
+    let isManagerOn = false;   // 전역 관리자 모드 ON/OFF
+
+    document.addEventListener("DOMContentLoaded", () => {
+        initChurchName();
+        initAdminState();
+        checkLeaderStatus();
+        renderContent();
+    });
+
+    function initChurchName() {
+        const name = localStorage.getItem("yetalkMyChurchName") || localStorage.getItem("currentChurchName") || "우리 교회";
+        document.getElementById("churchNameText").innerText = name;
+    }
+
+    function initAdminState() {
+        isManagerOn = localStorage.getItem("yetalk_chat_admin_on") === "true";
+        const btn = document.getElementById("adminStateBtn");
+        if (isManagerOn) {
+            btn.textContent = "관리자 ON";
+            btn.style.background = "#dc2626";
+        } else {
+            btn.textContent = "관리자 OFF";
+            btn.style.background = "#111827";
+        }
+    }
+
+    window.toggleGlobalAdmin = function() {
+        const current = localStorage.getItem("yetalk_chat_admin_on") === "true";
+        localStorage.setItem("yetalk_chat_admin_on", !current);
+        location.reload();
+    };
+
+    function checkLeaderStatus() {
+        const leaderKey = "yetalk_leader_" + currentDept;
+        isUserLeader = localStorage.getItem(leaderKey) === "true";
+        if(isUserLeader) isUserInvited = true;
+    }
+
+    window.registerAsLeader = function() {
+        const leaderKey = "yetalk_leader_" + currentDept;
+        if(isUserLeader) {
+            alert(`이미 ${getDeptName(currentDept)}의 부서장(방장)으로 등록되어 있습니다.`);
+            return;
+        }
+        if(confirm(`[${getDeptName(currentDept)}]의 부서장(방장)으로 등록하시겠습니까?\n등록 시 해당 부서의 콘텐츠 관리 및 승인 권한이 부여됩니다.`)) {
+            localStorage.setItem(leaderKey, "true");
+            isUserLeader = true;
+            isUserInvited = true;
+            alert(`축하합니다! ${getDeptName(currentDept)} 부서장으로 등록되었습니다.`);
+            renderContent();
+        }
+    };
+
+    function getDeptName(dept) {
+        if(dept === 'kinder') return '유치부';
+        if(dept === 'children') return '어린이부';
+        if(dept === 'youth') return '중고등부';
+        if(dept === 'youngadult') return '열린청년부';
+        return '부서';
+    }
+
+    window.switchDept = function(dept) {
+        currentDept = dept;
+        document.querySelectorAll('.dept-tab').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        checkLeaderStatus();
+        renderContent();
+    };
+
+    window.switchSubTab = function(sub) {
+        currentSubTab = sub;
+        if(sub === 'photo') {
+            document.getElementById('subTabPhoto').classList.add('active');
+            document.getElementById('subTabChat').classList.remove('active');
+        } else {
+            document.getElementById('subTabChat').classList.add('active');
+            document.getElementById('subTabPhoto').classList.remove('active');
+        }
+        renderContent();
+    };
+
+    window.requestInvite = function() {
+        alert("부서장 및 교회 관리자에게 채팅방 입장 신청이 전달되었습니다!\n승인 대기 중입니다.");
+        renderContent();
+    };
+
+    window.addNewPhotoPost = function() {
+        alert(`[${getDeptName(currentDept)}] 새로운 활동 사진을 등록하는 에디터로 이동합니다.`);
+    };
+
+    function renderContent() {
+        const container = document.getElementById("medContainer");
+        container.innerHTML = "";
+
+        const regBtn = document.getElementById("leaderRegBtn");
+        if(isUserLeader) {
+            regBtn.innerText = "👑 부서장(나)";
+            regBtn.style.background = "#22c55e";
+            regBtn.style.color = "#fff";
+        } else {
+            regBtn.innerText = "👑 부서장 등록";
+            regBtn.style.background = "#fef08a";
+            regBtn.style.color = "#a16207";
+        }
+
+        // 관리자이거나 해당 부서장인 경우 수정/삭제 버튼 노출
+        const canManage = isManagerOn || isUserLeader;
+        let adminButtonsHTML = canManage ? `
+            <div class="admin-action-bar">
+                <button class="admin-btn btn-edit" onclick="alert('사진 및 내용을 수정합니다.')">✏️ 수정</button>
+                <button class="admin-btn btn-delete" onclick="if(confirm('이 사진을 삭제하시겠습니까?')) alert('삭제되었습니다.')">🗑️ 삭제</button>
+            </div>
+        ` : '';
+
+        if(currentSubTab === 'photo') {
+            // ⭐ 틱톡/쇼츠 스타일: [사진 1장 ➔ 애드몹 광고 ➔ 새글 버튼 ➔ 아래 화살표] 반복 구조 무한 확장 가능
+            container.innerHTML = `
+                <div style="font-size: 16px; font-weight: 900; color: #0f172a; margin: 4px 0 12px;">🖼️ ${getDeptName(currentDept)} 은혜로운 활동 사진</div>
+
+                <!-- 첫 번째 사진 페이지 -->
+                <div class="med-post-card">
+                    ${adminButtonsHTML}
+                    <div class="post-photo-slider">
+                        📷 [${getDeptName(currentDept)} 예배 활동 사진 1]
+                    </div>
+                    <div style="font-size: 16px; font-weight: 900; color: #0f172a; margin-bottom: 6px;">2026년 봄학기 은혜 가득한 예배 현장</div>
+                    <p style="font-size: 13.5px; color: #64748b; line-height: 1.4;">아이들의 밝은 미소와 함께 하나님께 찬양드리는 행복한 주일입니다.</p>
+                </div>
+
+                <!-- 애드몹 광고 (사진마다 배치하여 수익 극대화) -->
+                <div class="med-ad-box">
+                    <div class="med-ad-title">AD 🪙 구글 애드몹 배너 광고</div>
+                    <div class="med-ad-content">예톡의 광고 수익은 선교 및 섬김 사역을 위해 <br><span style="color:var(--primary);">소중하게 사용됩니다. 🙏</span></div>
+                </div>
+
+                <!-- ⭐ 아래 화살표 바로 위 새글 올리기 메뉴 (관리자/부서장에게만 노출) -->
+                <div class="page-nav-wrap">
+                    ${canManage ? `<button class="new-post-inline-btn" onclick="addNewPhotoPost()">➕ 새 사진 및 글 올리기</button>` : ''}
+                    <button class="swipe-arrow-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                        <span class="text">다음 사진으로 이어보기</span>
+                        <span class="arrow">⬇️</span>
+                    </button>
+                </div>
+
+                <!-- 두 번째 사진 페이지 (무한 스크롤 시뮬레이션) -->
+                <div class="med-post-card" style="margin-top: 20px;">
+                    ${adminButtonsHTML}
+                    <div class="post-photo-slider">
+                        📷 [${getDeptName(currentDept)} 공과 및 야외 모임 사진 2]
+                    </div>
+                    <div style="font-size: 16px; font-weight: 900; color: #0f172a; margin-bottom: 6px;">말씀 안에서 자라나는 반별 모임</div>
+                    <p style="font-size: 13.5px; color: #64748b; line-height: 1.4;">선생님들과 함께 말씀을 깊이 나누고 서로를 위해 기도하는 귀한 시간입니다.</p>
+                </div>
+
+                <div class="med-ad-box">
+                    <div class="med-ad-title">AD 🪙 구글 애드몹 배너 광고</div>
+                    <div class="med-ad-content">예톡의 광고 수익은 선교 및 섬김 사역을 위해 <br><span style="color:var(--primary);">소중하게 사용됩니다. 🙏</span></div>
+                </div>
+            `;
+        } else {
+            // 은혜 채팅방 모드
+            if(!isUserInvited && !isUserLeader && !isManagerOn) {
+                container.innerHTML = `
+                    <div class="lock-screen">
+                        <div class="lock-icon">🔒</div>
+                        <div class="lock-title">${getDeptName(currentDept)} 시크릿 은혜채팅방</div>
+                        <div class="lock-desc">
+                            이 방은 ${getDeptName(currentDept)} 학부모 및 부서원 전용 시크릿 공간입니다.<br>
+                            <strong>부서장</strong> 또는 <strong>교회 관리자</strong>의 승인을 받은 성도님만 입장하실 수 있습니다.
+                        </div>
+                        <button class="request-invite-btn" onclick="requestInvite()">💬 채팅방 입장 신청하기</button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div style="font-size: 13px; font-weight: 800; color: #0284c7; background: #e0f2fe; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; text-align: center; display:flex; justify-content:space-between; align-items:center;">
+                        <span>✅ ${getDeptName(currentDept)} 인증된 멤버 전용 시크릿 채팅방</span>
+                        ${(isUserLeader || isManagerOn) ? '<span style="background:#0284c7; color:#fff; padding:2px 6px; border-radius:4px; font-size:11px;">관리권한 활성</span>' : ''}
+                    </div>
+
+                    <div class="med-post-card">
+                        ${adminButtonsHTML}
+                        <div class="post-meta-row">
+                            <span class="post-author">${getDeptName(currentDept)} 부서장 👀 익명</span>
+                            <span>10분 전 · 조회 28</span>
+                        </div>
+                        <div class="post-title">[공지] 이번 주 주일 간식 및 차량 운행 안내드립니다</div>
+                        <div class="post-body">안녕하세요 부모님들! 이번 주 주일 간식은 김밥과 과일입니다. 아이들 등하원 차량 시간표 변동 사항이 있으신 분들은 미리 연락 부탁드립니다~ 🙏</div>
+
+                        <div class="med-ad-box">
+                            <div class="med-ad-title">AD 🪙 구글 애드몹 배너 광고</div>
+                            <div class="med-ad-content">예톡의 광고 수익은 선교 및 섬김 사역을 위해 <br><span style="color:var(--primary);">소중하게 사용됩니다. 🙏</span></div>
+                        </div>
+
+                        <div class="post-action-bar">
+                            <button class="action-item liked">❤️ 추천 <strong>5</strong></button>
+                            <button class="action-item">💬 댓글 <strong>1</strong></button>
+                        </div>
+
+                        <div class="comment-section">
+                            <div class="comment-item">
+                                <div class="comment-writer">은혜열정맘 👀 익명</div>
+                                <div class="comment-text">네 확인했습니다! 섬겨주셔서 늘 감사드려요 💛</div>
+                            </div>
+
+                            <div class="comment-input-row">
+                                <input type="text" class="comment-textarea" placeholder="우리 부서 성도님들과 은혜를 나눠보세요" autocomplete="off">
+                                <button class="comment-submit-btn" onclick="alert('댓글이 등록되었습니다!')">등록</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

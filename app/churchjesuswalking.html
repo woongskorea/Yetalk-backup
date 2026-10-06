@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <title>예수동행 릴스 카드뉴스 | 예톡</title>
+    <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/main/assets/church/churchmain.css">
+    <style>
+        .church-app {
+            min-height: 100vh;
+            padding-bottom: calc(150px + env(safe-area-inset-bottom));
+            background: #0f172a;
+        }
+        #churchHeader {
+            background: rgba(15, 23, 42, 0.9) !important;
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .admin-switch-btn {
+            background: #1e293b; color: #fff; font-size: 13px; font-weight: 900;
+            padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer; transition: 0.2s;
+        }
+        .admin-switch-btn.on { background: #dc2626; border-color: #dc2626; box-shadow: 0 0 12px rgba(220, 38, 38, 0.6); }
+
+        .reels-container {
+            width: min(100%, 460px);
+            margin: 10px auto;
+            padding: 0 16px;
+        }
+
+        /* 🎬 시네마틱 릴스 카드 프레임 */
+        .reels-card-wrapper {
+            position: relative;
+            border-radius: 26px;
+            overflow: hidden;
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
+            background-color: #000000;
+            aspect-ratio: 4/5;
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        /* 🎥 켄 번스 배경 모션 */
+        .reels-bg-layer {
+            position: absolute;
+            inset: -12px;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+            animation: kenBurnsMotion 20s ease-in-out infinite alternate;
+            transition: background-image 0.6s ease-in-out;
+        }
+        @keyframes kenBurnsMotion {
+            0% { transform: scale(1.0) translate(0, 0); }
+            50% { transform: scale(1.1) translate(-1%, -1%); }
+            100% { transform: scale(1.05) translate(1%, 1%); }
+        }
+
+        .reels-vignette-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg,
+                rgba(0, 0, 0, 0.7) 0%,
+                rgba(0, 0, 0, 0.25) 30%,
+                rgba(0, 0, 0, 0.3) 70%,
+                rgba(0, 0, 0, 0.8) 100%);
+            z-index: 2;
+            pointer-events: none;
+            transition: background 0.5s ease;
+        }
+        .reels-card-wrapper.light-bg .reels-vignette-overlay {
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.75) 0%,
+                rgba(255, 255, 255, 0.3) 30%,
+                rgba(255, 255, 255, 0.35) 70%,
+                rgba(255, 255, 255, 0.85) 100%);
+        }
+
+        .card-inner-content {
+            position: relative; z-index: 3; padding: 22px 20px; height: 100%;
+            display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;
+        }
+
+        .card-top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .reels-badge {
+            font-size: 11.5px; font-weight: 900; letter-spacing: 1.5px;
+            padding: 4px 10px; border-radius: 20px; backdrop-filter: blur(8px);
+        }
+        .reels-card-wrapper:not(.light-bg) .reels-badge { color: #fff; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); }
+        .reels-card-wrapper.light-bg .reels-badge { color: #0f172a; background: rgba(0,0,0,0.12); border: 1px solid rgba(0,0,0,0.2); }
+
+        .slide-indicator {
+            font-size: 12px; font-weight: 900; padding: 4px 12px; border-radius: 20px; backdrop-filter: blur(6px);
+        }
+        .reels-card-wrapper:not(.light-bg) .slide-indicator { color: #fff; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); }
+        .reels-card-wrapper.light-bg .slide-indicator { color: #0f172a; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.15); }
+
+        /* 애니메이션 */
+        .anim-title { animation: reelsDeepFadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .anim-verse { animation: reelsDeepFadeUp 0.9s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
+        .anim-body  { animation: reelsDeepFadeUp 0.9s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+        @keyframes reelsDeepFadeUp {
+            from { opacity: 0; transform: translateY(32px); filter: blur(4px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        /* 1페이지: 오늘의 말씀 */
+        .card-center-word {
+            text-align: center; margin: auto 0; padding: 10px 0;
+        }
+        .word-title-main {
+            font-size: 26px; font-weight: 900; margin-bottom: 16px; line-height: 1.45; word-break: keep-all;
+        }
+        .reels-card-wrapper:not(.light-bg) .word-title-main {
+            background: linear-gradient(135deg, #ffffff 30%, #fed7aa 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 3px 8px rgba(0,0,0,0.85));
+        }
+        .reels-card-wrapper.light-bg .word-title-main {
+            color: #0f172a; text-shadow: 0 2px 4px rgba(255,255,255,0.8);
+        }
+
+        .word-verse-main {
+            font-size: 17.5px; font-weight: 900; margin-bottom: 24px;
+        }
+        .reels-card-wrapper:not(.light-bg) .word-verse-main { color: #fb7185; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
+        .reels-card-wrapper.light-bg .word-verse-main { color: #dc2626; text-shadow: 0 1px 3px rgba(255,255,255,0.8); }
+
+        .church-source-tag {
+            font-size: 13.5px; font-weight: 800; padding: 6px 14px; border-radius: 20px; display: inline-block; backdrop-filter: blur(4px);
+        }
+        .reels-card-wrapper:not(.light-bg) .church-source-tag { color: #fff; background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.25); }
+        .reels-card-wrapper.light-bg .church-source-tag { color: #0f172a; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.2); }
+
+        /* 묵상글 본문 (딱 두 줄씩 시원하게 중앙 배치) */
+        .card-middle-content {
+            text-align: center; margin: auto 0; padding: 10px 0;
+        }
+        .meditation-text-lg {
+            font-size: 21px; font-weight: 900; line-height: 1.8; white-space: pre-line;
+            text-align: center; word-break: keep-all;
+        }
+        .reels-card-wrapper:not(.light-bg) .meditation-text-lg { color: #ffffff; text-shadow: 0 2px 8px rgba(0,0,0,0.95); }
+        .reels-card-wrapper.light-bg .meditation-text-lg { color: #0f172a; text-shadow: 0 2px 6px rgba(255,255,255,0.9); }
+
+        /* 마지막 초청 카드 스타일 */
+        .fixed-invite-card {
+            display: flex; flex-direction: column; align-items: center; text-align: center; margin: auto 0; padding: 5px;
+        }
+        .invite-icon { font-size: 44px; margin-bottom: 8px; }
+        .invite-title { font-size: 20px; font-weight: 900; margin-bottom: 12px; }
+        .invite-text {
+            font-family: 'Nanum Pen Script', 'Gowun Dodum', cursive, sans-serif;
+            font-size: 26px; font-weight: 400; line-height: 1.55; white-space: pre-line;
+        }
+        .reels-card-wrapper:not(.light-bg) .invite-title { color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.8); }
+        .reels-card-wrapper:not(.light-bg) .invite-text { color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.9); }
+        .reels-card-wrapper.light-bg .invite-title { color: #0f172a; text-shadow: 0 1px 3px rgba(255,255,255,0.8); }
+        .reels-card-wrapper.light-bg .invite-text { color: #1e293b; text-shadow: 0 1px 4px rgba(255,255,255,0.9); }
+
+        /* 카드 하단 화살표 버튼 (모든 페이지 상시 고정) */
+        .card-nav-row {
+            display: flex; justify-content: space-between; align-items: center; margin-top: 6px;
+        }
+        .slide-arrow-btn {
+            width: 42px; height: 42px; border-radius: 50%; font-size: 20px; font-weight: 900;
+            cursor: pointer; backdrop-filter: blur(8px); transition: 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .reels-card-wrapper:not(.light-bg) .slide-arrow-btn { background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4); color: #fff; }
+        .reels-card-wrapper.light-bg .slide-arrow-btn { background: rgba(0,0,0,0.15); border: 1px solid rgba(0,0,0,0.3); color: #0f172a; }
+        .slide-arrow-btn:active { transform: scale(0.95); }
+
+        /* 📲 원터치 인스타 올리기 버튼 */
+        .insta-share-action-row { margin-top: 10px; }
+        .reels-upload-btn {
+            width: 100%; height: 48px;
+            background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            color: #ffffff; border: none; border-radius: 14px; font-size: 15px; font-weight: 900;
+            display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+            box-shadow: 0 6px 20px rgba(220, 39, 67, 0.4); transition: 0.2s;
+        }
+        .reels-upload-btn:active { transform: scale(0.98); }
+
+        /* 하단 교회 바로가기 버튼 */
+        .insta-bottom-actions {
+            display: flex; gap: 10px; margin-top: 8px; align-items: center;
+        }
+        .insta-action-btn {
+            flex: 1; height: 44px; background: rgba(255, 255, 255, 0.12); color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; font-size: 13.5px; font-weight: 800;
+            cursor: pointer; backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s;
+        }
+        .insta-action-btn:active { background: rgba(255, 255, 255, 0.25); }
+
+        /* 방문수 숫자만 표시 */
+        .view-counter-badge {
+            text-align: center; font-size: 12.5px; font-weight: 900; color: rgba(255,255,255,0.5); margin-top: 6px;
+        }
+
+        /* 관리자 수정 폼 */
+        .edit-form-box {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #0f172a; z-index: 99999; padding: 20px; box-sizing: border-box;
+            overflow-y: auto; display: none;
+        }
+        .cafe-form-inner {
+            width: min(100%, 720px); margin: 0 auto; background: #ffffff; border-radius: 20px; padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-top: 10px; margin-bottom: 50px;
+        }
+        .cafe-form-inner label { font-size: 14.5px; font-weight: 900; color: #1e293b; display: block; margin-bottom: 6px; margin-top: 14px; }
+        .cafe-form-inner input, .cafe-form-inner textarea {
+            width: 100%; padding: 14px 16px; border: 2px solid #94a3b8; border-radius: 12px; font-size: 16px; font-weight: 800; box-sizing: border-box; outline: none; background: #fff; color: #000;
+        }
+        .cafe-form-inner textarea { height: 180px; resize: vertical; line-height: 1.7; }
+
+        .bg-selector-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 8px;
+        }
+        .bg-thumb-btn {
+            aspect-ratio: 1; border-radius: 8px; border: 2px solid #cbd5e1; background-size: cover; background-position: center; cursor: pointer; transition: 0.2s;
+        }
+        .bg-thumb-btn.selected {
+            border-color: #ec4899; transform: scale(1.08); box-shadow: 0 4px 10px rgba(236, 72, 153, 0.5);
+        }
+
+        .cafe-form-header-bar {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #e2e8f0; padding-bottom: 14px;
+        }
+        .save-btn {
+            width: 100%; height: 50px; background: #16a34a; color: #fff; border: none; border-radius: 12px; font-size: 17.5px; font-weight: 900; cursor: pointer; margin-top: 22px;
+        }
+
+        .write-btn {
+            background: rgba(255, 255, 255, 0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 16px; border-radius: 12px; font-size: 14px; font-weight: 900; cursor: pointer;
+            width: 100%; margin-top: 8px;
+        }
+
+        /* 하단 고정 애드몹 광고 */
+        .admob-banner-box {
+            position: fixed;
+            bottom: calc(75px + env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(100% - 24px, 720px);
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px dashed #94a3b8;
+            border-radius: 14px;
+            padding: 8px;
+            text-align: center;
+            color: #1e293b;
+            font-size: 12.5px;
+            font-weight: 900;
+            z-index: 999;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
+        }
+
+        #quickToast {
+            position: fixed; bottom: 150px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); color: #fff; padding: 14px 24px; border-radius: 14px; font-size: 15px; font-weight: 900; z-index: 999999; display: none; text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+
+<body>
+<div id="churchAppContainer" class="church-app">
+
+    <header id="churchHeader">
+        <div class="church-header-inner">
+            <button id="backHomeBtn" type="button" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); border-radius:12px; width:40px; height:40px; font-size:22px; font-weight:900; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;">‹</button>
+            <button id="churchNameButton" type="button" onclick="history.back()">
+                <span id="churchName" style="color:#fff;">예수동행 릴스</span>
+            </button>
+            <div class="church-header-controls" style="display:flex; align-items:center; gap:8px;">
+                <button id="adminSwitchBtn" class="admin-switch-btn" onclick="toggleAdminMode()">관리자 OFF</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="church-main">
+        <div class="reels-container">
+
+            <!-- 관리자 수정 폼 -->
+            <div id="jesusEditFormBox" class="edit-form-box">
+                <div class="cafe-form-inner">
+                    <div class="cafe-form-header-bar">
+                        <h4 style="margin:0; font-size:20px; font-weight:900; color:#0f172a;">오늘의 목사님 묵상 수정</h4>
+                        <button type="button" onclick="closeJesusForm()" style="background:#e2e8f0; border:none; width:36px; height:36px; border-radius:50%; font-size:18px; font-weight:900; cursor:pointer;">✕</button>
+                    </div>
+
+                    <label>📖 오늘의 말씀 제목 (첫 장)</label>
+                    <input type="text" id="inputMeditTitle" placeholder="예: 내가 너를 사랑한 것 같이">
+
+                    <label>성경 구절 (출처)</label>
+                    <input type="text" id="inputVerse" placeholder="예: 요한복음 13:34">
+
+                    <label>묵상 본문 내용 (두 줄씩 자동 분할됩니다)</label>
+                    <textarea id="inputMeditText" placeholder="성도들에게 전할 은혜로운 묵상 내용을 적어주세요..."></textarea>
+
+                    <label>🎨 배경 감성 이미지 선택 (7가지 분위기)</label>
+                    <div class="bg-selector-grid" id="bgSelectorGrid"></div>
+
+                    <button class="save-btn" onclick="saveJesusData()">저장 및 적용하기</button>
+                </div>
+            </div>
+
+            <!-- 🎬 다중 슬라이드 릴스 카드 프레임 -->
+            <div class="reels-card-wrapper" id="mainReelsCard">
+                <div class="reels-bg-layer" id="reelsBgLayer"></div>
+                <div class="reels-vignette-overlay"></div>
+
+                <div class="card-inner-content">
+                    <div class="card-top-bar">
+                        <span class="reels-badge">YETALK REELS</span>
+                        <span class="slide-indicator" id="slideIndicatorNum">1 / 5</span>
+                    </div>
+
+                    <div id="slideCardBody">
+                        <!-- JS 렌더링 -->
+                    </div>
+
+                    <!-- ⭐ 모든 페이지에서 항상 나타나는 좌우 화살표 버튼 -->
+                    <div class="card-nav-row">
+                        <button class="slide-arrow-btn" onclick="changeSlide(-1)">‹</button>
+                        <button class="slide-arrow-btn" onclick="changeSlide(1)">›</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 📲 원터치 인스타그램 올리기 버튼 -->
+            <div class="insta-share-action-row">
+                <button class="reels-upload-btn" onclick="shareToInstagramReels()">
+                    <span>📸</span> <span>이 묵상 릴스·인스타에 올리기</span>
+                </button>
+            </div>
+
+            <!-- 관리자 수정 트리거 버튼 -->
+            <button id="pastorEditBtn" class="write-btn" style="display:none;" onclick="openJesusForm()">✏️ 오늘의 묵상 수정하기</button>
+
+            <!-- 방문수 숫자만 표시 -->
+            <div class="view-counter-badge">
+                <span id="viewCountSpan">42</span>
+            </div>
+
+            <div class="insta-bottom-actions">
+                <button class="insta-action-btn" onclick="goToChurchHome()">⛪ 우리교회 가기</button>
+                <button class="insta-action-btn" onclick="goToChurchIntro()">📍 오시는 길</button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 겸손한 하단 고정 애드몹 광고 -->
+    <div class="admob-banner-box">
+        💡 광고 영역 (Google AdMob Banner - 스마트폰 수익 창출)
+    </div>
+
+    <!-- 교회홈 고정 하단 메뉴 -->
+    <nav id="churchBottomNav">
+        <button class="bottom-nav-item" type="button" onclick="history.back()">⛪<br>교회홈</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../../index.html'">🏠<br>나의홈</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../../coupang.html'">🛒<br>쿠팡</button>
+        <button class="bottom-nav-item" type="button" onclick="history.back()">🙏<br>헌금</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../churchintro.html?churchId=${churchId}'">📍<br>오시는길</button>
+        <button class="bottom-nav-item" type="button" onclick="location.href='../../myinfo.html'">⚙️<br>내정보</button>
+    </nav>
+</div>
+
+<div id="quickToast">알림 메시지</div>
+
+<script type="module">
+    import { db, doc, getDoc, setDoc, serverTimestamp } from "../../firebase.js";
+
+    const urlParams = new URLSearchParams(location.search);
+    const churchId = urlParams.get('churchId') || localStorage.getItem('yetalkMyChurchId') || 'fAKyQftAh3qPnsuRPSVz';
+
+    let churchNameStr = "예톡 교회";
+
+    let jesusData = {
+        title: '"내가 너를 사랑한 것 같이 너희도 서로 사랑하라"',
+        verse: "- 요한복음 13:34 -",
+        text: "사랑하는 성도 여러분, 오늘 하루도 주님 안에서 평안하시길 바랍니다.\n\n우리 삶의 자리에서 작은 사랑이라도 실천하며 예수님과 동행하는 하루가 되기를 축복합니다.",
+        bgIndex: 0,
+        views: 42
+    };
+
+    let currentSlide = 0;
+    let autoSlideTimer = null;
+    let splitTextPages = []; // 두 줄씩 정확하게 쪼개진 묵상 페이지 배열
+
+    function showToast(msg) {
+        const t = document.getElementById("quickToast");
+        if(!t) return;
+        t.innerText = msg;
+        t.style.display = "block";
+        setTimeout(() => { t.style.display = "none"; }, 3000);
+    }
+    window.showToast = showToast;
+
+    const backHomeBtn = document.getElementById('backHomeBtn');
+    if(backHomeBtn) backHomeBtn.onclick = () => { history.back(); };
+
+    window.goToChurchHome = () => {
+        location.href = `../churchmain.html?churchId=${encodeURIComponent(churchId)}`;
+    };
+
+    window.goToChurchIntro = () => {
+        location.href = `../churchintro.html?churchId=${encodeURIComponent(churchId)}`;
+    };
+
+    window.toggleAdminMode = () => {
+        const current = localStorage.getItem("yetalk_chat_admin_on") === "true";
+        localStorage.setItem("yetalk_chat_admin_on", !current);
+        applyAdminStateUI();
+    };
+
+    function applyAdminStateUI() {
+        const isAdminOn = localStorage.getItem("yetalk_chat_admin_on") === "true";
+        const btn = document.getElementById("adminSwitchBtn");
+        const editBtn = document.getElementById("pastorEditBtn");
+
+        if (btn) {
+            if (isAdminOn) {
+                btn.textContent = "관리자 ON";
+                btn.className = "admin-switch-btn on";
+                if(editBtn) editBtn.style.display = "block";
+            } else {
+                btn.textContent = "관리자 OFF";
+                btn.className = "admin-switch-btn";
+                if(editBtn) editBtn.style.display = "none";
+            }
+        }
+    }
+
+    // ⭐ 긴 묵상글을 완벽하게 2줄 단위(글자 수 약 32자 기준)로 쪼개는 스마트 분할 함수
+    function buildSplitPages() {
+        const fullText = (jesusData.text || "").replace(/\r\n/g, '\n');
+        // 문장 단위나 줄바꿈 기준으로 먼저 자름
+        let rawParagraphs = fullText.split('\n').filter(p => p.trim().length > 0);
+
+        let sentences = [];
+        rawParagraphs.forEach(para => {
+            // 마침표나 물음표, 느낌표 기준 또는 일정 길이로 세분화
+            let parts = para.match(/[^.!?]+[.!?]+['"]?|\s*[^.!?]+$/g) || [para];
+            parts.forEach(part => {
+                if(part.trim()) sentences.push(part.trim());
+            });
+        });
+
+        if (sentences.length === 0) sentences = [fullText];
+
+        splitTextPages = [];
+        let currentChunk = "";
+
+        for (let i = 0; i < sentences.length; i++) {
+            let candidate = currentChunk ? (currentChunk + " " + sentences[i]) : sentences[i];
+
+            // 한 페이지에 너무 길지 않도록 대략 35자 내외가 되면 한 덩어리로 묶음
+            if (candidate.length > 38 && currentChunk) {
+                splitTextPages.push(currentChunk);
+                currentChunk = sentences[i];
+            } else {
+                currentChunk = candidate;
+            }
+        }
+        if (currentChunk) {
+            splitTextPages.push(currentChunk);
+        }
+
+        // 각 덩어리를 다시 정확히 '두 줄'(`\n`) 형태로 다듬기
+        let refinedPages = [];
+        for (let i = 0; i < splitTextPages.length; i += 1) {
+            let text = splitTextPages[i];
+            if (text.length > 40) {
+                let mid = Math.floor(text.length / 2);
+                let spaceIdx = text.indexOf(' ', mid - 5);
+                if (spaceIdx === -1) spaceIdx = mid;
+                let line1 = text.substring(0, spaceIdx).trim();
+                let line2 = text.substring(spaceIdx).trim();
+                refinedPages.push(line1 + "\n" + line2);
+            } else {
+                refinedPages.push(text);
+            }
+        }
+
+        splitTextPages = refinedPages;
+        if (splitTextPages.length === 0) {
+            splitTextPages = [fullText];
+        }
+    }
+
+    async function initJesusWalking() {
+        try {
+            const snap = await getDoc(doc(db, "churches", churchId));
+            if (snap.exists()) {
+                const data = snap.data();
+                if (data.jesusWalking) {
+                    jesusData = { ...jesusData, ...data.jesusWalking };
+                }
+                if (data.churchName) {
+                    churchNameStr = data.churchName;
+                    const nameEl = document.getElementById("churchName");
+                    if(nameEl) nameEl.textContent = churchNameStr;
+                }
+            }
+        } catch(e) { console.log("데이터 로드 실패", e); }
+
+        jesusData.views = (jesusData.views || 40) + 1;
+
+        try {
+            await setDoc(doc(db, "churches", churchId), { jesusWalking: jesusData, updatedAt: serverTimestamp() }, { merge: true });
+        } catch(e) { console.log("카운트 저장 실패", e); }
+
+        buildSplitPages();
+        buildBgSelector();
+        applyAdminStateUI();
+        renderJesusContent();
+
+        startAutoSlideWithTiming();
+    }
+
+    function getTotalSlides() {
+        return 1 + splitTextPages.length + 1; // 1(말씀) + 묵상 페이지들 + 1(초청 카드)
+    }
+
+    function startAutoSlideWithTiming() {
+        if(autoSlideTimer) clearTimeout(autoSlideTimer);
+        const total = getTotalSlides();
+
+        if (currentSlide === 0) {
+            // 1페이지(말씀만)는 4초 후 다음으로
+            autoSlideTimer = setTimeout(() => {
+                currentSlide++;
+                renderJesusContent();
+                startAutoSlideWithTiming();
+            }, 4000);
+        } else if (currentSlide >= 1 && currentSlide < total - 1) {
+            // 묵상 본문 페이지들은 각각 3초 후 다음으로
+            autoSlideTimer = setTimeout(() => {
+                currentSlide++;
+                renderJesusContent();
+                startAutoSlideWithTiming();
+            }, 3000);
+        } else {
+            // 마지막 페이지(초청 카드)에 도달하면 자동 타이머 종료 및 정지
+        }
+    }
+
+    let selectedBgIdx = 0;
+
+    function buildBgSelector() {
+        const grid = document.getElementById("bgSelectorGrid");
+        if(!grid) return;
+        let html = "";
+        for(let i=0; i<7; i++) {
+            html += `<div class="bg-thumb-btn ${i === selectedBgIdx ? 'selected' : ''}" style="background-image:url('../../images/todayword/${i}.jpg')" onclick="selectBgThumb(${i})"></div>`;
+        }
+        grid.innerHTML = html;
+    }
+
+    window.selectBgThumb = (idx) => {
+        selectedBgIdx = idx;
+        const thumbs = document.querySelectorAll(".bg-thumb-btn");
+        thumbs.forEach((el, index) => {
+            if(index === idx) el.classList.add("selected");
+            else el.classList.remove("selected");
+        });
+    };
+
+    window.changeSlide = (dir) => {
+        if(autoSlideTimer) clearTimeout(autoSlideTimer);
+        const total = getTotalSlides();
+        currentSlide = (currentSlide + dir + total) % total;
+        renderJesusContent();
+    };
+
+    function checkIsLightBackground(bgIndex) {
+        const lightIndices = [1, 4];
+        return lightIndices.includes(Number(bgIndex));
+    }
+
+    window.renderJesusContent = () => {
+        const total = getTotalSlides();
+        const indicator = document.getElementById("slideIndicatorNum");
+        if(indicator) indicator.textContent = `${currentSlide + 1} / ${total}`;
+
+        const viewSpan = document.getElementById("viewCountSpan");
+        if(viewSpan) viewSpan.textContent = jesusData.views || 0;
+
+        const bodyArea = document.getElementById("slideCardBody");
+        const bgLayer = document.getElementById("reelsBgLayer");
+        const cardWrapper = document.getElementById("mainReelsCard");
+
+        if(bodyArea && bgLayer && cardWrapper) {
+            const baseBg = (jesusData.bgIndex !== undefined) ? jesusData.bgIndex : 0;
+            const currentBgIdx = (baseBg + currentSlide) % 7;
+
+            bgLayer.style.backgroundImage = `url('../../images/todayword/${currentBgIdx}.jpg')`;
+
+            if (checkIsLightBackground(currentBgIdx) && currentSlide < total - 1) {
+                cardWrapper.classList.add("light-bg");
+            } else {
+                cardWrapper.classList.remove("light-bg");
+            }
+
+            if(currentSlide === 0) {
+                // 1페이지: 오늘의 말씀
+                bodyArea.innerHTML = `
+                    <div class="card-center-word">
+                        <div class="word-title-main anim-title">${jesusData.title || ""}</div>
+                        <div class="word-verse-main anim-verse">${jesusData.verse || ""}</div>
+                        <div class="anim-body" style="margin-top:20px;">
+                            <span class="church-source-tag">⛪ ${churchNameStr} 제공</span>
+                        </div>
+                    </div>
+                `;
+            } else if(currentSlide >= 1 && currentSlide <= splitTextPages.length) {
+                // 묵상 본문 (딱 두 줄씩 슬라이드)
+                const textChunk = splitTextPages[currentSlide - 1] || "";
+                bodyArea.innerHTML = `
+                    <div class="card-middle-content">
+                        <div class="meditation-text-lg anim-title">${textChunk}</div>
+                    </div>
+                `;
+            } else {
+                // 마지막 페이지: 고정 초청 카드
+                bgLayer.style.backgroundImage = `url('../../images/todayword/5.jpg')`;
+                cardWrapper.classList.remove("light-bg");
+
+                bodyArea.innerHTML = `
+                    <div class="fixed-invite-card">
+                        <div class="invite-icon anim-title">🕊️</div>
+                        <div class="invite-title anim-verse">교회 초청 및 복음 안내</div>
+                        <div class="invite-text anim-body">
+                            하나님의 따스한 사랑과 은혜가<br>
+                            성도님의 발걸음마다 함께하십니다.<br><br>
+                            오늘도 주님 안에서 참된 평안을 누리시고<br>
+                            예수님과 함께 동행하는 삶이 되시기를<br>
+                            진심으로 축복하고 초청합니다.
+                        </div>
+                    </div>
+                `;
+            }
+        }
+    };
+
+    window.shareToInstagramReels = async () => {
+        const shareText = `[${churchNameStr} 오늘의 예수동행 묵상]\n\n${jesusData.title}\n${jesusData.verse}\n\n${jesusData.text}\n\n#예수동행 #말씀묵상 #${churchNameStr} #예톡 #은혜`;
+
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(shareText);
+            showToast("✨ 묵상 글이 복사되었습니다! 인스타그램으로 이동합니다.");
+        } else {
+            showToast("인스타그램으로 이동합니다.");
+        }
+
+        setTimeout(() => {
+            location.href = "instagram://camera";
+            setTimeout(() => {
+                location.href = "https://instagram.com";
+            }, 1000);
+        }, 800);
+    };
+
+    window.openJesusForm = () => {
+        document.getElementById("inputMeditTitle").value = jesusData.title || "";
+        document.getElementById("inputVerse").value = jesusData.verse || "";
+        document.getElementById("inputMeditText").value = jesusData.text || "";
+
+        selectedBgIdx = (jesusData.bgIndex !== undefined) ? jesusData.bgIndex : 0;
+        buildBgSelector();
+
+        document.getElementById("jesusEditFormBox").style.display = "block";
+    };
+
+    window.closeJesusForm = () => {
+        document.getElementById("jesusEditFormBox").style.display = "none";
+    };
+
+    window.saveJesusData = async () => {
+        const title = document.getElementById("inputMeditTitle").value.trim();
+        const text = document.getElementById("inputMeditText").value.trim();
+
+        if(!title || !text) {
+            alert("오늘의 말씀 제목과 묵상 내용은 필수 입력 항목입니다.");
+            return;
+        }
+
+        jesusData.title = title;
+        jesusData.verse = document.getElementById("inputVerse").value.trim();
+        jesusData.text = text;
+        jesusData.bgIndex = selectedBgIdx;
+
+        try {
+            await setDoc(doc(db, "churches", churchId), { jesusWalking: jesusData, updatedAt: serverTimestamp() }, { merge: true });
+            closeJesusForm();
+            buildSplitPages();
+            currentSlide = 0;
+            renderJesusContent();
+            showToast("✨ 오늘의 묵상이 성공적으로 저장되었습니다!");
+        } catch(e) {
+            alert("저장 실패: " + e.message);
+        }
+    };
+
+    initJesusWalking();
+</script>
+
+</body>
+</html>
