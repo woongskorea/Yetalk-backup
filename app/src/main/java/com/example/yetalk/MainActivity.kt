@@ -353,35 +353,36 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // 🌟 [핵심 수정] 나에게만 가지 않고 '친구/대화방 선택 창'이 반드시 뜨도록 설정
         @JavascriptInterface
         fun shareToKakaoFriends(message: String) {
             runOnUiThread {
                 try {
-                    val kakaoIntent = Intent(Intent.ACTION_SEND).apply {
+                    // 카카오톡 친구/대화방 선택 화면(피커)을 바로 호출하는 인텐트
+                    val kakaoPickerIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"
                         putExtra(Intent.EXTRA_TEXT, message)
-                        component = android.content.ComponentName(
-                            "com.kakao.talk",
-                            "com.kakao.talk.activity.RecentExcludeIntentFilterActivity"
-                        )
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        setClassName("com.kakao.talk", "com.kakao.talk.activity.friend.picker.QuickForwardActivity")
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                     }
-                    startActivity(kakaoIntent)
+                    startActivity(kakaoPickerIntent)
                 } catch (e: Exception) {
                     try {
-                        val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
+                        // 대안 1: 카카오톡 일반 공유 인텐트
+                        val kakaoIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
                             putExtra(Intent.EXTRA_TEXT, message)
-                            `package` = "com.kakao.talk"
+                            setPackage("com.kakao.talk")
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         }
-                        startActivity(fallbackIntent)
+                        startActivity(kakaoIntent)
                     } catch (e2: Exception) {
+                        // 대안 2: 시스템 공유기 (친구 선택창)
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
                             putExtra(Intent.EXTRA_TEXT, message)
                         }
-                        val chooser = Intent.createChooser(shareIntent, "카카오톡 친구에게 초청장 보내기").apply {
+                        val chooser = Intent.createChooser(shareIntent, "예톡 초청장 보낼 친구 선택").apply {
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         }
                         startActivity(chooser)
