@@ -40,6 +40,9 @@
         }
 
         @media (min-width: 1024px) {
+            :root {
+                --view-h: calc(100vh - 40px - var(--header-h) - var(--nav-h) - var(--admob-total));
+            }
             html, body {
                 position: static !important;
                 background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #030712 100%) !important;
@@ -171,9 +174,9 @@
             padding: 4px 9px; border-radius: 12px;
         }
 
-        /* 하단 캡션 바 (심플 글 텍스트) - 화살표 제거로 좌우 균형 14px */
+        /* 하단 캡션 바 (심플 글 텍스트) - 화살표 제거로 좌우 균형 14px 및 +새글쓰기 버튼 잘림 방지 28px 상향 배치 */
         .v-page-caption-bar {
-            position: absolute; bottom: 14px; left: 14px; right: 14px; z-index: 10;
+            position: absolute; bottom: 28px; left: 14px; right: 14px; z-index: 10;
             background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 14px;
             padding: 10px 14px; display: flex; flex-direction: column; gap: 4px;
@@ -1971,7 +1974,7 @@
         updateSchedulePrivacyUI();
         renderQrSection();
         renderPhotoSection();
-        renderLiveStreamPlayer();
+        // 실시간 방송은 사용자가 '🔴 실시간 방송' 탭을 직접 클릭했을 때만 재생 (초기 배경 소리 방지)
         renderCalendarGrid();
         renderTimelineList();
         renderFriendsList();
@@ -2214,6 +2217,10 @@
 
         if (key === "live") {
             renderLiveStreamPlayer();
+        } else {
+            // 🛑 다른 메뉴 이동 시 실시간 방송 소리 및 iframe 즉시 완전 정지
+            const liveHost = document.getElementById("liveVideoContainer");
+            if (liveHost) liveHost.innerHTML = "";
         }
         if (key === "friends") {
             closeKakaoChat();

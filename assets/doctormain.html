@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>예톡 스마트 메디컬 포털</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900;950&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --safe-top: max(env(safe-area-inset-top, 0px), 12px);
+            --safe-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+            --header-h: calc(98px + var(--safe-top));
+            --tabs-h: 46px;
+            --bottom-ad-h: calc(88px + var(--safe-bottom));
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --primary-light: #e0f2fe;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-sub: #475569;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            width: 100%; height: 100%; background: #000000;
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            color: var(--text-main); overflow: hidden; letter-spacing: -0.3px;
+        }
+
+        .doctor-shell {
+            width: 100%; max-width: 480px; height: 100dvh; margin: 0 auto;
+            background: #f8fafc; display: flex; flex-direction: column; position: relative;
+            border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+        }
+
+        /* 1. 상단 스마트 헤더 (깔끔하게 단순화) */
+        .doctor-header {
+            background: #ffffff; border-bottom: 1.5px solid var(--border);
+            display: flex; align-items: center;
+            padding: var(--safe-top) 14px 10px 14px; flex-shrink: 0; z-index: 100;
+        }
+        .header-top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .header-left-box { display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden; }
+        .btn-header-back {
+            background: none; border: none; font-size: 26px; font-weight: 900; color: #0f172a;
+            cursor: pointer; line-height: 1; padding: 2px 6px; border-radius: 8px;
+        }
+        .btn-cross-logo {
+            width: 30px; height: 30px; border-radius: 8px;
+            background: radial-gradient(circle, #0284c7 0%, #03456c 100%);
+            border: 1.5px solid #38bdf8; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3); flex-shrink: 0;
+        }
+        .cross-icon { color: #ffffff; font-size: 16px; font-weight: 900; line-height: 1; }
+        .clinic-brand-title {
+            font-size: 18.5px; font-weight: 950; color: #0284c7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* 2. 가로 메뉴 탭 바 (좌우 연동 해제, 각 탭 독립 화면) */
+        .doctor-tabs-bar {
+            height: var(--tabs-h); background: #f8fafc; border-bottom: 1px solid var(--border);
+            display: flex; gap: 6px; overflow-x: auto; white-space: nowrap; padding: 0 10px; align-items: center;
+            flex-shrink: 0; scrollbar-width: none; z-index: 99;
+        }
+        .doctor-tabs-bar::-webkit-scrollbar { display: none; }
+        .tab-chip {
+            background: #ffffff; border: 1px solid var(--border); color: #64748b; font-size: 13px; font-weight: 850;
+            padding: 6px 14px; border-radius: 14px; cursor: pointer; flex-shrink: 0; transition: all 0.15s; position: relative;
+        }
+        .tab-chip.active { background: var(--primary); color: #ffffff; border-color: var(--primary); font-weight: 900; box-shadow: 0 2px 8px rgba(2,132,199,0.35); }
+        .badge-notice-count {
+            position: absolute; top: -4px; right: -2px; background: #ef4444; color: #ffffff; font-size: 10px; font-weight: 900;
+            min-width: 17px; height: 17px; border-radius: 9px; display: flex; align-items: center; justify-content: center; border: 1.5px solid #ffffff;
+        }
+
+        /* 🌟 메뉴 밑 줄: 고객가입, 닥톡, 원내톡, 관리실, 수정을 한 줄로 나열 */
+        .doctor-sub-action-bar {
+            background: #ffffff; border-bottom: 1.5px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 7px 10px; gap: 5px; overflow-x: auto; flex-shrink: 0;
+            scrollbar-width: none; z-index: 98;
+        }
+        .doctor-sub-action-bar::-webkit-scrollbar { display: none; }
+        .btn-sub-chip {
+            height: 31px; border-radius: 8px; font-size: 11.5px; font-weight: 900;
+            padding: 0 9px; display: inline-flex; align-items: center; justify-content: center;
+            gap: 4px; white-space: nowrap; cursor: pointer; border: 1px solid transparent; flex-shrink: 0;
+            transition: transform 0.1s, opacity 0.15s;
+        }
+        .btn-sub-chip:active { transform: scale(0.95); opacity: 0.85; }
+        .btn-sub-join { background: #059669; color: #ffffff; }
+        .btn-sub-doctalk { background: #0284c7; color: #ffffff; }
+        .btn-sub-clinictalk { background: #f1f5f9; color: #0f172a; border-color: #cbd5e1; }
+        .badge-clinictalk-num { background: #ef4444; color: #ffffff; font-size: 9.5px; font-weight: 900; padding: 0 5px; border-radius: 8px; line-height: 14px; height: 14px; }
+        .btn-sub-admin { background: #1e293b; color: #ffffff; }
+        .btn-sub-edit { background: #dc2626; color: #ffffff; }
+
+        /* 3. 메인 콘텐츠 컨테이너 (메뉴별 독립 세로 스크롤 & + 누르면 무한 늘어남) */
+        .doc-tab-container {
+            display: none; flex: 1; overflow-y: auto; overflow-x: hidden;
+            padding: 12px 14px calc(var(--bottom-ad-h) + 24px) 14px;
+            flex-direction: column; gap: 16px; scrollbar-width: none; background: #f8fafc;
+        }
+        .doc-tab-container.active { display: flex; }
+        .doc-tab-container::-webkit-scrollbar { display: none; }
+
+        /* 🌟 대형 카드 블록: 사진 위에 메뉴명과 같은 간단한 강조 제목, 그 밑에 사진, 그 밑에 설명 글, 그 밑에 + */
+        .doc-card-block {
+            background: #ffffff; border: 1.5px solid var(--border); border-radius: 20px;
+            padding: 18px 16px; display: flex; flex-direction: column; gap: 12px;
+            box-shadow: 0 3px 14px rgba(0,0,0,0.03); position: relative;
+        }
+        .doc-card-top-bar {
+            display: flex; justify-content: space-between; align-items: center; gap: 8px;
+        }
+        .doc-card-title {
+            font-size: 19px; font-weight: 950; color: #0f172a; line-height: 1.35; flex: 1;
+        }
+        .doc-card-meta-actions {
+            display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+        }
+        .doc-page-badge {
+            font-size: 11.5px; font-weight: 900; background: #f1f5f9; color: #64748b;
+            padding: 3px 8px; border-radius: 8px; border: 1px solid #cbd5e1;
+        }
+        .btn-card-edit-trigger {
+            background: rgba(220, 38, 38, 0.1); border: 1.2px solid #ef4444; color: #dc2626;
+            font-size: 11.5px; font-weight: 900; padding: 3px 8px; border-radius: 8px; cursor: pointer;
+        }
+
+        /* 대형 사진 영역 (사진 위에는 어떤 화살표도 가리지 않음) */
+        .doc-card-photo-box {
+            width: 100%; height: 260px; border-radius: 14px; overflow: hidden;
+            position: relative; background: #0b1326; border: 1px solid #cbd5e1;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .doc-card-main-img {
+            width: 100%; height: 100%; object-fit: cover; transition: transform 0.25s ease;
+        }
+
+        /* 🌟 [사용자 요청 1번] 좌우 화살표는 아래쪽에 배치 (시술 전/후 2장 넘김 하단 바) */
+        .photo-slide-bottom-bar {
+            width: 100%; display: flex; align-items: center; justify-content: space-between;
+            background: #0f172a; border-radius: 12px; padding: 7px 10px;
+            border: 1px solid #334155; gap: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        .photo-slide-btn-bottom {
+            background: #1e293b; color: #ffffff; border: 1px solid #475569;
+            padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 850;
+            cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.15s;
+        }
+        .photo-slide-btn-bottom:active { transform: scale(0.96); background: #334155; }
+        .photo-slide-btn-bottom.active {
+            background: #0284c7; border-color: #38bdf8; color: #ffffff; font-weight: 950;
+        }
+        .photo-slide-indicator-label {
+            color: #facc15; font-size: 12.5px; font-weight: 900; text-align: center; flex: 1;
+        }
+
+        /* 설명 글 영역 */
+        .doc-card-desc-box {
+            background: #f8fafc; border: 1.2px solid #e2e8f0; border-radius: 12px;
+            padding: 14px; display: flex; flex-direction: column; gap: 8px; cursor: pointer;
+        }
+        .doc-card-desc-box:hover { border-color: #38bdf8; }
+        .doc-card-desc-text {
+            font-size: 15px; line-height: 1.75; color: #334155; white-space: pre-line; word-break: keep-all;
+        }
+
+        /* 🌟 의원 초대 글용 복사 & 카톡 보내기 버튼 */
+        .invite-action-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px;
+        }
+        .btn-invite-action {
+            height: 44px; border-radius: 12px; font-size: 13.5px; font-weight: 950;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+            border: none; transition: transform 0.1s, opacity 0.15s; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .btn-invite-action:active { transform: scale(0.96); opacity: 0.9; }
+        .btn-invite-copy { background: #0284c7; color: #ffffff; }
+        .btn-invite-kakao { background: #fee500; color: #191600; }
+
+        /* 카드 하단 + 버튼 */
+        .btn-card-add-below {
+            width: 100%; height: 44px; background: #f0f9ff; border: 1.5px dashed #38bdf8;
+            border-radius: 12px; color: #0284c7; font-size: 13.5px; font-weight: 950;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: all 0.15s; margin-top: 2px;
+        }
+        .btn-card-add-below:active { background: #e0f2fe; }
+
+        /* 🌟 [사용자 요청] 우측 하단 동그라미를 작게 하고 우측 화살표(→) 하나만 유지 */
+        .floating-cluster {
+            position: fixed; right: 14px; bottom: calc(var(--bottom-ad-h) + 12px);
+            z-index: 45000;
+        }
+        .btn-float-single-right {
+            width: 44px; height: 44px; border-radius: 50%; border: 2px solid #facc15;
+            background: #0f172a; color: #facc15; font-size: 20px; font-weight: 950;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.35); transition: transform 0.15s;
+        }
+        .btn-float-single-right:active { transform: scale(0.92); }
+
+        /* 🌟 [사용자 요청 2번] 의료진 예약리스트 당일 리스트 한면에 쫙 뜨게 & 달력표 스타일 */
+        .res-calendar-card {
+            background: #ffffff; border: 1.5px solid var(--border); border-radius: 18px;
+            padding: 14px; display: flex; flex-direction: column; gap: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+        .res-cal-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 0 4px;
+        }
+        .res-cal-title { font-size: 16px; font-weight: 950; color: #0f172a; }
+        .res-cal-nav-btn {
+            background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px;
+            padding: 3px 10px; font-size: 13px; font-weight: 900; cursor: pointer; color: #334155;
+        }
+        .res-cal-weekdays {
+            display: grid; grid-template-columns: repeat(7, 1fr); text-align: center;
+            font-size: 11.5px; font-weight: 900; color: #64748b; padding-bottom: 6px; border-bottom: 1px solid #f1f5f9;
+        }
+        .res-cal-weekdays span:first-child { color: #ef4444; }
+        .res-cal-weekdays span:last-child { color: #0284c7; }
+        .res-cal-days-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;
+        }
+        .res-cal-day-cell {
+            aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            border-radius: 10px; font-size: 13px; font-weight: 850; color: #1e293b;
+            cursor: pointer; position: relative; transition: all 0.15s;
+        }
+        .res-cal-day-cell:active { background: #f1f5f9; }
+        .res-cal-day-cell.other-month { color: #cbd5e1; }
+        .res-cal-day-cell.today {
+            background: #e0f2fe; color: #0284c7; font-weight: 950; border: 1.5px solid #38bdf8;
+        }
+        .res-cal-day-cell.selected {
+            background: #0284c7 !important; color: #ffffff !important; font-weight: 950;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+        }
+        .res-cal-day-dot {
+            width: 4px; height: 4px; border-radius: 50%; background: #ef4444; position: absolute; bottom: 3px;
+        }
+        .res-cal-day-cell.selected .res-cal-day-dot { background: #facc15; }
+
+        /* 예약 달력 날짜별 예약 건수 숫자 배지 */
+        .res-cal-num-badge {
+            position: absolute; bottom: 2px; background: #0284c7; color: #ffffff;
+            font-size: 9.5px; font-weight: 950; min-width: 15px; height: 14px; padding: 0 3px;
+            border-radius: 7px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .res-cal-day-cell.selected .res-cal-num-badge { background: #facc15; color: #0f172a; }
+
+        /* QR 코드 및 간단 접수 배너 */
+        .qr-card-cover {
+            position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-radius: 14px; padding: 16px 12px; margin-bottom: 8px;
+            border: 2px dashed #0284c7; box-shadow: inset 0 2px 6px rgba(2,132,199,0.08); cursor: pointer;
+        }
+        .qr-card-img {
+            width: 175px; height: 175px; border-radius: 12px; background: #fff; padding: 8px;
+            border: 2px solid #0284c7; box-shadow: 0 4px 14px rgba(2,132,199,0.25);
+        }
+        .qr-card-badge {
+            margin-top: 8px; background: #0284c7; color: #fff; font-size: 12.5px; font-weight: 950;
+            padding: 4px 12px; border-radius: 20px; box-shadow: 0 2px 6px rgba(2,132,199,0.3);
+        }
+        .btn-quick-reserve-banner {
+            width: 100%; height: 50px; background: linear-gradient(135deg, #0284c7, #2563eb);
+            color: #ffffff; border: none; border-radius: 14px; font-size: 15px; font-weight: 950;
+            cursor: pointer; box-shadow: 0 4px 14px rgba(2,132,199,0.35); display: flex; align-items: center; justify-content: center; gap: 6px;
+            margin: 6px 0 10px 0; transition: transform 0.15s;
+        }
+        .btn-quick-reserve-banner:active { transform: scale(0.97); }
+
+        /* 예약 본부 토글 헤더 */
+        .btn-hq-toggle {
+            width: 100%; background: #ffffff; border: 1.8px solid #0284c7; border-radius: 14px;
+            padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; box-shadow: 0 2px 8px rgba(2,132,199,0.12);
+        }
+        .hq-badge-arrow {
+            font-size: 11.5px; font-weight: 900; background: #0284c7; color: #ffffff;
+            padding: 4px 10px; border-radius: 8px;
+        }
+
+        /* 22개 은행 스크롤 칩 */
+        .bank-scroll-chips {
+            display: flex; gap: 6px; overflow-x: auto; padding: 6px 2px; scrollbar-width: none;
+        }
+        .bank-chip-btn {
+            background: #1f293d; color: #94a3b8; border: 1px solid #374151; border-radius: 8px;
+            padding: 6px 10px; font-size: 12px; font-weight: 800; white-space: nowrap; cursor: pointer; flex-shrink: 0;
+        }
+        .bank-chip-btn.active {
+            background: #0284c7; color: #ffffff; border-color: #38bdf8; font-weight: 900;
+        }
+
+        /* 닥톡/원내톡 PC 팝업 분리 버튼 */
+        .btn-pc-popup {
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff;
+            padding: 4px 9px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer;
+        }
+
+        /* PC 모니터 화면(폭 768px 이상) 시 모달/팝업 스타일 최적화 */
+        @media (min-width: 768px) {
+            .fullscreen-detail-view {
+                position: fixed !important; top: 50% !important; left: 50% !important;
+                transform: translate(-50%, -50%) !important; width: 500px !important; height: 750px !important;
+                max-height: 90vh !important; border-radius: 20px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.6) !important;
+                border: 2px solid #334155 !important;
+            }
+        }
+
+        /* 당일 의료진 예약 명단 카드 */
+        .staff-daily-card {
+            background: #ffffff; border: 1.5px solid var(--border); border-radius: 18px;
+            padding: 16px; display: flex; flex-direction: column; gap: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+        .staff-res-item {
+            background: #f8fafc; border: 1.2px solid #e2e8f0; border-radius: 12px;
+            padding: 11px 12px; display: flex; flex-direction: column; gap: 6px;
+            transition: all 0.15s;
+        }
+        .staff-res-item.active-care { border-color: #38bdf8; background: #f0f9ff; }
+        .staff-res-row1 {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .staff-res-time {
+            font-size: 14.5px; font-weight: 950; color: #0284c7; display: flex; align-items: center; gap: 6px;
+        }
+        .staff-status-badge {
+            font-size: 11px; font-weight: 900; padding: 2px 8px; border-radius: 6px; cursor: pointer;
+        }
+        .status-done { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .status-progress { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+        .status-waiting { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .status-confirmed { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; }
+        .staff-res-row2 {
+            display: flex; justify-content: space-between; align-items: center; font-size: 13.5px; color: #1e293b;
+        }
+        .staff-res-name { font-weight: 950; }
+        .staff-res-subject { color: #475569; font-size: 13px; font-weight: 700; }
+        .staff-res-doctor { font-size: 11.5px; color: #64748b; font-weight: 700; }
+
+        /* 4. 최하단 고정 애드몹 슬롯 (320x100) */
+        .bottom-fixed-admob-100 {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: var(--bottom-ad-h); padding-bottom: var(--safe-bottom);
+            background: #080d1a; border-top: 1.5px solid #1e3a5f;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 40000 !important; box-shadow: 0 -4px 20px rgba(0,0,0,0.7);
+        }
+        .admob-display-box {
+            width: min(calc(100% - 24px), 360px); height: 58px;
+            background: #0b1326; border: 1px solid #1e293b; border-radius: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+        }
+
+        /* 🌟 [사용자 요청] 대형 사진 & 글 편집 모달 (화면창 크게 하여 관리자가 바로 작성) */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            z-index: 55000; align-items: center; justify-content: center; padding: 14px;
+            backdrop-filter: blur(5px);
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-card-large {
+            width: 100%; max-width: 440px; background: #ffffff; border-radius: 20px;
+            padding: 20px 18px; display: flex; flex-direction: column; gap: 12px;
+            max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .modal-header-row {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1.5px solid var(--border); padding-bottom: 8px;
+        }
+        .m-large-input {
+            width: 100%; height: 44px; background: #f8fafc; border: 1.5px solid var(--border);
+            border-radius: 10px; padding: 0 12px; font-size: 15px; font-weight: 850; outline: none;
+        }
+        .m-large-textarea {
+            width: 100%; min-height: 130px; background: #f8fafc; border: 1.5px solid var(--border);
+            border-radius: 10px; padding: 12px; font-size: 14.5px; line-height: 1.6; outline: none; resize: vertical;
+        }
+
+        /* 사진 업로드 박스 */
+        .m-photo-preview-box {
+            width: 100%; height: 180px; border-radius: 12px; overflow: hidden;
+            position: relative; border: 2px dashed #94a3b8; background: #0f172a;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .m-photo-img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-photo-overlay-upload {
+            position: absolute; bottom: 8px; background: rgba(15, 23, 42, 0.9);
+            border: 1.5px solid #38bdf8; color: #38bdf8; font-size: 12px; font-weight: 900;
+            padding: 6px 14px; border-radius: 18px; cursor: pointer;
+        }
+
+        /* 5. 풀스크린 서브 기능 모달들 (공지/예약/결제/닥톡/원내톡) */
+        .fullscreen-detail-view {
+            display: none !important; position: fixed; inset: 0; background: #ffffff; z-index: 50000;
+            flex-direction: column; overflow: hidden; padding-bottom: var(--bottom-ad-h);
+        }
+        .fullscreen-detail-view.show { display: flex !important; }
+        .detail-top-nav {
+            background: #ffffff; border-bottom: 1.5px solid var(--border);
+            height: calc(52px + var(--safe-top)); display: flex; align-items: center; justify-content: space-between;
+            padding: var(--safe-top) 16px 0 16px; flex-shrink: 0; position: relative;
+        }
+        .detail-title-head { font-size: 18px; font-weight: 950; color: var(--primary); }
+        .btn-nav-close {
+            background: none; border: none; font-size: 26px; font-weight: 900; color: #0f172a;
+            cursor: pointer; padding: 4px 8px; line-height: 1;
+        }
+
+        /* 공지사항 피드 */
+        .notice-blog-card {
+            background: #ffffff; border: 1.5px solid var(--border); border-radius: 16px;
+            padding: 16px; display: flex; flex-direction: column; gap: 10px;
+        }
+
+        /* 메신저 톡 */
+        .kakaotalk-shell { flex: 1; display: flex; flex-direction: column; background: #bacada; overflow: hidden; }
+        .kakaotalk-msg-container { flex: 1; overflow-y: auto; padding: 14px 12px; display: flex; flex-direction: column; gap: 12px; }
+        .chat-bubble-row { display: flex; gap: 8px; align-items: flex-start; }
+        .chat-bubble-row.mine { flex-direction: row-reverse; }
+        .chat-bubble-body {
+            background: #ffffff; color: #0f172a; padding: 9px 12px; border-radius: 12px; font-size: 13.5px;
+            max-width: 82%; word-break: break-all; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .chat-bubble-row.mine .chat-bubble-body { background: #fee500; color: #000000; }
+        .kakaotalk-input-bar { background: #ffffff; border-top: 1px solid #cbd5e1; padding: 8px 10px; display: flex; align-items: center; gap: 6px; }
+
+        /* 토스트 */
+        .doc-toast {
+            position: fixed; bottom: calc(var(--bottom-ad-h) + 14px); left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.95); border: 1.5px solid #38bdf8; color: #fde047;
+            padding: 8px 16px; border-radius: 20px; font-size: 12.5px; font-weight: 900;
+            z-index: 60000; opacity: 0; visibility: hidden; transition: all 0.25s ease; white-space: nowrap;
+        }
+        .doc-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="doctor-shell">
+
+    <!-- 1층 스마트 헤더 (깔끔하게 단순화) -->
+    <header class="doctor-header">
+        <div class="header-top-row">
+            <div class="header-left-box">
+                <button type="button" class="btn-header-back" onclick="handleDoctorAppBack()" title="뒤로가기">‹</button>
+                <div class="btn-cross-logo"><span class="cross-icon">✚</span></div>
+                <div class="clinic-brand-title" id="dispClinicTitle">예톡아름다운 의원</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 2층 가로 메뉴 탭 바 (좌우 연동 해제, 각 탭 독립 화면) -->
+    <nav class="doctor-tabs-bar" id="doctorTabsBar">
+        <button type="button" class="tab-chip active" id="chip_intro" onclick="switchDoctorSection('intro')">의원소개</button>
+        <button type="button" class="tab-chip" id="chip_beauty" onclick="switchDoctorSection('beauty')">진료(시술)안내</button>
+        <button type="button" class="tab-chip" id="chip_notice" onclick="switchDoctorSection('notice')">
+            공지알림
+            <span class="badge-notice-count" id="badgeNoticeCount">3</span>
+        </button>
+        <button type="button" class="tab-chip" id="chip_reserve" onclick="switchDoctorSection('reserve')">예약 및 확인</button>
+        <button type="button" class="tab-chip" id="chip_pay" onclick="switchDoctorSection('pay')">예톡결제</button>
+    </nav>
+
+    <!-- 🌟 메뉴 밑 한 줄: 고객가입, 닥톡, 원내톡, 관리실, 수정을 한 줄로 나열 -->
+    <div class="doctor-sub-action-bar">
+        <button type="button" class="btn-sub-chip btn-sub-join" onclick="openPatientJoinModal()">고객가입</button>
+        <button type="button" class="btn-sub-chip btn-sub-doctalk" onclick="openDoctorTalkWindow()">닥톡</button>
+        <button type="button" class="btn-sub-chip btn-sub-clinictalk" onclick="openClinicTalkWindow()">
+            원내톡 <span class="badge-clinictalk-num" id="hdrBadgeClinicNum">2</span>
+        </button>
+        <button type="button" class="btn-sub-chip btn-sub-admin" onclick="location.href='doctoradmin.html'">◀ 관리실</button>
+        <button type="button" class="btn-sub-chip btn-sub-edit" id="btnAdminEditToggle" onclick="toggleDoctorEditMode()">수정 ⚙️</button>
+    </div>
+
+    <!-- 3층 메뉴별 독립 콘텐츠 영역 (밑으로 세로 화면이 계속 + 누르면 늘어남) -->
+    
+    <!-- 1) 의원소개 탭 컨테이너 -->
+    <main class="doc-tab-container active" id="sec_intro"></main>
+
+    <!-- 2) 진료(시술)안내 탭 컨테이너 -->
+    <main class="doc-tab-container" id="sec_beauty">
+        <!-- 과목 선택 서브 칩 바 -->
+        <nav class="doctor-tabs-bar" id="beautySubjectChipsBar" style="background:#fff; border-radius:12px; margin-bottom:8px; border:1px solid #cbd5e1;"></nav>
+        <!-- 해당 과목의 세로 시술 사례 목록 -->
+        <div id="beautyCasesList" style="display:flex; flex-direction:column; gap:16px;"></div>
+    </main>
+
+    <!-- 3) 공지알림 탭 컨테이너 -->
+    <main class="doc-tab-container" id="sec_notice">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <strong style="font-size:17px; color:#0f172a;">📢 원내 공지 및 소식 피드</strong>
+            <button type="button" style="background:#0284c7; color:#fff; border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:900; cursor:pointer;" onclick="openNoticeEditorFullscreen()">＋ 새 공지 작성</button>
+        </div>
+        <div id="noticeFeedContainer" style="display:flex; flex-direction:column; gap:14px;"></div>
+    </main>
+
+    <!-- 4) 예약 및 확인 탭 컨테이너 (달력표 + 당일 의료진 전체 예약 명단 한면에 기본 표시) -->
+    <main class="doc-tab-container" id="sec_reserve">
+        <!-- 1. 의원 예약본부 토글 바 (누르면 달력과 직원 확인표가 지금처럼 쫙 펼쳐짐) -->
+        <div style="margin-bottom:8px;">
+            <button type="button" class="btn-hq-toggle" id="btnToggleStaffHQ" onclick="toggleStaffReserveHQ()">
+                <span style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:18px;">🏥</span>
+                    <strong style="font-size:15px; color:#0f172a;">의원 예약본부 (달력 및 관리자 확인)</strong>
+                </span>
+                <span id="hqToggleBadge" class="hq-badge-arrow">펼치기 ▼</span>
+            </button>
+        </div>
+
+        <!-- 2. 의원 예약본부 (기본은 접힘, 토글 시 달력과 전체 예약 명단이 쫙 펼쳐짐) -->
+        <div id="staffReserveHQArea" style="display:none; flex-direction:column; gap:12px; margin-bottom:12px;">
+            <!-- 예약 현황 달력표 (날짜별 건수 배지 표시) -->
+            <section class="res-calendar-card">
+                <div class="res-cal-header">
+                    <button type="button" class="res-cal-nav-btn" onclick="changeCalMonth(-1)">❮</button>
+                    <strong class="res-cal-title" id="dispCalMonthTitle">2026년 10월</strong>
+                    <button type="button" class="res-cal-nav-btn" onclick="changeCalMonth(1)">❯</button>
+                </div>
+                <div class="res-cal-weekdays">
+                    <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+                </div>
+                <div class="res-cal-days-grid" id="resCalDaysGrid"></div>
+            </section>
+
+            <!-- 당일(또는 선택일) 의료진 전체 예약 명단 (원클릭 응답 버튼 지원) -->
+            <section class="staff-daily-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:8px;">
+                    <div>
+                        <span style="font-size:11.5px; font-weight:900; color:#0284c7;">🩺 의료진 진료 스케줄</span>
+                        <h3 style="font-size:16px; font-weight:950; color:#0f172a;" id="dispSelectedDateLabel">오늘(10월 12일) 예약 명단 (<span id="dispDailyResCount">7</span>건)</h3>
+                    </div>
+                    <button type="button" style="background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd; padding:4px 9px; border-radius:8px; font-size:11.5px; font-weight:900; cursor:pointer;" onclick="resetToTodayDate()">오늘 보기</button>
+                </div>
+
+                <!-- 예약 명단 리스트 -->
+                <div id="staffDailyResListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+            </section>
+        </div>
+
+        <!-- 3. 환자 본인 간편 예약 & 의원 응답 실시간 확인 (기본 첫 화면) -->
+        <div id="patientReserveMainArea" style="display:flex; flex-direction:column; gap:12px;">
+            <!-- 나의 실시간 예약 현황 및 의원 답변 확인 카드 -->
+            <section style="background:#ffffff; border:1.8px solid #0284c7; border-radius:18px; padding:16px; box-shadow:0 4px 14px rgba(2,132,199,0.08);">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e0f2fe; padding-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:16px;">📱</span>
+                        <strong style="font-size:15px; font-weight:950; color:#0f172a;">내 예약 확인 및 의원 답변</strong>
+                    </div>
+                    <span id="badgePatientStatusTop" style="font-size:11px; font-weight:900; padding:3px 9px; border-radius:8px; background:#fef3c7; color:#92400e;">확인대기 ⏳</span>
+                </div>
+                <div id="patientMyReservationBox" style="margin-top:10px;">
+                    접수된 내역을 불러오는 중...
+                </div>
+            </section>
+
+            <!-- 환자 간편 신규 예약 접수 카드 -->
+            <section style="background:#ffffff; border:1.5px solid var(--border); border-radius:18px; padding:16px; display:flex; flex-direction:column; gap:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong style="font-size:15px; font-weight:950; color:#0284c7;">📝 간편 진료 예약 신청</strong>
+                    <span style="font-size:11px; color:#64748b; font-weight:700;">빠른 접수</span>
+                </div>
+                <div style="display:flex; gap:6px; margin-bottom:4px;">
+                    <button type="button" class="bank-chip-btn active" id="btnResTabToday" onclick="setResDateTabMode('today')">⚡ 당일 지금 바로</button>
+                    <button type="button" class="bank-chip-btn" id="btnResTabOther" onclick="setResDateTabMode('other')">📅 다른 날짜 선택</button>
+                </div>
+                <div id="boxResOtherDateSelect" style="display:none; gap:6px;">
+                    <input type="date" id="inpResDate" class="m-large-input" style="flex:1;">
+                    <select id="inpResTime" class="m-large-input" style="flex:1;">
+                        <option value="오전 09:30">오전 09:30</option>
+                        <option value="오전 10:30">오전 10:30</option>
+                        <option value="오전 11:30">오전 11:30</option>
+                        <option value="오후 02:00">오후 02:00</option>
+                        <option value="오후 03:30">오후 03:30</option>
+                        <option value="오후 05:00">오후 05:00</option>
+                    </select>
+                </div>
+                <input type="text" id="inpResName" class="m-large-input" placeholder="환자 성함" value="김예톡">
+                <input type="tel" id="inpResPhone" class="m-large-input" placeholder="연락처 (010-XXXX-XXXX)" value="010-1234-5678">
+                <select id="selResSubjectDynamic" class="m-large-input">
+                    <option value="보톡스 맞춤 케어">보톡스 맞춤 케어</option>
+                    <option value="맞춤 볼륨 필러">맞춤 볼륨 필러</option>
+                    <option value="소화기 내시경 검진">소화기 내시경 검진</option>
+                    <option value="피부 톤업·장벽 케어">피부 톤업·장벽 케어</option>
+                    <option value="일반 진료" selected>일반 진료 (상담)</option>
+                </select>
+                <button type="button" style="height:48px; background:linear-gradient(135deg, #0284c7, #2563eb); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:950; cursor:pointer;" onclick="submitReservationPatient()">
+                    ✨ 예약 접수 완료하기
+                </button>
+            </section>
+        </div>
+    </main>
+
+    <!-- 5) 예톡결제 탭 컨테이너 -->
+    <main class="doc-tab-container" id="sec_pay">
+        <div style="background:#111827; border-radius:20px; padding:20px 18px; display:flex; flex-direction:column; gap:14px; color:#f9fafb;">
+            <div style="font-size:17px; font-weight:950; color:#38bdf8; display:flex; align-items:center; gap:6px;">
+                💳 모바일 진료비 간편결제 & 송금
+            </div>
+
+            <!-- 출금 정보 (대한민국 22개 주요 은행 선택 포함) -->
+            <div style="background:#1f293d; border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:13px; font-weight:900; color:#f3f4f6;">출금 정보 (환자 정보)</span>
+                    <span style="font-size:11px; color:#38bdf8; font-weight:800;">은행 22개 지원</span>
+                </div>
+
+                <!-- 22개 은행 드롭다운 선택 -->
+                <select id="selPatientBank22" class="m-large-input" style="background:#111827; color:#fff; border-color:#374151;" onchange="onSelectBankFromDropdown(this.value)">
+                    <option value="kbbank://|KB국민은행">KB국민은행</option>
+                    <option value="shinhan-sol://|신한은행">신한은행</option>
+                    <option value="wonbanking://|우리은행">우리은행</option>
+                    <option value="hanabank://|하나은행">하나은행</option>
+                    <option value="nhallonebank://|NH농협은행">NH농협은행</option>
+                    <option value="kakaobank://|카카오뱅크" selected>카카오뱅크</option>
+                    <option value="supertoss://|토스뱅크">토스뱅크</option>
+                    <option value="kbank://|케이뱅크">케이뱅크</option>
+                    <option value="ibk://|IBK기업은행">IBK기업은행</option>
+                    <option value="scbank://|SC제일은행">SC제일은행</option>
+                    <option value="citibank://|한국씨티은행">한국씨티은행</option>
+                    <option value="epost://|우체국">우체국</option>
+                    <option value="mgsmart://|새마을금고">새마을금고</option>
+                    <option value="cu://|신협">신협</option>
+                    <option value="suhyup://|수협은행">수협은행</option>
+                    <option value="busanbank://|BNK부산은행">BNK부산은행</option>
+                    <option value="knbank://|BNK경남은행">BNK경남은행</option>
+                    <option value="imup://|DGB대구은행">DGB대구은행</option>
+                    <option value="kjbank://|광주은행">광주은행</option>
+                    <option value="jbbank://|전북은행">전북은행</option>
+                    <option value="jebank://|제주은행">제주은행</option>
+                    <option value="kdb://|KDB산업은행">KDB산업은행</option>
+                </select>
+
+                <!-- 빠른 선택 은행 칩 (가로 스크롤) -->
+                <div class="bank-scroll-chips" id="bankQuickChipsBar"></div>
+
+                <input type="text" id="inpMyPayName" class="m-large-input" style="background:#111827; color:#fff; border-color:#374151;" placeholder="환자 성함" value="김예톡">
+                <input type="text" id="inpMyPayAccount" class="m-large-input" style="background:#111827; color:#fff; border-color:#374151;" placeholder="출금 계좌번호 (- 없이)">
+            </div>
+
+            <!-- 의원 공식 수납 계좌 -->
+            <div style="background:#1f293d; border:1.5px solid #ca8a04; border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:13px; font-weight:900; color:#fde047;">🏥 의원 공식 수납 계좌</span>
+                    <button type="button" style="background:#ca8a04; color:#fff; border:none; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" onclick="copyClinicAccountOnly()">📋 복사하기</button>
+                </div>
+                <input type="text" id="inpClinicPayBank" class="m-large-input" style="background:#111827; color:#fff; border-color:#374151;" value="국민은행" readonly>
+                <input type="text" id="inpClinicPayAccount" class="m-large-input" style="background:#111827; color:#fff; border-color:#374151; font-weight:900; color:#facc15;" value="010-1234-5678-01" readonly>
+                <div style="font-size:11.5px; color:#94a3b8;">예금주: 예톡아름다운 의원</div>
+            </div>
+
+            <!-- 결제 금액 -->
+            <div>
+                <label style="font-size:12px; font-weight:800; color:#9ca3af; display:block; margin-bottom:4px;">수납 결제 금액 (원)</label>
+                <input type="number" id="inpPayAmountNum" class="m-large-input" style="height:48px; font-size:18px; font-weight:900; color:#facc15; background:#111827; border-color:#374151;" value="50000">
+                <div style="display:flex; gap:6px; margin-top:6px;">
+                    <button type="button" class="bank-chip-btn" onclick="setPayAmountQuick(10000)">1만</button>
+                    <button type="button" class="bank-chip-btn" onclick="setPayAmountQuick(30000)">3만</button>
+                    <button type="button" class="bank-chip-btn active" onclick="setPayAmountQuick(50000)">5만</button>
+                    <button type="button" class="bank-chip-btn" onclick="setPayAmountQuick(100000)">10만</button>
+                </div>
+            </div>
+
+            <!-- 은행앱 즉시 실행 버튼 -->
+            <button type="button" style="width:100%; height:52px; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; border-radius:14px; font-size:16px; font-weight:950; color:#ffffff; cursor:pointer; box-shadow:0 4px 14px rgba(2,132,199,0.4);" onclick="startBankAppEasyPay()">
+                🚀 선택 은행앱으로 즉시 간편결제 송금
+            </button>
+        </div>
+    </main>
+
+    <!-- 🌟 우측 하단 플로팅 네비게이션: 동그라미를 작게 하고 우측 화살표(→) 하나만 유지 -->
+    <div class="floating-cluster" id="floatingCluster">
+        <button type="button" class="btn-float-single-right" onclick="handleFloatingRight()" title="다음 메뉴로 이동">→</button>
+    </div>
+
+    <!-- 4. 최하단 고정 애드몹 슬롯 (320x100) -->
+    <div class="bottom-fixed-admob-100">
+        <div style="font-size:10px; color:#94a3b8; font-weight:700; margin-bottom:2px;">AD • Google AdMob 공식 스폰서 슬롯 (320 × 100)</div>
+        <div class="admob-display-box">
+            <strong style="color:#38bdf8; font-size:13px; font-weight:950;">Google AdMob (320x100 / Large Banner)</strong>
+            <span style="color:#facc15; font-size:10.5px; font-weight:700;">대한민국 소상공인·의료 복지 공식 지원 스폰서</span>
+        </div>
+    </div>
+
+</div>
+
+<!-- 🌟 [사용자 요청 1번] 대형 사진 & 글 편집 모달 (화면창 크게 하여 관리자가 바로 작성) -->
+<div class="modal-overlay" id="bigDoctorEditModal">
+    <div class="modal-card-large">
+        <div class="modal-header-row">
+            <strong style="font-size:16px; color:#0284c7;" id="dispBigEditHeaderTitle">✏️ 페이지 편집</strong>
+            <button type="button" class="btn-nav-close" onclick="closeModal('bigDoctorEditModal')">✕</button>
+        </div>
+
+        <div>
+            <label style="font-size:12px; font-weight:900; color:#0284c7; display:block; margin-bottom:4px;">강조 제목 (사진 위에 표시)</label>
+            <input type="text" id="inpBigEditTitle" class="m-large-input" placeholder="강조 제목을 입력하세요">
+        </div>
+
+        <!-- 사진 1 (대표/Before) -->
+        <div>
+            <label style="font-size:12px; font-weight:900; color:#0284c7; display:block; margin-bottom:4px;" id="lblBigEditPhoto1">📷 대표 사진 (또는 시술 전 Before)</label>
+            <div class="m-photo-preview-box">
+                <img id="dispBigEditPhotoPreview1" class="m-photo-img" src="" alt="사진 1">
+                <button type="button" class="btn-photo-overlay-upload" onclick="triggerPhotoUpload(1)">🔄 사진 선택/교체</button>
+            </div>
+        </div>
+
+        <!-- 사진 2 (시술 후/After, 진료안내 전용) -->
+        <div id="grpBigEditPhoto2" style="display:none;">
+            <label style="font-size:12px; font-weight:900; color:#0284c7; display:block; margin-bottom:4px;">📷 시술 후 사진 (After - 좌우 넘김용)</label>
+            <div class="m-photo-preview-box">
+                <img id="dispBigEditPhotoPreview2" class="m-photo-img" src="" alt="사진 2">
+                <button type="button" class="btn-photo-overlay-upload" onclick="triggerPhotoUpload(2)">🔄 사진 선택/교체</button>
+            </div>
+        </div>
+
+        <div>
+            <label style="font-size:12px; font-weight:900; color:#0284c7; display:block; margin-bottom:4px;">설명 글 (사진 밑에 표시)</label>
+            <textarea id="inpBigEditDesc" class="m-large-textarea" placeholder="환자분들에게 전할 상세 설명 글을 작성하세요..."></textarea>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:6px;">
+            <button type="button" id="btnBigEditDelete" style="height:46px; padding:0 16px; background:#fee2e2; border:1.5px solid #ef4444; color:#dc2626; border-radius:12px; font-weight:900; cursor:pointer;" onclick="deleteCurrentBigPage()">🗑️ 삭제</button>
+            <button type="button" style="flex:1; height:46px; background:linear-gradient(135deg, #0284c7, #0369a1); color:#fff; border:none; border-radius:12px; font-weight:950; font-size:15px; cursor:pointer;" onclick="saveBigDoctorPageEdit()">💾 수정 저장 완료</button>
+        </div>
+    </div>
+</div>
+
+<!-- 숨김 파일 업로더들 -->
+<input type="file" id="inpFilePhoto1" accept="image/*" style="display:none;" onchange="handleCommonPhotoSelected(event, 1)">
+<input type="file" id="inpFilePhoto2" accept="image/*" style="display:none;" onchange="handleCommonPhotoSelected(event, 2)">
+<input type="file" id="inpNoticeImgFile" accept="image/*" style="display:none;" onchange="handleNoticeImgFile(event)">
+<input type="file" id="inpChatImgUpload" accept="image/*" style="display:none;" onchange="handleChatImgUpload(event)">
+<input type="file" id="inpDoctorBigPostPhoto" accept="image/*" style="display:none;" onchange="handleDoctorBigPhotoUpload(event)">
+
+<!-- ===== 기타 기존 기능 모달들 (닥톡/원내톡/공지/고객가입) ===== -->
+
+<!-- 고객 간편가입 모달 -->
+<div class="modal-overlay" id="modalPatientJoin">
+    <div class="modal-card-large" style="text-align:center;">
+        <div style="font-size:36px;">🏥</div>
+        <strong style="font-size:18px; color:#0f172a;">의원 고객 간편 가입</strong>
+        <p style="font-size:13px; color:#475569; line-height:1.6; margin:6px 0 12px 0;">
+            <b>[예]</b>를 선택하시면 자동 회원 등록과 함께<br><b>스마트 예약 확인</b> 및 <b>진료 알림 서비스</b>를 제공합니다.
+        </p>
+        <div style="display:flex; flex-direction:column; gap:8px; text-align:left; margin-bottom:12px;">
+            <input type="text" id="inpJoinPatientName" class="m-large-input" readonly style="background:#e2e8f0;">
+            <input type="tel" id="inpJoinPatientPhone" class="m-large-input" readonly style="background:#e2e8f0;">
+        </div>
+        <div style="display:flex; gap:8px;">
+            <button type="button" style="flex:1; height:44px; background:#e2e8f0; color:#334155; border:none; border-radius:8px; font-weight:800; cursor:pointer;" onclick="closeModal('modalPatientJoin')">아니오</button>
+            <button type="button" style="flex:2; height:44px; background:#059669; color:#fff; border:none; border-radius:8px; font-weight:900; cursor:pointer;" onclick="confirmPatientJoinAction()">예 (간편 가입 완료)</button>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 간단 접수 및 의원 자동 회원가입 모달 -->
+<div class="modal-overlay" id="modalQuickPatientRegister">
+    <div class="modal-card-large">
+        <div class="modal-header-row">
+            <strong style="font-size:16.5px; color:#0284c7;">🏥 간단 접수 & 자동 회원가입</strong>
+            <button type="button" class="btn-nav-close" onclick="closeModal('modalQuickPatientRegister')">✕</button>
+        </div>
+        <p style="font-size:12.5px; color:#64748b; line-height:1.5;">
+            간단 정보를 입력하시면 예톡아름다운 의원 회원으로 자동 등록되며 바로 예약접수됩니다.
+        </p>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <div>
+                <label style="font-size:11.5px; font-weight:800; color:#0284c7; display:block; margin-bottom:2px;">환자 성함</label>
+                <input type="text" id="inpQuickRegName" class="m-large-input" placeholder="성함 입력" value="김예톡" oninput="syncQuickRegId(this.value)">
+            </div>
+            <div>
+                <label style="font-size:11.5px; font-weight:800; color:#0284c7; display:block; margin-bottom:2px;">아이디 (이름과 동일하게 자동 설정)</label>
+                <input type="text" id="inpQuickRegId" class="m-large-input" placeholder="아이디 자동 입력" value="김예톡">
+            </div>
+            <div>
+                <label style="font-size:11.5px; font-weight:800; color:#0284c7; display:block; margin-bottom:2px;">핸드폰 번호</label>
+                <input type="tel" id="inpQuickRegPhone" class="m-large-input" placeholder="010-XXXX-XXXX" value="010-1234-5678">
+            </div>
+            <div>
+                <label style="font-size:11.5px; font-weight:800; color:#0284c7; display:block; margin-bottom:2px;">시·군·구 주소</label>
+                <input type="text" id="inpQuickRegAddress" class="m-large-input" placeholder="예: 서울시 강남구 역삼동" value="서울시 강남구 테헤란로">
+            </div>
+            <div>
+                <label style="font-size:11.5px; font-weight:800; color:#0284c7; display:block; margin-bottom:4px;">예약 희망 일시</label>
+                <div style="display:flex; gap:6px; margin-bottom:6px;">
+                    <button type="button" class="bank-chip-btn active" id="btnQuickModeToday" onclick="setQuickRegDateMode('today')">⚡ 당일 지금 바로</button>
+                    <button type="button" class="bank-chip-btn" id="btnQuickModeOther" onclick="setQuickRegDateMode('other')">📅 다른 날짜 선택</button>
+                </div>
+                <div id="grpQuickDatePickers" style="display:none; gap:6px;">
+                    <input type="date" id="inpQuickRegDate" class="m-large-input" style="flex:1;">
+                    <select id="inpQuickRegTime" class="m-large-input" style="flex:1;">
+                        <option value="오전 09:30">오전 09:30</option>
+                        <option value="오전 10:30">오전 10:30</option>
+                        <option value="오전 11:30">오전 11:30</option>
+                        <option value="오후 02:00">오후 02:00</option>
+                        <option value="오후 03:30">오후 03:30</option>
+                        <option value="오후 05:00">오후 05:00</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label style="font-size:11.5px; font-weight:800; color:#0284c7; display:block; margin-bottom:2px;">진료/상담 과목</label>
+                <select id="selQuickRegSubject" class="m-large-input">
+                    <option value="일반 진료 (상담)">일반 진료 (상담)</option>
+                    <option value="보톡스 맞춤 케어">보톡스 맞춤 케어</option>
+                    <option value="맞춤 볼륨 필러">맞춤 볼륨 필러</option>
+                    <option value="소화기 내시경 검진">소화기 내시경 검진</option>
+                    <option value="피부 톤업·장벽 케어">피부 톤업·장벽 케어</option>
+                </select>
+            </div>
+        </div>
+        <button type="button" style="height:48px; background:linear-gradient(135deg, #0284c7, #2563eb); color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:950; cursor:pointer; margin-top:4px;" onclick="submitQuickPatientRegisterAction()">
+            ✨ 간단 접수 및 회원가입 완료
+        </button>
+    </div>
+</div>
+
+<!-- 닥톡 상세 뷰 -->
+<div class="fullscreen-detail-view" id="viewDetailChat">
+    <div class="detail-top-nav">
+        <span class="detail-title-head">🩺 닥톡 (DocTalk - 의사 전용)</span>
+        <div style="display:flex; align-items:center; gap:6px;">
+            <button type="button" class="btn-pc-popup" onclick="window.open('doctalk_popup.html', 'DocTalkWin', 'width=520,height=780,resizable=yes')">🖥️ PC 팝업 분리</button>
+            <button type="button" class="btn-nav-close" onclick="closeDetailView('viewDetailChat')">✕</button>
+        </div>
+    </div>
+    <div style="overflow-y:auto; flex:1; padding:12px;" id="doctorBoardViewArea">
+        <div id="boardRegularListContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+    <button type="button" class="btn-float-action btn-float-add" style="position:fixed; right:20px; bottom:calc(var(--bottom-ad-h) + 16px);" onclick="openDoctorBigWriteModal()" title="새 글 작성">✏️</button>
+</div>
+
+<!-- 원내톡 메신저 뷰 -->
+<div class="fullscreen-detail-view" id="viewDetailClinicChat" style="z-index:52000;">
+    <div class="detail-top-nav" style="background:#bacada; border-bottom:1px solid #9faec0;">
+        <button type="button" style="background:none; border:none; font-size:22px; cursor:pointer;" onclick="closeClinicChatKakaoStyle()">←</button>
+        <span class="detail-title-head" style="color:#0f172a; font-size:16px;">💬 원내 메신저톡</span>
+        <div style="display:flex; align-items:center; gap:6px;">
+            <button type="button" class="btn-pc-popup" style="background:rgba(0,0,0,0.15); color:#000;" onclick="window.open('clinictalk_popup.html', 'ClinicTalkWin', 'width=520,height=780,resizable=yes')">🖥️ PC 팝업 분리</button>
+            <button type="button" class="btn-nav-close" onclick="closeDetailView('viewDetailClinicChat')">✕</button>
+        </div>
+    </div>
+    <div class="kakaotalk-shell">
+        <div class="kakaotalk-msg-container" id="kakaotalkChatMsgList"></div>
+        <div class="kakaotalk-input-bar">
+            <button type="button" style="background:none; border:none; font-size:20px; cursor:pointer; color:#475569;" onclick="document.getElementById('inpChatImgUpload').click()">📷</button>
+            <input type="text" id="inpKakaoChatMsg" class="m-large-input" style="flex:1; height:38px; border-radius:18px;" placeholder="메시지 또는 유튜브 링크 입력..." onkeypress="if(event.keyCode===13) sendKakaoClinicMsg()">
+            <button type="button" style="background:#fee500; border:none; padding:8px 14px; border-radius:18px; font-weight:900;" onclick="sendKakaoClinicMsg()">전송</button>
+        </div>
+    </div>
+</div>
+
+<!-- 스마트 원터치 접수 모달 -->
+<div class="modal-overlay" id="modalSmartQrReserve">
+    <div class="modal-card-large" style="text-align:center;">
+        <div style="font-size:36px; margin-bottom:4px;">📱</div>
+        <strong style="font-size:18px; color:#0284c7;">스마트 원터치 당일 접수</strong>
+        <p style="font-size:13px; color:#475569; line-height:1.6; margin:6px 0 12px 0;">
+            지금 내원하셨나요? <b>[지금 바로 접수하기]</b>를 누르시면<br>
+            현재 시간으로 당일 접수되며 의원 고객으로 자동 등록됩니다.
+        </p>
+        <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:12px; text-align:left; display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
+            <div style="font-size:13px; color:#334155;"><b>환자 성함:</b> <span id="dispSmartQrName">김예톡</span></div>
+            <div style="font-size:13px; color:#334155;"><b>접수 시각:</b> <span id="dispSmartQrTime" style="color:#0284c7; font-weight:900;">2026-10-12 14:10</span></div>
+            <div>
+                <label style="font-size:12px; font-weight:800; color:#0284c7; display:block; margin-bottom:3px;">희망 진료 과목 선택</label>
+                <select id="selSmartQrSubject" class="m-large-input" style="background:#fff;">
+                    <option value="일반 진료" selected>일반 진료 (기본)</option>
+                </select>
+            </div>
+        </div>
+        <div style="display:flex; gap:8px;">
+            <button type="button" style="flex:1; height:44px; background:#e2e8f0; color:#334155; border:none; border-radius:8px; font-weight:800; cursor:pointer;" onclick="closeModal('modalSmartQrReserve')">취소</button>
+            <button type="button" style="flex:2; height:44px; background:#0284c7; color:#fff; border:none; border-radius:8px; font-weight:950; font-size:14.5px; cursor:pointer;" onclick="submitSmartQrAction()">
+                ⚡ 지금 바로 접수하기
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 공지알림 전체화면 에디터 모달 -->
+<div class="fullscreen-detail-view" id="modalNoticeFullscreenEditor" style="z-index:56000;">
+    <div class="detail-top-nav">
+        <span class="detail-title-head">새 공지사항 작성</span>
+        <div style="display:flex; gap:6px;">
+            <button type="button" style="background:#0284c7; color:#fff; border:none; padding:6px 14px; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer;" onclick="submitNewClinicNoticeFull()">등록</button>
+            <button type="button" class="btn-nav-close" onclick="closeNoticeEditorFullscreen()">✕</button>
+        </div>
+    </div>
+    <div style="padding:16px; display:flex; flex-direction:column; gap:12px; flex:1; overflow-y:auto;">
+        <input type="text" id="inpFullNoticeTitle" class="m-large-input" placeholder="공지 제목을 입력하세요">
+        <button type="button" style="background:#0284c7; color:#fff; border:none; padding:8px 12px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer; align-self:flex-start;" onclick="document.getElementById('inpNoticeImgFile').click()">📷 사진 파일 선택</button>
+        <textarea id="inpFullNoticeBody" class="m-large-textarea" style="flex:1; min-height:200px;" placeholder="공지 상세 내용을 입력하세요..."></textarea>
+    </div>
+</div>
+
+<!-- 토스트 안내창 -->
+<div class="doc-toast" id="docToastBox">알림 메시지</div>
+
+<script>
+/**
+ * 🌟 예톡 스마트 메디컬 포털 최신 고도화 스크립트
+ */
+
+// 요일별 7개 문장 순환 좋은 글 데이터 (사용자 제공 원문 100% 반영)
+const WEEKLY_GOOD_QUOTES = {
+    1: { // 월요일
+        day: "월요일",
+        quotes: [
+            "오늘 만나는 사람에게 따뜻한 마음을 건네세요",
+            "작은 친절 하나가 누군가의 하루를 바꿉니다",
+            "완벽하지 않아도 오늘은 다시 시작할 수 있습니다",
+            "남과 비교하기보다 어제보다 나은 내가 되세요",
+            "힘든 날일수록 자신에게 조금 더 다정하세요",
+            "좋은 마음으로 시작한 하루는 아름답게 자랍니다",
+            "오늘의 작은 선택이 내일의 나를 만들어갑니다"
+        ]
+    },
+    2: { // 화요일
+        day: "화요일",
+        quotes: [
+            "사랑은 말보다 작은 행동에서 빛납니다",
+            "먼저 이해하려는 마음이 관계를 따뜻하게 합니다",
+            "용서는 상대보다 내 마음을 먼저 자유롭게 합니다",
+            "따뜻한 말 한마디가 오래도록 마음에 남습니다",
+            "누군가의 부족함보다 그 사람의 아픔을 바라보세요",
+            "진심으로 아끼는 마음은 결국 전해집니다",
+            "사랑을 나누는 사람의 삶에는 향기가 남습니다"
+        ]
+    },
+    3: { // 수요일
+        day: "수요일",
+        quotes: [
+            "모든 답을 알지 못해도 괜찮습니다",
+            "천천히 가더라도 바른 길을 걷는 것이 중요합니다",
+            "흔들리는 날에도 자신의 선함을 잃지 마세요",
+            "보이지 않는 노력도 언젠가 열매를 맺습니다",
+            "어려움은 때로 우리 안의 깊이를 깨워줍니다",
+            "조급함을 내려놓으면 새로운 길이 보입니다",
+            "오늘도 바른 마음으로 한 걸음씩 나아가세요"
+        ]
+    },
+    4: { // 목요일
+        day: "목요일",
+        quotes: [
+            "감사는 평범한 하루를 특별하게 만듭니다",
+            "작은 행복을 알아보는 마음이 큰 행복을 만듭니다",
+            "가진 것의 소중함을 깨달을 때 마음이 풍성해집니다",
+            "웃음 하나가 지친 마음에 햇살이 됩니다",
+            "당연하게 여긴 것들 속에 행복이 숨어 있습니다",
+            "오늘의 평범함이 내일에는 그리움이 될 수 있습니다",
+            "감사할 이유를 찾으면 삶의 빛이 보입니다"
+        ]
+    },
+    5: { // 금요일
+        day: "금요일",
+        quotes: [
+            "누구에게나 말하지 못한 아픔이 있습니다",
+            "그러니 판단하기 전에 한 번 더 이해해 주세요",
+            "강한 사람은 상처를 주기보다 품어주는 사람입니다",
+            "지친 마음에도 다시 피어날 시간이 필요합니다",
+            "눈물의 시간을 지나면 마음은 더 깊어집니다",
+            "모든 것을 혼자 감당하지 않아도 괜찮습니다",
+            "어두운 밤이 지나면 새로운 아침이 찾아옵니다"
+        ]
+    },
+    6: { // 토요일
+        day: "토요일",
+        quotes: [
+            "내가 베푼 선의가 세상을 조금씩 바꿉니다",
+            "아무도 보지 않을 때의 선택이 나를 만듭니다",
+            "작은 나눔이 누군가에게는 큰 희망입니다",
+            "높아지려 하기보다 깊어지는 사람이 되세요",
+            "진정한 부유함은 얼마나 나누며 사느냐에 있습니다",
+            "좋은 사람은 떠난 뒤에도 따뜻함을 남깁니다",
+            "오늘 내가 심은 선함이 누군가의 내일에 피어납니다"
+        ]
+    },
+    0: { // 일요일
+        day: "일요일",
+        quotes: [
+            "보이지 않는 진실 앞에 마음을 열어보세요",
+            "우리는 왜 태어났으며 어디로 향하고 있을까요",
+            "세상의 모든 아름다움에는 어떤 뜻이 있을까요",
+            "양심의 작은 울림에 귀를 기울여보세요",
+            "사랑과 생명은 어디에서 시작되었을까요",
+            "눈에 보이는 것 너머에도 진실이 있을지 모릅니다",
+            "오늘 잠시 멈추어 내 영혼이 향하는 곳을 생각해 보세요"
+        ]
+    }
+};
+
+let currentQuoteIndex = 0;
+let quoteRollingTimer = null;
+
+// 가로 메뉴 순서
+const DOCTOR_SECTIONS = ["intro", "beauty", "notice", "reserve", "pay"];
+let currentSectionKey = "intro";
+let isDoctorEditMode = false;
+
+// 의원소개 기본 데이터 (간단한 메뉴명 및 의원소개 두번째 줄 초대 글과 복사, 카톡 보내기)
+const DEFAULT_INTRO_PAGES = [
+    {
+        title: "의원소개",
+        img: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=90",
+        desc: "안녕하십니까, 예톡아름다운 의원입니다.\n\n저희 의원은 불필요한 과잉 진료를 철저히 배제하고, 정품·정량 시술과 면밀한 1:1 맞춤 진료를 통해 환자분들의 건강과 자연스러운 아름다움을 지켜드립니다."
+    },
+    {
+        isInvite: true,
+        title: "의원소개 (초대)",
+        img: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1200&q=85",
+        desc: "✨ 예톡아름다운 의원에 소중한 분을 초대합니다 ✨\n\n정직한 진료와 섬세한 1:1 맞춤 케어로 당신의 건강과 아름다움을 선물해 드립니다.\n지금 방문하셔서 전문의 맞춤 상담과 특별한 혜택을 편안하게 만나보세요!"
+    },
+    {
+        title: "의원소개 (진료시간 및 오시는 길)",
+        img: "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80",
+        desc: "⏰ 진료시간 안내\n평 일 : 오전 09:30 ~ 오후 06:30 (점심: 13:00~14:00)\n토요일 : 오전 09:30 ~ 오후 01:00\n일요일 및 공휴일 : 휴진\n\n📍 주소: 대한민국 중심가 메디컬센터 4층 (지하철역 3번 출구)"
+    }
+];
+
+// 진료(시술)안내 과목 및 2장 사진 슬라이더 데이터
+const DEFAULT_BEAUTY_SUBJECTS = [
+    {
+        subjectId: "b0",
+        title: "보톡스 (주름·사각턱)",
+        cases: [
+            {
+                title: "보톡스 맞춤 클리닉",
+                desc: "과도하게 발달한 근육을 축소하고 표정 주름을 완화하여 자연스러운 라인을 완성하는 정품·정량 맞춤 케어입니다. 붓기와 통증을 최소화합니다.",
+                img1: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=800&q=80",
+                img2: "https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=800&q=80"
+            }
+        ]
+    },
+    {
+        subjectId: "b1",
+        title: "맞춤 볼륨 필러 (HA)",
+        cases: [
+            {
+                title: "자연스러운 볼륨 입체감 형성",
+                desc: "깊게 패인 주름과 볼륨이 꺼진 부위에 정밀하게 입체감을 채워주는 동안 케어 프로그램입니다. 둥근 미세 캐뉼라로 멍을 최소화합니다.",
+                img1: "https://images.unsplash.com/photo-1512290903672-d798546722f4?auto=format&fit=crop&w=800&q=80",
+                img2: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80"
+            }
+        ]
+    },
+    {
+        subjectId: "b2",
+        title: "소화기 내시경 클리닉",
+        cases: [
+            {
+                title: "소화기 내시경 & 당일 절제술",
+                desc: "풍부한 임상 경험의 전문의가 직접 시행하는 수면 위·대장 내시경으로 조기 용종 발견 및 당일 안전 절제를 원스톱으로 진행합니다.",
+                img1: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80",
+                img2: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80"
+            }
+        ]
+    }
+];
+
+let introPages = [];
+let beautySubjects = [];
+let activeBeautySubIdx = 0;
+let caseSlideSteps = {}; // 각 케이스별 현재 보고 있는 사진 (1 또는 2)
+
+// 편집 모달 임시 상태
+let curEditMode = ""; // 'intro' or 'beauty'
+let curEditCaseIdx = 0;
+let tempImg1Base64 = "";
+let tempImg2Base64 = "";
+
+/* ==========================================
+   2. 가로 메뉴 탭 전환 로직 (좌우 연동 해제)
+   ========================================== */
+function switchDoctorSection(key) {
+    if (!DOCTOR_SECTIONS.includes(key)) return;
+    currentSectionKey = key;
+
+    // 칩 활성화
+    document.querySelectorAll(".tab-chip").forEach(c => c.classList.remove("active"));
+    const activeChip = document.getElementById(`chip_${key}`);
+    if (activeChip) {
+        activeChip.classList.add("active");
+        activeChip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+
+    // 컨테이너 표시
+    document.querySelectorAll(".doc-tab-container").forEach(c => c.classList.remove("active"));
+    const activeContainer = document.getElementById(`sec_${key}`);
+    if (activeContainer) {
+        activeContainer.classList.add("active");
+        activeContainer.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    if (key === 'notice') renderNoticeBoardData();
+    if (key === 'reserve') {
+        renderReservationCalendar();
+        renderStaffDailyReservations();
+        renderPatientMyReservation();
+    }
+}
+
+function toggleDoctorEditMode() {
+    isDoctorEditMode = !isDoctorEditMode;
+    const btn = document.getElementById("btnAdminEditToggle");
+    if (btn) {
+        btn.innerText = isDoctorEditMode ? "수정 ON 🔴" : "수정 ⚙️";
+        btn.style.background = isDoctorEditMode ? "#dc2626" : "#0284c7";
+    }
+    renderIntroSection();
+    renderBeautySection();
+    showToast(isDoctorEditMode ? "✏️ 수정 모드가 활성화되었습니다." : "🔒 보기 모드로 전환되었습니다.");
+}
+
+/* ==========================================
+   3. 의원소개 렌더링 (간단한 제목 + 두번째 줄 초대 및 복사, 카톡)
+   ========================================== */
+function renderIntroSection() {
+    const host = document.getElementById("sec_intro");
+    if (!host) return;
+    host.innerHTML = "";
+
+    introPages.forEach((item, idx) => {
+        const card = document.createElement("section");
+        card.className = "doc-card-block";
+        card.id = `intro_card_${idx}`;
+
+        const isInvite = item.isInvite || (idx === 1);
+        const isFirstPage = (idx === 0);
+
+        card.innerHTML = `
+            <div class="doc-card-top-bar">
+                <h2 class="doc-card-title">${item.title}</h2>
+                <div class="doc-card-meta-actions">
+                    <span class="doc-page-badge">${idx + 1} / ${introPages.length}</span>
+                    ${isDoctorEditMode ? `<button type="button" class="btn-card-edit-trigger" onclick="openBigEditModal('intro', ${idx})">✏️ 수정</button>` : ''}
+                </div>
+            </div>
+
+            ${isFirstPage ? `
+            <!-- 🌟 사용자 요청: 대형 스마트 QR 코드 & 원클릭 간단 접수 배너 -->
+            <div class="qr-card-cover" onclick="openQuickPatientRegisterModal()" title="터치하여 간단 접수 및 자동 회원가입">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https%3A%2F%2Fyetalk.kr%2Fassets%2Fdoctormain.html%3Fjoin%3Dclinic" class="qr-card-img" alt="스마트 QR 코드">
+                <div class="qr-card-badge">📱 QR 스캔 또는 터치 시 즉시 회원가입</div>
+            </div>
+
+            <button type="button" class="btn-quick-reserve-banner" onclick="openQuickPatientRegisterModal()">
+                <span>⚡ 간단 접수를 원하시면 클릭하세요 (터치 즉시 예약접수)</span>
+            </button>
+            ` : ''}
+
+            <div class="doc-card-photo-box">
+                <img src="${item.img}" class="doc-card-main-img" alt="${item.title}">
+            </div>
+
+            <div class="doc-card-desc-box" onclick="openBigEditModal('intro', ${idx});" title="터치하여 설명 글 바로 수정">
+                <p class="doc-card-desc-text">${item.desc}</p>
+                <span style="font-size:11px; color:#0284c7; font-weight:800; align-self:flex-end;">✍️ 설명 글 수정</span>
+            </div>
+
+            ${isInvite ? `
+            <div class="invite-action-row">
+                <button type="button" class="btn-invite-action btn-invite-copy" onclick="copyClinicInviteMessage()">📋 초대글 복사</button>
+                <button type="button" class="btn-invite-action btn-invite-kakao" onclick="shareClinicInviteKakao()">💬 카톡 보내기</button>
+            </div>
+            ` : ''}
+
+            <button type="button" class="btn-card-add-below" onclick="addNewIntroPageDirect(${idx})">
+                ＋ 바로 밑에 새 소개 페이지 추가
+            </button>
+        `;
+        host.appendChild(card);
+    });
+}
+
+function addNewIntroPageDirect(afterIdx) {
+    const newPage = {
+        title: "의원소개",
+        img: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=1600&q=90",
+        desc: "환자 중심의 편안하고 쾌적한 진료 환경을 제공합니다. 정성을 다해 모시겠습니다."
+    };
+    introPages.splice(afterIdx + 1, 0, newPage);
+    saveIntroData();
+    renderIntroSection();
+    openBigEditModal('intro', afterIdx + 1);
+}
+
+/* ==========================================
+   4. 진료(시술)안내 렌더링 (그림 위 화살표 제거, 하단 바 배치)
+   ========================================== */
+function renderBeautySection() {
+    const chipsBar = document.getElementById("beautySubTabsBar") || document.getElementById("beautySubjectChipsBar");
+    const casesHost = document.getElementById("beautyCasesList");
+
+    if (activeBeautySubIdx >= beautySubjects.length) activeBeautySubIdx = 0;
+    const curSub = beautySubjects[activeBeautySubIdx];
+
+    // 과목 칩 바
+    if (chipsBar) {
+        chipsBar.innerHTML = beautySubjects.map((s, idx) => `
+            <button type="button" class="tab-chip ${idx === activeBeautySubIdx ? 'active' : ''}" onclick="switchBeautySub(${idx})">
+                ${s.title}
+            </button>
+        `).join("") + `
+            <button type="button" class="tab-chip" style="background:#f1f5f9; border-color:#cbd5e1; color:#0284c7; font-weight:900;" onclick="promptAddNewSubject()">
+                ＋ 과목 추가
+            </button>
+        `;
+    }
+
+    if (!curSub || !casesHost) return;
+    casesHost.innerHTML = "";
+
+    const cases = curSub.cases || [];
+    cases.forEach((c, idx) => {
+        const step = caseSlideSteps[`${activeBeautySubIdx}_${idx}`] || 1;
+        const hasImg2 = !!c.img2;
+        const currentImg = (step === 2 && hasImg2) ? c.img2 : c.img1;
+        const stepLabel = step === 2 ? '시술 후 (After) 2/2' : '시술 전 (Before) 1/2';
+
+        const card = document.createElement("section");
+        card.className = "doc-card-block";
+        card.id = `beauty_case_${idx}`;
+
+        card.innerHTML = `
+            <div class="doc-card-top-bar">
+                <h2 class="doc-card-title">${c.title}</h2>
+                <div class="doc-card-meta-actions">
+                    <span class="doc-page-badge">${idx + 1} / ${cases.length}</span>
+                    ${isDoctorEditMode ? `<button type="button" class="btn-card-edit-trigger" onclick="openBigEditModal('beauty', ${idx})">✏️ 수정</button>` : ''}
+                </div>
+            </div>
+
+            <!-- 사진 본체 (화면 가리는 화살표 없음) -->
+            <div class="doc-card-photo-box" onclick="toggleCaseSlide(${idx})" title="터치하여 시술 전/후 사진 전환">
+                <img src="${currentImg}" class="doc-card-main-img" id="img_case_${idx}" alt="${c.title}">
+            </div>
+
+            <!-- 🌟 [사용자 요청] 좌우 화살표는 아래쪽에 배치 -->
+            ${hasImg2 ? `
+            <div class="photo-slide-bottom-bar">
+                <button type="button" class="photo-slide-btn-bottom ${step === 1 ? 'active' : ''}" onclick="toggleCaseSlide(${idx}, 1)">❮ 시술 전 (Before)</button>
+                <span class="photo-slide-indicator-label" id="pill_case_${idx}">${stepLabel}</span>
+                <button type="button" class="photo-slide-btn-bottom ${step === 2 ? 'active' : ''}" onclick="toggleCaseSlide(${idx}, 2)">시술 후 (After) ❯</button>
+            </div>
+            ` : ''}
+
+            <div class="doc-card-desc-box" onclick="openBigEditModal('beauty', ${idx});" title="터치하여 설명 글 바로 수정">
+                <p class="doc-card-desc-text">${c.desc}</p>
+                <span style="font-size:11px; color:#0284c7; font-weight:800; align-self:flex-end;">✍️ 설명 글 수정</span>
+            </div>
+
+            <button type="button" class="btn-card-add-below" onclick="addNewBeautyCaseDirect(${idx})">
+                ＋ 바로 밑에 새 시술 사례 추가
+            </button>
+        `;
+        casesHost.appendChild(card);
+    });
+}
+
+function switchBeautySub(idx) {
+    activeBeautySubIdx = idx;
+    renderBeautySection();
+}
+
+function toggleCaseSlide(caseIdx, targetStep) {
+    caseSlideSteps[`${activeBeautySubIdx}_${caseIdx}`] = targetStep;
+    const curCase = beautySubjects[activeBeautySubIdx].cases[caseIdx];
+    if (!curCase) return;
+
+    const imgEl = document.getElementById(`img_case_${caseIdx}`);
+    const pillEl = document.getElementById(`pill_case_${caseIdx}`);
+
+    if (imgEl) imgEl.src = (targetStep === 2 && curCase.img2) ? curCase.img2 : curCase.img1;
+    if (pillEl) pillEl.innerText = targetStep === 2 ? '시술 후 (After) 2/2' : '시술 전 (Before) 1/2';
+}
+
+function addNewBeautyCaseDirect(afterIdx) {
+    const newCase = {
+        title: "새로운 맞춤 시술 클리닉 사례",
+        desc: "풍부한 임상 노하우와 철저한 멸균 관리로 안전하고 만족도 높은 진료를 약속합니다.",
+        img1: "https://images.unsplash.com/photo-1512290903672-d798546722f4?auto=format&fit=crop&w=800&q=80",
+        img2: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80"
+    };
+    beautySubjects[activeBeautySubIdx].cases.splice(afterIdx + 1, 0, newCase);
+    saveBeautyData();
+    renderBeautySection();
+    openBigEditModal('beauty', afterIdx + 1);
+}
+
+function promptAddNewSubject() {
+    const val = prompt("새로 추가할 진료/시술 과목 명칭을 입력하세요:");
+    if (!val || !val.trim()) return;
+    beautySubjects.push({
+        subjectId: "b_" + Date.now(),
+        title: val.trim(),
+        cases: [
+            {
+                title: `${val.trim()} 안내 및 대표 사례`,
+                desc: "체계적인 맞춤 진료를 제공합니다.",
+                img1: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=800&q=80",
+                img2: ""
+            }
+        ]
+    });
+    saveBeautyData();
+    activeBeautySubIdx = beautySubjects.length - 1;
+    renderBeautySection();
+    showToast(`✨ [${val.trim()}] 과목이 추가되었습니다.`);
+}
+
+/* ==========================================
+   5. 대형 사진 & 글 편집 모달 엔진
+   ========================================== */
+function openBigEditModal(mode, idx) {
+    curEditMode = mode;
+    curEditCaseIdx = idx;
+    tempImg1Base64 = "";
+    tempImg2Base64 = "";
+
+    const modal = document.getElementById("bigDoctorEditModal");
+    const titleHeader = document.getElementById("dispBigEditHeaderTitle");
+    const inTitle = document.getElementById("inpBigEditTitle");
+    const inDesc = document.getElementById("inpBigEditDesc");
+    const preview1 = document.getElementById("dispBigEditPhotoPreview1");
+    const preview2 = document.getElementById("dispBigEditPhotoPreview2");
+    const grpPhoto2 = document.getElementById("grpBigEditPhoto2");
+    const delBtn = document.getElementById("btnBigEditDelete");
+
+    if (mode === 'intro') {
+        const item = introPages[idx];
+        titleHeader.innerText = `✏️ [의원소개] ${idx + 1}번 페이지 편집`;
+        inTitle.value = item.title;
+        inDesc.value = item.desc;
+        preview1.src = item.img;
+        grpPhoto2.style.display = "none";
+        delBtn.style.display = introPages.length > 1 ? "block" : "none";
+    } else {
+        const curCase = beautySubjects[activeBeautySubIdx].cases[idx];
+        titleHeader.innerText = `✏️ [${beautySubjects[activeBeautySubIdx].title}] ${idx + 1}번 사례 편집`;
+        inTitle.value = curCase.title;
+        inDesc.value = curCase.desc;
+        preview1.src = curCase.img1;
+        preview2.src = curCase.img2 || curCase.img1;
+        grpPhoto2.style.display = "block";
+        delBtn.style.display = beautySubjects[activeBeautySubIdx].cases.length > 1 ? "block" : "none";
+    }
+
+    modal.classList.add("open");
+}
+
+function triggerPhotoUpload(photoNum) {
+    if (photoNum === 1) document.getElementById("inpFilePhoto1").click();
+    else document.getElementById("inpFilePhoto2").click();
+}
+
+function handleCommonPhotoSelected(e, photoNum) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement("canvas");
+            let w = img.width, h = img.height;
+            const maxW = 1000;
+            if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, w, h);
+            const base64 = canvas.toDataURL("image/jpeg", 0.88);
+
+            if (photoNum === 1) {
+                tempImg1Base64 = base64;
+                document.getElementById("dispBigEditPhotoPreview1").src = base64;
+            } else {
+                tempImg2Base64 = base64;
+                document.getElementById("dispBigEditPhotoPreview2").src = base64;
+            }
+            showToast("📷 사진이 준비되었습니다. 저장 완료를 눌러주세요.");
+        };
+        img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function saveBigDoctorPageEdit() {
+    const newTitle = document.getElementById("inpBigEditTitle").value.trim();
+    const newDesc = document.getElementById("inpBigEditDesc").value.trim();
+
+    if (!newTitle) return alert("강조 제목을 입력해주세요.");
+
+    if (curEditMode === 'intro') {
+        const item = introPages[curEditCaseIdx];
+        item.title = newTitle;
+        item.desc = newDesc;
+        if (tempImg1Base64) item.img = tempImg1Base64;
+        saveIntroData();
+        renderIntroSection();
+    } else {
+        const item = beautySubjects[activeBeautySubIdx].cases[curEditCaseIdx];
+        item.title = newTitle;
+        item.desc = newDesc;
+        if (tempImg1Base64) item.img1 = tempImg1Base64;
+        if (tempImg2Base64) item.img2 = tempImg2Base64;
+        saveBeautyData();
+        renderBeautySection();
+    }
+
+    closeModal("bigDoctorEditModal");
+    showToast("💾 수정 내용이 완벽하게 저장되었습니다!");
+}
+
+function deleteCurrentBigPage() {
+    if (!confirm("이 페이지를 정말 삭제하시겠습니까?")) return;
+
+    if (curEditMode === 'intro') {
+        introPages.splice(curEditCaseIdx, 1);
+        saveIntroData();
+        renderIntroSection();
+    } else {
+        beautySubjects[activeBeautySubIdx].cases.splice(curEditCaseIdx, 1);
+        saveBeautyData();
+        renderBeautySection();
+    }
+
+    closeModal("bigDoctorEditModal");
+    showToast("🗑️ 페이지가 삭제되었습니다.");
+}
+
+/* ==========================================
+   6. 플로팅 우측 화살표 (→ 하나만 유지)
+   ========================================== */
+function handleFloatingRight() {
+    const curIdx = DOCTOR_SECTIONS.indexOf(currentSectionKey);
+    const nextIdx = (curIdx + 1) % DOCTOR_SECTIONS.length;
+    const nextKey = DOCTOR_SECTIONS[nextIdx];
+    switchDoctorSection(nextKey);
+    const chip = document.getElementById(`chip_${nextKey}`);
+    if (chip) showToast(`👉 [${chip.innerText.trim()}] 메뉴로 이동했습니다.`);
+}
+
+/* ==========================================
+   7. 의원 초대 글 복사 & 카톡 친구창 전송 기능
+   ========================================== */
+function copyClinicInviteMessage() {
+    const text = `[예톡아름다운 의원 고객 초대]\n\n예톡아름다운 의원에 소중한 분을 초대합니다 ✨\n\n정직한 진료와 섬세한 1:1 맞춤 케어로 당신의 건강과 아름다움을 선물해 드립니다.\n지금 방문하셔서 전문의 맞춤 상담과 특별한 혜택을 편안하게 만나보세요!\n\n▶ 예톡아름다운 의원 바로가기: https://yetalk.kr/assets/doctormain.html`;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast("📋 의원 초대문구가 클립보드에 복사되었습니다!");
+        }).catch(() => {
+            showToast("📋 초대문구가 복사되었습니다.");
+        });
+    } else {
+        showToast("📋 초대문구가 복사되었습니다.");
+    }
+}
+
+function shareClinicInviteKakao() {
+    const text = `[예톡아름다운 의원 고객 초대]\n\n예톡아름다운 의원에 소중한 분을 초대합니다 ✨\n\n정직한 진료와 섬세한 1:1 맞춤 케어로 당신의 건강과 아름다움을 선물해 드립니다.\n지금 방문하셔서 전문의 맞춤 상담과 특별한 혜택을 편안하게 만나보세요!\n\n▶ 바로가기: https://yetalk.kr/assets/doctormain.html`;
+    if (window.AndroidBridge && window.AndroidBridge.shareToKakaoFriends) {
+        window.AndroidBridge.shareToKakaoFriends(text);
+    } else if (navigator.share) {
+        navigator.share({ title: "예톡아름다운 의원 초청장", text: text }).catch(() => {});
+    } else {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("📋 초청글이 복사되었습니다. 카카오톡에 붙여넣어 전송하세요!");
+            });
+        }
+    }
+}
+
+/* ==========================================
+   8. 의료진 예약 현황 달력표 & 당일 명단 한면 렌더링
+   ========================================== */
+let calYear = 2026;
+let calMonth = 9; // 0-indexed: 9 = 10월
+let selectedCalDate = "2026-10-12";
+
+const DEFAULT_STAFF_RESERVATIONS = [
+    { id: 101, time: "오전 09:30", name: "김*진", phone: "010-****-1029", subject: "보톡스 맞춤 케어", doctor: "대표원장", status: "답변완료", replyMsg: "오늘 오전 09:30에 예약이 정상 확인되었습니다.", date: "2026-10-12" },
+    { id: 102, time: "오전 10:15", name: "박*수", phone: "010-****-3482", subject: "맞춤 볼륨 필러", doctor: "대표원장", status: "답변완료", replyMsg: "오늘 오전 10:15에 예약이 정상 확인되었습니다.", date: "2026-10-12" },
+    { id: 103, time: "오전 11:00", name: "이*은", phone: "010-****-8812", subject: "피부 톤업·장벽 케어", doctor: "진료1과", status: "미답변", replyMsg: "", date: "2026-10-12" },
+    { id: 104, time: "오후 02:00", name: "최*원", phone: "010-****-4590", subject: "원장 1:1 맞춤 상담", doctor: "대표원장", status: "미답변", replyMsg: "", date: "2026-10-12" },
+    { id: 105, time: "오후 03:00", name: "정*우", phone: "010-****-9123", subject: "소화기 내시경 검진", doctor: "검진과", status: "답변완료", replyMsg: "오늘 오후 03:00에 예약이 정상 확인되었습니다.", date: "2026-10-12" },
+    { id: 106, time: "오후 04:30", name: "윤*아", phone: "010-****-6631", subject: "리프팅 레이저 케어", doctor: "피부과", status: "미답변", replyMsg: "", date: "2026-10-12" },
+    { id: 107, time: "오후 05:15", name: "한*민", phone: "010-****-5574", subject: "처방 및 경과 확인", doctor: "대표원장", status: "미답변", replyMsg: "", date: "2026-10-12" },
+    { id: 108, time: "오전 10:00", name: "강*훈", phone: "010-****-1122", subject: "피부 레이저 토닝", doctor: "대표원장", status: "답변완료", replyMsg: "10월 13일 오전 10:00에 예약이 확인되었습니다.", date: "2026-10-13" },
+    { id: 109, time: "오후 02:30", name: "송*경", phone: "010-****-7788", subject: "보톡스 주름 케어", doctor: "진료1과", status: "미답변", replyMsg: "", date: "2026-10-13" },
+    { id: 110, time: "오전 11:30", name: "임*호", phone: "010-****-9900", subject: "수액 영양 클리닉", doctor: "대표원장", status: "답변완료", replyMsg: "10월 14일 오전 11:30에 예약이 확인되었습니다.", date: "2026-10-14" },
+    { id: 111, time: "오후 04:00", name: "조*영", phone: "010-****-3344", subject: "상담 및 처방", doctor: "대표원장", status: "미답변", replyMsg: "", date: "2026-10-15" }
+];
+
+function getStaffReservations() {
+    const raw = localStorage.getItem("yetalk_staff_res_schedule_v3");
+    return raw ? JSON.parse(raw) : DEFAULT_STAFF_RESERVATIONS;
+}
+
+function saveStaffReservations(list) {
+    localStorage.setItem("yetalk_staff_res_schedule_v3", JSON.stringify(list));
+}
+
+function renderReservationCalendar() {
+    const titleEl = document.getElementById("dispCalMonthTitle");
+    if (titleEl) titleEl.innerText = `${calYear}년 ${calMonth + 1}월`;
+
+    const grid = document.getElementById("resCalDaysGrid");
+    if (!grid) return;
+    grid.innerHTML = "";
+
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const totalDays = new Date(calYear, calMonth + 1, 0).getDate();
+    const prevTotalDays = new Date(calYear, calMonth, 0).getDate();
+
+    const staffList = getStaffReservations();
+
+    // 이전 달 잔여 날짜
+    for (let i = firstDay - 1; i >= 0; i--) {
+        const cell = document.createElement("div");
+        cell.className = "res-cal-day-cell other-month";
+        cell.innerText = prevTotalDays - i;
+        grid.appendChild(cell);
+    }
+
+    // 이번 달 날짜들
+    for (let d = 1; d <= totalDays; d++) {
+        const dStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const cell = document.createElement("div");
+        cell.className = "res-cal-day-cell";
+        cell.innerText = d;
+
+        const isToday = (calYear === 2026 && calMonth === 9 && d === 12);
+        if (isToday) cell.classList.add("today");
+        if (selectedCalDate === dStr) cell.classList.add("selected");
+
+        const hasRes = staffList.some(r => r.date === dStr || (isToday && (r.date === "오늘" || r.date === "2026-10-12")));
+        if (hasRes) {
+            const dot = document.createElement("span");
+            dot.className = "res-cal-day-dot";
+            cell.appendChild(dot);
+        }
+
+        cell.onclick = () => selectCalDate(dStr, d);
+        grid.appendChild(cell);
+    }
+}
+
+function selectCalDate(dStr, dNum) {
+    selectedCalDate = dStr;
+    renderReservationCalendar();
+    renderStaffDailyReservations();
+    showToast(`📅 ${calMonth + 1}월 ${dNum}일 예약 명단을 확인합니다.`);
+}
+
+function changeCalMonth(offset) {
+    calMonth += offset;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    else if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderReservationCalendar();
+}
+
+function resetToTodayDate() {
+    calYear = 2026;
+    calMonth = 9;
+    selectedCalDate = "2026-10-12";
+    renderReservationCalendar();
+    renderStaffDailyReservations();
+    showToast("📅 오늘(10월 12일) 예약 명단으로 이동했습니다.");
+}
+
+function renderStaffDailyReservations() {
+    const container = document.getElementById("staffDailyResListContainer");
+    const countEl = document.getElementById("dispDailyResCount");
+    const labelEl = document.getElementById("dispSelectedDateLabel");
+    if (!container) return;
+
+    const isToday = (selectedCalDate === "2026-10-12");
+    if (labelEl) {
+        labelEl.innerText = isToday ? "오늘(10월 12일 월) 의료진 예약 명단" : `${selectedCalDate} 의료진 예약 명단`;
+    }
+
+    const staffList = getStaffReservations();
+    const dayItems = staffList.filter(r => r.date === selectedCalDate || (isToday && (r.date === "오늘" || r.date === "2026-10-12")));
+
+    if (countEl) countEl.innerText = dayItems.length;
+
+    if (dayItems.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:18px; color:#94a3b8; font-size:13px;">선택하신 날짜에 등록된 의료진 예약이 없습니다.</div>`;
+        return;
+    }
+
+    container.innerHTML = dayItems.map(item => {
+        let badgeClass = "status-confirmed";
+        if (item.status === "진료완료") badgeClass = "status-done";
+        else if (item.status === "진료중") badgeClass = "status-progress";
+        else if (item.status === "대기중") badgeClass = "status-waiting";
+
+        return `
+            <div class="staff-res-item ${item.status === '진료중' ? 'active-care' : ''}">
+                <div class="staff-res-row1">
+                    <span class="staff-res-time">⏰ ${item.time}</span>
+                    <span class="staff-status-badge ${badgeClass}" onclick="cycleStaffResStatus(${item.id})" title="터치하여 상태 변경">${item.status}</span>
+                </div>
+                <div class="staff-res-row2">
+                    <span class="staff-res-name">👤 ${item.name} <small style="color:#64748b; font-weight:normal;">(${item.phone})</small></span>
+                    <span class="staff-res-subject">${item.subject}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:11.5px; color:#64748b; border-top:1px dashed #e2e8f0; padding-top:4px;">
+                    <span>담당: <b style="color:#0284c7;">${item.doctor}</b></span>
+                    <span style="color:#94a3b8; font-size:11px;">상태변경 터치 ➔</span>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+function cycleStaffResStatus(id) {
+    const staffList = getStaffReservations();
+    const item = staffList.find(r => r.id === id);
+    if (!item) return;
+
+    const cycle = ["진료완료", "진료중", "대기중", "예약확정"];
+    const nextIdx = (cycle.indexOf(item.status) + 1) % cycle.length;
+    item.status = cycle[nextIdx];
+    saveStaffReservations(staffList);
+    renderStaffDailyReservations();
+    showToast(`📌 [${item.name}] 님 상태: ${item.status}`);
+}
+
+/* ==========================================
+   7. 로컬스토리지 영구 보관
+   ========================================== */
+function saveIntroData() {
+    localStorage.setItem("yetalk_doctor_intro_pages_v3", JSON.stringify(introPages));
+}
+function loadIntroData() {
+    const raw = localStorage.getItem("yetalk_doctor_intro_pages_v3");
+    introPages = raw ? JSON.parse(raw) : DEFAULT_INTRO_PAGES;
+}
+
+function saveBeautyData() {
+    localStorage.setItem("yetalk_doctor_beauty_v2", JSON.stringify(beautySubjects));
+}
+function loadBeautyData() {
+    const raw = localStorage.getItem("yetalk_doctor_beauty_v2");
+    beautySubjects = raw ? JSON.parse(raw) : DEFAULT_BEAUTY_SUBJECTS;
+}
+
+/* ==========================================
+   8. 기존 공지사항 피드 / 예약 / 결제 / 채팅 모듈
+   ========================================== */
+const DEFAULT_NOTICES = [
+    {
+        id: 201, title: "환절기 피부 탄력 및 수분 보강 맞춤 프로그램 안내",
+        content: "건조한 환절기를 맞아 깊은 주름 완화 및 피부 장벽 강화를 위한 특별 클리닉이 운영됩니다.\n\n사전 예약 환자분 우선으로 배정되어 대기시간 없이 쾌적한 진료를 받으실 수 있습니다.",
+        author: "원장실", time: "오늘 오전"
+    },
+    {
+        id: 202, title: "10월 위·대장 내시경 및 종합 초음파 검진 일정 공지",
+        content: "수면 내시경 예약 환자분들은 전날 저녁 8시 이후 금식 안내를 반드시 준수해 주시기 바랍니다.\n\n원내 전문 소독 시스템으로 안심 검진을 약속드립니다.",
+        author: "검진 간호팀", time: "어제"
+    }
+];
+
+function getNoticePosts() {
+    const raw = localStorage.getItem("yetalk_doctor_notices_board_v16");
+    return raw ? JSON.parse(raw) : DEFAULT_NOTICES;
+}
+
+function renderNoticeBoardData() {
+    const posts = getNoticePosts();
+    const container = document.getElementById("noticeFeedContainer");
+    if (!container) return;
+
+    container.innerHTML = posts.map(p => `
+        <article class="notice-blog-card">
+            <h3 style="font-size:17.5px; font-weight:950; color:#0f172a; line-height:1.4;">${p.title}</h3>
+            <div style="font-size:12px; color:#94a3b8; font-weight:700;">${p.author} • ${p.time}</div>
+            <p style="font-size:15px; line-height:1.75; color:#334155; white-space:pre-line;">${p.content}</p>
+        </article>
+    `).join("");
+}
+
+function openNoticeEditorFullscreen() {
+    const t = document.getElementById("inpFullNoticeTitle");
+    const b = document.getElementById("inpFullNoticeBody");
+    if (t) t.value = "";
+    if (b) b.value = "";
+    openDetailView("modalNoticeFullscreenEditor");
+}
+function closeNoticeEditorFullscreen() {
+    closeDetailView("modalNoticeFullscreenEditor");
+}
+
+function submitNewClinicNoticeFull() {
+    const t = document.getElementById("inpFullNoticeTitle").value.trim();
+    const b = document.getElementById("inpFullNoticeBody").value.trim();
+    if (!t || !b) return alert("제목과 내용을 모두 입력해주세요.");
+
+    const posts = getNoticePosts();
+    posts.unshift({
+        id: Date.now(), title: t, content: b,
+        author: "원장실", time: "방금 전"
+    });
+    localStorage.setItem("yetalk_doctor_notices_board_v16", JSON.stringify(posts));
+    closeNoticeEditorFullscreen();
+    renderNoticeBoardData();
+    showToast("📢 새 공지사항이 등록되었습니다!");
+}
+
+/* ==========================================
+   9. 예약본부 및 환자 실시간 확인 로직
+   ========================================== */
+function toggleStaffReserveHQ() {
+    const area = document.getElementById("staffReserveHQArea");
+    const badge = document.getElementById("hqToggleBadge");
+    if (!area) return;
+    const isHidden = (area.style.display === "none");
+    area.style.display = isHidden ? "flex" : "none";
+    if (badge) badge.innerText = isHidden ? "접기 ▲" : "펼치기 ▼";
+    if (isHidden) {
+        renderReservationCalendar();
+        renderStaffDailyReservations();
+        showToast("🏥 의원 예약본부 (달력 및 관리자 확인표)가 열렸습니다.");
+    }
+}
+
+function setResDateTabMode(mode) {
+    const btnToday = document.getElementById("btnResTabToday");
+    const btnOther = document.getElementById("btnResTabOther");
+    const boxOther = document.getElementById("boxResOtherDateSelect");
+    if (mode === 'today') {
+        if (btnToday) btnToday.classList.add("active");
+        if (btnOther) btnOther.classList.remove("active");
+        if (boxOther) boxOther.style.display = "none";
+    } else {
+        if (btnToday) btnToday.classList.remove("active");
+        if (btnOther) btnOther.classList.add("active");
+        if (boxOther) boxOther.style.display = "flex";
+        const dateInput = document.getElementById("inpResDate");
+        if (dateInput && !dateInput.value) dateInput.value = "2026-10-13";
+    }
+}
+
+function triggerSmartQrQuickReserve() {
+    openQuickPatientRegisterModal();
+}
+
+function openQuickPatientRegisterModal() {
+    const myName = localStorage.getItem("yetalk_patient_pay_name") || "김예톡";
+    const myPhone = localStorage.getItem("yetalk_patient_phone") || "010-1234-5678";
+    const nameEl = document.getElementById("inpQuickRegName");
+    const idEl = document.getElementById("inpQuickRegId");
+    const phoneEl = document.getElementById("inpQuickRegPhone");
+    if (nameEl) nameEl.value = myName;
+    if (idEl) idEl.value = myName;
+    if (phoneEl) phoneEl.value = myPhone;
+    setQuickRegDateMode('today');
+    openModal("modalQuickPatientRegister");
+}
+
+function syncQuickRegId(val) {
+    const idEl = document.getElementById("inpQuickRegId");
+    if (idEl) idEl.value = val;
+}
+
+function setQuickRegDateMode(mode) {
+    const btnToday = document.getElementById("btnQuickModeToday");
+    const btnOther = document.getElementById("btnQuickModeOther");
+    const grpPickers = document.getElementById("grpQuickDatePickers");
+    if (mode === 'today') {
+        if (btnToday) btnToday.classList.add("active");
+        if (btnOther) btnOther.classList.remove("active");
+        if (grpPickers) grpPickers.style.display = "none";
+    } else {
+        if (btnToday) btnToday.classList.remove("active");
+        if (btnOther) btnOther.classList.add("active");
+        if (grpPickers) grpPickers.style.display = "flex";
+        const dateInput = document.getElementById("inpQuickRegDate");
+        if (dateInput && !dateInput.value) dateInput.value = "2026-10-13";
+    }
+}
+
+function submitQuickPatientRegisterAction() {
+    const name = document.getElementById("inpQuickRegName").value.trim();
+    const idVal = document.getElementById("inpQuickRegId").value.trim();
+    const phone = document.getElementById("inpQuickRegPhone").value.trim();
+    const addr = document.getElementById("inpQuickRegAddress").value.trim();
+    const sub = document.getElementById("selQuickRegSubject").value;
+
+    if (!name || !phone) return alert("성함과 연락처를 입력해 주세요.");
+
+    localStorage.setItem("yetalk_patient_pay_name", name);
+    localStorage.setItem("yetalk_patient_phone", phone);
+    localStorage.setItem("yetalk_patient_id", idVal || name);
+    localStorage.setItem("yetalk_patient_address", addr);
+
+    const isToday = document.getElementById("btnQuickModeToday").classList.contains("active");
+    const dStr = isToday ? "2026-10-12" : (document.getElementById("inpQuickRegDate").value || "2026-10-13");
+    const tStr = isToday ? "오후 02:30" : (document.getElementById("inpQuickRegTime").value || "오전 10:30");
+
+    const newRes = {
+        id: Date.now(),
+        time: tStr,
+        name: name,
+        phone: phone,
+        subject: sub,
+        doctor: "대표원장",
+        status: "미답변",
+        replyMsg: "의원 직원이 예약을 확인하고 있습니다. 잠시만 기다려주세요.",
+        date: dStr
+    };
+
+    const staffList = getStaffReservations();
+    staffList.unshift(newRes);
+    saveStaffReservations(staffList);
+    localStorage.setItem("yetalk_my_latest_res_id", newRes.id.toString());
+
+    closeModal("modalQuickPatientRegister");
+    showToast(`🎉 [${name}님] 자동 회원가입 및 예약접수 완료!`);
+    switchDoctorSection("reserve");
+}
+
+function submitReservationPatient() {
+    const isToday = document.getElementById("btnResTabToday").classList.contains("active");
+    const d = isToday ? "2026-10-12" : (document.getElementById("inpResDate").value || "2026-10-13");
+    const t = isToday ? "오후 03:00" : (document.getElementById("inpResTime").value || "오전 11:30");
+    const name = document.getElementById("inpResName").value.trim();
+    const phone = document.getElementById("inpResPhone").value.trim();
+    const sub = document.getElementById("selResSubjectDynamic").value;
+
+    if (!name || !phone) return alert("성함과 연락처를 입력해주세요.");
+
+    const newRes = {
+        id: Date.now(),
+        time: t,
+        name: name,
+        phone: phone,
+        subject: sub,
+        doctor: "대표원장",
+        status: "미답변",
+        replyMsg: "의원 직원이 예약을 확인하고 있습니다. 잠시만 기다려주세요.",
+        date: d
+    };
+
+    const staffList = getStaffReservations();
+    staffList.unshift(newRes);
+    saveStaffReservations(staffList);
+    localStorage.setItem("yetalk_my_latest_res_id", newRes.id.toString());
+
+    renderPatientMyReservation();
+    renderReservationCalendar();
+    renderStaffDailyReservations();
+    showToast("✨ 진료 예약이 정상 접수되었습니다.");
+}
+
+function renderPatientMyReservation() {
+    const box = document.getElementById("patientMyReservationBox");
+    const badge = document.getElementById("badgePatientStatusTop");
+    if (!box) return;
+
+    const myId = localStorage.getItem("yetalk_my_latest_res_id");
+    const staffList = getStaffReservations();
+    const myItem = staffList.find(r => r.id.toString() === myId) || staffList[0];
+
+    if (!myItem) {
+        box.innerHTML = `<div style="color:#94a3b8; text-align:center; padding:12px; font-size:13px;">접수된 나의 예약 내역이 없습니다.<br>아래에서 간편 예약 접수를 신청해 보세요.</div>`;
+        if (badge) {
+            badge.innerText = "내역없음";
+            badge.style.background = "#e2e8f0";
+            badge.style.color = "#64748b";
+        }
+        return;
+    }
+
+    const isAnswered = (myItem.status === "답변완료" || myItem.status === "진료완료");
+    if (badge) {
+        badge.innerText = isAnswered ? "답변완료 ✅" : "확인대기 ⏳";
+        badge.style.background = isAnswered ? "#dcfce7" : "#fef3c7";
+        badge.style.color = isAnswered ? "#166534" : "#92400e";
+    }
+
+    box.innerHTML = `
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong style="color:#0284c7; font-size:15px;">📅 ${myItem.date} (${myItem.time})</strong>
+                <span style="font-size:11px; font-weight:900; padding:2px 7px; border-radius:4px; ${isAnswered ? 'background:#059669; color:#fff;' : 'background:#ca8a04; color:#fff;'}">
+                    ${isAnswered ? '예약확인' : '접수대기'}
+                </span>
+            </div>
+            <div style="font-size:13.5px; color:#334155;">
+                <b>환자:</b> ${myItem.name} | <b>과목:</b> ${myItem.subject}
+            </div>
+            <div style="background:${isAnswered ? '#f0fdf4' : '#fffbeb'}; border:1px solid ${isAnswered ? '#86efac' : '#fde68a'}; border-radius:8px; padding:8px 10px; font-size:12.5px; color:${isAnswered ? '#166534' : '#92400e'}; line-height:1.5; margin-top:4px;">
+                📢 <b>의원 공식 답변:</b><br>${myItem.replyMsg || '의원 직원이 예약을 확인하고 있습니다. 잠시만 기다려주세요.'}
+            </div>
+        </div>
+    `;
+}
+
+/* ==========================================
+   10. 예톡결제 대한민국 22개 은행 간편결제
+   ========================================== */
+const ALL_22_BANKS = [
+    { name: "카카오뱅크", scheme: "kakaobank://", tag: "인터넷" },
+    { name: "토스뱅크", scheme: "supertoss://", tag: "인터넷" },
+    { name: "KB국민은행", scheme: "kbbank://", tag: "시중" },
+    { name: "신한은행", scheme: "shinhan-sol://", tag: "시중" },
+    { name: "NH농협은행", scheme: "nhallonebank://", tag: "특수" },
+    { name: "우리은행", scheme: "wonbanking://", tag: "시중" },
+    { name: "하나은행", scheme: "hanabank://", tag: "시중" },
+    { name: "케이뱅크", scheme: "kbank://", tag: "인터넷" },
+    { name: "IBK기업은행", scheme: "ibk://", tag: "국책" },
+    { name: "SC제일은행", scheme: "scbank://", tag: "시중" },
+    { name: "한국씨티은행", scheme: "citibank://", tag: "시중" },
+    { name: "우체국", scheme: "epost://", tag: "우정" },
+    { name: "새마을금고", scheme: "mgsmart://", tag: "상호" },
+    { name: "신협", scheme: "cu://", tag: "상호" },
+    { name: "수협은행", scheme: "suhyup://", tag: "특수" },
+    { name: "BNK부산은행", scheme: "busanbank://", tag: "지방" },
+    { name: "BNK경남은행", scheme: "knbank://", tag: "지방" },
+    { name: "DGB대구은행", scheme: "imup://", tag: "지방" },
+    { name: "광주은행", scheme: "kjbank://", tag: "지방" },
+    { name: "전북은행", scheme: "jbbank://", tag: "지방" },
+    { name: "제주은행", scheme: "jebank://", tag: "지방" },
+    { name: "KDB산업은행", scheme: "kdb://", tag: "국책" }
+];
+
+let selectedBankScheme = "kakaobank://";
+let selectedBankName = "카카오뱅크";
+
+function init22Banks() {
+    const container = document.getElementById("bankQuickChipsBar");
+    if (!container) return;
+    container.innerHTML = "";
+    ALL_22_BANKS.forEach(b => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `bank-chip-btn ${b.name === selectedBankName ? 'active' : ''}`;
+        btn.innerText = b.name;
+        btn.onclick = () => {
+            selectedBankScheme = b.scheme;
+            selectedBankName = b.name;
+            document.querySelectorAll("#bankQuickChipsBar .bank-chip-btn").forEach(el => el.classList.remove("active"));
+            btn.classList.add("active");
+            const sel = document.getElementById("selPatientBank22");
+            if (sel) sel.value = `${b.scheme}|${b.name}`;
+            showToast(`🏦 [${b.name}] 선택 완료`);
+        };
+        container.appendChild(btn);
+    });
+}
+
+function onSelectBankFromDropdown(val) {
+    const parts = val.split("|");
+    selectedBankScheme = parts[0];
+    selectedBankName = parts[1];
+    document.querySelectorAll("#bankQuickChipsBar .bank-chip-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.innerText === selectedBankName);
+    });
+}
+
+function setPayAmountQuick(amt) {
+    const inp = document.getElementById("inpPayAmountNum");
+    if (inp) inp.value = amt;
+    showToast(`💵 결제 금액: ${amt.toLocaleString()}원 설정`);
+}
+
+function copyClinicAccountOnly() {
+    const text = "국민은행 010-1234-5678-01";
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+            showToast("📋 의원 공식 계좌번호가 복사되었습니다!");
+        });
+    } else {
+        showToast("📋 계좌번호 복사 완료");
+    }
+}
+
+async function startBankAppEasyPay() {
+    const amt = document.getElementById("inpPayAmountNum").value || "50000";
+    const clinicAcct = "010-1234-5678-01";
+    const fullText = `국민은행 ${clinicAcct}`;
+
+    try {
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(clinicAcct);
+        }
+    } catch(e) {}
+
+    showToast(`📋 [국민은행 ${clinicAcct}] 복사됨! ${selectedBankName} 앱으로 연결합니다.`);
+
+    setTimeout(() => {
+        window.location.href = selectedBankScheme;
+        setTimeout(() => {
+            alert(`[진료비 간편결제 안내]\n\n의원 수납 계좌 (${fullText})\n결제 금액: ${parseInt(amt,10).toLocaleString()}원\n\n은행 앱에서 계좌번호를 [붙여넣기]하여 안전하게 송금을 완료하세요.`);
+        }, 1200);
+    }, 400);
+}
+
+/* 닥톡 / 원내톡 / 고객가입 창 */
+function openDoctorTalkWindow() { openDetailView("viewDetailChat"); }
+function openClinicTalkWindow() { openDetailView("viewDetailClinicChat"); }
+function closeClinicChatKakaoStyle() { closeDetailView("viewDetailClinicChat"); }
+function openPatientJoinModal() {
+    openQuickPatientRegisterModal();
+}
+function confirmPatientJoinAction() {
+    closeModal("modalPatientJoin");
+    showToast("🎉 의원 고객으로 등록되었습니다!");
+}
+
+function sendKakaoClinicMsg() {
+    const inp = document.getElementById("inpKakaoChatMsg");
+    const val = inp ? inp.value.trim() : "";
+    if (!val) return;
+    const list = document.getElementById("kakaotalkChatMsgList");
+    const row = document.createElement("div");
+    row.className = "chat-bubble-row mine";
+    row.innerHTML = `<div class="chat-bubble-body">${val}</div>`;
+    list.appendChild(row);
+    inp.value = "";
+    list.scrollTop = list.scrollHeight;
+}
+
+function toggleCaseSlide(caseIdx, targetStep) {
+    const curStep = caseSlideSteps[`${activeBeautySubIdx}_${caseIdx}`] || 1;
+    const nextStep = targetStep !== undefined ? targetStep : (curStep === 1 ? 2 : 1);
+    caseSlideSteps[`${activeBeautySubIdx}_${caseIdx}`] = nextStep;
+    const curCase = beautySubjects[activeBeautySubIdx].cases[caseIdx];
+    if (!curCase) return;
+
+    const imgEl = document.getElementById(`img_case_${caseIdx}`);
+    const pillEl = document.getElementById(`pill_case_${caseIdx}`);
+
+    if (imgEl) imgEl.src = (nextStep === 2 && curCase.img2) ? curCase.img2 : curCase.img1;
+    if (pillEl) pillEl.innerText = nextStep === 2 ? '시술 후 (After) 2/2' : '시술 전 (Before) 1/2';
+}
+
+/* 안드로이드 하드웨어 뒤로가기 버튼 연동 */
+window.handleAppBackPress = function() {
+    const openM = document.querySelector(".modal-overlay.open");
+    if (openM) {
+        openM.classList.remove("open");
+        return true;
+    }
+    const showD = document.querySelector(".fullscreen-detail-view.show");
+    if (showD) {
+        showD.classList.remove("show");
+        return true;
+    }
+    if (currentSectionKey !== "intro") {
+        switchDoctorSection("intro");
+        return true;
+    }
+    return false;
+};
+
+function handleDoctorAppBack() {
+    location.href = 'index.html';
+}
+
+function openModal(id) {
+    const m = document.getElementById(id);
+    if (m) m.classList.add("open");
+}
+function closeModal(id) {
+    const m = document.getElementById(id);
+    if (m) m.classList.remove("open");
+}
+function openDetailView(id) {
+    const v = document.getElementById(id);
+    if (v) v.classList.add("show");
+}
+function closeDetailView(id) {
+    const v = document.getElementById(id);
+    if (v) v.classList.remove("show");
+}
+
+function showToast(msg) {
+    const t = document.getElementById("docToastBox");
+    if (!t) return;
+    t.innerText = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* 초기화 실행 */
+document.addEventListener("DOMContentLoaded", () => {
+    loadIntroData();
+    loadBeautyData();
+
+    // 병원 명칭 기본값 "예톡아름다운 의원" 적용
+    let savedClinic = localStorage.getItem("yetalkDoctorName");
+    if (!savedClinic || savedClinic === "예톡행복한의원") {
+        savedClinic = "예톡아름다운 의원";
+        localStorage.setItem("yetalkDoctorName", savedClinic);
+    }
+    document.getElementById("dispClinicTitle").innerText = savedClinic;
+
+    renderIntroSection();
+    renderBeautySection();
+    renderNoticeBoardData();
+    renderReservationCalendar();
+    renderStaffDailyReservations();
+    renderPatientMyReservation();
+    init22Banks();
+
+    switchDoctorSection("intro");
+});
+</script>
+
+</body>
+</html>
