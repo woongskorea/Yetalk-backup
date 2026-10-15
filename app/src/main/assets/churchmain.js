@@ -29,7 +29,128 @@ const DEFAULT_SHARED_WORSHIP = {
     praise: { tabName: "찬양모음", title: "은혜로운 찬양과 경배", verse: "“호흡이 있는 자마다 여호와를 찬양할지어다”", body: "주일 찬양대 및 찬양팀 은혜 찬양 모음", timeBadge: "상시 재생", meta: "할렐루야 찬양대 및 찬양팀", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1600&q=90" }
 };
 
-function createDefaultSlides(catName, isWorship = false) {
+const CHURCH_INTRO_STORAGE_KEY = "yetalk_church_intro_custom_sections_v4";
+const DEFAULT_CHURCH_INTRO_DATA = {
+    welcome: {
+        tabName: "환영인사",
+        badge: "환영인사",
+        title: "예수님의 사랑으로 여러분을 환영합니다",
+        img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90",
+        body: "하나님의 따뜻한 품으로 오신 모든 분들을 축복합니다.\n\n예톡행복한교회는 상처 입은 영혼이 참된 안식을 누리고 치유되는 거룩한 은혜의 공동체입니다. 믿음 안에서 영원한 생명의 기쁨을 함께 나누기를 소망합니다.\n\n언제든지 편안한 마음으로 방문하시어 교제와 기도의 은혜를 함께 누리세요.",
+        bullets: [
+            "말씀과 성령이 살아 숨 쉬는 생명력 넘치는 예배",
+            "이웃을 내 몸과 같이 사랑하며 섬기는 따뜻한 나눔",
+            "다음 세대를 기도의 용사로 세우는 비전 교육"
+        ]
+    },
+    vision: {
+        tabName: "교회비전",
+        badge: "교회비전",
+        title: "하나님 나라를 확장하는 3대 핵심 비전",
+        img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90",
+        body: "우리는 오직 성경, 오직 믿음, 오직 은혜의 토대 위에서 지역 사회를 섬기고 땅끝까지 복음을 전하는 사명자들의 공동체입니다.",
+        bullets: [
+            "예배의 회복: 온 마음과 정성을 다해 주님을 높이는 예배",
+            "제자 훈련: 삶의 현장에서 그리스도의 향기를 발하는 성도",
+            "선교와 구제: 열방과 이웃을 향해 아낌없이 베푸는 사랑의 실천"
+        ]
+    },
+    servants: {
+        tabName: "섬기는 이",
+        badge: "섬기는 이",
+        title: "교회를 섬기는 사역자 및 직분자",
+        img: "",
+        body: "기도와 말씀으로 교회를 든든히 세워가는 사역팀을 소개합니다.",
+        seniorPastor: {
+            name: "최남수 담임목사",
+            role: "담임목회 및 강단 말씀",
+            desc: "총신대 신대원 졸, 영혼 구원과 기도 훈련에 헌신\n\n“하나님의 은혜와 평강이 성도님들의 가정과 삶의 모든 터전 위에 넘치시기를 간절히 기도합니다. 주님의 몸 된 교회를 온 맘 다해 기쁨으로 섬기겠습니다.”",
+            img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&auto=format&fit=crop&q=85"
+        },
+        leaders: [
+            {
+                name: "최수훈 부목사",
+                role: "1교구 / 목회행정 / 미디어",
+                desc: "성도 케어와 온·오프라인 미디어 사역 전담",
+                img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80"
+            },
+            {
+                name: "표경열 부목사",
+                role: "2교구 / 방송국 사역",
+                desc: "방송 선교 및 청년부 찬양 집회 지도",
+                img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80"
+            },
+            {
+                name: "김은혜 교육전도사",
+                role: "교회학교 및 유초등부",
+                desc: "어린이 말씀 암송 및 성경 캠프 총괄",
+                img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80"
+            },
+            {
+                name: "박사랑 심방전도사",
+                role: "새가족 심방 / 권사회",
+                desc: "새가족 정착 및 중보기도 지원",
+                img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80"
+            }
+        ]
+    },
+    ministry: {
+        tabName: "부서사역",
+        badge: "부서사역",
+        title: "은사와 열정으로 헌신하는 각 사역팀",
+        img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1600&q=90",
+        body: "성도님들의 귀한 은사대로 자원하여 봉사하며 하나님 나라의 기쁨을 누리는 부서 안내입니다.",
+        bullets: [
+            "예배찬양팀: 주일 대예배와 금요성령집회 찬양 인도",
+            "중보기도팀: 환우와 교회, 열방을 위한 릴레이 기도 사역",
+            "차량 및 주차안내팀: 첫 발걸음부터 안전하고 편안한 예배 인도",
+            "새가족환영팀: 등록 교우들의 안정적인 정착과 따뜻한 심방"
+        ]
+    },
+    missionary: {
+        tabName: "파송선교사",
+        badge: "파송선교사",
+        title: "땅끝까지 복음을 전하는 파송 선교지",
+        img: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?auto=format&fit=crop&w=1600&q=90",
+        body: "교회가 기도로 후원하고 함께 동역하는 열방의 파송 선교사님 현황입니다.",
+        bullets: [
+            "동남아 필리핀: 박바울 선교사 (현지 신학교 및 교회 개척 사역)",
+            "중앙아시아 키르기스스탄: 이모세 선교사 (의료 선교 및 기술 훈련)",
+            "아프리카 케냐: 정에스더 선교사 (어린이 고아원 및 무료 급식 사역)"
+        ]
+    },
+    history: {
+        tabName: "교회역사",
+        badge: "교회역사",
+        title: "하나님의 인도하심으로 걸어온 은혜의 발자취",
+        img: "https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?auto=format&fit=crop&w=1600&q=90",
+        body: "눈물의 기도와 헌신으로 일군 하나님의 살아계신 역사입니다.",
+        historyList: [
+            { year: "2026년", text: "예톡 스마트 미디어 선교 플랫폼 런칭 및 글로벌 비전 선포" },
+            { year: "2020년", text: "온라인 실시간 예배 시스템 구축 및 비전센터 봉헌" },
+            { year: "2015년", text: "제2성전 건축 입당 감사예배 및 해외 단독 선교사 파송" },
+            { year: "2008년", text: "교회 설립 10주년 기념 감사 축제 및 지역 나눔 사역 확대" },
+            { year: "1998년", text: "성령의 인도하심으로 예톡행복한교회 첫 개척 예배" }
+        ]
+    }
+};
+
+function getChurchIntroData() {
+    const raw = localStorage.getItem(CHURCH_INTRO_STORAGE_KEY);
+    if (raw) {
+        try {
+            const parsed = JSON.parse(raw);
+            if (!parsed.servants || !parsed.servants.seniorPastor) {
+                parsed.servants = DEFAULT_CHURCH_INTRO_DATA.servants;
+            }
+            if (!parsed.missionary || !parsed.missionary.bullets || parsed.missionary.bullets.length === 0) {
+                parsed.missionary = DEFAULT_CHURCH_INTRO_DATA.missionary;
+            }
+            return parsed;
+        } catch(e) {}
+    }
+    return JSON.parse(JSON.stringify(DEFAULT_CHURCH_INTRO_DATA));
+}
     if (catName === "예배") {
         return [
             { title: "예배", verse: "“신령과 진정으로 예배하는 자들을 찾으시느니라 (요 4:23)”", body: "주일과 주중 모든 예배 실황과 은혜의 말씀을 나눕니다.", yt: "", img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90" },
@@ -384,22 +505,29 @@ function renderChurchMenuContent(secId) {
     const sec = MENU_DEFINITIONS[secId] || MENU_DEFINITIONS[0];
     const nextSecId = (secId + 1) % MENU_DEFINITIONS.length;
     const nextMenuName = MENU_DEFINITIONS[nextSecId].cat;
+    const isAdmin = checkIsAdminUser();
 
-    // 🌟 1. 오늘말씀 (Tab 6, 구 예수동행) 카톡 스타일 특별 뷰
+    // 🌟 1. 교회의꿈 (Tab 0) 실제 내용 스냅 뷰포트 (환영인사, 비전, 섬기는이, 부서사역, 파송선교사, 교회역사)
+    if (secId === 0) {
+        renderChurchDreamFullSnapView(vp, isAdmin);
+        return;
+    }
+
+    // 🌟 2. 오늘말씀 (Tab 6, 구 예수동행) 카톡 스타일 특별 뷰
     if (secId === 6) {
         renderWordWalkingKakaoView(vp, secId, nextSecId, nextMenuName);
         return;
     }
 
-    // 🌟 2. 다음세대 (Tab 8) 카톡 스타일 특별 뷰 (청년부, 청소년부 등 닥톡 스타일)
+    // 🌟 3. 다음세대 (Tab 8) 카톡 스타일 특별 뷰 (청년부, 청소년부 등 닥톡 스타일)
     if (secId === 8) {
         renderNextGenKakaoView(vp, secId, nextSecId, nextMenuName);
         return;
     }
 
-    // 🌟 3. [사용자 요청] 일반 메뉴들: 첫 메인 이미지가 있고 그 밑에 서브페이지가 순서대로 끝까지 배치되어 위로 스크롤하면 다 보이게 설정
+    // 🌟 4. [사용자 요청] 일반 메뉴들 (예배, 주보, 공지알림, 기도모임, 교회초청, 보배성도, 선교전도, 보물창고):
+    // 불필요한 장식글(대표메인, 주보, 자세히보기, 아래로 스크롤 안내) 완전 삭제!
     const slides = churchSlideData[secId] || createDefaultSlides(sec.cat, secId === 1);
-    const isAdmin = checkIsAdminUser();
 
     // 1) 첫 번째 대표 메인 카드 (hero-card-section)
     const heroSlide = slides[0] || { title: sec.cat, verse: "", body: "", img: "" };
@@ -412,10 +540,7 @@ function renderChurchMenuContent(secId) {
             <div class="card-gradient-overlay"></div>
 
             <div class="card-top-content" style="display:flex; justify-content:space-between; align-items:center; width:100%; z-index:15; padding:12px 14px;">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span class="card-sub-tag">${sec.cat}</span>
-                    <span class="card-sub-counter" style="background:rgba(2,132,199,0.85); color:#fff;">대표 메인</span>
-                </div>
+                <span class="card-sub-tag" style="font-size:13px; font-weight:900; color:#38bdf8;">${sec.cat}</span>
                 ${isAdmin ? `
                 <button type="button" class="btn-screen-direct-edit" onclick="event.stopPropagation(); openDirectScreenEdit(${secId}, 0);" title="이 화면 바로 수정">
                     ✏️ 이 화면 바로수정
@@ -431,29 +556,18 @@ function renderChurchMenuContent(secId) {
                 <div class="card-verse-highlight" style="font-size:14.5px; font-weight:850; color:#fde047; text-shadow:0 1px 4px rgba(0,0,0,0.8); margin-bottom:4px;">${heroSlide.verse || ""}</div>
                 <div class="card-body-text" style="font-size:13.5px; line-height:1.6; color:#e2e8f0; margin-bottom:8px;">${heroSlide.body || ""}</div>
 
-                <div class="card-bottom-guide-row" style="display:flex; justify-content:flex-end;">
-                    <div class="card-admin-action-group" style="display:flex; gap:6px;">
-                        ${isAdmin ? `
-                        <button type="button" class="btn-card-admin-room" onclick="event.stopPropagation(); location.href='churchadmin.html';" title="관리실 이동">
-                            🏢 관리실
-                        </button>
-                        <button type="button" class="btn-card-admin-edit" onclick="event.stopPropagation(); openDirectScreenEdit(${secId}, 0);">
-                            ✏️ 화면수정
-                        </button>
-                        ` : ''}
-                        <button type="button" class="btn-card-detail-view" onclick="event.stopPropagation(); goToDetailPage(${secId}, '${sec.link}');" style="display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:6px 14px; font-size:12.5px; font-weight:900; border-radius:9px; cursor:pointer; background:rgba(2,132,199,0.95); border:1.2px solid #38bdf8; color:#ffffff; box-shadow:0 2px 8px rgba(0,0,0,0.5);">
-                            자세히 보기 ▶
-                        </button>
-                    </div>
+                ${isAdmin ? `
+                <div style="display:flex; justify-content:flex-end; gap:6px;">
+                    <button type="button" class="btn-card-admin-room" onclick="event.stopPropagation(); location.href='churchadmin.html';" title="관리실 이동">
+                        🏢 관리실
+                    </button>
+                    <button type="button" class="btn-card-admin-edit" onclick="event.stopPropagation(); openDirectScreenEdit(${secId}, 0);">
+                        ✏️ 화면수정
+                    </button>
                 </div>
+                ` : ''}
             </div>
         </div>
-
-        ${slides.length > 1 ? `
-        <div class="hero-scroll-down-hint" onclick="document.getElementById('subpage_${secId}_1')?.scrollIntoView({ behavior: 'smooth' })">
-            <span>▼ 아래로 스크롤하여 서브페이지 (${slides.length - 1}개) 계속 보기</span>
-        </div>
-        ` : ''}
     `;
     vp.appendChild(heroCard);
 
@@ -465,10 +579,8 @@ function renderChurchMenuContent(secId) {
         subCard.id = `subpage_${secId}_${sIdx}`;
 
         subCard.innerHTML = `
-            <div class="subpage-badge-row">
-                <span class="subpage-counter-badge">
-                    <span>📌</span> <span>서브페이지 ${sIdx}</span>
-                </span>
+            <div class="subpage-badge-row" style="margin-bottom:6px;">
+                <span style="font-size:12.5px; color:#38bdf8; font-weight:900;">${sec.cat} • ${sIdx + 1}/${slides.length}</span>
                 ${isAdmin ? `
                 <button type="button" class="btn-screen-direct-edit" onclick="event.stopPropagation(); openDirectScreenEdit(${secId}, ${sIdx});">
                     ✏️ 이 서브 수정
@@ -485,25 +597,11 @@ function renderChurchMenuContent(secId) {
             ${sub.verse ? `<div class="subpage-verse-box">${sub.verse}</div>` : ''}
 
             <p class="subpage-desc-text">${sub.body || ""}</p>
-
-            <div class="subpage-action-row">
-                <span style="font-size:11.5px; color:#94a3b8; font-weight:800;">${sec.cat} • ${sIdx + 1}/${slides.length}</span>
-                <div style="display:flex; gap:6px;">
-                    ${isAdmin ? `
-                    <button type="button" class="btn-card-admin-edit" onclick="event.stopPropagation(); openDirectScreenEdit(${secId}, ${sIdx});">
-                        ✏️ 화면수정
-                    </button>
-                    ` : ''}
-                    <button type="button" class="btn-card-detail-view" onclick="event.stopPropagation(); goToDetailPage(${secId}, '${sec.link}');" style="padding:6px 14px; font-size:12.5px; font-weight:900; border-radius:9px; cursor:pointer; background:#0284c7; border:1.2px solid #38bdf8; color:#ffffff;">
-                        자세히 보기 ▶
-                    </button>
-                </div>
-            </div>
         `;
         vp.appendChild(subCard);
     }
 
-    // 3) 마지막 페이지: 은혜 글귀 + 250 애드몹 + [다음 메뉴 가기] 버튼 (개인앱 방식 일체화)
+    // 3) 마지막 페이지: 은혜 글귀 + 250 애드몹 + [다음 메뉴 가기] 버튼
     const endingCard = document.createElement("section");
     endingCard.className = "church-ending-snap-card";
     endingCard.innerHTML = `
@@ -525,6 +623,453 @@ function renderChurchMenuContent(secId) {
         </button>
     `;
     vp.appendChild(endingCard);
+}
+
+/* 🌟 [사용자 요청] 교회의꿈 실제 서브페이지 풀 스냅 뷰:
+   1. 환영인사 2. 교회비전 3. 섬기는 이(담임목사 대형사진+인사글, 부목사이하 2열그리드+개별수정)
+   4. 부서사역 5. 파송선교사(불렛 100% 정상출력) 6. 교회역사 7. 애드몹+다음메뉴 */
+function renderChurchDreamFullSnapView(vp, isAdmin) {
+    const introData = getChurchIntroData();
+
+    // 1. 환영인사
+    const welcome = introData.welcome || {};
+    const welcomeCard = document.createElement("section");
+    welcomeCard.className = "snap-page-section";
+    welcomeCard.id = "dream_sec_welcome";
+    welcomeCard.innerHTML = `
+        <div class="section-header-row">
+            <h2 class="article-main-title">${welcome.title || "예수님의 사랑으로 여러분을 환영합니다"}</h2>
+            ${isAdmin ? `<button type="button" class="btn-screen-direct-edit" onclick="openChurchIntroSectionEdit('welcome')">✏️ 이 화면 수정</button>` : ''}
+        </div>
+        ${welcome.img ? `<div class="attached-photo-wrap"><img src="${welcome.img}" alt="${welcome.title || '환영인사'}"></div>` : ''}
+        <div class="article-text-body">${formatIntroBody(welcome.body)}</div>
+        <div class="church-bullets-list" style="margin-top:4px;">
+            ${formatIntroBullets(welcome.bullets)}
+        </div>
+    `;
+    vp.appendChild(welcomeCard);
+
+    // 2. 교회비전
+    const vision = introData.vision || {};
+    const visionCard = document.createElement("section");
+    visionCard.className = "snap-page-section";
+    visionCard.id = "dream_sec_vision";
+    visionCard.innerHTML = `
+        <div class="section-header-row">
+            <h2 class="article-main-title">${vision.title || "하나님 나라를 확장하는 3대 핵심 비전"}</h2>
+            ${isAdmin ? `<button type="button" class="btn-screen-direct-edit" onclick="openChurchIntroSectionEdit('vision')">✏️ 이 화면 수정</button>` : ''}
+        </div>
+        ${vision.img ? `<div class="attached-photo-wrap"><img src="${vision.img}" alt="${vision.title || '교회비전'}"></div>` : ''}
+        <div class="article-text-body">${formatIntroBody(vision.body)}</div>
+        <div class="church-bullets-list" style="margin-top:4px;">
+            ${formatIntroBullets(vision.bullets)}
+        </div>
+    `;
+    vp.appendChild(visionCard);
+
+    // 3. 섬기는 이 (담임목사 대형 사진 + 인사글 / 부목사 이하 2열 그리드 + 개별 수정)
+    const servants = introData.servants || {};
+    const pastor = servants.seniorPastor || {
+        name: "최남수 담임목사",
+        role: "담임목회 및 강단 말씀",
+        desc: "총신대 신대원 졸, 영혼 구원과 기도 훈련에 헌신\n\n“하나님의 은혜와 평강이 성도님들의 가정과 삶의 모든 터전 위에 넘치시기를 간절히 기도합니다. 주님의 몸 된 교회를 온 맘 다해 기쁨으로 섬기겠습니다.”",
+        img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&auto=format&fit=crop&q=85"
+    };
+    const leaders = servants.leaders || [];
+    const servantsCard = document.createElement("section");
+    servantsCard.className = "snap-page-section";
+    servantsCard.id = "dream_sec_servants";
+    servantsCard.innerHTML = `
+        <div class="section-header-row">
+            <h2 class="article-main-title">${servants.title || "교회를 섬기는 사역자 및 직분자"}</h2>
+            ${isAdmin ? `<button type="button" class="btn-screen-direct-edit" onclick="openChurchIntroSectionEdit('servants')">✏️ 제목/소개 수정</button>` : ''}
+        </div>
+        ${servants.body ? `<div class="article-text-body" style="margin-bottom:6px;">${servants.body}</div>` : ''}
+
+        <!-- 🌟 [사용자 요청] 담임목사는 사진이 한 장 크게 있고 그 밑에 목회 인사글 -->
+        <div class="senior-pastor-card">
+            <img class="senior-pastor-img" src="${pastor.img}" alt="${pastor.name}">
+            <div class="senior-pastor-info">
+                <div class="senior-pastor-title-row">
+                    <div>
+                        <h3 class="senior-pastor-name">${pastor.name}</h3>
+                        <div class="senior-pastor-role">${pastor.role}</div>
+                    </div>
+                    ${isAdmin ? `<button type="button" class="btn-leader-inline-edit" onclick="openChurchPastorEdit()">✏️ 목사님 소개 수정</button>` : ''}
+                </div>
+                <div class="senior-pastor-desc">${formatIntroBody(pastor.desc)}</div>
+            </div>
+        </div>
+
+        <!-- 🌟 [사용자 요청] 부목사 이하는 한 줄에 2명씩(2열 그리드) 사진과 글을 올릴 수 있게 하되 각각 사진과 글을 개별 수정할 수 있게 -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+            <span style="font-size:13.5px; font-weight:900; color:#38bdf8;">사역팀 및 교구 목회자</span>
+            ${isAdmin ? `<button type="button" class="btn-leader-inline-edit" style="background:#0284c7; color:#fff;" onclick="addNewChurchLeader()">➕ 사역자 추가</button>` : ''}
+        </div>
+        <div class="clean-leader-grid">
+            ${leaders.map((ldr, lIdx) => `
+                <div class="clean-leader-card">
+                    <img class="clean-leader-img" src="${ldr.img}" alt="${ldr.name}">
+                    <div class="clean-leader-info">
+                        <strong class="clean-leader-name">${ldr.name}</strong>
+                        <span class="clean-leader-role">${ldr.role}</span>
+                        <p class="clean-leader-desc">${ldr.desc}</p>
+                        ${isAdmin ? `<button type="button" class="btn-leader-inline-edit" onclick="openChurchLeaderEdit(${lIdx})">✏️ 수정</button>` : ''}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    vp.appendChild(servantsCard);
+
+    // 4. 부서사역
+    const ministry = introData.ministry || {};
+    const ministryCard = document.createElement("section");
+    ministryCard.className = "snap-page-section";
+    ministryCard.id = "dream_sec_ministry";
+    ministryCard.innerHTML = `
+        <div class="section-header-row">
+            <h2 class="article-main-title">${ministry.title || "은사와 열정으로 헌신하는 각 사역팀"}</h2>
+            ${isAdmin ? `<button type="button" class="btn-screen-direct-edit" onclick="openChurchIntroSectionEdit('ministry')">✏️ 이 화면 수정</button>` : ''}
+        </div>
+        ${ministry.img ? `<div class="attached-photo-wrap"><img src="${ministry.img}" alt="${ministry.title || '부서사역'}"></div>` : ''}
+        <div class="article-text-body">${formatIntroBody(ministry.body)}</div>
+        <div class="church-bullets-list" style="margin-top:4px;">
+            ${formatIntroBullets(ministry.bullets)}
+        </div>
+    `;
+    vp.appendChild(ministryCard);
+
+    // 5. 파송선교사 (불렛 선교사 글들이 100% 정상 출력!)
+    const missionary = introData.missionary || {};
+    const missionaryCard = document.createElement("section");
+    missionaryCard.className = "snap-page-section";
+    missionaryCard.id = "dream_sec_missionary";
+    missionaryCard.innerHTML = `
+        <div class="section-header-row">
+            <h2 class="article-main-title">${missionary.title || "땅끝까지 복음을 전하는 파송 선교지"}</h2>
+            ${isAdmin ? `<button type="button" class="btn-screen-direct-edit" onclick="openChurchIntroSectionEdit('missionary')">✏️ 이 화면 수정</button>` : ''}
+        </div>
+        ${missionary.img ? `<div class="attached-photo-wrap"><img src="${missionary.img}" alt="${missionary.title || '파송선교사'}"></div>` : ''}
+        <div class="article-text-body">${formatIntroBody(missionary.body)}</div>
+        <!-- 🌟 [사용자 요청] 파송선교사 불렛 목록 100% 화면에 확실하게 출력! -->
+        <div class="church-bullets-list" style="margin-top:6px;">
+            ${formatIntroBullets(missionary.bullets)}
+        </div>
+    `;
+    vp.appendChild(missionaryCard);
+
+    // 6. 교회역사
+    const history = introData.history || {};
+    const historyList = history.historyList || [
+        { year: "2026년", text: "예톡 스마트 미디어 선교 플랫폼 런칭 및 글로벌 비전 선포" },
+        { year: "2020년", text: "온라인 실시간 예배 시스템 구축 및 비전센터 봉헌" },
+        { year: "2015년", text: "제2성전 건축 입당 감사예배 및 해외 단독 선교사 파송" },
+        { year: "2008년", text: "교회 설립 10주년 기념 감사 축제 및 지역 나눔 사역 확대" },
+        { year: "1998년", text: "성령의 인도하심으로 예톡행복한교회 첫 개척 예배" }
+    ];
+    const historyCard = document.createElement("section");
+    historyCard.className = "snap-page-section";
+    historyCard.id = "dream_sec_history";
+    historyCard.innerHTML = `
+        <div class="section-header-row">
+            <h2 class="article-main-title">${history.title || "하나님의 인도하심으로 걸어온 은혜의 발자취"}</h2>
+            ${isAdmin ? `<button type="button" class="btn-screen-direct-edit" onclick="openChurchIntroSectionEdit('history')">✏️ 이 화면 수정</button>` : ''}
+        </div>
+        ${history.img ? `<div class="attached-photo-wrap"><img src="${history.img}" alt="${history.title || '교회역사'}"></div>` : ''}
+        ${history.body ? `<div class="article-text-body">${formatIntroBody(history.body)}</div>` : ''}
+        <div class="clean-timeline-box">
+            ${historyList.map(h => `
+                <div class="clean-timeline-row">
+                    <span class="clean-timeline-year">${h.year}</span>
+                    <span class="clean-timeline-text">${h.text}</span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    vp.appendChild(historyCard);
+
+    // 7. 엔딩 카드 (은혜의 말씀 + 250 애드몹 + [다음 메뉴 (예배) 가기 ▶] 버튼)
+    const endingCard = document.createElement("section");
+    endingCard.className = "church-ending-snap-card";
+    endingCard.innerHTML = `
+        <div class="ending-quote-box">
+            <span class="ending-quote-tag">🌿 은혜의 말씀</span>
+            <div class="ending-quote-text">“너희는 세상의 빛이라 산 위에 있는 동네가 숨겨지지 못할 것이요 (마 5:14)”</div>
+        </div>
+
+        <div class="ending-admob-250">
+            <div style="font-size:10px; color:#64748b; font-weight:900; letter-spacing:0.8px; margin-bottom:6px;">AD • Google AdMob 공식 스폰서 (300 × 250)</div>
+            <div style="font-size:15px; font-weight:900; color:#38bdf8; margin-bottom:4px;">Google AdMob Medium Rectangle</div>
+            <div style="font-size:11px; color:#94a3b8; padding:0 16px; line-height:1.4;">한국 교회 및 복음 선교 미디어 공식 지원 스폰서</div>
+            <div style="margin-top:12px; padding:4px 12px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); border-radius:18px; font-size:10.5px; font-weight:800; color:#38bdf8;">선교 사역 후원 배너</div>
+        </div>
+
+        <button type="button" class="btn-jump-next-section" onclick="handleChurchNavTab(1)">
+            <span>다음 메뉴 [예배] 가기</span>
+            <span style="font-size:17px;">▶</span>
+        </button>
+    `;
+    vp.appendChild(endingCard);
+}
+
+function formatIntroBody(text) {
+    if (!text) return "";
+    const lines = text.split("\n");
+    let out = "";
+    lines.forEach(l => {
+        const tr = l.trim();
+        if (tr.startsWith("•") || tr.startsWith("-") || tr.startsWith("*")) {
+            out += `<div class="bullet-point-line">${tr.replace(/^[•\-\*]\s*/, '')}</div>`;
+        } else if (tr.length > 0) {
+            out += `<div style="margin-bottom:6px;">${tr}</div>`;
+        }
+    });
+    return out;
+}
+
+function formatIntroBullets(bullets) {
+    if (!bullets || !Array.isArray(bullets) || bullets.length === 0) return "";
+    return bullets.map(b => `<div class="bullet-point-line">${b.replace(/^[•\-\*]\s*/, '')}</div>`).join('');
+}
+
+let currentIntroSecKey = "welcome";
+let tempIntroSecImgBase64 = "";
+let tempPastorImgBase64 = "";
+let tempLeaderImgBase64 = "";
+let currentLeaderIndex = -1;
+
+function openChurchIntroSectionEdit(secKey) {
+    currentIntroSecKey = secKey;
+    const data = getChurchIntroData();
+    const item = data[secKey] || {};
+
+    const nameMap = {
+        welcome: "환영인사",
+        vision: "교회비전",
+        servants: "섬기는 이",
+        ministry: "부서사역",
+        missionary: "파송선교사",
+        history: "교회역사"
+    };
+
+    document.getElementById("lblIntroSecModalTitle").innerText = `✏️ [${nameMap[secKey] || secKey}] 내용 및 사진 수정`;
+    document.getElementById("inpIntroSecKey").value = secKey;
+    document.getElementById("inpIntroSecTitle").value = item.title || "";
+    document.getElementById("inpIntroSecImgUrl").value = item.img || "";
+
+    tempIntroSecImgBase64 = item.img || "";
+    const prev = document.getElementById("prevIntroSecImg");
+    if (prev) {
+        if (tempIntroSecImgBase64) {
+            prev.src = tempIntroSecImgBase64;
+            prev.style.display = "block";
+        } else {
+            prev.style.display = "none";
+        }
+    }
+
+    let combinedBody = item.body || "";
+    if (item.bullets && Array.isArray(item.bullets) && item.bullets.length > 0) {
+        if (combinedBody) combinedBody += "\n\n";
+        combinedBody += item.bullets.map(b => `• ${b.replace(/^[•\-\*]\s*/, '')}`).join("\n");
+    }
+    document.getElementById("inpIntroSecBody").value = combinedBody;
+
+    openModal("churchIntroSectionEditModal");
+}
+
+function handleIntroSecFile(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        tempIntroSecImgBase64 = e.target.result;
+        const prev = document.getElementById("prevIntroSecImg");
+        if (prev) {
+            prev.src = tempIntroSecImgBase64;
+            prev.style.display = "block";
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function saveChurchIntroSectionData() {
+    const secKey = document.getElementById("inpIntroSecKey").value || currentIntroSecKey;
+    const data = getChurchIntroData();
+    if (!data[secKey]) data[secKey] = {};
+
+    data[secKey].title = document.getElementById("inpIntroSecTitle").value.trim();
+    const urlInput = document.getElementById("inpIntroSecImgUrl").value.trim();
+    data[secKey].img = urlInput || tempIntroSecImgBase64;
+
+    const rawBody = document.getElementById("inpIntroSecBody").value;
+    const lines = rawBody.split("\n");
+    const bodyLines = [];
+    const bulletLines = [];
+
+    lines.forEach(l => {
+        const tr = l.trim();
+        if (tr.startsWith("•") || tr.startsWith("-") || tr.startsWith("*")) {
+            bulletLines.push(tr.replace(/^[•\-\*]\s*/, ''));
+        } else {
+            bodyLines.push(l);
+        }
+    });
+
+    data[secKey].body = bodyLines.join("\n").trim();
+    data[secKey].bullets = bulletLines;
+
+    localStorage.setItem("yetalk_church_intro_custom_sections_v4", JSON.stringify(data));
+    closeModal("churchIntroSectionEditModal");
+    showToast("✅ 수정 내용이 저장되었습니다!");
+    renderChurchMenuContent(0);
+}
+
+function openChurchPastorEdit() {
+    const data = getChurchIntroData();
+    const servants = data.servants || {};
+    const pastor = servants.seniorPastor || {
+        name: "최남수 담임목사",
+        role: "담임목회 및 강단 말씀",
+        desc: "총신대 신대원 졸, 영혼 구원과 기도 훈련에 헌신\n\n“하나님의 은혜와 평강이 성도님들의 가정과 삶의 모든 터전 위에 넘치시기를 간절히 기도합니다. 주님의 몸 된 교회를 온 맘 다해 기쁨으로 섬기겠습니다.”",
+        img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&auto=format&fit=crop&q=85"
+    };
+
+    document.getElementById("inpPastorName").value = pastor.name || "";
+    document.getElementById("inpPastorRole").value = pastor.role || "";
+    document.getElementById("inpPastorDesc").value = pastor.desc || "";
+    document.getElementById("inpPastorImgUrl").value = pastor.img || "";
+
+    tempPastorImgBase64 = pastor.img || "";
+    const prev = document.getElementById("prevPastorImg");
+    if (prev) {
+        prev.src = tempPastorImgBase64;
+        prev.style.display = "block";
+    }
+
+    openModal("churchPastorEditModal");
+}
+
+function handlePastorFile(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        tempPastorImgBase64 = e.target.result;
+        const prev = document.getElementById("prevPastorImg");
+        if (prev) {
+            prev.src = tempPastorImgBase64;
+            prev.style.display = "block";
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function saveChurchPastorData() {
+    const data = getChurchIntroData();
+    if (!data.servants) data.servants = {};
+    if (!data.servants.seniorPastor) data.servants.seniorPastor = {};
+
+    const urlInput = document.getElementById("inpPastorImgUrl").value.trim();
+    data.servants.seniorPastor.name = document.getElementById("inpPastorName").value.trim() || "담임목사";
+    data.servants.seniorPastor.role = document.getElementById("inpPastorRole").value.trim() || "담임목회";
+    data.servants.seniorPastor.desc = document.getElementById("inpPastorDesc").value.trim();
+    data.servants.seniorPastor.img = urlInput || tempPastorImgBase64;
+
+    localStorage.setItem("yetalk_church_intro_custom_sections_v4", JSON.stringify(data));
+    closeModal("churchPastorEditModal");
+    showToast("✅ 담임목사님 소개가 저장되었습니다!");
+    renderChurchMenuContent(0);
+}
+
+function openChurchLeaderEdit(leaderIdx) {
+    currentLeaderIndex = leaderIdx;
+    const data = getChurchIntroData();
+    const servants = data.servants || {};
+    const leaders = servants.leaders || [];
+    const leader = leaders[leaderIdx] || { name: "", role: "", desc: "", img: "" };
+
+    document.getElementById("inpLeaderIndex").value = leaderIdx;
+    document.getElementById("lblLeaderModalTitle").innerText = leaderIdx >= 0 ? `✏️ [${leader.name || '사역자'}] 정보 수정` : `➕ 새 사역자 등록`;
+    document.getElementById("inpLeaderName").value = leader.name || "";
+    document.getElementById("inpLeaderRole").value = leader.role || "";
+    document.getElementById("inpLeaderDesc").value = leader.desc || "";
+    document.getElementById("inpLeaderImgUrl").value = leader.img || "";
+
+    tempLeaderImgBase64 = leader.img || "";
+    const prev = document.getElementById("prevLeaderImg");
+    if (prev) {
+        if (tempLeaderImgBase64) {
+            prev.src = tempLeaderImgBase64;
+            prev.style.display = "block";
+        } else {
+            prev.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80";
+        }
+    }
+
+    const delBtn = document.getElementById("btnDeleteLeader");
+    if (delBtn) delBtn.style.display = leaderIdx >= 0 ? "block" : "none";
+
+    openModal("churchLeaderEditModal");
+}
+
+function addNewChurchLeader() {
+    openChurchLeaderEdit(-1);
+}
+
+function handleLeaderFile(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        tempLeaderImgBase64 = e.target.result;
+        const prev = document.getElementById("prevLeaderImg");
+        if (prev) {
+            prev.src = tempLeaderImgBase64;
+            prev.style.display = "block";
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+function saveChurchLeaderData() {
+    const data = getChurchIntroData();
+    if (!data.servants) data.servants = {};
+    if (!data.servants.leaders) data.servants.leaders = [];
+
+    const name = document.getElementById("inpLeaderName").value.trim();
+    if (!name) { alert("사역자 성함을 입력해 주세요."); return; }
+    const role = document.getElementById("inpLeaderRole").value.trim() || "교회 사역자";
+    const desc = document.getElementById("inpLeaderDesc").value.trim();
+    const urlInput = document.getElementById("inpLeaderImgUrl").value.trim();
+    const img = urlInput || tempLeaderImgBase64 || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80";
+
+    const leaderObj = { name, role, desc, img };
+    if (currentLeaderIndex >= 0 && currentLeaderIndex < data.servants.leaders.length) {
+        data.servants.leaders[currentLeaderIndex] = leaderObj;
+    } else {
+        data.servants.leaders.push(leaderObj);
+    }
+
+    localStorage.setItem("yetalk_church_intro_custom_sections_v4", JSON.stringify(data));
+    closeModal("churchLeaderEditModal");
+    showToast("✅ 사역자 정보가 저장되었습니다!");
+    renderChurchMenuContent(0);
+}
+
+function deleteChurchLeader() {
+    if (currentLeaderIndex < 0) return;
+    if (!confirm("이 사역자 정보를 삭제하시겠습니까?")) return;
+
+    const data = getChurchIntroData();
+    if (data.servants && data.servants.leaders) {
+        data.servants.leaders.splice(currentLeaderIndex, 1);
+        localStorage.setItem("yetalk_church_intro_custom_sections_v4", JSON.stringify(data));
+    }
+    closeModal("churchLeaderEditModal");
+    showToast("🗑 사역자 정보가 삭제되었습니다.");
+    renderChurchMenuContent(0);
 }
 
 /* 🌟 [사용자 요청] 오늘말씀 (구 예수동행) 카톡 스타일 뷰:

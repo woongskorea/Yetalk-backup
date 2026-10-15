@@ -230,7 +230,7 @@
 
     <!-- 무료 비즈니스 앱 즉시 생성 배너 -->
     <div class="promo-apply-banner" onclick="openCreateAppModal()">
-        <strong>🎁 전 국민 100% 무료 앱 제작</strong>
+        <strong>개인앱, 전문앱을 모든 비용 제로로 평생 이용 가능합니다</strong>
         <span>평생 제작비·서버비·유지비 0원! 모든 맞춤 비즈니스 앱 무상 개설 ➔</span>
     </div>
 
@@ -731,28 +731,37 @@
             customCreatedApps = JSON.parse(localStorage.getItem("yetalk_custom_created_apps") || "[]");
         } catch(e){}
 
-        // 🌟 [사용자 요청 순서 규칙] ① 교회앱 1개 최우선 ➔ ② 그 밑에 내앱 ➔ ③ 그 밑에 나의 전문앱!
+        // 🌟 [사용자 요청] 내앱 리스트는 정확히 3개 카드!
+        // ① 교회앱 1개 (교회 안 다닐 경우 다른 전문앱으로 대체하여 총 3개 유지)
+        // ② 개인앱 1개 (onemain.html)
+        // ③ 본인 전문앱 1개 (primaryApp)
         let myCards = [];
         if (isChurchMember) {
             myCards.push(churchApp);
         }
         myCards.push(personalOneApp);
-        if (primaryApp.name !== '예톡행복한교회' && primaryApp.url !== 'onemain.html') {
+
+        // 본인 전문앱 (교회앱이나 개인앱과 중복되지 않도록)
+        if (primaryApp.url !== 'churchmain.html' && primaryApp.url !== 'onemain.html') {
             myCards.push(primaryApp);
-        }
-        if (!myCards.some(a => a.name === hanDoctorApp.name || a.url === hanDoctorApp.url)) {
-            myCards.push(hanDoctorApp);
-        }
-        if (!myCards.some(a => a.name === dentalDoctorApp.name || a.url === dentalDoctorApp.url)) {
-            myCards.push(dentalDoctorApp);
-        }
-        if (!myCards.some(a => a.name === freeShopApp.name || a.url === freeShopApp.url)) {
+        } else {
             myCards.push(freeShopApp);
         }
-        myCards = [...myCards, ...customCreatedApps];
+
+        // 만약 교회 회원이 아니라서 2개뿐이면, 3개를 채우기 위해 후보 전문앱 추가
+        if (myCards.length < 3) {
+            const candidates = [hanDoctorApp, dentalDoctorApp, freeShopApp];
+            for (const c of candidates) {
+                if (!myCards.some(a => a.name === c.name || a.url === c.url)) {
+                    myCards.push(c);
+                    if (myCards.length >= 3) break;
+                }
+            }
+        }
+        myCards = myCards.slice(0, 3); // 정확히 3개 카드 유지!
 
         const otherModels = MODEL_HOUSES.filter(m => !myCards.some(c => c.name === m.name || c.url === m.url));
-        const allStores = [...myCards, ...otherModels];
+        const allStores = [...myCards, ...otherModels, ...customCreatedApps];
 
         return {
             myThreeCards: myCards,
@@ -786,23 +795,28 @@
             else if (starLevel === 3) { starText = "★★★"; starClass = "stars-yellow"; }
             else if (starLevel === 4) { starText = "★★★"; starClass = "stars-red"; }
 
-            // 🌟 [사용자 요청] 불필요한 [👑 나의 앱] 배지 완전 삭제!
-            // 교회 정회원은 빨강 배지 및 테두리, 내앱은 보라 배지, 전문앱은 공지알림 개수 배지!
+            // 🌟 [사용자 요청]
+            // 수식어 '새공지 2건', '교회정회원', '내앱' 일체 제거!
+            // 전문앱/교회앱/개인앱 이름 전체 온전히 노출
+            // 뒤에 공지 숫자만 심플한 빨강 배지로 노출
             let cardBorder = '';
-            let customBadge = '';
+            let titleColor = '#ffffff';
 
             if (isChurch) {
                 cardBorder = 'border: 2.2px solid #ef4444; box-shadow: 0 4px 18px rgba(239, 68, 68, 0.45); background: linear-gradient(135deg, #241419, #130a10);';
-                customBadge = '<span style="background:#ef4444; color:#ffffff; font-size:11px; font-weight:950; padding:2px 7px; border-radius:5px; margin-right:5px; flex-shrink:0;">⛪ 교회 정회원</span>';
+                titleColor = '#fca5a5';
             } else if (item.isPersonalOne) {
                 cardBorder = 'border: 1.8px solid #a855f7; box-shadow: 0 4px 16px rgba(168, 85, 247, 0.25); background: linear-gradient(135deg, #1c142c, #0d0a18);';
-                customBadge = '<span style="background:#a855f7; color:#ffffff; font-size:11px; font-weight:950; padding:2px 7px; border-radius:5px; margin-right:5px; flex-shrink:0;">📱 내앱</span>';
+                titleColor = '#d8b4fe';
             } else if (item.isSpecialistApp) {
                 cardBorder = 'border: 1.8px solid #38bdf8; box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25); background: linear-gradient(135deg, #102138, #0a1424);';
-                customBadge = `<span style="background:#0284c7; color:#ffffff; font-size:10.5px; font-weight:900; padding:2px 7px; border-radius:10px; margin-right:5px; flex-shrink:0;">📢 새 공지 ${item.noticeCount || 1}건</span>`;
+                titleColor = '#38bdf8';
             } else {
                 cardBorder = 'border: 1px solid #1c3252; background: #111e33;';
+                titleColor = '#ffffff';
             }
+
+            const noticeBadge = item.noticeCount ? `<span style="background:#ef4444; color:#ffffff; font-size:11px; font-weight:950; padding:1px 6px; border-radius:10px; margin-left:6px; flex-shrink:0;">${item.noticeCount}</span>` : '';
 
             return `
                 <div class="store-card-item" style="${cardBorder}; cursor:pointer;" onclick="location.href='${item.url}'">
@@ -812,12 +826,12 @@
                                 ${starText}
                             </button>
                             <div class="card-clickable-area">
-                                ${customBadge}
-                                <strong class="card-name" style="${isChurch ? 'color:#fca5a5;' : (item.isPersonalOne ? 'color:#d8b4fe;' : 'color:#38bdf8;')}">${item.name}</strong>
-                                <span class="card-tag ${item.tagClass}">${item.tagText}</span>
+                                <strong class="card-name" style="color:${titleColor}; font-size:15px; font-weight:950;">${item.name}</strong>
+                                ${noticeBadge}
+                                <span class="card-tag ${item.tagClass}" style="margin-left:auto;">${item.tagText}</span>
                             </div>
                         </div>
-                        <span class="card-date">${item.date}</span>
+                        <span class="card-date" style="margin-left:8px;">${item.date}</span>
                     </div>
                 </div>
             `;
