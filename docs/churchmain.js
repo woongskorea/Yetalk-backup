@@ -151,6 +151,8 @@ function getChurchIntroData() {
     }
     return JSON.parse(JSON.stringify(DEFAULT_CHURCH_INTRO_DATA));
 }
+
+function createDefaultSlides(catName, isWorship = false) {
     if (catName === "예배") {
         return [
             { title: "예배", verse: "“신령과 진정으로 예배하는 자들을 찾으시느니라 (요 4:23)”", body: "주일과 주중 모든 예배 실황과 은혜의 말씀을 나눕니다.", yt: "", img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90" },
