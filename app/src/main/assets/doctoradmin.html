@@ -2,485 +2,310 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>의원 관리자 센터 | 예톡</title>
-    <link rel="stylesheet" href="common.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>의원 관리실 - 환자 및 등급 관리</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
+            --safe-top: max(env(safe-area-inset-top, 0px) + 16px, 20px);
+            --safe-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+            --bottom-ad-h: calc(88px + var(--safe-bottom));
             --primary: #0284c7;
-            --primary-light: #f0f9ff;
-            --border-color: #cbd5e1;
+            --border: #e2e8f0;
             --text-main: #0f172a;
-            --text-sub: #64748b;
-            --bg-page: #f8fafc;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body {
-            background: #e2e8f0; color: var(--text-main);
-            font-family: "Pretendard", -apple-system, sans-serif;
-            display: flex; justify-content: center; min-height: 100vh;
+        html, body {
+            width: 100%; height: 100%; background: #000000;
+            font-family: "Pretendard", -apple-system, sans-serif; color: var(--text-main);
+            overflow: hidden;
         }
 
-        .admin-container {
-            width: 100%; max-width: 780px; background: #ffffff;
-            min-height: 100vh; position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.1);
-            padding-bottom: 60px;
+        .admin-shell {
+            width: 100%; max-width: 480px; height: 100dvh; margin: 0 auto;
+            background: #f8fafc; display: flex; flex-direction: column; position: relative;
+            border-left: 1px solid var(--border); border-right: 1px solid var(--border);
         }
 
-        /* 1. 최상단 헤더 */
-        .admin-top-header {
-            position: sticky; top: 0; z-index: 100;
-            background: #ffffff;
-            height: calc(54px + max(env(safe-area-inset-top, 0px) + 38px, 42px));
-            display: flex;
-            justify-content: space-between; align-items: center;
-            padding: max(env(safe-area-inset-top, 0px) + 38px, 42px) 14px 0 14px;
-            border-bottom: 1.5px solid var(--border-color);
+        /* 1. 상단 바 */
+        .admin-nav-bar {
+            background: #ffffff; border-bottom: 1.5px solid var(--border);
+            padding: var(--safe-top) 14px 12px 14px; display: flex; justify-content: space-between; align-items: center;
+            flex-shrink: 0;
         }
-        .admin-nav-btn {
-            background: none; border: none; font-size: 24px; font-weight: 900;
-            color: #334155; cursor: pointer; padding: 4px 8px; line-height: 1;
-        }
-        .admin-header-title { text-align: center; }
-        .admin-header-title strong { display: block; font-size: 15.5px; font-weight: 950; color: #0f172a; }
-        .admin-header-title small { font-size: 11px; color: #0284c7; font-weight: 800; }
-
-        .btn-admin-pill-red {
-            background: #dc2626; border: 1px solid #ef4444; color: #ffffff;
-            font-size: 11.5px; font-weight: 900; padding: 5px 12px; border-radius: 14px;
-            cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
-            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35); transition: all 0.2s;
-        }
-        .btn-admin-pill-red:active { transform: scale(0.96); background: #b91c1c; }
-
-        /* 2. 관리자 프로필 정보 */
-        .admin-profile-box {
-            background: var(--primary-light); border-bottom: 1px solid #bae6fd;
-            padding: 14px 16px; display: flex; align-items: center; gap: 12px;
-        }
-        .admin-avatar {
-            width: 44px; height: 44px; border-radius: 50%; background: var(--primary);
-            color: white; display: flex; align-items: center; justify-content: center;
-            font-size: 17px; font-weight: 900;
-        }
-        .admin-meta strong { font-size: 15px; font-weight: 900; color: #0369a1; }
-        .admin-badge {
-            background: #0284c7; color: white; font-size: 10.5px; font-weight: 800;
-            padding: 2px 7px; border-radius: 10px; margin-left: 5px;
-        }
-        .admin-meta p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
-
-        /* 3. 7대 빠른 관리 메뉴 그리드 */
-        .quick-grid-section { padding: 16px; }
-        .section-label { font-size: 11px; font-weight: 900; color: var(--primary); letter-spacing: 0.5px; }
-        .section-h2 { font-size: 18px; font-weight: 950; color: #0f172a; margin: 2px 0 12px 0; }
-
-        .quick-nav-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
-        }
-        @media (max-width: 380px) {
-            .quick-nav-grid { grid-template-columns: repeat(3, 1fr); }
-        }
-        .quick-menu-btn {
-            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
-            padding: 12px 4px; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; gap: 5px; cursor: pointer; transition: 0.15s;
-        }
-        .quick-menu-btn:active { background: #e2e8f0; transform: scale(0.97); }
-        .quick-menu-btn span { font-size: 22px; }
-        .quick-menu-btn strong { font-size: 12px; font-weight: 800; color: #1e293b; }
-
-        /* 4. 세부 서브 화면 뷰 */
-        .sub-admin-view { display: none; padding: 14px 16px; }
-        .sub-admin-view.active { display: block; }
-
-        .btn-back-quick {
-            background: #e2e8f0; border: none; padding: 6px 14px; border-radius: 16px;
-            font-size: 12px; font-weight: 800; color: #334155; cursor: pointer; margin-bottom: 12px;
-            display: inline-flex; align-items: center; gap: 4px;
+        .btn-nav-back {
+            background: none; border: none; font-size: 22px; font-weight: 900; color: #0284c7; cursor: pointer;
         }
 
-        .admin-card {
-            background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px;
-            padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        /* 2. 스크롤 본문 */
+        .admin-content-scroll {
+            flex: 1; overflow-y: auto; padding: 16px 14px calc(var(--bottom-ad-h) + 20px) 14px;
+            display: flex; flex-direction: column; gap: 14px;
         }
-        .admin-card-title { font-size: 15px; font-weight: 900; color: #0f172a; margin-bottom: 8px; }
-        .info-callout {
-            background: #f8fafc; border-left: 3.5px solid #0284c7; padding: 8px 12px;
-            font-size: 12px; color: #475569; line-height: 1.5; margin-bottom: 12px; border-radius: 0 8px 8px 0;
-        }
-        .field-group { margin-bottom: 12px; }
-        .field-group label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 4px; }
-        .field-input, .field-textarea {
-            width: 100%; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px;
-            font-size: 13.5px; color: #0f172a; outline: none; font-family: inherit;
-        }
-        .field-input:focus, .field-textarea:focus { border-color: #0284c7; }
-        .field-textarea { min-height: 70px; resize: vertical; }
 
-        .btn-save-section {
-            width: 100%; height: 42px; background: #0284c7; color: white;
-            border: none; border-radius: 8px; font-size: 13.5px; font-weight: 900;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            gap: 6px; box-shadow: 0 3px 10px rgba(2, 132, 199, 0.3); margin-top: 6px;
+        /* 매일 바뀌는 좋은 글 카드 */
+        .daily-quote-card {
+            background: linear-gradient(135deg, #0284c7, #0369a1); border-radius: 14px;
+            padding: 14px 16px; color: #ffffff; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
         }
-        .btn-save-section:active { transform: scale(0.98); background: #0369a1; }
 
-        .toast-msg {
-            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
-            background: #0f172a; color: white; padding: 10px 20px; border-radius: 20px;
-            font-size: 13px; font-weight: 900; z-index: 99999; opacity: 0; visibility: hidden;
-            transition: all 0.25s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        /* 통계 카운터 */
+        .stat-grid-box {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
         }
-        .toast-msg.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+        .stat-card-unit {
+            background: #ffffff; border: 1.5px solid var(--border); border-radius: 14px;
+            padding: 14px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .stat-num-txt {
+            font-size: 26px; font-weight: 950; color: #0284c7; margin-top: 4px; line-height: 1.2;
+        }
+
+        /* 대형 이름 검색창 */
+        .search-large-bar {
+            width: 100%; height: 50px; background: #ffffff; border: 2px solid #0284c7;
+            border-radius: 12px; padding: 0 16px; font-size: 15px; font-weight: 850; outline: none;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+        }
+
+        /* 환자 등급 관리 테이블 */
+        .patient-table-card {
+            background: #ffffff; border: 1.5px solid var(--border); border-radius: 14px;
+            overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .patient-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 14px; border-bottom: 1px solid #f1f5f9; gap: 8px;
+        }
+        .patient-row:last-child { border-bottom: none; }
+        .patient-info {
+            display: flex; flex-direction: column; gap: 3px;
+        }
+        .role-selector-pill {
+            height: 34px; border: 1.5px solid #0284c7; border-radius: 8px;
+            padding: 0 8px; font-size: 12.5px; font-weight: 850; background: #f0f9ff; color: #0369a1; outline: none;
+        }
+
+        /* 최하단 애드몹 슬롯 */
+        .bottom-fixed-admob-100 {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: var(--bottom-ad-h); padding-bottom: var(--safe-bottom);
+            background: #080d1a; border-top: 1.5px solid #1e3a5f;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 30000; box-shadow: 0 -4px 20px rgba(0,0,0,0.7);
+        }
+        .admob-display-box {
+            width: min(calc(100% - 24px), 340px); height: 56px;
+            background: #0b1326; border: 1px solid #1e293b; border-radius: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+        }
     </style>
 </head>
 <body>
 
-<div class="admin-container">
-    <!-- 최상단 헤더 -->
-    <header class="admin-top-header">
-        <button type="button" class="admin-nav-btn" onclick="location.href='doctormain.html'" title="의원 홈으로 이동">◀</button>
-        <div class="admin-header-title">
-            <strong id="hdrDoctorTitle">아름다운의원 관리실</strong>
-            <small>예톡 의료인 전용 관리자 콘솔</small>
+<div class="admin-shell">
+
+    <!-- 1. 상단 바 -->
+    <header class="admin-nav-bar">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <button type="button" class="btn-nav-back" id="btnAdminBack" onclick="goClinicHome()">◀</button>
+            <strong style="font-size:17.5px; color:#0f172a;" id="dispAdminTitle">의원 관리실 (대표원장)</strong>
         </div>
-        <button type="button" class="btn-admin-pill-red" onclick="location.href='index.html'">
-            예톡 메인 ➔
-        </button>
+        <button type="button" id="btnAdminHomeRight" style="background:#dc2626; color:#fff; border:none; padding:5px 12px; border-radius:8px; font-size:12px; font-weight:900; cursor:pointer;" onclick="goClinicHome()">의원 홈 ➔</button>
     </header>
 
-    <!-- 관리자 프로필 박스 -->
-    <section class="admin-profile-box">
-        <div class="admin-avatar">🏥</div>
-        <div class="admin-meta">
-            <div>
-                <strong id="metaDoctorName">예톡아름다운의원</strong>
-                <span class="admin-badge">대표원장</span>
-            </div>
-            <p id="metaDoctorInfo">진료과목: 피부성형·자가진피 | 대표전화: 02-1234-5678</p>
-        </div>
-    </section>
+    <!-- 2. 본문 스크롤 -->
+    <main class="admin-content-scroll">
 
-    <!-- 7대 섹션 빠른 바로가기 그리드 -->
-    <main class="quick-grid-section" id="mainQuickSection">
-        <div class="section-label">CLINIC CONTROL CENTER</div>
-        <h2 class="section-h2">의원 7대 콘텐츠 관리</h2>
-
-        <div class="quick-nav-grid">
-            <div class="quick-menu-btn" onclick="openSubView('viewBasic')">
-                <span>🏥</span>
-                <strong>기본정보</strong>
-            </div>
-            <div class="quick-menu-btn" onclick="openSubView('viewIntro')">
-                <span>📋</span>
-                <strong>의원소개</strong>
-            </div>
-            <div class="quick-menu-btn" onclick="openSubView('viewTreatment')">
-                <span>💉</span>
-                <strong>시술소개</strong>
-            </div>
-            <div class="quick-menu-btn" onclick="openSubView('viewReserve')">
-                <span>📅</span>
-                <strong>예약문의</strong>
-            </div>
-            <div class="quick-menu-btn" onclick="openSubView('viewNotice')">
-                <span>📢</span>
-                <strong>공지알림</strong>
-            </div>
-            <div class="quick-menu-btn" onclick="openSubView('viewBeforeAfter')">
-                <span>✨</span>
-                <strong>전후사례</strong>
-            </div>
-            <div class="quick-menu-btn" onclick="openSubView('viewColumn')">
-                <span>✍️</span>
-                <strong>원장칼럼</strong>
-            </div>
-            <div class="quick-menu-btn" onclick="openSubView('viewAccount')">
-                <span>💳</span>
-                <strong>수납계좌</strong>
+        <!-- 매일 바뀌는 좋은 글 -->
+        <div class="daily-quote-card">
+            <div style="font-size:11px; font-weight:900; color:#fde047; margin-bottom:4px;">✨ 오늘의 원장님 명언</div>
+            <div style="font-size:14px; font-weight:800; line-height:1.5;" id="dispDailyQuote">
+                “훌륭한 의사는 질병을 치료하지만, 위대한 의사는 질병을 앓고 있는 환자를 치료한다.”
             </div>
         </div>
+
+        <!-- 전체 등록 환자수 & 오늘 방문 횟수 통계 -->
+        <div class="stat-grid-box">
+            <div class="stat-card-unit">
+                <span style="font-size:12.5px; font-weight:800; color:#64748b;">👥 전체 등록 환자 수</span>
+                <div class="stat-num-txt" id="statTotalPatients">0명</div>
+            </div>
+            <div class="stat-card-unit">
+                <span style="font-size:12.5px; font-weight:800; color:#64748b;">📅 오늘 예약/방문 건수</span>
+                <div class="stat-num-txt" style="color:#dc2626;" id="statTodayVisits">0건</div>
+            </div>
+        </div>
+
+        <!-- 대형 환자 이름 검색 -->
+        <div>
+            <label style="font-size:13px; font-weight:900; color:#0f172a; display:block; margin-bottom:6px;">🔍 환자 이름 실시간 검색</label>
+            <input type="text" id="inpPatientSearchName" class="search-large-bar" placeholder="환자 성함 또는 연락처 입력..." oninput="filterPatientList()">
+        </div>
+
+        <!-- 환자 목록 및 등급 관리 테이블 -->
+        <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <strong style="font-size:14.5px; color:#0f172a;">환자 명단 및 회원 등급 조정</strong>
+                <span style="font-size:11.5px; color:#0284c7; font-weight:800;">원장 직권 실시간 반영</span>
+            </div>
+
+            <div class="patient-table-card" id="patientListContainer">
+                <!-- 환자 목록 렌더링 -->
+            </div>
+        </div>
+
     </main>
 
-    <!-- 1. 기본정보 관리 뷰 -->
-    <section class="sub-admin-view" id="viewBasic">
-        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
-        <div class="admin-card">
-            <h3 class="admin-card-title">🏥 의원 기본정보 설정</h3>
-            <div class="info-callout">의원 공식 명칭, 원장 성함, 대표 진료과목과 연락처를 설정합니다.</div>
-            <div class="field-group">
-                <label>의원 상호명</label>
-                <input type="text" id="inpDocName" class="field-input" placeholder="예톡아름다운의원">
-            </div>
-            <div class="field-group">
-                <label>대표 원장 성함</label>
-                <input type="text" id="inpDocDirector" class="field-input" placeholder="김예톡 원장">
-            </div>
-            <div class="field-group">
-                <label>대표 진료과목</label>
-                <input type="text" id="inpDocSubject" class="field-input" placeholder="자가진피 코성형, 주름 리프팅, 피부재생">
-            </div>
-            <div class="field-group">
-                <label>대표 전화번호</label>
-                <input type="text" id="inpDocPhone" class="field-input" placeholder="02-1234-5678">
-            </div>
-            <div class="field-group">
-                <label>의원 위치 주소</label>
-                <input type="text" id="inpDocAddress" class="field-input" placeholder="서울시 강남구 테헤란로 123">
-            </div>
-            <button type="button" class="btn-save-section" onclick="saveBasicInfo()">💾 기본정보 저장</button>
+    <!-- 최하단 애드몹 슬롯 -->
+    <div class="bottom-fixed-admob-100">
+        <div style="font-size:10px; color:#94a3b8; font-weight:700; margin-bottom:3px;">
+            AD • Google AdMob 공식 스폰서 슬롯 (300 × 100)
         </div>
-    </section>
+        <div class="admob-display-box">
+            <strong style="color:#38bdf8; font-size:13px; font-weight:900;">Google AdMob (300x100 / Large Banner)</strong>
+            <span style="color:#facc15; font-size:11px; font-weight:800;">의료 미디어 영상 방송 공식 후원 슬롯</span>
+        </div>
+    </div>
 
-    <!-- 2. 의원소개 관리 뷰 -->
-    <section class="sub-admin-view" id="viewIntro">
-        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
-        <div class="admin-card">
-            <h3 class="admin-card-title">📋 의원소개 (1번 카드)</h3>
-            <div class="field-group">
-                <label>소개 타이틀</label>
-                <input type="text" id="inpIntroTitle" class="field-input" placeholder="자연스러운 아름다움의 시작">
-            </div>
-            <div class="field-group">
-                <label>강조 문구</label>
-                <input type="text" id="inpIntroHighlight" class="field-input" placeholder="자가진피 30년 연구와 정성의 결실">
-            </div>
-            <div class="field-group">
-                <label>상세 본문</label>
-                <textarea id="inpIntroBody" class="field-textarea" placeholder="부작용 없이 안전하고 편안한 자가진피 시술로 고객님의 신뢰와 만족을 드립니다."></textarea>
-            </div>
-            <div class="field-group">
-                <label>배경 이미지 URL</label>
-                <input type="text" id="inpIntroImg" class="field-input" placeholder="https://images.unsplash.com/photo-...">
-            </div>
-            <button type="button" class="btn-save-section" onclick="saveIntroSection()">💾 의원소개 저장</button>
-        </div>
-    </section>
-
-    <!-- 3. 시술소개 관리 뷰 -->
-    <section class="sub-admin-view" id="viewTreatment">
-        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
-        <div class="admin-card">
-            <h3 class="admin-card-title">💉 시술소개 (2번 카드)</h3>
-            <div class="field-group">
-                <label>시술 타이틀</label>
-                <input type="text" id="inpTreatTitle" class="field-input" placeholder="자가진피 코수술 & 리프팅">
-            </div>
-            <div class="field-group">
-                <label>특장점 문구</label>
-                <input type="text" id="inpTreatHighlight" class="field-input" placeholder="보형물 걱정 없는 100% 자가조직">
-            </div>
-            <div class="field-group">
-                <label>시술 설명</label>
-                <textarea id="inpTreatBody" class="field-textarea" placeholder="내 몸의 진피를 채취하여 생착시키는 안전하고 영구적인 맞춤 성형."></textarea>
-            </div>
-            <button type="button" class="btn-save-section" onclick="saveTreatmentSection()">💾 시술소개 저장</button>
-        </div>
-    </section>
-
-    <!-- 4. 예약문의 관리 뷰 -->
-    <section class="sub-admin-view" id="viewReserve">
-        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
-        <div class="admin-card">
-            <h3 class="admin-card-title">📅 예약문의 (3번 카드)</h3>
-            <div class="field-group">
-                <label>예약 안내 문구</label>
-                <input type="text" id="inpReserveTitle" class="field-input" placeholder="100% 원장 1:1 맞춤 예약 진료제">
-            </div>
-            <div class="field-group">
-                <label>예약 직통 전화</label>
-                <input type="text" id="inpReservePhone" class="field-input" placeholder="010-1234-5678">
-            </div>
-            <div class="field-group">
-                <label>상담 시간 안내</label>
-                <textarea id="inpReserveBody" class="field-textarea" placeholder="평일 09:30 ~ 18:30 (수/토 단축진료) / 일요일·공휴일 휴진"></textarea>
-            </div>
-            <button type="button" class="btn-save-section" onclick="saveReserveSection()">💾 예약문의 저장</button>
-        </div>
-    </section>
-
-    <!-- 5. 공지알림 관리 뷰 -->
-    <section class="sub-admin-view" id="viewNotice">
-        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
-        <div class="admin-card">
-            <h3 class="admin-card-title">📢 공지알림 (4번 카드)</h3>
-            <div class="field-group">
-                <label>공지 제목</label>
-                <input type="text" id="inpNoticeTitle" class="field-input" placeholder="가을철 환절기 특별 진료 및 진피 케어 안내">
-            </div>
-            <div class="field-group">
-                <label>공지 본문</label>
-                <textarea id="inpNoticeBody" class="field-textarea" placeholder="환절기 피부 건조증 및 보습 레이저 관리 특별 프로그램을 운영합니다."></textarea>
-            </div>
-            <button type="button" class="btn-save-section" onclick="saveNoticeSection()">💾 공지알림 저장</button>
-        </div>
-    </section>
-
-    <!-- 6. 전후사례 관리 뷰 -->
-    <section class="sub-admin-view" id="viewBeforeAfter">
-        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
-        <div class="admin-card">
-            <h3 class="admin-card-title">✨ 시술·진료 전후 (5번 카드)</h3>
-            <div class="field-group">
-                <label>전후사례 타이틀</label>
-                <input type="text" id="inpBaTitle" class="field-input" placeholder="실제 시술 환자 전후 변화">
-            </div>
-            <div class="field-group">
-                <label>상세 안내</label>
-                <textarea id="inpBaBody" class="field-textarea" placeholder="인위적이지 않고 내 살처럼 부드러운 전후 3개월 경과 기록."></textarea>
-            </div>
-            <button type="button" class="btn-save-section" onclick="saveBaSection()">💾 전후사례 저장</button>
-        </div>
-    </section>
-
-    <!-- 7. 원장칼럼 관리 뷰 -->
-    <section class="sub-admin-view" id="viewColumn">
-        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
-        <div class="admin-card">
-            <h3 class="admin-card-title">✍️ 원장칼럼 & 후원 (7번 카드)</h3>
-            <div class="field-group">
-                <label>칼럼 제목</label>
-                <input type="text" id="inpColTitle" class="field-input" placeholder="참된 아름다움과 의료인의 양심">
-            </div>
-            <div class="field-group">
-                <label>칼럼 내용</label>
-                <textarea id="inpColBody" class="field-textarea" placeholder="환자의 생명과 건강을 최우선으로 생각하는 의술을 펼치겠습니다."></textarea>
-            </div>
-            <button type="button" class="btn-save-section" onclick="saveColSection()">💾 원장칼럼 저장</button>
-        </div>
-    </section>
-
-    <!-- 8. 수납/결제 계좌 관리 뷰 -->
-    <section class="sub-admin-view" id="viewAccount">
-        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
-        <div class="admin-card">
-            <h3 class="admin-card-title">💳 예톡 간편수납 & 예약금 계좌</h3>
-            <div class="info-callout">예톡결제 모달창에서 환자들이 예약금 송금 시 자동 연동되는 계좌입니다.</div>
-            <div class="field-group">
-                <label>은행명</label>
-                <input type="text" id="inpBankName" class="field-input" placeholder="국민은행">
-            </div>
-            <div class="field-group">
-                <label>계좌번호</label>
-                <input type="text" id="inpBankAccount" class="field-input" placeholder="123-45-678901">
-            </div>
-            <div class="field-group">
-                <label>예금주명</label>
-                <input type="text" id="inpBankHolder" class="field-input" placeholder="예톡아름다운의원">
-            </div>
-            <button type="button" class="btn-save-section" onclick="saveAccountSection()">💾 수납계좌 저장</button>
-        </div>
-    </section>
 </div>
 
-<div class="toast-msg" id="toastMsg"></div>
-
 <script>
-    function openSubView(viewId) {
-        document.getElementById("mainQuickSection").style.display = "none";
-        document.querySelectorAll(".sub-admin-view").forEach(v => v.classList.remove("active"));
-        const target = document.getElementById(viewId);
-        if (target) target.classList.add("active");
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    const urlParams = new URLSearchParams(window.location.search);
+    const adminType = urlParams.get("type") || "";
+    let returnUrl = "doctormain.html";
+    let adminTitle = "의원 관리실 (대표원장)";
+    let homeBtnText = "의원 홈 ➔";
+
+    const userMedRole = localStorage.getItem("yetalkUserMedicalRole") || "";
+    if (adminType === "han" || userMedRole === "korean_doctor") {
+        returnUrl = "handoctormain.html";
+        adminTitle = "한의원 관리실 (한의원장)";
+        homeBtnText = "한의원 홈 ➔";
+        document.documentElement.style.setProperty('--primary', '#059669');
+    } else if (adminType === "dental" || userMedRole === "dentist") {
+        returnUrl = "dentalmain.html";
+        adminTitle = "치과의원 관리실 (치과원장)";
+        homeBtnText = "치과 홈 ➔";
     }
 
-    function closeSubView() {
-        document.querySelectorAll(".sub-admin-view").forEach(v => v.classList.remove("active"));
-        document.getElementById("mainQuickSection").style.display = "block";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    function goClinicHome() {
+        location.href = returnUrl;
     }
 
-    function showToast(msg) {
-        const t = document.getElementById("toastMsg");
-        if (!t) return;
-        t.innerText = msg;
-        t.classList.add("show");
-        setTimeout(() => t.classList.remove("show"), 2000);
-    }
+    // 날짜별 명언 목록 (자동 변경)
+    const QUOTES = [
+        "“훌륭한 의사는 질병을 치료하지만, 위대한 의사는 질병을 앓고 있는 환자를 치료한다.”",
+        "“정직한 진료와 따뜻한 경청이 가장 강력한 처방전입니다.”",
+        "“환자의 신뢰는 의술의 깊이에서 시작하여 진심 어린 배려로 완성됩니다.”",
+        "“모든 치유의 첫걸음은 환자의 아픔에 공감하는 마음입니다.”"
+    ];
 
-    // 데이터 로드
-    function loadDoctorData() {
-        let store = localStorage.getItem("yetalkDoctorName") || "예톡아름다운의원";
-        let director = localStorage.getItem("yetalkDoctorDirector") || "김예톡 대표원장";
-        if (store.includes("최웅식")) { store = "예톡아름다운의원"; localStorage.setItem("yetalkDoctorName", store); }
-        if (director.includes("최웅식")) { director = "김예톡 대표원장"; localStorage.setItem("yetalkDoctorDirector", director); }
-        const subject = localStorage.getItem("yetalkDoctorSubject") || "피부성형·자가진피 코성형·안티에이징";
-        const phone = localStorage.getItem("yetalkDoctorPhone") || "02-1234-5678";
-        const address = localStorage.getItem("yetalkDoctorAddress") || "서울시 강남구 테헤란로 123";
+    // 기본 환자 샘플 데이터
+    const DEFAULT_PATIENTS = [
+        { id: 1, name: "김예톡", phone: "010-8839-1029", role: "우수회원", lastVisit: "2026-10-08" },
+        { id: 2, name: "이수진", phone: "010-5231-9042", role: "정회원", lastVisit: "2026-10-08" },
+        { id: 3, name: "박민우", phone: "010-3349-2184", role: "준회원", lastVisit: "2026-10-07" },
+        { id: 4, name: "최정아", phone: "010-7712-4019", role: "부관리자", lastVisit: "2026-10-08" },
+        { id: 5, name: "정태양", phone: "010-9018-3320", role: "준회원", lastVisit: "2026-10-05" }
+    ];
 
-        document.getElementById("hdrDoctorTitle").innerText = `${store} 관리실`;
-        document.getElementById("metaDoctorName").innerText = store;
-        document.getElementById("metaDoctorInfo").innerText = `진료과목: ${subject} | 전화: ${phone}`;
-
-        document.getElementById("inpDocName").value = store;
-        document.getElementById("inpDocDirector").value = director;
-        document.getElementById("inpDocSubject").value = subject;
-        document.getElementById("inpDocPhone").value = phone;
-        document.getElementById("inpDocAddress").value = address;
-
-        document.getElementById("inpBankName").value = localStorage.getItem("yetalkTargetBank") || "국민은행";
-        document.getElementById("inpBankAccount").value = localStorage.getItem("yetalkTargetAccount") || "123-45-678901";
-        document.getElementById("inpBankHolder").value = localStorage.getItem("yetalkTargetHolder") || store;
-    }
-
-    function saveBasicInfo() {
-        const name = document.getElementById("inpDocName").value.trim();
-        const director = document.getElementById("inpDocDirector").value.trim();
-        const subject = document.getElementById("inpDocSubject").value.trim();
-        const phone = document.getElementById("inpDocPhone").value.trim();
-        const address = document.getElementById("inpDocAddress").value.trim();
-
-        if (name) {
-            localStorage.setItem("yetalkUserStoreName", name);
-            localStorage.setItem("yetalkDoctorName", name);
+    function getPatientData() {
+        const raw = localStorage.getItem("yetalk_clinic_patient_members_v1");
+        if (!raw) {
+            localStorage.setItem("yetalk_clinic_patient_members_v1", JSON.stringify(DEFAULT_PATIENTS));
+            return DEFAULT_PATIENTS;
         }
-        if (director) localStorage.setItem("yetalkDoctorDirector", director);
-        if (subject) localStorage.setItem("yetalkDoctorSubject", subject);
-        if (phone) localStorage.setItem("yetalkDoctorPhone", phone);
-        if (address) localStorage.setItem("yetalkDoctorAddress", address);
-
-        loadDoctorData();
-        showToast("🎉 의원 기본정보가 저장되었습니다!");
+        return JSON.parse(raw);
     }
 
-    function saveIntroSection() {
-        showToast("💾 의원소개가 저장되었습니다!");
-    }
-    function saveTreatmentSection() {
-        showToast("💾 시술소개가 저장되었습니다!");
-    }
-    function saveReserveSection() {
-        showToast("💾 예약문의 정보가 저장되었습니다!");
-    }
-    function saveNoticeSection() {
-        showToast("💾 공지알림이 저장되었습니다!");
-    }
-    function saveBaSection() {
-        showToast("💾 시술 전후사례가 저장되었습니다!");
-    }
-    function saveColSection() {
-        showToast("💾 원장칼럼이 저장되었습니다!");
+    function savePatientData(data) {
+        localStorage.setItem("yetalk_clinic_patient_members_v1", JSON.stringify(data));
     }
 
-    function saveAccountSection() {
-        const bank = document.getElementById("inpBankName").value.trim();
-        const acc = document.getElementById("inpBankAccount").value.trim();
-        const holder = document.getElementById("inpBankHolder").value.trim();
+    function renderDashboard() {
+        // 오늘의 명언 설정
+        const dayIdx = new Date().getDate() % QUOTES.length;
+        document.getElementById("dispDailyQuote").innerText = QUOTES[dayIdx];
 
-        if (bank) localStorage.setItem("yetalkTargetBank", bank);
-        if (acc) localStorage.setItem("yetalkTargetAccount", acc);
-        if (holder) localStorage.setItem("yetalkTargetHolder", holder);
+        // 예약 데이터와 연동
+        const patients = getPatientData();
+        const resList = JSON.parse(localStorage.getItem("yetalk_doctor_res_full_v1") || "[]");
+        const todayStr = new Date().toISOString().split('T')[0];
 
-        showToast("💳 수납계좌 정보가 안전하게 저장되었습니다!");
+        // 신규 예약 환자 자동 추가
+        resList.forEach(r => {
+            if (!patients.some(p => p.phone === r.phone)) {
+                patients.unshift({
+                    id: Date.now() + Math.random(),
+                    name: r.name,
+                    phone: r.phone,
+                    role: "정회원",
+                    lastVisit: r.date
+                });
+            }
+        });
+        savePatientData(patients);
+
+        // 통계 갱신
+        document.getElementById("statTotalPatients").innerText = `${patients.length}명`;
+        const todayCount = resList.filter(r => r.date === todayStr).length;
+        document.getElementById("statTodayVisits").innerText = `${todayCount}건`;
+
+        renderPatientsList(patients);
     }
 
-    document.addEventListener("DOMContentLoaded", loadDoctorData);
+    function renderPatientsList(list) {
+        const box = document.getElementById("patientListContainer");
+        if (list.length === 0) {
+            box.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8; font-size:13.5px;">검색된 환자 정보가 없습니다.</div>`;
+            return;
+        }
+
+        box.innerHTML = list.map((p, idx) => `
+            <div class="patient-row">
+                <div class="patient-info">
+                    <strong style="font-size:15px; color:#0f172a;">${p.name} <small style="font-weight:600; color:#64748b;">(${p.phone})</small></strong>
+                    <span style="font-size:11.5px; color:#94a3b8;">최근 접수: ${p.lastVisit}</span>
+                </div>
+                <select class="role-selector-pill" onchange="changePatientRole(${p.id}, this.value)">
+                    <option value="준회원" ${p.role==='준회원'?'selected':''}>준회원</option>
+                    <option value="정회원" ${p.role==='정회원'?'selected':''}>정회원</option>
+                    <option value="우수회원" ${p.role==='우수회원'?'selected':''}>우수회원</option>
+                    <option value="부관리자" ${p.role==='부관리자'?'selected':''}>부관리자</option>
+                    <option value="관리자" ${p.role==='관리자'?'selected':''}>관리자</option>
+                </select>
+            </div>
+        `).join("");
+    }
+
+    function filterPatientList() {
+        const q = document.getElementById("inpPatientSearchName").value.trim().toLowerCase();
+        const all = getPatientData();
+        const filtered = all.filter(p => p.name.toLowerCase().includes(q) || p.phone.includes(q));
+        renderPatientsList(filtered);
+    }
+
+    function changePatientRole(patientId, newRole) {
+        const list = getPatientData();
+        const item = list.find(p => p.id === patientId);
+        if (item) {
+            item.role = newRole;
+            savePatientData(list);
+            alert(`🎉 [${item.name}] 환자의 등급이 '${newRole}'(으)로 조정되었습니다.`);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const tEl = document.getElementById("dispAdminTitle");
+        if (tEl) tEl.innerText = adminTitle;
+        const bEl = document.getElementById("btnAdminHomeRight");
+        if (bEl) bEl.innerText = homeBtnText;
+        renderDashboard();
+    });
 </script>
-
 </body>
 </html>

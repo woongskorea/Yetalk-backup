@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>성전 중보기도방 - 예톡행복한교회</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-chat-room: #b2c7d9;
+            --bg-bubble-other: #ffffff;
+            --bg-bubble-mine: #fee500;
+            --safe-bottom: max(env(safe-area-inset-bottom, 0px), 18px);
+            --admob-raw-h: 96px;
+            --admob-total-h: calc(var(--admob-raw-h) + var(--safe-bottom)); /* 🌟 애드몹 높이 상향 보정 */
+            --input-area-h: 50px;
+        }
+
+        body.theme-sky { --bg-chat-room: #b2c7d9; --bg-bubble-other: #ffffff; --bg-bubble-mine: #fee500; }
+        body.theme-yellow { --bg-chat-room: #fef08a; --bg-bubble-other: #ffffff; --bg-bubble-mine: #facc15; }
+        body.theme-pink { --bg-chat-room: #fce7f3; --bg-bubble-other: #ffffff; --bg-bubble-mine: #f43f5e; }
+        body.theme-dark { --bg-chat-room: #0f172a; --bg-bubble-other: #1e293b; --bg-bubble-mine: #ca8a04; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            width: 100%; height: 100%; background: #000000;
+            font-family: "Pretendard", -apple-system, sans-serif;
+            color: #111827; overflow: hidden;
+        }
+
+        .pray-shell {
+            width: 100%; max-width: 480px; height: 100dvh; background: var(--bg-chat-room);
+            margin: 0 auto; display: flex; flex-direction: column; position: relative;
+            overflow: hidden; transition: background 0.2s ease;
+        }
+
+        /* 1. 상단 공통 헤더 */
+        .pray-header {
+            height: calc(48px + max(env(safe-area-inset-top, 0px) + 12px, 16px));
+            padding-top: max(env(safe-area-inset-top, 0px) + 12px, 16px);
+            padding-left: 12px; padding-right: 12px; padding-bottom: 6px;
+            background: rgba(255, 255, 255, 0.94); border-bottom: 1.5px solid rgba(0,0,0,0.08);
+            display: flex; justify-content: space-between; align-items: center;
+            backdrop-filter: blur(8px); flex-shrink: 0; z-index: 100;
+        }
+        .header-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .btn-back {
+            background: none; border: none; font-size: 24px; font-weight: 900;
+            color: #1e293b; cursor: pointer; padding: 0 4px; line-height: 1;
+        }
+        .header-title-text {
+            font-size: 16.5px; font-weight: 950; color: #0f172a; letter-spacing: -0.3px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .btn-theme-cycle-multi {
+            width: 24px; height: 24px; min-width: 24px; border-radius: 50%;
+            background: conic-gradient(#b2c7d9 0deg 90deg, #fef08a 90deg 180deg, #fce7f3 180deg 270deg, #0f172a 270deg 360deg);
+            border: 2px solid #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            cursor: pointer; padding: 0; outline: none; flex-shrink: 0;
+            transition: transform 0.15s ease;
+        }
+        .btn-theme-cycle-multi:active { transform: scale(0.9); }
+
+        .header-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .btn-room-lock {
+            background: #e2e8f0; border: 1px solid #cbd5e1; color: #1e293b;
+            font-size: 11.5px; font-weight: 900; padding: 5px 8px; border-radius: 6px; cursor: pointer;
+        }
+        .btn-room-lock.locked { background: #fee2e2; border-color: #f87171; color: #dc2626; }
+
+        .btn-leader-room {
+            background: linear-gradient(135deg, #0284c7, #2563eb); border: 1px solid #38bdf8;
+            color: #ffffff; font-size: 11.5px; font-weight: 950; padding: 5px 9px;
+            border-radius: 8px; cursor: pointer; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+        }
+        .btn-leader-room:active { transform: scale(0.94); }
+
+        /* [1단계] 로비 */
+        .lobby-view-container {
+            flex: 1; overflow-y: auto; padding: 14px 12px calc(var(--admob-total-h) + 16px) 12px;
+            display: flex; flex-direction: column; gap: 10px; -webkit-overflow-scrolling: touch;
+        }
+        .lobby-grid-rooms { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .lobby-room-card {
+            background: #ffffff; border: 1px solid rgba(0,0,0,0.1); border-radius: 14px;
+            padding: 14px 12px; display: flex; flex-direction: column; gap: 6px; cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06); transition: transform 0.15s ease;
+        }
+        .lobby-room-card:active { transform: scale(0.97); }
+
+        .badge-room-status {
+            align-self: flex-start; font-size: 10.5px; font-weight: 950; padding: 2px 8px; border-radius: 8px;
+        }
+        .badge-room-status.active { background: rgba(225, 29, 72, 0.15); color: #e11d48; border: 1px solid #e11d48; }
+        .badge-room-status.empty { background: rgba(2, 132, 199, 0.15); color: #0284c7; border: 1px solid #0284c7; }
+        .badge-room-status.closed { background: rgba(168, 85, 247, 0.2); color: #7e22ce; border: 1px solid #a855f7; }
+
+        .room-card-title { font-size: 15px; font-weight: 950; color: #0f172a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .room-card-leader { font-size: 11.5px; color: #64748b; font-weight: 700; }
+
+        .btn-open-create-room {
+            width: 100%; height: 46px; background: linear-gradient(135deg, #0284c7, #2563eb);
+            border: 1px solid #38bdf8; border-radius: 12px; color: white; font-size: 14px;
+            font-weight: 950; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            gap: 6px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35); margin-top: 4px; margin-bottom: 6px;
+        }
+
+        /* [2단계] 방 내부 */
+        .room-view-container {
+            flex: 1; display: none; flex-direction: column; overflow: hidden; position: relative;
+        }
+        .room-view-container.active { display: flex; }
+
+        .bgm-bar {
+            height: 42px; background: rgba(255, 255, 255, 0.85); border-bottom: 1px solid rgba(0,0,0,0.06);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 10px; backdrop-filter: blur(5px); flex-shrink: 0; gap: 6px;
+        }
+        .bgm-selector-group { display: flex; align-items: center; gap: 4px; }
+        .bgm-chip-btn {
+            background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px;
+            font-size: 11px; font-weight: 850; padding: 3px 8px; cursor: pointer; color: #475569;
+            transition: all 0.15s ease;
+        }
+        .bgm-chip-btn.active {
+            background: #0284c7; color: #ffffff; border-color: #0284c7; font-weight: 950;
+        }
+        .btn-bgm-toggle {
+            background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px;
+            font-size: 11px; font-weight: 900; padding: 3px 8px; cursor: pointer; color: #0f172a; white-space: nowrap;
+        }
+        .bgm-hidden-frame { position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+
+        .chat-viewport {
+            flex: 1; overflow-y: auto; overflow-x: hidden;
+            padding: 14px 12px calc(var(--input-area-h) + var(--admob-total-h) + 16px) 12px;
+            display: flex; flex-direction: column; gap: 14px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .chat-viewport::-webkit-scrollbar { width: 3px; }
+        .chat-viewport::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
+
+        .chat-row { display: flex; gap: 8px; width: 100%; align-items: flex-start; }
+        .chat-row.mine { flex-direction: row-reverse; }
+
+        .chat-avatar-badge {
+            width: 32px; height: 32px; border-radius: 50%; background: #0284c7; color: white;
+            display: flex; align-items: center; justify-content: center; font-size: 13px;
+            font-weight: 950; flex-shrink: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.12);
+        }
+        .chat-row.mine .chat-avatar-badge { background: #ca8a04; }
+
+        .chat-content-col { display: flex; flex-direction: column; gap: 3px; max-width: 84%; }
+        .chat-row.mine .chat-content-col { align-items: flex-end; }
+
+        .chat-sender-name { font-size: 12px; font-weight: 850; color: #475569; margin-left: 2px; }
+        .chat-row.mine .chat-sender-name { color: #854d0e; margin-right: 2px; }
+
+        .chat-bubble-card {
+            background: var(--bg-bubble-other); padding: 11px 13px; border-radius: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 5px;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .chat-row.mine .chat-bubble-card {
+            background: var(--bg-bubble-mine); border-color: #eab308;
+        }
+
+        .bubble-prayer-body {
+            font-size: 14.5px; font-weight: 700; color: #1e293b; line-height: 1.6;
+            white-space: pre-wrap; word-break: break-all;
+        }
+
+        .bubble-reactions-bar {
+            display: flex; justify-content: space-between; align-items: center; gap: 8px;
+            margin-top: 2px; padding-top: 5px; border-top: 1px solid rgba(0,0,0,0.06);
+            font-size: 11px; font-weight: 850; color: #64748b;
+        }
+        .reactions-group { display: flex; gap: 6px; }
+        .btn-reaction-pill {
+            background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(0,0,0,0.1); border-radius: 12px;
+            padding: 2px 7px; font-size: 11.5px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 3px;
+        }
+        .btn-reaction-pill:active { transform: scale(0.92); }
+
+        /* 🌟 입력창 50px (올라간 애드몹 위로 자동 맞춤) */
+        .chat-single-input-wrap {
+            position: absolute; bottom: var(--admob-total-h); left: 0; right: 0;
+            height: var(--input-area-h);
+            background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(0,0,0,0.08);
+            padding: 6px 10px; display: flex; align-items: center; gap: 8px;
+            z-index: 150; box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+        }
+        .input-prayer-single {
+            flex: 1; height: 38px; background: rgba(241, 245, 249, 0.95);
+            border: 1px solid rgba(0,0,0,0.12); border-radius: 19px;
+            padding: 0 14px; font-size: 14px; font-weight: 700; color: #0f172a;
+            outline: none; font-family: inherit;
+        }
+        .input-prayer-single:focus {
+            background: #ffffff; border-color: #0284c7; box-shadow: 0 0 6px rgba(2, 132, 199, 0.3);
+        }
+        .btn-submit-send {
+            height: 38px; padding: 0 16px; background: #0284c7; color: #ffffff;
+            border: none; border-radius: 19px; font-size: 13.5px; font-weight: 950;
+            cursor: pointer; flex-shrink: 0; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+        }
+        .btn-submit-send:active { transform: scale(0.95); }
+
+        /* 🌟 애드몹 바닥 잘림 방지 (하단 패딩 추가로 시원하게 올림) */
+        .bottom-fixed-admob-footer {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: var(--admob-total-h); background: #080d1a; border-top: 1.5px solid #1e3a5f;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding-top: 6px; padding-bottom: var(--safe-bottom);
+            z-index: 150; gap: 3px;
+        }
+        .admob-safety-bar {
+            font-size: 9.5px; color: #64748b; font-weight: 850; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .admob-display-slot {
+            width: calc(100% - 20px); max-width: 400px; height: 68px;
+            background: #0b1326; border: 1.2px solid #1e293b; border-radius: 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8); gap: 2px;
+        }
+
+        /* 모달 스타일 */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            z-index: 20000; align-items: center; justify-content: center; padding: 14px;
+            backdrop-filter: blur(5px);
+        }
+        .modal-overlay.open { display: flex; }
+        .leader-modal-card {
+            width: 100%; max-width: 380px; background: #0f172a; border: 2px solid #38bdf8;
+            border-radius: 16px; padding: 20px 16px; color: #ffffff; display: flex; flex-direction: column; gap: 12px;
+            text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .m-label { font-size: 12px; font-weight: 850; color: #facc15; margin-bottom: 2px; display: block; }
+        .m-input {
+            width: 100%; background: #162238; border: 1.5px solid #334155; border-radius: 8px;
+            padding: 9px 12px; color: white; font-size: 13.5px; outline: none; font-family: inherit;
+        }
+        .m-input:focus { border-color: #38bdf8; }
+
+        .toast-box {
+            position: fixed; bottom: calc(var(--admob-total-h) + 65px); left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.95); border: 1.5px solid #38bdf8; color: #fde047;
+            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 900;
+            z-index: 25000; opacity: 0; visibility: hidden; transition: all 0.25s ease; white-space: nowrap;
+        }
+        .toast-box.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body class="theme-sky">
+
+<div class="pray-shell">
+
+    <!-- 1. 헤더 -->
+    <header class="pray-header">
+        <div class="header-left">
+            <button type="button" class="btn-back" onclick="handleHeaderBackClick()">‹</button>
+            <strong class="header-title-text" id="dispHeaderTitleText">성전 24시 기도처</strong>
+            <button type="button" class="btn-theme-cycle-multi" onclick="cycleChatTheme()" title="테마 색상 변경"></button>
+        </div>
+
+        <div class="header-right">
+            <button type="button" class="btn-room-lock" id="btnLockToggle" style="display:none;" onclick="toggleRoomLock()">🔓 공개</button>
+            <button type="button" class="btn-leader-room" id="btnLeaderRoom" style="display:none;" onclick="openLeaderAdminModal()">인도자실 👑</button>
+            <button type="button" class="btn-room-lock" id="btnLeaveRoom" style="display:none; background:#fee2e2; border-color:#f87171; color:#b91c1c;" onclick="leaveCurrentRoom()">🚪 나가기</button>
+        </div>
+    </header>
+
+    <!-- [1단계 로비] -->
+    <main class="lobby-view-container" id="lobbyView">
+        <div class="lobby-grid-rooms" id="lobbyRoomsGrid"></div>
+        <button type="button" class="btn-open-create-room" onclick="openCreateRoomModal()">
+            <span>➕</span> <strong>새 성전 기도방 개설하기</strong>
+        </button>
+    </main>
+
+    <!-- [2단계 방 내부] -->
+    <section class="room-view-container" id="roomView">
+        <div class="bgm-bar">
+            <div class="bgm-selector-group">
+                <button type="button" class="bgm-chip-btn active" id="btnBgmTongue" onclick="switchPrayerBgmTrack('tongue')">🗣️ 방언</button>
+                <button type="button" class="bgm-chip-btn" id="btnBgmPraise" onclick="switchPrayerBgmTrack('praise')">🎶 찬양</button>
+                <button type="button" class="bgm-chip-btn" id="btnBgmMeditate" onclick="switchPrayerBgmTrack('meditate')">🕊️ 묵상</button>
+            </div>
+            <button type="button" class="btn-bgm-toggle" id="btnBgmToggle" onclick="toggleBgmSound()">중지 ⏹</button>
+            <div id="bgmIframeHost" class="bgm-hidden-frame"></div>
+        </div>
+
+        <div class="chat-viewport" id="chatViewport"></div>
+
+        <footer class="chat-single-input-wrap">
+            <input type="text" class="input-prayer-single" id="inpDirectPrayerText"
+                   placeholder="기도 내용을 적고 [전송]을 누르세요..."
+                   onkeydown="if(event.key === 'Enter') submitSinglePrayer()">
+            <button type="button" class="btn-submit-send" onclick="submitSinglePrayer()">전송</button>
+        </footer>
+    </section>
+
+    <!-- 🌟 하단 고정 애드몹 (바닥에서 시원하게 올라옴) -->
+    <aside class="bottom-fixed-admob-footer">
+        <div class="admob-safety-bar">
+            <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
+        </div>
+        <div class="admob-display-slot">
+            <strong style="color:#38bdf8; font-size:13.5px; font-weight:950;">Google AdMob (300 × 100 / Large Banner)</strong>
+            <span style="color:#facc15; font-size:11px; font-weight:800;">성전 중보기도 선교 사역 공식 후원 슬롯</span>
+        </div>
+    </aside>
+
+    <div class="toast-box" id="toastBox"></div>
+</div>
+
+<!-- 새성전 만들기 모달 -->
+<div class="modal-overlay" id="createRoomModal">
+    <div class="leader-modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:6px;">
+            <strong style="color:#38bdf8; font-size:15px;">➕ 새 성전 기도방 만들기</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeCreateRoomModal()">✕</button>
+        </div>
+
+        <div>
+            <label class="m-label">1. 기도방 이름</label>
+            <input type="text" class="m-input" id="inpNewRoomName" placeholder="예: 다니엘 중보기도방, 청년부 기도방">
+        </div>
+
+        <div>
+            <label class="m-label">2. 인도자 이름</label>
+            <input type="text" class="m-input" id="inpNewRoomLeader" placeholder="예: 김사무엘 목사, 박은혜 권사">
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:8px;">
+            <button type="button" style="background:#334155; color:white; border:none; padding:8px 14px; border-radius:6px; font-size:12.5px; cursor:pointer;" onclick="closeCreateRoomModal()">취소</button>
+            <button type="button" style="background:#0284c7; color:white; border:none; padding:8px 18px; border-radius:6px; font-size:13px; font-weight:950; cursor:pointer;" onclick="confirmCreateNewRoom()">방 개설 및 입장</button>
+        </div>
+    </div>
+</div>
+
+<!-- 인도자실 모달 (반원 내보내기, 문닫기열기, 알림발송, 승인) -->
+<div class="modal-overlay" id="leaderAdminModal">
+    <div class="leader-modal-card" style="max-height:85vh; overflow-y:auto;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:6px;">
+            <strong style="color:#38bdf8; font-size:15px;">👑 인도자실 (기도방 관리)</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeLeaderAdminModal()">✕</button>
+        </div>
+
+        <div>
+            <label class="m-label">1. 기도방 이름</label>
+            <input type="text" class="m-input" id="inpLeaderRoomName" value="예수님 사랑방">
+        </div>
+
+        <div>
+            <label class="m-label">2. 인도자 이름</label>
+            <input type="text" class="m-input" id="inpLeaderUserName" placeholder="예: 최남수 담임목사">
+        </div>
+
+        <div>
+            <label class="m-label">3. 유튜브 찬양 BGM 링크</label>
+            <input type="text" class="m-input" id="inpLeaderYtUrl" placeholder="https://youtu.be/... (비워두면 관리실 설정 찬양)">
+        </div>
+
+        <!-- 📢 반원 전체 알림 발송 -->
+        <div style="background:#162238; border:1px solid #334155; border-radius:8px; padding:10px;">
+            <label class="m-label">📢 반원 전체 알림 보내기</label>
+            <div style="display:flex; gap:6px;">
+                <input type="text" class="m-input" id="inpLeaderNotice" placeholder="예: 지금 함께 기도합시다!">
+                <button type="button" style="background:#0284c7; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:11.5px; font-weight:900; white-space:nowrap; cursor:pointer;" onclick="sendLeaderNoticeInPrayRoom()">전송</button>
+            </div>
+        </div>
+
+        <!-- 📩 들어오기 신청 대기자 승인 -->
+        <div style="background:#162238; border:1px solid #334155; border-radius:8px; padding:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label class="m-label" style="margin-bottom:0;">📩 들어오기 신청 대기자</label>
+                <span id="txtPrayPendingCount" style="color:#facc15; font-size:11px;">0명</span>
+            </div>
+            <div id="prayPendingList" style="display:flex; flex-direction:column; gap:4px; margin-top:6px;"></div>
+        </div>
+
+        <!-- 👥 참여 반원 명단 & 내보내기 -->
+        <div style="background:#162238; border:1px solid #334155; border-radius:8px; padding:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label class="m-label" style="margin-bottom:0;">👥 참여 반원 명단</label>
+                <span id="txtPrayMemberCount" style="color:#38bdf8; font-size:11px;">1명</span>
+            </div>
+            <div id="prayMemberList" style="display:flex; flex-direction:column; gap:4px; margin-top:6px;"></div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:6px;">
+            <button type="button" style="background:#334155; color:white; border:none; padding:8px 14px; border-radius:6px; font-size:12.5px; cursor:pointer;" onclick="closeLeaderAdminModal()">닫기</button>
+            <button type="button" style="background:#0284c7; color:white; border:none; padding:8px 18px; border-radius:6px; font-size:13px; font-weight:950; cursor:pointer;" onclick="saveLeaderSettings()">저장하기</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const ROOMS_STORAGE_KEY = "yetalk_prayer_rooms_list_master_v5";
+    const GLOBAL_DEFAULT_BGM = "https://www.youtube.com/watch?v=M7lc1UVf-VE";
+    const THEMES = ['sky', 'yellow', 'pink', 'dark'];
+
+    const DEFAULT_ROOMS = [
+        { id: "room_1", name: "예수님 사랑방", status: "ACTIVE", leader: "최남수 담임목사", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] },
+        { id: "room_2", name: "예수님 소망방", status: "EMPTY", leader: "비어있음 (자유 개설)", youtube: "", members: [] },
+        { id: "room_3", name: "예수님 기쁨방", status: "EMPTY", leader: "비어있음", youtube: "", members: [] },
+        { id: "room_4", name: "예수님 찬양방", status: "ACTIVE", leader: "할렐루야 찬양팀", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] },
+        { id: "room_5", name: "예수님 영광방", status: "EMPTY", leader: "비어있음", youtube: "", members: [] },
+        { id: "room_6", name: "복음전도방", status: "EMPTY", leader: "비어있음", youtube: "", members: [] },
+        { id: "room_7", name: "가정예배방", status: "EMPTY", leader: "비어있음", youtube: "", members: [] },
+        { id: "room_8", name: "교회기도방", status: "ACTIVE", leader: "중보기도 사역팀", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] }
+    ];
+
+    let prayerRooms = [];
+    let currentRoom = null;
+    let isBgmPlaying = true;
+    let currentThemeIdx = 0;
+
+    function getMyName() {
+        return localStorage.getItem("yetalkUserName") || "은혜성도";
+    }
+
+    function initPage() {
+        const savedTheme = localStorage.getItem("yetalk_chat_theme") || "sky";
+        currentThemeIdx = THEMES.indexOf(savedTheme);
+        if (currentThemeIdx === -1) currentThemeIdx = 0;
+        applyTheme(THEMES[currentThemeIdx]);
+
+        const saved = localStorage.getItem(ROOMS_STORAGE_KEY);
+        if (saved) {
+            try { prayerRooms = JSON.parse(saved); } catch(e) { prayerRooms = DEFAULT_ROOMS; }
+        } else {
+            prayerRooms = DEFAULT_ROOMS;
+            localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+        }
+
+        renderLobby();
+    }
+
+    function renderLobby() {
+        currentRoom = null;
+        stopBgm();
+
+        document.getElementById("lobbyView").style.display = "flex";
+        document.getElementById("roomView").classList.remove("active");
+        document.getElementById("dispHeaderTitleText").innerText = "성전 24시 기도처";
+        document.getElementById("btnLockToggle").style.display = "none";
+        document.getElementById("btnLeaderRoom").style.display = "none";
+        document.getElementById("btnLeaveRoom").style.display = "none";
+
+        const container = document.getElementById("lobbyRoomsGrid");
+        container.innerHTML = "";
+        const myName = getMyName();
+
+        prayerRooms.forEach(room => {
+            const isClosed = room.status === "CLOSED";
+            const isActive = room.status === "ACTIVE";
+            const isMember = (room.members || []).includes(myName) || (room.leader && room.leader.includes(myName));
+
+            let badgeHtml = "";
+            let stateLabel = "OFF";
+
+            if (isClosed) {
+                badgeHtml = isMember
+                    ? `<span class="badge-room-status closed">🔒 골방 (입장가능)</span>`
+                    : `<span class="badge-room-status closed">🔒 골방 (잠김)</span>`;
+                stateLabel = isMember ? "내방" : "잠김";
+            } else if (isActive) {
+                badgeHtml = `<span class="badge-room-status active">🔴 기도 진행 중</span>`;
+                stateLabel = "ON";
+            } else {
+                badgeHtml = `<span class="badge-room-status empty">🔵 입장 가능</span>`;
+                stateLabel = "OFF";
+            }
+
+            const card = document.createElement("div");
+            card.className = "lobby-room-card";
+            card.onclick = () => enterRoom(room.id);
+
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    ${badgeHtml}
+                    <span style="font-size:11px; color:#64748b; font-weight:800;">${stateLabel}</span>
+                </div>
+                <strong class="room-card-title">${room.name}</strong>
+                <span class="room-card-leader">인도: ${room.leader || '자유 개설'}</span>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function enterRoom(roomId) {
+        const room = prayerRooms.find(r => r.id === roomId);
+        if (!room) return;
+
+        const myName = getMyName();
+        const isLeader = room.leader && room.leader.includes(myName);
+        const isMember = (room.members || []).includes(myName) || isLeader;
+
+        if (room.status === "CLOSED" && !isMember) {
+            const isPending = (room.pending || []).includes(myName);
+            if (isPending) {
+                alert("현재 인도자의 입장 승인을 기다리고 있습니다.");
+                return;
+            }
+            if (confirm(`🔒 [${room.name}]은(는) 문이 닫힌 비밀 기도방입니다.\n인도자(${room.leader})에게 입장 신청을 보내시겠습니까?`)) {
+                if (!room.pending) room.pending = [];
+                room.pending.push(myName);
+                localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+                showToast("📩 인도자에게 입장 신청을 보냈습니다!");
+            }
+            return;
+        }
+
+        if (!room.members) room.members = [];
+        if (!room.members.includes(myName)) {
+            room.members.push(myName);
+            localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+        }
+
+        currentRoom = room;
+
+        document.getElementById("lobbyView").style.display = "none";
+        document.getElementById("roomView").classList.add("active");
+        document.getElementById("dispHeaderTitleText").innerText = room.name;
+
+        const lockBtn = document.getElementById("btnLockToggle");
+        lockBtn.style.display = "inline-block";
+        updateLockBtnUI();
+        document.getElementById("btnLeaderRoom").style.display = "inline-block";
+        document.getElementById("btnLeaveRoom").style.display = "inline-block";
+
+        renderChatMessages();
+        initBgmAudio();
+    }
+
+    // 스스로 방 나가기
+    function leaveCurrentRoom() {
+        if (!currentRoom) return;
+        const myName = getMyName();
+        if (!confirm(`[${currentRoom.name}] 기도방에서 나가시겠습니까?`)) return;
+
+        if (currentRoom.members) {
+            currentRoom.members = currentRoom.members.filter(m => m !== myName);
+            localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+        }
+
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        msgs.push({
+            id: Date.now(), order: msgs.length + 1, name: "시스템",
+            body: `[알림] ${myName} 성도님이 방을 나갔습니다.`,
+            time: timeStr, hearts: 0, hands: 0
+        });
+        localStorage.setItem(getRoomChatKey(), JSON.stringify(msgs));
+
+        renderLobby();
+        showToast("🚪 기도방에서 퇴장하였습니다.");
+    }
+
+    function handleHeaderBackClick() {
+        if (currentRoom) {
+            renderLobby();
+        } else {
+            location.href = "churchmain.html";
+        }
+    }
+
+    function openCreateRoomModal() {
+        const defaultIndex = prayerRooms.length + 1;
+        document.getElementById("inpNewRoomName").value = `믿음 기도방 ${defaultIndex}`;
+        document.getElementById("inpNewRoomLeader").value = getMyName();
+        document.getElementById("createRoomModal").classList.add("open");
+    }
+
+    function closeCreateRoomModal() {
+        document.getElementById("createRoomModal").classList.remove("open");
+    }
+
+    function confirmCreateNewRoom() {
+        const rName = document.getElementById("inpNewRoomName").value.trim();
+        const rLeader = document.getElementById("inpNewRoomLeader").value.trim() || getMyName();
+
+        if (!rName) {
+            alert("기도방 이름을 입력해주세요.");
+            return;
+        }
+
+        const newId = `room_custom_${Date.now()}`;
+        const newRoom = {
+            id: newId,
+            name: rName,
+            status: "ACTIVE",
+            leader: rLeader,
+            youtube: "",
+            members: [rLeader, getMyName()]
+        };
+
+        prayerRooms.push(newRoom);
+        localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+
+        closeCreateRoomModal();
+        renderLobby();
+        enterRoom(newId);
+        showToast(`🎉 [${rName}]이 개설되었습니다!`);
+    }
+
+    function cycleChatTheme() {
+        currentThemeIdx = (currentThemeIdx + 1) % THEMES.length;
+        const nextTheme = THEMES[currentThemeIdx];
+        applyTheme(nextTheme);
+        localStorage.setItem("yetalk_chat_theme", nextTheme);
+
+        const themeLabels = { sky: "하늘(카톡)", yellow: "노랑", pink: "분홍", dark: "다크" };
+        showToast(`🎨 테마: ${themeLabels[nextTheme]}`);
+    }
+
+    function applyTheme(theme) {
+        document.body.className = `theme-${theme}`;
+    }
+
+    function getRoomChatKey() {
+        return currentRoom ? `yetalk_chat_prayers_${currentRoom.id}_v5` : "yetalk_chat_temp";
+    }
+
+    function renderChatMessages() {
+        if (!currentRoom) return;
+        const viewport = document.getElementById("chatViewport");
+        viewport.innerHTML = "";
+        const myName = getMyName();
+
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+
+        if (msgs.length === 0) {
+            msgs = [
+                {
+                    id: 1, order: 1, name: "예톡",
+                    body: "할렐루야. 예톡입니다. 누구나 기도방을 개설하시며 팀원이 들어오고 난 후에는 방의 문을 닫으면 독립된 공간의 기도방이 됩니다. 기도 음악을 들으면서 기도하시거나 유튜브 라이브 주소를 링크하셔서 인도자가 인도하셔도 됩니다. 감사합니다.",
+                    time: "안내", hearts: 3, hands: 3
+                }
+            ];
+            localStorage.setItem(getRoomChatKey(), JSON.stringify(msgs));
+        }
+
+        msgs.forEach(msg => {
+            const isMine = msg.name === myName;
+            const row = document.createElement("div");
+            row.className = `chat-row ${isMine ? 'mine' : ''}`;
+
+            row.innerHTML = `
+                <div class="chat-avatar-badge">${msg.order || 1}</div>
+                <div class="chat-content-col">
+                    <span class="chat-sender-name">${msg.name}</span>
+                    <div class="chat-bubble-card">
+                        <div class="bubble-prayer-body">${msg.body}</div>
+                        <div class="bubble-reactions-bar">
+                            <div class="reactions-group">
+                                <button type="button" class="btn-reaction-pill" onclick="addReaction(${msg.id}, 'heart')">
+                                    <span>💖</span> <span>${msg.hearts || 3}</span>
+                                </button>
+                                <button type="button" class="btn-reaction-pill" onclick="addReaction(${msg.id}, 'hand')">
+                                    <span>🙏</span> <span>${msg.hands || 3}</span>
+                                </button>
+                            </div>
+                            <span>${msg.time}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            viewport.appendChild(row);
+        });
+
+        viewport.scrollTop = viewport.scrollHeight;
+    }
+
+    function submitSinglePrayer() {
+        if (!currentRoom) return;
+        const input = document.getElementById("inpDirectPrayerText");
+        const contentVal = input.value.trim();
+
+        if (!contentVal) {
+            showToast("기도 내용을 입력해주세요.");
+            input.focus();
+            return;
+        }
+
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        const nextOrder = msgs.length + 1;
+
+        const newMsg = {
+            id: Date.now(),
+            order: nextOrder,
+            name: getMyName(),
+            body: contentVal,
+            time: timeStr,
+            hearts: 3,
+            hands: 3
+        };
+
+        msgs.push(newMsg);
+        localStorage.setItem(getRoomChatKey(), JSON.stringify(msgs));
+
+        input.value = "";
+        renderChatMessages();
+        showToast("🙏 기도가 은혜롭게 등록되었습니다!");
+    }
+
+    function addReaction(msgId, type) {
+        if (!currentRoom) return;
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+
+        const target = msgs.find(m => m.id === msgId);
+        if (!target) return;
+
+        if (type === 'heart') {
+            target.hearts = (target.hearts || 3) + 1;
+            showToast("💖 함께 아멘으로 화답했습니다!");
+        } else {
+            target.hands = (target.hands || 3) + 1;
+            showToast("🙏 중보의 손을 모았습니다!");
+        }
+
+        localStorage.setItem(getRoomChatKey(), JSON.stringify(msgs));
+        renderChatMessages();
+    }
+
+    let currentBgmTrack = 'tongue';
+
+    function switchPrayerBgmTrack(track) {
+        currentBgmTrack = track;
+        document.querySelectorAll('.bgm-chip-btn').forEach(btn => btn.classList.remove('active'));
+        if (track === 'tongue') document.getElementById('btnBgmTongue')?.classList.add('active');
+        if (track === 'praise') document.getElementById('btnBgmPraise')?.classList.add('active');
+        if (track === 'meditate') document.getElementById('btnBgmMeditate')?.classList.add('active');
+
+        let url = "";
+        if (track === 'tongue') {
+            url = localStorage.getItem("yetalk_church_bg_music_tongue") || "https://www.youtube.com/watch?v=M7lc1UVf-VE";
+            showToast("🗣️ 방언 기도소리가 재생됩니다.");
+        } else if (track === 'praise') {
+            url = localStorage.getItem("yetalk_church_bg_music_praise") || localStorage.getItem("yetalk_church_bg_prayer_music") || "https://www.youtube.com/watch?v=jfKfPfyJRdk";
+            showToast("🎶 은혜 찬양이 재생됩니다.");
+        } else {
+            url = localStorage.getItem("yetalk_church_bg_music_meditate") || "https://www.youtube.com/watch?v=DWcJFNfaw9c";
+            showToast("🕊️ 묵상 / 자유 기도가 재생됩니다.");
+        }
+        playBgmStream(url);
+    }
+
+    function initBgmAudio() {
+        if (!currentRoom) return;
+        if (currentRoom.youtube && currentRoom.youtube.trim() !== "") {
+            playBgmStream(currentRoom.youtube);
+        } else {
+            switchPrayerBgmTrack(currentBgmTrack || 'tongue');
+        }
+    }
+
+    function extractYtId(url) {
+        if (!url) return "M7lc1UVf-VE";
+        let str = url.trim();
+        if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return str;
+
+        let m = str.match(/live\/([a-zA-Z0-9_-]{11})/i);
+        if (m && m[1]) return m[1];
+
+        m = str.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
+        if (m && m[1]) return m[1];
+
+        m = str.match(/[?&]v=([a-zA-Z0-9_-]{11})/i);
+        if (m && m[1]) return m[1];
+
+        m = str.match(/(?:shorts|embed)\/([a-zA-Z0-9_-]{11})/i);
+        if (m && m[1]) return m[1];
+
+        return "M7lc1UVf-VE";
+    }
+
+    function playBgmStream(url) {
+        const vid = extractYtId(url);
+        const host = document.getElementById("bgmIframeHost");
+        host.innerHTML = `<iframe id="bgmIframe" src="https://www.youtube.com/embed/${vid}?autoplay=1&controls=0&playsinline=1" allow="autoplay"></iframe>`;
+        isBgmPlaying = true;
+        document.getElementById("btnBgmToggle").innerText = "중지 ⏹️";
+        document.getElementById("dispBgmTitle").innerText = "은혜의 기도 찬양 BGM 재생 중";
+    }
+
+    function toggleBgmSound() {
+        const host = document.getElementById("bgmIframeHost");
+        const btn = document.getElementById("btnBgmToggle");
+        const title = document.getElementById("dispBgmTitle");
+
+        isBgmPlaying = !isBgmPlaying;
+        if (isBgmPlaying) {
+            initBgmAudio();
+            showToast("▶ 찬양 BGM이 재생됩니다.");
+        } else {
+            host.innerHTML = "";
+            btn.innerText = "재생 ▶";
+            title.innerText = "BGM 정지됨";
+            showToast("⏹️ BGM이 멈췄습니다.");
+        }
+    }
+
+    function stopBgm() {
+        const host = document.getElementById("bgmIframeHost");
+        if (host) host.innerHTML = "";
+        isBgmPlaying = false;
+    }
+
+    function toggleRoomLock() {
+        if (!currentRoom) return;
+        if (currentRoom.status === "CLOSED") {
+            currentRoom.status = "ACTIVE";
+            showToast("🔓 문을 열었습니다. (누구나 입장 가능)");
+        } else {
+            currentRoom.status = "CLOSED";
+            showToast("🔒 문을 닫았습니다. (비밀 기도방 전환)");
+        }
+        localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+        updateLockBtnUI();
+    }
+
+    function updateLockBtnUI() {
+        const btn = document.getElementById("btnLockToggle");
+        if (!currentRoom || !btn) return;
+        if (currentRoom.status === "CLOSED") {
+            btn.classList.add("locked");
+            btn.innerText = "🔒 골방(잠김)";
+        } else {
+            btn.classList.remove("locked");
+            btn.innerText = "🔓 공개";
+        }
+    }
+
+    function openLeaderAdminModal() {
+        if (!currentRoom) return;
+        document.getElementById("inpLeaderRoomName").value = currentRoom.name;
+        document.getElementById("inpLeaderUserName").value = currentRoom.leader || getMyName();
+        document.getElementById("inpLeaderYtUrl").value = currentRoom.youtube || "";
+
+        // 대기자 목록
+        const pendingContainer = document.getElementById("prayPendingList");
+        const pendingList = currentRoom.pending || [];
+        document.getElementById("txtPrayPendingCount").innerText = `${pendingList.length}명`;
+        if (pendingList.length === 0) {
+            pendingContainer.innerHTML = `<div style="font-size:11.5px; color:#94a3b8; text-align:center; padding:4px 0;">대기 신청이 없습니다.</div>`;
+        } else {
+            pendingContainer.innerHTML = pendingList.map(name => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 8px; border-radius:6px;">
+                    <span style="font-size:12px; color:#facc15;">📩 ${name}</span>
+                    <button type="button" style="background:#0284c7; color:white; border:none; padding:3px 8px; border-radius:4px; font-size:10.5px; font-weight:900; cursor:pointer;" onclick="approvePendingInPrayRoom('${name}')">승인</button>
+                </div>
+            `).join("");
+        }
+
+        // 반원 명단
+        const memberContainer = document.getElementById("prayMemberList");
+        const memberList = currentRoom.members || [currentRoom.leader || getMyName()];
+        document.getElementById("txtPrayMemberCount").innerText = `${memberList.length}명`;
+        memberContainer.innerHTML = memberList.map(name => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 8px; border-radius:6px;">
+                <span style="font-size:12px; color:#e2e8f0;">👤 ${name} ${name === currentRoom.leader ? '👑(인도자)' : ''}</span>
+                ${name !== currentRoom.leader ? `
+                    <button type="button" style="background:#fee2e2; color:#dc2626; border:none; padding:3px 8px; border-radius:4px; font-size:10.5px; font-weight:900; cursor:pointer;" onclick="kickMemberInPrayRoom('${name}')">내보내기</button>
+                ` : '<span style="font-size:10.5px; color:#38bdf8;">방장</span>'}
+            </div>
+        `).join("");
+
+        document.getElementById("leaderAdminModal").classList.add("open");
+    }
+
+    function approvePendingInPrayRoom(name) {
+        if (!currentRoom) return;
+        if (!currentRoom.members) currentRoom.members = [];
+        if (!currentRoom.members.includes(name)) currentRoom.members.push(name);
+        currentRoom.pending = (currentRoom.pending || []).filter(n => n !== name);
+        localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        msgs.push({
+            id: Date.now(), order: msgs.length + 1, name: "시스템",
+            body: `🎉 ${name} 성도님의 입장이 인도자에 의해 승인되었습니다. 환영합니다!`,
+            time: timeStr, hearts: 0, hands: 0
+        });
+        localStorage.setItem(getRoomChatKey(), JSON.stringify(msgs));
+        renderChatMessages();
+
+        openLeaderAdminModal();
+        showToast(`🎉 ${name} 성도님 입장을 승인했습니다!`);
+    }
+
+    function kickMemberInPrayRoom(name) {
+        if (!currentRoom) return;
+        if (!confirm(`'${name}' 성도를 기도방에서 내보내시겠습니까?`)) return;
+
+        currentRoom.members = (currentRoom.members || []).filter(n => n !== name);
+        localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        msgs.push({
+            id: Date.now(), order: msgs.length + 1, name: "시스템",
+            body: `[알림] ${name} 성도님이 인도자에 의해 내보내기 되었습니다.`,
+            time: timeStr, hearts: 0, hands: 0
+        });
+        localStorage.setItem(getRoomChatKey(), JSON.stringify(msgs));
+        renderChatMessages();
+
+        openLeaderAdminModal();
+        showToast(`'${name}' 성도를 내보냈습니다.`);
+    }
+
+    function sendLeaderNoticeInPrayRoom() {
+        if (!currentRoom) return;
+        const inp = document.getElementById("inpLeaderNotice");
+        const val = inp.value.trim();
+        if (!val) {
+            alert("알림 내용을 입력해주세요.");
+            return;
+        }
+
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        msgs.push({
+            id: Date.now(), order: msgs.length + 1, name: `📢 인도자(${currentRoom.leader || getMyName()}) 공지`,
+            body: val, time: timeStr, hearts: 5, hands: 5
+        });
+        localStorage.setItem(getRoomChatKey(), JSON.stringify(msgs));
+        renderChatMessages();
+
+        inp.value = "";
+        closeLeaderAdminModal();
+        showToast("📢 반원 전체 알림을 전송했습니다!");
+    }
+
+    function closeLeaderAdminModal() {
+        document.getElementById("leaderAdminModal").classList.remove("open");
+    }
+
+    function saveLeaderSettings() {
+        if (!currentRoom) return;
+        const roomName = document.getElementById("inpLeaderRoomName").value.trim() || currentRoom.name;
+        const leaderName = document.getElementById("inpLeaderUserName").value.trim();
+        const ytUrl = document.getElementById("inpLeaderYtUrl").value.trim();
+
+        currentRoom.name = roomName;
+        if (leaderName) currentRoom.leader = leaderName;
+        currentRoom.youtube = ytUrl;
+
+        localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+
+        document.getElementById("dispHeaderTitleText").innerText = roomName;
+        closeLeaderAdminModal();
+
+        initBgmAudio();
+        showToast("✨ 인도자실 설정이 저장되었습니다!");
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById("toastBox");
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2000);
+    }
+
+    document.addEventListener("DOMContentLoaded", initPage);
+</script>
+</body>
+</html>

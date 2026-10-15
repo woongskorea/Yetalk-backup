@@ -1,0 +1,411 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>다음세대 - 예톡행복한교회</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --safe-top: max(env(safe-area-inset-top, 0px) + 38px, 42px);
+            --header-base-h: 48px;
+            --header-h: calc(var(--header-base-h) + var(--safe-top));
+            --tabs-h: 46px;
+            --bottom-bar-h: 154px;
+            --view-h: calc(100dvh - var(--header-h) - var(--tabs-h) - var(--bottom-bar-h));
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: #090e1a; font-family: "Pretendard", -apple-system, sans-serif;
+            color: #ffffff; display: flex; justify-content: center; height: 100dvh; overflow: hidden;
+        }
+        .nextgen-shell {
+            width: 100%; max-width: 480px; height: 100dvh; background: #090e1a;
+            display: flex; flex-direction: column; position: relative; border-left: 1px solid #1e293b; border-right: 1px solid #1e293b;
+        }
+        .nextgen-header {
+            height: var(--header-h); background: #0f172a; border-bottom: 1.5px solid #1e293b;
+            display: flex; justify-content: space-between; align-items: center; padding: var(--safe-top) 14px 0 14px; flex-shrink: 0; z-index: 100;
+        }
+        .btn-header-back { background: none; border: none; color: #38bdf8; font-size: 26px; font-weight: 900; cursor: pointer; padding: 4px; }
+        .header-title { font-size: 17.5px; font-weight: 950; color: #ffffff; }
+
+        .dual-admin-btn-group {
+            display: inline-flex; align-items: center; background: #dc2626; border-radius: 9999px;
+            padding: 2px; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+        }
+        .btn-admin-room {
+            background: transparent; border: none; color: #ffffff; font-size: 11px; font-weight: 900;
+            padding: 4px 8px; cursor: pointer; border-right: 1px solid rgba(255, 255, 255, 0.35);
+        }
+        .btn-admin-edit {
+            background: transparent; color: #fef08a; border: none;
+            font-size: 11px; font-weight: 900; padding: 4px 8px; cursor: pointer;
+        }
+        .nextgen-tabs-bar {
+            height: var(--tabs-h); background: #0d1527; border-bottom: 1px solid #1e293b;
+            display: flex; gap: 6px; overflow-x: auto; white-space: nowrap; padding: 0 10px; align-items: center;
+            flex-shrink: 0; scrollbar-width: none; z-index: 100; scroll-behavior: smooth;
+        }
+        .nextgen-tabs-bar::-webkit-scrollbar { display: none; }
+        .tab-chip {
+            background: #1e293b; border: 1px solid #334155; color: #94a3b8; font-size: 12.5px; font-weight: 850;
+            padding: 6px 14px; border-radius: 14px; cursor: pointer; flex-shrink: 0; transition: all 0.2s;
+        }
+        .tab-chip.active {
+            background: #0284c7; color: #ffffff; border-color: #38bdf8; font-weight: 950;
+            box-shadow: 0 2px 8px rgba(2,132,199,0.4);
+        }
+        .nextgen-viewport {
+            flex: 1; height: var(--view-h); overflow-y: scroll; scroll-snap-type: y mandatory;
+            scroll-behavior: smooth; position: relative; -webkit-overflow-scrolling: touch;
+        }
+        .nextgen-viewport::-webkit-scrollbar { display: none; }
+        .dept-card {
+            width: 100%; height: var(--view-h); min-height: var(--view-h);
+            scroll-snap-align: start; scroll-snap-stop: always;
+            position: relative; display: flex; flex-direction: column; justify-content: space-between;
+            overflow: hidden; cursor: pointer; background: #000000;
+        }
+        .dept-bg-img {
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;
+            filter: brightness(0.8); z-index: 1;
+        }
+        .dept-gradient {
+            position: absolute; inset: 0; z-index: 2; pointer-events: none;
+            background: linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.92) 100%);
+        }
+        .dept-top-box { position: relative; z-index: 10; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+        .dept-tag {
+            align-self: flex-start; font-size: 11px; font-weight: 950; padding: 3px 8px; border-radius: 8px;
+            background: rgba(2, 132, 199, 0.4); border: 1px solid #38bdf8; color: #38bdf8;
+        }
+        .dept-name-title { font-size: 22px; font-weight: 950; color: #ffffff; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
+        .dept-bottom-box {
+            position: relative; z-index: 10; padding: 0 18px 24px 18px; display: flex; flex-direction: column; gap: 8px;
+        }
+        .dept-verse { font-size: 13.5px; font-weight: 900; color: #fef08a; line-height: 1.4; text-shadow: 0 2px 4px rgba(0,0,0,0.95); }
+        .dept-desc { font-size: 12px; color: #e2e8f0; line-height: 1.5; text-shadow: 0 1px 3px rgba(0,0,0,0.95); }
+        .btn-open-board-cta {
+            width: 100%; height: 44px; background: linear-gradient(135deg, #0284c7, #2563eb);
+            border: 1px solid #38bdf8; border-radius: 12px; font-size: 14px; font-weight: 950; color: #ffffff;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+            box-shadow: 0 4px 12px rgba(2,132,199,0.4); margin-top: 4px;
+        }
+        .final-ending-snap-card {
+            width: 100%; height: calc(100dvh - 48px - 46px); min-height: calc(100dvh - 48px - 46px);
+            scroll-snap-align: start; scroll-snap-stop: always; background: #090e1a;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 14px 16px; text-align: center; gap: 10px;
+        }
+        .today-word-card {
+            width: 100%; max-width: 330px; background: #111a2f; border: 1.5px solid #facc15;
+            border-radius: 14px; padding: 12px 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; gap: 4px; text-align: center;
+        }
+        .today-word-badge { font-size: 11px; font-weight: 900; color: #facc15; }
+        .today-word-text { font-family: 'Nanum Myeongjo', serif; font-size: 13.5px; line-height: 1.55; color: #ffffff; font-weight: 700; }
+        .admob-250-ending-box {
+            width: 300px; height: 250px; background: #131d31; border: 1.5px dashed #38bdf8;
+            border-radius: 14px; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 4px; box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        }
+        .btn-return-first {
+            width: 100%; max-width: 330px; height: 38px; background: #1e293b; color: #ffffff;
+            border: 1px solid #475569; border-radius: 20px; font-weight: 900; font-size: 12.5px;
+            cursor: pointer; margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="nextgen-shell">
+    <header class="nextgen-header">
+        <button type="button" class="btn-header-back" onclick="goBackToMain()">‹</button>
+        <strong class="header-title">다음세대</strong>
+        <div class="dual-admin-btn-group">
+            <button type="button" class="btn-admin-room" onclick="location.href='churchadmin.html'" title="관리실 전체설정">◀ 관리실</button>
+            <button type="button" class="btn-admin-edit" onclick="openDeptEditModal()" title="부서 화면 직접 수정">화면수정 ▶</button>
+        </div>
+    </header>
+
+    <nav class="nextgen-tabs-bar" id="nextgenTabsBar">
+        <button type="button" class="tab-chip active" id="chip_0" onclick="scrollToDept(0)">청년교회</button>
+        <button type="button" class="tab-chip" id="chip_1" onclick="scrollToDept(1)">청소년교회</button>
+        <button type="button" class="tab-chip" id="chip_2" onclick="scrollToDept(2)">어린이부</button>
+        <button type="button" class="tab-chip" id="chip_3" onclick="scrollToDept(3)">유치부</button>
+        <button type="button" class="tab-chip" id="chip_4" onclick="scrollToDept(4)">유아부</button>
+    </nav>
+
+    <main class="nextgen-viewport" id="nextgenViewport">
+        <!-- 1. 청년교회 -->
+        <section class="dept-card" id="card_dept_0" data-index="0" onclick="openDeptBoard('청년교회')">
+            <img class="dept-bg-img" src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=90" alt="청년교회">
+            <div class="dept-gradient"></div>
+            <div class="dept-top-box">
+                <span class="dept-tag">NEXT GENERATION #1</span>
+                <h2 class="dept-name-title">청년교회 (Young Adults)</h2>
+            </div>
+            <div class="dept-bottom-box">
+                <div class="dept-verse">“너는 청년의 때에 너의 창조주를 기억하라 (전 12:1)”</div>
+                <div class="dept-desc">세상의 빛과 소금이 되어 시대를 이끄는 믿음의 청년 공동체입니다. 비전과 예배, 뜨거운 나눔이 숨 쉽니다.</div>
+                <button type="button" class="btn-open-board-cta" onclick="event.stopPropagation(); openDeptBoard('청년교회')">
+                    💬 청년대화방 가기 ➔
+                </button>
+            </div>
+        </section>
+
+        <!-- 2. 청소년교회 -->
+        <section class="dept-card" id="card_dept_1" data-index="1" onclick="openDeptBoard('청소년교회')">
+            <img class="dept-bg-img" src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1600&q=90" alt="청소년교회">
+            <div class="dept-gradient"></div>
+            <div class="dept-top-box">
+                <span class="dept-tag">NEXT GENERATION #2</span>
+                <h2 class="dept-name-title">청소년교회 (Youth)</h2>
+            </div>
+            <div class="dept-bottom-box">
+                <div class="dept-verse">“네 연소함을 업신여기지 못하게 하고 오직 믿음의 본이 되라 (딤전 4:12)”</div>
+                <div class="dept-desc">꿈과 열정으로 하나님 나라를 세워가는 중고등부 공동체입니다.</div>
+                <button type="button" class="btn-open-board-cta" onclick="event.stopPropagation(); openDeptBoard('청소년교회')">
+                    💬 청소년대화방 가기 ➔
+                </button>
+            </div>
+        </section>
+
+        <!-- 3. 어린이부 -->
+        <section class="dept-card" id="card_dept_2" data-index="2" onclick="openDeptBoard('어린이부')">
+            <img class="dept-bg-img" src="https://images.unsplash.com/photo-1485546246426-74dc88dec4d9?auto=format&fit=crop&w=1600&q=90" alt="어린이부">
+            <div class="dept-gradient"></div>
+            <div class="dept-top-box">
+                <span class="dept-tag">NEXT GENERATION #3</span>
+                <h2 class="dept-name-title">어린이부 (Kids Church)</h2>
+            </div>
+            <div class="dept-bottom-box">
+                <div class="dept-verse">“마땅히 행할 길을 아이에게 가르치라 (잠 22:6)”</div>
+                <div class="dept-desc">말씀과 찬양으로 예수님의 지혜와 키가 쑥쑥 자라나는 축복의 꿈나무들입니다.</div>
+                <button type="button" class="btn-open-board-cta" onclick="event.stopPropagation(); openDeptBoard('어린이부')">
+                    💬 어린이대화방 가기 ➔
+                </button>
+            </div>
+        </section>
+
+        <!-- 4. 유치부 -->
+        <section class="dept-card" id="card_dept_3" data-index="3" onclick="openDeptBoard('유치부')">
+            <img class="dept-bg-img" src="https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=1600&q=90" alt="유치부">
+            <div class="dept-gradient"></div>
+            <div class="dept-top-box">
+                <span class="dept-tag">NEXT GENERATION #4</span>
+                <h2 class="dept-name-title">유치부 (Kindergarten)</h2>
+            </div>
+            <div class="dept-bottom-box">
+                <div class="dept-verse">“어린 아이들이 내게 오는 것을 용납하고 금하지 말라 (막 10:14)”</div>
+                <div class="dept-desc">예쁜 마음과 맑은 웃음으로 예수님의 품에서 자라는 사랑스러운 아이들의 예배 터전입니다.</div>
+                <button type="button" class="btn-open-board-cta" onclick="event.stopPropagation(); openDeptBoard('유치부')">
+                    💬 유치부대화방 가기 ➔
+                </button>
+            </div>
+        </section>
+
+        <!-- 5. 유아부 -->
+        <section class="dept-card" id="card_dept_4" data-index="4" onclick="openDeptBoard('유아부')">
+            <img class="dept-bg-img" src="https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1600&q=90" alt="유아부">
+            <div class="dept-gradient"></div>
+            <div class="dept-top-box">
+                <span class="dept-tag">NEXT GENERATION #5</span>
+                <h2 class="dept-name-title">유아부 (Toddlers)</h2>
+            </div>
+            <div class="dept-bottom-box">
+                <div class="dept-verse">“태에서부터 주께 맡긴 바 되었고 (시 22:10)”</div>
+                <div class="dept-desc">부모님의 품에서 첫 예배의 기쁨을 배우는 가정과 교회의 축복받은 아기들입니다.</div>
+                <button type="button" class="btn-open-board-cta" onclick="event.stopPropagation(); openDeptBoard('유아부')">
+                    💬 유아부대화방 가기 ➔
+                </button>
+            </div>
+        </section>
+
+        <!-- 6. 마지막 엔딩: 좋은 말씀 + 250 애드몹 -->
+        <section class="final-ending-snap-card" id="card_ending_section">
+            <div class="today-word-card">
+                <span class="today-word-badge">✝ 오늘의 다음세대 축복 말씀</span>
+                <div class="today-word-text">
+                    “여호와는 네게 복을 주시고 너를 지키시기를 원하며 여호와는 그의 얼굴을 네게 비추사 은혜 베푸시기를 원하노라 (민 6:24-25)”
+                </div>
+            </div>
+
+            <div class="admob-250-ending-box">
+                <span style="font-size:24px;">🎁</span>
+                <span style="font-size:11px; font-weight:900; color:#38bdf8;">Google AdMob (300x250)</span>
+                <div style="font-size:14.5px; font-weight:950; color:#facc15; line-height:1.4;">다음세대 선교 & 교육 사역<br>공식 스폰서 광고 슬롯</div>
+                <span style="font-size:10px; color:#94a3b8;">광고 | SPONSORED</span>
+            </div>
+
+            <button type="button" class="btn-return-first" onclick="scrollToDept(0)">
+                ⌃ 청년교회 (처음으로 가기)
+            </button>
+        </section>
+    </main>
+
+    <!-- 관리자 수정 모달 -->
+    <div id="nextgenModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:20000; align-items:center; justify-content:center; padding:14px; backdrop-filter:blur(4px);">
+        <div style="width:100%; max-width:440px; background:#0f172a; border:2px solid #38bdf8; border-radius:18px; padding:18px 16px; display:flex; flex-direction:column; gap:12px; max-height:88vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:8px;">
+                <strong style="color:#facc15; font-size:15px;">⚙️ 다음세대 부서 내용 수정</strong>
+                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeNextgenModal()">✕</button>
+            </div>
+            <div>
+                <label style="font-size:11.5px; font-weight:900; color:#38bdf8; display:block; margin-bottom:3px;">수정할 부서 선택</label>
+                <select id="selDeptIdx" onchange="loadDeptIntoEditor()" style="width:100%; background:#162238; border:1.5px solid #334155; border-radius:8px; padding:8px 10px; color:#ffffff; font-size:13px; font-weight:700;">
+                    <option value="0">1. 청년교회</option>
+                    <option value="1">2. 청소년교회</option>
+                    <option value="2">3. 어린이부</option>
+                    <option value="3">4. 유치부</option>
+                    <option value="4">5. 유아부</option>
+                </select>
+            </div>
+            <div>
+                <label style="font-size:11.5px; font-weight:900; color:#facc15; display:block; margin-bottom:3px;">부서 명칭 / 타이틀</label>
+                <input type="text" id="inpDeptTitle" style="width:100%; background:#162238; border:1.5px solid #334155; border-radius:8px; padding:8px 10px; color:#ffffff; font-size:13px; font-weight:700;">
+            </div>
+            <div>
+                <label style="font-size:11.5px; font-weight:900; color:#facc15; display:block; margin-bottom:3px;">표어 / 성경 말씀</label>
+                <input type="text" id="inpDeptVerse" style="width:100%; background:#162238; border:1.5px solid #334155; border-radius:8px; padding:8px 10px; color:#ffffff; font-size:13px; font-weight:700;">
+            </div>
+            <div>
+                <label style="font-size:11.5px; font-weight:900; color:#facc15; display:block; margin-bottom:3px;">부서 소개글</label>
+                <textarea id="inpDeptDesc" style="width:100%; background:#162238; border:1.5px solid #334155; border-radius:8px; padding:8px 10px; color:#ffffff; font-size:13px; font-weight:700; min-height:80px;"></textarea>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+                <button type="button" style="background:#334155; color:white; border:none; padding:8px 14px; border-radius:8px; font-size:12px; cursor:pointer;" onclick="closeNextgenModal()">취소</button>
+                <button type="button" style="background:#0284c7; color:white; border:none; padding:8px 18px; border-radius:8px; font-size:12px; font-weight:950; cursor:pointer;" onclick="saveDeptEditData()">저장하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const DEFAULT_DEPTS = [
+        { title: "청년교회 (Young Adults)", verse: "“너는 청년의 때에 너의 창조주를 기억하라 (전 12:1)”", desc: "세상의 빛과 소금이 되어 시대를 이끄는 믿음의 청년 공동체입니다. 비전과 예배, 뜨거운 나눔이 숨 쉽니다." },
+        { title: "청소년교회 (Youth)", verse: "“네 연소함을 업신여기지 못하게 하고 오직 믿음의 본이 되라 (딤전 4:12)”", desc: "꿈과 열정으로 하나님 나라를 세워가는 중고등부 공동체입니다." },
+        { title: "어린이부 (Kids)", verse: "“마땅히 행할 길을 아이에게 가르치라 그리하면 늙어도 그것을 떠나지 아니하리라 (잠 22:6)”", desc: "말씀과 찬양 안에서 밝고 맑게 자라나는 믿음의 꿈나무들입니다." },
+        { title: "유치부 (Kinder)", verse: "“어린 아이들이 내게 오는 것을 용납하고 금하지 말라 하나님의 나라가 이런 자의 것이니라 (막 10:14)”", desc: "예수님의 사랑 안에서 웃음꽃 피어나는 사랑스런 새싹 공동체입니다." },
+        { title: "유아부 (Toddler)", verse: "“아이 사무엘이 점점 자라매 여호와와 사람들에게 은총을 더욱 받더라 (삼상 2:26)”", desc: "엄마 아빠와 함께 첫 예배의 기쁨을 배우는 따뜻한 유아 공동체입니다." }
+    ];
+
+    let deptsData = [];
+    function loadSavedDepts() {
+        try {
+            const raw = localStorage.getItem("yetalk_church_nextgen_data_v2");
+            deptsData = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_DEPTS));
+        } catch(e) {
+            deptsData = JSON.parse(JSON.stringify(DEFAULT_DEPTS));
+        }
+        applyDeptsToUI();
+    }
+
+    function applyDeptsToUI() {
+        deptsData.forEach((d, idx) => {
+            const card = document.getElementById(`card_dept_${idx}`);
+            if (card) {
+                const titleEl = card.querySelector(".dept-name-title");
+                const verseEl = card.querySelector(".dept-verse");
+                const descEl = card.querySelector(".dept-desc");
+                if (titleEl) titleEl.innerText = d.title;
+                if (verseEl) verseEl.innerText = d.verse;
+                if (descEl) descEl.innerText = d.desc;
+            }
+        });
+    }
+
+    function openDeptEditModal() {
+        const modal = document.getElementById("nextgenModal");
+        if (modal) modal.style.display = "flex";
+        loadDeptIntoEditor();
+    }
+
+    function closeNextgenModal() {
+        const modal = document.getElementById("nextgenModal");
+        if (modal) modal.style.display = "none";
+    }
+
+    function loadDeptIntoEditor() {
+        const idx = parseInt(document.getElementById("selDeptIdx").value, 10) || 0;
+        const d = deptsData[idx] || DEFAULT_DEPTS[idx];
+        document.getElementById("inpDeptTitle").value = d.title;
+        document.getElementById("inpDeptVerse").value = d.verse;
+        document.getElementById("inpDeptDesc").value = d.desc;
+    }
+
+    function saveDeptEditData() {
+        const idx = parseInt(document.getElementById("selDeptIdx").value, 10) || 0;
+        deptsData[idx] = {
+            title: document.getElementById("inpDeptTitle").value.trim(),
+            verse: document.getElementById("inpDeptVerse").value.trim(),
+            desc: document.getElementById("inpDeptDesc").value.trim()
+        };
+        localStorage.setItem("yetalk_church_nextgen_data_v2", JSON.stringify(deptsData));
+        applyDeptsToUI();
+        closeNextgenModal();
+    }
+
+    function goBackToMain() {
+        sessionStorage.setItem("church_last_active_card_idx", "8");
+        location.href = "churchmain.html";
+    }
+
+    function scrollToDept(index) {
+        const card = document.getElementById(`card_dept_${index}`);
+        if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // 교회 다음세대 전용 게시판 파일(churchnextgen_board.html)로 부서 데이터 전달
+    function openDeptBoard(deptName) {
+        sessionStorage.setItem("churchnextgen_active_dept", deptName);
+        location.href = "churchnextgen_board.html";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadSavedDepts();
+        const viewport = document.getElementById("nextgenViewport");
+        const cards = document.querySelectorAll(".dept-card");
+        const chips = document.querySelectorAll(".tab-chip");
+
+        const updateChips = (idx) => {
+            chips.forEach((chip, i) => {
+                const match = (i === idx);
+                chip.classList.toggle("active", match);
+                if (match) {
+                    chip.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const idx = parseInt(entry.target.dataset.index, 10);
+                    if (!isNaN(idx)) updateChips(idx);
+                }
+            });
+        }, { root: viewport, threshold: 0.55 });
+
+        cards.forEach(c => observer.observe(c));
+
+        if (viewport) {
+            let timer = null;
+            viewport.addEventListener("scroll", () => {
+                if (timer) cancelAnimationFrame(timer);
+                timer = requestAnimationFrame(() => {
+                    const h = viewport.clientHeight || 1;
+                    const idx = Math.round(viewport.scrollTop / h);
+                    if (idx >= 0 && idx < chips.length) updateChips(idx);
+                });
+            }, { passive: true });
+        }
+    });
+</script>
+
+<script src="church_bottom_bar.js"></script>
+</body>
+</html>ㄴ

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>내 노트</title>
+
+    <link rel="stylesheet" href="common.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <!--=========================
+    HEADER
+    ==========================-->
+
+    <header class="header">
+
+        <div class="topMenu">
+
+            <div
+                    class="menuOff"
+                    onclick="location.href='index.html'">
+
+                홈
+
+            </div>
+
+            <div
+                    class="menuOff"
+                    onclick="location.href='myprayer.html'">
+
+                내기도
+
+            </div>
+
+            <div
+                    class="menuOff"
+                    onclick="location.href='intercession.html'">
+
+                중보기도
+
+            </div>
+
+            <div
+                    class="menuOn">
+
+                내노트
+
+            </div>
+
+        </div>
+
+        <div class="topRight">
+
+<span>
+
+개인저장
+
+</span>
+
+        </div>
+
+    </header>
+
+    <!--=========================
+    관리자 한줄
+    ==========================-->
+
+    <div class="card mb20">
+
+        <div
+                style="padding:14px 18px;
+font-size:17px;
+font-weight:700;
+line-height:1.8;">
+
+            <span style="color:#d60000;">●</span>
+
+            <span id="masterMessage">
+
+믿음대로 될지어다.
+
+</span>
+
+        </div>
+
+    </div>
+
+    <!--=========================
+    오늘 받은 말씀
+    ==========================-->
+
+    <div class="section">
+
+        <div class="sectionTitle">
+
+            ① 오늘 받은 말씀
+
+        </div>
+
+        <textarea
+                id="note1"
+                class="textInput"
+                placeholder="오늘의 말씀을 읽고 받은 은혜를 적어보세요."></textarea>
+
+    </div>
+
+    <!--=========================
+    오늘 결단
+    ==========================-->
+
+    <div class="section">
+
+        <div class="sectionTitle">
+
+            ② 오늘 결단
+
+        </div>
+
+        <textarea
+                id="note2"
+                class="textInput"
+                placeholder="오늘 실천할 내용을 적어보세요."></textarea>
+
+    </div>
+    <!--=========================
+    기억할 내용
+    ==========================-->
+
+    <div class="section">
+
+        <div class="sectionTitle">
+
+            ③ 기억할 내용
+
+        </div>
+
+        <textarea
+                id="note3"
+                class="textInput"
+                placeholder="하나님이 주신 마음, 전도 대상, 메모 등을 적어보세요."></textarea>
+
+    </div>
+
+    <!--=========================
+    저장
+    ==========================-->
+
+    <div class="mt20">
+
+        <button
+                class="saveBtn"
+                onclick="saveMyNote()">
+
+            저장
+
+        </button>
+
+    </div>
+
+    <!--=========================
+    저장 목록
+    ==========================-->
+
+    <div class="section mt20">
+
+        <div class="sectionTitle">
+
+            저장 목록
+
+        </div>
+
+        <div
+                id="noteList"
+                class="card">
+
+        </div>
+
+    </div>
+
+    <script src="mynote.js"></script>
+
+    <script>
+
+        /*==========================
+        관리자 한줄
+        ==========================*/
+
+        document.getElementById("masterMessage").innerText=
+
+        localStorage.getItem("masterMessage")||
+
+        "믿음대로 될지어다.";
+
+    </script>
+    <script>
+
+        function saveMyNote(){
+
+        const data={
+
+        word:document.getElementById("note1").value,
+
+        decision:document.getElementById("note2").value,
+
+        memo:document.getElementById("note3").value,
+
+        date:new Date().toLocaleDateString()
+
+        };
+
+        localStorage.setItem(
+
+        "myNote",
+
+        JSON.stringify(data)
+
+        );
+
+        alert("저장되었습니다.");
+
+        loadMyNote();
+
+        }
+
+        /*==========================
+        불러오기
+        ==========================*/
+
+        function loadMyNote(){
+
+        const saved=
+
+        JSON.parse(
+
+        localStorage.getItem("myNote")||"null"
+
+        );
+
+        if(saved){
+
+        document.getElementById("note1").value=saved.word;
+
+        document.getElementById("note2").value=saved.decision;
+
+        document.getElementById("note3").value=saved.memo;
+
+        }
+
+        loadSavedList();
+
+        }
+
+        /*==========================
+        저장목록
+        ==========================*/
+
+        function loadSavedList(){
+
+        const list=JSON.parse(
+
+        localStorage.getItem("savedNoteList")||"[]"
+
+        );
+
+        const box=document.getElementById("noteList");
+
+        box.innerHTML="";
+
+        list.forEach(function(item,index){
+
+        box.innerHTML+=`
+
+        <div class="listItem">
+
+        <div class="listTop">
+
+        <div class="listDate">
+
+        ${item.date}
+
+        </div>
+
+        <div>
+
+        <span class="deleteBtn"
+        onclick="copySavedNote(${index})">
+
+        복사
+
+        </span>
+
+        &nbsp;&nbsp;
+
+        <span class="deleteBtn"
+        onclick="deleteSavedNote(${index})">
+
+        삭제
+
+        </span>
+
+        </div>
+
+        </div>
+
+        <div class="listText">
+
+        <b>[${item.type}]</b><br>
+
+        ${item.text}
+
+        </div>
+
+        </div>
+
+        `;
+
+        });
+
+        }
+
+        /*==========================
+        복사
+        ==========================*/
+
+        function copySavedNote(index){
+
+        const list=JSON.parse(
+
+        localStorage.getItem("savedNoteList")||"[]"
+
+        );
+
+        navigator.clipboard.writeText(
+
+        list[index].text
+
+        );
+
+        alert("복사되었습니다.");
+
+        }
+
+        /*==========================
+        삭제
+        ==========================*/
+
+        function deleteSavedNote(index){
+
+        const list=JSON.parse(
+
+        localStorage.getItem("savedNoteList")||"[]"
+
+        );
+
+        list.splice(index,1);
+
+        localStorage.setItem(
+
+        "savedNoteList",
+
+        JSON.stringify(list)
+
+        );
+
+        loadSavedList();
+
+        }
+
+        loadMyNote();
+
+    </script>
+
+</div>
+
+</body>
+
+</html>

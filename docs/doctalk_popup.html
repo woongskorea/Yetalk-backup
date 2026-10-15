@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>닥톡 (DocTalk) - PC 모니터 전용</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #bacada; /* 카카오톡 스타일 포근한 배경색 */
+            color: #0f172a; font-family: "Pretendard", -apple-system, sans-serif;
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+        header {
+            background: #fee500; /* 카카오 대표 노란색 */
+            padding: 14px 18px; border-bottom: 1.5px solid #e5ce00;
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .header-left { display: flex; align-items: center; gap: 8px; }
+        .header-title { font-size: 16.5px; font-weight: 950; color: #191600; display: flex; align-items: center; gap: 6px; }
+        .window-badge { background: #191600; color: #fee500; font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 900; }
+        .btn-header-action {
+            background: rgba(0,0,0,0.08); border: none; border-radius: 8px;
+            padding: 6px 12px; font-size: 12px; font-weight: 900; color: #191600; cursor: pointer;
+        }
+        .btn-header-action:hover { background: rgba(0,0,0,0.15); }
+
+        .content-area {
+            flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 14px;
+        }
+        .post-card {
+            background: #ffffff; border-radius: 16px; padding: 16px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .post-head { display: flex; justify-content: space-between; align-items: center; }
+        .post-author { font-size: 13.5px; font-weight: 950; color: #0284c7; }
+        .post-date { font-size: 11.5px; color: #94a3b8; }
+        .post-title {
+            font-size: 16px; font-weight: 950; color: #0f172a; line-height: 1.4;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .post-body {
+            font-size: 14px; color: #334155; line-height: 1.6; white-space: pre-line;
+            cursor: pointer;
+        }
+        .clamp-5-lines {
+            display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical;
+            overflow: hidden; text-overflow: ellipsis;
+        }
+        .btn-toggle-expand {
+            font-size: 12px; color: #0284c7; font-weight: 900; cursor: pointer; align-self: flex-start;
+        }
+
+        /* 댓글 영역 */
+        .comments-section {
+            background: #f8fafc; border-radius: 12px; padding: 10px 12px;
+            display: flex; flex-direction: column; gap: 8px; margin-top: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .comment-item { display: flex; flex-direction: column; gap: 2px; }
+        .comment-head { display: flex; justify-content: space-between; align-items: center; }
+        .comment-author { font-size: 12px; font-weight: 900; color: #0f172a; }
+        .comment-time { font-size: 10.5px; color: #94a3b8; }
+        .comment-text {
+            font-size: 13px; color: #475569; line-height: 1.45; cursor: pointer;
+        }
+        .clamp-1-line {
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .comment-write-row {
+            display: flex; gap: 6px; margin-top: 4px;
+        }
+        .comment-input {
+            flex: 1; height: 36px; border: 1.5px solid #cbd5e1; border-radius: 8px;
+            padding: 0 10px; font-size: 12.5px; font-weight: 700; outline: none; background: #fff;
+        }
+        .btn-comment-send {
+            height: 36px; padding: 0 14px; background: #fee500; color: #191600;
+            border: 1px solid #e5ce00; border-radius: 8px; font-size: 12px; font-weight: 950;
+            cursor: pointer;
+        }
+
+        /* 글작성 바 */
+        .write-bar {
+            background: #ffffff; border-top: 1.5px solid #cbd5e1; padding: 12px 14px;
+            display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;
+        }
+        .write-input {
+            width: 100%; height: 38px; background: #f8fafc; border: 1.5px solid #cbd5e1;
+            border-radius: 8px; color: #0f172a; padding: 0 12px; font-size: 13.5px; font-weight: 850; outline: none;
+        }
+        .write-textarea {
+            width: 100%; height: 65px; background: #f8fafc; border: 1.5px solid #cbd5e1;
+            border-radius: 8px; color: #0f172a; padding: 8px 12px; font-size: 13px; resize: none; outline: none;
+        }
+        .btn-submit {
+            height: 38px; background: #0284c7; color: #fff; border: none; border-radius: 8px;
+            font-size: 13.5px; font-weight: 900; cursor: pointer; align-self: flex-end; padding: 0 20px;
+        }
+
+        /* 하단 애드몹 배너 */
+        .bottom-admob-banner {
+            background: #0f172a; padding: 10px 14px; border-top: 1.5px solid #334155;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            flex-shrink: 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.25);
+        }
+        .admob-badge {
+            font-size: 10px; color: #94a3b8; font-weight: 800; margin-bottom: 4px; letter-spacing: 0.5px;
+        }
+        .admob-box {
+            width: 320px; height: 100px; background: #1e293b; border: 1.2px solid #38bdf8;
+            border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .admob-title { font-size: 14px; font-weight: 950; color: #38bdf8; }
+        .admob-sub { font-size: 11px; color: #cbd5e1; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <span style="font-size: 20px;">💬</span>
+            <div class="header-title">
+                <span id="dispDocTalkTitle">닥톡 (DocTalk)</span>
+                <span class="window-badge">PC 수다방</span>
+            </div>
+        </div>
+        <div style="display:flex; gap:6px; align-items:center;">
+            <button type="button" class="btn-header-action" style="background:#fff; border:1px solid #e5ce00; font-weight:900;" onclick="changePopupAnonNick()">👤 익명 ID: <span id="dispPopupNick">커피수혈원장</span> ✏️</button>
+            <button type="button" class="btn-header-action" onclick="render()">🔄 새로고침</button>
+        </div>
+    </header>
+
+    <div class="content-area" id="boardList"></div>
+
+    <div class="write-bar">
+        <input type="text" id="inpPostTitle" class="write-input" placeholder="일상 이야기, 농담, 맛집 추천 등 가벼운 제목 (한줄)">
+        <textarea id="inpPostContent" class="write-textarea" placeholder="자유롭게 이야기를 나눠보세요 (퇴근길, 일상, 취미 등)"></textarea>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:11.5px; color:#64748b;" id="dispDocTalkNotice">원장 전용 안심 소통 공간</span>
+            <button type="button" class="btn-submit" onclick="submitPost()">등록하기</button>
+        </div>
+    </div>
+
+    <!-- 🌟 맨밑 독립 Google AdMob 배너 배치 -->
+    <div class="bottom-admob-banner">
+        <span class="admob-badge">AD • Google AdMob 공식 스폰서 슬롯 (320 × 100)</span>
+        <div class="admob-box">
+            <div class="admob-title">Google AdMob (320x100 / Large Banner)</div>
+            <div class="admob-sub">대한민국 소상공인·의료 복지 공식 지원 스폰서</div>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_POSTS = [
+            {
+                id: 1,
+                author: "김예톡 대표원장",
+                date: "오늘 오전 10:20",
+                title: "10/12 맞춤 볼륨 필러 시술 경과 메모",
+                content: "좌우 비대칭 보완을 중심으로 0.8cc 주입 완료하였습니다.\n환자분께서 통증에 민감하여 미세 둥근 캐뉼라로 섬세하게 진행했습니다.\n2주 후 붓기 완화 후 리터치 경과 관찰 예정입니다.\n붓기 관리 처방 안내 전달 부탁드립니다.\n필요 시 추가 재생 레이저 병행 권장합니다.",
+                comments: [
+                    { id: 101, author: "박원장", time: "10:35", text: "좌우 대칭 맞춤 아주 깔끔하게 잘 되었습니다. 리터치 때 참고하겠습니다." }
+                ]
+            },
+            {
+                id: 2,
+                author: "이원장 (진료1과)",
+                date: "어제 오후 15:10",
+                title: "환절기 스킨부스터 & 수분 장벽 복합 케어 프로토콜",
+                content: "환절기 건조증 호소 환자가 급증하고 있습니다.\n리쥬란 힐러와 히알루론산 수분 앰플을 1:1 비율로 병용할 때 유지 기간이 30% 이상 향상되는 것으로 확인되었습니다.\n원내 상담 실장님들께도 프로토콜 공유 완료했습니다.",
+                comments: [
+                    { id: 102, author: "김예톡 대표원장", time: "어제 16:00", text: "좋은 임상 결과네요. 이번 주부터 상담 패키지에 적극 반영합시다." }
+                ]
+            }
+        ];
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const roleParam = urlParams.get("role") || localStorage.getItem("yetalkUserMedicalRole") || "doctor";
+        let storageKey = "yetalk_doctalk_posts_v10";
+        let appTitle = "닥톡 (DocTalk)";
+        let roleBadge = "의사 소통";
+        let defaultAuthor = "김예톡 대표원장";
+
+        if (roleParam === 'korean_doctor') {
+            storageKey = "han_doc_talk_feed_list";
+            appTitle = "한닥톡 (HanDocTalk)";
+            roleBadge = "한의사 소통";
+            defaultAuthor = "김예톡 한의원장";
+        } else if (roleParam === 'dentist') {
+            storageKey = "dental_doc_talk_feed_list";
+            appTitle = "덴톡 (DenTalk)";
+            roleBadge = "치과의사 소통";
+            defaultAuthor = "김예톡 치과원장";
+        }
+
+        function getPosts() {
+            try {
+                const raw = localStorage.getItem(storageKey);
+                if (raw) return JSON.parse(raw);
+            } catch(e) {}
+            return DEFAULT_POSTS;
+        }
+
+        function savePosts(list) {
+            localStorage.setItem(storageKey, JSON.stringify(list));
+        }
+
+        function render() {
+            const list = getPosts();
+            const container = document.getElementById("boardList");
+            if (!container) return;
+
+            container.innerHTML = list.map((p, idx) => {
+                const comments = p.comments || [];
+                const commentsHtml = comments.map(c => `
+                    <div class="comment-item">
+                        <div class="comment-head">
+                            <span class="comment-author">💬 ${c.author}</span>
+                            <span class="comment-time">${c.time}</span>
+                        </div>
+                        <div class="comment-text clamp-1-line" onclick="this.classList.toggle('clamp-1-line')" title="클릭 시 전체보기 / 1줄 생략">
+                            ${c.text}
+                        </div>
+                    </div>
+                `).join("");
+
+                return `
+                    <div class="post-card">
+                        <div class="post-head">
+                            <span class="post-author">🩺 ${p.author}</span>
+                            <span class="post-date">${p.date}</span>
+                        </div>
+                        <div class="post-title" title="${p.title}">${p.title}</div>
+                        <div class="post-body clamp-5-lines" id="body_${p.id}" onclick="toggleBody(${p.id})" title="클릭 시 5줄 생략 / 전체보기">
+                            ${p.content}
+                        </div>
+                        <div class="btn-toggle-expand" onclick="toggleBody(${p.id})">더보기 / 접기</div>
+
+                        <div class="comments-section">
+                            <div style="font-size:11.5px; font-weight:900; color:#64748b; margin-bottom:2px;">
+                                💬 댓글 (${comments.length}개 - 클릭 시 전체보기)
+                            </div>
+                            ${commentsHtml || '<div style="font-size:12px; color:#94a3b8;">첫 댓글을 남겨보세요.</div>'}
+                            <div class="comment-write-row">
+                                <input type="text" id="inpCmt_${p.id}" class="comment-input" placeholder="한줄 댓글 입력...">
+                                <button type="button" class="btn-comment-send" onclick="addComment(${idx}, ${p.id})">등록</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function toggleBody(id) {
+            const el = document.getElementById(`body_${id}`);
+            if (el) el.classList.toggle("clamp-5-lines");
+        }
+
+        function addComment(postIdx, postId) {
+            const inp = document.getElementById(`inpCmt_${postId}`);
+            const text = (inp ? inp.value : "").trim();
+            if (!text) return;
+
+            const list = getPosts();
+            const post = list[postIdx] || list.find(p => p.id === postId);
+            if (!post) return;
+            if (!post.comments) post.comments = [];
+
+            const myName = getPopupAnonNick();
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            post.comments.push({
+                id: Date.now(),
+                author: myName,
+                time: timeStr,
+                text: text
+            });
+
+            savePosts(list);
+            render();
+            if (inp) inp.value = "";
+        }
+
+        function submitPost() {
+            const t = document.getElementById("inpPostTitle").value.trim();
+            const c = document.getElementById("inpPostContent").value.trim();
+            if (!t || !c) return alert("제목과 내용을 입력해주세요.");
+
+            const myName = getPopupAnonNick();
+            const list = getPosts();
+            list.unshift({
+                id: Date.now(),
+                author: myName,
+                date: "방금 전",
+                title: t,
+                content: c,
+                comments: []
+            });
+            savePosts(list);
+            document.getElementById("inpPostTitle").value = "";
+            document.getElementById("inpPostContent").value = "";
+            render();
+        }
+
+        window.addEventListener("storage", render);
+        document.addEventListener("DOMContentLoaded", () => {
+            const titleEl = document.getElementById("dispDocTalkTitle");
+            if (titleEl) titleEl.innerText = appTitle;
+            const subEl = document.getElementById("dispDocTalkNotice");
+            if (subEl) subEl.innerText = `${roleBadge} 전용 안심 소통 공간`;
+            updatePopupNickDisplay();
+            render();
+        });
+    </script>
+</body>
+</html>

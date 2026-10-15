@@ -115,14 +115,22 @@
         .room-view-container.active { display: flex; }
 
         .bgm-bar {
-            height: 38px; background: rgba(255, 255, 255, 0.7); border-bottom: 1px solid rgba(0,0,0,0.06);
+            height: 42px; background: rgba(255, 255, 255, 0.85); border-bottom: 1px solid rgba(0,0,0,0.06);
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0 14px; backdrop-filter: blur(5px); flex-shrink: 0;
+            padding: 0 10px; backdrop-filter: blur(5px); flex-shrink: 0; gap: 6px;
         }
-        .bgm-text { font-size: 12px; font-weight: 850; color: #334155; display: flex; align-items: center; gap: 5px; }
+        .bgm-selector-group { display: flex; align-items: center; gap: 4px; }
+        .bgm-chip-btn {
+            background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px;
+            font-size: 11px; font-weight: 850; padding: 3px 8px; cursor: pointer; color: #475569;
+            transition: all 0.15s ease;
+        }
+        .bgm-chip-btn.active {
+            background: #0284c7; color: #ffffff; border-color: #0284c7; font-weight: 950;
+        }
         .btn-bgm-toggle {
             background: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px;
-            font-size: 11px; font-weight: 900; padding: 3px 8px; cursor: pointer; color: #0f172a;
+            font-size: 11px; font-weight: 900; padding: 3px 8px; cursor: pointer; color: #0f172a; white-space: nowrap;
         }
         .bgm-hidden-frame { position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 
@@ -263,7 +271,8 @@
 
         <div class="header-right">
             <button type="button" class="btn-room-lock" id="btnLockToggle" style="display:none;" onclick="toggleRoomLock()">🔓 공개</button>
-            <button type="button" class="btn-leader-room" id="btnLeaderRoom" style="display:none;" onclick="openLeaderAdminModal()">인도자실 ⚙️</button>
+            <button type="button" class="btn-leader-room" id="btnLeaderRoom" style="display:none;" onclick="openLeaderAdminModal()">인도자실 👑</button>
+            <button type="button" class="btn-room-lock" id="btnLeaveRoom" style="display:none; background:#fee2e2; border-color:#f87171; color:#b91c1c;" onclick="leaveCurrentRoom()">🚪 나가기</button>
         </div>
     </header>
 
@@ -278,9 +287,10 @@
     <!-- [2단계 방 내부] -->
     <section class="room-view-container" id="roomView">
         <div class="bgm-bar">
-            <div class="bgm-text">
-                <span>🎵</span>
-                <span id="dispBgmTitle">은혜의 기도 찬양 BGM 재생 중</span>
+            <div class="bgm-selector-group">
+                <button type="button" class="bgm-chip-btn active" id="btnBgmTongue" onclick="switchPrayerBgmTrack('tongue')">🗣️ 방언</button>
+                <button type="button" class="bgm-chip-btn" id="btnBgmPraise" onclick="switchPrayerBgmTrack('praise')">🎶 찬양</button>
+                <button type="button" class="bgm-chip-btn" id="btnBgmMeditate" onclick="switchPrayerBgmTrack('meditate')">🕊️ 묵상</button>
             </div>
             <button type="button" class="btn-bgm-toggle" id="btnBgmToggle" onclick="toggleBgmSound()">중지 ⏹</button>
             <div id="bgmIframeHost" class="bgm-hidden-frame"></div>
@@ -335,11 +345,11 @@
     </div>
 </div>
 
-<!-- 인도자실 모달 -->
+<!-- 인도자실 모달 (반원 내보내기, 문닫기열기, 알림발송, 승인) -->
 <div class="modal-overlay" id="leaderAdminModal">
-    <div class="leader-modal-card">
+    <div class="leader-modal-card" style="max-height:85vh; overflow-y:auto;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:6px;">
-            <strong style="color:#38bdf8; font-size:15px;">⚙️ 인도자실 (기도방 관리)</strong>
+            <strong style="color:#38bdf8; font-size:15px;">👑 인도자실 (기도방 관리)</strong>
             <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeLeaderAdminModal()">✕</button>
         </div>
 
@@ -350,17 +360,43 @@
 
         <div>
             <label class="m-label">2. 인도자 이름</label>
-            <input type="text" class="m-input" id="inpLeaderUserName" placeholder="예: 최남수 담임목사 / 은혜성도">
+            <input type="text" class="m-input" id="inpLeaderUserName" placeholder="예: 최남수 담임목사">
         </div>
 
         <div>
-            <label class="m-label">3. 유튜브 찬양 BGM 링크 (라이브 주소 포함)</label>
-            <input type="text" class="m-input" id="inpLeaderYtUrl" placeholder="https://youtu.be/... 또는 라이브 주소">
-            <span style="font-size:11px; color:#94a3b8; margin-top:2px; display:block;">* 일반 영상 및 24시간 실시간 라이브 링크 모두 지원됩니다.</span>
+            <label class="m-label">3. 유튜브 찬양 BGM 링크</label>
+            <input type="text" class="m-input" id="inpLeaderYtUrl" placeholder="https://youtu.be/... (비워두면 관리실 설정 찬양)">
+        </div>
+
+        <!-- 📢 반원 전체 알림 발송 -->
+        <div style="background:#162238; border:1px solid #334155; border-radius:8px; padding:10px;">
+            <label class="m-label">📢 반원 전체 알림 보내기</label>
+            <div style="display:flex; gap:6px;">
+                <input type="text" class="m-input" id="inpLeaderNotice" placeholder="예: 지금 함께 기도합시다!">
+                <button type="button" style="background:#0284c7; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:11.5px; font-weight:900; white-space:nowrap; cursor:pointer;" onclick="sendLeaderNoticeInPrayRoom()">전송</button>
+            </div>
+        </div>
+
+        <!-- 📩 들어오기 신청 대기자 승인 -->
+        <div style="background:#162238; border:1px solid #334155; border-radius:8px; padding:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label class="m-label" style="margin-bottom:0;">📩 들어오기 신청 대기자</label>
+                <span id="txtPrayPendingCount" style="color:#facc15; font-size:11px;">0명</span>
+            </div>
+            <div id="prayPendingList" style="display:flex; flex-direction:column; gap:4px; margin-top:6px;"></div>
+        </div>
+
+        <!-- 👥 참여 반원 명단 & 내보내기 -->
+        <div style="background:#162238; border:1px solid #334155; border-radius:8px; padding:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label class="m-label" style="margin-bottom:0;">👥 참여 반원 명단</label>
+                <span id="txtPrayMemberCount" style="color:#38bdf8; font-size:11px;">1명</span>
+            </div>
+            <div id="prayMemberList" style="display:flex; flex-direction:column; gap:4px; margin-top:6px;"></div>
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:6px;">
-            <button type="button" style="background:#334155; color:white; border:none; padding:8px 14px; border-radius:6px; font-size:12.5px; cursor:pointer;" onclick="closeLeaderAdminModal()">취소</button>
+            <button type="button" style="background:#334155; color:white; border:none; padding:8px 14px; border-radius:6px; font-size:12.5px; cursor:pointer;" onclick="closeLeaderAdminModal()">닫기</button>
             <button type="button" style="background:#0284c7; color:white; border:none; padding:8px 18px; border-radius:6px; font-size:13px; font-weight:950; cursor:pointer;" onclick="saveLeaderSettings()">저장하기</button>
         </div>
     </div>
@@ -417,6 +453,7 @@
         document.getElementById("dispHeaderTitleText").innerText = "성전 24시 기도처";
         document.getElementById("btnLockToggle").style.display = "none";
         document.getElementById("btnLeaderRoom").style.display = "none";
+        document.getElementById("btnLeaveRoom").style.display = "none";
 
         const container = document.getElementById("lobbyRoomsGrid");
         container.innerHTML = "";
@@ -468,7 +505,17 @@
         const isMember = (room.members || []).includes(myName) || isLeader;
 
         if (room.status === "CLOSED" && !isMember) {
-            alert(`🔒 [골방 기도실 안내]\n\n현재 인도자가 문을 닫고 비공개 기도 중입니다.\n기존에 참여했던 성도님만 입장할 수 있습니다.`);
+            const isPending = (room.pending || []).includes(myName);
+            if (isPending) {
+                alert("현재 인도자의 입장 승인을 기다리고 있습니다.");
+                return;
+            }
+            if (confirm(`🔒 [${room.name}]은(는) 문이 닫힌 비밀 기도방입니다.\n인도자(${room.leader})에게 입장 신청을 보내시겠습니까?`)) {
+                if (!room.pending) room.pending = [];
+                room.pending.push(myName);
+                localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+                showToast("📩 인도자에게 입장 신청을 보냈습니다!");
+            }
             return;
         }
 
@@ -488,9 +535,36 @@
         lockBtn.style.display = "inline-block";
         updateLockBtnUI();
         document.getElementById("btnLeaderRoom").style.display = "inline-block";
+        document.getElementById("btnLeaveRoom").style.display = "inline-block";
 
         renderChatMessages();
         initBgmAudio();
+    }
+
+    // 스스로 방 나가기
+    function leaveCurrentRoom() {
+        if (!currentRoom) return;
+        const myName = getMyName();
+        if (!confirm(`[${currentRoom.name}] 기도방에서 나가시겠습니까?`)) return;
+
+        if (currentRoom.members) {
+            currentRoom.members = currentRoom.members.filter(m => m !== myName);
+            localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+        }
+
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        msgs.push({
+            id: Date.now(), order: msgs.length + 1, name: "시스템",
+            body: `[알림] ${myName} 성도님이 방을 나갔습니다.`,
+            time: timeStr, hearts: 0, hands: 0
+        });
+        localStorage.setItem(getRoomChatKey(), JSON.stringify(msgs));
+
+        renderLobby();
+        showToast("🚪 기도방에서 퇴장하였습니다.");
     }
 
     function handleHeaderBackClick() {
@@ -665,10 +739,36 @@
         renderChatMessages();
     }
 
+    let currentBgmTrack = 'tongue';
+
+    function switchPrayerBgmTrack(track) {
+        currentBgmTrack = track;
+        document.querySelectorAll('.bgm-chip-btn').forEach(btn => btn.classList.remove('active'));
+        if (track === 'tongue') document.getElementById('btnBgmTongue')?.classList.add('active');
+        if (track === 'praise') document.getElementById('btnBgmPraise')?.classList.add('active');
+        if (track === 'meditate') document.getElementById('btnBgmMeditate')?.classList.add('active');
+
+        let url = "";
+        if (track === 'tongue') {
+            url = localStorage.getItem("yetalk_church_bg_music_tongue") || "https://www.youtube.com/watch?v=M7lc1UVf-VE";
+            showToast("🗣️ 방언 기도소리가 재생됩니다.");
+        } else if (track === 'praise') {
+            url = localStorage.getItem("yetalk_church_bg_music_praise") || localStorage.getItem("yetalk_church_bg_prayer_music") || "https://www.youtube.com/watch?v=jfKfPfyJRdk";
+            showToast("🎶 은혜 찬양이 재생됩니다.");
+        } else {
+            url = localStorage.getItem("yetalk_church_bg_music_meditate") || "https://www.youtube.com/watch?v=DWcJFNfaw9c";
+            showToast("🕊️ 묵상 / 자유 기도가 재생됩니다.");
+        }
+        playBgmStream(url);
+    }
+
     function initBgmAudio() {
         if (!currentRoom) return;
-        const ytUrl = currentRoom.youtube && currentRoom.youtube.trim() !== "" ? currentRoom.youtube : GLOBAL_DEFAULT_BGM;
-        playBgmStream(ytUrl);
+        if (currentRoom.youtube && currentRoom.youtube.trim() !== "") {
+            playBgmStream(currentRoom.youtube);
+        } else {
+            switchPrayerBgmTrack(currentBgmTrack || 'tongue');
+        }
     }
 
     function extractYtId(url) {
@@ -730,7 +830,7 @@
             showToast("🔓 문을 열었습니다. (누구나 입장 가능)");
         } else {
             currentRoom.status = "CLOSED";
-            showToast("🔒 문을 닫았습니다. (기존 성도들만 입장 가능)");
+            showToast("🔒 문을 닫았습니다. (비밀 기도방 전환)");
         }
         localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
         updateLockBtnUI();
@@ -753,7 +853,107 @@
         document.getElementById("inpLeaderRoomName").value = currentRoom.name;
         document.getElementById("inpLeaderUserName").value = currentRoom.leader || getMyName();
         document.getElementById("inpLeaderYtUrl").value = currentRoom.youtube || "";
+
+        // 대기자 목록
+        const pendingContainer = document.getElementById("prayPendingList");
+        const pendingList = currentRoom.pending || [];
+        document.getElementById("txtPrayPendingCount").innerText = `${pendingList.length}명`;
+        if (pendingList.length === 0) {
+            pendingContainer.innerHTML = `<div style="font-size:11.5px; color:#94a3b8; text-align:center; padding:4px 0;">대기 신청이 없습니다.</div>`;
+        } else {
+            pendingContainer.innerHTML = pendingList.map(name => `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 8px; border-radius:6px;">
+                    <span style="font-size:12px; color:#facc15;">📩 ${name}</span>
+                    <button type="button" style="background:#0284c7; color:white; border:none; padding:3px 8px; border-radius:4px; font-size:10.5px; font-weight:900; cursor:pointer;" onclick="approvePendingInPrayRoom('${name}')">승인</button>
+                </div>
+            `).join("");
+        }
+
+        // 반원 명단
+        const memberContainer = document.getElementById("prayMemberList");
+        const memberList = currentRoom.members || [currentRoom.leader || getMyName()];
+        document.getElementById("txtPrayMemberCount").innerText = `${memberList.length}명`;
+        memberContainer.innerHTML = memberList.map(name => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 8px; border-radius:6px;">
+                <span style="font-size:12px; color:#e2e8f0;">👤 ${name} ${name === currentRoom.leader ? '👑(인도자)' : ''}</span>
+                ${name !== currentRoom.leader ? `
+                    <button type="button" style="background:#fee2e2; color:#dc2626; border:none; padding:3px 8px; border-radius:4px; font-size:10.5px; font-weight:900; cursor:pointer;" onclick="kickMemberInPrayRoom('${name}')">내보내기</button>
+                ` : '<span style="font-size:10.5px; color:#38bdf8;">방장</span>'}
+            </div>
+        `).join("");
+
         document.getElementById("leaderAdminModal").classList.add("open");
+    }
+
+    function approvePendingInPrayRoom(name) {
+        if (!currentRoom) return;
+        if (!currentRoom.members) currentRoom.members = [];
+        if (!currentRoom.members.includes(name)) currentRoom.members.push(name);
+        currentRoom.pending = (currentRoom.pending || []).filter(n => n !== name);
+        localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        msgs.push({
+            id: Date.now(), order: msgs.length + 1, name: "시스템",
+            body: `🎉 ${name} 성도님의 입장이 인도자에 의해 승인되었습니다. 환영합니다!`,
+            time: timeStr, hearts: 0, hands: 0
+        });
+        localStorage.setItem(getRoomChatKey(), JSON.stringify(msgs));
+        renderChatMessages();
+
+        openLeaderAdminModal();
+        showToast(`🎉 ${name} 성도님 입장을 승인했습니다!`);
+    }
+
+    function kickMemberInPrayRoom(name) {
+        if (!currentRoom) return;
+        if (!confirm(`'${name}' 성도를 기도방에서 내보내시겠습니까?`)) return;
+
+        currentRoom.members = (currentRoom.members || []).filter(n => n !== name);
+        localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        msgs.push({
+            id: Date.now(), order: msgs.length + 1, name: "시스템",
+            body: `[알림] ${name} 성도님이 인도자에 의해 내보내기 되었습니다.`,
+            time: timeStr, hearts: 0, hands: 0
+        });
+        localStorage.setItem(getRoomChatKey(), JSON.stringify(msgs));
+        renderChatMessages();
+
+        openLeaderAdminModal();
+        showToast(`'${name}' 성도를 내보냈습니다.`);
+    }
+
+    function sendLeaderNoticeInPrayRoom() {
+        if (!currentRoom) return;
+        const inp = document.getElementById("inpLeaderNotice");
+        const val = inp.value.trim();
+        if (!val) {
+            alert("알림 내용을 입력해주세요.");
+            return;
+        }
+
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        msgs.push({
+            id: Date.now(), order: msgs.length + 1, name: `📢 인도자(${currentRoom.leader || getMyName()}) 공지`,
+            body: val, time: timeStr, hearts: 5, hands: 5
+        });
+        localStorage.setItem(getRoomChatKey(), JSON.stringify(msgs));
+        renderChatMessages();
+
+        inp.value = "";
+        closeLeaderAdminModal();
+        showToast("📢 반원 전체 알림을 전송했습니다!");
     }
 
     function closeLeaderAdminModal() {

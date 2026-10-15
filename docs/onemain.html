@@ -1,0 +1,3733 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>예톡 1인 개인앱 - 나만의 스마트 홈</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-purple: #7c3aed;
+            --accent-violet: #a78bfa;
+            --safe-top: max(env(safe-area-inset-top, 0px) + 10px, 16px);
+            --header-h: calc(48px + var(--safe-top));
+            --nav-h: 44px;
+            --admob-h: 96px;
+            --safe-bottom: max(env(safe-area-inset-bottom, 0px), 14px);
+            --admob-total: calc(var(--admob-h) + var(--safe-bottom));
+            --view-h: calc(100dvh - var(--header-h) - var(--nav-h) - var(--admob-total));
+            --kakao-yellow: #FEE500;
+            --kakao-bg: #BACEE0;
+            --kakao-dark: #191919;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            width: 100%; height: 100%; background: #000000;
+            font-family: "Pretendard", -apple-system, sans-serif; color: #ffffff;
+            overflow: hidden;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            margin: 0; padding: 0;
+        }
+
+        .one-shell {
+            width: 100%; max-width: 480px; height: 100%; margin: 0 auto;
+            display: flex; flex-direction: column; position: relative; background: #0b0f19;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            overflow: hidden;
+        }
+
+        /* 1층 헤더 */
+        .one-fixed-header {
+            height: var(--header-h); background: #0f172a; border-bottom: 1.5px solid #1e293b;
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: var(--safe-top); padding-left: 12px; padding-right: 12px; padding-bottom: 8px;
+            flex-shrink: 0; z-index: 100;
+        }
+        .header-left-box { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+        .btn-header-back {
+            background: none; border: none; font-size: 24px; font-weight: 900;
+            color: #a78bfa; cursor: pointer; padding: 0 4px; line-height: 1; flex-shrink: 0;
+        }
+        .one-header-title {
+            font-size: 16.5px; font-weight: 950; color: #ffffff; letter-spacing: -0.3px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .header-right-box { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .btn-pay-quick {
+            background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff;
+            border: 1px solid #fde047; border-radius: 9px; font-size: 11.5px; font-weight: 950;
+            padding: 5px 9px; cursor: pointer; display: flex; align-items: center; gap: 2px;
+        }
+        .btn-yetalk-tv {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5); color: #ffffff;
+            border: 1px solid #a78bfa; border-radius: 9px; font-size: 11.5px; font-weight: 900;
+            padding: 5px 9px; cursor: pointer; display: flex; align-items: center; gap: 2px;
+        }
+
+        /* 2층 가로 메뉴 칩 바 */
+        .one-nav-bar {
+            height: var(--nav-h); background: #0f172a; border-bottom: 1px solid #1e293b;
+            display: flex; gap: 6px; overflow-x: auto; white-space: nowrap;
+            padding: 0 10px; align-items: center; flex-shrink: 0; z-index: 99;
+            scrollbar-width: none;
+        }
+        .one-nav-bar::-webkit-scrollbar { display: none; }
+        .one-nav-chip {
+            background: #1e293b; border: 1px solid #334155; color: #94a3b8;
+            font-size: 12.5px; font-weight: 850; padding: 5px 12px; border-radius: 14px;
+            cursor: pointer; flex-shrink: 0; transition: all 0.15s;
+        }
+        .one-nav-chip.active {
+            background: #7c3aed; color: #ffffff; border-color: #a78bfa; font-weight: 950;
+            box-shadow: 0 2px 6px rgba(124, 58, 237, 0.4);
+        }
+        .one-nav-chip.chip-pay {
+            background: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #fde047; font-weight: 900;
+        }
+
+        /* 3층 메인 콘텐츠 영역 (독립 탭별 페이지 컨테이너) */
+        .one-content-host {
+            width: 100%; height: var(--view-h); position: relative; overflow: hidden;
+            flex: 1; background: #0b0f19;
+        }
+
+        .one-tab-page-container {
+            display: none; width: 100%; height: 100%; overflow-y: scroll;
+            scroll-snap-type: y mandatory; scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; position: relative;
+        }
+        .one-tab-page-container.active { display: block; }
+        .one-tab-page-container::-webkit-scrollbar { display: none; }
+
+        /* 세로 페이지 단위 */
+        .one-v-page {
+            width: 100%; height: var(--view-h); min-height: var(--view-h);
+            scroll-snap-align: start; scroll-snap-stop: always;
+            position: relative; display: flex; flex-direction: column;
+            justify-content: space-between; overflow: hidden;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        /* 풀 이미지 배경 */
+        .v-page-bg-img {
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;
+            filter: brightness(0.9) contrast(1.03); z-index: 1;
+        }
+        .v-page-gradient-overlay {
+            position: absolute; inset: 0; z-index: 2;
+            background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 35%, rgba(0,0,0,0.85) 100%);
+            pointer-events: none;
+        }
+
+        /* 상단 카테고리 뱃지 */
+        .v-page-header-tag {
+            position: absolute; top: 12px; left: 14px; z-index: 10;
+            background: rgba(15, 23, 42, 0.88); border: 1.2px solid #a78bfa;
+            color: #ffffff; font-size: 11.5px; font-weight: 950;
+            padding: 4px 10px; border-radius: 12px; backdrop-filter: blur(4px);
+            letter-spacing: -0.2px;
+        }
+
+        /* 🌟 [사용자 요청 2번] 상단 헤더 대신 가로메뉴 바로 밑 우측에 눈에 잘 띄게 배치된 수정 모드 토글 버튼 */
+        .card-top-right-bar {
+            position: absolute; top: 12px; right: 14px; z-index: 25;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .btn-card-mode-toggle {
+            background: rgba(15, 23, 42, 0.9); border: 1.5px solid #a78bfa;
+            color: #ffffff; font-size: 12px; font-weight: 950; padding: 4px 10px;
+            border-radius: 14px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            display: inline-flex; align-items: center; gap: 3px; transition: all 0.2s;
+        }
+        .btn-card-mode-toggle.active {
+            background: #dc2626; border-color: #f87171; color: #ffffff;
+            box-shadow: 0 0 12px rgba(220, 38, 38, 0.7);
+        }
+        .v-page-indicator-tag {
+            background: rgba(15, 23, 42, 0.85); border: 1px solid #334155;
+            color: #fde047; font-size: 11px; font-weight: 900;
+            padding: 4px 9px; border-radius: 12px;
+        }
+
+        /* 하단 캡션 바 (심플 글 텍스트) - 화살표 제거로 좌우 균형 14px */
+        .v-page-caption-bar {
+            position: absolute; bottom: 14px; left: 14px; right: 14px; z-index: 10;
+            background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 14px;
+            padding: 10px 14px; display: flex; flex-direction: column; gap: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+        }
+        .v-caption-text {
+            font-size: 13.5px; font-weight: 850; color: #ffffff; line-height: 1.5;
+            word-break: keep-all; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* 수정 및 편집 오버레이 컨트롤 바 */
+        .edit-controls-bar {
+            display: flex; position: absolute; top: 48px; left: 14px; z-index: 30;
+            gap: 6px; align-items: center; flex-wrap: wrap;
+        }
+        .btn-edit-action {
+            background: rgba(15, 23, 42, 0.95); border: 1.5px solid #38bdf8;
+            color: #38bdf8; font-size: 11.5px; font-weight: 950; padding: 5px 10px;
+            border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        }
+        .btn-edit-action.btn-del-page { border-color: #ef4444; color: #ef4444; }
+
+        /* 🌟 [사용자 요청] 상단 한 줄 정렬 액션 바 & 공개/비공개 뱃지 버튼 */
+        .card-single-action-bar {
+            position: absolute; top: 12px; left: 14px; right: 14px; z-index: 25;
+            display: flex; align-items: center; justify-content: space-between; gap: 6px;
+        }
+        .btn-action-pill {
+            background: rgba(15, 23, 42, 0.92); border: 1.5px solid #a78bfa;
+            color: #ffffff; font-size: 11.5px; font-weight: 950; padding: 5px 9px;
+            border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            transition: all 0.15s;
+        }
+        .btn-action-pill:active { transform: scale(0.95); }
+        .btn-action-pill.active {
+            background: #dc2626; border-color: #f87171; color: #ffffff;
+            box-shadow: 0 0 10px rgba(220, 38, 38, 0.7);
+        }
+        .btn-action-pill.btn-pill-del {
+            border-color: #ef4444; color: #f87171;
+        }
+        .btn-privacy-pill {
+            background: rgba(15, 23, 42, 0.92); border: 1.5px solid #38bdf8;
+            color: #38bdf8; font-size: 11.5px; font-weight: 950; padding: 5px 10px;
+            border-radius: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            transition: all 0.15s;
+        }
+        .btn-privacy-pill:active { transform: scale(0.95); }
+
+        /* 🌟 [사용자 요청] 페이지 블록 바로 밑에 추가하기 + 점선 버튼 */
+        .btn-card-add-below {
+            width: 100%; margin: 8px 0 0 0; height: 42px;
+            background: rgba(124, 58, 237, 0.22); border: 1.5px dashed #a78bfa;
+            border-radius: 12px; color: #c4b5fd; font-size: 13.5px; font-weight: 950;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: all 0.15s; pointer-events: auto; z-index: 25; flex-shrink: 0;
+        }
+        .btn-card-add-below:active { background: rgba(124, 58, 237, 0.4); transform: scale(0.98); }
+
+        /* 🌟 [사용자 요청] 각 메뉴 끝 페이지: 좋은 글귀(2줄 이내, 큰 글씨) + 250 애드몹 + 다음 메뉴 자연 이동 */
+        .ending-snap-card {
+            width: 100%; height: var(--view-h); min-height: var(--view-h);
+            scroll-snap-align: start; scroll-snap-stop: always;
+            background: linear-gradient(180deg, #090d16 0%, #0d1628 50%, #090d16 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 16px 14px; text-align: center; gap: 12px; position: relative;
+            border-bottom: 1px solid #1e293b;
+        }
+        .ending-quote-box {
+            width: 100%; max-width: 330px;
+            background: rgba(15, 23, 42, 0.88); border: 1.5px solid #facc15;
+            border-radius: 14px; padding: 14px 16px;
+            box-shadow: 0 4px 18px rgba(250, 204, 21, 0.18); backdrop-filter: blur(8px);
+        }
+        .ending-quote-tag {
+            font-size: 11px; font-weight: 900; color: #facc15;
+            background: rgba(250, 204, 21, 0.15); padding: 3px 8px; border-radius: 8px;
+            display: inline-block; margin-bottom: 6px;
+        }
+        .ending-quote-text {
+            font-size: 16px; font-weight: 900; color: #fef08a; line-height: 1.45;
+            word-break: keep-all; font-family: 'Nanum Myeongjo', 'Pretendard', serif;
+        }
+        .ending-admob-250 {
+            width: 300px; height: 230px; max-height: 250px;
+            background: #080d1a; border: 1.5px dashed #38bdf8;
+            border-radius: 14px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 6px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+        }
+        .btn-jump-next-section {
+            width: 100%; max-width: 320px; height: 46px;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            border: 1.5px solid #a78bfa; border-radius: 14px;
+            color: #ffffff; font-size: 14px; font-weight: 950;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 8px;
+            box-shadow: 0 4px 16px rgba(124, 58, 237, 0.45);
+            transition: all 0.15s; margin-top: 4px;
+        }
+        .btn-jump-next-section:active {
+            transform: scale(0.97);
+            background: linear-gradient(135deg, #6d28d9, #4338ca);
+        }
+
+        /* 🌟 [사용자 요청] 실시간 방송 모드: 숏폼 풀 영상 + 하단 최밀착 바 + 댓글 입력 시 영상 보존 */
+        #sec_live {
+            position: relative;
+            background: #000000;
+            height: var(--view-h) !important;
+            max-height: var(--view-h) !important;
+            overflow: hidden !important;
+            display: none;
+            flex-direction: column;
+        }
+        #sec_live.active {
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        /* 1. 비디오 박스 (기본: 화면 전체를 꽉 채우는 숏폼 컨테이너) */
+        .live-video-box {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            background: #000000;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: height 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* 댓글 패널 열렸을 때 (댓글 열람 모드): 상단 190px 영상 유지 */
+        #sec_live.comments-open .live-video-box {
+            height: 190px !important;
+            min-height: 190px !important;
+            max-height: 190px !important;
+            flex: none !important;
+        }
+
+        /* 🌟 [사용자 요청] 댓글 작성 중 (키보드 팝업 시): 영상 가림 완전 방지 (영상 + 입력창만 표시) */
+        #sec_live.comments-open.is-typing-comment .live-video-box {
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            flex: 1 !important;
+        }
+
+        /* 유튜브 iframe 호스트 */
+        .live-yt-player-host {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .live-yt-player-host iframe {
+            border: none;
+            transform-origin: center center;
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        /* 고정 공지 플로팅 칩 (화면 좌상단) */
+        .live-pinned-floating-pill {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            z-index: 25;
+            background: rgba(2, 132, 199, 0.88);
+            border: 1px solid #38bdf8;
+            padding: 5px 12px;
+            border-radius: 14px;
+            font-size: 11.5px;
+            font-weight: 900;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            max-width: calc(100% - 28px);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 🌟 하단 최밀착 오버레이 바 (최하단 애드몹 100 바로 위에 붙여서 배치) */
+        .live-bottom-dock-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            padding: 8px 12px 10px 12px;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 35%, rgba(0,0,0,0.95) 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+        #sec_live.comments-open .live-bottom-dock-overlay {
+            display: none !important;
+        }
+        .live-bottom-dock-overlay * {
+            pointer-events: auto;
+        }
+
+        /* 투명 한줄 댓글창 */
+        .live-translucent-comment-bar {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.2px solid rgba(255, 255, 255, 0.28);
+            border-radius: 22px;
+            padding: 7px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+            transition: background 0.15s;
+        }
+        .live-translucent-comment-bar:active {
+            background: rgba(15, 23, 42, 0.85);
+        }
+        .live-comment-bubble-icon { font-size: 15px; }
+        .live-fake-comment-placeholder {
+            flex: 1;
+            font-size: 13.5px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 750;
+        }
+        .btn-live-comment-badge {
+            background: #0284c7;
+            color: #ffffff;
+            border: none;
+            border-radius: 14px;
+            padding: 4px 10px;
+            font-size: 11.5px;
+            font-weight: 900;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        /* LIVE, 확대, 고정, 방송주소 컨트롤 바 */
+        .live-video-dock-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .live-status-pill {
+            background: rgba(220, 38, 38, 0.9);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 950;
+            padding: 4px 9px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.6);
+        }
+        .live-pulse {
+            animation: livePulseAnim 1.4s infinite;
+            display: inline-block;
+        }
+        @keyframes livePulseAnim {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.35; transform: scale(0.85); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .btn-live-pill {
+            background: rgba(15, 23, 42, 0.85);
+            border: 1.2px solid rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+            font-size: 11.5px;
+            font-weight: 900;
+            padding: 4px 9px;
+            border-radius: 12px;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            transition: transform 0.15s, border-color 0.15s;
+        }
+        .btn-live-pill:active { transform: scale(0.95); }
+        .btn-live-pill.active {
+            border-color: #facc15;
+            color: #facc15;
+            background: rgba(234, 179, 8, 0.25);
+        }
+        .btn-live-pill.btn-live-url {
+            border-color: #38bdf8;
+            color: #38bdf8;
+        }
+
+        /* 2. 댓글창 패널 */
+        .live-comments-panel {
+            display: none;
+        }
+        #sec_live.comments-open .live-comments-panel {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            background: #0f172a;
+            border-top: 1.5px solid #334155;
+            overflow: hidden;
+            z-index: 30;
+        }
+
+        /* 🌟 [사용자 요청] 댓글 작성 중(입력창 포커스) 영상 가림 방지: 헤더/공지/목록 숨김 */
+        #sec_live.comments-open.is-typing-comment .live-panel-header,
+        #sec_live.comments-open.is-typing-comment .live-drawer-pinned-box,
+        #sec_live.comments-open.is-typing-comment .live-drawer-comments-list {
+            display: none !important;
+        }
+        #sec_live.comments-open.is-typing-comment .live-comments-panel {
+            flex: none !important;
+            height: auto !important;
+        }
+
+        .live-panel-header {
+            height: 42px;
+            padding: 0 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            flex-shrink: 0;
+            background: #131d31;
+        }
+        .live-panel-title {
+            font-size: 14.5px;
+            font-weight: 950;
+            color: #ffffff;
+        }
+        .live-panel-count-badge {
+            font-size: 12.5px;
+            font-weight: 900;
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.15);
+            padding: 2px 7px;
+            border-radius: 10px;
+        }
+        .btn-live-panel-close {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 950;
+            border-radius: 14px;
+            padding: 6px 14px;
+            cursor: pointer;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-live-panel-close:active {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* 고정 공지 댓글 박스 */
+        .live-drawer-pinned-box {
+            margin: 8px 12px 4px 12px;
+            padding: 9px 12px;
+            background: rgba(30, 41, 59, 0.7);
+            border-radius: 12px;
+            border: 1px solid #38bdf8;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .pinned-user-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 800;
+            margin-bottom: 3px;
+        }
+        .pinned-tag-icon { font-size: 12px; color: #38bdf8; }
+        .pinned-body-text {
+            font-size: 13px;
+            font-weight: 800;
+            color: #f8fafc;
+            line-height: 1.45;
+            margin: 0;
+            word-break: break-all;
+        }
+
+        /* 댓글 목록 스크롤 */
+        .live-drawer-comments-list {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 8px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .live-drawer-comment-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .live-comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1e293b;
+            border: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .live-comment-content { flex: 1; min-width: 0; }
+        .live-comment-author-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+        .live-comment-author-name {
+            font-size: 12px;
+            font-weight: 900;
+            color: #e2e8f0;
+        }
+        .live-comment-time { font-size: 10.5px; color: #64748b; }
+        .live-comment-body-text {
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.45;
+            word-break: break-all;
+        }
+
+        /* 하단 댓글 입력창 */
+        .live-panel-input-row {
+            padding: 8px 12px;
+            background: #0f172a;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .btn-live-input-list-toggle {
+            height: 38px;
+            padding: 0 12px;
+            background: #334155;
+            border: 1px solid #475569;
+            border-radius: 19px;
+            color: #38bdf8;
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .live-drawer-input {
+            flex: 1;
+            height: 40px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 20px;
+            padding: 0 16px;
+            color: #ffffff;
+            font-size: 13.5px;
+            outline: none;
+            font-family: inherit;
+        }
+        .live-drawer-input:focus { border-color: #38bdf8; }
+        .btn-live-drawer-send {
+            height: 40px;
+            padding: 0 16px;
+            background: #0284c7;
+            border: none;
+            border-radius: 20px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 950;
+            cursor: pointer;
+        }
+
+        /* 1번 탭 (나의 QR) */
+        .qr-card-center {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 15; background: #ffffff; padding: 20px 18px; border-radius: 20px;
+            border: 3.5px solid #a78bfa; box-shadow: 0 10px 35px rgba(0,0,0,0.85);
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            text-align: center; max-width: 280px; width: 85%;
+        }
+        .qr-image-display { width: 190px; height: 190px; object-fit: contain; border-radius: 8px; }
+        .qr-card-title { font-size: 15px; font-weight: 950; color: #1e1b4b; }
+        .qr-scan-guide { font-size: 12px; font-weight: 900; color: #7c3aed; }
+        .qr-phone-link {
+            background: #0284c7; color: #ffffff; text-decoration: none;
+            font-size: 12px; font-weight: 900; padding: 6px 14px; border-radius: 12px;
+            display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 2px 6px rgba(2,132,199,0.4);
+        }
+
+        /* 1번 탭 2페이지 (당신을 초청해) */
+        .invite-card-box {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 15; background: linear-gradient(145deg, #162238, #0f172a);
+            border: 2px solid #a78bfa; border-radius: 22px; padding: 24px 20px;
+            width: 88%; max-width: 360px; box-shadow: 0 12px 40px rgba(0,0,0,0.85);
+            display: flex; flex-direction: column; gap: 14px; text-align: center;
+        }
+        .invite-header-title {
+            font-size: 19px; font-weight: 950; color: #fde047;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .invite-message-body {
+            font-size: 14px; line-height: 1.7; color: #e2e8f0; word-break: keep-all;
+            white-space: pre-line; background: rgba(0,0,0,0.3); padding: 14px 12px;
+            border-radius: 12px; border: 1px dashed rgba(167, 139, 250, 0.4);
+            font-family: 'Nanum Myeongjo', serif;
+        }
+        .invite-btn-row { display: flex; gap: 8px; }
+        .btn-invite-copy {
+            flex: 1; height: 44px; background: #7c3aed; color: #ffffff;
+            border: none; border-radius: 12px; font-size: 13px; font-weight: 950;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
+        }
+        .btn-invite-kakao {
+            flex: 1; height: 44px; background: var(--kakao-yellow); color: var(--kakao-dark);
+            border: none; border-radius: 12px; font-size: 13px; font-weight: 950;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px;
+        }
+
+        /* 3번 탭 (오늘 하루 달력 & 일정) */
+        .calendar-card-wrap {
+            width: 100%; height: 100%; overflow-y: auto; padding: 14px;
+            display: flex; flex-direction: column; gap: 12px; z-index: 10;
+            background: #0f172a;
+        }
+        .calendar-header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #1e293b; padding: 10px 14px; border-radius: 14px;
+            border: 1px solid #334155;
+        }
+        .cal-nav-btn {
+            background: #334155; border: none; color: #ffffff; font-size: 15px;
+            font-weight: 900; width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+        }
+        .cal-month-title { font-size: 16px; font-weight: 950; color: #fde047; }
+        .cal-today-btn {
+            background: #7c3aed; border: none; color: white; font-size: 11px;
+            font-weight: 900; padding: 4px 8px; border-radius: 6px; cursor: pointer;
+        }
+
+        .calendar-grid-table {
+            width: 100%; background: #162238; border-radius: 14px;
+            border: 1px solid #334155; padding: 10px; border-collapse: collapse;
+        }
+        .cal-week-row { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; margin-bottom: 6px; }
+        .cal-week-cell { font-size: 12px; font-weight: 900; color: #94a3b8; padding: 4px 0; }
+        .cal-week-cell.sun { color: #f87171; }
+        .cal-week-cell.sat { color: #60a5fa; }
+
+        .cal-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .cal-day-cell {
+            aspect-ratio: 1; border-radius: 10px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; font-size: 13px; font-weight: 850;
+            cursor: pointer; background: #0f172a; color: #e2e8f0; position: relative;
+            border: 1px solid transparent; transition: all 0.15s;
+        }
+        .cal-day-cell.other-month { opacity: 0.3; }
+        .cal-day-cell.today { border-color: #a78bfa; font-weight: 950; }
+        .cal-day-cell.selected { background: #7c3aed; color: #ffffff; border-color: #fde047; font-weight: 950; }
+        .cal-day-dot {
+            width: 5px; height: 5px; border-radius: 50%; background: #fde047;
+            position: absolute; bottom: 3px;
+        }
+
+        /* 달력 하단 빠른 등록 박스 */
+        .cal-quick-add-box {
+            background: #1e293b; border: 1.2px solid #334155; border-radius: 14px;
+            padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+        }
+        .cal-selected-date-info {
+            font-size: 13.5px; font-weight: 950; color: #fde047;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .cal-input-row { display: flex; gap: 6px; }
+        .cal-time-input {
+            width: 82px; height: 38px; background: #0f172a; border: 1.2px solid #334155;
+            border-radius: 8px; color: #fff; font-size: 13px; font-weight: 850; padding: 0 6px;
+            outline: none; text-align: center;
+        }
+        .cal-text-input {
+            flex: 1; height: 38px; background: #0f172a; border: 1.2px solid #334155;
+            border-radius: 8px; color: #fff; font-size: 13px; font-weight: 700; padding: 0 10px;
+            outline: none;
+        }
+        .btn-cal-add {
+            height: 38px; padding: 0 12px; background: #7c3aed; border: none;
+            border-radius: 8px; color: white; font-size: 12.5px; font-weight: 950; cursor: pointer;
+            white-space: nowrap;
+        }
+
+        /* 3번 탭 2페이지: 일정 상세 목록 */
+        .timeline-page-wrap {
+            width: 100%; height: 100%; overflow-y: auto; padding: 14px;
+            background: #0f172a; display: flex; flex-direction: column; gap: 10px; z-index: 10;
+        }
+        .timeline-header-card {
+            background: #1e293b; border: 1.2px solid #334155; border-radius: 14px;
+            padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .timeline-item-card {
+            background: #162238; border: 1.2px solid #334155; border-radius: 12px;
+            padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        }
+        .timeline-time-badge {
+            background: rgba(124, 58, 237, 0.25); border: 1px solid #a78bfa; color: #c4b5fd;
+            font-size: 12px; font-weight: 900; padding: 4px 8px; border-radius: 8px; white-space: nowrap;
+        }
+        .timeline-text { flex: 1; font-size: 13.5px; font-weight: 750; color: #ffffff; word-break: keep-all; }
+        .btn-del-timeline {
+            background: none; border: none; color: #ef4444; font-size: 16px; font-weight: 900;
+            cursor: pointer; padding: 4px 6px;
+        }
+
+        /* 🌟 [사용자 요청 4번, 5번] 김예톡의 앱친구 (가상 인물, 즐겨찾기 상단, 최신 대화 정렬) */
+        .kakao-friends-wrap {
+            width: 100%; height: 100%; background: #ffffff; color: #191919;
+            display: flex; flex-direction: column; overflow-y: auto; z-index: 10;
+        }
+        .kf-top-header {
+            padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #f0f0f0; background: #ffffff;
+        }
+        .kf-top-title { font-size: 17.5px; font-weight: 950; color: #191919; }
+        .kf-top-actions { display: flex; gap: 12px; align-items: center; font-size: 18px; color: #333333; }
+
+        .kf-profile-my {
+            padding: 12px 16px; display: flex; align-items: center; gap: 12px;
+            border-bottom: 1px solid #f2f2f2;
+        }
+        .kf-avatar-lg {
+            width: 50px; height: 50px; border-radius: 20px; object-fit: cover;
+            border: 1px solid #e5e5e5; flex-shrink: 0;
+        }
+        .kf-my-name { font-size: 15px; font-weight: 900; color: #191919; }
+        .kf-my-status { font-size: 12px; color: #767676; margin-top: 2px; }
+
+        .kf-section-title {
+            padding: 8px 16px 4px 16px; font-size: 11px; font-weight: 850; color: #6b7280;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .kf-friends-list { display: flex; flex-direction: column; padding-bottom: 30px; }
+        .kf-friend-row {
+            padding: 10px 16px; display: flex; align-items: center; gap: 12px;
+            cursor: pointer; transition: background 0.15s; border-bottom: 0.5px solid #fafafa;
+        }
+        .kf-friend-row:active { background: #f5f5f5; }
+        .kf-avatar-md {
+            width: 44px; height: 44px; border-radius: 17px; object-fit: cover;
+            border: 1px solid #e8e8e8; flex-shrink: 0;
+        }
+        .kf-friend-info { flex: 1; min-width: 0; }
+        .kf-friend-name-row { display: flex; align-items: center; gap: 5px; }
+        .kf-friend-name {
+            font-size: 14.5px; font-weight: 850; color: #191919;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .kf-fav-star { font-size: 12px; color: #f59e0b; }
+        .kf-friend-status {
+            font-size: 12px; color: #767676; margin-top: 2px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .kf-unread-badge {
+            background: #ff3b30; color: #ffffff; font-size: 11px; font-weight: 900;
+            padding: 2px 7px; border-radius: 10px; min-width: 18px; text-align: center;
+        }
+
+        /* 🌟 [사용자 요청 6번] 1:1 대화방 전체 화면 확대 (상단 메뉴 싹 숨김, 하단 애드몹만 유지, 일반 전화 연결) */
+        body.is-chat-open .one-fixed-header,
+        body.is-chat-open .one-nav-bar {
+            display: none !important;
+        }
+        .kakao-chat-view {
+            display: none; position: fixed; top: 0; left: 0; right: 0;
+            bottom: var(--admob-total); background: var(--kakao-bg);
+            flex-direction: column; z-index: 20000; max-width: 480px; margin: 0 auto;
+        }
+        .kakao-chat-view.open { display: flex; }
+        .kc-top-nav {
+            height: calc(50px + var(--safe-top)); background: var(--kakao-bg); display: flex;
+            align-items: center; justify-content: space-between; padding-left: 10px; padding-right: 14px;
+            padding-top: var(--safe-top); border-bottom: 0.5px solid rgba(0,0,0,0.08); flex-shrink: 0;
+        }
+        .kc-back-btn {
+            background: none; border: none; font-size: 26px; font-weight: 900;
+            color: #191919; cursor: pointer; padding: 4px 8px; line-height: 1;
+        }
+        .kc-header-title { font-size: 16px; font-weight: 950; color: #191919; }
+        .kc-header-tools { display: flex; gap: 14px; align-items: center; }
+        .kc-btn-call {
+            background: none; border: none; font-size: 20px; color: #1e293b;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+
+        .kc-messages-scroll {
+            flex: 1; overflow-y: auto; padding: 12px; display: flex;
+            flex-direction: column; gap: 10px;
+        }
+        .kc-date-pill {
+            align-self: center; background: rgba(0,0,0,0.18); color: #ffffff;
+            font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 14px;
+            margin: 4px 0;
+        }
+
+        /* 메시지 버블 */
+        .kc-msg-row { display: flex; gap: 8px; max-width: 82%; }
+        .kc-msg-row.friend { align-self: flex-start; }
+        .kc-msg-row.my { align-self: flex-end; flex-direction: row-reverse; }
+
+        .kc-friend-avatar {
+            width: 38px; height: 38px; border-radius: 14px; object-fit: cover; flex-shrink: 0;
+        }
+        .kc-friend-content { display: flex; flex-direction: column; gap: 3px; }
+        .kc-friend-sender-name { font-size: 13px; color: #334155; font-weight: 800; }
+
+        .kc-bubble-wrap { display: flex; align-items: flex-end; gap: 5px; }
+        .kc-msg-row.my .kc-bubble-wrap { flex-direction: row-reverse; }
+
+        .kc-bubble {
+            padding: 10px 14px; border-radius: 16px; font-size: 15.5px;
+            line-height: 1.5; word-break: break-word; color: #000000;
+            font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+            position: relative; cursor: pointer; user-select: text;
+            -webkit-user-select: text;
+        }
+        .kc-bubble:active { filter: brightness(0.96); }
+        .kc-msg-row.friend .kc-bubble {
+            background: #ffffff; border-top-left-radius: 2px;
+        }
+        .kc-msg-row.my .kc-bubble {
+            background: var(--kakao-yellow); border-top-right-radius: 2px;
+        }
+
+        .kc-time { font-size: 11px; color: rgba(0,0,0,0.55); white-space: nowrap; margin-bottom: 2px; font-weight: 600; }
+
+        .kc-chat-photo-img {
+            max-width: 230px; max-height: 280px; border-radius: 12px;
+            display: block; object-fit: cover; cursor: pointer;
+        }
+        .btn-chat-action-row {
+            width: 100%; height: 44px; background: #1e293b;
+            border: 1px solid #334155; border-radius: 12px;
+            color: #ffffff; font-size: 14.5px; font-weight: 850;
+            cursor: pointer; display: flex; align-items: center;
+            justify-content: center; gap: 8px; transition: background 0.15s;
+        }
+        .btn-chat-action-row:active { background: #334155; }
+
+        /* 하단 입력창 */
+        .kc-input-bar {
+            padding: 8px 10px; background: #ffffff; border-top: 1px solid #e0e0e0;
+            display: flex; gap: 8px; align-items: center; flex-shrink: 0;
+        }
+        .kc-btn-plus {
+            width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #cbd5e1;
+            background: #f1f5f9; font-size: 22px; color: #475569; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-weight: 900;
+        }
+        .kc-btn-plus:active { background: #e2e8f0; }
+        .kc-text-input {
+            flex: 1; height: 42px; border: 1.2px solid #cbd5e1; border-radius: 21px;
+            padding: 0 16px; font-size: 15px; outline: none; background: #f8f8f8;
+            font-family: inherit; color: #191919;
+        }
+        .kc-text-input:focus { border-color: #facc15; background: #ffffff; }
+        .kc-btn-send {
+            height: 42px; padding: 0 18px; background: var(--kakao-yellow);
+            border: 1px solid #e5ce00; border-radius: 21px; font-size: 14.5px;
+            font-weight: 950; color: #191919; cursor: pointer;
+        }
+
+        /* 4층 최하단 고정 애드몹 (300 × 100) */
+        .bottom-fixed-admob-footer {
+            height: var(--admob-total); background: #080d1a; border-top: 1.5px solid #1e3a5f;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding-top: 6px; padding-bottom: var(--safe-bottom); flex-shrink: 0; z-index: 100;
+        }
+        .admob-safety-bar {
+            font-size: 9.5px; color: #64748b; font-weight: 850; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 4px; margin-bottom: 2px;
+        }
+        .admob-display-slot {
+            width: calc(100% - 20px); max-width: 400px; height: 72px;
+            background: #0b1326; border: 1.2px solid #1e293b; border-radius: 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8); gap: 2px;
+        }
+
+        /* 🌟 [사용자 요청 1번] 아주 크고 시원한 사진 추가/교체 및 넉넉한 글 작성 모달 */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+            z-index: 25000; align-items: center; justify-content: center; padding: 14px;
+            backdrop-filter: blur(6px);
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-card {
+            width: 100%; max-width: 430px; background: #0f172a;
+            border: 2px solid #a78bfa; border-radius: 20px; padding: 18px 16px;
+            color: #ffffff; display: flex; flex-direction: column; gap: 12px;
+            text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1.5px solid #334155; padding-bottom: 8px;
+        }
+
+        /* 대형 사진 & 글 편집 모달 전용 스타일 */
+        .edit-large-photo-box {
+            width: 100%; height: 240px; border-radius: 14px; overflow: hidden;
+            position: relative; border: 2px dashed #475569; background: #162238;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .edit-large-photo-img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .btn-upload-overlay {
+            position: absolute; bottom: 12px; background: rgba(15, 23, 42, 0.92);
+            border: 1.5px solid #38bdf8; color: #38bdf8; font-size: 13px; font-weight: 950;
+            padding: 8px 16px; border-radius: 20px; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6); display: flex; align-items: center; gap: 4px;
+        }
+        .m-textarea-large {
+            width: 100%; min-height: 120px; background: #162238; border: 1.5px solid #334155;
+            border-radius: 10px; padding: 12px 14px; color: white; font-size: 14.5px; outline: none;
+            resize: vertical; font-family: inherit; line-height: 1.55;
+        }
+        .btn-save-large {
+            flex: 1; height: 46px; background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: #ffffff; font-size: 14.5px; font-weight: 950; border: none;
+            border-radius: 12px; cursor: pointer; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+        }
+        .btn-del-large {
+            height: 46px; padding: 0 16px; background: rgba(220, 38, 38, 0.15);
+            border: 1.5px solid #ef4444; color: #ef4444; font-size: 13.5px; font-weight: 900;
+            border-radius: 12px; cursor: pointer;
+        }
+
+        .m-label { font-size: 12px; font-weight: 900; color: #facc15; display: block; margin-bottom: 3px; }
+        .m-input {
+            width: 100%; background: #162238; border: 1.5px solid #334155; border-radius: 8px;
+            padding: 9px 12px; color: white; font-size: 13.5px; outline: none; font-family: inherit;
+        }
+        .m-select {
+            width: 100%; background: #162238; border: 1.5px solid #334155; border-radius: 8px;
+            padding: 9px 12px; color: white; font-size: 13.5px; outline: none; font-family: inherit;
+        }
+
+        .bank-vertical-scroll-list {
+            display: flex; flex-direction: column; gap: 6px; max-height: 150px;
+            overflow-y: auto; background: #111a2e; border: 1.5px solid #334155;
+            border-radius: 8px; padding: 6px; margin-top: 4px;
+        }
+        .bank-item-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 12px; border-radius: 6px; background: #162238; cursor: pointer;
+            font-size: 13px; font-weight: 850; color: #e2e8f0; border: 1px solid transparent;
+        }
+        .bank-item-row.active { background: #2563eb; color: #ffffff; border-color: #60a5fa; }
+
+        .quick-amount-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px; }
+        .btn-amt-chip {
+            background: #162238; border: 1px solid #334155; border-radius: 8px; padding: 7px 2px;
+            font-size: 12px; font-weight: 850; color: #38bdf8; cursor: pointer; text-align: center;
+        }
+
+        .yetalk-toast {
+            position: fixed; bottom: calc(var(--admob-total) + 15px); left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.96); border: 1.5px solid #a78bfa; color: #fde047;
+            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 900;
+            z-index: 30000; opacity: 0; visibility: hidden; transition: all 0.25s ease; white-space: nowrap;
+        }
+        .yetalk-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="one-shell">
+
+    <!-- 1층 헤더 -->
+    <header class="one-fixed-header">
+        <div class="header-left-box">
+            <button type="button" class="btn-header-back" onclick="location.href='index.html'" title="홈으로 이동">‹</button>
+            <div class="one-header-title" id="topOneTitle">김예톡의 예톡홈</div>
+        </div>
+        <div class="header-right-box">
+            <button type="button" class="btn-pay-quick" onclick="openPaymentModal()"><span>💳</span> 결제</button>
+            <button type="button" class="btn-yetalk-tv" onclick="location.href='index.html'"><span>📺</span> TV</button>
+        </div>
+    </header>
+
+    <!-- 2층 가로 메뉴 칩 바 -->
+    <nav class="one-nav-bar" id="oneNavBar">
+        <button type="button" class="one-nav-chip active" id="chip_qr" onclick="switchSection('qr')">1. 나의 QR</button>
+        <button type="button" class="one-nav-chip" id="chip_photo" onclick="switchSection('photo')">2. 내 모습</button>
+        <button type="button" class="one-nav-chip chip-live" id="chip_live" onclick="switchSection('live')"><span class="live-pulse" style="color:#ef4444;">🔴</span> 실시간 방송</button>
+        <button type="button" class="one-nav-chip" id="chip_calendar" onclick="switchSection('calendar')">3. 하루 일정</button>
+        <button type="button" class="one-nav-chip" id="chip_friends" onclick="switchSection('friends')">4. 예톡 단골·친구 <span id="badgeDangolCountChip" style="background:#ef4444; color:#fff; font-size:10px; font-weight:900; padding:1px 6px; border-radius:10px; margin-left:2px; display:inline-block;">2</span></button>
+        <button type="button" class="one-nav-chip" id="chip_notice" onclick="switchSection('notice')">5. 공지알림 <span id="badgeNoticeCountChip" style="background:#0284c7; color:#fff; font-size:10px; font-weight:900; padding:1px 6px; border-radius:10px; margin-left:2px; display:inline-block;">3</span></button>
+        <button type="button" class="one-nav-chip" id="chip_biz" onclick="switchSection('biz')">6. 나의 비즈니스</button>
+        <button type="button" class="one-nav-chip chip-pay" id="chip_pay" onclick="switchSection('pay')">7. 예톡결제 💳</button>
+    </nav>
+
+    <!-- 3층 독립 탭별 세로 스크롤 컨테이너 -->
+    <main class="one-content-host">
+        
+        <!-- 🌟 1. 나의 QR 섹션 -->
+        <div class="one-tab-page-container active" id="sec_qr">
+            <!-- 페이지 1: 내 QR -->
+            <section class="one-v-page" id="page_qr_1">
+                <img class="v-page-bg-img" src="https://images.unsplash.com/photo-1557683316-973673baf926?w=800&auto=format&fit=crop&q=80" alt="배경">
+                <div class="v-page-gradient-overlay"></div>
+                
+                <div class="card-single-action-bar">
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button type="button" class="btn-action-pill" onclick="openQrPhoneModal()">📞 전화번호 설정</button>
+                        <button type="button" class="btn-action-pill" id="btnToggleQrPhoneVis" onclick="toggleQrPhoneVisibility()">👁️ 번호 노출중</button>
+                        <button type="button" class="btn-action-pill" id="btnEditToggle_qr" onclick="toggleEditMode()">⚙️ 수정</button>
+                    </div>
+                </div>
+
+                <div class="qr-card-center">
+                    <div style="position:relative; cursor:pointer;" onclick="openFriendJoinModal()" title="터치 시 친구 맺기 & 무료 개인앱 받기">
+                        <img class="qr-image-display" id="dispMyQrImg" src="" alt="나의 예톡 QR">
+                        <div style="position:absolute; bottom:6px; left:50%; transform:translateX(-50%); background:rgba(124,58,237,0.92); color:#fff; font-size:11px; font-weight:900; padding:3px 10px; border-radius:12px; white-space:nowrap; box-shadow:0 2px 6px rgba(0,0,0,0.4);">
+                            👆 터치 시 친구 맺기
+                        </div>
+                    </div>
+                    <div class="qr-card-title" id="dispQrCardOwner">김예톡의 예톡홈</div>
+                    <span class="qr-scan-guide">카메라 스캔 또는 터치 시 즉시 친구 맺기</span>
+                    <a href="tel:" class="qr-phone-link" id="btnQrDirectPhone" style="display:none;">
+                        <span>📞</span> <span>직통 전화연결</span>
+                    </a>
+                </div>
+
+                <div class="v-page-caption-bar">
+                    <p class="v-caption-text">스마트 QR 코드로 나만의 공간에 소중한 분을 연결하세요.</p>
+                </div>
+            </section>
+
+            <!-- 페이지 2: 당신을 초청해 -->
+            <section class="one-v-page" id="page_qr_2">
+                <img class="v-page-bg-img" src="https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=800&auto=format&fit=crop&q=80" alt="초대 배경">
+                <div class="v-page-gradient-overlay"></div>
+                
+                <div class="card-single-action-bar">
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button type="button" class="btn-action-pill" onclick="openBigEditModal('qr_invite', 0)">✏️ 초청문구 편집</button>
+                        <button type="button" class="btn-action-pill" onclick="toggleEditMode()">⚙️ 수정</button>
+                    </div>
+                </div>
+
+                <div class="invite-card-box">
+                    <h2 class="invite-header-title">💌 당신을 초청합니다</h2>
+                    <p class="invite-message-body" id="dispInviteMessage">소중한 당신을 예톡 스마트 홈으로 초대합니다.
+
+언제든 편안하게 찾아와 소통하고 따뜻한 정을 나누는 나만의 스마트 공간입니다.
+함께 소통하는 축복의 통로가 되길 소망합니다.</p>
+                    <div class="invite-btn-row">
+                        <button type="button" class="btn-invite-copy" onclick="copyInvitationText()">
+                            <span>📋</span> <span>복사하기</span>
+                        </button>
+                        <button type="button" class="btn-invite-kakao" onclick="shareInviteToKakao()">
+                            <span>💬</span> <span>카톡으로 보내기</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 끝 페이지: 좋은 글귀 + 250 애드몹 + 다음 메뉴 이동 -->
+            <section class="ending-snap-card" id="end_snap_qr">
+                <div class="ending-quote-box">
+                    <span class="ending-quote-tag">✨ 오늘의 행복 글귀</span>
+                    <p class="ending-quote-text">당신이 머무는 오늘 하루가 기쁨으로 가득하고,<br>따뜻한 평안이 넘쳐나기를 축복합니다.</p>
+                </div>
+                <div class="ending-admob-250">
+                    <span style="font-size:10px; color:#64748b; font-weight:850; letter-spacing:0.5px;">SPONSORED AD</span>
+                    <div style="font-size:26px; line-height:1; margin:2px 0;">🎁</div>
+                    <strong style="color:#ffffff; font-size:14.5px; font-weight:950;">Google AdMob (300 × 250)</strong>
+                    <span style="color:#38bdf8; font-size:11.5px; font-weight:800;">예톡 1인 비즈니스 & 크리에이터 공식 후원 슬롯</span>
+                </div>
+                <button type="button" class="btn-jump-next-section" onclick="switchSection('photo')">
+                    <span>👉 다음: <strong>[2. 내 모습]</strong> 이동</span>
+                </button>
+            </section>
+        </div>
+
+        <!-- 🌟 2. 나의 사진 섹션 (무한 세로 페이지) -->
+        <div class="one-tab-page-container" id="sec_photo"></div>
+
+        <!-- 🌟 실시간 방송 섹션: 숏폼 풀 영상 + 하단 최밀착 컨트롤 + 댓글 시 영상 보존 -->
+        <div class="one-tab-page-container" id="sec_live">
+            <!-- 1. 유튜브 숏폼 비디오 박스 (전체 화면 차지) -->
+            <div class="live-video-box" id="liveVideoContainer">
+                <div class="live-yt-player-host" id="liveYtPlayerHost"></div>
+                <!-- 고정 공지 플로팅 칩 (📌 고정 활성화 시 노출) -->
+                <div class="live-pinned-floating-pill" id="livePinnedFloatingPill" onclick="editLivePinnedNotice()" style="display:none;" title="클릭하여 고정 공지 수정">
+                    <span>📌</span> <span id="dispLivePinnedFloatingText">실시간 방송에 오신 것을 환영합니다!</span>
+                </div>
+            </div>
+
+            <!-- 2. 기본 모드: 최하단 애드몹 바로 위에 밀착 배치된 오버레이 바 -->
+            <div class="live-bottom-dock-overlay" id="liveBottomDockOverlay">
+                <!-- 거의 투명한 한줄 댓글창 (터치 시 영상 보며 댓글 작성 모드로 진입) -->
+                <div class="live-translucent-comment-bar" onclick="openLiveCommentsDrawer()" title="댓글 쓰기 및 보기">
+                    <span class="live-comment-bubble-icon">💬</span>
+                    <div class="live-fake-comment-placeholder">실시간 댓글을 남겨보세요...</div>
+                    <button type="button" class="btn-live-comment-badge">
+                        댓글 <strong id="lblLiveCommentCount">3</strong>개 ‹
+                    </button>
+                </div>
+
+                <!-- LIVE 뱃지, 화면 확대 (100%~200%), 고정, 방송 주소 한줄 컨트롤 바 -->
+                <div class="live-video-dock-row" id="liveVideoDockRow">
+                    <span class="live-status-pill"><span class="live-pulse">🔴</span> LIVE</span>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <button type="button" class="btn-live-pill" id="btnLiveZoom" onclick="cycleLiveZoom()" title="화면 확대 (100% ➔ 125% ➔ 145% ➔ 160% ➔ 200%)">
+                            <span>🔍</span> <strong id="lblLiveZoom">100%</strong>
+                        </button>
+                        <button type="button" class="btn-live-pill" id="btnLivePin" onclick="toggleLivePinLock()" title="화면 고정 토글">
+                            <span id="iconLivePin">📌</span> <strong id="lblLivePin">고정</strong>
+                        </button>
+                        <button type="button" class="btn-live-pill btn-live-url" onclick="openLiveUrlModal()" title="유튜브 방송 주소 설정">
+                            🔗 방송 주소
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 댓글창 패널 (댓글 클릭 시 활성화: 입력 시에도 영상 가림 방지) -->
+            <div class="live-comments-panel" id="liveCommentsPanel">
+                <div class="live-panel-header" id="livePanelHeader">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <strong class="live-panel-title">💬 실시간 댓글</strong>
+                        <span class="live-panel-count-badge" id="dispDrawerCommentCount">3</span>
+                    </div>
+                    <button type="button" class="btn-live-panel-close" onclick="closeLiveCommentsDrawer()" title="댓글 닫고 풀 영상으로 보기">
+                        ✕ 닫기
+                    </button>
+                </div>
+
+                <!-- 고정 공지 댓글 (📌 @김예톡님이 고정함) -->
+                <div class="live-drawer-pinned-box" id="liveDrawerPinnedBox" onclick="editLivePinnedNotice()" title="클릭하여 고정 공지 수정">
+                    <div class="pinned-user-row">
+                        <span class="pinned-tag-icon">📌</span>
+                        <span class="pinned-by-text" id="dispDrawerPinnedAuthor">@김예톡님이 고정함</span>
+                        <span class="pinned-edit-hint" style="margin-left:auto; font-size:11px; color:#38bdf8;">수정 ✏️</span>
+                    </div>
+                    <p class="pinned-body-text" id="dispDrawerPinnedText">실시간 방송에 오신 것을 환영합니다! 자유롭게 은혜와 응원의 댓글을 남겨주세요.</p>
+                </div>
+
+                <!-- 댓글 목록 스크롤 -->
+                <div class="live-drawer-comments-list" id="liveDrawerCommentsList"></div>
+
+                <!-- 하단 댓글 입력창 (키보드 위: 영상 가림 없이 작성 가능) -->
+                <div class="live-panel-input-row" id="livePanelInputRow">
+                    <button type="button" class="btn-live-input-list-toggle" id="btnLiveCancelTyping" onclick="exitLiveCommentTyping()" title="댓글 목록 보기" style="display:none;">‹ 목록</button>
+                    <input type="text" class="live-drawer-input" id="inpDrawerComment" placeholder="댓글 올리기..." onfocus="enterLiveCommentTyping()" onkeydown="if(event.key==='Enter') sendLiveComment('drawer')">
+                    <button type="button" class="btn-live-drawer-send" onclick="sendLiveComment('drawer')">올리기</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🌟 3. 오늘 하루 섹션 (달력 + 시간대별 일정 목록) -->
+        <div class="one-tab-page-container" id="sec_calendar">
+            <!-- 페이지 1: 대화형 월간 달력 -->
+            <section class="one-v-page" id="page_cal_1">
+                <div class="calendar-card-wrap">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <div class="v-page-header-tag" style="position:static;">3. 하루 일정 - 달력</div>
+                        <button type="button" class="btn-privacy-pill" id="btnCalPrivacy1" onclick="toggleSchedulePrivacy()">🔒 나만 보기 (비공개)</button>
+                    </div>
+                    
+                    <div class="calendar-header-bar">
+                        <button type="button" class="cal-nav-btn" onclick="changeCalMonth(-1)">‹</button>
+                        <div class="cal-month-title" id="dispCalMonthTitle">2026년 10월</div>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button type="button" class="cal-today-btn" onclick="goCalToday()">오늘</button>
+                            <button type="button" class="cal-nav-btn" onclick="changeCalMonth(1)">›</button>
+                        </div>
+                    </div>
+
+                    <div class="calendar-grid-table">
+                        <div class="cal-week-row">
+                            <div class="cal-week-cell sun">일</div>
+                            <div class="cal-week-cell">월</div>
+                            <div class="cal-week-cell">화</div>
+                            <div class="cal-week-cell">수</div>
+                            <div class="cal-week-cell">목</div>
+                            <div class="cal-week-cell">금</div>
+                            <div class="cal-week-cell sat">토</div>
+                        </div>
+                        <div class="cal-days-grid" id="calDaysGrid"></div>
+                    </div>
+
+                    <!-- 빠른 일정 등록 -->
+                    <div class="cal-quick-add-box">
+                        <div class="cal-selected-date-info">
+                            <span id="dispSelectedDateLabel">📅 2026-10-12 일정 등록</span>
+                            <span style="font-size:11.5px; color:#38bdf8;" id="dispSelectedDateCount">0건 등록됨</span>
+                        </div>
+                        <div class="cal-input-row">
+                            <input type="time" class="cal-time-input" id="inpCalScheduleTime" value="09:00">
+                            <input type="text" class="cal-text-input" id="inpCalScheduleText" placeholder="시간대별 일정 또는 약속 한줄 입력...">
+                            <button type="button" class="btn-cal-add" onclick="addCalScheduleItem()">+ 추가</button>
+                        </div>
+                        <div style="font-size:11px; color:#94a3b8; text-align:right;">
+                            * 아래 화살표(↓)를 누르면 그날의 일정 목록을 모아서 보실 수 있습니다.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 페이지 2: 그날의 시간대별 일정 목록 -->
+            <section class="one-v-page" id="page_cal_2">
+                <div class="timeline-page-wrap">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <div class="v-page-header-tag" style="position:static;">3. 하루 일정 - 일정 목록</div>
+                        <button type="button" class="btn-privacy-pill" id="btnCalPrivacy2" onclick="toggleSchedulePrivacy()">🔒 나만 보기 (비공개)</button>
+                    </div>
+                    
+                    <div class="timeline-header-card">
+                        <strong style="font-size:14.5px; color:#fde047;" id="dispTimelineHeaderDate">📅 2026년 10월 12일 일정표</strong>
+                        <button type="button" style="background:#7c3aed; color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" onclick="scrollToCalPage(0)">
+                            🗓️ 달력으로 가기
+                        </button>
+                    </div>
+
+                    <div id="timelineItemsContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+                </div>
+            </section>
+
+            <!-- 끝 페이지: 좋은 글귀 + 250 애드몹 + 다음 메뉴 이동 -->
+            <section class="ending-snap-card" id="end_snap_calendar">
+                <div class="ending-quote-box">
+                    <span class="ending-quote-tag">✨ 오늘의 행복 글귀</span>
+                    <p class="ending-quote-text">오늘 당신이 머무는 자리에 따뜻한 축복이 넘치며,<br>사랑과 감사의 은혜가 풍성하기를 소망합니다.</p>
+                </div>
+                <div class="ending-admob-250">
+                    <span style="font-size:10px; color:#64748b; font-weight:850; letter-spacing:0.5px;">SPONSORED AD</span>
+                    <div style="font-size:26px; line-height:1; margin:2px 0;">🎁</div>
+                    <strong style="color:#ffffff; font-size:14.5px; font-weight:950;">Google AdMob (300 × 250)</strong>
+                    <span style="color:#38bdf8; font-size:11.5px; font-weight:800;">예톡 1인 비즈니스 & 크리에이터 공식 후원 슬롯</span>
+                </div>
+                <button type="button" class="btn-jump-next-section" onclick="switchSection('friends')">
+                    <span>👉 다음: <strong>[4. 예톡 앱친구]</strong> 이동</span>
+                </button>
+            </section>
+        </div>
+
+        <!-- 🌟 4. 예톡 친구 섹션 (김예톡의 앱친구 & 1:1 대화방) -->
+        <div class="one-tab-page-container" id="sec_friends" style="scroll-snap-type:none !important; overflow-y:auto !important; background:#ffffff;">
+            <!-- 김예톡의 앱친구 목록 (자연스러운 스크롤) -->
+            <div class="kakao-friends-wrap" style="height:auto; min-height:100%; overflow-y:visible;">
+                <div class="kf-top-header">
+                    <span class="kf-top-title">김예톡의 앱친구 <span id="dispFriendCount" style="font-size:14px; color:#666;">(8)</span></span>
+                    <div class="kf-top-actions">
+                        <span style="cursor:pointer;" onclick="promptAddFriend()" title="친구 추가">➕</span>
+                        <span style="cursor:pointer;" onclick="showToast('예톡 친구 설정')" title="설정">⚙️</span>
+                    </div>
+                </div>
+
+                <!-- 🌟 [사용자 요청] 단골 새 소식 바로가기 및 알림 숫자 배너 -->
+                <div style="background:linear-gradient(135deg, #1e3a5f, #0f1f38); border:1.5px solid #38bdf8; border-radius:14px; padding:12px 14px; margin:10px 14px 12px 14px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; box-shadow:0 4px 12px rgba(56,189,248,0.15);" onclick="switchSection('notice')">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:24px;">🔔</span>
+                        <div>
+                            <div style="font-size:13.5px; font-weight:950; color:#fff;">단골 병원·교회·매장에서 새 공지가 도착했습니다!</div>
+                            <div style="font-size:11px; color:#93c5fd;">터치 시 오늘 도착한 공지알림으로 바로 이동 ➔</div>
+                        </div>
+                    </div>
+                    <span id="badgeDangolAlertNum" style="background:#ef4444; color:#fff; font-size:12px; font-weight:950; padding:3px 9px; border-radius:12px; box-shadow:0 2px 6px rgba(239,68,68,0.4);">2건</span>
+                </div>
+
+                <!-- 내 프로필 -->
+                <div class="kf-profile-my">
+                    <img class="kf-avatar-lg" id="dispMyProfileAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="내 프로필">
+                    <div>
+                        <div class="kf-my-name" id="dispMyProfileName">김예톡 (나)</div>
+                        <div class="kf-my-status" id="dispMyProfileStatus">주님과 함께 은혜로운 동행 ✨</div>
+                    </div>
+                </div>
+
+                <!-- ⭐ 즐겨찾는 친구 섹션 (상단 배치) -->
+                <div class="kf-section-title">⭐ 즐겨찾는 친구</div>
+                <div class="kf-friends-list" id="kfFavoritesListContainer"></div>
+
+                <!-- 💬 대화 및 친구 목록 (최신 대화 위주 정렬) -->
+                <div class="kf-section-title" style="margin-top:6px;">💬 대화 및 친구</div>
+                <div class="kf-friends-list" id="kfRecentListContainer"></div>
+            </div>
+
+            <!-- 끝 페이지: 좋은 글귀 + 250 애드몹 + 다음 메뉴 이동 -->
+            <section class="ending-snap-card" id="end_snap_friends" style="height:auto; min-height:360px; padding:24px 14px 40px 14px; scroll-snap-align:none;">
+                <div class="ending-quote-box">
+                    <span class="ending-quote-tag">💖 따뜻한 동행</span>
+                    <p class="ending-quote-text">좋은 사람과 나누는 다정한 한마디는<br>오늘을 살아갈 수 있는 가장 큰 힘이 됩니다.</p>
+                </div>
+                <div class="ending-admob-250">
+                    <span style="font-size:10px; color:#64748b; font-weight:850; letter-spacing:0.5px;">SPONSORED AD</span>
+                    <div style="font-size:26px; line-height:1; margin:2px 0;">🎁</div>
+                    <strong style="color:#ffffff; font-size:14.5px; font-weight:950;">Google AdMob (300 × 250)</strong>
+                    <span style="color:#38bdf8; font-size:11.5px; font-weight:800;">예톡 1인 비즈니스 & 크리에이터 공식 후원 슬롯</span>
+                </div>
+                <button type="button" class="btn-jump-next-section" onclick="switchSection('notice')">
+                    <span>👉 다음: <strong>[5. 공지알림]</strong> 이동</span>
+                </button>
+            </section>
+        </div>
+
+        <!-- 🌟 5. 공지알림 섹션 (3개 카테고리 박스 + 당일 공지 일렬 나열) -->
+        <div class="one-tab-page-container" id="sec_notice" style="scroll-snap-type:none !important; overflow-y:auto !important; background:#0a1322;">
+            <div id="page_notice_1" style="background:#0a1322; padding:16px 14px 20px 14px; overflow-y:visible; display:flex; flex-direction:column; gap:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #1f375b; padding-bottom:10px;">
+                    <div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">📢 실시간 통합 피드</div>
+                        <h2 style="font-size:18px; font-weight:950; color:#ffffff;">전체 공지알림</h2>
+                    </div>
+                </div>
+
+                <!-- 🌟 [사용자 요청] 3개 분야별 카테고리 박스 (의원/한의/치과 알림, 교회 알림, 음식점 및 기타 알림) -->
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+                    <div class="one-notice-cat-card active" id="oneNoticeCat_clinic" onclick="filterOneNoticeCat('clinic')" style="background:#0f1f38; border:2px solid #0284c7; border-radius:14px; padding:12px 6px; text-align:center; cursor:pointer; box-shadow:0 3px 10px rgba(2,132,199,0.25);">
+                        <div style="font-size:24px; margin-bottom:3px;">🏥</div>
+                        <strong style="font-size:13px; color:#ffffff; display:block;">의원·한의·치과</strong>
+                        <span style="font-size:10px; color:#38bdf8; font-weight:700;">진료/원내 알림</span>
+                    </div>
+                    <div class="one-notice-cat-card" id="oneNoticeCat_church" onclick="filterOneNoticeCat('church')" style="background:#0f172a; border:2px solid #334155; border-radius:14px; padding:12px 6px; text-align:center; cursor:pointer;">
+                        <div style="font-size:24px; margin-bottom:3px;">⛪</div>
+                        <strong style="font-size:13px; color:#ffffff; display:block;">교회 알림</strong>
+                        <span style="font-size:10px; color:#fde047; font-weight:700;">예배/기도/소식</span>
+                    </div>
+                    <div class="one-notice-cat-card" id="oneNoticeCat_store" onclick="filterOneNoticeCat('store')" style="background:#0f172a; border:2px solid #334155; border-radius:14px; padding:12px 6px; text-align:center; cursor:pointer;">
+                        <div style="font-size:24px; margin-bottom:3px;">🍽️</div>
+                        <strong style="font-size:13px; color:#ffffff; display:block;">음식점 및 기타</strong>
+                        <span style="font-size:10px; color:#a7f3d0; font-weight:700;">단골 맛집/상점</span>
+                    </div>
+                </div>
+
+                <!-- 🌟 [사용자 요청] 친구에게 공지알림(비공개) 보내기 버튼 -->
+                <button type="button" onclick="openFriendNoticeModal()" style="width:100%; height:46px; background:linear-gradient(135deg, #7c3aed, #4f46e5); color:#ffffff; border:1.5px solid #a78bfa; border-radius:14px; font-size:14px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 16px rgba(124,58,237,0.35); margin-top:2px;">
+                    <span>📢</span> <span>친구에게 공지알림 보내기 (비공개)</span>
+                </button>
+
+                <!-- 🌟 [사용자 요청] 버튼 밑에 '당일날 온 공지 알림이 일렬로 짝 나열' -->
+                <div id="secTodayNoticesArea" style="background:linear-gradient(135deg, #132238, #0a1322); border:1.8px solid #38bdf8; border-radius:16px; padding:12px 14px; box-shadow:0 4px 16px rgba(56,189,248,0.2);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #1f375b; padding-bottom:6px;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:18px;">⚡</span>
+                            <strong style="font-size:14px; font-weight:950; color:#38bdf8;">오늘(당일) 도착한 신규 공지알림</strong>
+                        </div>
+                        <span id="badgeTodayNoticeCount" style="background:#ef4444; color:#fff; font-size:11px; font-weight:900; padding:2px 8px; border-radius:10px;">0건</span>
+                    </div>
+                    <div id="todayNoticesListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+                </div>
+
+                <!-- 선택 카테고리 피드 헤더 & 전체보기 토글 -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+                    <strong style="font-size:13.5px; font-weight:900; color:#94a3b8;" id="dispOneNoticeCatTitle">📋 카테고리별 공지 목록</strong>
+                    <button type="button" style="background:#1e293b; color:#38bdf8; border:1px solid #334155; padding:4px 9px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;" onclick="filterOneNoticeCat('all')">전체보기</button>
+                </div>
+
+                <div id="noticeFullFeedContainer" style="display:flex; flex-direction:column; gap:12px; flex:1;"></div>
+            </div>
+
+            <!-- 끝 페이지: 좋은 글귀 + 250 애드몹 + 다음 메뉴 이동 -->
+            <section class="ending-snap-card" id="end_snap_notice" style="height:auto; min-height:360px; padding:24px 14px 40px 14px; scroll-snap-align:none;">
+                <div class="ending-quote-box">
+                    <span class="ending-quote-tag">🌟 지혜와 평안</span>
+                    <p class="ending-quote-text">마음이 머무는 자리에 은혜와 사랑을 채우면,<br>걸어가는 모든 길이 축복의 통로가 됩니다.</p>
+                </div>
+                <div class="ending-admob-250">
+                    <span style="font-size:10px; color:#64748b; font-weight:850; letter-spacing:0.5px;">SPONSORED AD</span>
+                    <div style="font-size:26px; line-height:1; margin:2px 0;">🎁</div>
+                    <strong style="color:#ffffff; font-size:14.5px; font-weight:950;">Google AdMob (300 × 250)</strong>
+                    <span style="color:#38bdf8; font-size:11.5px; font-weight:800;">예톡 1인 비즈니스 & 크리에이터 공식 후원 슬롯</span>
+                </div>
+                <button type="button" class="btn-jump-next-section" onclick="switchSection('biz')">
+                    <span>👉 다음: <strong>[6. 나의 비즈니스]</strong> 이동</span>
+                </button>
+            </section>
+        </div>
+
+        <!-- 🌟 6. 나의 비즈니스 섹션 (무한 세로 페이지) -->
+        <div class="one-tab-page-container" id="sec_biz"></div>
+
+    </main>
+
+    <!-- 🌟 [사용자 요청 6번] 1:1 대화방 전체 화면 확대 (상단 헤더/메뉴 싹 다 숨기고 애드몹 위 전체 차지, 일반 전화 연결 버튼) -->
+    <div class="kakao-chat-view" id="kakaoChatView">
+        <header class="kc-top-nav">
+            <button type="button" class="kc-back-btn" onclick="closeKakaoChat()">‹</button>
+            <div class="kc-header-title" id="kcChatTargetName">친구 이름</div>
+            <div class="kc-header-tools">
+                <button type="button" class="kc-btn-call" onclick="callFriendDirectly()" title="일반 전화 연결">📞</button>
+                <span style="font-size:17px; cursor:pointer;" onclick="showToast('채팅방 설정')">☰</span>
+            </div>
+        </header>
+
+        <div class="kc-messages-scroll" id="kcMessagesScroll"></div>
+
+        <div class="kc-input-bar">
+            <button type="button" class="kc-btn-plus" onclick="triggerChatPhotoUpload()" title="사진 첨부">+</button>
+            <input type="file" id="inpChatPhotoFile" accept="image/*" style="display:none;" onchange="handleChatPhotoUpload(event)">
+            <input type="text" class="kc-text-input" id="kcChatInput" placeholder="따뜻한 메시지를 입력하세요..." onkeydown="if(event.key==='Enter') sendKakaoMessage()">
+            <button type="button" class="kc-btn-send" onclick="sendKakaoMessage()">전송</button>
+        </div>
+    </div>
+
+    <!-- 🌟 1:1 대화방 말풍선 액션 모달 (복사, 수정, 삭제) -->
+    <div class="modal-overlay" id="chatMsgActionModal" onclick="closeModal('chatMsgActionModal')">
+        <div class="modal-card" style="max-width:320px; text-align:center;" onclick="event.stopPropagation()">
+            <div style="font-size:32px; margin-bottom:4px;">💬</div>
+            <h4 style="color:#ffffff; font-size:16px; font-weight:950; margin-bottom:12px;" id="dispChatActionTitle">메시지 관리</h4>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button type="button" class="btn-chat-action-row" onclick="copySelectedChatMessage()">📋 메시지 / 사진 복사</button>
+                <button type="button" class="btn-chat-action-row" id="btnEditChatMsg" onclick="editSelectedChatMessage()">✏️ 메시지 수정</button>
+                <button type="button" class="btn-chat-action-row" style="color:#f87171;" onclick="deleteSelectedChatMessage()">🗑️ 메시지 삭제</button>
+                <button type="button" class="btn-chat-action-row" style="background:#334155; color:#cbd5e1;" onclick="closeModal('chatMsgActionModal')">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4층 최하단 고정 애드몹 (300 × 100) -->
+    <footer class="bottom-fixed-admob-footer">
+        <div class="admob-safety-bar">
+            <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
+        </div>
+        <div class="admob-display-slot">
+            <strong style="color:#a78bfa; font-size:13.5px; font-weight:950;">Google AdMob (300 × 100 / Large Banner)</strong>
+            <span style="color:#fde047; font-size:11px; font-weight:800;">예톡 1인 비즈니스 & 크리에이터 공식 후원 슬롯</span>
+        </div>
+    </footer>
+
+    <!-- 숨김 파일 업로더 -->
+    <input type="file" id="commonPhotoFileInput" accept="image/*" style="display:none;" onchange="handleCommonPhotoSelected(event)">
+
+    <!-- 토스트 알림창 -->
+    <div class="yetalk-toast" id="toastBox"></div>
+</div>
+
+<!-- 🌟 [사용자 요청 1번] 아주 크고 시원한 사진 추가/교체 및 넉넉한 글 작성 모달 -->
+<div class="modal-overlay" id="bigCardEditModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <strong style="color:#a78bfa; font-size:16px;" id="dispBigEditHeaderTitle">📷 사진 & 글 편집</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer;" onclick="closeModal('bigCardEditModal')">✕</button>
+        </div>
+
+        <!-- 대형 사진 미리보기 및 교체 버튼 -->
+        <div class="edit-large-photo-box">
+            <img class="edit-large-photo-img" id="dispBigEditPhotoPreview" src="" alt="사진 미리보기">
+            <button type="button" class="btn-upload-overlay" onclick="document.getElementById('commonPhotoFileInput').click()">
+                <span>📷</span> <span>사진 추가 / 교체하기</span>
+            </button>
+        </div>
+
+        <!-- 넉넉한 글 작성 공간 -->
+        <div style="margin-top:4px;">
+            <label class="m-label" style="font-size:13px;">✍️ 사진 밑 글 작성 / 수정 (시원하게 작성)</label>
+            <textarea class="m-textarea-large" id="inpBigEditCaption" placeholder="사진 밑에 들어갈 따뜻한 글이나 소개글을 편안하게 적어보세요..."></textarea>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:6px;">
+            <button type="button" class="btn-save-large" onclick="saveBigCardEdit()">💾 수정 저장 완료</button>
+            <button type="button" class="btn-del-large" id="btnDeleteBigPage" onclick="deleteCurrentPageFromBigModal()">🗑️ 삭제</button>
+        </div>
+    </div>
+</div>
+
+<!-- 예톡 간편결제 모달 -->
+<div class="modal-overlay" id="paymentModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <strong style="color:#f59e0b; font-size:16px;">💳 예톡 간편결제 & 전 은행 송금</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('paymentModal')">✕</button>
+        </div>
+
+        <div style="background:#162238; padding:11px 12px; border-radius:12px; border:1.2px solid #334155;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="m-label" style="margin:0; font-size:12.5px;" id="dispAccountCustomLabel">내 입출금계좌</span>
+                <button type="button" style="background:#0284c7; color:#fff; border:none; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" onclick="toggleAccountEditBox()">수정 ⚙️</button>
+            </div>
+
+            <div style="font-size:14px; font-weight:950; color:#fde047; margin-top:5px; word-break:break-all;" id="dispMySavedAccount">
+                국민은행 010-1234-5678-01 (예금주: 김예톡)
+            </div>
+
+            <div id="boxEditMyAccountForm" style="display:none; margin-top:10px; border-top:1px dashed #334155; padding-top:8px;">
+                <div style="margin-bottom:6px;">
+                    <label style="font-size:11px; color:#cbd5e1; display:block; margin-bottom:2px;">계좌 명칭</label>
+                    <input type="text" class="m-input" id="inpEditAccLabel" placeholder="내 입출금계좌" style="height:34px; font-size:12.5px;">
+                </div>
+                <div style="margin-bottom:6px;">
+                    <label style="font-size:11px; color:#cbd5e1; display:block; margin-bottom:2px;">은행 선택</label>
+                    <select class="m-select" id="selEditAccBank" style="height:34px; padding:0 8px; font-size:12.5px;">
+                        <option value="국민은행">KB국민은행</option>
+                        <option value="카카오뱅크">카카오뱅크</option>
+                        <option value="토스뱅크">토스뱅크</option>
+                        <option value="신한은행">신한은행</option>
+                        <option value="NH농협은행">NH농협은행</option>
+                        <option value="우리은행">우리은행</option>
+                        <option value="하나은행">하나은행</option>
+                        <option value="BNK부산은행">BNK부산은행</option>
+                        <option value="우체국">우체국</option>
+                        <option value="새마을금고">새마을금고</option>
+                        <option value="신협">신협</option>
+                        <option value="저축은행">저축은행중앙회</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:6px;">
+                    <label style="font-size:11px; color:#cbd5e1; display:block; margin-bottom:2px;">계좌번호</label>
+                    <input type="text" class="m-input" id="inpEditAccNumber" placeholder="010-1234-5678-01" style="height:34px; font-size:12.5px;">
+                </div>
+                <div style="margin-bottom:8px;">
+                    <label style="font-size:11px; color:#cbd5e1; display:block; margin-bottom:2px;">예금주</label>
+                    <input type="text" class="m-input" id="inpEditAccHolder" placeholder="김예톡" style="height:34px; font-size:12.5px;">
+                </div>
+                <button type="button" style="width:100%; height:36px; background:#7c3aed; color:white; border:none; border-radius:7px; font-weight:950; font-size:12.5px; cursor:pointer;" onclick="saveCustomAccountInfo()">💾 수정후 저장</button>
+            </div>
+        </div>
+
+        <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                <label class="m-label" style="margin:0;">송금할 대상 계좌</label>
+                <label for="cameraAccountInput" style="background:#059669; color:#fff; font-size:11px; font-weight:900; padding:4px 9px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:3px;">
+                    <span>📷</span> 사진 촬영·첨부
+                </label>
+                <input type="file" id="cameraAccountInput" accept="image/*" capture="environment" style="display:none;" onchange="handleOcrCameraPhoto(event)">
+            </div>
+            <input type="text" class="m-input" id="inpTargetTransferAccount" placeholder="계좌번호를 입력하거나 사진을 찍으세요">
+            <div id="boxOcrSuccessMsg" style="display:none; font-size:11px; color:#34d399; margin-top:3px; font-weight:800;">✔ 통장/카드 사진을 확인하여 계좌번호가 자동 설정되었습니다.</div>
+        </div>
+
+        <div>
+            <label class="m-label">송금할 금액</label>
+            <div class="quick-amount-grid">
+                <div class="btn-amt-chip" onclick="setTransferAmount(10000)">1만</div>
+                <div class="btn-amt-chip" onclick="setTransferAmount(30000)">3만</div>
+                <div class="btn-amt-chip" onclick="setTransferAmount(50000)">5만</div>
+                <div class="btn-amt-chip" onclick="setTransferAmount(100000)">10만</div>
+            </div>
+            <input type="number" class="m-input" id="inpTransferAmount" placeholder="직접 금액 입력 (원)" style="margin-top:6px;">
+        </div>
+
+        <div>
+            <label class="m-label">내 거래은행 앱 선택 (부산은행·우체국·새마을 등 전 금융사)</label>
+            <div class="bank-vertical-scroll-list" id="bankVerticalList"></div>
+        </div>
+
+        <button type="button" style="width:100%; height:46px; background:linear-gradient(135deg, #f59e0b, #d97706); border:none; border-radius:10px; color:#000; font-size:14.5px; font-weight:950; cursor:pointer;" onclick="startBankAppTransfer()">
+            🚀 계좌번호 자동복사 & 은행 앱 열기
+        </button>
+    </div>
+</div>
+
+<!-- 🌟 [사용자 요청] 나의 QR 터치 시: 친구 맺기 및 무료 개인앱 회원가입 모달 -->
+<div class="modal-overlay" id="friendJoinModal">
+    <div class="modal-card" style="max-width:380px;">
+        <div class="modal-header">
+            <strong style="color:#a78bfa; font-size:16px;">🤝 예톡 친구 맺기 & 무료 개인앱</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('friendJoinModal')">✕</button>
+        </div>
+
+        <!-- 1단계: 확인 질문 단계 -->
+        <div id="boxFriendStepConfirm" style="text-align:center; padding:10px 4px;">
+            <div style="font-size:42px; margin-bottom:8px;">🤝🎁</div>
+            <h3 style="font-size:17.5px; font-weight:950; color:#ffffff; margin-bottom:12px;">나와 친구를 맺으시겠습니까?</h3>
+            
+            <div style="background:rgba(124, 58, 237, 0.15); border:1.5px dashed #a78bfa; border-radius:14px; padding:14px 12px; margin-bottom:18px; text-align:left;">
+                <p style="font-size:13.5px; line-height:1.6; color:#f1f5f9; font-weight:700; margin:0;">
+                    🎉 <strong style="color:#fde047;">'예'</strong>를 하시면 <strong style="color:#38bdf8;">개인앱이 무상으로 제공</strong>되며,<br>
+                    또 다른 본인의 사업을 위한 <strong style="color:#a7f3d0;">전문앱이 평생 완전 무료</strong>로 누구에게나 제공됩니다!
+                </p>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button type="button" style="flex:1; height:46px; background:#334155; color:#cbd5e1; border:none; border-radius:12px; font-size:14px; font-weight:800; cursor:pointer;" onclick="closeModal('friendJoinModal')">
+                    아니오
+                </button>
+                <button type="button" style="flex:1.5; height:46px; background:linear-gradient(135deg, #7c3aed, #2563eb); color:#ffffff; border:none; border-radius:12px; font-size:14px; font-weight:950; cursor:pointer; box-shadow:0 4px 14px rgba(124,58,237,0.4);" onclick="goToJoinFormStep()">
+                    예 (무료 앱 받기) 👉
+                </button>
+            </div>
+        </div>
+
+        <!-- 2단계: 회원가입 단계 -->
+        <div id="boxFriendStepForm" style="display:none; padding:6px 2px;">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; border-bottom:1px solid #1f375b; padding-bottom:8px;">
+                <span style="font-size:22px;">📝</span>
+                <div>
+                    <h3 style="font-size:16px; font-weight:950; color:#fde047; margin:0;">예톡 간편 회원가입</h3>
+                    <span style="font-size:11.5px; color:#94a3b8;">가입 즉시 나만의 개인앱이 무상으로 자동 생성됩니다.</span>
+                </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <div>
+                    <label class="m-label" style="font-size:12px;">이름</label>
+                    <input type="text" class="m-input" id="inpJoinName" placeholder="성함을 입력하세요 (예: 홍길동)">
+                </div>
+                <div>
+                    <label class="m-label" style="font-size:12px;">아이디</label>
+                    <input type="text" class="m-input" id="inpJoinId" placeholder="사용할 아이디 (영문/숫자)">
+                </div>
+                <div>
+                    <label class="m-label" style="font-size:12px;">비밀번호</label>
+                    <input type="password" class="m-input" id="inpJoinPw" placeholder="비밀번호를 입력하세요">
+                </div>
+                <div>
+                    <label class="m-label" style="font-size:12px;">주소 (시군구)</label>
+                    <input type="text" class="m-input" id="inpJoinAddr" placeholder="시·군·구 입력 (예: 서울 강남구, 부산 해운대구)">
+                </div>
+            </div>
+
+            <div style="background:#0f172a; border-radius:10px; padding:10px; margin-top:12px; border:1px solid #334155; font-size:11px; color:#94a3b8; line-height:1.4;">
+                💡 <strong style="color:#38bdf8;">개인앱이 우선 기본 생성</strong>됩니다.<br>
+                추후 매장 오픈 시 전문앱(의원, 식당, 교회 등)은 필요할 때 손쉽게 무료 추가하실 수 있습니다.
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:14px;">
+                <button type="button" style="flex:1; height:46px; background:#334155; color:#cbd5e1; border:none; border-radius:12px; font-size:13.5px; font-weight:800; cursor:pointer;" onclick="backToJoinConfirmStep()">
+                    이전
+                </button>
+                <button type="button" style="flex:2; height:46px; background:linear-gradient(135deg, #10b981, #059669); color:#ffffff; border:none; border-radius:12px; font-size:14px; font-weight:950; cursor:pointer; box-shadow:0 4px 14px rgba(16,185,129,0.35);" onclick="completeFriendJoin()">
+                    🎉 가입 완료 & 개인앱 받기
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 [사용자 요청] 친구에게 공지알림(비공개) 보내기 모달 -->
+<div class="modal-overlay" id="friendNoticeModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <strong style="color:#a78bfa; font-size:16px;">📢 친구에게 공지알림 보내기 (🔒 비공개)</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('friendNoticeModal')">✕</button>
+        </div>
+
+        <div style="background:#0f172a; padding:10px 12px; border-radius:10px; border:1px solid #334155; margin-bottom:12px; font-size:11.5px; color:#cbd5e1; line-height:1.5;">
+            🔒 <strong style="color:#fde047;">비공개 공지</strong>입니다. 외부에는 노출되지 않으며, 나와 맺어진 소중한 예톡 친구들에게만 안전하게 전달됩니다.
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <div>
+                <label class="m-label">수신 대상</label>
+                <select class="m-input" id="selFriendNoticeTarget" style="cursor:pointer;">
+                    <option value="all">전체 예톡 친구 (8명)</option>
+                    <option value="fav">⭐ 즐겨찾는 친구 (3명)</option>
+                </select>
+            </div>
+            <div>
+                <label class="m-label">공지 제목</label>
+                <input type="text" class="m-input" id="inpFriendNoticeTitle" placeholder="공지 제목을 입력하세요 (예: 이번 주 모임 일정 안내)">
+            </div>
+            <div>
+                <label class="m-label">공지 내용</label>
+                <textarea class="m-textarea-large" id="inpFriendNoticeContent" style="height:110px;" placeholder="친구들에게 전할 공지 내용을 따뜻하고 상세하게 작성하세요..."></textarea>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:14px;">
+            <button type="button" style="flex:1; height:46px; background:#334155; color:#cbd5e1; border:none; border-radius:12px; font-size:13.5px; font-weight:800; cursor:pointer;" onclick="closeModal('friendNoticeModal')">취소</button>
+            <button type="button" style="flex:2; height:46px; background:linear-gradient(135deg, #7c3aed, #2563eb); color:#ffffff; border:none; border-radius:12px; font-size:14px; font-weight:950; cursor:pointer; box-shadow:0 4px 14px rgba(124,58,237,0.4);" onclick="sendFriendNoticePrivate()">
+                🔒 비공개 공지 발송하기
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 [사용자 요청] 실시간 방송 유튜브 영상/라이브 주소 설정 모달 -->
+<div class="modal-overlay" id="liveUrlModal" onclick="closeModal('liveUrlModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <strong style="color:#38bdf8; font-size:16px;">🎥 실시간 방송 유튜브 주소 설정</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('liveUrlModal')">✕</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <label class="m-label">유튜브 라이브 또는 영상 주소 입력</label>
+            <input type="text" class="m-input" id="inpLiveYtUrl" placeholder="https://www.youtube.com/watch?v=... 또는 라이브 링크">
+            <span style="font-size:11.5px; color:#94a3b8; line-height:1.4;">
+                * 유튜브 앱의 '공유' ➔ '링크 복사' 후 여기에 붙여넣으시면 전체 화면으로 즉시 재생됩니다.
+            </span>
+            <div style="display:flex; gap:6px; margin-top:4px;">
+                <button type="button" style="flex:1; height:36px; background:#1e293b; color:#38bdf8; border:1px solid #334155; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;" onclick="setSampleLiveUrl()">기본 추천 라이브 넣기</button>
+            </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+            <button type="button" style="background:#334155; color:white; border:none; padding:8px 14px; border-radius:8px; font-size:13px; cursor:pointer;" onclick="closeModal('liveUrlModal')">취소</button>
+            <button type="button" style="background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; padding:8px 18px; border-radius:8px; font-size:13.5px; font-weight:950; cursor:pointer;" onclick="saveLiveUrlSetting()">저장 및 방송 시작</button>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 [사용자 요청] QR 직통 전화번호 설정 및 노출 여부 선택 모달 -->
+<div class="modal-overlay" id="qrPhoneModal" onclick="closeModal('qrPhoneModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <strong style="color:#38bdf8; font-size:16px;">📞 직통 전화번호 및 노출 설정</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('qrPhoneModal')">✕</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+            <div>
+                <label class="m-label">직통 연결 전화번호</label>
+                <input type="tel" class="m-input" id="inpQrPhoneModalVal" placeholder="예: 010-1234-5678">
+                <span style="font-size:11.5px; color:#94a3b8; margin-top:3px; display:block;">
+                    * 번호를 입력해두면 QR 스캔 또는 내 홈 방문자가 즉시 전화를 걸 수 있습니다.
+                </span>
+            </div>
+
+            <div style="background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+                <label class="m-label" style="color:#fde047; margin:0;">화면 노출 여부 선택</label>
+                <div style="display:flex; gap:10px;">
+                    <label style="flex:1; display:flex; align-items:center; gap:6px; font-size:13px; color:#ffffff; cursor:pointer; background:#1e293b; padding:8px 10px; border-radius:8px; border:1px solid #475569;">
+                        <input type="radio" name="rdQrPhoneVis" id="rdQrPhoneVis_show" value="show" checked>
+                        <span>👁️ 노출하기</span>
+                    </label>
+                    <label style="flex:1; display:flex; align-items:center; gap:6px; font-size:13px; color:#ffffff; cursor:pointer; background:#1e293b; padding:8px 10px; border-radius:8px; border:1px solid #475569;">
+                        <input type="radio" name="rdQrPhoneVis" id="rdQrPhoneVis_hide" value="hide">
+                        <span>🔒 숨기기</span>
+                    </label>
+                </div>
+                <span style="font-size:11px; color:#94a3b8;">
+                    * 언제든지 [숨기기]로 변경하시면 번호 삭제 없이 화면에서 깔끔하게 숨겨집니다.
+                </span>
+            </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+            <button type="button" style="background:#334155; color:white; border:none; padding:8px 14px; border-radius:8px; font-size:13px; cursor:pointer;" onclick="closeModal('qrPhoneModal')">취소</button>
+            <button type="button" style="background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; padding:8px 18px; border-radius:8px; font-size:13.5px; font-weight:950; cursor:pointer;" onclick="saveQrPhoneModalSetting()">설정 저장</button>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 [사용자 요청] 실시간 방송 제목 설정 모달 -->
+<div class="modal-overlay" id="liveTitleModal" onclick="closeModal('liveTitleModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <strong style="color:#fde047; font-size:16px;">✏️ 실시간 방송 제목 설정</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('liveTitleModal')">✕</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+            <label class="m-label">방송시 표출할 제목 입력</label>
+            <input type="text" class="m-input" id="inpLiveTitleModalVal" placeholder="방송 제목을 입력하세요 (예: 김예톡의 실시간 은혜 나눔 라이브)">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
+            <button type="button" style="background:#334155; color:white; border:none; padding:8px 14px; border-radius:8px; font-size:13px; cursor:pointer;" onclick="closeModal('liveTitleModal')">취소</button>
+            <button type="button" style="background:linear-gradient(135deg, #7c3aed, #4f46e5); color:white; border:none; padding:8px 18px; border-radius:8px; font-size:13.5px; font-weight:950; cursor:pointer;" onclick="saveLiveTitleModalSetting()">제목 저장</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    /* 로컬 스토리지 키 관리 */
+    const STORAGE_KEY_SECTIONS = "yetalk_onemain_decoupled_sections_v3";
+    const STORAGE_KEY_CALENDAR = "yetalk_onemain_calendar_schedules_v1";
+    const STORAGE_KEY_FRIENDS = "yetalk_onemain_fictional_friends_v2";
+    const STORAGE_KEY_TALK = "yetalk_chat_friend_v2_";
+    const MY_BANK_STORAGE_KEY = "yetalk_my_registered_bank_info";
+
+    // 🌟 [사용자 요청] 가로 메뉴 순서: 2. 내 모습 바로 옆에 실시간 방송 추가
+    const SECTION_ORDER = ["qr", "photo", "live", "calendar", "friends", "notice", "biz", "pay"];
+    const SECTION_TITLES = {
+        qr: "1. 나의 QR",
+        photo: "2. 내 모습",
+        live: "🔴 실시간 방송",
+        calendar: "3. 하루 일정",
+        friends: "4. 예톡 단골·친구",
+        notice: "5. 공지알림",
+        biz: "6. 나의 비즈니스",
+        pay: "7. 예톡결제 💳"
+    };
+    let currentSectionKey = "qr";
+    let isEditMode = false;
+
+    /* 대형 수정 모달 추적 변수 */
+    let curEditSec = "";
+    let curEditIdx = 0;
+    let tempEditImgBase64 = "";
+
+    /* 은행 목록 */
+    const ALL_BANKS = [
+        { name: "카카오뱅크", scheme: "kakaobank://", tag: "인터넷" },
+        { name: "토스뱅크", scheme: "supertoss://", tag: "인터넷" },
+        { name: "BNK부산은행", scheme: "busanbank://", tag: "지방은행" },
+        { name: "KB국민은행", scheme: "kbbank://", tag: "시중은행" },
+        { name: "신한은행", scheme: "shinhan-sol://", tag: "시중은행" },
+        { name: "NH농협은행", scheme: "nhallonebank://", tag: "특수은행" },
+        { name: "우리은행", scheme: "wonbanking://", tag: "시중은행" },
+        { name: "하나은행", scheme: "hanabank://", tag: "시중은행" },
+        { name: "우체국", scheme: "epost://", tag: "국가기관" },
+        { name: "새마을금고", scheme: "mgsmart://", tag: "상호금융" },
+        { name: "신협", scheme: "cu://", tag: "상호금융" },
+        { name: "저축은행", scheme: "sbi://", tag: "서민금융" }
+    ];
+    let selectedBankScheme = "busanbank://";
+
+    /* 기본 섹션 데이터 (사진, 비즈니스 등 무한 페이지 지원 - 비즈니스는 기본 1화면) */
+    let sectionData = {
+        qrPhone: "",
+        showQrPhone: true,
+        inviteText: "소중한 당신을 예톡 스마트 홈으로 초대합니다.\n\n누구에게나 무료로 멋진 개인앱과 의원, 교회, 자영업 홈페이지 및 전문앱을 제공합니다.\n\n언제든 편안하게 찾아와 소통하고 따뜻한 정을 나누는 나만의 스마트 공간입니다.\n함께 소통하는 축복의 통로가 되길 소망합니다.",
+        photo: [
+            { img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80", text: "전문성과 신뢰를 담은 대표 갤러리" },
+            { img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&auto=format&fit=crop&q=80", text: "새로운 비전과 도약을 준비하는 오늘" },
+            { img: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&auto=format&fit=crop&q=80", text: "동역자들과 함께하는 아름다운 순간" }
+        ],
+        biz: [
+            { img: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=80", text: "1:1 맞춤 제작 & 비즈니스 솔루션 기획" }
+        ]
+    };
+
+    /* 달력 관련 상태 */
+    let currentCalYear = 2026;
+    let currentCalMonth = 9; // 0-indexed: 9 = 10월
+    let selectedCalDateStr = "2026-10-12";
+    let calendarSchedules = {};
+
+    /* 🌟 [사용자 요청 4번, 5번] 가상 인물로 전면 교체된 따뜻한 친구 목록 (즐겨찾기 상단) */
+    let myFriends = [
+        // ⭐ 즐겨찾는 친구
+        { id: "f1", name: "김은혜 권사", status: "늘 기도하며 응원합니다 💖", isFav: true, phone: "010-3344-5566", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80", badge: "1" },
+        { id: "f2", name: "이사랑 집사", status: "주님 안에서 늘 평안하세요~", isFav: true, phone: "010-5566-7788", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80", badge: "2" },
+        { id: "f3", name: "정화평 목사", status: "말씀과 기도로 승리하는 한 주!", isFav: true, phone: "010-7788-9900", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80", badge: "1" },
+        // 💬 최근 대화 및 친구
+        { id: "f4", name: "박믿음 청년", status: "프로젝트 준비 잘 마쳤습니다 ^^", isFav: false, phone: "010-1234-5678", avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80", badge: "1" },
+        { id: "f5", name: "최소망 전도사", status: "이번 주 찬양 집회 은혜롭게 준비해요", isFav: false, phone: "010-2345-6789", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80", badge: "" },
+        { id: "f6", name: "강온유 성도", status: "오늘 하루도 감사함으로 화이팅입니다!", isFav: false, phone: "010-3456-7890", avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150&auto=format&fit=crop&q=80", badge: "" },
+        { id: "f7", name: "송기쁨 청년", status: "예톡 스마트 홈 너무 멋져요 👍", isFav: false, phone: "010-4567-8901", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80", badge: "1" },
+        { id: "f8", name: "윤찬양 집사", status: "샬롬! 건강 유의하시고 축복합니다.", isFav: false, phone: "010-5678-9012", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150&auto=format&fit=crop&q=80", badge: "" }
+    ];
+    let currentChatFriend = null;
+
+    /* 초기화 */
+    function initPage() {
+        const savedSections = localStorage.getItem(STORAGE_KEY_SECTIONS);
+        if (savedSections) {
+            try { sectionData = Object.assign(sectionData, JSON.parse(savedSections)); } catch(e){}
+        }
+
+        const savedCal = localStorage.getItem(STORAGE_KEY_CALENDAR);
+        if (savedCal) {
+            try { calendarSchedules = JSON.parse(savedCal); } catch(e){}
+        } else {
+            calendarSchedules["2026-10-12"] = [
+                { time: "09:00", text: "아침 말씀 묵상 및 성경 읽기" },
+                { time: "11:30", text: "예톡 스마트 홈 파트너사 미팅" },
+                { time: "14:00", text: "비즈니스 기획 상담 및 계약 검토" },
+                { time: "19:00", text: "가족 저녁 식사 및 교제" }
+            ];
+            localStorage.setItem(STORAGE_KEY_CALENDAR, JSON.stringify(calendarSchedules));
+        }
+
+        const savedFriends = localStorage.getItem(STORAGE_KEY_FRIENDS);
+        if (savedFriends) {
+            try { myFriends = JSON.parse(savedFriends); } catch(e){}
+        }
+
+        const myName = localStorage.getItem("yetalkUserName") || "김예톡";
+        document.getElementById("topOneTitle").innerText = `${myName}의 예톡홈`;
+        document.getElementById("dispQrCardOwner").innerText = `${myName}의 예톡홈`;
+        document.getElementById("dispMyProfileName").innerText = `${myName} (나)`;
+
+        updateSchedulePrivacyUI();
+        renderQrSection();
+        renderPhotoSection();
+        renderLiveStreamPlayer();
+        renderCalendarGrid();
+        renderTimelineList();
+        renderFriendsList();
+        renderBizSection();
+        attachEndingScrollListeners();
+
+        loadSavedBankInfo();
+        buildBankVerticalList();
+
+        let startTab = "qr";
+        try {
+            const params = new URLSearchParams(window.location.search);
+            const queryTab = params.get("tab") || window.location.hash.replace("#", "");
+            if (queryTab && SECTION_ORDER.includes(queryTab)) {
+                startTab = queryTab;
+            }
+        } catch(e){}
+        switchSection(startTab);
+    }
+
+    /* 🌟 [사용자 요청] 2. 내 모습 (기본: 공개) & 3. 하루 일정 (기본: 비공개) 공개/비공개 토글 */
+    let isAppearancePublic = localStorage.getItem("yetalk_privacy_my_appearance") !== "private";
+    let isSchedulePublic = localStorage.getItem("yetalk_privacy_my_schedule") === "public"; // 기본: 비공개
+
+    function toggleAppearancePrivacy() {
+        isAppearancePublic = !isAppearancePublic;
+        localStorage.setItem("yetalk_privacy_my_appearance", isAppearancePublic ? "public" : "private");
+        renderPhotoSection();
+        showToast(isAppearancePublic ? "🌐 [내 모습]이 전체 공개로 설정되었습니다." : "🔒 [내 모습]이 비공개(나만 보기)로 설정되었습니다.");
+    }
+
+    function toggleSchedulePrivacy() {
+        isSchedulePublic = !isSchedulePublic;
+        localStorage.setItem("yetalk_privacy_my_schedule", isSchedulePublic ? "public" : "private");
+        updateSchedulePrivacyUI();
+        showToast(isSchedulePublic ? "🌐 [하루 일정]이 전체 공개로 설정되었습니다." : "🔒 [하루 일정]이 비공개(나만 보기)로 설정되었습니다.");
+    }
+
+    function updateSchedulePrivacyUI() {
+        const text = isSchedulePublic ? "🌐 전체 공개" : "🔒 나만 보기 (비공개)";
+        const bg = isSchedulePublic ? "rgba(5, 150, 105, 0.9)" : "rgba(30, 41, 59, 0.95)";
+        const border = isSchedulePublic ? "1.5px solid #34d399" : "1.5px solid #64748b";
+        const color = isSchedulePublic ? "#34d399" : "#cbd5e1";
+
+        const btn1 = document.getElementById("btnCalPrivacy1");
+        const btn2 = document.getElementById("btnCalPrivacy2");
+        [btn1, btn2].forEach(btn => {
+            if (btn) {
+                btn.innerText = text;
+                btn.style.background = bg;
+                btn.style.border = border;
+                btn.style.color = color;
+            }
+        });
+    }
+
+    /* 🌟 [사용자 요청] 나의 QR 터치 시: 이미 친구일 경우 '친구 맺기' 창 안 뜨게 처리 */
+    function openFriendJoinModal() {
+        const ownerName = (document.getElementById("dispQrCardOwner")?.innerText || "").replace("의 예톡홈", "").trim() || "김예톡";
+        const myName = localStorage.getItem("yetalkUserName") || "김예톡";
+
+        // 이미 등록된 친구이거나 본인(앱 주인)인 경우 '나의 친구를 맺으시겠습니까?' 모달 생략
+        const isAlreadyFriend = myFriends && myFriends.some(f => f.name === ownerName || f.id === ownerName);
+        const isSelf = (ownerName === myName) || (ownerName === "김예톡");
+
+        if (isAlreadyFriend || isSelf) {
+            showToast(`🤝 이미 친구로 등록되어 있습니다 (${ownerName})`);
+            return;
+        }
+
+        document.getElementById("boxFriendStepConfirm").style.display = "block";
+        document.getElementById("boxFriendStepForm").style.display = "none";
+        document.getElementById("friendJoinModal").classList.add("open");
+    }
+
+    function goToJoinFormStep() {
+        document.getElementById("boxFriendStepConfirm").style.display = "none";
+        document.getElementById("boxFriendStepForm").style.display = "block";
+        setTimeout(() => {
+            const inp = document.getElementById("inpJoinName");
+            if (inp) inp.focus();
+        }, 150);
+    }
+
+    function backToJoinConfirmStep() {
+        document.getElementById("boxFriendStepForm").style.display = "none";
+        document.getElementById("boxFriendStepConfirm").style.display = "block";
+    }
+
+    function completeFriendJoin() {
+        const name = document.getElementById("inpJoinName").value.trim();
+        const id = document.getElementById("inpJoinId").value.trim();
+        const pw = document.getElementById("inpJoinPw").value.trim();
+        const addr = document.getElementById("inpJoinAddr").value.trim();
+
+        if (!name) {
+            showToast("⚠️ 성함을 입력해주세요.");
+            return;
+        }
+        if (!id) {
+            showToast("⚠️ 아이디를 입력해주세요.");
+            return;
+        }
+        if (!pw) {
+            showToast("⚠️ 비밀번호를 입력해주세요.");
+            return;
+        }
+
+        // 신규 회원 정보 로컬 저장 (개인앱 기본 생성)
+        localStorage.setItem("yetalkUserName", name);
+        localStorage.setItem("yetalkUserId", id);
+        localStorage.setItem("yetalkUserAddr", addr);
+        localStorage.setItem("yetalkUserStoreName", id);
+
+        // 친구 목록에도 추가하여 이후 모달 중복 노출 방지
+        if (!myFriends.some(f => f.name === name)) {
+            myFriends.push({
+                id: id || ("f_" + Date.now()),
+                name: name,
+                status: "예톡 개인앱 개설 완료 🎉",
+                isFav: true,
+                phone: "",
+                avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+                badge: "NEW"
+            });
+            localStorage.setItem(STORAGE_KEY_FRIENDS, JSON.stringify(myFriends));
+            renderFriendsList();
+        }
+
+        // UI 즉시 동기화
+        document.getElementById("topOneTitle").innerText = `${name}의 예톡홈`;
+        document.getElementById("dispQrCardOwner").innerText = `${name}의 예톡홈`;
+        document.getElementById("dispMyProfileName").innerText = `${name} (나)`;
+
+        renderQrSection();
+        closeModal("friendJoinModal");
+        showToast(`🎉 축하합니다! ${name}님의 무료 개인앱이 개설되었습니다.`);
+    }
+
+    /* 🌟 [사용자 요청] 친구에게 공지알림(비공개) 보내기 로직 */
+    function openFriendNoticeModal() {
+        document.getElementById("friendNoticeModal").classList.add("open");
+        setTimeout(() => {
+            const inp = document.getElementById("inpFriendNoticeTitle");
+            if (inp) inp.focus();
+        }, 150);
+    }
+
+    function sendFriendNoticePrivate() {
+        const title = document.getElementById("inpFriendNoticeTitle").value.trim();
+        const content = document.getElementById("inpFriendNoticeContent").value.trim();
+        const target = document.getElementById("selFriendNoticeTarget").value;
+
+        if (!title) {
+            showToast("⚠️ 공지 제목을 입력해주세요.");
+            return;
+        }
+        if (!content) {
+            showToast("⚠️ 공지 내용을 입력해주세요.");
+            return;
+        }
+
+        const myName = localStorage.getItem("yetalkUserName") || "김예톡";
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        const targetLabel = target === "fav" ? "⭐ 즐겨찾는 친구" : "전체 친구";
+
+        const newNotice = {
+            id: "notice_friend_" + Date.now(),
+            sender: `📢 ${myName} (나 ➔ ${targetLabel})`,
+            senderType: "friend",
+            isChurchNotice: false,
+            isPrivateFriendNotice: true,
+            isToday: true,
+            title: title,
+            date: dateStr,
+            stars: 5,
+            content: `[🔒 비공개 친구 공지]\n${content}`
+        };
+
+        let notices = getAllNotices();
+        notices.unshift(newNotice);
+        localStorage.setItem("yetalk_all_notices", JSON.stringify(notices));
+
+        document.getElementById("inpFriendNoticeTitle").value = "";
+        document.getElementById("inpFriendNoticeContent").value = "";
+        closeModal("friendNoticeModal");
+        renderFullNoticeSection();
+        showToast("📢 친구들에게 비공개 공지알림이 성공적으로 발송되었습니다!");
+    }
+
+
+    /* 탭 전환 (독립 화면 표시) */
+    function switchSection(key) {
+        if (key === "pay") {
+            openPaymentModal();
+            return;
+        }
+        if (!SECTION_ORDER.includes(key)) return;
+        currentSectionKey = key;
+
+        // 채팅방 열림 상태 정리 및 상단 헤더 복원 보장
+        document.body.classList.remove("is-chat-open");
+        const fixedHdr = document.querySelector(".one-fixed-header");
+        if (fixedHdr) fixedHdr.style.display = "flex";
+        const navBarEl = document.querySelector(".one-nav-bar");
+        if (navBarEl) navBarEl.style.display = "flex";
+
+        // 모바일 웹뷰 수직 스크롤 튀는 현상 원천 방지
+        window.scrollTo(0, 0);
+
+        if (key === "live") {
+            document.body.classList.add("is-live-mode");
+        } else {
+            document.body.classList.remove("is-live-mode");
+            closeLiveCommentsDrawer();
+        }
+
+        // 칩 하이라이트 & 가로 탭 바 안전 스크롤 (scrollIntoView 대신 navBar.scrollTo로 수직 스크롤 원천 차단)
+        document.querySelectorAll(".one-nav-chip").forEach(chip => chip.classList.remove("active"));
+        const targetChip = document.getElementById(`chip_${key}`);
+        const navBar = document.getElementById("oneNavBar");
+        if (targetChip) {
+            targetChip.classList.add("active");
+            if (navBar) {
+                const navRect = navBar.getBoundingClientRect();
+                const chipRect = targetChip.getBoundingClientRect();
+                const scrollTarget = navBar.scrollLeft + (chipRect.left - navRect.left) - (navRect.width / 2) + (chipRect.width / 2);
+                navBar.scrollTo({ left: Math.max(0, scrollTarget), behavior: 'smooth' });
+            }
+        }
+
+        // 컨테이너 토글
+        document.querySelectorAll(".one-tab-page-container").forEach(c => c.classList.remove("active"));
+        const targetContainer = document.getElementById(`sec_${key}`);
+        if (targetContainer) {
+            targetContainer.classList.add("active");
+            targetContainer.scrollTop = 0;
+        }
+
+        if (key === "live") {
+            renderLiveStreamPlayer();
+        }
+        if (key === "friends") {
+            closeKakaoChat();
+        }
+        if (key === "notice") {
+            renderFullNoticeSection();
+        }
+    }
+
+    /* 🌟 공지알림 섹션 로직 (화면 가득 채움, 별점 순 & 교회 정회원 최상단 고정) */
+    let isChurchMember = localStorage.getItem("yetalk_user_is_church_member") !== "false";
+
+    function toggleChurchMembership() {
+        isChurchMember = !isChurchMember;
+        localStorage.setItem("yetalk_user_is_church_member", isChurchMember ? "true" : "false");
+        const statusTxt = document.getElementById("txtChurchMemberStatus");
+        if (statusTxt) {
+            statusTxt.innerText = isChurchMember ? "가입 (최우선 고정)" : "미가입 (일반 정렬)";
+            statusTxt.style.color = isChurchMember ? "#fde047" : "#94a3b8";
+        }
+        renderFullNoticeSection();
+        showToast(isChurchMember ? "⛪ 교회 정회원 인증: 교회 공지가 최상단에 고정됩니다." : "일반 정렬 모드로 변경되었습니다.");
+    }
+
+    const DEFAULT_GLOBAL_NOTICES = [
+        {
+            id: "notice_church_1",
+            sender: "⛪ 은혜와평강교회",
+            senderType: "church",
+            isChurchNotice: true,
+            title: "이번 주일 추수감사 특별예배 및 전교인 친교 모임",
+            date: "2026.10.12 16:30",
+            stars: 5,
+            content: "성도 여러분, 이번 주일은 한 해의 은혜를 감사하는 추수감사 특별 연합예배로 드려집니다.\n\n예배 후 대예배당 2층에서 전교인 나눔 및 친교 모임이 준비되어 있으니 기쁨으로 동참해 주시기 바랍니다."
+        },
+        {
+            id: "notice_doc_1",
+            sender: "🏥 예톡아름다운 의원",
+            senderType: "clinic",
+            isChurchNotice: false,
+            title: "환절기 피부 탄력 및 수분 보강 맞춤 프로그램 안내",
+            date: "2026.10.12 10:00",
+            stars: 5,
+            content: "건조한 환절기를 맞아 깊은 주름 완화 및 피부 장벽 강화를 위한 특별 클리닉이 운영됩니다.\n\n사전 예약 환자분 우선으로 배정되어 대기시간 없이 쾌적한 진료를 받으실 수 있습니다."
+        },
+        {
+            id: "notice_hq_1",
+            sender: "📢 예톡 본부",
+            senderType: "hq",
+            isChurchNotice: false,
+            title: "예톡 스마트 비즈니스 & 크리에이터 후원 업데이트 안내",
+            date: "2026.10.11 18:00",
+            stars: 4,
+            content: "1인 소상공인과 크리에이터를 위한 모바일 웹앱 생성 엔진이 최적화되었습니다.\n\n누구나 무료로 나만의 스마트 홈과 간편결제를 개설할 수 있습니다."
+        },
+        {
+            id: "notice_church_2",
+            sender: "⛪ 은혜와평강교회",
+            senderType: "church",
+            isChurchNotice: true,
+            title: "수요 저녁 성경 통독 및 중보기도회 안내",
+            date: "2026.10.10 20:00",
+            stars: 4,
+            content: "매주 수요일 저녁 7시 30분, 온 성도가 함께 모여 말씀과 기도로 은혜를 나누는 수요 예배에 성도님들의 많은 동참 바랍니다."
+        },
+        {
+            id: "notice_doc_2",
+            sender: "🏥 예톡아름다운 의원",
+            senderType: "clinic",
+            isChurchNotice: false,
+            title: "10월 위·대장 내시경 및 종합 초음파 검진 일정 공지",
+            date: "2026.10.09 09:30",
+            stars: 3,
+            content: "수면 내시경 예약 환자분들은 전날 저녁 8시 이후 금식을 엄수해 주시기 바라며, 당일 운전은 자제해 주시기 바랍니다."
+        }
+    ];
+
+    function getAllNotices() {
+        const raw = localStorage.getItem("yetalk_all_notices");
+        return raw ? JSON.parse(raw) : DEFAULT_GLOBAL_NOTICES;
+    }
+
+        let currentNoticeFilterCat = "all";
+
+    function filterOneNoticeCat(cat) {
+        currentNoticeFilterCat = cat;
+        ["clinic", "church", "store"].forEach(c => {
+            const el = document.getElementById("oneNoticeCat_" + c);
+            if (el) {
+                if (cat === c) {
+                    el.style.border = "2px solid #38bdf8";
+                    el.style.background = "#0f1f38";
+                    el.style.boxShadow = "0 3px 10px rgba(56,189,248,0.3)";
+                } else {
+                    el.style.border = "2px solid #334155";
+                    el.style.background = "#0f172a";
+                    el.style.boxShadow = "none";
+                }
+            }
+        });
+        const titleEl = document.getElementById("dispOneNoticeCatTitle");
+        if (titleEl) {
+            if (cat === "clinic") titleEl.innerText = "🏥 의원·한의·치과 알림 목록";
+            else if (cat === "church") titleEl.innerText = "⛪ 교회 알림 목록";
+            else if (cat === "store") titleEl.innerText = "🍽️ 음식점 및 기타 알림 목록";
+            else titleEl.innerText = "📋 전체 공지 피드";
+        }
+        renderFullNoticeSection();
+    }
+
+    function renderFullNoticeSection() {
+        const container = document.getElementById("noticeFullFeedContainer");
+        const todayContainer = document.getElementById("todayNoticesListContainer");
+        const badgeToday = document.getElementById("badgeTodayNoticeCount");
+        const badgeDangol = document.getElementById("badgeDangolAlertNum");
+        const badgeDangolChip = document.getElementById("badgeDangolCountChip");
+        const badgeNoticeChip = document.getElementById("badgeNoticeCountChip");
+
+        let notices = getAllNotices();
+
+        const now = new Date();
+        const todayStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+        const todayStr2 = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+
+        const todayNotices = notices.filter(n => {
+            const d = n.date || "";
+            return n.isToday || d.includes(todayStr) || d.includes(todayStr2) || d.includes("오늘") || d.includes("10.12") || d.includes("10.13");
+        });
+
+        if (badgeToday) badgeToday.innerText = `${todayNotices.length}건`;
+        if (badgeDangol) badgeDangol.innerText = `${todayNotices.length}건`;
+        if (badgeDangolChip) badgeDangolChip.innerText = `${todayNotices.length}`;
+        if (badgeNoticeChip) badgeNoticeChip.innerText = `${notices.length}`;
+
+        // 1) 당일 공지 일렬 렌더링
+        if (todayContainer) {
+            if (todayNotices.length === 0) {
+                todayContainer.innerHTML = `<div style="text-align:center; padding:12px; color:#64748b; font-size:12.5px;">오늘 새로 도착한 공지가 없습니다.</div>`;
+            } else {
+                todayContainer.innerHTML = todayNotices.map(item => `
+                    <div style="background:#1e293b; border:${item.isPrivateFriendNotice ? '1.8px solid #a78bfa' : '1px solid #38bdf8'}; border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; gap:4px; box-shadow:0 2px 8px rgba(0,0,0,0.25);">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:11.5px; font-weight:900; background:${item.isPrivateFriendNotice ? '#7c3aed' : '#0284c7'}; color:#fff; padding:2px 7px; border-radius:6px;">${item.sender}</span>
+                            <span style="font-size:11px; color:#fde047; font-weight:800;">${item.isPrivateFriendNotice ? '🔒 비공개' : '⚡ 오늘 도착'}</span>
+                        </div>
+                        <strong style="font-size:14.5px; color:#ffffff; font-weight:950; margin-top:2px;">${item.title}</strong>
+                        <p style="font-size:12.5px; color:#cbd5e1; line-height:1.5; white-space:pre-wrap;">${item.content || item.body || ""}</p>
+                        ${item.img ? `<img src="${item.img}" style="max-height:130px; border-radius:8px; object-fit:cover; margin-top:4px;" alt="사진">` : ''}
+                        <!-- 🌟 [사용자 요청] 공지알림 밑 100 애드몹 배너 -->
+                        <div style="margin-top:6px; padding:6px 8px; background:#0b1326; border:1px solid #1e293b; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; height:48px;">
+                            <span style="font-size:9px; color:#64748b; font-weight:800;">SPONSORED AD</span>
+                            <strong style="color:#ffffff; font-size:11px; font-weight:950;">Google AdMob (320x100)</strong>
+                            <span style="color:#38bdf8; font-size:9px;">공식 제휴 스폰서</span>
+                        </div>
+                    </div>
+                `).join("");
+            }
+        }
+
+        // 2) 카테고리 필터링된 전체 공지 목록 렌더링
+        let filtered = notices;
+        if (currentNoticeFilterCat === "clinic") {
+            filtered = notices.filter(n => n.senderType === "clinic" || n.sender?.includes("의원") || n.sender?.includes("치과") || n.sender?.includes("한의원"));
+        } else if (currentNoticeFilterCat === "church") {
+            filtered = notices.filter(n => n.isChurchNotice || n.senderType === "church" || n.sender?.includes("교회"));
+        } else if (currentNoticeFilterCat === "store") {
+            filtered = notices.filter(n => n.senderType === "store" || n.senderType === "hq" || n.senderType === "friend" || (!n.isChurchNotice && !n.sender?.includes("의원") && !n.sender?.includes("치과") && !n.sender?.includes("한의원")));
+        }
+
+        filtered.sort((a, b) => {
+            if (isChurchMember) {
+                if (a.isChurchNotice && !b.isChurchNotice) return -1;
+                if (!a.isChurchNotice && b.isChurchNotice) return 1;
+            }
+            return (b.date || "").localeCompare(a.date || "");
+        });
+
+        if (container) {
+            if (filtered.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:#64748b;">해당 분야의 등록된 공지가 없습니다.</div>`;
+                return;
+            }
+            container.innerHTML = filtered.map(item => {
+                const isChurch = item.isChurchNotice;
+                const isFriendNotice = item.isPrivateFriendNotice;
+                let cardBorder = '1px solid #334155';
+                if (isFriendNotice) cardBorder = '2px solid #a78bfa';
+                else if (isChurch && isChurchMember) cardBorder = '2px solid #38bdf8';
+                
+                let badgeBg = isFriendNotice ? '#7c3aed' : (isChurch ? '#0369a1' : '#1e3a5f');
+
+                return `
+                    <div style="background:#1e293b; border:${cardBorder}; border-radius:16px; padding:16px; display:flex; flex-direction:column; gap:8px; box-shadow:0 4px 14px rgba(0,0,0,0.3); position:relative;">
+                        ${isChurch && isChurchMember ? `
+                        <div style="position:absolute; top:-10px; right:14px; background:#0284c7; color:#fff; font-size:10.5px; font-weight:950; padding:2px 8px; border-radius:10px;">
+                            📌 교회 정회원 최상단 고정
+                        </div>
+                        ` : ''}
+                        ${isFriendNotice ? `
+                        <div style="position:absolute; top:-10px; right:14px; background:#7c3aed; color:#fff; font-size:10.5px; font-weight:950; padding:2px 8px; border-radius:10px;">
+                            🔒 친구 비공개 공지
+                        </div>
+                        ` : ''}
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-size:12px; font-weight:900; background:${badgeBg}; color:#fff; padding:3px 8px; border-radius:6px;">
+                                ${item.sender}
+                            </span>
+                            <span style="font-size:11px; color:#94a3b8; font-weight:700;">${item.date}</span>
+                        </div>
+                        <h3 style="font-size:16px; font-weight:950; color:#f8fafc; line-height:1.4; margin-top:2px;">
+                            ${item.title}
+                        </h3>
+                        <p style="font-size:13.5px; color:#cbd5e1; line-height:1.6; white-space:pre-line;">
+                            ${item.content || item.body || ""}
+                        </p>
+                        ${item.img ? `<img src="${item.img}" style="max-height:160px; border-radius:10px; object-fit:cover; margin-top:4px;" alt="사진">` : ''}
+                        <div style="display:flex; justify-content:flex-end; border-top:1px dashed #334155; padding-top:8px; margin-top:4px;">
+                            <button type="button" style="background:#0f172a; color:#38bdf8; border:1px solid #334155; padding:4px 10px; border-radius:6px; font-size:11.5px; font-weight:800; cursor:pointer;" onclick="showToast('✅ 공지사항을 확인하였습니다.')">
+                                확인완료 ✔
+                            </button>
+                        </div>
+                        <!-- 🌟 [사용자 요청] 공지알림 글 밑 100 애드몹 공식 스폰서 배너 -->
+                        <div style="margin-top:10px; padding:8px 8px; background:#0b1326; border:1px solid #1e293b; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; height:56px;">
+                            <span style="font-size:9.5px; color:#64748b; font-weight:800; letter-spacing:0.5px;">SPONSORED AD</span>
+                            <strong style="color:#ffffff; font-size:12px; font-weight:950;">Google AdMob (320x100)</strong>
+                            <span style="color:#38bdf8; font-size:9.5px;">예톡 회원 소통 지원 공식 스폰서 슬롯</span>
+                        </div>
+                    </div>
+                `;
+
+            }).join("");
+        }
+    }
+
+
+    /* 🌟 [사용자 요청 3번 & 7번] 플로팅 컨트롤 동작 */
+    // 1) → 우측 화살표 (맨 위): 가로 메뉴의 다음 탭으로 이동 (나의 비즈니스 다음은 예톡결제!)
+    function handleFloatingRight() {
+        const curIdx = SECTION_ORDER.indexOf(currentSectionKey);
+        const nextIdx = (curIdx + 1) % SECTION_ORDER.length;
+        const nextKey = SECTION_ORDER[nextIdx];
+        switchSection(nextKey);
+        const nextChip = document.getElementById(`chip_${nextKey}`);
+        if (nextChip) {
+            showToast(`👉 [${nextChip.innerText}] 메뉴로 이동했습니다.`);
+        }
+    }
+
+    // 2) ↓ 아래 화살표 (중간): 다음 세로 페이지로 스크롤
+    function handleFloatingDown() {
+        const activeContainer = document.getElementById(`sec_${currentSectionKey}`);
+        if (!activeContainer) return;
+
+        const curScroll = activeContainer.scrollTop;
+        const pageH = activeContainer.clientHeight;
+        const totalH = activeContainer.scrollHeight;
+
+        if (curScroll + pageH + 10 >= totalH) {
+            activeContainer.scrollTo({ top: 0, behavior: 'smooth' });
+            showToast("⬆️ 첫 페이지로 돌아갑니다.");
+        } else {
+            activeContainer.scrollBy({ top: pageH, behavior: 'smooth' });
+        }
+    }
+
+    // 3) ＋ 추가 버튼 (맨 밑): 현재 탭에 새 페이지 또는 항목 추가
+    function handleFloatingAdd() {
+        if (currentSectionKey === "photo") {
+            addNewPhotoPageDirect();
+        } else if (currentSectionKey === "biz") {
+            addNewBizPageDirect();
+        } else if (currentSectionKey === "calendar") {
+            document.getElementById("inpCalScheduleText").focus();
+            showToast("✍️ 추가할 일정 내용을 입력해주세요.");
+        } else if (currentSectionKey === "friends") {
+            promptAddFriend();
+        } else if (currentSectionKey === "qr") {
+            openBigEditModal('qr_invite', 0);
+        }
+    }
+
+    /* 🌟 [사용자 요청 2번] 수정 모드 토글 (가로메뉴 바로 밑 우측 버튼 연동) */
+    function toggleEditMode() {
+        isEditMode = !isEditMode;
+        document.body.classList.toggle("edit-mode", isEditMode);
+        document.querySelectorAll(".btn-card-mode-toggle").forEach(btn => {
+            btn.classList.toggle("active", isEditMode);
+            btn.innerHTML = isEditMode ? "수정 ON 🔴" : "수정 ⚙️";
+        });
+
+        if (isEditMode) {
+            showToast("🛠️ 수정 모드가 켜졌습니다. 사진과 글을 직접 수정하세요!");
+        } else {
+            showToast("✨ 수정 모드가 꺼졌습니다.");
+        }
+    }
+
+    /* 🌟 1. 나의 QR 섹션 */
+    function renderQrSection() {
+        const targetUrl = "https://yetalk.cc";
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
+        document.getElementById("dispMyQrImg").src = qrUrl;
+
+        const phoneBtn = document.getElementById("btnQrDirectPhone");
+        const isVisible = sectionData.showQrPhone !== false && !!(sectionData.qrPhone && sectionData.qrPhone.trim());
+        if (isVisible) {
+            phoneBtn.href = `tel:${sectionData.qrPhone.trim()}`;
+            phoneBtn.style.display = "inline-flex";
+        } else {
+            phoneBtn.style.display = "none";
+        }
+
+        const visBtn = document.getElementById("btnToggleQrPhoneVis");
+        if (visBtn) {
+            if (sectionData.showQrPhone !== false) {
+                visBtn.innerHTML = "👁️ 번호 노출중";
+                visBtn.style.borderColor = "#38bdf8";
+                visBtn.style.color = "#38bdf8";
+            } else {
+                visBtn.innerHTML = "🔒 번호 숨김";
+                visBtn.style.borderColor = "#f59e0b";
+                visBtn.style.color = "#facc15";
+            }
+        }
+
+        document.getElementById("dispInviteMessage").innerText = sectionData.inviteText;
+    }
+
+    function toggleQrPhoneVisibility() {
+        sectionData.showQrPhone = (sectionData.showQrPhone === false) ? true : false;
+        saveSectionData();
+        renderQrSection();
+        if (sectionData.showQrPhone) {
+            showToast("📞 직통 전화번호가 화면에 노출됩니다.");
+        } else {
+            showToast("🔒 직통 전화번호가 화면에서 숨김 처리되었습니다.");
+        }
+    }
+
+    function openQrPhoneModal() {
+        const cur = sectionData.qrPhone || "";
+        document.getElementById("inpQrPhoneModalVal").value = cur;
+        const isShow = sectionData.showQrPhone !== false;
+        document.getElementById("rdQrPhoneVis_show").checked = isShow;
+        document.getElementById("rdQrPhoneVis_hide").checked = !isShow;
+        openModal("qrPhoneModal");
+    }
+
+    function saveQrPhoneModalSetting() {
+        const val = document.getElementById("inpQrPhoneModalVal").value.trim();
+        const isShow = document.getElementById("rdQrPhoneVis_show").checked;
+        sectionData.qrPhone = val;
+        sectionData.showQrPhone = isShow;
+        saveSectionData();
+        closeModal("qrPhoneModal");
+        renderQrSection();
+        showToast("📞 전화번호 및 노출 설정이 저장되었습니다.");
+    }
+
+    function copyInvitationText() {
+        const myName = localStorage.getItem("yetalkUserName") || "김예톡";
+        const targetUrl = "https://yetalk.cc";
+        const inviteMsg = sectionData.inviteText || "소중한 당신을 예톡 스마트 홈으로 초대합니다.\n\n언제든 편안하게 찾아와 소통하고 따뜻한 정을 나누는 나만의 스마트 공간입니다.\n함께 소통하는 축복의 통로가 되길 소망합니다.";
+        const textToCopy = `[${myName}님의 예톡 모바일 홈 초청장]\n\n${inviteMsg}\n\n👉 모바일 초대장 열기 (터치):\n${targetUrl}`;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            showToast("📋 초청 문구와 바로가기 링크가 복사되었습니다!");
+        }).catch(() => {
+            prompt("아래 초청 문구를 복사하세요:", textToCopy);
+        });
+    }
+
+    /* 🌟 [사용자 요청] 당신을 초청합니다: 카카오톡 친구/대화방 선택 창이 바로 열리고, 초대 문구와 클릭 시 개인앱이 바로 열리는 yetalk.cc 링크 전송 */
+    function shareInviteToKakao() {
+        const myName = localStorage.getItem("yetalkUserName") || "김예톡";
+        const targetUrl = "https://yetalk.cc";
+        const inviteMsg = sectionData.inviteText || "소중한 당신을 예톡 스마트 홈으로 초대합니다.\n\n언제든 편안하게 찾아와 소통하고 따뜻한 정을 나누는 나만의 스마트 공간입니다.\n함께 소통하는 축복의 통로가 되길 소망합니다.";
+        const textToShare = `[${myName}님의 예톡 모바일 홈 초청장]\n\n${inviteMsg}\n\n👉 모바일 초대장 열기 (터치):\n${targetUrl}`;
+
+        if (window.AndroidBridge && window.AndroidBridge.shareToKakaoFriends) {
+            window.AndroidBridge.shareToKakaoFriends(textToShare);
+            showToast("💬 카카오톡 친구/대화방 선택 창으로 연결합니다!");
+        } else if (window.AndroidBridge && window.AndroidBridge.shareToKakaoWithQr) {
+            window.AndroidBridge.shareToKakaoWithQr(textToShare, "");
+            showToast("💬 카카오톡 친구/대화방 선택 창으로 연결합니다!");
+        } else {
+            // 안드로이드 패키지 인텐트 방식 (친구/대화방 선택 창 직접 호출)
+            const kakaoIntentUrl = `intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=${encodeURIComponent(textToShare)};component=com.kakao.talk/com.kakao.talk.activity.RecentExcludeIntentFilterActivity;end;`;
+            window.location.href = kakaoIntentUrl;
+            setTimeout(() => {
+                copyInvitationText();
+            }, 600);
+        }
+    }
+
+    /* 🌟 2. 내 모습 섹션 렌더링 (상단 바 1줄 정렬, 공개/비공개 토글, + 새글쓰기, 끝페이지 좋은 글귀/애드몹) */
+    function renderPhotoSection() {
+        const host = document.getElementById("sec_photo");
+        host.innerHTML = "";
+
+        const list = sectionData.photo || [];
+        list.forEach((item, idx) => {
+            const pageEl = document.createElement("section");
+            pageEl.className = "one-v-page";
+            pageEl.id = `page_photo_${idx}`;
+
+            pageEl.innerHTML = `
+                <img class="v-page-bg-img" src="${item.img}" alt="내 모습 ${idx+1}">
+                <div class="v-page-gradient-overlay"></div>
+                
+                <!-- 상단 액션 바: 한 줄에 [✏️ 사진 & 글 편집], [⚙️ 수정], [🗑️ 삭제] 및 우측 [🌐 공개 / 🔒 비공개] -->
+                <div class="card-single-action-bar">
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button type="button" class="btn-action-pill" onclick="openBigEditModal('photo', ${idx})">✏️ 사진 & 글 편집</button>
+                        <button type="button" class="btn-action-pill ${isEditMode ? 'active' : ''}" onclick="toggleEditMode()">${isEditMode ? '수정 ON 🔴' : '⚙️ 수정'}</button>
+                        ${list.length > 1 ? `<button type="button" class="btn-action-pill btn-pill-del" onclick="deletePage('photo', ${idx})">🗑️ 삭제</button>` : ''}
+                    </div>
+                    <button type="button" class="btn-privacy-pill" onclick="toggleAppearancePrivacy()">
+                        ${isAppearancePublic ? '🌐 공개' : '🔒 비공개'}
+                    </button>
+                </div>
+
+                <div class="v-page-caption-bar" onclick="openBigEditModal('photo', ${idx});">
+                    <p class="v-caption-text">${item.text}</p>
+                    <button type="button" class="btn-card-add-below" style="margin:8px 0 0 0; width:100%;" onclick="event.stopPropagation(); addNewPhotoPageDirect();">+ 새글쓰기</button>
+                </div>
+            `;
+            host.appendChild(pageEl);
+        });
+
+        // 🌟 끝 페이지: 좋은 글귀 + 250 애드몹 + 다음 메뉴 이동
+        host.appendChild(createEndingSnapElement('photo', 'live', '🔴 실시간 방송'));
+    }
+
+    function addNewPhotoPageDirect() {
+        sectionData.photo.push({
+            img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=80",
+            text: "새로운 소중한 순간을 담은 사진"
+        });
+        saveSectionData();
+        renderPhotoSection();
+        const newIdx = sectionData.photo.length - 1;
+        openBigEditModal('photo', newIdx);
+    }
+
+    /* 🌟 6. 나의 비즈니스 섹션 렌더링 (기본 1화면, 상단 바 1줄 정렬, + 새글쓰기, 끝페이지 좋은 글귀/애드몹) */
+    function renderBizSection() {
+        const host = document.getElementById("sec_biz");
+        host.innerHTML = "";
+
+        const list = sectionData.biz || [];
+        list.forEach((item, idx) => {
+            const pageEl = document.createElement("section");
+            pageEl.className = "one-v-page";
+            pageEl.id = `page_biz_${idx}`;
+
+            pageEl.innerHTML = `
+                <img class="v-page-bg-img" src="${item.img}" alt="비즈니스 ${idx+1}">
+                <div class="v-page-gradient-overlay"></div>
+                
+                <!-- 상단 액션 바: 한 줄에 [✏️ 사진 & 글 편집], [⚙️ 수정], [🗑️ 삭제] -->
+                <div class="card-single-action-bar">
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button type="button" class="btn-action-pill" onclick="openBigEditModal('biz', ${idx})">✏️ 사진 & 글 편집</button>
+                        <button type="button" class="btn-action-pill ${isEditMode ? 'active' : ''}" onclick="toggleEditMode()">${isEditMode ? '수정 ON 🔴' : '⚙️ 수정'}</button>
+                        ${list.length > 1 ? `<button type="button" class="btn-action-pill btn-pill-del" onclick="deletePage('biz', ${idx})">🗑️ 삭제</button>` : ''}
+                    </div>
+                </div>
+
+                <div class="v-page-caption-bar" onclick="openBigEditModal('biz', ${idx});">
+                    <p class="v-caption-text">${item.text}</p>
+                    <button type="button" class="btn-card-add-below" style="margin:8px 0 0 0; width:100%;" onclick="event.stopPropagation(); addNewBizPageDirect();">+ 새글쓰기</button>
+                </div>
+            `;
+            host.appendChild(pageEl);
+        });
+
+        // 🌟 끝 페이지: 좋은 글귀 + 250 애드몹 + 다음 메뉴 이동
+        host.appendChild(createEndingSnapElement('biz', 'pay', '7. 예톡결제 💳'));
+    }
+
+    function addNewBizPageDirect() {
+        sectionData.biz.push({
+            img: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop&q=80",
+            text: "정성과 신뢰로 완성하는 고객 맞춤 서비스"
+        });
+        saveSectionData();
+        renderBizSection();
+        const newIdx = sectionData.biz.length - 1;
+        openBigEditModal('biz', newIdx);
+    }
+
+    /* 🌟 [사용자 요청] 끝 페이지 생성 함수: 2줄 이내 큰 글귀 + 250 애드몹 + 다음 메뉴 이동 버튼 */
+    const WARM_ENDING_QUOTES = [
+        { tag: "✨ 오늘의 행복 글귀", text: "당신이 머무는 오늘 하루가 기쁨으로 가득하고,<br>따뜻한 평안이 넘쳐나기를 축복합니다." },
+        { tag: "🌿 마음에 피는 꽃", text: "가장 아름다운 인생의 계절은 바로 지금이며,<br>감사하는 마음속에 매일 기적이 피어납니다." },
+        { tag: "💖 따뜻한 동행", text: "좋은 사람과 나누는 다정한 한마디는<br>오늘을 살아갈 수 있는 가장 큰 힘이 됩니다." },
+        { tag: "🌟 지혜와 평안", text: "마음이 머무는 자리에 은혜와 사랑을 채우면,<br>걸어가는 모든 길이 축복의 통로가 됩니다." }
+    ];
+
+    function createEndingSnapElement(currentKey, nextKey, nextTitle) {
+        const qIdx = Math.floor(Math.random() * WARM_ENDING_QUOTES.length);
+        const q = WARM_ENDING_QUOTES[qIdx];
+        const sec = document.createElement("section");
+        sec.className = "ending-snap-card";
+        sec.id = `ending_card_${currentKey}`;
+        sec.innerHTML = `
+            <div class="ending-quote-box">
+                <span class="ending-quote-tag">${q.tag}</span>
+                <p class="ending-quote-text">${q.text}</p>
+            </div>
+            <div class="ending-admob-250">
+                <span style="font-size:10px; color:#64748b; font-weight:850; letter-spacing:0.5px;">SPONSORED AD</span>
+                <div style="font-size:26px; line-height:1; margin:2px 0;">🎁</div>
+                <strong style="color:#ffffff; font-size:14.5px; font-weight:950;">Google AdMob (300 × 250)</strong>
+                <span style="color:#38bdf8; font-size:11.5px; font-weight:800;">예톡 1인 비즈니스 & 크리에이터 공식 후원 슬롯</span>
+            </div>
+            <button type="button" class="btn-jump-next-section" onclick="switchSection('${nextKey}')">
+                <span>👉 다음: <strong>[${nextTitle}]</strong> 이동</span>
+            </button>
+        `;
+        return sec;
+    }
+
+    /* 🌟 [사용자 요청] 스크롤 시 의도치 않게 다음 메뉴로 튀는 현상 방지:
+       제스처/터치 기반의 강제 자동 점프를 완전 배제하고, 끝 페이지의 [👉 다음: 메뉴 이동] 버튼 터치 또는 상단 탭 바로만 안정적으로 이동합니다. */
+    function attachEndingScrollListeners() {
+        // 자동 스와이프 점프 비활성화 (사용자 수동 터치 이동으로 일원화)
+    }
+
+    /* 🌟 [사용자 요청] 실시간 방송: 상단 메뉴 유지 + 기본 깔끔한 풀 영상 + 댓글 터치 시 200px 롱폼 영상 & 댓글창 */
+    let liveZoomLevels = [100, 125, 145, 160, 200];
+    let currentLiveZoom = parseInt(localStorage.getItem("yetalk_live_zoom") || "100");
+    if (!liveZoomLevels.includes(currentLiveZoom)) currentLiveZoom = 100;
+
+    let isLivePinned = localStorage.getItem("yetalk_live_is_pinned") === "true";
+
+    function extractAnyYouTubeId(input) {
+        if (!input) return "";
+        let str = input.trim();
+        if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return str;
+        let m = str.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|live\/|shorts\/))([\w-]{11})/i);
+        if (m && m[1]) return m[1];
+        return "";
+    }
+
+    function applyLiveZoomUI() {
+        const iframe = document.getElementById("liveYtIframe");
+        const container = document.getElementById("liveVideoContainer");
+        const lbl = document.getElementById("lblLiveZoom");
+        if (lbl) lbl.innerText = `${currentLiveZoom}%`;
+
+        if (!iframe) return;
+
+        // 100% ➔ 125% ➔ 145% ➔ 160% ➔ 200%
+        // 화면이 100% 이상일 때 세로 화면이 점점 커지며, 200%에서는 화면 전체를 가득 채우는 숏폼 풀스크린 구현
+        let scaleVal = 1.0;
+        if (currentLiveZoom === 100) {
+            scaleVal = 1.0;
+        } else if (currentLiveZoom === 125) {
+            scaleVal = 1.25;
+        } else if (currentLiveZoom === 145) {
+            scaleVal = 1.55;
+        } else if (currentLiveZoom === 160) {
+            scaleVal = 1.90;
+        } else if (currentLiveZoom === 200) {
+            const contH = (container && container.clientHeight > 0) ? container.clientHeight : (window.innerHeight - 150);
+            const contW = (container && container.clientWidth > 0) ? container.clientWidth : window.innerWidth;
+            const fullShortsRatio = (contH * 16) / Math.max(1, (contW * 9));
+            scaleVal = Math.max(2.5, fullShortsRatio);
+        }
+
+        iframe.style.transform = `scale(${scaleVal})`;
+    }
+
+    function cycleLiveZoom() {
+        const idx = liveZoomLevels.indexOf(currentLiveZoom);
+        const nextIdx = (idx + 1) % liveZoomLevels.length;
+        currentLiveZoom = liveZoomLevels[nextIdx];
+        localStorage.setItem("yetalk_live_zoom", String(currentLiveZoom));
+        applyLiveZoomUI();
+        showToast(`🔍 화면 확대: ${currentLiveZoom}% ${currentLiveZoom === 200 ? '(숏폼 풀스크린)' : '(세로 확대)'}`);
+    }
+
+    function updateLivePinUI() {
+        const pinFloating = document.getElementById("livePinnedFloatingPill");
+        const btnPin = document.getElementById("btnLivePin");
+        const iconPin = document.getElementById("iconLivePin");
+
+        if (isLivePinned) {
+            if (pinFloating) pinFloating.style.display = "inline-flex";
+            if (btnPin) btnPin.classList.add("active");
+            if (iconPin) iconPin.innerText = "📌";
+        } else {
+            if (pinFloating) pinFloating.style.display = "none";
+            if (btnPin) btnPin.classList.remove("active");
+            if (iconPin) iconPin.innerText = "📍";
+        }
+    }
+
+    function toggleLivePinLock() {
+        isLivePinned = !isLivePinned;
+        localStorage.setItem("yetalk_live_is_pinned", isLivePinned ? "true" : "false");
+        updateLivePinUI();
+        showToast(isLivePinned ? "📌 화면 고정 및 안내가 활성화되었습니다." : "📍 화면 고정이 해제되었습니다.");
+    }
+
+    function editLiveStreamTitle() {
+        const cur = localStorage.getItem("yetalk_live_stream_title") || "김예톡의 실시간 예톡 라이브 방송";
+        document.getElementById("inpLiveTitleModalVal").value = cur;
+        openModal("liveTitleModal");
+    }
+
+    function saveLiveTitleModalSetting() {
+        const val = document.getElementById("inpLiveTitleModalVal").value.trim();
+        if (!val) {
+            showToast("⚠️ 제목을 입력해주세요.");
+            return;
+        }
+        localStorage.setItem("yetalk_live_stream_title", val);
+        updateLiveStreamTitleUI();
+        closeModal("liveTitleModal");
+        showToast("✏️ 방송 제목이 저장되었습니다.");
+    }
+
+    function updateLiveStreamTitleUI() {
+        const title = localStorage.getItem("yetalk_live_stream_title") || "김예톡의 실시간 예톡 라이브 방송";
+        const el = document.getElementById("dispLiveStreamTitle");
+        if (el) el.innerText = title;
+    }
+
+    /* 🌟 [사용자 요청] 댓글 열기 */
+    function openLiveCommentsDrawer() {
+        const sec = document.getElementById("sec_live");
+        if (sec) {
+            sec.classList.add("comments-open");
+            sec.classList.remove("is-typing-comment");
+        }
+        renderLiveComments();
+    }
+
+    /* 댓글 닫기: 깔끔한 숏폼 풀 영상 화면으로 복귀 */
+    function closeLiveCommentsDrawer() {
+        const sec = document.getElementById("sec_live");
+        if (sec) {
+            sec.classList.remove("comments-open");
+            sec.classList.remove("is-typing-comment");
+        }
+        const inp = document.getElementById("inpDrawerComment");
+        if (inp) inp.blur();
+    }
+
+    /* 🌟 [사용자 요청] 댓글 쓸 땐 유튜브 영상과 본인이 쓰는 글만 보이게 하여 영상 가림 방지 */
+    function enterLiveCommentTyping() {
+        const sec = document.getElementById("sec_live");
+        if (sec) sec.classList.add("is-typing-comment");
+        const btnCancel = document.getElementById("btnLiveCancelTyping");
+        if (btnCancel) btnCancel.style.display = "inline-block";
+    }
+
+    function exitLiveCommentTyping() {
+        const sec = document.getElementById("sec_live");
+        if (sec) sec.classList.remove("is-typing-comment");
+        const btnCancel = document.getElementById("btnLiveCancelTyping");
+        if (btnCancel) btnCancel.style.display = "none";
+        const inp = document.getElementById("inpDrawerComment");
+        if (inp) inp.blur();
+    }
+
+    function renderLiveStreamPlayer() {
+        const host = document.getElementById("liveYtPlayerHost");
+        if (!host) return;
+
+        let url = localStorage.getItem("yetalk_live_yt_url") || "";
+        let ytId = extractAnyYouTubeId(url);
+        if (!ytId) {
+            ytId = "M7lc1UVf-VE"; // 구글 공식 YouTube IFrame Player 샘플 (재생 보장)
+        }
+
+        host.innerHTML = `
+            <iframe id="liveYtIframe"
+                src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=0&playsinline=1&controls=0&modestbranding=1&rel=0&loop=1&playlist=${ytId}"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+                style="position:absolute; top:0; left:0; width:100%; height:100%; border:none; z-index:1; transform-origin:center center;">
+            </iframe>
+        `;
+
+        const myName = localStorage.getItem("yetalkUserName") || "김예톡";
+        const chEl = document.getElementById("dispLiveChannelName");
+        if (chEl) chEl.innerText = `@${myName}의 예톡홈`;
+
+        const pinnedText = localStorage.getItem("yetalk_live_pinned_notice") || "실시간 방송에 오신 것을 환영합니다! 자유롭게 은혜와 응원의 댓글을 남겨주세요.";
+        const pinDrawer = document.getElementById("dispDrawerPinnedText");
+        if (pinDrawer) pinDrawer.innerText = pinnedText;
+        const pinFloating = document.getElementById("dispLivePinnedFloatingText");
+        if (pinFloating) pinFloating.innerText = pinnedText;
+        const pinBy = document.getElementById("dispDrawerPinnedAuthor");
+        if (pinBy) pinBy.innerText = `@${myName}님이 고정함`;
+
+        updateLiveStreamTitleUI();
+        updateLivePinUI();
+        applyLiveZoomUI();
+        renderLiveComments();
+    }
+
+    const DEFAULT_LIVE_COMMENTS = [
+        { name: "김은혜 권사", text: "실시간 방송 함께합니다! 큰 은혜 받으세요 🙏", time: "방금 전" },
+        { name: "이사랑 집사", text: "화질과 음향이 정말 깨끗하고 좋습니다 👍", time: "1분 전" },
+        { name: "정화평 목사", text: "온라인으로도 늘 함께 소통할 수 있어 감사합니다 ✨", time: "3분 전" }
+    ];
+
+    function loadLiveComments() {
+        const saved = localStorage.getItem("yetalk_live_comments_v1");
+        if (saved) {
+            try { return JSON.parse(saved); } catch(e){}
+        }
+        return [...DEFAULT_LIVE_COMMENTS];
+    }
+
+    function renderLiveComments() {
+        const list = loadLiveComments();
+
+        const drawerList = document.getElementById("liveDrawerCommentsList");
+        if (drawerList) {
+            drawerList.innerHTML = list.map(c => `
+                <div class="live-drawer-comment-row">
+                    <div class="live-comment-avatar">👤</div>
+                    <div class="live-comment-content">
+                        <div class="live-comment-author-line">
+                            <span class="live-comment-author-name">${c.name}</span>
+                            <span class="live-comment-time">${c.time || '방금 전'}</span>
+                        </div>
+                        <div class="live-comment-body-text">${c.text}</div>
+                    </div>
+                </div>
+            `).join("");
+            drawerList.scrollTop = drawerList.scrollHeight;
+        }
+
+        const countStr = String(list.length);
+        const cnt1 = document.getElementById("dispDrawerCommentCount");
+        if (cnt1) cnt1.innerText = countStr;
+        const cnt2 = document.getElementById("lblLiveCommentCount");
+        if (cnt2) cnt2.innerText = countStr;
+    }
+
+    function sendLiveComment(source) {
+        const inp = document.getElementById("inpDrawerComment");
+        if (!inp) return;
+        const txt = inp.value.trim();
+        if (!txt) return;
+
+        const myName = localStorage.getItem("yetalkUserName") || "김예톡";
+        const list = loadLiveComments();
+        list.push({ name: myName, text: txt, time: "방금 전" });
+        if (list.length > 50) list.shift();
+        localStorage.setItem("yetalk_live_comments_v1", JSON.stringify(list));
+        inp.value = "";
+        renderLiveComments();
+        exitLiveCommentTyping();
+        showToast("💬 댓글이 등록되었습니다.");
+    }
+
+    function openLiveUrlModal() {
+        const cur = localStorage.getItem("yetalk_live_yt_url") || "";
+        document.getElementById("inpLiveYtUrl").value = cur;
+        openModal("liveUrlModal");
+    }
+
+    function setSampleLiveUrl() {
+        document.getElementById("inpLiveYtUrl").value = "https://www.youtube.com/watch?v=jfKfPfyJRdk";
+    }
+
+    function saveLiveUrlSetting() {
+        const val = document.getElementById("inpLiveYtUrl").value.trim();
+        if (val) {
+            const vid = extractAnyYouTubeId(val);
+            if (!vid) {
+                alert("유효한 유튜브 주소 또는 비디오 ID를 입력해주세요.");
+                return;
+            }
+            localStorage.setItem("yetalk_live_yt_url", val);
+        } else {
+            localStorage.removeItem("yetalk_live_yt_url");
+        }
+        closeModal("liveUrlModal");
+        renderLiveStreamPlayer();
+        showToast("🎥 실시간 방송 영상이 적용되었습니다!");
+    }
+
+    function editLivePinnedNotice() {
+        const cur = localStorage.getItem("yetalk_live_pinned_notice") || "실시간 방송에 오신 것을 환영합니다! 자유롭게 은혜와 응원의 댓글을 남겨주세요.";
+        const updated = prompt("📌 고정 공지 내용을 입력해주세요:", cur);
+        if (updated !== null && updated.trim()) {
+            localStorage.setItem("yetalk_live_pinned_notice", updated.trim());
+            const pinDrawer = document.getElementById("dispDrawerPinnedText");
+            if (pinDrawer) pinDrawer.innerText = updated.trim();
+            const pinFloating = document.getElementById("dispLivePinnedFloatingText");
+            if (pinFloating) pinFloating.innerText = updated.trim();
+            const pinChip = document.getElementById("dispLivePinnedChipText");
+            if (pinChip) pinChip.innerText = updated.trim();
+            const pinLong = document.getElementById("dispLiveLongPinnedText");
+            if (pinLong) pinLong.innerText = updated.trim();
+            showToast("📌 고정 공지가 저장되었습니다.");
+        }
+    }
+
+    /* 🌟 [사용자 요청 1번] 대형 사진 & 글 편집 모달 로직 (작은 프롬프트 창 완전 제거) */
+    function openBigEditModal(sec, idx) {
+        curEditSec = sec;
+        curEditIdx = idx;
+        tempEditImgBase64 = "";
+
+        const modal = document.getElementById("bigCardEditModal");
+        const titleEl = document.getElementById("dispBigEditHeaderTitle");
+        const previewEl = document.getElementById("dispBigEditPhotoPreview");
+        const captionInp = document.getElementById("inpBigEditCaption");
+        const delBtn = document.getElementById("btnDeleteBigPage");
+
+        if (sec === "qr_invite") {
+            titleEl.innerText = "💌 '당신을 초청해' 문구 편집";
+            previewEl.src = "https://images.unsplash.com/photo-1518495973542-4542c06a5843?w=800&auto=format&fit=crop&q=80";
+            captionInp.value = sectionData.inviteText;
+            delBtn.style.display = "none";
+        } else {
+            const item = sectionData[sec][idx];
+            titleEl.innerText = sec === "photo" ? `📷 [내 모습] ${idx + 1}번 페이지 편집` : `💼 [나의 비즈니스] ${idx + 1}번 페이지 편집`;
+            previewEl.src = item.img;
+            captionInp.value = item.text;
+            delBtn.style.display = sectionData[sec].length > 1 ? "block" : "none";
+        }
+
+        modal.classList.add("open");
+    }
+
+    function saveBigCardEdit() {
+        const textVal = document.getElementById("inpBigEditCaption").value.trim();
+
+        if (curEditSec === "qr_invite") {
+            if (textVal) sectionData.inviteText = textVal;
+            renderQrSection();
+        } else {
+            if (textVal) sectionData[curEditSec][curEditIdx].text = textVal;
+            if (tempEditImgBase64) sectionData[curEditSec][curEditIdx].img = tempEditImgBase64;
+            if (curEditSec === "photo") renderPhotoSection();
+            if (curEditSec === "biz") renderBizSection();
+        }
+
+        saveSectionData();
+        closeModal("bigCardEditModal");
+        showToast("💾 수정 내용이 완벽하게 저장되었습니다!");
+    }
+
+    function deleteCurrentPageFromBigModal() {
+        if (!confirm("이 페이지를 정말 삭제하시겠습니까?")) return;
+        sectionData[curEditSec].splice(curEditIdx, 1);
+        saveSectionData();
+        if (curEditSec === "photo") renderPhotoSection();
+        if (curEditSec === "biz") renderBizSection();
+        closeModal("bigCardEditModal");
+        showToast("🗑️ 페이지가 삭제되었습니다.");
+    }
+
+    function deletePage(sec, idx) {
+        if (!confirm("이 페이지를 삭제하시겠습니까?")) return;
+        sectionData[sec].splice(idx, 1);
+        saveSectionData();
+        if (sec === "photo") renderPhotoSection();
+        if (sec === "biz") renderBizSection();
+        showToast("🗑️ 페이지가 삭제되었습니다.");
+    }
+
+    let directImageTarget = null;
+    function changeDirectImage(sec, idx) {
+        directImageTarget = { sec, idx };
+        const fileInp = document.getElementById("commonPhotoFileInput");
+        if (fileInp) {
+            fileInp.value = "";
+            fileInp.click();
+        }
+    }
+
+    function handleCommonPhotoSelected(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                let w = img.width, h = img.height;
+                const maxW = 1000;
+                if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, w, h);
+                const finalBase64 = canvas.toDataURL("image/jpeg", 0.88);
+
+                if (directImageTarget) {
+                    const { sec, idx } = directImageTarget;
+                    if (sectionData[sec] && sectionData[sec][idx]) {
+                        sectionData[sec][idx].img = finalBase64;
+                        saveSectionData();
+                        if (sec === "photo") renderPhotoSection();
+                        if (sec === "biz") renderBizSection();
+                        showToast("✨ 사진이 성공적으로 교체되었습니다!");
+                    }
+                    directImageTarget = null;
+                } else {
+                    tempEditImgBase64 = finalBase64;
+                    // 대형 모달 미리보기에 즉시 반영
+                    const previewEl = document.getElementById("dispBigEditPhotoPreview");
+                    if (previewEl) previewEl.src = tempEditImgBase64;
+                    showToast("📷 사진이 준비되었습니다! '수정 저장 완료'를 누르세요.");
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function saveSectionData() {
+        localStorage.setItem(STORAGE_KEY_SECTIONS, JSON.stringify(sectionData));
+    }
+
+    /* 🌟 3. 오늘 하루 달력 및 일정 로직 */
+    function renderCalendarGrid() {
+        const titleEl = document.getElementById("dispCalMonthTitle");
+        titleEl.innerText = `${currentCalYear}년 ${currentCalMonth + 1}월`;
+
+        const grid = document.getElementById("calDaysGrid");
+        grid.innerHTML = "";
+
+        const firstDay = new Date(currentCalYear, currentCalMonth, 1).getDay();
+        const daysInMonth = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
+        const prevDays = new Date(currentCalYear, currentCalMonth, 0).getDate();
+
+        const todayObj = new Date();
+        const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth()+1).padStart(2,'0')}-${String(todayObj.getDate()).padStart(2,'0')}`;
+
+        for (let i = firstDay - 1; i >= 0; i--) {
+            const cell = document.createElement("div");
+            cell.className = "cal-day-cell other-month";
+            cell.innerText = prevDays - i;
+            grid.appendChild(cell);
+        }
+
+        for (let d = 1; d <= daysInMonth; d++) {
+            const cell = document.createElement("div");
+            const dateStr = `${currentCalYear}-${String(currentCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            cell.className = "cal-day-cell";
+            if (dateStr === todayStr) cell.classList.add("today");
+            if (dateStr === selectedCalDateStr) cell.classList.add("selected");
+
+            cell.innerText = d;
+
+            if (calendarSchedules[dateStr] && calendarSchedules[dateStr].length > 0) {
+                const dot = document.createElement("div");
+                dot.className = "cal-day-dot";
+                cell.appendChild(dot);
+            }
+
+            cell.onclick = () => selectCalDate(dateStr);
+            grid.appendChild(cell);
+        }
+
+        updateSelectedDateDisplay();
+    }
+
+    function changeCalMonth(offset) {
+        currentCalMonth += offset;
+        if (currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; }
+        if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
+        renderCalendarGrid();
+    }
+
+    function goCalToday() {
+        const now = new Date();
+        currentCalYear = now.getFullYear();
+        currentCalMonth = now.getMonth();
+        selectedCalDateStr = `${currentCalYear}-${String(currentCalMonth+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        renderCalendarGrid();
+        renderTimelineList();
+    }
+
+    function selectCalDate(dateStr) {
+        selectedCalDateStr = dateStr;
+        renderCalendarGrid();
+        renderTimelineList();
+        showToast(`📅 ${dateStr} 날짜가 선택되었습니다.`);
+    }
+
+    function updateSelectedDateDisplay() {
+        const cnt = (calendarSchedules[selectedCalDateStr] || []).length;
+        document.getElementById("dispSelectedDateLabel").innerText = `📅 ${selectedCalDateStr} 일정 등록`;
+        document.getElementById("dispSelectedDateCount").innerText = `${cnt}건 등록됨`;
+        document.getElementById("dispTimelineHeaderDate").innerText = `📅 ${selectedCalDateStr} 시간대별 일정 목록 (${cnt}건)`;
+    }
+
+    function addCalScheduleItem() {
+        const timeVal = document.getElementById("inpCalScheduleTime").value || "09:00";
+        const textVal = document.getElementById("inpCalScheduleText").value.trim();
+        if (!textVal) {
+            alert("일정 또는 약속 내용을 입력해주세요.");
+            return;
+        }
+
+        if (!calendarSchedules[selectedCalDateStr]) {
+            calendarSchedules[selectedCalDateStr] = [];
+        }
+
+        calendarSchedules[selectedCalDateStr].push({ time: timeVal, text: textVal });
+        calendarSchedules[selectedCalDateStr].sort((a,b) => a.time.localeCompare(b.time));
+
+        localStorage.setItem(STORAGE_KEY_CALENDAR, JSON.stringify(calendarSchedules));
+        document.getElementById("inpCalScheduleText").value = "";
+
+        renderCalendarGrid();
+        renderTimelineList();
+        showToast(`✔ [${timeVal}] 일정이 등록되었습니다!`);
+    }
+
+    function renderTimelineList() {
+        const host = document.getElementById("timelineItemsContainer");
+        host.innerHTML = "";
+
+        const items = calendarSchedules[selectedCalDateStr] || [];
+        if (items.length === 0) {
+            host.innerHTML = `
+                <div style="text-align:center; padding:35px 20px; background:#162238; border-radius:14px; border:1px dashed #334155; color:#94a3b8;">
+                    <div style="font-size:26px; margin-bottom:8px;">🗓️</div>
+                    <div style="font-size:14px; font-weight:800; color:#e2e8f0;">등록된 일정이 없습니다.</div>
+                    <div style="font-size:12px; margin-top:4px;">달력 첫 페이지에서 시간대별 일정을 추가해보세요!</div>
+                </div>
+            `;
+            return;
+        }
+
+        items.forEach((item, idx) => {
+            const row = document.createElement("div");
+            row.className = "timeline-item-card";
+            row.innerHTML = `
+                <span class="timeline-time-badge">${item.time}</span>
+                <span class="timeline-text">${item.text}</span>
+                <button type="button" class="btn-del-timeline" onclick="deleteTimelineItem(${idx})" title="삭제">✕</button>
+            `;
+            host.appendChild(row);
+        });
+    }
+
+    function deleteTimelineItem(idx) {
+        if (!calendarSchedules[selectedCalDateStr]) return;
+        calendarSchedules[selectedCalDateStr].splice(idx, 1);
+        localStorage.setItem(STORAGE_KEY_CALENDAR, JSON.stringify(calendarSchedules));
+        renderCalendarGrid();
+        renderTimelineList();
+        showToast("🗑️ 일정이 삭제되었습니다.");
+    }
+
+    function scrollToCalPage(pIdx) {
+        const sec = document.getElementById("sec_calendar");
+        const target = pIdx === 0 ? document.getElementById("page_cal_1") : document.getElementById("page_cal_2");
+        if (sec && target) {
+            sec.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+        }
+    }
+
+    /* 🌟 [사용자 요청 4번, 5번] 김예톡의 앱친구 목록 (즐겨찾기 상단 & 최신순 정렬) */
+    function renderFriendsList() {
+        const favHost = document.getElementById("kfFavoritesListContainer");
+        const recHost = document.getElementById("kfRecentListContainer");
+        favHost.innerHTML = "";
+        recHost.innerHTML = "";
+        document.getElementById("dispFriendCount").innerText = `(${myFriends.length})`;
+
+        // 즐겨찾는 친구
+        const favs = myFriends.filter(f => f.isFav);
+        favs.forEach(f => {
+            favHost.appendChild(createFriendRowEl(f));
+        });
+
+        // 나머지 최신 친구들
+        const others = myFriends.filter(f => !f.isFav);
+        others.forEach(f => {
+            recHost.appendChild(createFriendRowEl(f));
+        });
+    }
+
+    function createFriendRowEl(f) {
+        const row = document.createElement("div");
+        row.className = "kf-friend-row";
+        row.onclick = () => openKakaoChat(f);
+
+        let badgeHtml = f.badge ? `<div class="kf-unread-badge">${f.badge}</div>` : '';
+        let starHtml = f.isFav ? `<span class="kf-fav-star">⭐</span>` : '';
+
+        row.innerHTML = `
+            <img class="kf-avatar-md" src="${f.avatar}" alt="${f.name}">
+            <div class="kf-friend-info">
+                <div class="kf-friend-name-row">
+                    <span class="kf-friend-name">${f.name}</span>
+                    ${starHtml}
+                </div>
+                <div class="kf-friend-status">${f.status || '대화 가능'}</div>
+            </div>
+            ${badgeHtml}
+        `;
+        return row;
+    }
+
+    function promptAddFriend() {
+        const name = prompt("추가할 새 앱친구 이름을 입력하세요:");
+        if (!name || !name.trim()) return;
+        const status = prompt("친구의 상태 메시지를 입력하세요 (선택):", "함께 소통하는 예톡 친구 😊");
+
+        const newF = {
+            id: "f_" + Date.now(),
+            name: name.trim(),
+            status: status ? status.trim() : "새로운 친구",
+            isFav: false,
+            phone: "010-1234-5678",
+            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+            badge: "1"
+        };
+        myFriends.push(newF);
+        localStorage.setItem(STORAGE_KEY_FRIENDS, JSON.stringify(myFriends));
+        renderFriendsList();
+        showToast(`👥 [${name}]님이 친구로 등록되었습니다!`);
+    }
+
+    /* 🌟 [사용자 요청 6번] 1:1 대화방 열기 (상단 메뉴 싹 숨기고 애드몹 위 전체 차지) */
+    function openKakaoChat(friend) {
+        if (!friend) return;
+        try {
+            currentChatFriend = friend;
+            friend.badge = ""; // 읽음 처리
+            localStorage.setItem(STORAGE_KEY_FRIENDS, JSON.stringify(myFriends));
+            renderFriendsList();
+
+            const nameEl = document.getElementById("kcChatTargetName");
+            if (nameEl) nameEl.innerText = friend.name;
+            renderKakaoChatMessages();
+            
+            // CSS 클래스로 안전하게 상단 헤더와 네비게이션 숨김 처리
+            document.body.classList.add("is-chat-open");
+
+            const chatView = document.getElementById("kakaoChatView");
+            if (chatView) chatView.classList.add("open");
+        } catch(e) {
+            console.error("openKakaoChat error:", e);
+            const chatView = document.getElementById("kakaoChatView");
+            if (chatView) chatView.classList.add("open");
+            document.body.classList.add("is-chat-open");
+        }
+    }
+
+    function closeKakaoChat() {
+        const chatView = document.getElementById("kakaoChatView");
+        if (chatView) chatView.classList.remove("open");
+        document.body.classList.remove("is-chat-open");
+        currentChatFriend = null;
+
+        // 메인 헤더와 네비게이션 복원 보장
+        const fixedHdr = document.querySelector(".one-fixed-header");
+        if (fixedHdr) fixedHdr.style.display = "flex";
+        const navBarEl = document.querySelector(".one-nav-bar");
+        if (navBarEl) navBarEl.style.display = "flex";
+        window.scrollTo(0, 0);
+    }
+
+    /* 🌟 [사용자 요청 6번] 일반 전화 연결창 즉시 호출 */
+    function callFriendDirectly() {
+        if (!currentChatFriend) return;
+        const phoneNum = currentChatFriend.phone || "010-1234-5678";
+        window.location.href = `tel:${phoneNum}`;
+    }
+
+    let selectedChatMsgIdx = -1;
+
+    function formatChatText(rawText) {
+        if (!rawText) return "";
+        // 유튜브 링크 감지 및 썸네일/재생 버튼 카드 생성
+        const ytRegex = /(https?:\/\/(?:www\.)?(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/|live\/)|youtu\.be\/)[\w\-_?&=]+)/gi;
+        return rawText.replace(ytRegex, function(url) {
+            let vid = extractAnyYouTubeId(url);
+            let thumbHtml = vid ? `
+                <div style="margin-top:6px; border-radius:10px; overflow:hidden; position:relative; max-width:240px; background:#000; box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+                    <img src="https://img.youtube.com/vi/${vid}/hqdefault.jpg" style="width:100%; display:block; aspect-ratio:16/9; object-fit:cover;" alt="유튜브 썸네일">
+                    <span style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(220,38,38,0.92); color:#fff; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow:0 2px 6px rgba(0,0,0,0.5);">▶</span>
+                </div>` : "";
+            return `<a href="${url}" target="_blank" onclick="event.stopPropagation();" style="color:#2563eb; font-weight:800; text-decoration:underline; word-break:break-all;">${url}</a>${thumbHtml}`;
+        }).replace(/\n/g, '<br>');
+    }
+
+    function renderKakaoChatMessages() {
+        if (!currentChatFriend) return;
+        const host = document.getElementById("kcMessagesScroll");
+        host.innerHTML = "";
+
+        const datePill = document.createElement("div");
+        datePill.className = "kc-date-pill";
+        datePill.innerText = "2026년 10월 12일 월요일";
+        host.appendChild(datePill);
+
+        const storageKey = STORAGE_KEY_TALK + currentChatFriend.id;
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(storageKey)) || []; } catch(e){}
+
+        if (msgs.length === 0) {
+            // 따뜻한 가상 대화 예시
+            msgs = [
+                { sender: "friend", text: "샬롬! 김예톡님, 오늘 하루도 은혜롭고 평안하신가요? 😊", time: "11:06" },
+                { sender: "friend", text: "기도 중에 생각나서 안부 남겨요. 언제든 편하실 때 통화 나눠요~*", time: "11:08" },
+                { sender: "my", text: "따뜻한 말씀 감사합니다! 오늘 하루도 축복이 가득하길 소망해요 ^^ 💖", time: "11:15" }
+            ];
+            localStorage.setItem(storageKey, JSON.stringify(msgs));
+        }
+
+        msgs.forEach((m, idx) => {
+            const row = document.createElement("div");
+            row.className = `kc-msg-row ${m.sender === 'my' ? 'my' : 'friend'}`;
+
+            let bubbleContent = "";
+            if (m.type === "photo") {
+                bubbleContent = `<img src="${m.img}" class="kc-chat-photo-img" alt="사진">`;
+            } else {
+                bubbleContent = formatChatText(m.text || "");
+            }
+
+            if (m.sender === 'friend') {
+                row.innerHTML = `
+                    <img class="kc-friend-avatar" src="${currentChatFriend.avatar}" alt="${currentChatFriend.name}">
+                    <div class="kc-friend-content">
+                        <span class="kc-friend-sender-name">${currentChatFriend.name}</span>
+                        <div class="kc-bubble-wrap">
+                            <div class="kc-bubble" onclick="openChatMsgActionMenu(${idx})" title="터치하여 복사/수정/삭제">${bubbleContent}</div>
+                            <span class="kc-time">${m.time}</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                row.innerHTML = `
+                    <div class="kc-bubble-wrap">
+                        <div class="kc-bubble" onclick="openChatMsgActionMenu(${idx})" title="터치하여 복사/수정/삭제">${bubbleContent}</div>
+                        <span class="kc-time">${m.time}</span>
+                    </div>
+                `;
+            }
+            host.appendChild(row);
+        });
+
+        host.scrollTop = host.scrollHeight;
+    }
+
+    function openChatMsgActionMenu(idx) {
+        selectedChatMsgIdx = idx;
+        const storageKey = STORAGE_KEY_TALK + currentChatFriend.id;
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(storageKey)) || []; } catch(e){}
+        const m = msgs[idx];
+        if (!m) return;
+
+        const editBtn = document.getElementById("btnEditChatMsg");
+        if (editBtn) {
+            editBtn.style.display = (m.type === "photo") ? "none" : "flex";
+        }
+        openModal("chatMsgActionModal");
+    }
+
+    function copySelectedChatMessage() {
+        if (!currentChatFriend || selectedChatMsgIdx < 0) return;
+        const storageKey = STORAGE_KEY_TALK + currentChatFriend.id;
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(storageKey)) || []; } catch(e){}
+        const m = msgs[selectedChatMsgIdx];
+        if (!m) return;
+
+        if (m.type === "photo") {
+            navigator.clipboard.writeText(m.img).then(() => {
+                showToast("📋 사진 이미지 데이터가 복사되었습니다!");
+            }).catch(() => {
+                showToast("📷 사진이 선택되었습니다.");
+            });
+        } else {
+            navigator.clipboard.writeText(m.text || "").then(() => {
+                showToast("📋 메시지 전체가 복사되었습니다!");
+            }).catch(() => {
+                prompt("메시지 복사:", m.text);
+            });
+        }
+        closeModal("chatMsgActionModal");
+    }
+
+    function editSelectedChatMessage() {
+        if (!currentChatFriend || selectedChatMsgIdx < 0) return;
+        const storageKey = STORAGE_KEY_TALK + currentChatFriend.id;
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(storageKey)) || []; } catch(e){}
+        const m = msgs[selectedChatMsgIdx];
+        if (!m || m.type === "photo") return;
+
+        closeModal("chatMsgActionModal");
+        const updated = prompt("✏️ 수정할 메시지 내용을 입력해주세요:", m.text);
+        if (updated !== null && updated.trim()) {
+            m.text = updated.trim();
+            localStorage.setItem(storageKey, JSON.stringify(msgs));
+            renderKakaoChatMessages();
+            showToast("✏️ 메시지가 성공적으로 수정되었습니다.");
+        }
+    }
+
+    function deleteSelectedChatMessage() {
+        if (!currentChatFriend || selectedChatMsgIdx < 0) return;
+        if (!confirm("이 메시지를 삭제하시겠습니까?")) return;
+
+        const storageKey = STORAGE_KEY_TALK + currentChatFriend.id;
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(storageKey)) || []; } catch(e){}
+        msgs.splice(selectedChatMsgIdx, 1);
+        localStorage.setItem(storageKey, JSON.stringify(msgs));
+        closeModal("chatMsgActionModal");
+        renderKakaoChatMessages();
+        showToast("🗑️ 메시지가 삭제되었습니다.");
+    }
+
+    function triggerChatPhotoUpload() {
+        const inp = document.getElementById("inpChatPhotoFile");
+        if (inp) inp.click();
+    }
+
+    function handleChatPhotoUpload(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64Data = e.target.result;
+            if (!currentChatFriend) return;
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            const storageKey = STORAGE_KEY_TALK + currentChatFriend.id;
+            let msgs = [];
+            try { msgs = JSON.parse(localStorage.getItem(storageKey)) || []; } catch(err){}
+
+            msgs.push({
+                sender: "my",
+                type: "photo",
+                img: base64Data,
+                time: timeStr
+            });
+            localStorage.setItem(storageKey, JSON.stringify(msgs));
+            renderKakaoChatMessages();
+            showToast("📷 사진이 성공적으로 전송되었습니다!");
+        };
+        reader.readAsDataURL(file);
+        event.target.value = "";
+    }
+
+    function sendKakaoMessage() {
+        if (!currentChatFriend) return;
+        const input = document.getElementById("kcChatInput");
+        const txt = input.value.trim();
+        if (!txt) return;
+
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+        const storageKey = STORAGE_KEY_TALK + currentChatFriend.id;
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(storageKey)) || []; } catch(e){}
+
+        msgs.push({ sender: "my", text: txt, time: timeStr });
+        localStorage.setItem(storageKey, JSON.stringify(msgs));
+
+        input.value = "";
+        renderKakaoChatMessages();
+
+        setTimeout(() => {
+            if (currentChatFriend) {
+                const replyKey = STORAGE_KEY_TALK + currentChatFriend.id;
+                let replyMsgs = [];
+                try { replyMsgs = JSON.parse(localStorage.getItem(replyKey)) || []; } catch(e){}
+                const replyTime = `${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}`;
+                replyMsgs.push({
+                    sender: "friend",
+                    text: `소중한 나눔 감사합니다! 늘 주님 안에서 승리하세요 🙏`,
+                    time: replyTime
+                });
+                localStorage.setItem(replyKey, JSON.stringify(replyMsgs));
+                renderKakaoChatMessages();
+            }
+        }, 1100);
+    }
+
+    /* 🌟 [사용자 요청 6번] 안드로이드 뒤로가기 버튼 처리 (모달 닫기 -> 1:1 대화방 닫기 -> 실시간 방송 상태 복귀 -> 나의 QR 메인 복귀) */
+    window.handleAppBackPress = function() {
+        window.scrollTo(0, 0);
+        const openModal = document.querySelector(".modal-overlay.open");
+        if (openModal) {
+            openModal.classList.remove("open");
+            return true;
+        }
+        const chatView = document.getElementById("kakaoChatView");
+        if (chatView && chatView.classList.contains("open")) {
+            closeKakaoChat();
+            return true;
+        }
+        const secLive = document.getElementById("sec_live");
+        if (secLive) {
+            if (secLive.classList.contains("is-typing-comment")) {
+                exitLiveCommentTyping();
+                return true;
+            }
+            if (secLive.classList.contains("comments-open")) {
+                closeLiveCommentsDrawer();
+                return true;
+            }
+        }
+        if (currentSectionKey !== "qr") {
+            switchSection("qr");
+            return true;
+        }
+        return false;
+    };
+
+    /* 결제 모달 및 계좌 관리 */
+    function openPaymentModal() {
+        loadSavedBankInfo();
+        document.getElementById("boxEditMyAccountForm").style.display = "none";
+        openModal("paymentModal");
+    }
+
+    function toggleAccountEditBox() {
+        const box = document.getElementById("boxEditMyAccountForm");
+        box.style.display = box.style.display === "none" ? "block" : "none";
+    }
+
+    function loadSavedBankInfo() {
+        const raw = localStorage.getItem(MY_BANK_STORAGE_KEY);
+        let info = { label: "내 입출금계좌", bank: "국민은행", account: "010-1234-5678-01", holder: "김예톡" };
+        if (raw) {
+            try { info = Object.assign(info, JSON.parse(raw)); } catch(e){}
+        }
+
+        document.getElementById("dispAccountCustomLabel").innerText = info.label || "내 입출금계좌";
+        document.getElementById("dispMySavedAccount").innerText = `${info.bank} ${info.account} (예금주: ${info.holder})`;
+        document.getElementById("inpTargetTransferAccount").value = `${info.bank} ${info.account}`;
+
+        document.getElementById("inpEditAccLabel").value = info.label || "내 입출금계좌";
+        document.getElementById("selEditAccBank").value = info.bank || "국민은행";
+        document.getElementById("inpEditAccNumber").value = info.account || "";
+        document.getElementById("inpEditAccHolder").value = info.holder || "";
+    }
+
+    function saveCustomAccountInfo() {
+        const labelVal = document.getElementById("inpEditAccLabel").value.trim() || "내 입출금계좌";
+        const bankVal = document.getElementById("selEditAccBank").value;
+        const numVal = document.getElementById("inpEditAccNumber").value.trim();
+        const holderVal = document.getElementById("inpEditAccHolder").value.trim() || (localStorage.getItem("yetalkUserName") || "김예톡");
+
+        if (!numVal) { alert("계좌번호를 입력해주세요."); return; }
+
+        const info = { label: labelVal, bank: bankVal, account: numVal, holder: holderVal };
+        localStorage.setItem(MY_BANK_STORAGE_KEY, JSON.stringify(info));
+        loadSavedBankInfo();
+        toggleAccountEditBox();
+        showToast("💾 계좌 정보가 수정되어 안전하게 저장되었습니다!");
+    }
+
+    function handleOcrCameraPhoto(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById("boxOcrSuccessMsg").style.display = "block";
+            const demoNum = "1002-" + Math.floor(100 + Math.random() * 900) + "-" + Math.floor(100000 + Math.random() * 900000);
+            document.getElementById("inpTargetTransferAccount").value = `부산은행 ${demoNum}`;
+            showToast("📷 사진 속 계좌번호를 인식하여 자동 입력했습니다!");
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function buildBankVerticalList() {
+        const container = document.getElementById("bankVerticalList");
+        container.innerHTML = "";
+        ALL_BANKS.forEach((b, i) => {
+            const row = document.createElement("div");
+            const isDefault = b.name.includes("부산은행");
+            row.className = `bank-item-row ${isDefault ? 'active' : ''}`;
+            if (isDefault) selectedBankScheme = b.scheme;
+
+            row.innerHTML = `<span>${b.name}</span><span style="font-size:11px; opacity:0.75;">${b.tag}</span>`;
+            row.onclick = () => {
+                document.querySelectorAll(".bank-item-row").forEach(r => r.classList.remove("active"));
+                row.classList.add("active");
+                selectedBankScheme = b.scheme;
+            };
+            container.appendChild(row);
+        });
+    }
+
+    function setTransferAmount(amt) {
+        document.getElementById("inpTransferAmount").value = amt;
+    }
+
+    async function startBankAppTransfer() {
+        const acctText = document.getElementById("inpTargetTransferAccount").value.trim();
+        if (!acctText) { alert("계좌번호를 입력해주세요."); return; }
+        try { await navigator.clipboard.writeText(acctText); } catch(e){}
+        showToast(`📋 [${acctText}] 계좌번호가 자동 복사되었습니다!`);
+        setTimeout(() => {
+            window.location.href = selectedBankScheme;
+            setTimeout(() => {
+                alert(`[송금 안내]\n\n계좌번호 '${acctText}' 가 복사되었습니다.\n은행 앱에서 [붙여넣기]하여 송금하세요.`);
+            }, 1200);
+        }, 500);
+    }
+
+    /* 유틸 */
+    function openModal(id) { document.getElementById(id).classList.add("open"); }
+    function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+    function showToast(msg) {
+        const t = document.getElementById("toastBox");
+        if (!t) return;
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    document.addEventListener("DOMContentLoaded", initPage);
+</script>
+</body>
+</html>

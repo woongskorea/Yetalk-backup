@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>예톡 초청장</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            width: 100%; height: 100%; overflow: hidden; background: #000000;
+            font-family: "Pretendard", -apple-system, sans-serif; color: #f8fafc;
+        }
+        .invite-container {
+            width: 100%; max-width: 480px; height: 100dvh; margin: 0 auto;
+            background: #090d16; display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        /* 상단 헤더 */
+        .header-bar {
+            height: 50px; padding: 0 14px; background: #0f172a; border-bottom: 1.5px solid #1e293b;
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+        }
+        .btn-back {
+            background: none; border: none; color: #38bdf8; font-size: 26px; font-weight: 950;
+            cursor: pointer; padding: 0 4px; display: flex; align-items: center;
+        }
+        .header-title { font-size: 16.5px; font-weight: 950; color: #ffffff; letter-spacing: -0.4px; }
+
+        /* 한 화면 중앙 영역 */
+        .content-body {
+            flex: 1; padding: 14px 18px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; gap: 14px;
+        }
+
+        /* 감성 초대장 카드 */
+        .preview-card {
+            width: 100%; background: #111a2e; border: 2px solid #38bdf8; border-radius: 20px;
+            padding: 24px 18px; text-align: center; display: flex; flex-direction: column;
+            align-items: center; gap: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+        }
+        .preview-badge {
+            background: rgba(56, 189, 248, 0.15); border: 1.5px solid #38bdf8; color: #38bdf8;
+            font-size: 11.5px; font-weight: 950; padding: 3px 12px; border-radius: 16px;
+        }
+        .preview-title { font-size: 19px; font-weight: 950; color: #ffffff; letter-spacing: -0.5px; }
+
+        .preview-main-text {
+            font-family: 'Nanum Myeongjo', serif; font-size: 15px; color: #f8fafc;
+            line-height: 1.8; word-break: keep-all; text-align: center;
+        }
+        .preview-main-text strong { color: #facc15; font-weight: 900; }
+
+        .preview-benefit-box {
+            width: 100%; background: rgba(15, 23, 42, 0.85); border: 1px dashed #38bdf8;
+            border-radius: 12px; padding: 12px 10px; font-size: 13px; color: #cbd5e1;
+            line-height: 1.6; word-break: keep-all;
+        }
+        .preview-benefit-box b { color: #38bdf8; }
+
+        .preview-link-tag {
+            font-size: 11.5px; color: #94a3b8; word-break: break-all; font-weight: 700;
+        }
+
+        /* 하단 액션 버튼군 */
+        .action-group {
+            width: 100%; padding: 0 18px 18px 18px; display: flex; flex-direction: column; gap: 9px; flex-shrink: 0;
+        }
+        .btn-kakao-share {
+            width: 100%; height: 50px; background: #fee500; color: #191919; border: none;
+            border-radius: 13px; font-size: 15.5px; font-weight: 950; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 4px 12px rgba(254, 229, 0, 0.25);
+        }
+        .btn-kakao-share:active { transform: scale(0.98); }
+
+        .btn-copy-invite {
+            width: 100%; height: 44px; background: #1e293b; color: #38bdf8;
+            border: 1.5px solid #38bdf8; border-radius: 12px; font-size: 14px; font-weight: 900;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-copy-invite:active { transform: scale(0.98); }
+
+        /* 토스트 */
+        .yetalk-toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.96); color: white; padding: 9px 18px; border-radius: 20px;
+            font-size: 12.5px; font-weight: 850; z-index: 20000; opacity: 0; visibility: hidden;
+            transition: all 0.25s ease; white-space: nowrap; border: 1px solid #38bdf8;
+        }
+        .yetalk-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="invite-container">
+    <header class="header-bar">
+        <button type="button" class="btn-back" onclick="handleGoBack()">‹</button>
+        <span class="header-title">예톡 초청 센터</span>
+        <div style="width: 26px;"></div>
+    </header>
+
+    <main class="content-body">
+        <div class="preview-card">
+            <span class="preview-badge">💌 따뜻한 초청</span>
+            <div class="preview-title">[예톡 초청장]</div>
+
+            <div class="preview-main-text">
+                예톡에서 따뜻한 소통과 알림이 전달됩니다.<br><br>
+                <strong id="displaySenderName">예톡 회원</strong>님이 당신을<br>
+                소중한 이웃으로 초대합니다.
+            </div>
+
+            <div class="preview-benefit-box">
+                🎁 <b>개인에게는 무상앱이 제공되며</b>,<br>
+                좋아하는 곳(<b>교회, 의원, 단골집</b>)이랑<br>
+                앱으로 소통이 되도록 해드립니다.
+            </div>
+
+            <div class="preview-link-tag">👇 아래 링크를 눌러 바로 참여하세요</div>
+        </div>
+    </main>
+
+    <div class="action-group">
+        <button type="button" class="btn-kakao-share" onclick="openDirectKakaoTalk()">
+            <span style="font-size: 19px;">💬</span> 카카오톡으로 초대장 전달하기
+        </button>
+        <button type="button" class="btn-copy-invite" onclick="copyFullInviteText()">
+            <span>📋</span> 초대 문구 & 주소 전체 복사
+        </button>
+    </div>
+
+    <div class="yetalk-toast" id="yetalkToast"></div>
+</div>
+
+<script>
+    // 🌟 저장소에서 현재 사용자의 이름을 동적으로 가져옴 (없으면 '예톡 회원')
+    function getSenderName() {
+        const saved = localStorage.getItem("yetalkUserName") ||
+                      localStorage.getItem("userName") ||
+                      localStorage.getItem("nickname");
+        return (saved && saved.trim() !== "") ? saved.trim() : "예톡 회원";
+    }
+
+    // 🌟 정식 출시용 표준 도메인 주소 (초청자 닉네임 파라미터 연동)
+    function getOfficialInviteUrl() {
+        const sender = getSenderName();
+        return "https://yetalk.cc/invite?ref=" + encodeURIComponent(sender);
+    }
+
+    function getFullInviteMessage() {
+        const sender = getSenderName();
+        const inviteUrl = getOfficialInviteUrl();
+
+        return `🌸 [예톡 초청장] 🌸\n\n` +
+               `예톡에서 따뜻한 소통과 알림이 전달됩니다.\n\n` +
+               `${sender}님이 당신을 소중한 이웃으로 초대합니다.\n\n` +
+               `🎁 개인에게는 무상앱이 제공되며, 좋아하는 곳(교회, 의원, 단골집)이랑 앱으로 소통이 되도록 해드립니다.\n\n` +
+               `👇 아래 주소를 눌러 바로 들어오세요.\n` +
+               `${inviteUrl}`;
+    }
+
+    function openDirectKakaoTalk() {
+        const message = getFullInviteMessage();
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(message);
+        }
+
+        const kakaoIntent = "intent:#Intent;action=android.intent.action.SEND;package=com.kakao.talk;type=text/plain;S.android.intent.extra.TEXT=" + encodeURIComponent(message) + ";end";
+        const kakaoDirectUrl = "kakaolink://send?text=" + encodeURIComponent(message);
+
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        if (isAndroid) {
+            window.location.href = kakaoIntent;
+        } else {
+            window.location.href = kakaoDirectUrl;
+        }
+
+        showToast("💬 카카오톡을 엽니다. 대화 상대를 선택하세요.");
+    }
+
+    function copyFullInviteText() {
+        const message = getFullInviteMessage();
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(message).then(() => {
+                showToast("🎉 초대 문구와 주소가 복사되었습니다!");
+            }).catch(() => fallbackCopy(message));
+        } else {
+            fallbackCopy(message);
+        }
+    }
+
+    function fallbackCopy(text) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        showToast("🎉 초대 문구와 주소가 복사되었습니다!");
+    }
+
+    function handleGoBack() {
+        if (document.referrer && document.referrer.includes("index.html")) {
+            history.back();
+        } else {
+            location.href = "index.html";
+        }
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById("yetalkToast");
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("displaySenderName").innerText = getSenderName();
+    });
+</script>
+
+</body>
+</html>

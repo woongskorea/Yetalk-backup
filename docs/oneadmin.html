@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>프리랜서 관리실 | 예톡</title>
+    <link rel="stylesheet" href="common.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #7c3aed;
+            --primary-light: #f5f3ff;
+            --border-color: #cbd5e1;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --bg-page: #f8fafc;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: #e2e8f0; color: var(--text-main);
+            font-family: "Pretendard", -apple-system, sans-serif;
+            display: flex; justify-content: center; min-height: 100vh;
+        }
+
+        .admin-container {
+            width: 100%; max-width: 780px; background: #ffffff;
+            min-height: 100vh; position: relative; box-shadow: 0 0 25px rgba(0,0,0,0.1);
+            padding-bottom: 60px;
+        }
+
+        /* 1. 최상단 헤더 */
+        .admin-top-header {
+            position: sticky; top: 0; z-index: 100;
+            background: #ffffff;
+            height: calc(54px + max(env(safe-area-inset-top, 0px) + 38px, 42px));
+            display: flex;
+            justify-content: space-between; align-items: center;
+            padding: max(env(safe-area-inset-top, 0px) + 38px, 42px) 14px 0 14px;
+            border-bottom: 1.5px solid var(--border-color);
+        }
+        .admin-nav-btn {
+            background: none; border: none; font-size: 24px; font-weight: 900;
+            color: #334155; cursor: pointer; padding: 4px 8px; line-height: 1;
+        }
+        .admin-header-title { text-align: center; }
+        .admin-header-title strong { display: block; font-size: 15.5px; font-weight: 950; color: #0f172a; }
+        .admin-header-title small { font-size: 11px; color: #7c3aed; font-weight: 800; }
+
+        .btn-admin-pill-red {
+            background: #dc2626; border: 1px solid #ef4444; color: #ffffff;
+            font-size: 11.5px; font-weight: 900; padding: 5px 12px; border-radius: 14px;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35); transition: all 0.2s;
+        }
+        .btn-admin-pill-red:active { transform: scale(0.96); background: #b91c1c; }
+
+        /* 2. 관리자 프로필 정보 */
+        .admin-profile-box {
+            background: var(--primary-light); border-bottom: 1px solid #ddd6fe;
+            padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+        }
+        .admin-avatar {
+            width: 44px; height: 44px; border-radius: 50%; background: var(--primary);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 17px; font-weight: 900;
+        }
+        .admin-meta strong { font-size: 15px; font-weight: 900; color: #5b21b6; }
+        .admin-badge {
+            background: #7c3aed; color: white; font-size: 10.5px; font-weight: 800;
+            padding: 2px 7px; border-radius: 10px; margin-left: 5px;
+        }
+        .admin-meta p { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+
+        /* 3. 7대 빠른 관리 메뉴 그리드 */
+        .quick-grid-section { padding: 16px; }
+        .section-label { font-size: 11px; font-weight: 900; color: var(--primary); letter-spacing: 0.5px; }
+        .section-h2 { font-size: 18px; font-weight: 950; color: #0f172a; margin: 2px 0 12px 0; }
+
+        .quick-nav-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+        }
+        @media (max-width: 380px) {
+            .quick-nav-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        .quick-menu-btn {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;
+            padding: 12px 4px; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 5px; cursor: pointer; transition: 0.15s;
+        }
+        .quick-menu-btn:active { background: #e2e8f0; transform: scale(0.97); }
+        .quick-menu-btn span { font-size: 22px; }
+        .quick-menu-btn strong { font-size: 12px; font-weight: 800; color: #1e293b; }
+
+        /* 4. 세부 서브 화면 뷰 */
+        .sub-admin-view { display: none; padding: 14px 16px; }
+        .sub-admin-view.active { display: block; }
+
+        .btn-back-quick {
+            background: #e2e8f0; border: none; padding: 6px 14px; border-radius: 16px;
+            font-size: 12px; font-weight: 800; color: #334155; cursor: pointer; margin-bottom: 12px;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+
+        .admin-card {
+            background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px;
+            padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+        .admin-card-title { font-size: 15px; font-weight: 900; color: #0f172a; margin-bottom: 8px; }
+        .info-callout {
+            background: #f8fafc; border-left: 3.5px solid #7c3aed; padding: 8px 12px;
+            font-size: 12px; color: #475569; line-height: 1.5; margin-bottom: 12px; border-radius: 0 8px 8px 0;
+        }
+        .field-group { margin-bottom: 12px; }
+        .field-group label { display: block; font-size: 12px; font-weight: 800; color: #475569; margin-bottom: 4px; }
+        .field-input, .field-textarea {
+            width: 100%; padding: 9px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px;
+            font-size: 13.5px; color: #0f172a; outline: none; font-family: inherit;
+        }
+        .field-input:focus, .field-textarea:focus { border-color: #7c3aed; }
+        .field-textarea { min-height: 70px; resize: vertical; }
+
+        .btn-save-section {
+            width: 100%; height: 42px; background: #7c3aed; color: white;
+            border: none; border-radius: 8px; font-size: 13.5px; font-weight: 900;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            gap: 6px; box-shadow: 0 3px 10px rgba(124, 58, 237, 0.3); margin-top: 6px;
+        }
+        .btn-save-section:active { transform: scale(0.98); background: #5b21b6; }
+
+        .toast-msg {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: #0f172a; color: white; padding: 10px 20px; border-radius: 20px;
+            font-size: 13px; font-weight: 900; z-index: 99999; opacity: 0; visibility: hidden;
+            transition: all 0.25s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .toast-msg.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="admin-container">
+    <!-- 최상단 헤더 -->
+    <header class="admin-top-header">
+        <button type="button" class="admin-nav-btn" onclick="location.href='onemain.html'" title="프리랜서 홈으로 이동">◀</button>
+        <div class="admin-header-title">
+            <strong id="hdrOneTitle">1인 프리랜서 관리실</strong>
+            <small>예톡 1인 비즈니스 전용 콘솔</small>
+        </div>
+        <button type="button" class="btn-admin-pill-red" onclick="location.href='index.html'">
+            예톡 메인 ➔
+        </button>
+    </header>
+
+    <!-- 관리자 프로필 박스 -->
+    <section class="admin-profile-box">
+        <div class="admin-avatar">👤</div>
+        <div class="admin-meta">
+            <div>
+                <strong id="metaOneName">김예톡 크리에이터</strong>
+                <span class="admin-badge">1인 기업</span>
+            </div>
+            <p id="metaOneInfo">전문분야: 디자인·영상·컨설팅 | 연락처: 010-1234-5678</p>
+        </div>
+    </section>
+
+    <!-- 7대 섹션 빠른 바로가기 그리드 -->
+    <main class="quick-grid-section" id="mainQuickSection">
+        <div class="section-label">FREELANCER CONTROL CENTER</div>
+        <h2 class="section-h2">1인 비즈니스 7대 콘텐츠 관리</h2>
+
+        <div class="quick-nav-grid">
+            <div class="quick-menu-btn" onclick="openSubView('viewBasic')">
+                <span>👤</span>
+                <strong>기본정보</strong>
+            </div>
+            <div class="quick-menu-btn" onclick="openSubView('viewProfile')">
+                <span>📋</span>
+                <strong>프로필소개</strong>
+            </div>
+            <div class="quick-menu-btn" onclick="openSubView('viewPortfolio')">
+                <span>🎨</span>
+                <strong>포트폴리오</strong>
+            </div>
+            <div class="quick-menu-btn" onclick="openSubView('viewService')">
+                <span>💼</span>
+                <strong>전문서비스</strong>
+            </div>
+            <div class="quick-menu-btn" onclick="openSubView('viewInquiry')">
+                <span>💬</span>
+                <strong>의뢰문의</strong>
+            </div>
+            <div class="quick-menu-btn" onclick="openSubView('viewReview')">
+                <span>⭐</span>
+                <strong>고객후기</strong>
+            </div>
+            <div class="quick-menu-btn" onclick="openSubView('viewPay')">
+                <span>💳</span>
+                <strong>수납계좌</strong>
+            </div>
+        </div>
+    </main>
+
+    <!-- 1. 기본정보 관리 뷰 -->
+    <section class="sub-admin-view" id="viewBasic">
+        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
+        <div class="admin-card">
+            <h3 class="admin-card-title">👤 프리랜서 기본정보 설정</h3>
+            <div class="info-callout">활동명(브랜드명), 대표자명, 전문 분야 및 연락처를 설정합니다.</div>
+            <div class="field-group">
+                <label>활동명 / 1인 브랜드명</label>
+                <input type="text" id="inpOneBrand" class="field-input" placeholder="김예톡 크리에이터">
+            </div>
+            <div class="field-group">
+                <label>성함 / 대표자</label>
+                <input type="text" id="inpOneOwner" class="field-input" placeholder="김예톡">
+            </div>
+            <div class="field-group">
+                <label>주요 전문 분야</label>
+                <input type="text" id="inpOneExpertise" class="field-input" placeholder="브랜드 디자인, 유튜브 영상 제작, 비즈니스 컨설팅">
+            </div>
+            <div class="field-group">
+                <label>직통 연락처</label>
+                <input type="text" id="inpOnePhone" class="field-input" placeholder="010-1234-5678">
+            </div>
+            <div class="field-group">
+                <label>이메일</label>
+                <input type="text" id="inpOneEmail" class="field-input" placeholder="creator@yetalk.cc">
+            </div>
+            <button type="button" class="btn-save-section" onclick="saveBasicInfo()">💾 기본정보 저장</button>
+        </div>
+    </section>
+
+    <!-- 2. 프로필 소개 관리 뷰 -->
+    <section class="sub-admin-view" id="viewProfile">
+        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
+        <div class="admin-card">
+            <h3 class="admin-card-title">📋 프로필 소개 (1번 카드)</h3>
+            <div class="field-group">
+                <label>소개 타이틀</label>
+                <input type="text" id="inpProfileTitle" class="field-input" placeholder="독창적인 가치를 창조하는 전문 프리랜서">
+            </div>
+            <div class="field-group">
+                <label>핵심 슬로건</label>
+                <input type="text" id="inpProfileSlogan" class="field-input" placeholder="전문성과 신뢰로 완성하는 1:1 맞춤 파트너십">
+            </div>
+            <div class="field-group">
+                <label>상세 바이오 / 이력</label>
+                <textarea id="inpProfileBio" class="field-textarea" placeholder="기획부터 디자인, 영상 제작, 비즈니스 컨설팅까지 한 사람의 장인정신으로 고객의 비전을 현실로 구현합니다."></textarea>
+            </div>
+            <button type="button" class="btn-save-section" onclick="saveProfileSection()">💾 프로필 저장</button>
+        </div>
+    </section>
+
+    <!-- 3. 포트폴리오 관리 뷰 -->
+    <section class="sub-admin-view" id="viewPortfolio">
+        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
+        <div class="admin-card">
+            <h3 class="admin-card-title">🎨 대표 포트폴리오 (2번 카드)</h3>
+            <div class="field-group">
+                <label>프로젝트 타이틀</label>
+                <input type="text" id="inpPortTitle" class="field-input" placeholder="성과를 증명하는 핵심 프로젝트 갤러리">
+            </div>
+            <div class="field-group">
+                <label>핵심 성과 문구</label>
+                <input type="text" id="inpPortHighlight" class="field-input" placeholder="수많은 클라이언트와 함께 일군 성공 스토리">
+            </div>
+            <div class="field-group">
+                <label>포트폴리오 설명</label>
+                <textarea id="inpPortBody" class="field-textarea" placeholder="브랜딩, 웹 서비스 런칭, 유튜브 쇼츠 바이럴 마케팅 등 검증된 데이터와 실적으로 입증하는 포트폴리오를 확인하세요."></textarea>
+            </div>
+            <button type="button" class="btn-save-section" onclick="savePortfolioSection()">💾 포트폴리오 저장</button>
+        </div>
+    </section>
+
+    <!-- 4. 전문 서비스 관리 뷰 -->
+    <section class="sub-admin-view" id="viewService">
+        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
+        <div class="admin-card">
+            <h3 class="admin-card-title">💼 전문 서비스 & 강의 (3번 카드)</h3>
+            <div class="field-group">
+                <label>서비스 타이틀</label>
+                <input type="text" id="inpServiceTitle" class="field-input" placeholder="1인 기업을 위한 맞춤 솔루션 패키지">
+            </div>
+            <div class="field-group">
+                <label>특장점 및 가격대</label>
+                <input type="text" id="inpServiceHighlight" class="field-input" placeholder="합리적인 비용 & 빠르고 정교한 결과물 납품">
+            </div>
+            <div class="field-group">
+                <label>서비스 상세 설명</label>
+                <textarea id="inpServiceBody" class="field-textarea" placeholder="비즈니스 기획, 브랜드 로고, 영상 편집, 맞춤형 1:1 코칭까지 고객이 원하는 단계별 전문 서비스를 제공합니다."></textarea>
+            </div>
+            <button type="button" class="btn-save-section" onclick="saveServiceSection()">💾 서비스 정보 저장</button>
+        </div>
+    </section>
+
+    <!-- 5. 의뢰 및 문의 관리 뷰 -->
+    <section class="sub-admin-view" id="viewInquiry">
+        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
+        <div class="admin-card">
+            <h3 class="admin-card-title">💬 실시간 의뢰 & 직통 채널 (4번 카드)</h3>
+            <div class="field-group">
+                <label>상담 채널 안내문</label>
+                <input type="text" id="inpInquiryTitle" class="field-input" placeholder="새로운 프로젝트를 위한 직통 상담 채널">
+            </div>
+            <div class="field-group">
+                <label>카카오톡 오픈채팅 / SNS 링크</label>
+                <input type="text" id="inpInquirySns" class="field-input" placeholder="https://open.kakao.com/o/...">
+            </div>
+            <div class="field-group">
+                <label>상담 가능 시간</label>
+                <textarea id="inpInquiryHours" class="field-textarea" placeholder="평일 10:00 ~ 19:00 (주말 및 공휴일 긴급문의 메시지 수신 가능)"></textarea>
+            </div>
+            <button type="button" class="btn-save-section" onclick="saveInquirySection()">💾 의뢰채널 저장</button>
+        </div>
+    </section>
+
+    <!-- 6. 고객 후기 관리 뷰 -->
+    <section class="sub-admin-view" id="viewReview">
+        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
+        <div class="admin-card">
+            <h3 class="admin-card-title">⭐ 고객 만족 후기 (5번 카드)</h3>
+            <div class="field-group">
+                <label>후기 타이틀</label>
+                <input type="text" id="inpReviewTitle" class="field-input" placeholder="함께한 파트너들의 생생한 만족 후기">
+            </div>
+            <div class="field-group">
+                <label>평점 및 재의뢰율</label>
+                <input type="text" id="inpReviewHighlight" class="field-input" placeholder="평점 4.9/5.0 · 재의뢰율 85%의 압도적 만족도">
+            </div>
+            <div class="field-group">
+                <label>대표 후기 내용</label>
+                <textarea id="inpReviewBody" class="field-textarea" placeholder="'기대 이상의 퀄리티와 빠른 소통에 감동했습니다.' 클라이언트들의 진심 어린 감사와 추천의 말들입니다."></textarea>
+            </div>
+            <button type="button" class="btn-save-section" onclick="saveReviewSection()">💾 고객후기 저장</button>
+        </div>
+    </section>
+
+    <!-- 7. 프로젝트 수납 & 후원 계좌 뷰 -->
+    <section class="sub-admin-view" id="viewPay">
+        <button type="button" class="btn-back-quick" onclick="closeSubView()">← 뒤로가기</button>
+        <div class="admin-card">
+            <h3 class="admin-card-title">💳 프로젝트 수납 & 후원 계좌 (6번 카드)</h3>
+            <div class="info-callout">클라이언트가 프로젝트 착수금 송금 및 후원 시 사용하는 공식 계좌입니다.</div>
+            <div class="field-group">
+                <label>은행명</label>
+                <input type="text" id="inpOneBank" class="field-input" placeholder="국민은행">
+            </div>
+            <div class="field-group">
+                <label>계좌번호</label>
+                <input type="text" id="inpOneAccount" class="field-input" placeholder="010-1234-5678-01">
+            </div>
+            <div class="field-group">
+                <label>예금주명</label>
+                <input type="text" id="inpOneHolder" class="field-input" placeholder="김예톡">
+            </div>
+            <button type="button" class="btn-save-section" onclick="savePayAccount()">💾 수납계좌 저장</button>
+        </div>
+    </section>
+</div>
+
+<div class="toast-msg" id="toastMsg"></div>
+
+<script>
+    function openSubView(viewId) {
+        document.getElementById("mainQuickSection").style.display = "none";
+        document.querySelectorAll(".sub-admin-view").forEach(v => v.classList.remove("active"));
+        const target = document.getElementById(viewId);
+        if (target) target.classList.add("active");
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function closeSubView() {
+        document.querySelectorAll(".sub-admin-view").forEach(v => v.classList.remove("active"));
+        document.getElementById("mainQuickSection").style.display = "block";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById("toastMsg");
+        if (!t) return;
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2000);
+    }
+
+    function loadOneData() {
+        const store = localStorage.getItem("yetalkOneName") || "예톡1인비즈니스";
+        const owner = localStorage.getItem("yetalkUserName") || "김예톡";
+        const exp = localStorage.getItem("yetalkOneExpertise") || "브랜드 디자인, 유튜브 쇼츠 제작, 비즈니스 컨설팅";
+        const phone = localStorage.getItem("yetalkUserPhone") || "010-1234-5678";
+        const email = localStorage.getItem("yetalkOneEmail") || "creator@yetalk.cc";
+
+        document.getElementById("hdrOneTitle").innerText = `${store} 관리실`;
+        document.getElementById("metaOneName").innerText = store;
+        document.getElementById("metaOneInfo").innerText = `전문분야: ${exp} | 전화: ${phone}`;
+
+        document.getElementById("inpOneBrand").value = store;
+        document.getElementById("inpOneOwner").value = owner;
+        document.getElementById("inpOneExpertise").value = exp;
+        document.getElementById("inpOnePhone").value = phone;
+        document.getElementById("inpOneEmail").value = email;
+
+        document.getElementById("inpOneBank").value = localStorage.getItem("yetalkTargetBank") || "국민은행";
+        document.getElementById("inpOneAccount").value = localStorage.getItem("yetalkTargetAccount") || "010-1234-5678-01";
+        document.getElementById("inpOneHolder").value = localStorage.getItem("yetalkTargetHolder") || store;
+    }
+
+    function saveBasicInfo() {
+        const brand = document.getElementById("inpOneBrand").value.trim();
+        const owner = document.getElementById("inpOneOwner").value.trim();
+        const exp = document.getElementById("inpOneExpertise").value.trim();
+        const phone = document.getElementById("inpOnePhone").value.trim();
+        const email = document.getElementById("inpOneEmail").value.trim();
+
+        if (brand) {
+            localStorage.setItem("yetalkUserStoreName", brand);
+            localStorage.setItem("yetalkOneName", brand);
+        }
+        if (owner) localStorage.setItem("yetalkUserName", owner);
+        if (exp) localStorage.setItem("yetalkOneExpertise", exp);
+        if (phone) localStorage.setItem("yetalkUserPhone", phone);
+        if (email) localStorage.setItem("yetalkOneEmail", email);
+
+        loadOneData();
+        showToast("🎉 프리랜서 기본정보가 저장되었습니다!");
+    }
+
+    function saveProfileSection() {
+        showToast("💾 프로필 소개가 저장되었습니다!");
+    }
+    function savePortfolioSection() {
+        showToast("💾 포트폴리오 정보가 저장되었습니다!");
+    }
+    function saveServiceSection() {
+        showToast("💾 전문 서비스 정보가 저장되었습니다!");
+    }
+    function saveInquirySection() {
+        showToast("💾 의뢰 및 문의 채널이 저장되었습니다!");
+    }
+    function saveReviewSection() {
+        showToast("💾 고객후기 정보가 저장되었습니다!");
+    }
+
+    function savePayAccount() {
+        const bank = document.getElementById("inpOneBank").value.trim();
+        const acc = document.getElementById("inpOneAccount").value.trim();
+        const holder = document.getElementById("inpOneHolder").value.trim();
+
+        if (bank) localStorage.setItem("yetalkTargetBank", bank);
+        if (acc) localStorage.setItem("yetalkTargetAccount", acc);
+        if (holder) localStorage.setItem("yetalkTargetHolder", holder);
+
+        showToast("💳 수납계좌 정보가 안전하게 저장되었습니다!");
+    }
+
+    document.addEventListener("DOMContentLoaded", loadOneData);
+</script>
+
+</body>
+</html>

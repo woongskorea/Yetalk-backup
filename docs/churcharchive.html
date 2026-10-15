@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>말씀과 보물창고 | 예톡행복한교회</title>
+    <link rel="stylesheet" href="common.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --safe-top: max(env(safe-area-inset-top, 0px) + 38px, 42px);
+            --header-base-h: 52px;
+            --header-h: calc(var(--header-base-h) + var(--safe-top));
+            --bottom-bar-h: 154px;
+            --primary: #1d4ed8;
+            --primary-amber: #d97706;
+            --border-line: #cbd5e1;
+            --text-dark: #0f172a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            width: 100%; height: 100%; overflow: hidden;
+            background: #0f172a; font-family: "Pretendard", -apple-system, sans-serif;
+        }
+
+        .archive-app-shell {
+            width: 100%; max-width: 520px; height: 100dvh; margin: 0 auto;
+            display: flex; flex-direction: column; position: relative; background: #ffffff;
+        }
+
+        /* 1. 상단 헤더 */
+        .archive-header {
+            height: var(--header-h); background: #ffffff; border-bottom: 1.5px solid var(--border-line);
+            display: flex; justify-content: space-between; align-items: center; padding: var(--safe-top) 14px 0 14px;
+            flex-shrink: 0; z-index: 100;
+        }
+        .btn-header-back {
+            background: none; border: none; font-size: 26px; font-weight: 900;
+            color: #334155; cursor: pointer; line-height: 1; padding: 4px;
+        }
+        .archive-header-title { font-size: 16.5px; font-weight: 950; color: var(--text-dark); display: flex; align-items: center; gap: 5px; }
+
+        .dual-admin-btn-group {
+            display: inline-flex; align-items: center; background: #dc2626; border-radius: 9999px;
+            padding: 2px; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+        }
+        .btn-admin-room {
+            background: transparent; border: none; color: #ffffff; font-size: 11px; font-weight: 900;
+            padding: 4px 8px; cursor: pointer; border-right: 1px solid rgba(255, 255, 255, 0.35);
+        }
+        .btn-admin-edit {
+            background: transparent; color: #fef08a; border: none;
+            font-size: 11px; font-weight: 900; padding: 4px 8px; cursor: pointer;
+        }
+
+        /* 2. 🌟 가로 2줄 동그라미(알약) 탭 바 */
+        .archive-nav-tabs {
+            background: #fffbeb; border-bottom: 1.5px solid #fef3c7;
+            display: flex; flex-direction: column; gap: 6px;
+            padding: 8px 10px; flex-shrink: 0; z-index: 90;
+        }
+        .archive-tab-row {
+            display: flex; gap: 5px; overflow-x: auto; white-space: nowrap; scrollbar-width: none;
+        }
+        .archive-tab-row::-webkit-scrollbar { display: none; }
+        .arc-tab-chip {
+            background: #ffffff; border: 1.2px solid #fde68a; color: #92400e;
+            font-size: 11.5px; font-weight: 850; padding: 5px 11px; border-radius: 16px;
+            cursor: pointer; flex-shrink: 0; transition: all 0.15s;
+        }
+        .arc-tab-chip:active { transform: scale(0.96); }
+        .arc-tab-chip.active {
+            background: var(--primary-amber) !important; color: #ffffff !important; border-color: var(--primary-amber) !important;
+            font-weight: 900; box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
+        }
+
+        /* 3. 본문 뷰포트 */
+        .archive-scroll-viewport {
+            flex: 1; overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px 14px 100px 14px;
+            display: flex; flex-direction: column; justify-content: flex-start;
+        }
+
+        .page-title-box {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1.5px solid #e2e8f0; padding-bottom: 8px; flex-shrink: 0;
+        }
+        .page-main-title { font-size: 16px; font-weight: 950; color: #0f172a; display: flex; align-items: center; gap: 6px; }
+
+        /* 🌟 4개 카드 리스트 (서버비/공간 최적화 4개씩) */
+        .arc-item-list {
+            display: flex; flex-direction: column; gap: 9px; flex: 1; margin: 10px 0;
+        }
+        .arc-item-card {
+            background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px;
+            padding: 12px; display: flex; flex-direction: column; gap: 5px; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .arc-item-card:active { background: #eff6ff; }
+        .arc-item-header { display: flex; justify-content: space-between; align-items: center; }
+        .arc-cat-tag { font-size: 10.5px; font-weight: 900; color: #d97706; background: #fef3c7; padding: 2px 6px; border-radius: 4px; }
+        .arc-item-title { font-size: 14.5px; font-weight: 900; color: #0f172a; line-height: 1.35; }
+        .arc-item-content {
+            font-size: 12.5px; color: #64748b; line-height: 1.45;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        /* 🌟 하단 페이징 바 [이전] [1 / N] [다음] */
+        .arc-pagination-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+            padding: 6px 10px; flex-shrink: 0; margin-top: 4px;
+        }
+        .btn-arc-page {
+            background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px;
+            padding: 6px 14px; font-size: 12px; font-weight: 900; color: #334155;
+            cursor: pointer; transition: 0.15s;
+        }
+        .btn-arc-page:active { background: #e2e8f0; }
+        .btn-arc-page:disabled { opacity: 0.4; cursor: not-allowed; }
+        .arc-page-info { font-size: 12.5px; font-weight: 900; color: #0f172a; }
+
+        /* 본문 스크롤 영역 하단 패딩 */
+
+        /* 상세 보기 모달 */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+            z-index: 9000; align-items: center; justify-content: center; padding: 10px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-card {
+            background: #ffffff; width: 100%; max-width: 490px; height: 90vh;
+            border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px;
+        }
+        .modal-body-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+
+        .yetalk-toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.94); color: white; padding: 9px 18px; border-radius: 20px;
+            font-size: 12px; font-weight: 800; z-index: 10000; opacity: 0; visibility: hidden;
+            transition: all 0.25s ease; white-space: nowrap;
+        }
+        .yetalk-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="archive-app-shell">
+
+    <!-- 1. 상단 헤더 -->
+    <header class="archive-header">
+        <button type="button" class="btn-header-back" onclick="goBackToMain()" aria-label="뒤로가기">‹</button>
+        <div class="archive-header-title">
+            <span>🎁</span> <strong>보물창고</strong>
+        </div>
+        <div class="dual-admin-btn-group">
+            <button type="button" class="btn-admin-room" onclick="location.href='churchadmin.html'" title="교회 관리실">◀ 관리실</button>
+            <button type="button" class="btn-admin-edit" onclick="location.href='churchnotice.html'" title="공지/자료 등록">글등록 ▶</button>
+        </div>
+    </header>
+
+    <!-- 2. 🌟 가로 2줄 긴 동그라미(알약) 탭 바 (요청 8대 분류 + 전체) -->
+    <nav class="archive-nav-tabs" id="archiveTabs">
+        <!-- 1행 -->
+        <div class="archive-tab-row">
+            <button type="button" class="arc-tab-chip active" data-cat="all">📋 전체 보관함</button>
+            <button type="button" class="arc-tab-chip" data-cat="주일예배">✝️ 주일예배</button>
+            <button type="button" class="arc-tab-chip" data-cat="마을(셀,목장)나눔지">📑 마을나눔지</button>
+            <button type="button" class="arc-tab-chip" data-cat="가정예배문">🏡 가정예배문</button>
+        </div>
+        <!-- 2행 -->
+        <div class="archive-tab-row">
+            <button type="button" class="arc-tab-chip" data-cat="수요예배">📖 수요예배</button>
+            <button type="button" class="arc-tab-chip" data-cat="금요기도회">🔥 금요기도회</button>
+            <button type="button" class="arc-tab-chip" data-cat="특별예배">✨ 특별예배</button>
+            <button type="button" class="arc-tab-chip" data-cat="행사사진첩">📷 행사사진첩</button>
+            <button type="button" class="arc-tab-chip" data-cat="목사님의 예수동행">🕊️ 목사님 말씀</button>
+        </div>
+    </nav>
+
+    <!-- 3. 본문 뷰포트 -->
+    <main class="archive-scroll-viewport" id="archiveViewport">
+
+        <section id="sec_arc_page1">
+            <div class="page-title-box">
+                <span class="page-main-title" id="dispCurrentCatTitle">📋 전체 보물자료 목록</span>
+                <small style="font-size:11.5px; color:#64748b;" id="txtCatCount">0건</small>
+            </div>
+
+            <!-- 🌟 한 번에 4개씩 노출되는 자료 리스트 -->
+            <div class="arc-item-list" id="arcItemList"></div>
+
+            <!-- 🌟 이전 / 1 / N / 다음 페이징 컨트롤 -->
+            <div class="arc-pagination-bar">
+                <button type="button" class="btn-arc-page" id="btnPagePrev" onclick="changeArchivePage(-1)">◀ 이전</button>
+                <span class="arc-page-info" id="txtPageInfo">1 / 1</span>
+                <button type="button" class="btn-arc-page" id="btnPageNext" onclick="changeArchivePage(1)">다음 ▶</button>
+            </div>
+        </section>
+
+
+
+    </main>
+
+    <!-- 자료 상세 보기 모달 -->
+    <div class="modal-overlay" id="modalArchiveDetail">
+        <div class="modal-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #e2e8f0; padding-bottom:8px;">
+                <span id="arcDetailBadge" class="arc-cat-tag">분류</span>
+                <button type="button" style="background:none; border:none; font-size:22px; cursor:pointer;" onclick="closeModal('modalArchiveDetail')">×</button>
+            </div>
+            <div class="modal-body-scroll">
+                <h1 style="font-size:17px; font-weight:950; color:#0f172a; line-height:1.35;" id="arcDetailTitle"></h1>
+                <div style="font-size:11.5px; color:#94a3b8; font-weight:700;" id="arcDetailDate"></div>
+                <img id="arcDetailImg" style="width:100%; border-radius:8px; display:none;" alt="첨부자료">
+                <div id="arcDetailFileBox" style="display:none; background:#f0f9ff; border:1px solid #bae6fd; padding:10px; border-radius:8px;">
+                    <a href="javascript:void(0)" id="arcDetailFileLink" style="font-size:12.5px; font-weight:900; color:#0284c7; text-decoration:underline;">첨부 문서 다운로드</a>
+                </div>
+                <div style="font-size:14px; line-height:1.8; color:#1e293b; white-space:pre-line;" id="arcDetailContent"></div>
+
+                <!-- 🌟 상세 모달 기본 애드몹 100 -->
+                <div style="margin-top:14px; padding:10px; background:#0b1326; border-radius:10px; text-align:center; border:1px solid #1e293b;">
+                    <div style="font-size:9.5px; color:#64748b; font-weight:850; margin-bottom:2px;">AD • Google AdMob 공식 후원 슬롯 (300 × 100)</div>
+                    <strong style="color:#38bdf8; font-size:13px; font-weight:950;">Google AdMob (300 × 100)</strong>
+                    <div style="color:#facc15; font-size:10.5px; font-weight:800;">선교 사역 및 미디어 영상 방송 공식 후원 슬롯</div>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #e2e8f0; padding-top:8px;">
+                <button type="button" class="btn-arc-page" style="background:#0284c7; color:white; border:none;" onclick="window.print()">🖨️ 인쇄</button>
+                <button type="button" class="btn-arc-page" onclick="closeModal('modalArchiveDetail')">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="yetalk-toast" id="yetalkToast"></div>
+
+</div>
+
+<script>
+    const ARCHIVE_STORAGE_KEY = "yetalk_church_archive_records";
+    const ITEMS_PER_PAGE = 4; // 🌟 1칸(화면)에 4개씩 깔끔하게 노출
+
+    let fullArchiveList = [];
+    let currentCategory = "all";
+    let currentPage = 1;
+
+    const DEFAULT_ARCHIVE_SEEDS = [
+        { id: "a1", category: "주일예배", title: "하나님의 사랑과 성도의 사명 (주일설교 요약)", content: "독생자를 주신 십자가의 확실한 사랑을 기억하며 세상 속에서 빛과 소금의 사명을 다합시다.", date: "2026-09-20", img: null },
+        { id: "a2", category: "마을(셀,목장)나눔지", title: "9월 3주차 사랑방 소모임 나눔지", content: "한 주간 염려 대신 주님을 신뢰하고 승리했던 감사 제목을 서로 나누어 봅시다.", date: "2026-09-20", img: null },
+        { id: "a3", category: "가정예배문", title: "믿음의 명문 가정을 세우는 가정예배문", content: "가족이 함께 둘러앉아 찬양하고 한 주간 서로를 축복하는 은혜로운 가정예배 순서지입니다.", date: "2026-09-18", img: null },
+        { id: "a4", category: "수요예배", title: "수요 성경 강해: 믿음의 반석 위에 서라", content: "비가 내리고 바람이 불어도 결코 무너지지 않는 든든한 반석 위에 집을 지은 지혜로운 성도가 됩시다.", date: "2026-09-16", img: null },
+        { id: "a5", category: "금요기도회", title: "성령의 불길로 타오르는 심야 치유 기도회", content: "상한 마음을 치유하시고 육신의 연약함을 만지시는 주님의 강력한 손길을 사모합시다.", date: "2026-09-14", img: null },
+        { id: "a6", category: "특별예배", title: "온세대 연합 찬양 축제 및 헌신예배", content: "어린아이부터 어르신까지 온 세대가 한목소리로 찬양하며 하나님께 영광을 돌립니다.", date: "2026-09-12", img: null },
+        { id: "a7", category: "행사사진첩", title: "가을맞이 성도 체육대회 및 교제 한마당", content: "맑고 푸른 하늘 아래 온 성도가 하나 되어 기쁨과 웃음으로 사랑을 나누었습니다.", date: "2026-09-10", img: null },
+        { id: "a8", category: "목사님의 예수동행", title: "오늘 하루, 주님과 함께 걷는 감사 일기", content: "“내가 너희를 고아와 같이 버려두지 아니하고 너희에게로 오리라 (요 14:18)” 늘 곁에 계신 주님을 의식하며 걸읍시다.", date: "2026-09-08", img: null }
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadArchiveData();
+        initCategoryTabs();
+        renderCurrentCategoryView();
+    });
+
+    function loadArchiveData() {
+        let stored = [];
+        try {
+            stored = JSON.parse(localStorage.getItem(ARCHIVE_STORAGE_KEY)) || [];
+        } catch(e) { stored = []; }
+
+        // 로컬스토리지에 저장된 공지글 + 기본 시드 통합
+        const merged = [...stored];
+        DEFAULT_ARCHIVE_SEEDS.forEach(seed => {
+            if (!merged.some(m => m.title === seed.title)) {
+                merged.push(seed);
+            }
+        });
+        fullArchiveList = merged;
+    }
+
+    function initCategoryTabs() {
+        const chips = document.querySelectorAll(".arc-tab-chip");
+        chips.forEach(chip => {
+            chip.addEventListener("click", () => {
+                chips.forEach(c => c.classList.remove("active"));
+                chip.classList.add("active");
+                currentCategory = chip.dataset.cat;
+                currentPage = 1; // 탭 변경 시 1페이지로 리셋
+                renderCurrentCategoryView();
+                document.getElementById("archiveViewport").scrollTo({ top: 0, behavior: 'smooth' });
+            });
+        });
+    }
+
+    function getFilteredList() {
+        if (currentCategory === "all") return fullArchiveList;
+        return fullArchiveList.filter(item => {
+            const cat = item.category || "";
+            return cat.includes(currentCategory) || currentCategory.includes(cat);
+        });
+    }
+
+    function renderCurrentCategoryView() {
+        const container = document.getElementById("arcItemList");
+        container.innerHTML = "";
+
+        const filtered = getFilteredList();
+        const totalItems = filtered.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        document.getElementById("dispCurrentCatTitle").innerText = currentCategory === "all" ? "📋 전체 보물자료 목록" : `📁 [${currentCategory}] 보관 목록`;
+        document.getElementById("txtCatCount").innerText = `${totalItems}건`;
+        document.getElementById("txtPageInfo").innerText = `${currentPage} / ${totalPages}`;
+
+        document.getElementById("btnPagePrev").disabled = (currentPage <= 1);
+        document.getElementById("btnPageNext").disabled = (currentPage >= totalPages);
+
+        const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+        const pagedItems = filtered.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+        if (pagedItems.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:45px 10px; color:#94a3b8; font-size:13px; font-weight:800;">등록된 보물자료가 없습니다.</div>`;
+            return;
+        }
+
+        pagedItems.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "arc-item-card";
+            div.onclick = () => openArchiveDetailModal(item.id || item.title);
+
+            const catLabel = item.category || "보물창고";
+            const dateLabel = item.date || "최근";
+
+            div.innerHTML = `
+                <div class="arc-item-header">
+                    <span class="arc-cat-tag">${catLabel}</span>
+                    <span style="font-size:11px; color:#94a3b8; font-weight:700;">${dateLabel}</span>
+                </div>
+                <strong class="arc-item-title">${item.title}</strong>
+                <p class="arc-item-content">${item.content}</p>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function changeArchivePage(delta) {
+        const filtered = getFilteredList();
+        const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+        const newPage = currentPage + delta;
+        if (newPage >= 1 && newPage <= totalPages) {
+            currentPage = newPage;
+            renderCurrentCategoryView();
+            document.getElementById("archiveViewport").scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    function openArchiveDetailModal(idOrTitle) {
+        const item = fullArchiveList.find(a => (a.id && a.id === idOrTitle) || a.title === idOrTitle);
+        if (!item) return;
+
+        document.getElementById("arcDetailTitle").innerText = item.title;
+        document.getElementById("arcDetailDate").innerText = `${item.date || '최근'} · ${item.source || '예톡행복한교회'}`;
+        document.getElementById("arcDetailContent").innerText = item.content;
+        document.getElementById("arcDetailBadge").innerText = item.category || "보물자료";
+
+        const imgEl = document.getElementById("arcDetailImg");
+        const fileBox = document.getElementById("arcDetailFileBox");
+        const fileLink = document.getElementById("arcDetailFileLink");
+
+        if (item.img) {
+            imgEl.src = item.img;
+            imgEl.style.display = "block";
+        } else {
+            imgEl.style.display = "none";
+        }
+
+        if (item.fileName && item.fileData) {
+            fileBox.style.display = "block";
+            fileLink.innerText = `📄 ${item.fileName} 다운로드`;
+            fileLink.onclick = () => {
+                const a = document.createElement("a");
+                a.href = item.fileData; a.download = item.fileName;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            };
+        } else {
+            fileBox.style.display = "none";
+        }
+
+        document.getElementById("modalArchiveDetail").classList.add("open");
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove("open");
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById("yetalkToast");
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    function goBackToMain() {
+        location.href = "churchmain.html";
+    }
+</script>
+
+<script src="church_bottom_bar.js"></script>
+</body>
+</html>

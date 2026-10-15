@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -93,13 +93,13 @@
             width: 100%;
             min-height: calc(var(--view-h) - 16px);
             scroll-snap-align: start;
-            scroll-snap-stop: always;
+            scroll-snap-stop: normal;
             background: #ffffff;
             border-radius: 18px;
-            padding: 18px 16px 24px 16px;
+            padding: 13px 14px 16px 14px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 7px;
             box-shadow: 0 8px 25px rgba(0,0,0,0.45);
             margin-bottom: 20px;
             text-align: left;
@@ -109,33 +109,42 @@
         }
 
         .page-badge-pill {
-            font-size: 12px; font-weight: 950; color: #0284c7;
+            font-size: 11.5px; font-weight: 950; color: #0284c7;
             background: #e0f2fe; border: 1px solid #bae6fd;
-            padding: 3px 9px; border-radius: 6px; width: fit-content;
+            padding: 2px 8px; border-radius: 6px; width: fit-content;
         }
+
+        .btn-direct-edit-badge {
+            background: #0284c7; border: none; color: #ffffff;
+            font-size: 11.5px; font-weight: 900; padding: 3px 9px; border-radius: 6px;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+        }
+        .btn-direct-edit-badge:active { transform: scale(0.93); }
+
         .jubo-main-title {
-            font-size: 20px; font-weight: 950; color: #0f172a; line-height: 1.35; letter-spacing: -0.4px;
+            font-size: 18.5px; font-weight: 950; color: #0f172a; line-height: 1.35; letter-spacing: -0.4px;
         }
 
         /* 사진/이미지 뷰 */
         .jubo-attached-img-box {
             width: 100%; border-radius: 12px; overflow: hidden;
-            border: 1px solid #cbd5e1; margin: 4px 0; background: #f8fafc;
+            border: 1px solid #cbd5e1; margin: 3px 0; background: #f8fafc;
         }
         .jubo-attached-img-box img {
             width: 100%; height: auto; max-height: 480px; object-fit: contain; display: block;
         }
 
-        /* 1면 순서 테이블 */
-        .order-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+        /* 1면 순서 테이블 (한 페이지 쏙 맞춤 최적화) */
+        .order-table { width: 100%; border-collapse: collapse; margin-top: 2px; }
         .order-table tr { border-bottom: 1px solid #f1f5f9; }
-        .order-table td { padding: 9px 4px; font-size: 14.5px; font-weight: 700; color: #334155; }
-        .order-table td.col-part { font-weight: 900; color: #0f172a; width: 85px; }
-        .order-table td.col-who { text-align: right; color: #64748b; font-size: 13.5px; }
+        .order-table td { padding: 5.5px 3px; font-size: 13.5px; font-weight: 700; color: #334155; }
+        .order-table td.col-part { font-weight: 900; color: #0f172a; width: 75px; }
+        .order-table td.col-who { text-align: right; color: #64748b; font-size: 12.5px; }
 
         .sermon-highlight-box {
-            background: #f0f9ff; border: 1.2px solid #bae6fd; border-radius: 10px;
-            padding: 10px 12px; margin: 4px 0;
+            background: #f0f9ff; border: 1.2px solid #bae6fd; border-radius: 8px;
+            padding: 7px 10px; margin: 2px 0;
         }
 
         /* 2~6면 본문 */
@@ -233,7 +242,7 @@
             <span class="header-title-text" id="pageChurchTitle">예톡행복한교회 주보</span>
         </div>
         <div class="dual-admin-btn-group">
-            <button type="button" class="btn-admin-room" onclick="location.href='admin.html'" title="관리실 전체설정">◀ 관리실</button>
+            <button type="button" class="btn-admin-room" onclick="location.href='churchadmin.html'" title="관리실 전체설정">◀ 관리실</button>
             <button type="button" class="btn-admin-edit" onclick="openJuboEditModal()" title="현재 면 내용 직접 수정">화면수정 ▶</button>
         </div>
     </header>
@@ -332,13 +341,24 @@
     let currentAttachedImgB64 = "";
     let isScrollProgrammatic = false;
 
+    const DEFAULT_ORDER_ROWS = [
+        { part: "묵 도", content: "경배와 찬양", who: "다 함 께" },
+        { part: "찬 송", content: "28장 (복의 근원 강림하사)", who: "다 함 께" },
+        { part: "기 도", content: "주일 대표기도", who: "장로 / 권사" },
+        { part: "성경봉독", content: "요한복음 3:16", who: "인 도 자" },
+        { part: "찬 양", content: "은혜의 강가로", who: "할렐루야 찬양대" },
+        { part: "말 씀", content: "하나님의 사랑과 성도의 사명", who: "담임목사" },
+        { part: "축 도", content: "축도 및 파송 찬양", who: "담임목사" }
+    ];
+
     const DEFAULT_PAGES = [
         {
             badge: "제 1 면 · 주일 예배 순서",
-            title: "예톡행복한교회 (1부 09:00 / 2부 11:00)",
+            title: "주일 예배 순서",
             img: "",
             isOrder: true,
-            body: `말씀: 하나님의 사랑과 성도의 사명 (담임목사)`
+            body: `말씀: 하나님의 사랑과 성도의 사명 (담임목사)`,
+            orderRows: DEFAULT_ORDER_ROWS
         },
         {
             badge: "제 2 면 · 오늘 성경 본문 말씀",
@@ -438,9 +458,16 @@
             sec.dataset.index = idx;
 
             let html = `
-                <div class="page-badge-pill">${item.badge || `제 ${idx + 1} 면`}</div>
-                <h2 class="jubo-main-title" id="sec_title_${idx}">${item.title}</h2>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                    <div class="page-badge-pill">${item.badge || `제 ${idx + 1} 면`}</div>
+                    <button type="button" class="btn-direct-edit-badge" onclick="openJuboEditModalForIndex(${idx})" title="이 면 내용 바로 수정">✏️ 바로 수정</button>
+                </div>
             `;
+
+            // 🌟 1면은 공간 확보 및 한 화면 쏙 들어오게 하기 위해 사용자가 X 친 중복 대형 제목('예톡행복한교회 1부/2부') 제거
+            if (idx !== 0 && item.title && item.title.trim()) {
+                html += `<h2 class="jubo-main-title" id="sec_title_${idx}">${item.title}</h2>`;
+            }
 
             // 첨부된 사진/이미지가 있을 때
             if (item.img && item.img.trim() !== "") {
@@ -453,19 +480,18 @@
 
             // 1면 예배순서 특별 테이블
             if (idx === 0) {
+                const rows = (item.orderRows && item.orderRows.length > 0) ? item.orderRows : DEFAULT_ORDER_ROWS;
+                let tableHtml = `<table class="order-table">`;
+                rows.forEach(r => {
+                    tableHtml += `<tr><td class="col-part">${r.part}</td><td>${r.content}</td><td class="col-who">${r.who}</td></tr>`;
+                });
+                tableHtml += `</table>`;
+
                 html += `
                     <div class="sermon-highlight-box">
-                        <strong style="font-size:14px; color:#0369a1; display:block;" id="sec_body_${idx}">${item.body}</strong>
+                        <strong style="font-size:13.5px; color:#0369a1; display:block;" id="sec_body_${idx}">${item.body}</strong>
                     </div>
-                    <table class="order-table">
-                        <tr><td class="col-part">묵 도</td><td>경배와 찬양</td><td class="col-who">다 함 께</td></tr>
-                        <tr><td class="col-part">찬 송</td><td>28장 (복의 근원 강림하사)</td><td class="col-who">다 함 께</td></tr>
-                        <tr><td class="col-part">기 도</td><td>주일 대표기도</td><td class="col-who">장로 / 권사</td></tr>
-                        <tr><td class="col-part">성경봉독</td><td>요한복음 3:16</td><td class="col-who">인 도 자</td></tr>
-                        <tr><td class="col-part">찬 양</td><td>은혜의 강가로</td><td class="col-who">할렐루야 찬양대</td></tr>
-                        <tr><td class="col-part">말 씀</td><td>하나님의 사랑과 성도의 사명</td><td class="col-who">담임목사</td></tr>
-                        <tr><td class="col-part">축 도</td><td>축도 및 파송 찬양</td><td class="col-who">담임목사</td></tr>
-                    </table>
+                    ${tableHtml}
                 `;
             } else {
                 html += `<div class="jubo-body-text" id="sec_body_${idx}">${item.body}</div>`;
@@ -476,9 +502,10 @@
         });
     }
 
-    // 🌟 위/아래 양방향 정확한 1:1 스크롤 스냅 옵저버
+    // 🌟 위/아래 양방향 정확한 1:1 스크롤 스냅 및 가벼운 스와이프
     function setupScrollSync() {
         const vp = document.getElementById("juboViewport");
+        if (!vp) return;
         let timer = null;
 
         vp.addEventListener("scroll", () => {
@@ -505,6 +532,33 @@
                 }
             }, 60);
         }, { passive: true });
+
+        // 🌟 살짝 밀어도 가볍게 전환되는 스와이프 제스처
+        let touchStartY = 0, touchStartX = 0, isTouching = false, touchStartTime = 0;
+        vp.addEventListener("touchstart", (e) => {
+            if (e.touches.length === 1) {
+                touchStartY = e.touches[0].clientY;
+                touchStartX = e.touches[0].clientX;
+                touchStartTime = Date.now();
+                isTouching = true;
+            }
+        }, { passive: true });
+
+        vp.addEventListener("touchend", (e) => {
+            if (!isTouching) return;
+            isTouching = false;
+            const diffY = e.changedTouches[0].clientY - touchStartY;
+            const diffX = e.changedTouches[0].clientX - touchStartX;
+            const duration = Date.now() - touchStartTime;
+
+            if (Math.abs(diffY) > 40 && Math.abs(diffY) > Math.abs(diffX) * 1.3 && duration < 600) {
+                if (diffY < 0 && activePageIdx < juboPagesData.length - 1) {
+                    scrollToPage(activePageIdx + 1);
+                } else if (diffY > 0 && activePageIdx > 0) {
+                    scrollToPage(activePageIdx - 1);
+                }
+            }
+        }, { passive: true });
     }
 
     function updateTabUI(idx) {
@@ -529,13 +583,28 @@
         }
     }
 
+    // 🌟 페이지 내 바로 수정 버튼 클릭 시
+    function openJuboEditModalForIndex(idx) {
+        activePageIdx = idx;
+        scrollToPage(idx);
+        openJuboEditModal();
+    }
+
     // 🌟 관리자 수정 모달 오픈
     function openJuboEditModal() {
         const item = juboPagesData[activePageIdx] || DEFAULT_PAGES[activePageIdx];
 
-        document.getElementById("modalEditTitleLabel").innerText = `✏️ [제 ${activePageIdx + 1} 면] 내용 및 사진 수정`;
-        document.getElementById("inpEditTitle").value = item.title || "";
-        document.getElementById("inpEditBody").value = item.body || "";
+        if (activePageIdx === 0) {
+            document.getElementById("modalEditTitleLabel").innerText = `✏️ [제 1 면 예배순서] 내용 수정`;
+            document.getElementById("inpEditTitle").value = item.title || "주일 예배 순서";
+            const rows = (item.orderRows && item.orderRows.length > 0) ? item.orderRows : DEFAULT_ORDER_ROWS;
+            const orderListText = rows.map(r => `• ${r.part}: ${r.content} (${r.who})`).join("\n");
+            document.getElementById("inpEditBody").value = `${item.body || '말씀: 하나님의 사랑과 성도의 사명 (담임목사)'}\n\n[예배 순서 목록]\n${orderListText}`;
+        } else {
+            document.getElementById("modalEditTitleLabel").innerText = `✏️ [제 ${activePageIdx + 1} 면] 내용 및 사진 수정`;
+            document.getElementById("inpEditTitle").value = item.title || "";
+            document.getElementById("inpEditBody").value = item.body || "";
+        }
 
         currentAttachedImgB64 = item.img || "";
         updateImgPreviewUI();
@@ -637,8 +706,47 @@
             juboPagesData[activePageIdx] = { ...DEFAULT_PAGES[activePageIdx] };
         }
 
-        juboPagesData[activePageIdx].title = newTitle;
-        juboPagesData[activePageIdx].body = newBody;
+        if (activePageIdx === 0) {
+            const lines = newBody.split("\n");
+            const newOrderRows = [];
+            let sermonLines = [];
+            let parsingOrders = false;
+            lines.forEach(line => {
+                const tr = line.trim();
+                if (tr.includes("[예배 순서") || tr.includes("[예배순서")) {
+                    parsingOrders = true;
+                    return;
+                }
+                if (parsingOrders && tr.startsWith("•")) {
+                    const clean = tr.replace(/^•\s*/, '');
+                    const colonIdx = clean.indexOf(":");
+                    if (colonIdx > -1) {
+                        const part = clean.substring(0, colonIdx).trim();
+                        let rest = clean.substring(colonIdx + 1).trim();
+                        let who = "다 함 께";
+                        const openP = rest.lastIndexOf("(");
+                        const closeP = rest.lastIndexOf(")");
+                        if (openP > -1 && closeP > openP) {
+                            who = rest.substring(openP + 1, closeP).trim();
+                            rest = rest.substring(0, openP).trim();
+                        }
+                        newOrderRows.push({ part, content: rest, who });
+                    }
+                } else if (!parsingOrders) {
+                    sermonLines.push(line);
+                }
+            });
+
+            juboPagesData[0].title = newTitle;
+            juboPagesData[0].body = sermonLines.join("\n").trim() || newBody;
+            if (newOrderRows.length > 0) {
+                juboPagesData[0].orderRows = newOrderRows;
+            }
+        } else {
+            juboPagesData[activePageIdx].title = newTitle;
+            juboPagesData[activePageIdx].body = newBody;
+        }
+
         juboPagesData[activePageIdx].img = currentAttachedImgB64;
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(juboPagesData));

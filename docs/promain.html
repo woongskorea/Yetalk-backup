@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>예톡 프로 통합 모델하우스 - 의원·식당·카페</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-accent: #0284c7;
+            --accent-glow: #38bdf8;
+            --safe-top: max(env(safe-area-inset-top, 0px) + 14px, 20px);
+            --header-h: calc(48px + var(--safe-top));
+            --nav-h: 46px;
+            --admob-h: 96px;
+            --safe-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+            --admob-total: calc(var(--admob-h) + var(--safe-bottom));
+            --view-h: calc(100dvh - var(--header-h) - var(--nav-h) - var(--admob-total));
+        }
+
+        body[data-mode="clinic"] { --primary-accent: #0284c7; --accent-glow: #38bdf8; }
+        body[data-mode="restaurant"] { --primary-accent: #d97706; --accent-glow: #fde047; }
+        body[data-mode="cafe"] { --primary-accent: #7c3aed; --accent-glow: #c084fc; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            width: 100%; height: 100%; background: #000000;
+            font-family: "Pretendard", -apple-system, sans-serif; color: #ffffff;
+            overflow: hidden;
+        }
+
+        .pro-shell {
+            width: 100%; max-width: 480px; height: 100dvh; margin: 0 auto;
+            display: flex; flex-direction: column; position: relative; background: #0b0f19;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        /* 1층 헤더 */
+        .pro-fixed-header {
+            height: var(--header-h); background: #0f172a; border-bottom: 1.5px solid #1e293b;
+            display: flex; justify-content: space-between; align-items: center;
+            padding-top: var(--safe-top); padding-left: 12px; padding-right: 12px; padding-bottom: 8px;
+            flex-shrink: 0; z-index: 100;
+        }
+        .header-left-box { display: flex; align-items: center; gap: 6px; }
+        .btn-header-back {
+            background: none; border: none; font-size: 24px; font-weight: 900;
+            color: var(--accent-glow); cursor: pointer; padding: 0 4px; line-height: 1;
+        }
+        .pro-store-name { font-size: 16px; font-weight: 950; color: #ffffff; letter-spacing: -0.3px; }
+
+        .header-model-chips { display: flex; align-items: center; gap: 4px; }
+        .btn-model-tag {
+            background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
+            font-size: 10.5px; font-weight: 850; padding: 3px 6px; border-radius: 6px; cursor: pointer;
+        }
+        .btn-model-tag.active {
+            background: var(--primary-accent); border-color: var(--accent-glow); color: #fff; font-weight: 950;
+        }
+        .btn-user-tier {
+            background: #064e3b; border: 1px solid #34d399; color: #facc15;
+            font-size: 10.5px; font-weight: 900; padding: 3px 7px; border-radius: 6px; cursor: pointer;
+        }
+
+        /* 2층 가로 메뉴 칩 바 (5~8개 가로 스크롤) */
+        .pro-nav-bar {
+            height: var(--nav-h); background: #0f172a; border-bottom: 1.5px solid #1e293b;
+            display: flex; gap: 6px; overflow-x: auto; white-space: nowrap;
+            padding: 0 10px; align-items: center; flex-shrink: 0; z-index: 99;
+            scrollbar-width: none;
+        }
+        .pro-nav-bar::-webkit-scrollbar { display: none; }
+        .pro-nav-chip {
+            background: #1e293b; border: 1px solid #334155; color: #94a3b8;
+            font-size: 12px; font-weight: 850; padding: 6px 12px; border-radius: 14px;
+            cursor: pointer; flex-shrink: 0; transition: all 0.15s;
+        }
+        .pro-nav-chip.active {
+            background: var(--primary-accent); color: #ffffff; border-color: var(--accent-glow); font-weight: 950;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+
+        /* 3층 메인 세로 스냅 쇼츠 뷰포트 */
+        .pro-scroll-viewport {
+            width: 100%; height: var(--view-h); overflow-y: scroll;
+            scroll-snap-type: y mandatory; scroll-behavior: smooth; position: relative;
+            -webkit-overflow-scrolling: touch;
+        }
+        .pro-scroll-viewport::-webkit-scrollbar { display: none; }
+
+        .snap-card-section {
+            width: 100%; height: var(--view-h); min-height: var(--view-h);
+            scroll-snap-align: start; scroll-snap-stop: always;
+            position: relative; display: flex; flex-direction: column;
+            justify-content: space-between; overflow: hidden;
+            border-bottom: 1px solid #1e293b; cursor: pointer;
+        }
+
+        .card-bg-img {
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center;
+            filter: brightness(0.82) contrast(1.05); z-index: 1;
+        }
+        .card-gradient-overlay {
+            position: absolute; inset: 0; z-index: 2;
+            background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.88) 100%);
+        }
+
+        /* 인라인 관리자 수정 버튼 */
+        .card-action-bar-top { position: absolute; top: 12px; right: 12px; z-index: 25; }
+        .btn-card-edit {
+            background: #dc2626; color: white; border: 1.2px solid #f87171; border-radius: 12px;
+            font-size: 11px; font-weight: 900; padding: 5px 11px; cursor: pointer;
+            box-shadow: 0 2px 6px rgba(220,38,38,0.4);
+        }
+
+        .card-top-content {
+            position: relative; z-index: 10; padding: 18px 16px 0 16px;
+            display: flex; flex-direction: column; gap: 6px; text-align: left;
+        }
+        .card-category-badge {
+            align-self: flex-start; font-size: 11px; font-weight: 950;
+            padding: 3px 9px; border-radius: 10px; background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--accent-glow); color: var(--accent-glow);
+        }
+        .card-title-main {
+            font-size: 23px; font-weight: 950; line-height: 1.35; color: #ffffff;
+            word-break: keep-all; text-shadow: 0 2px 8px rgba(0,0,0,0.9);
+        }
+
+        .card-bottom-content {
+            position: relative; z-index: 10; padding: 0 16px 18px 16px;
+            display: flex; flex-direction: column; gap: 6px; text-align: left;
+        }
+        .card-body-text {
+            font-size: 13.5px; line-height: 1.6; color: #ffffff; word-break: keep-all;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.95);
+        }
+        .card-click-guide-pill {
+            display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px;
+            font-weight: 850; color: #fde047; background: rgba(15, 23, 42, 0.7);
+            padding: 4px 10px; border-radius: 12px; border: 1px dashed rgba(253, 224, 71, 0.4);
+            width: fit-content; margin-top: 2px;
+        }
+
+        /* 2번 대표 사진 7장 슬라이더 */
+        .photo-gallery-slider {
+            position: absolute; inset: 0; z-index: 1; display: flex;
+            overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+        }
+        .photo-gallery-slider::-webkit-scrollbar { display: none; }
+        .slider-photo-item {
+            min-width: 100%; width: 100%; height: 100%; scroll-snap-align: start; flex-shrink: 0;
+        }
+        .slider-photo-img { width: 100%; height: 100%; object-fit: cover; }
+        .gallery-page-indicator {
+            position: absolute; bottom: 85px; right: 16px; z-index: 15;
+            background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.25);
+            padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 900; color: #fde047;
+        }
+
+        /* 1번 QR 박스 */
+        .qr-center-box {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 15; background: #ffffff; padding: 16px; border-radius: 20px;
+            border: 3px solid var(--accent-glow); box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+        .qr-display-img { width: 180px; height: 180px; object-fit: contain; }
+
+        /* 4층 최하단 고정 애드몹 (300 × 100) */
+        .bottom-fixed-admob-footer {
+            height: var(--admob-total); background: #080d1a; border-top: 1.5px solid #1e3a5f;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding-top: 6px; padding-bottom: var(--safe-bottom); flex-shrink: 0; z-index: 100;
+        }
+        .admob-safety-bar {
+            font-size: 9.5px; color: #64748b; font-weight: 850; letter-spacing: 0.5px;
+            display: flex; align-items: center; gap: 4px; margin-bottom: 2px;
+        }
+        .admob-display-slot {
+            width: calc(100% - 20px); max-width: 400px; height: 72px;
+            background: #0b1326; border: 1.2px solid #1e293b; border-radius: 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8); gap: 2px;
+        }
+
+        /* 내장 풀스크린 상세 페이지 */
+        .detail-fullscreen-view {
+            display: none; position: fixed; inset: 0; background: #0b0f19; z-index: 21000;
+            flex-direction: column; max-width: 480px; margin: 0 auto; height: 100dvh;
+        }
+        .detail-fullscreen-view.open { display: flex; }
+        .detail-top-nav {
+            height: calc(48px + var(--safe-top)); background: #0f172a; border-bottom: 1.5px solid #1e293b;
+            padding-top: var(--safe-top); padding-left: 14px; padding-right: 14px; padding-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+        }
+        .detail-body-scroll {
+            flex: 1; overflow-y: auto; padding: 14px 14px calc(var(--admob-total) + 14px) 14px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+
+        /* 모달 스타일 */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+            z-index: 23000; align-items: center; justify-content: center; padding: 14px;
+            backdrop-filter: blur(6px);
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-card {
+            width: 100%; max-width: 420px; background: #0f172a;
+            border: 2px solid var(--accent-glow); border-radius: 18px; padding: 18px 16px;
+            color: #ffffff; display: flex; flex-direction: column; gap: 10px;
+            text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+            max-height: 88vh; overflow-y: auto;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1.5px solid #334155; padding-bottom: 8px;
+        }
+        .m-label { font-size: 12px; font-weight: 900; color: #facc15; display: block; margin-bottom: 2px; }
+        .m-input {
+            width: 100%; background: #162238; border: 1.5px solid #334155; border-radius: 8px;
+            padding: 8px 12px; color: white; font-size: 13.5px; outline: none; font-family: inherit;
+        }
+        .m-textarea {
+            width: 100%; min-height: 70px; background: #162238; border: 1.5px solid #334155;
+            border-radius: 8px; padding: 8px 12px; color: white; font-size: 13px; outline: none;
+            resize: vertical; font-family: inherit; line-height: 1.45;
+        }
+
+        /* 댓글 아이템 & 삭제 버튼 */
+        .comment-item-box {
+            background: #162238; border: 1px solid #334155; border-radius: 8px;
+            padding: 8px 10px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .btn-comment-del {
+            background: #dc2626; color: white; border: none; padding: 2px 6px;
+            border-radius: 4px; font-size: 10px; font-weight: 900; cursor: pointer;
+        }
+
+        .yetalk-toast {
+            position: fixed; bottom: calc(var(--admob-total) + 15px); left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.96); border: 1.5px solid var(--accent-glow); color: #fde047;
+            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 900;
+            z-index: 30000; opacity: 0; visibility: hidden; transition: all 0.25s ease; white-space: nowrap;
+        }
+        .yetalk-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body data-mode="clinic">
+
+<div class="pro-shell">
+
+    <!-- 1층 헤더 (모델하우스 3종 전환 & 회원등급 표시) -->
+    <header class="pro-fixed-header">
+        <div class="header-left-box">
+            <button type="button" class="btn-header-back" onclick="location.href='index.html'" title="메인으로 복귀">‹</button>
+            <div class="pro-store-name" id="dispHeaderStoreName">예톡의원</div>
+        </div>
+
+        <div class="header-model-chips">
+            <button type="button" class="btn-model-tag active" id="btnModeClinic" onclick="switchModelHouse('clinic')">예톡의원</button>
+            <button type="button" class="btn-model-tag" id="btnModeRest" onclick="switchModelHouse('restaurant')">예톡식당</button>
+            <button type="button" class="btn-model-tag" id="btnModeCafe" onclick="switchModelHouse('cafe')">예톡카페</button>
+            <button type="button" class="btn-user-tier" id="btnUserTierStatus" onclick="openMemberTierModal()">준회원</button>
+        </div>
+    </header>
+
+    <!-- 2층 가로 메뉴 칩 바 (8개 가로 스크롤 & 세로 스냅 스크롤 연동) -->
+    <nav class="pro-nav-bar" id="proNavBar">
+        <button type="button" class="pro-nav-chip active" id="chip_0" onclick="scrollToSnapCard(0)">1. QR</button>
+        <button type="button" class="pro-nav-chip" id="chip_1" onclick="scrollToSnapCard(1)">2. 소개 (7개)</button>
+        <button type="button" class="pro-nav-chip" id="chip_2" onclick="scrollToSnapCard(2)">3. 시술/메뉴</button>
+        <button type="button" class="pro-nav-chip" id="chip_3" onclick="scrollToSnapCard(3)">4. 오늘 하루</button>
+        <button type="button" class="pro-nav-chip" id="chip_4" onclick="scrollToSnapCard(4)">5. 단골/환자톡</button>
+        <button type="button" class="pro-nav-chip" id="chip_5" onclick="scrollToSnapCard(5)">6. 예약/주문</button>
+        <button type="button" class="pro-nav-chip" id="chip_6" onclick="scrollToSnapCard(6)">7. 오시는 길</button>
+        <button type="button" class="pro-nav-chip" id="chip_7" onclick="scrollToSnapCard(7)">8. 간편결제 💳</button>
+    </nav>
+
+    <!-- 3층 메인 세로 스냅 쇼츠 뷰포트 (8개 세로 카드) -->
+    <main class="pro-scroll-viewport" id="proViewport"></main>
+
+    <!-- 4층 최하단 고정 애드몹 (300 × 100) -->
+    <footer class="bottom-fixed-admob-footer">
+        <div class="admob-safety-bar">
+            <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
+        </div>
+        <div class="admob-display-slot">
+            <strong style="color:var(--accent-glow); font-size:13.5px; font-weight:950;">Google AdMob (300 × 100 / Large Banner)</strong>
+            <span style="color:#fde047; font-size:11px; font-weight:800;" id="dispAdmobSponsorDesc">대한민국 전문 클리닉 & 소상공인 공식 후원 슬롯</span>
+        </div>
+    </footer>
+
+    <div class="yetalk-toast" id="toastBox"></div>
+</div>
+
+<!-- 내장 풀스크린 상세 페이지 (하단 100 애드몹 완비) -->
+<div class="detail-fullscreen-view" id="detailFullscreenView">
+    <header class="detail-top-nav">
+        <button type="button" style="background:none; border:none; color:var(--accent-glow); font-size:24px; font-weight:900; cursor:pointer;" onclick="closeFullscreenDetail()">←</button>
+        <strong style="font-size:16px; color:#ffffff;" id="detailNavTitle">상세보기</strong>
+        <button type="button" style="background:none; border:none; color:#94a3b8; font-size:14px; font-weight:900; cursor:pointer;" onclick="closeFullscreenDetail()">닫기</button>
+    </header>
+    <div class="detail-body-scroll" id="detailBodyContent"></div>
+    <footer class="bottom-fixed-admob-footer">
+        <div class="admob-safety-bar">
+            <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
+        </div>
+        <div class="admob-display-slot">
+            <strong style="color:var(--accent-glow); font-size:13.5px; font-weight:950;">Google AdMob (300 × 100)</strong>
+            <span style="color:#fde047; font-size:11px; font-weight:800;">예톡 공식 후원 배너</span>
+        </div>
+    </footer>
+</div>
+
+<!-- 🌟 [모달 1] 회원가입 관리 (준회원 vs 정회원) -->
+<div class="modal-overlay" id="memberTierModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <strong style="color:var(--accent-glow); font-size:15px;">👤 예톡 회원가입 & 등급 관리</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('memberTierModal')">✕</button>
+        </div>
+
+        <!-- 1. 원클릭 준회원 가입 -->
+        <div style="background:#162238; padding:12px; border-radius:10px; border:1px solid #334155;">
+            <div style="color:#facc15; font-size:13px; font-weight:900;">⚡ 간편 준회원 (원클릭 가입)</div>
+            <p style="font-size:12px; color:#cbd5e1; margin-top:4px; line-height:1.4;">
+                복잡한 정보 입력 없이 '예' 한 번으로 즉시 준회원 자격이 부여되어 모든 콘텐츠를 바로 이용하실 수 있습니다.
+            </p>
+            <button type="button" style="width:100%; height:38px; background:#059669; color:white; border:none; border-radius:8px; font-weight:900; font-size:13px; margin-top:8px; cursor:pointer;" onclick="registerAssociateMember()">
+                예 (준회원으로 바로 가입하기)
+            </button>
+        </div>
+
+        <!-- 2. 정회원 승격 폼 -->
+        <div style="background:#1e293b; padding:12px; border-radius:10px; border:1px solid #475569; margin-top:4px;">
+            <div style="color:#38bdf8; font-size:13px; font-weight:900;">👑 정회원 승격 신청</div>
+            <div style="display:flex; flex-direction:column; gap:6px; margin-top:8px;">
+                <input type="text" class="m-input" id="inpRegularName" placeholder="성함 (이름)">
+                <input type="text" class="m-input" id="inpRegularId" placeholder="희망 아이디 (ID)">
+                <input type="password" class="m-input" id="inpRegularPw" placeholder="비밀번호">
+                <input type="text" class="m-input" id="inpRegularRegion" placeholder="거주지 주소 (시·군·구, 예: 부산진구, 서초구)">
+                <button type="button" style="height:40px; background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; border-radius:8px; font-weight:950; font-size:13.5px; cursor:pointer; margin-top:2px;" onclick="registerRegularMember()">
+                    정회원 등록 완료
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 [모달 2] 관리자 모드: 사진/글 추가 및 인라인 수정 -->
+<div class="modal-overlay" id="adminEditCardModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <strong style="color:#facc15; font-size:15px;" id="dispAdminModalTitle">⚙️ 카드 정보 수정</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('adminEditCardModal')">✕</button>
+        </div>
+
+        <div>
+            <label class="m-label">카드 제목</label>
+            <input type="text" class="m-input" id="inpAdminCardTitle">
+        </div>
+        <div>
+            <label class="m-label">설명 및 안내 문구</label>
+            <textarea class="m-textarea" id="inpAdminCardBody"></textarea>
+        </div>
+        <div>
+            <label class="m-label">📷 배경 사진 변경</label>
+            <input type="file" id="fileAdminCardImg" accept="image/*" onchange="handleAdminImgUpload(event)">
+        </div>
+
+        <button type="button" style="height:42px; background:var(--primary-accent); color:white; border:none; border-radius:8px; font-weight:950; font-size:13.5px; margin-top:4px; cursor:pointer;" onclick="saveAdminCardEdit()">
+            💾 수정 저장 완료
+        </button>
+    </div>
+</div>
+
+<script>
+    const PRO_ACTIVE_MODE_KEY = "yetalk_pro_active_model_mode_v2";
+    const PRO_CARDS_STORAGE_KEY = "yetalk_pro_cards_data_master_v2";
+    const PRO_USER_TIER_KEY = "yetalk_pro_member_tier_info_v2";
+    const PRO_COMMENTS_STORAGE_KEY = "yetalk_pro_comments_map_v2";
+
+    let activeMode = "clinic"; // clinic | restaurant | cafe
+    let currentCards = [];
+    let editingCardIndex = 0;
+    let tempAdminImgBase64 = "";
+
+    // 🌟 3대 모델하우스 상호 및 기본 템플릿 데이터
+    const MODEL_HOUSES = {
+        clinic: {
+            name: "예톡의원",
+            sponsorText: "대한민국 피부·의료 클리닉 공식 후원 슬롯",
+            cards: [
+                { cat: "1. QR", title: "스마트 접수 & 예약\n원클릭 병원 QR", body: "카메라로 스캔하면 번호 노출 없이 즉시 진료 안내 및 모바일 접수가 이루어집니다.", img: "https://images.unsplash.com/photo-1557683316-973673baf926?w=800&auto=format&fit=crop&q=80" },
+                { cat: "2. 소개 (7개)", title: "원장 약력 & 시설\n대표 갤러리 (7장)", body: "풍부한 임상 경험과 첨단 레이저 장비, 프라이빗 처치실 사진 7장을 확인하세요.", img: "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&auto=format&fit=crop&q=80", photos: [
+                    "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1516549655169-df83a0774514?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80"
+                ]},
+                { cat: "3. 시술/메뉴", title: "피코 레이저 & 리프팅\n시술 안내 및 후기", body: "피코토닝, 초음파 리프팅, 스킨부스터 등 맞춤 시술 안내와 환자분들의 생생한 후기를 확인하세요.", img: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&auto=format&fit=crop&q=80" },
+                { cat: "4. 오늘 하루", title: "원장 건강 칼럼\n바른 건강 묵상 가이드", body: "환자분들의 일상 건강을 위한 유익한 웰빙 상식과 따뜻한 메시지를 전합니다.", img: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&auto=format&fit=crop&q=80" },
+                { cat: "5. 단골/환자톡", title: "환자 1:1 진료상담\n실시간 전용 상담톡", body: "시술 전 주의사항 및 진료 문의를 원장님 및 데스크와 1:1로 편안하게 나누세요.", img: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&auto=format&fit=crop&q=80" },
+                { cat: "6. 예약/주문", title: "진료 예약 신청표\n실시간 스케줄 관리", body: "원하시는 날짜와 진료 과목을 접수하시면 병원 예약표에 자동 확정 등록됩니다.", img: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=800&auto=format&fit=crop&q=80" },
+                { cat: "7. 오시는 길", title: "병원 위치 안내\n주차 및 진료 시간", body: "지하철역 도보 3분 거리. 평일 야간진료 및 주말 진료 스케줄을 확인하세요.", img: "https://images.unsplash.com/photo-1516549655169-df83a0774514?w=800&auto=format&fit=crop&q=80" },
+                { cat: "8. 간편결제", title: "예톡 스마트 수납\n전 은행 즉시 송금", body: "비급여 수가 확인 후 터치 한 번으로 안전하게 진료비를 수납하실 수 있습니다.", img: "https://images.unsplash.com/photo-1556742049-0a67c5574f73?w=800&auto=format&fit=crop&q=80" }
+            ]
+        },
+        restaurant: {
+            name: "예톡식당",
+            sponsorText: "대한민국 대표 맛집 & 외식 자영업 공식 후원 슬롯",
+            cards: [
+                { cat: "1. QR", title: "테이블 오더 & 단골\n원클릭 매장 QR", body: "테이블에 부착된 QR을 비추면 메뉴 확인부터 주문, 결제까지 한 번에 연결됩니다.", img: "https://images.unsplash.com/photo-1557683316-973673baf926?w=800&auto=format&fit=crop&q=80" },
+                { cat: "2. 소개 (7개)", title: "48시간 정성 진사골\n매장 대표 갤러리 (7장)", body: "신선한 재료와 정갈한 조리 공간, 맛있는 대표 상차림 사진 7장을 확인하세요.", img: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80", photos: [
+                    "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1552611052-33e04de081de?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop&q=80"
+                ]},
+                { cat: "3. 시술/메뉴", title: "전통 사골 밀면 & 수육\n대표 메뉴 안내 및 후기", body: "진사골 물밀면, 비빔밀면, 한방 수육 등 정성 가득한 메뉴판과 손님 후기를 확인하세요.", img: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&auto=format&fit=crop&q=80" },
+                { cat: "4. 오늘 하루", title: "주방장의 하루 일기\n오늘의 감동 좋은 글", body: "오늘 매장을 찾아주시는 소중한 손님들을 향한 감사의 다짐을 나눕니다.", img: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=80" },
+                { cat: "5. 단골/환자톡", title: "단골 손님 소통방\n실시간 포장·문의톡", body: "단체 예약 문의 및 포장 픽업 시간을 실시간으로 편리하게 조율하세요.", img: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=800&auto=format&fit=crop&q=80" },
+                { cat: "6. 예약/주문", title: "단체석 및 픽업 예약\n실시간 예약 스케줄", body: "희망 방문 인원과 시간을 남겨주시면 단체석이 미리 세팅됩니다.", img: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop&q=80" },
+                { cat: "7. 오시는 길", title: "식당 위치 & 주차\n영업 시간 및 브레이크타임", body: "가게 전용 주차장 완비. 편안하게 찾아오실 수 있는 약도를 안내합니다.", img: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&auto=format&fit=crop&q=80" },
+                { cat: "8. 간편결제", title: "테이블 간편결제\n전 은행 송금 지원", body: "복잡한 계산대 줄 서기 없이 자리에서 즉시 송금 결제하세요.", img: "https://images.unsplash.com/photo-1556742049-0a67c5574f73?w=800&auto=format&fit=crop&q=80" }
+            ]
+        },
+        cafe: {
+            name: "예톡카페",
+            sponsorText: "대한민국 스페셜티 카페 & 디저트 공식 후원 슬롯",
+            cards: [
+                { cat: "1. QR", title: "스마트 스탬프 & 주문\n원클릭 카페 QR", body: "휴대폰 카메라 스캔으로 메뉴 확인과 음료 주문, 스탬프 적립이 자동 진행됩니다.", img: "https://images.unsplash.com/photo-1557683316-973673baf926?w=800&auto=format&fit=crop&q=80" },
+                { cat: "2. 소개 (7개)", title: "스페셜티 원두 & 디저트\n감성 갤러리 (7장)", body: "매일 직접 로스팅하는 신선한 원두와 수제 베이커리 사진 7장을 감상하세요.", img: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&auto=format&fit=crop&q=80", photos: [
+                    "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&auto=format&fit=crop&q=80",
+                    "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=800&auto=format&fit=crop&q=80"
+                ]},
+                { cat: "3. 시술/메뉴", title: "시그니처 라떼 & 크로플\n음료/디저트 안내 및 후기", body: "바닐라 빈 라떼, 핸드드립 커피, 프랑스 버터 크로플 메뉴와 손님 한 줄 후기를 만나보세요.", img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&auto=format&fit=crop&q=80" },
+                { cat: "4. 오늘 하루", title: "바리스타 노트\n오늘의 커피 한 잔 명언", body: "향긋한 커피 향기와 함께 하루의 쉼표가 되어줄 힐링 문구를 선물합니다.", img: "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=800&auto=format&fit=crop&q=80" },
+                { cat: "5. 단골/환자톡", title: "카페 단골 소통방\n실시간 픽업 오더톡", body: "출근길 드라이브스루 및 사전 포장 주문을 채팅으로 편하게 접수하세요.", img: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&auto=format&fit=crop&q=80" },
+                { cat: "6. 예약/주문", title: "베이커리 답례품 예약\n대량 주문 스케줄", body: "원두 대량 구매 및 행사용 디저트 패키지 예약 일정을 확인하세요.", img: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&auto=format&fit=crop&q=80" },
+                { cat: "7. 오시는 길", title: "카페 위치 안내\n테라스 및 반려동물 동반", body: "여유로운 테라스 공간과 주차 안내를 확인하실 수 있습니다.", img: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800&auto=format&fit=crop&q=80" },
+                { cat: "8. 간편결제", title: "모바일 스마트 결제\n전 은행 즉시 송금", body: "자리에서 지갑 없이 스마트폰으로 즉시 간편 송금하세요.", img: "https://images.unsplash.com/photo-1556742049-0a67c5574f73?w=800&auto=format&fit=crop&q=80" }
+            ]
+        }
+    };
+
+    function initPage() {
+        activeMode = localStorage.getItem(PRO_ACTIVE_MODE_KEY) || "clinic";
+        loadOrInitModeCards(activeMode);
+        updateUserTierButtonUI();
+        setupSnapScrollListener();
+    }
+
+    function switchModelHouse(mode) {
+        activeMode = mode;
+        localStorage.setItem(PRO_ACTIVE_MODE_KEY, mode);
+        loadOrInitModeCards(mode);
+        showToast(`🏢 [${MODEL_HOUSES[mode].name}] 모델하우스로 전환되었습니다!`);
+    }
+
+    function loadOrInitModeCards(mode) {
+        document.body.setAttribute("data-mode", mode);
+        document.getElementById("dispHeaderStoreName").innerText = MODEL_HOUSES[mode].name;
+        document.getElementById("dispAdmobSponsorDesc").innerText = MODEL_HOUSES[mode].sponsorText;
+
+        // 모델 칩 활성화 상태 표시
+        document.getElementById("btnModeClinic").classList.toggle("active", mode === "clinic");
+        document.getElementById("btnModeRest").classList.toggle("active", mode === "restaurant");
+        document.getElementById("btnModeCafe").classList.toggle("active", mode === "cafe");
+
+        // 로컬스토리지 저장 여부 확인
+        const key = PRO_CARDS_STORAGE_KEY + "_" + mode;
+        const saved = localStorage.getItem(key);
+        if (saved) {
+            try { currentCards = JSON.parse(saved); } catch(e) { currentCards = MODEL_HOUSES[mode].cards; }
+        } else {
+            currentCards = MODEL_HOUSES[mode].cards;
+            localStorage.setItem(key, JSON.stringify(currentCards));
+        }
+
+        renderViewportCards();
+        scrollToSnapCard(0);
+    }
+
+    /* 🌟 세로 스냅 쇼츠 카드 렌더링 (8개 카드) */
+    function renderViewportCards() {
+        const viewport = document.getElementById("proViewport");
+        viewport.innerHTML = "";
+
+        currentCards.forEach((c, idx) => {
+            const cardEl = document.createElement("section");
+            cardEl.className = "snap-card-section";
+            cardEl.id = `scard_${idx}`;
+            // 🌟 이미지/화면 어디든 누르면 상세 페이지 오픈
+            cardEl.onclick = () => openFullscreenDetail(idx);
+
+            let bgContentHtml = `<img class="card-bg-img" src="${c.img}" alt="${c.title}"><div class="card-gradient-overlay"></div>`;
+
+            // 1번 QR 전용
+            let qrCenterHtml = "";
+            if (idx === 0) {
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://yetalk.cc/${activeMode}`;
+                qrCenterHtml = `
+                    <div class="qr-center-box">
+                        <img class="qr-display-img" src="${qrUrl}" alt="QR">
+                        <span style="font-size:12px; font-weight:900; color:var(--primary-accent);">스마트폰 카메라로 스캔하세요</span>
+                    </div>
+                `;
+            }
+
+            // 2번 소개 (7장 슬라이더)
+            if (idx === 1) {
+                const pList = (c.photos && c.photos.length > 0) ? c.photos.slice(0, 7) : [c.img];
+                let slidesHtml = pList.map((p, pIdx) => `
+                    <div class="slider-photo-item">
+                        <img class="slider-photo-img" src="${p}" alt="사진 ${pIdx + 1}">
+                    </div>
+                `).join("");
+
+                bgContentHtml = `
+                    <div class="photo-gallery-slider" id="sliderCard1" onclick="event.stopPropagation();" onscroll="handleSliderScroll(event)">
+                        ${slidesHtml}
+                    </div>
+                    <div class="card-gradient-overlay" style="pointer-events:none;"></div>
+                    <div class="gallery-page-indicator" id="indCard1">1 / ${pList.length} 📸</div>
+                `;
+            }
+
+            cardEl.innerHTML = `
+                ${bgContentHtml}
+                ${qrCenterHtml}
+
+                <!-- 관리자 인라인 수정 버튼 -->
+                <div class="card-action-bar-top">
+                    <button type="button" class="btn-card-edit" onclick="event.stopPropagation(); openAdminEditModal(${idx});">수정 ⚙️</button>
+                </div>
+
+                <div class="card-top-content">
+                    <span class="card-category-badge">${c.cat}</span>
+                    <h2 class="card-title-main">${c.title.replace(/\n/g, '<br>')}</h2>
+                </div>
+
+                <div class="card-bottom-content">
+                    <p class="card-body-text">${c.body}</p>
+                    <span class="card-click-guide-pill">👆 화면을 터치하시면 상세 내용을 확인하실 수 있습니다</span>
+                </div>
+            `;
+            viewport.appendChild(cardEl);
+        });
+    }
+
+    function handleSliderScroll(e) {
+        const slider = e.target;
+        const w = slider.clientWidth;
+        if (!w) return;
+        const currentIdx = Math.round(slider.scrollLeft / w) + 1;
+        const total = slider.children.length;
+        const ind = document.getElementById("indCard1");
+        if (ind) ind.innerText = `${currentIdx} / ${total} 📸`;
+    }
+
+    /* 🌟 내장 풀스크린 상세 페이지 (사진, 글, 실시간 댓글 & 삭제 기능 탑재) */
+    function openFullscreenDetail(idx) {
+        if (!currentCards[idx]) return;
+        const c = currentCards[idx];
+        document.getElementById("detailNavTitle").innerText = `${c.cat} 상세 안내`;
+        const bodyEl = document.getElementById("detailBodyContent");
+        bodyEl.innerHTML = "";
+
+        // 공통 댓글 리스트 로드
+        const commentKey = `${PRO_COMMENTS_STORAGE_KEY}_${activeMode}_card_${idx}`;
+        let comments = [];
+        try { comments = JSON.parse(localStorage.getItem(commentKey)) || []; } catch(e){}
+
+        if (comments.length === 0) {
+            comments = [
+                { id: 1, user: "단골회원", text: "원장님/사장님 너무 친절하시고 결과가 정말 만족스럽습니다! 강추해요 👍" }
+            ];
+            localStorage.setItem(commentKey, JSON.stringify(comments));
+        }
+
+        let commentsHtml = comments.map(cm => `
+            <div class="comment-item-box" id="cRow_${cm.id}">
+                <div>
+                    <span style="color:#fde047; font-weight:900; font-size:12px;">@${cm.user}</span>
+                    <span style="color:#ffffff; font-size:12.5px; margin-left:4px;">${cm.text}</span>
+                </div>
+                <button type="button" class="btn-comment-del" onclick="deleteComment('${commentKey}', ${cm.id})">삭제 🗑️</button>
+            </div>
+        `).join("");
+
+        bodyEl.innerHTML = `
+            <div style="background:#162238; border-radius:14px; padding:16px; border:1.5px solid var(--accent-glow);">
+                <img src="${c.img}" style="width:100%; max-height:220px; object-fit:cover; border-radius:10px;">
+                <h3 style="color:#fde047; margin-top:12px; font-size:18px;">${c.title.replace(/\n/g, ' ')}</h3>
+                <p style="color:#cbd5e1; font-size:13.5px; line-height:1.6; margin-top:8px;">${c.body}</p>
+            </div>
+
+            <!-- 실시간 후기 / 댓글 섹션 (관리자 삭제 지원) -->
+            <div style="background:#141c2e; border-radius:12px; padding:12px; border:1px solid #334155; margin-top:6px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <strong style="color:var(--accent-glow); font-size:13.5px;">💬 고객 후기 & 한 줄 댓글 (${comments.length}개)</strong>
+                </div>
+
+                <div id="commentListHost_${idx}" style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px;">
+                    ${commentsHtml}
+                </div>
+
+                <!-- 그 자리에서 바로 작성하는 댓글 입력창 -->
+                <div style="display:flex; gap:6px;">
+                    <input type="text" class="m-input" id="inpDetailComment_${idx}" placeholder="따뜻한 후기를 남겨주세요..." onkeydown="if(event.key==='Enter') submitDetailComment(${idx}, '${commentKey}')">
+                    <button type="button" style="background:#0284c7; color:white; border:none; padding:0 14px; border-radius:8px; font-weight:950; font-size:12.5px; cursor:pointer; flex-shrink:0;" onclick="submitDetailComment(${idx}, '${commentKey}')">등록</button>
+                </div>
+            </div>
+        `;
+
+        document.getElementById("detailFullscreenView").classList.add("open");
+    }
+
+    function closeFullscreenDetail() {
+        document.getElementById("detailFullscreenView").classList.remove("open");
+    }
+
+    function submitDetailComment(cardIdx, key) {
+        const inp = document.getElementById(`inpDetailComment_${cardIdx}`);
+        const text = inp.value.trim();
+        if (!text) return;
+
+        let comments = [];
+        try { comments = JSON.parse(localStorage.getItem(key)) || []; } catch(e){}
+
+        const myName = localStorage.getItem("yetalk_user_name_tier") || "예톡손님";
+        const newC = { id: Date.now(), user: myName, text: text };
+        comments.push(newC);
+        localStorage.setItem(key, JSON.stringify(comments));
+
+        inp.value = "";
+        openFullscreenDetail(cardIdx); // 화면 즉시 새로고침
+        showToast("💬 댓글이 등록되었습니다!");
+    }
+
+    function deleteComment(key, commentId) {
+        if (!confirm("이 댓글을 삭제하시겠습니까?")) return;
+        let comments = [];
+        try { comments = JSON.parse(localStorage.getItem(key)) || []; } catch(e){}
+        comments = comments.filter(c => c.id !== commentId);
+        localStorage.setItem(key, JSON.stringify(comments));
+        showToast("🗑️ 댓글이 삭제되었습니다.");
+
+        // 해당 카드 뷰 다시 열기
+        const cardIdx = editingCardIndex;
+        openFullscreenDetail(cardIdx);
+    }
+
+    /* 🌟 회원가입 체계: 준회원(원클릭) vs 정회원(인증) */
+    function openMemberTierModal() {
+        openModal("memberTierModal");
+    }
+
+    function registerAssociateMember() {
+        const tierData = { type: "준회원", name: "간편준회원", region: "전국", registered: true };
+        localStorage.setItem(PRO_USER_TIER_KEY, JSON.stringify(tierData));
+        localStorage.setItem("yetalk_user_name_tier", "준회원");
+        updateUserTierButtonUI();
+        closeModal("memberTierModal");
+        showToast("⚡ [예] 선택으로 준회원 가입이 완료되었습니다!");
+    }
+
+    function registerRegularMember() {
+        const name = document.getElementById("inpRegularName").value.trim();
+        const id = document.getElementById("inpRegularId").value.trim();
+        const pw = document.getElementById("inpRegularPw").value.trim();
+        const region = document.getElementById("inpRegularRegion").value.trim();
+
+        if (!name || !id || !pw || !region) {
+            alert("이름, 아이디, 비밀번호, 주소(시군구)를 모두 입력해 주세요.");
+            return;
+        }
+
+        const tierData = { type: "정회원", name: name, id: id, region: region, registered: true };
+        localStorage.setItem(PRO_USER_TIER_KEY, JSON.stringify(tierData));
+        localStorage.setItem("yetalk_user_name_tier", name);
+        updateUserTierButtonUI();
+        closeModal("memberTierModal");
+        showToast(`👑 [${name}님] 정회원으로 승격 등록되었습니다!`);
+    }
+
+    function updateUserTierButtonUI() {
+        const raw = localStorage.getItem(PRO_USER_TIER_KEY);
+        let tier = "준회원";
+        if (raw) {
+            try { tier = JSON.parse(raw).type || "준회원"; } catch(e){}
+        }
+        const btn = document.getElementById("btnUserTierStatus");
+        btn.innerText = tier;
+        if (tier === "정회원") {
+            btn.style.background = "#b45309";
+            btn.style.borderColor = "#facc15";
+            btn.style.color = "#ffffff";
+        }
+    }
+
+    /* 🌟 관리자 인라인 카드 수정 */
+    function openAdminEditModal(idx) {
+        editingCardIndex = idx;
+        const c = currentCards[idx];
+        document.getElementById("dispAdminModalTitle").innerText = `⚙️ [${c.cat}] 바로 수정`;
+        document.getElementById("inpAdminCardTitle").value = c.title;
+        document.getElementById("inpAdminCardBody").value = c.body;
+        tempAdminImgBase64 = "";
+        document.getElementById("fileAdminCardImg").value = "";
+        openModal("adminEditCardModal");
+    }
+
+    function handleAdminImgUpload(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            tempAdminImgBase64 = e.target.result;
+            showToast("📷 사진이 준비되었습니다.");
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function saveAdminCardEdit() {
+        const t = document.getElementById("inpAdminCardTitle").value.trim();
+        const b = document.getElementById("inpAdminCardBody").value.trim();
+        if (t) currentCards[editingCardIndex].title = t;
+        if (b) currentCards[editingCardIndex].body = b;
+        if (tempAdminImgBase64) currentCards[editingCardIndex].img = tempAdminImgBase64;
+
+        const key = PRO_CARDS_STORAGE_KEY + "_" + activeMode;
+        localStorage.setItem(key, JSON.stringify(currentCards));
+        renderViewportCards();
+        closeModal("adminEditCardModal");
+        showToast("✨ 수정 내용이 즉시 반영되었습니다!");
+    }
+
+    /* 🌟 가로 칩 & 세로 스크롤 동기화 */
+    function setupSnapScrollListener() {
+        const viewport = document.getElementById("proViewport");
+        viewport.addEventListener("scroll", () => {
+            const h = viewport.clientHeight;
+            if (!h) return;
+            const idx = Math.round(viewport.scrollTop / h);
+            document.querySelectorAll(".pro-nav-chip").forEach((chip, i) => {
+                chip.classList.toggle("active", i === idx);
+            });
+            const activeChip = document.getElementById(`chip_${idx}`);
+            if (activeChip) {
+                activeChip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+            }
+        }, { passive: true });
+    }
+
+    function scrollToSnapCard(idx) {
+        editingCardIndex = idx;
+        const viewport = document.getElementById("proViewport");
+        const target = document.getElementById(`scard_${idx}`);
+        if (viewport && target) {
+            viewport.scrollTo({ top: target.offsetTop, behavior: 'smooth' });
+        }
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add("open"); }
+    function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+
+    function showToast(msg) {
+        const t = document.getElementById("toastBox");
+        if (!t) return;
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    document.addEventListener("DOMContentLoaded", initPage);
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-﻿package com.example.yetalk
+package com.example.yetalk
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -121,13 +121,12 @@ class MainActivity : AppCompatActivity() {
             private var lastBackTime: Long = 0
 
             override fun handleOnBackPressed() {
-                if (webView.canGoBack()) {
-                    webView.goBack()
-                    return
-                }
-
-                webView.evaluateJavascript("javascript:window.handleAppBackPress ? window.handleAppBackPress() : false;") { result ->
-                    if (result == "true") {
+                webView.evaluateJavascript("javascript:(function(){ if (window.handleAppBackPress && window.handleAppBackPress()) return 'handled'; return 'not_handled'; })()") { result ->
+                    if (result == "\"handled\"" || result == "handled") {
+                        return@evaluateJavascript
+                    }
+                    if (webView.canGoBack()) {
+                        webView.goBack()
                         return@evaluateJavascript
                     }
                     val now = System.currentTimeMillis()
@@ -142,8 +141,48 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        // 유튜브 153 차단 방지 & 내부 링크 정상 작동용 공식 가상 HTTPS 도메인
-        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
+        // 유튜브 150/153 차단 방지 및 고속 재생용 실제 도메인 가상 HTTPS 매핑
+        WebView.setWebContentsDebuggingEnabled(true)
+        val rawUrl = intent?.dataString
+        val targetInitialUrl = resolveYetalkTargetUrl(rawUrl)
+        webView.loadUrl(targetInitialUrl)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val rawUrl = intent?.dataString
+        if (!rawUrl.isNullOrBlank()) {
+            val resolvedUrl = resolveYetalkTargetUrl(rawUrl)
+            webView.loadUrl(resolvedUrl)
+        } else {
+            // 앱 아이콘 또는 런처를 통해 재실행되었을 경우 항상 예톡 TV 홈(index.html)으로 시작
+            webView.loadUrl("https://yetalk.cc/assets/index.html")
+        }
+    }
+
+    private fun resolveYetalkTargetUrl(rawUrl: String?): String {
+        if (rawUrl.isNullOrBlank()) {
+            return "https://yetalk.cc/assets/index.html"
+        }
+        val trimmed = rawUrl.trim()
+        if (trimmed.startsWith("yetalk://") ||
+            trimmed == "https://yetalk.cc" || trimmed == "https://yetalk.cc/" ||
+            trimmed == "http://yetalk.cc" || trimmed == "http://yetalk.cc/"
+        ) {
+            return "https://yetalk.cc/assets/onemain.html"
+        }
+        if (trimmed.startsWith("https://yetalk.cc/assets/") || trimmed.startsWith("https://yetalk.kr/assets/")) {
+            return trimmed
+        }
+        if (trimmed.startsWith("http://yetalk.cc/assets/") || trimmed.startsWith("http://yetalk.kr/assets/")) {
+            return trimmed.replace("http://", "https://")
+        }
+        if (trimmed.startsWith("https://yetalk.cc/") || trimmed.startsWith("http://yetalk.cc/")) {
+            val sub = trimmed.substringAfter("yetalk.cc/").trimStart('/')
+            return if (sub.isEmpty()) "https://yetalk.cc/assets/onemain.html" else "https://yetalk.cc/assets/$sub"
+        }
+        return trimmed
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -176,7 +215,17 @@ class MainActivity : AppCompatActivity() {
         val defaultUa = settings.userAgentString
         settings.userAgentString = defaultUa.replace("; wv", "")
 
-        val assetLoader = WebViewAssetLoader.Builder()
+        val assetLoaderYetalkCc = WebViewAssetLoader.Builder()
+            .setDomain("yetalk.cc")
+            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
+            .build()
+
+        val assetLoaderYetalk = WebViewAssetLoader.Builder()
+            .setDomain("yetalk.kr")
+            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
+            .build()
+
+        val assetLoaderDefault = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
             .build()
 
@@ -185,7 +234,9 @@ class MainActivity : AppCompatActivity() {
         webView.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
                 val url = request?.url ?: return null
-                return assetLoader.shouldInterceptRequest(url)
+                return assetLoaderYetalkCc.shouldInterceptRequest(url)
+                    ?: assetLoaderYetalk.shouldInterceptRequest(url)
+                    ?: assetLoaderDefault.shouldInterceptRequest(url)
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
@@ -225,13 +276,23 @@ class MainActivity : AppCompatActivity() {
                     return true
                 }
 
-                // 앱 내부 도메인 및 유튜브 영상 재생, 구글 비디오 스트림은 앱 안에서 유지
-                if (url.startsWith("https://appassets.androidplatform.net") ||
-                    url.contains("youtube.com") || url.contains("youtu.be") ||
-                    url.contains("googlevideo.com") || url.contains("doubleclick.net") ||
-                    url.contains("google.com")
+                // 앱 내부 도메인 및 가상 자산은 앱 안에서 유지
+                if (url.startsWith("https://yetalk.cc") ||
+                    url.startsWith("https://yetalk.kr") ||
+                    url.startsWith("https://appassets.androidplatform.net")
                 ) {
                     return false
+                }
+
+                // 유튜브 웹페이지 직접 이동은 외부 브라우저/유튜브 앱으로 열어 예톡 메인 화면 보호
+                if (url.contains("youtube.com") || url.contains("youtu.be")) {
+                    try {
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                        startActivity(browserIntent)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    return true
                 }
 
                 // 외부 사이트만 기본 브라우저 띄우기
@@ -353,39 +414,49 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 🌟 [핵심 수정] 나에게만 가지 않고 '친구/대화방 선택 창'이 반드시 뜨도록 설정
+        // 🌟 [핵심 수정] 카카오톡 친구/대화방 선택(피커) 창을 열고, 초대 문구와 yetalk.cc 링크를 온전히 전달
         @JavascriptInterface
         fun shareToKakaoFriends(message: String) {
+            shareToKakaoDirect(message)
+        }
+
+        @JavascriptInterface
+        fun shareToKakaoWithQr(message: String, qrUrl: String?) {
+            // 카카오톡 ACTION_SEND는 image/* 전송 시 Intent.EXTRA_TEXT(문구 및 링크)를 완전히 무시하고 버립니다.
+            // 따라서 친구가 터치했을 때 개인앱이 열리려면 반드시 text/plain 형식으로 링크와 문구가 카톡 방에 전달되어야 합니다.
+            shareToKakaoDirect(message)
+        }
+
+        private fun shareToKakaoDirect(message: String) {
             runOnUiThread {
                 try {
-                    // 카카오톡 친구/대화방 선택 화면(피커)을 바로 호출하는 인텐트
-                    val kakaoPickerIntent = Intent(Intent.ACTION_SEND).apply {
+                    // 카카오톡 친구/채팅방 선택 피커 액티비티 직통 호출
+                    val kakaoIntent = Intent(Intent.ACTION_SEND).apply {
                         type = "text/plain"
                         putExtra(Intent.EXTRA_TEXT, message)
-                        setClassName("com.kakao.talk", "com.kakao.talk.activity.friend.picker.QuickForwardActivity")
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                        setClassName("com.kakao.talk", "com.kakao.talk.activity.RecentExcludeIntentFilterActivity")
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     }
-                    startActivity(kakaoPickerIntent)
+                    startActivity(kakaoIntent)
                 } catch (e: Exception) {
                     try {
-                        // 대안 1: 카카오톡 일반 공유 인텐트
-                        val kakaoIntent = Intent(Intent.ACTION_SEND).apply {
+                        val fallbackIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
                             putExtra(Intent.EXTRA_TEXT, message)
                             setPackage("com.kakao.talk")
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         }
-                        startActivity(kakaoIntent)
+                        startActivity(fallbackIntent)
                     } catch (e2: Exception) {
-                        // 대안 2: 시스템 공유기 (친구 선택창)
-                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, message)
+                        try {
+                            val chooserIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, message)
+                            }
+                            startActivity(Intent.createChooser(chooserIntent, "예톡 모바일 초청장 보내기"))
+                        } catch (e3: Exception) {
+                            e3.printStackTrace()
                         }
-                        val chooser = Intent.createChooser(shareIntent, "예톡 초청장 보낼 친구 선택").apply {
-                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
-                        startActivity(chooser)
                     }
                 }
             }
@@ -473,6 +544,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     override fun onResume() {
         super.onResume()
         webView.onResume()
@@ -480,16 +552,6 @@ class MainActivity : AppCompatActivity() {
         if (isReturningFromChooser) {
             isReturningFromChooser = false
             return
-        }
-
-        val currentUrl = webView.url ?: ""
-        if (!currentUrl.contains("index.html")) {
-            webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
-        } else {
-            webView.evaluateJavascript(
-                "javascript:if(window.returnToFirstMainPortal){window.returnToFirstMainPortal();}else if(window.resetToFirstHomeScreen){window.resetToFirstHomeScreen();}",
-                null
-            )
         }
     }
 

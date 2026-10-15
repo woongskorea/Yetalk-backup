@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>원내톡 (ClinicTalk) - PC 모니터 전용</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #bacada; /* 카카오톡 스타일 포근한 배경색 */
+            color: #0f172a; font-family: "Pretendard", -apple-system, sans-serif;
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+        header {
+            background: #fee500; /* 카카오 노란색 */
+            padding: 14px 18px; border-bottom: 1.5px solid #e5ce00;
+            display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+        .header-left { display: flex; align-items: center; gap: 8px; }
+        .header-title { font-size: 16.5px; font-weight: 950; color: #191600; display: flex; align-items: center; gap: 6px; }
+        .window-badge { background: #191600; color: #fee500; font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 900; }
+        .btn-header-action {
+            background: rgba(0,0,0,0.08); border: none; border-radius: 8px;
+            padding: 6px 12px; font-size: 12px; font-weight: 900; color: #191600; cursor: pointer;
+        }
+
+        .chat-container {
+            flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px;
+        }
+        .chat-bubble-row { display: flex; gap: 8px; align-items: flex-end; }
+        .chat-bubble-row.mine { flex-direction: row-reverse; }
+
+        .chat-bubble-body {
+            background: #ffffff; color: #0f172a; padding: 10px 14px; border-radius: 14px;
+            font-size: 14px; max-width: 78%; word-break: break-all; line-height: 1.55;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .chat-bubble-row.mine .chat-bubble-body {
+            background: #fee500; color: #191600; font-weight: 700;
+        }
+        .chat-meta {
+            font-size: 10.5px; color: #64748b; margin-top: 3px; text-align: right;
+        }
+        .chat-actions {
+            display: flex; gap: 6px; font-size: 11px; color: #64748b; margin-top: 3px;
+        }
+        .chat-bubble-row.mine .chat-actions { justify-content: flex-end; }
+        .chat-action-btn { cursor: pointer; }
+        .chat-action-btn:hover { text-decoration: underline; }
+
+        /* 입력창 */
+        .chat-input-bar {
+            background: #ffffff; border-top: 1.5px solid #cbd5e1; padding: 10px 14px;
+            display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+        }
+        .inp-chat {
+            flex: 1; height: 42px; background: #f8fafc; border: 1.5px solid #cbd5e1;
+            border-radius: 10px; padding: 0 12px; font-size: 14px; font-weight: 700; outline: none;
+        }
+        .btn-send {
+            height: 42px; padding: 0 18px; background: #fee500; color: #191600;
+            border: 1px solid #e5ce00; border-radius: 10px; font-size: 13.5px; font-weight: 950;
+            cursor: pointer;
+        }
+
+        /* 하단 애드몹 배너 */
+        .bottom-admob-banner {
+            background: #0f172a; padding: 10px 14px; border-top: 1.5px solid #334155;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            flex-shrink: 0; box-shadow: 0 -4px 12px rgba(0,0,0,0.25);
+        }
+        .admob-badge {
+            font-size: 10px; color: #94a3b8; font-weight: 800; margin-bottom: 4px; letter-spacing: 0.5px;
+        }
+        .admob-box {
+            width: 320px; height: 100px; background: #1e293b; border: 1.2px solid #38bdf8;
+            border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .admob-title { font-size: 14px; font-weight: 950; color: #38bdf8; }
+        .admob-sub { font-size: 11px; color: #cbd5e1; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <span style="font-size: 20px;">💬</span>
+            <div class="header-title">
+                <span id="dispClinicTalkTitle">원내톡 (ClinicTalk)</span>
+                <span class="window-badge">PC 모니터 화면</span>
+            </div>
+        </div>
+        <button type="button" class="btn-header-action" onclick="render()">🔄 새로고침</button>
+    </header>
+
+    <div class="chat-container" id="chatList"></div>
+
+    <div class="chat-input-bar">
+        <input type="text" id="inpChatMsg" class="inp-chat" placeholder="원내 메시지를 입력하세요 (Enter 키로 전송)" onkeydown="if(event.key==='Enter') sendMsg()">
+        <button type="button" class="btn-send" onclick="sendMsg()">전송</button>
+    </div>
+
+    <!-- 🌟 맨밑 독립 Google AdMob 배너 배치 -->
+    <div class="bottom-admob-banner">
+        <span class="admob-badge">AD • Google AdMob 공식 스폰서 슬롯 (320 × 100)</span>
+        <div class="admob-box">
+            <div class="admob-title">Google AdMob (320x100 / Large Banner)</div>
+            <div class="admob-sub">대한민국 소상공인·의료 복지 공식 지원 스폰서</div>
+        </div>
+    </div>
+
+    <script>
+        let chatMessages = [
+            { id: 1, text: "원장님, 오후 2시 예약 환자분 상담실로 안내 완료했습니다.", time: "13:50", mine: false },
+            { id: 2, text: "네 확인했습니다. 차트 준비해주세요.", time: "13:52", mine: true },
+            { id: 3, text: "오후 수술 기구 멸균 패킹 완료되었으니 확인 부탁드립니다.", time: "14:10", mine: false }
+        ];
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const roleParam = urlParams.get("role") || localStorage.getItem("yetalkUserMedicalRole") || "doctor";
+        let storageKey = "clinic_talk_chat_msgs";
+        let appTitle = "원내톡 (ClinicTalk)";
+
+        if (roleParam === 'korean_doctor') {
+            storageKey = "han_clinic_talk_chat_msgs";
+            appTitle = "한의원 원내톡 (HanClinicTalk)";
+        } else if (roleParam === 'dentist') {
+            storageKey = "dental_clinic_talk_chat_msgs";
+            appTitle = "치과 원내톡 (DentalClinicTalk)";
+        }
+
+        function loadChatData() {
+            try {
+                const raw = localStorage.getItem(storageKey);
+                if (raw) chatMessages = JSON.parse(raw);
+            } catch(e) {}
+        }
+
+        function saveChatData() {
+            localStorage.setItem(storageKey, JSON.stringify(chatMessages));
+        }
+
+        function render() {
+            loadChatData();
+            const container = document.getElementById("chatList");
+            if (!container) return;
+
+            container.innerHTML = chatMessages.map((msg, idx) => `
+                <div class="chat-bubble-row ${msg.mine ? 'mine' : 'other'}">
+                    <div>
+                        <div class="chat-bubble-body">
+                            ${msg.text}
+                            <div class="chat-meta">${msg.time}</div>
+                        </div>
+                        <div class="chat-actions" style="opacity:0.75; font-size:10px; cursor:pointer;" onclick="openClinicCtxPopup(${idx})">
+                            <span>••• 더보기</span>
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendMsg() {
+            const inp = document.getElementById("inpChatMsg");
+            const val = inp ? inp.value.trim() : "";
+            if (!val) return;
+
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            chatMessages.push({
+                id: Date.now(),
+                text: val,
+                time: timeStr,
+                mine: true
+            });
+
+            saveChatData();
+            render();
+            inp.value = "";
+        }
+
+        function copyMsg(idx) {
+            const msg = chatMessages[idx];
+            if (!msg || !msg.text) return;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(msg.text).then(() => alert("📋 메시지가 복사되었습니다."));
+            }
+        }
+
+        function editMsg(idx) {
+            const msg = chatMessages[idx];
+            if (!msg) return;
+            const next = prompt("수정할 메시지를 입력하세요:", msg.text);
+            if (next === null || !next.trim()) return;
+            msg.text = next.trim();
+            saveChatData();
+            render();
+        }
+
+        function deleteMsg(idx) {
+            if (!confirm("이 메시지를 삭제하시겠습니까?")) return;
+            chatMessages.splice(idx, 1);
+            saveChatData();
+            render();
+        }
+
+        window.addEventListener("storage", render);
+        document.addEventListener("DOMContentLoaded", () => {
+            const tEl = document.getElementById("dispClinicTalkTitle");
+            if (tEl) tEl.innerText = appTitle;
+            render();
+        });
+    </script>
+</body>
+</html>

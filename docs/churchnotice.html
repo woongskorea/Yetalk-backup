@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>공지알림 - 예톡행복한교회</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --safe-top: max(env(safe-area-inset-top, 0px) + 16px, 20px);
+            --admob-fixed-h: max(env(safe-area-inset-bottom, 0px) + 95px, 100px);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: #060b14; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", sans-serif;
+            color: #ffffff; display: flex; justify-content: center; min-height: 100vh;
+        }
+        .notice-app-shell {
+            width: 100%; max-width: 480px; min-height: 100vh; background: #0b1120;
+            display: flex; flex-direction: column; position: relative; border-left: 1px solid #1e293b; border-right: 1px solid #1e293b;
+            padding-bottom: var(--admob-fixed-h);
+        }
+
+        /* 1. 상단 헤더 */
+        .med-header {
+            min-height: 48px; display: flex; justify-content: space-between; align-items: center;
+            padding-top: var(--safe-top);
+            padding-left: 14px; padding-right: 14px; padding-bottom: 8px;
+            background: #0f172a; border-bottom: 1.5px solid #1e3a5f;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .med-logo {
+            font-size: 16.5px; font-weight: 950; color: #38bdf8; letter-spacing: -0.5px;
+            cursor: pointer; display: flex; align-items: center; gap: 4px; white-space: nowrap;
+        }
+        .dual-admin-btn-group {
+            display: inline-flex; align-items: center; background: #dc2626; border-radius: 9999px;
+            padding: 2px; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+        }
+        .btn-admin-room {
+            background: transparent; border: none; color: #ffffff; font-size: 11px; font-weight: 900;
+            padding: 4px 8px; cursor: pointer; border-right: 1px solid rgba(255, 255, 255, 0.35);
+        }
+        .btn-admin-edit {
+            background: transparent; color: #fef08a; border: none;
+            font-size: 11px; font-weight: 900; padding: 4px 8px; cursor: pointer;
+        }
+
+        /* 피드 목록 */
+        .feed-list { display: flex; flex-direction: column; background: #0b1120; }
+        .post-card {
+            padding: 14px 16px; border-bottom: 1px solid #1e293b; cursor: pointer; background: #0b1120;
+            transition: background 0.15s;
+        }
+        .post-card:active { background: #111a2f; }
+        .post-card-title {
+            font-size: 15px; font-weight: 850; color: #ffffff; margin-bottom: 4px; line-height: 1.35;
+        }
+        .post-card-preview-2lines {
+            font-size: 13.5px; color: #94a3b8; line-height: 1.5; margin-bottom: 7px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+            word-break: break-all;
+        }
+        .post-card-thumb-inline {
+            width: 100%; max-height: 160px; border-radius: 8px; overflow: hidden; margin: 4px 0 6px 0; border: 1px solid #1e3a5f;
+        }
+        .post-card-thumb-inline img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .post-card-meta-line {
+            display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: #64748b; font-weight: 700;
+        }
+
+        .badge-cat {
+            font-size: 10.5px; font-weight: 850; padding: 2px 6px; border-radius: 4px;
+            background: rgba(2, 132, 199, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);
+        }
+
+        /* 플로팅 버튼 */
+        .floating-group {
+            position: fixed; bottom: calc(var(--admob-fixed-h) + 16px); right: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 90;
+        }
+        .float-btn {
+            width: 44px; height: 44px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: none;
+        }
+        .float-btn:active { transform: scale(0.92); }
+        .float-top { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; font-size: 16px; font-weight: 900; }
+        .float-write { background: #0284c7; color: #ffffff; font-size: 18px; }
+
+        /* 상세 글 모달 */
+        .detail-modal {
+            display: none; position: fixed; inset: 0; background: #0b1120; z-index: 200;
+            flex-direction: column; max-width: 480px; margin: 0 auto; height: 100dvh;
+        }
+        .detail-modal.open { display: flex; }
+        .detail-header {
+            height: 48px; background: #0f172a; color: white; display: flex;
+            align-items: center; justify-content: space-between; padding: 0 16px;
+            position: sticky; top: 0; z-index: 210; font-weight: 800; flex-shrink: 0; border-bottom: 1.5px solid #1e3a5f;
+        }
+
+        /* 🌟 상세 화면 상단 수정/삭제/사진추가 툴바 */
+        .detail-action-toolbar {
+            display: flex; align-items: center; justify-content: flex-end; gap: 6px;
+            padding: 8px 12px; background: #111a2e; border-radius: 8px; border: 1px solid #1e3a5f;
+        }
+        .btn-detail-act {
+            border: none; border-radius: 6px; padding: 5px 10px; font-size: 11.5px; font-weight: 900;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: 0.15s;
+        }
+        .btn-detail-act:active { transform: scale(0.95); }
+        .btn-detail-edit { background: #0284c7; color: #ffffff; }
+        .btn-detail-del { background: #dc2626; color: #ffffff; }
+        .btn-detail-img { background: #334155; color: #facc15; border: 1px solid #475569; }
+
+        .detail-body {
+            padding: 16px 16px 40px 16px;
+            flex: 1; display: flex; flex-direction: column; overflow-y: auto; gap: 12px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .detail-title { font-size: 18px; font-weight: 950; color: #ffffff; line-height: 1.35; }
+        .detail-meta-row {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 12px; color: #64748b; padding-bottom: 8px; border-bottom: 1px dashed rgba(255,255,255,0.1);
+        }
+
+        .detail-img-box {
+            width: 100%; border-radius: 10px; overflow: hidden; border: 1.5px solid #1e3a5f; display: none;
+        }
+        .detail-img { width: 100%; max-height: 280px; object-fit: contain; display: block; background:#020617; }
+
+        .detail-file-box {
+            display: none; background: rgba(2, 132, 199, 0.1); border: 1px solid #0284c7; border-radius: 8px;
+            padding: 10px 12px; align-items: center; justify-content: space-between;
+        }
+        .btn-file-down {
+            background: #0284c7; color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 900; cursor: pointer;
+        }
+
+        .detail-content { font-size: 15.5px; line-height: 1.8; color: #e2e8f0; white-space: pre-line; word-break: keep-all; }
+
+        /* 아래로 스크롤 유도 인디케이터 */
+        .detail-scroll-hint {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 4px; padding: 16px 0 8px 0; color: #38bdf8; font-size: 12px; font-weight: 900;
+        }
+        .scroll-bounce-arrow {
+            font-size: 16px; animation: bounceDown 1.4s infinite ease-in-out;
+        }
+        @keyframes bounceDown {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(6px); }
+        }
+
+        /* 🌟 [요청사항] 250 애드몹 (300x250) 사각 배너 */
+        .detail-mrec-ad-card {
+            width: 100%; background: #070e1c; border: 1.5px dashed #2563eb; border-radius: 14px;
+            padding: 14px 10px; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        }
+        .mrec-header-label { font-size: 10px; color: #94a3b8; font-weight: 800; letter-spacing: 0.5px; }
+        .mrec-ad-slot-250 {
+            width: 300px; height: 250px; background: #0b152b; border: 1.5px solid #1e3a5f;
+            border-radius: 12px; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 6px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        .detail-bless-card {
+            width: 100%; background: rgba(16, 185, 129, 0.08); border: 1.5px solid #10b981; border-radius: 12px;
+            padding: 16px 14px; text-align: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+        }
+        .bless-title { font-size: 12px; font-weight: 900; color: #34d399; margin-bottom: 6px; }
+        .bless-text { font-family: 'Nanum Myeongjo', serif; font-size: 14px; color: #ecfdf5; font-weight: 800; line-height: 1.6; word-break: keep-all; }
+
+        .detail-nav-tripod-bar {
+            display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-shrink: 0; margin-top: 8px;
+        }
+        .btn-tripod-side {
+            flex: 1; height: 44px; background: #162238; border: 1.2px solid #334155; border-radius: 10px;
+            color: #cbd5e1; font-size: 13.5px; font-weight: 900; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 4px;
+        }
+        .btn-tripod-side:active { background: #1e293b; }
+        .btn-tripod-home {
+            flex: 1.2; height: 44px; background: #0284c7; border: 1.5px solid #38bdf8; border-radius: 10px;
+            color: #ffffff; font-size: 14px; font-weight: 950; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 4px;
+            box-shadow: 0 2px 8px rgba(2,132,199,0.35);
+        }
+        .btn-tripod-home:active { background: #0369a1; }
+
+        /* 바닥 고정 애드몹 100 (목록용) */
+        .global-fixed-bottom-admob {
+            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 480px; height: var(--admob-fixed-h);
+            background: #080d1a; border-top: 1.5px solid #1e3a5f;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding-top: 6px; z-index: 150; box-shadow: 0 -4px 20px rgba(0,0,0,0.9);
+        }
+        .admob-safety-bar {
+            font-size: 9.5px; color: #64748b; font-weight: 850; letter-spacing: 0.5px;
+            margin-bottom: 2px; display: flex; align-items: center; gap: 4px;
+        }
+        .admob-display-slot {
+            width: calc(100% - 20px); max-width: 380px; height: 75px;
+            background: #0b1326; border: 1.2px solid #1e293b; border-radius: 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8); gap: 2px;
+        }
+
+        /* 🌟 글작성 & 수정 모달 */
+        .cafe-write-screen {
+            display: none; position: fixed; inset: 0; background: #0b1120;
+            z-index: 500; flex-direction: column; max-width: 480px; margin: 0 auto; height: 100dvh;
+        }
+        .cafe-write-screen.open { display: flex; }
+        .cafe-top-bar {
+            height: calc(48px + max(env(safe-area-inset-top, 0px) + 12px, 14px));
+            padding-top: max(env(safe-area-inset-top, 0px) + 12px, 14px);
+            padding-left: 16px; padding-right: 16px; padding-bottom: 6px;
+            display: flex; align-items: center; justify-content: space-between;
+            background: #0f172a; border-bottom: 1.5px solid #1e3a5f; flex-shrink: 0;
+        }
+        .cafe-editor-body {
+            flex: 1; overflow-y: auto; padding: 14px 16px 40px 16px; display: flex; flex-direction: column; gap: 12px;
+        }
+
+        .archive-select-wrap {
+            display: flex; flex-direction: column; gap: 6px; background: #111a2f; border: 1px solid #1e3a5f; border-radius: 10px; padding: 10px 12px;
+        }
+        .archive-select-title { font-size: 12px; font-weight: 900; color: #38bdf8; }
+        .archive-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+        .chip-arch {
+            background: #162238; border: 1.2px solid #334155; border-radius: 16px; padding: 6px 11px;
+            font-size: 12px; font-weight: 850; color: #94a3b8; cursor: pointer; transition: 0.15s;
+        }
+        .chip-arch.active {
+            background: #0284c7; border-color: #38bdf8; color: #ffffff; font-weight: 900;
+        }
+
+        .cafe-title-input {
+            width: 100%; background: #162238; border: 1.5px solid #334155; border-radius: 8px;
+            padding: 11px 12px; font-size: 15px; font-weight: 900; color: #ffffff; outline: none;
+        }
+        .cafe-title-input:focus { border-color: #38bdf8; }
+
+        /* 세로로 시원하게 긴 textarea */
+        .cafe-content-textarea {
+            width: 100%; min-height: 250px; height: 260px; background: #162238; border: 1.5px solid #334155; border-radius: 8px;
+            padding: 12px; font-size: 14.5px; line-height: 1.65; color: #ffffff; outline: none; resize: vertical; font-family: inherit;
+        }
+        .cafe-content-textarea:focus { border-color: #38bdf8; }
+
+        /* 첨부 액션 바 */
+        .editor-action-attach-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            background: #111a2f; border: 1.2px solid #1e3a5f; border-radius: 8px; padding: 8px 10px;
+        }
+        .attach-btn-group { display: flex; gap: 6px; }
+        .btn-attach-action {
+            background: #1e3a5f; border: 1.2px solid #0284c7; color: #ffffff;
+            font-size: 12px; font-weight: 900; padding: 6px 12px; border-radius: 6px;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+        }
+        .btn-attach-action:active { background: #0284c7; }
+    </style>
+</head>
+<body>
+<div class="notice-app-shell">
+    <header class="med-header">
+        <div class="med-logo" onclick="goToStoreAppHome()">
+            <span style="font-size:20px; font-weight:900; margin-right:4px;">‹</span> ✝ 예톡행복한교회 공지알림
+        </div>
+        <div class="dual-admin-btn-group">
+            <button type="button" class="btn-admin-room" onclick="location.href='churchadmin.html'" title="교회 관리실">◀ 관리실</button>
+            <button type="button" class="btn-admin-edit" onclick="openWriteModal()" title="새 공지사항 작성">글작성 ▶</button>
+        </div>
+    </header>
+
+    <main class="feed-list" id="noticeFeedContainer"></main>
+
+    <!-- 플로팅 버튼 -->
+    <div class="floating-group">
+        <button type="button" class="float-btn float-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">⌃</button>
+        <button type="button" class="float-btn float-write" onclick="openWriteModal()">✏️</button>
+    </div>
+
+    <!-- 상세 글 모달 -->
+    <div class="detail-modal" id="detailModal">
+        <div class="detail-header">
+            <span onclick="closeDetailModal()" style="cursor:pointer; font-size:18px;">←</span>
+            <span>공지사항 상세</span>
+            <span onclick="closeDetailModal()" style="cursor:pointer; font-size:12px;">닫기</span>
+        </div>
+        <div class="detail-body">
+            <!-- 🌟 수정 / 삭제 / 사진추가 툴바 -->
+            <div class="detail-action-toolbar">
+                <button type="button" class="btn-detail-act btn-detail-edit" onclick="openEditCurrentNotice()">✏️ 바로 수정</button>
+                <button type="button" class="btn-detail-act btn-detail-del" onclick="deleteCurrentNotice()">🗑️ 삭제</button>
+                <button type="button" class="btn-detail-act btn-detail-img" onclick="document.getElementById('fileDetailImgDirect').click()">📷 사진 추가/변경</button>
+            </div>
+            <input type="file" id="fileDetailImgDirect" style="display:none;" accept="image/*" onchange="handleDirectDetailImage(this)">
+
+            <div>
+                <span class="badge-cat" id="detailCatBadge">주일예배</span>
+            </div>
+            <div class="detail-title" id="detailTitleText"></div>
+            <div class="detail-meta-row">
+                <span id="detailMetaText">당회 / 교회사무실 · 오늘</span>
+                <span style="color:#f43f5e; font-weight:900;">❤️ <span id="detailViewsCount">10</span></span>
+            </div>
+
+            <!-- 첨부 이미지 -->
+            <div class="detail-img-box" id="detailImgBox">
+                <img id="detailImg" class="detail-img" alt="공지 사진">
+            </div>
+
+            <!-- 파일 다운로드 박스 -->
+            <div class="detail-file-box" id="detailFileBox">
+                <div style="display:flex; align-items:center; gap:6px; font-size:12px; font-weight:800; color:#38bdf8;">
+                    <span>📁</span> <span id="detailFileName">공지안내문.pdf</span>
+                </div>
+                <button type="button" class="btn-file-down" id="btnFileDown">💾 다운로드</button>
+            </div>
+
+            <!-- 본문 내용 -->
+            <div class="detail-content" id="detailContentText"></div>
+
+            <!-- 하단 3대 네비게이션 버튼 바 -->
+            <div class="detail-nav-tripod-bar">
+                <button type="button" class="btn-tripod-side" onclick="navigateNotice(-1)">
+                    <span>←</span> 이전글
+                </button>
+                <button type="button" class="btn-tripod-home" onclick="closeDetailModal()">
+                    목록
+                </button>
+                <button type="button" class="btn-tripod-side" onclick="navigateNotice(1)">
+                    다음글 <span>→</span>
+                </button>
+            </div>
+
+            <!-- 🌟 아래로 자연스럽게 스크롤 유도 인디케이터 -->
+            <div class="detail-scroll-hint">
+                <span class="scroll-bounce-arrow">↓</span>
+                <span>아래로 스크롤하여 축복의 말씀 & 스폰서 보기</span>
+            </div>
+
+            <!-- 🌟 250 애드몹 (300 × 250 사각 배너) -->
+            <section class="detail-mrec-ad-card">
+                <div class="mrec-header-label">AD • Google AdMob 공식 스폰서 슬롯 (300 × 250)</div>
+                <div class="mrec-ad-slot-250">
+                    <div style="font-size:32px;">🎁</div>
+                    <strong style="color:#38bdf8; font-size:15px; font-weight:950;">Google AdMob (300 × 250)</strong>
+                    <span style="color:#facc15; font-size:11.5px; font-weight:800; text-align:center; padding:0 8px;">선교 사역 및 미디어 영상 방송 공식 후원 슬롯</span>
+                    <small style="color:#64748b; font-size:10px; margin-top:2px;">Medium Rectangle Sponsor</small>
+                </div>
+            </section>
+
+            <!-- 🌟 축복 말씀 카드 (풍성한 은혜의 말씀 자동 변경) -->
+            <section class="detail-bless-card">
+                <div class="bless-title" id="dispDetailBlessTitle">🕊️ 주님의 축복과 평안이 성도님의 가정에 함께하시길 기도합니다</div>
+                <div class="bless-text" id="dispDetailBlessText">“평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라 (요 14:27)”</div>
+            </section>
+        </div>
+    </div>
+
+    <!-- 바닥 고정 애드몹 100 -->
+    <footer class="global-fixed-bottom-admob">
+        <div class="admob-safety-bar">
+            <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
+        </div>
+        <div class="admob-display-slot">
+            <strong style="color:#38bdf8; font-size:13.5px; font-weight:950;">Google AdMob (300 × 100 / Large Banner)</strong>
+            <span style="color:#facc15; font-size:11px; font-weight:800;">선교 사역 및 미디어 영상 방송 공식 후원 슬롯</span>
+        </div>
+    </footer>
+
+    <!-- 🌟 글작성 & 수정 통합 모달 -->
+    <div class="cafe-write-screen" id="writeModal">
+        <header class="cafe-top-bar">
+            <button type="button" style="background:none; border:none; font-size:24px; cursor:pointer; color:#94a3b8;" onclick="closeWriteModal()">✕</button>
+            <strong style="font-size:16px; color:#ffffff;" id="writeModalHeaderTitle">교회 공식 공지알림 작성</strong>
+            <button type="button" style="background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; padding:7px 16px; border-radius:10px; font-weight:950; font-size:13px; cursor:pointer;" onclick="submitNoticePost()">💾 공지등록</button>
+        </header>
+
+        <div class="cafe-editor-body">
+            <div style="background:rgba(2, 132, 199, 0.12); border:1px solid #0284c7; border-radius:8px; padding:9px 12px; font-size:11.5px; color:#38bdf8; font-weight:800; line-height:1.45;">
+                🔔 <strong>[성도 전송 & 보물창고 자동 연동]</strong><br>
+                • 등록 즉시 <b>전 성도 공지 알림</b>에 전송되며 알림 카운트가 갱신됩니다.<br>
+                • 선택하신 <b>보물창고 분류</b>로 자동 저장되어 언제든 다시 열람할 수 있습니다.
+            </div>
+
+            <!-- 🌟 보물창고 8대 분류 선택 칩 -->
+            <div class="archive-select-wrap">
+                <span class="archive-select-title">📁 공지 & 보물창고 분류 선택:</span>
+                <div class="archive-chips" id="archiveChipsContainer">
+                    <button type="button" class="chip-arch" onclick="selectArchiveCat('목사님의 예수동행', this)">목사님의 예수동행</button>
+                    <button type="button" class="chip-arch active" onclick="selectArchiveCat('주일예배', this)">주일예배</button>
+                    <button type="button" class="chip-arch" onclick="selectArchiveCat('마을(셀,목장)나눔지', this)">마을(셀,목장)나눔지</button>
+                    <button type="button" class="chip-arch" onclick="selectArchiveCat('가정예배문', this)">가정예배문</button>
+                    <button type="button" class="chip-arch" onclick="selectArchiveCat('수요예배', this)">수요예배</button>
+                    <button type="button" class="chip-arch" onclick="selectArchiveCat('금요기도회', this)">금요기도회</button>
+                    <button type="button" class="chip-arch" onclick="selectArchiveCat('특별예배', this)">특별예배</button>
+                    <button type="button" class="chip-arch" onclick="selectArchiveCat('행사사진첩', this)">행사사진첩</button>
+                </div>
+            </div>
+
+            <input type="text" id="inpNoticeTitle" class="cafe-title-input" placeholder="공지 제목을 입력하세요">
+
+            <!-- 세로로 시원하게 긴 textarea -->
+            <textarea id="inpNoticeContent" class="cafe-content-textarea" placeholder="교회 성도들에게 전할 중요한 공지 내용을 작성해주세요. (줄바꿈이 그대로 반영됩니다)"></textarea>
+
+            <!-- 첨부 액션 바 (본문 아래 배치) -->
+            <div class="editor-action-attach-bar">
+                <span style="font-size:12px; color:#facc15; font-weight:900;">사진 / 파일 첨부</span>
+                <div class="attach-btn-group">
+                    <button type="button" class="btn-attach-action" onclick="document.getElementById('fileNoticeImg').click()">
+                        📷 사진 올리기
+                    </button>
+                    <button type="button" class="btn-attach-action" onclick="document.getElementById('fileNoticeDoc').click()">
+                        📁 파일 첨부
+                    </button>
+                </div>
+            </div>
+
+            <!-- 첨부된 이미지 미리보기 -->
+            <div id="attachedPreviewBox" style="display:none; position:relative; width:100%; border:1px solid #1e3a5f; border-radius:8px; overflow:hidden;">
+                <img id="attachedPreviewImg" style="width:100%; max-height:200px; object-fit:contain; display:block; background:#020617;">
+                <button type="button" style="position:absolute; top:6px; right:6px; background:#dc2626; color:#fff; border:none; border-radius:4px; padding:3px 8px; font-size:11px; font-weight:800; cursor:pointer;" onclick="removeAttachedImg()">삭제</button>
+            </div>
+
+            <!-- 첨부된 파일 뱃지 -->
+            <div id="attachedFileBadge" style="display:none; background:rgba(2, 132, 199, 0.15); border:1px solid #0284c7; border-radius:6px; padding:6px 10px; font-size:12px; color:#38bdf8; font-weight:800; justify-content:space-between; align-items:center;">
+                <span id="attachedFileNameText"></span>
+                <span style="color:#f43f5e; cursor:pointer; font-weight:900;" onclick="removeAttachedDoc()">✕</span>
+            </div>
+
+            <!-- 하단 등록 버튼 -->
+            <button type="button" style="width:100%; height:46px; background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; border-radius:10px; font-weight:950; font-size:15px; cursor:pointer; margin-top:8px;" onclick="submitNoticePost()">💾 공지등록 완료</button>
+        </div>
+
+        <input type="file" id="fileNoticeImg" style="display:none;" accept="image/*" onchange="handleNoticeImage(this)">
+        <input type="file" id="fileNoticeDoc" style="display:none;" onchange="handleNoticeDoc(this)">
+    </div>
+</div>
+
+<script>
+    const NOTICE_STORAGE_KEY = "yetalk_church_notices_master_v3";
+    const ARCHIVE_STORAGE_KEY = "yetalk_church_archive_records";
+    const HOME_NOTICE_KEY = "yetalk_favorite_notice_text";
+    const HOME_NOTICE_EXPIRE_KEY = "yetalk_home_notice_expire";
+    const UNREAD_NOTICE_COUNT_KEY = "yetalk_church_notice_unread_count";
+
+    let notices = [];
+    let currentNoticeIndex = 0;
+    let selectedArchiveCategory = "주일예배";
+    let editingNoticeId = null;
+
+    let attachedNoticeImg = null;
+    let attachedNoticeFileName = null;
+    let attachedNoticeFileData = null;
+
+    // 🌟 은혜로운 축복과 평안의 말씀 컬렉션 (매번 바뀌는 좋은 글)
+    const BLESS_MESSAGES = [
+        {
+            title: "🕊️ 주님의 축복과 평안이 성도님의 가정에 함께하시길 기도합니다",
+            text: "“평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라 내가 너희에게 주는 것은 세상이 주는 것과 같지 아니하니라 (요한복음 14:27)”"
+        },
+        {
+            title: "☀️ 여호와는 네게 복을 주시고 너를 지키시기를 원하며",
+            text: "“여호와는 그의 얼굴을 네게 비추사 은혜 베푸시기를 원하며 여호와는 그 얼굴을 네게로 향하여 드사 평강 주시기를 원하노라 (민수기 6:24-26)”"
+        },
+        {
+            title: "🌿 오직 여호와를 앙망하는 자는 새 힘을 얻으리니",
+            text: "“독수리가 날개치며 올라감 같을 것이요 달음박질하여도 곤비하지 아니하겠고 걸어가도 피곤하지 아니하리로다 (이사야 40:31)”"
+        },
+        {
+            title: "💖 하나님이 우리를 사랑하시는 사랑을 우리가 알고 믿었노니",
+            text: "“하나님은 사랑이시라 사랑 안에 거하는 자는 하나님 안에 거하고 하나님도 그의 안에 거하시느니라 (요한일서 4:16)”"
+        },
+        {
+            title: "🛡️ 두려워하지 말라 내가 너와 함께 함이라",
+            text: "“놀라지 말라 나는 네 하나님이 됨이라 내가 너를 굳세게 하리라 참으로 너를 도와 주리라 참으로 나의 의로운 오른손으로 너를 붙들리라 (이사야 41:10)”"
+        },
+        {
+            title: "🌸 너의 행사를 여호와께 맡기라",
+            text: "“그리하면 네가 경영하는 것이 이루어지리라. 사람이 마음으로 자기의 길을 계획할지라도 그의 걸음을 인도하시는 이는 여호와시니라 (잠언 16:3, 9)”"
+        }
+    ];
+
+    const DEFAULT_NOTICES = [
+        {
+            id: 1,
+            category: "주일예배",
+            title: "2026년 가을 특별 부흥성회 및 온세대 연합예배 안내",
+            content: "사랑하는 성도 여러분, 이번 가을 성령의 새 바람으로 일어서는 특별 부흥성회가 개최됩니다.\n모든 성도님들과 다음세대 자녀들이 함께 모여 주님의 은혜를 사모합시다.\n\n• 일시: 이번 주간 매일 저녁 7시 30분\n• 장소: 본당 3층 대예배실\n• 강사: 초청 특별 강사 목사님\n• 문의: 교회사무실 (02-123-4567)",
+            author: "당회 / 교회사무실",
+            time: "오늘",
+            views: 460,
+            img: null,
+            fileName: null,
+            fileData: null
+        },
+        {
+            id: 2,
+            category: "마을(셀,목장)나눔지",
+            title: "교회 주차장 이용 및 환경 개선을 위한 협조 요청",
+            content: "주일 예배 시 원활한 차량 소통과 이웃 배려를 위해 대중교통 이용과 질서 있는 주차를 부탁드립니다.\n안내위원들의 지시에 적극 협조해 주시기 바랍니다.",
+            author: "관리위원회",
+            time: "어제",
+            views: 313,
+            img: null,
+            fileName: null,
+            fileData: null
+        },
+        {
+            id: 3,
+            category: "행사사진첩",
+            title: "가을맞이 대청소 및 성도 교제 나눔의 날",
+            content: "하나님의 성전을 아름답게 가꾸고 서로 기쁨으로 교제하는 시간을 갖습니다. 많은 참여 바랍니다.\n각 남녀전도회별 담당 구역을 확인해 주세요.",
+            author: "봉사위원회",
+            time: "3일 전",
+            views: 283,
+            img: null,
+            fileName: null,
+            fileData: null
+        }
+    ];
+
+    function initNoticePage() {
+        const saved = localStorage.getItem(NOTICE_STORAGE_KEY);
+        if (saved) {
+            try { notices = JSON.parse(saved); } catch(e) { notices = DEFAULT_NOTICES; }
+        } else {
+            notices = DEFAULT_NOTICES;
+            localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(notices));
+        }
+        renderNoticeFeed();
+    }
+
+    // 🌟 [요청사항 준수] 처음 페이지에서는 이미지 말고 글(제목, 요약, 뱃지)만 깔끔하게 표시!
+    function renderNoticeFeed() {
+        const container = document.getElementById("noticeFeedContainer");
+        container.innerHTML = "";
+
+        if (!notices || notices.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:50px 20px; color:#64748b; font-size:14px; font-weight:800;">등록된 공지알림이 없습니다.</div>`;
+            return;
+        }
+
+        notices.forEach((n, idx) => {
+            const card = document.createElement("div");
+            card.className = "post-card";
+            card.onclick = () => openDetailModalByIndex(idx);
+
+            const hasImgBadge = n.img ? `<span style="font-size:10px; color:#facc15; background:rgba(250,204,21,0.15); border:1px solid rgba(250,204,21,0.4); padding:2px 5px; border-radius:4px; font-weight:900; margin-left:4px;">📷 사진</span>` : "";
+            const hasFileBadge = n.fileName ? `<span style="font-size:10px; color:#38bdf8; background:rgba(2,132,199,0.2); border:1px solid rgba(56,189,248,0.4); padding:2px 5px; border-radius:4px; font-weight:900; margin-left:4px;">📁 첨부</span>` : "";
+            const catBadge = `<span class="badge-cat">${n.category || '주일예배'}</span>`;
+
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    ${catBadge}
+                    <span style="font-size:11.5px; color:#64748b; font-weight:700;">${n.time}</span>
+                </div>
+                <div class="post-card-title">
+                    <span style="color:#f43f5e; font-weight:900;">[공지]</span> ${n.title} ${hasImgBadge} ${hasFileBadge}
+                </div>
+                <!-- 이미지는 숨기고 글 요약만 2줄로 시원하게 표시 -->
+                <div class="post-card-preview-2lines">${n.content}</div>
+                <div class="post-card-meta-line">
+                    <span style="color:#cbd5e1; font-weight:800;">${n.author || '교회사무실'}</span>
+                    <span style="color:#f43f5e; font-weight:800;">❤️ ${(n.views || 10).toLocaleString()}</span>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    // 🌟 상세 글 열기
+    function openDetailModalByIndex(index) {
+        if (index < 0 || index >= notices.length) return;
+        currentNoticeIndex = index;
+        const n = notices[index];
+
+        n.views = (n.views || 10) + 1;
+        localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(notices));
+
+        document.getElementById("detailCatBadge").innerText = n.category || "주일예배";
+        document.getElementById("detailTitleText").innerText = n.title;
+        document.getElementById("detailMetaText").innerText = `${n.author || '교회사무실'} · ${n.time}`;
+        document.getElementById("detailContentText").innerText = n.content;
+        document.getElementById("detailViewsCount").innerText = (n.views || 10).toLocaleString();
+
+        const imgBox = document.getElementById("detailImgBox");
+        if (n.img) {
+            document.getElementById("detailImg").src = n.img;
+            imgBox.style.display = "block";
+        } else {
+            imgBox.style.display = "none";
+        }
+
+        const fileBox = document.getElementById("detailFileBox");
+        if (n.fileName && n.fileData) {
+            document.getElementById("detailFileName").innerText = n.fileName;
+            document.getElementById("btnFileDown").onclick = () => {
+                const a = document.createElement("a");
+                a.href = n.fileData; a.download = n.fileName;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            };
+            fileBox.style.display = "flex";
+        } else {
+            fileBox.style.display = "none";
+        }
+
+        // 🌟 바뀔 때마다 감성적인 축복 말씀 랜덤 노출
+        const randBless = BLESS_MESSAGES[Math.floor(Math.random() * BLESS_MESSAGES.length)];
+        document.getElementById("dispDetailBlessTitle").innerText = randBless.title;
+        document.getElementById("dispDetailBlessText").innerText = randBless.text;
+
+        const modal = document.getElementById("detailModal");
+        modal.scrollTop = 0;
+        modal.classList.add("open");
+    }
+
+    function closeDetailModal() {
+        document.getElementById("detailModal").classList.remove("open");
+        renderNoticeFeed();
+    }
+
+    // 🌟 상세 화면에서 [✏️ 바로 수정]
+    function openEditCurrentNotice() {
+        const n = notices[currentNoticeIndex];
+        if (!n) return;
+        openWriteModal(n);
+    }
+
+    // 🌟 상세 화면에서 [🗑️ 삭제]
+    function deleteCurrentNotice() {
+        if (!confirm("이 공지사항을 정말로 삭제하시겠습니까?")) return;
+        notices.splice(currentNoticeIndex, 1);
+        localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(notices));
+        alert("공지사항이 삭제되었습니다.");
+        closeDetailModal();
+    }
+
+    // 🌟 상세 화면에서 [📷 사진 추가/변경]
+    function handleDirectDetailImage(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                let w = img.width, h = img.height;
+                const maxW = 900;
+                if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, w, h);
+                const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+                const n = notices[currentNoticeIndex];
+                if (n) {
+                    n.img = dataUrl;
+                    localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(notices));
+                    document.getElementById("detailImg").src = dataUrl;
+                    document.getElementById("detailImgBox").style.display = "block";
+                    alert("사진이 성공적으로 변경/추가되었습니다! ✔");
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        input.value = "";
+    }
+
+    function navigateNotice(direction) {
+        let nextIdx = currentNoticeIndex + direction;
+        if (nextIdx < 0) {
+            alert("첫 번째 공지글입니다. 목록으로 돌아갑니다.");
+            closeDetailModal();
+            return;
+        }
+        if (nextIdx >= notices.length) {
+            alert("마지막 공지글입니다.");
+            return;
+        }
+        openDetailModalByIndex(nextIdx);
+    }
+
+    function goToStoreAppHome() {
+        location.href = "churchmain.html";
+    }
+
+    // 🌟 공지 작성 & 수정 모달 오픈
+    function openWriteModal(editItem = null) {
+        if (editItem) {
+            editingNoticeId = editItem.id;
+            document.getElementById("writeModalHeaderTitle").innerText = "공지사항 수정";
+            document.getElementById("inpNoticeTitle").value = editItem.title || "";
+            document.getElementById("inpNoticeContent").value = editItem.content || "";
+            selectedArchiveCategory = editItem.category || "주일예배";
+
+            attachedNoticeImg = editItem.img || null;
+            if (attachedNoticeImg) {
+                document.getElementById("attachedPreviewImg").src = attachedNoticeImg;
+                document.getElementById("attachedPreviewBox").style.display = "block";
+            } else {
+                document.getElementById("attachedPreviewBox").style.display = "none";
+            }
+
+            attachedNoticeFileName = editItem.fileName || null;
+            attachedNoticeFileData = editItem.fileData || null;
+            if (attachedNoticeFileName) {
+                document.getElementById("attachedFileNameText").innerText = `📄 ${attachedNoticeFileName} 첨부됨`;
+                document.getElementById("attachedFileBadge").style.display = "flex";
+            } else {
+                document.getElementById("attachedFileBadge").style.display = "none";
+            }
+        } else {
+            editingNoticeId = null;
+            document.getElementById("writeModalHeaderTitle").innerText = "교회 공식 공지알림 작성";
+            document.getElementById("inpNoticeTitle").value = "";
+            document.getElementById("inpNoticeContent").value = "";
+            selectedArchiveCategory = "주일예배";
+            attachedNoticeImg = null;
+            attachedNoticeFileName = null;
+            attachedNoticeFileData = null;
+            document.getElementById("attachedPreviewBox").style.display = "none";
+            document.getElementById("attachedFileBadge").style.display = "none";
+        }
+
+        // 칩 활성화 상태 동기화
+        document.querySelectorAll("#archiveChipsContainer .chip-arch").forEach(c => {
+            c.classList.toggle("active", c.innerText.trim() === selectedArchiveCategory);
+        });
+
+        document.getElementById("writeModal").classList.add("open");
+    }
+
+    function closeWriteModal() {
+        document.getElementById("writeModal").classList.remove("open");
+    }
+
+    function selectArchiveCat(cat, btn) {
+        selectedArchiveCategory = cat;
+        document.querySelectorAll("#archiveChipsContainer .chip-arch").forEach(c => c.classList.remove("active"));
+        btn.classList.add("active");
+    }
+
+    function handleNoticeImage(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                let w = img.width, h = img.height;
+                const maxW = 900;
+                if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, w, h);
+                attachedNoticeImg = canvas.toDataURL("image/jpeg", 0.85);
+                document.getElementById("attachedPreviewImg").src = attachedNoticeImg;
+                document.getElementById("attachedPreviewBox").style.display = "block";
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeAttachedImg() {
+        attachedNoticeImg = null;
+        document.getElementById("fileNoticeImg").value = "";
+        document.getElementById("attachedPreviewBox").style.display = "none";
+    }
+
+    function handleNoticeDoc(input) {
+        const file = input.files[0];
+        if (!file) return;
+        attachedNoticeFileName = file.name;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            attachedNoticeFileData = e.target.result;
+            const badge = document.getElementById("attachedFileBadge");
+            document.getElementById("attachedFileNameText").innerText = `📄 ${attachedNoticeFileName} 첨부됨`;
+            badge.style.display = "flex";
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeAttachedDoc() {
+        attachedNoticeFileName = null;
+        attachedNoticeFileData = null;
+        document.getElementById("fileNoticeDoc").value = "";
+        document.getElementById("attachedFileBadge").style.display = "none";
+    }
+
+    // 🌟 공지 등록 & 수정 완료 + 성도 전송 + 보물창고 자동 연동
+    function submitNoticePost() {
+        const title = document.getElementById("inpNoticeTitle").value.trim();
+        const content = document.getElementById("inpNoticeContent").value.trim();
+        const churchName = localStorage.getItem("yetalkChurchName") || localStorage.getItem("yetalkUserStoreName") || "예톡행복한교회";
+
+        if (!title) { alert("공지 제목을 입력해주세요."); return; }
+        if (!content) { alert("공지 내용을 입력해주세요."); return; }
+
+        if (editingNoticeId) {
+            // 수정 모드
+            const target = notices.find(n => n.id === editingNoticeId);
+            if (target) {
+                target.title = title;
+                target.content = content;
+                target.category = selectedArchiveCategory;
+                target.img = attachedNoticeImg;
+                target.fileName = attachedNoticeFileName;
+                target.fileData = attachedNoticeFileData;
+            }
+            localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(notices));
+            alert("공지사항이 수정되었습니다 ✔");
+            // 만약 상세 창이 열려있었다면 갱신
+            if (document.getElementById("detailModal").classList.contains("open")) {
+                openDetailModalByIndex(currentNoticeIndex);
+            }
+        } else {
+            // 신규 등록 모드
+            const newNotice = {
+                id: Date.now(),
+                category: selectedArchiveCategory,
+                title: title,
+                content: content,
+                author: "당회 / 교회사무실",
+                time: "방금",
+                views: 10,
+                img: attachedNoticeImg,
+                fileName: attachedNoticeFileName,
+                fileData: attachedNoticeFileData
+            };
+
+            notices.unshift(newNotice);
+            localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(notices));
+
+            // 전광판 알림 24시간 등록
+            localStorage.setItem(HOME_NOTICE_KEY, `🔔 [${churchName}] ${title}`);
+            const expireTime = Date.now() + (24 * 60 * 60 * 1000);
+            localStorage.setItem(HOME_NOTICE_EXPIRE_KEY, String(expireTime));
+
+            // 🌟 성도 미열람 공지 카운트 증가 (개인앱 & 예톡홈 뱃지 연동)
+            let unreadCount = parseInt(localStorage.getItem(UNREAD_NOTICE_COUNT_KEY) || "0", 10);
+            unreadCount += 1;
+            localStorage.setItem(UNREAD_NOTICE_COUNT_KEY, String(unreadCount));
+
+            // 🌟 [요청사항 준수] 보물창고 메뉴에 분류별로 자동 저장!
+            let archiveList = [];
+            try { archiveList = JSON.parse(localStorage.getItem(ARCHIVE_STORAGE_KEY)) || []; } catch(e) {}
+            archiveList.unshift({
+                id: "arc_" + Date.now(),
+                category: selectedArchiveCategory,
+                title: title,
+                content: content,
+                date: new Date().toLocaleDateString("ko-KR"),
+                source: churchName,
+                img: attachedNoticeImg,
+                fileName: attachedNoticeFileName,
+                fileData: attachedNoticeFileData
+            });
+            localStorage.setItem(ARCHIVE_STORAGE_KEY, JSON.stringify(archiveList));
+
+            alert(`🎉 공지등록 완료!\n\n• [전 성도 발송]: 성도들에게 공지알림이 전달되었습니다.\n• [보물창고 (${selectedArchiveCategory})]: 자동으로 영구 보관되었습니다.`);
+        }
+
+        renderNoticeFeed();
+        closeWriteModal();
+    }
+
+    document.addEventListener("DOMContentLoaded", initNoticePage);
+</script>
+</script>
+</body>
+</html>

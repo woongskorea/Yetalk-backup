@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>예톡 공지알림</title>
+
+    <!--==================================================
+    공통 디자인
+    ==================================================-->
+    <link rel="stylesheet" href="common.css">
+
+    <!--==================================================
+    공지알림 전용 디자인
+    ==================================================-->
+    <link rel="stylesheet" href="../../../churchchatnotice.css">
+
+    <!-- ⭐ 예톡 메인 테마 색상을 즉시 가져와서 입혀주는 스크립트 -->
+    <script>
+        (function() {
+            const getChurchId = () => localStorage.getItem("yetalkMyChurchId") || localStorage.getItem("currentChurchId") || "yetalk-church";
+            const savedTheme = localStorage.getItem("yetalkChurchTheme_" + getChurchId()) || localStorage.getItem("yetalkThemeColor") || "blue";
+            // 페이지가 뜨자마자 html 최상단에 테마 클래스를 부여
+            document.documentElement.className = "theme-" + savedTheme;
+        })();
+    </script>
+</head>
+
+<body>
+
+<!--==================================================
+전체 페이지
+==================================================-->
+<div class="noticePage">
+
+    <!--==================================================
+    상단 헤더
+    ==================================================-->
+    <header class="noticeHeader">
+        <button type="button" class="noticeBackBtn" id="noticeBackBtn" aria-label="뒤로가기">←</button>
+        <div class="noticeHeaderCenter">
+            <div class="noticeHeaderTitle">공지알림</div>
+            <div class="noticeHeaderChurch" id="noticeHeaderChurch">우리 교회</div>
+        </div>
+        <button type="button" class="noticeSearchHeaderBtn" id="noticeSearchHeaderBtn" aria-label="공지 검색">🔍</button>
+    </header>
+
+    <!--==================================================
+    공지 안내
+    ==================================================-->
+    <section class="noticeGuide">
+        <div class="noticeGuideIcon">📢</div>
+        <div class="noticeGuideText">
+            <strong>우리 교회의 새로운 소식을 확인하세요.</strong>
+            <span>예배안내·부고·행사·봉사 등 필요한 소식을 한곳에서 볼 수 있습니다.</span>
+        </div>
+    </section>
+
+    <!--==================================================
+    빠른 필터
+    ==================================================-->
+    <section class="noticeQuickMenu">
+        <button type="button" class="noticeQuickBtn active" id="noticeAllBtn" data-filter="all">
+            <span>📋</span><strong>전체</strong>
+        </button>
+        <button type="button" class="noticeQuickBtn" id="noticeImportantBtn" data-filter="important">
+            <span>📌</span><strong>중요</strong>
+        </button>
+        <button type="button" class="noticeQuickBtn" id="noticeNewBtn" data-filter="new">
+            <span>🆕</span><strong>새 공지</strong>
+        </button>
+        <button type="button" class="noticeQuickBtn" id="noticeArchiveBtn">
+            <span>🗂️</span><strong>자료실</strong>
+        </button>
+    </section>
+
+    <!--==================================================
+    검색 영역
+    ==================================================-->
+    <section class="noticeSearchArea hidden" id="noticeSearchArea">
+        <div class="noticeSearchBox">
+            <input type="search" class="noticeSearchInput" id="noticeSearchInput" maxlength="50" placeholder="공지 제목이나 내용을 검색하세요." autocomplete="off">
+            <button type="button" class="noticeSearchClearBtn hidden" id="noticeSearchClearBtn" aria-label="검색어 지우기">×</button>
+            <button type="button" class="noticeSearchCloseBtn" id="noticeSearchCloseBtn">닫기</button>
+        </div>
+    </section>
+
+    <!--==================================================
+    목록 상단
+    ==================================================-->
+    <section class="noticeListHeader">
+        <div class="noticeListTitleBox">
+            <strong class="noticeListTitle" id="noticeListTitle">최근 공지</strong>
+            <span class="noticePostCount" id="noticePostCount">0</span>
+        </div>
+        <button type="button" class="noticeRefreshBtn" id="noticeRefreshBtn">새로고침</button>
+    </section>
+
+    <!--==================================================
+    로딩
+    ==================================================-->
+    <section class="noticeLoading" id="noticeLoading">
+        <div class="noticeLoadingIcon">📖</div>
+        <strong>공지를 불러오는 중입니다.</strong>
+        <span>잠시만 기다려 주세요.</span>
+    </section>
+
+    <!--==================================================
+    공지 목록
+    ==================================================-->
+    <main class="noticePostList" id="noticePostList"></main>
+
+    <!--==================================================
+    공지 없음
+    ==================================================-->
+    <section class="noticeEmpty hidden" id="noticeEmpty">
+        <div class="noticeEmptyIcon">📭</div>
+        <strong id="noticeEmptyTitle">등록된 공지가 없습니다.</strong>
+        <span id="noticeEmptyDescription">교회 관리자가 공지를 등록하면 이곳에 표시됩니다.</span>
+    </section>
+
+    <!--==================================================
+    더 보기
+    ==================================================-->
+    <button type="button" class="noticeMoreBtn hidden" id="noticeMoreBtn">이전 공지 더 보기</button>
+
+    <!--==================================================
+    우리교회 바로가기 버튼 (말씀 + 동적 이름)
+    ==================================================-->
+    <button type="button" class="churchHomeFloatBtn" onclick="goChurchHome()">
+        <span class="btn-subtitle">"오라 우리가 하나님께로 돌아가자" (호 6:1)</span>
+        <span class="btn-title">➔ <span id="dynamicChurchName">우리교회</span> 홈가기</span>
+    </button>
+
+    <script>
+        // 1. 버튼 클릭 시 교회홈으로 안전하게 이동
+        function goChurchHome() {
+            const churchId = localStorage.getItem("yetalkMyChurchId") || localStorage.getItem("currentChurchId") || "yetalk-church";
+
+            // ⭐ 앱 튕김 에러 방지: 같은 assets 아래에 있는 church 폴더로 직진합니다.
+            // (만약 교회홈 파일 이름이 churchmain.html이 아니라면 해당 파일명으로 맞춰주세요)
+            location.href = "churchmain.html?churchId=" + encodeURIComponent(churchId);
+        }
+
+        // 2. 파이어베이스에서 교회 이름을 불러오면 버튼에도 즉시 반영
+        document.addEventListener("DOMContentLoaded", () => {
+            const nameCheckInterval = setInterval(() => {
+                const headerChurchName = document.getElementById("noticeHeaderChurch")?.innerText;
+                if (headerChurchName && headerChurchName !== "우리 교회") {
+                    document.getElementById("dynamicChurchName").innerText = headerChurchName;
+                    clearInterval(nameCheckInterval);
+                }
+            }, 500);
+        });
+    </script>
+
+    <!--==================================================
+    무료 교회 광고 영역
+    ==================================================-->
+    <section class="noticeAdSection hidden" id="noticeAdSection">
+        <div class="noticeAdPlaceholder">
+            <span>AD</span><strong>예톡 운영을 돕는 광고</strong>
+        </div>
+    </section>
+
+    <div class="noticeBottomSpace"></div>
+
+</div>
+
+<!--==================================================
+공지 상세보기 오버레이
+==================================================-->
+<div class="noticeDetailOverlay hidden" id="noticeDetailOverlay">
+    <div class="noticeDetailPage">
+        <header class="noticeDetailHeader">
+            <button type="button" class="noticeDetailBackBtn" id="noticeDetailBackBtn" aria-label="상세보기 닫기">←</button>
+            <div class="noticeDetailHeaderCenter">
+                <strong>공지알림</strong>
+                <span id="noticeDetailHeaderChurch">우리 교회</span>
+            </div>
+            <button type="button" class="noticeDetailMenuBtn hidden" id="noticeDetailMenuBtn" aria-label="관리 메뉴">⋮</button>
+        </header>
+
+        <article class="noticeDetailContent">
+            <div class="noticeDetailBadgeRow">
+                <span class="noticeDetailImportant hidden" id="noticeDetailImportant">중요공지</span>
+                <span class="noticeDetailNew hidden" id="noticeDetailNew">NEW</span>
+                <span class="noticeDetailArchive hidden" id="noticeDetailArchive">자료실 보관</span>
+                <span class="noticeDetailPermanent hidden" id="noticeDetailPermanent">장기보관</span>
+            </div>
+            <h1 class="noticeDetailTitle" id="noticeDetailTitle">공지 제목</h1>
+            <div class="noticeDetailInfo">
+                <span id="noticeDetailWriter">교회 관리자</span>
+                <span class="noticeInfoDot">·</span>
+                <span id="noticeDetailDate"></span>
+            </div>
+
+            <div class="noticeDetailPeriod hidden" id="noticeDetailPeriod">
+                <span>공지기간</span>
+                <strong id="noticeDetailPeriodText"></strong>
+            </div>
+
+            <div class="noticeDetailImageArea hidden" id="noticeDetailImageArea">
+                <img class="noticeDetailImage" id="noticeDetailImage" alt="공지 대표 이미지">
+            </div>
+
+            <div class="noticeDetailText" id="noticeDetailText"></div>
+
+            <div class="noticeAttachmentArea hidden" id="noticeAttachmentArea">
+                <button type="button" class="noticeAttachmentBtn hidden" id="noticePdfBtn">
+                    <span class="noticeAttachmentIcon">📄</span>
+                    <span class="noticeAttachmentText">
+                        <strong id="noticePdfName">문서 보기</strong>
+                        <small>PDF 또는 문서 자료</small>
+                    </span>
+                    <span class="noticeAttachmentArrow">›</span>
+                </button>
+
+                <button type="button" class="noticeAttachmentBtn hidden" id="noticeVideoBtn">
+                    <span class="noticeAttachmentIcon">▶️</span>
+                    <span class="noticeAttachmentText">
+                        <strong id="noticeVideoName">영상 보기</strong>
+                        <small>유튜브 또는 영상 자료</small>
+                    </span>
+                    <span class="noticeAttachmentArrow">›</span>
+                </button>
+
+                <button type="button" class="noticeAttachmentBtn hidden" id="noticeLinkBtn">
+                    <span class="noticeAttachmentIcon">🔗</span>
+                    <span class="noticeAttachmentText">
+                        <strong id="noticeLinkName">연결 페이지 보기</strong>
+                        <small>사진앨범 또는 외부 페이지</small>
+                    </span>
+                    <span class="noticeAttachmentArrow">›</span>
+                </button>
+            </div>
+
+            <button type="button" class="noticeCategoryBoardBtn hidden" id="noticeCategoryBoardBtn">
+                <span>🗂️ 이 자료의 자료실 보기</span><b>›</b>
+            </button>
+
+            <div class="noticeDetailAdminArea hidden" id="noticeDetailAdminArea">
+                <button type="button" class="noticeDetailEditBtn" id="noticeDetailEditBtn">수정</button>
+                <button type="button" class="noticeDetailDeleteBtn" id="noticeDetailDeleteBtn">삭제</button>
+            </div>
+        </article>
+
+        <section class="noticeCommentSection" id="noticeCommentSection">
+            <div class="noticeCommentHeader">
+                <div>
+                    <strong>댓글</strong>
+                    <span class="noticeCommentCount" id="noticeCommentCount">0</span>
+                </div>
+                <button type="button" class="noticeCommentRefreshBtn" id="noticeCommentRefreshBtn">새로고침</button>
+            </div>
+            <div class="noticeCommentList" id="noticeCommentList">
+                <div class="noticeCommentEmpty">아직 댓글이 없습니다.</div>
+            </div>
+            <div class="noticeCommentInputBox">
+                <textarea class="noticeCommentInput" id="noticeCommentInput" rows="1" maxlength="200" placeholder="댓글을 입력하세요." autocomplete="off" spellcheck="false"></textarea>
+                <button type="button" class="noticeCommentSendBtn" id="noticeCommentSendBtn">등록</button>
+            </div>
+            <div class="noticeCommentGuide">서로를 배려하는 따뜻한 댓글을 작성해 주세요.</div>
+        </section>
+        <div class="noticeDetailBottomSpace"></div>
+    </div>
+</div>
+
+<!--==================================================
+공지 작성·수정 화면 오버레이 (구조 유지)
+==================================================-->
+<div class="noticeWriteOverlay hidden" id="noticeWriteOverlay">
+    <div class="noticeWritePage">
+        <header class="noticeWriteHeader">
+            <button type="button" class="noticeWriteCloseBtn" id="noticeWriteCloseBtn">취소</button>
+            <strong class="noticeWriteHeaderTitle" id="noticeWriteHeaderTitle">새 공지 등록</strong>
+            <button type="button" class="noticeWriteSaveBtn" id="noticeWriteSaveBtn">저장</button>
+        </header>
+
+        <main class="noticeWriteContent">
+            <section class="noticeWriteGuide">
+                <div class="noticeWriteGuideIcon">✏️</div>
+                <div>
+                    <strong>필요한 교회 소식을 간단히 작성하세요.</strong>
+                    <span>오래 보관할 자료만 자료실 저장을 선택하면 됩니다.</span>
+                </div>
+            </section>
+
+            <label class="noticeWriteLabel" for="noticeWriteTitle">제목 <strong>필수</strong></label>
+            <input type="text" class="noticeWriteInput" id="noticeWriteTitle" maxlength="100" placeholder="예: 금요기도회에 꼭 참석해 주세요." autocomplete="off">
+
+            <label class="noticeWriteLabel" for="noticeWriteText">내용</label>
+            <textarea class="noticeWriteTextarea" id="noticeWriteText" rows="7" maxlength="5000" placeholder="교회 성도들에게 전할 내용을 작성하세요." autocomplete="off" spellcheck="false"></textarea>
+
+            <section class="noticeWriteGroup noticeDateGroup">
+                <div class="noticeWriteGroupHeader">
+                    <div><strong>공지 게시기간</strong><span>종료일이 지나면 공지 목록에서 자동으로 숨겨집니다.</span></div>
+                    <span class="noticeWriteGroupIcon">📅</span>
+                </div>
+                <div class="noticeDateGrid">
+                    <div class="noticeDateField">
+                        <label class="noticeWriteLabel" for="noticePublishDate">게시일</label>
+                        <input type="date" class="noticeWriteInput" id="noticePublishDate">
+                    </div>
+                    <div class="noticeDateField">
+                        <label class="noticeWriteLabel" for="noticeUntil">공지 종료일</label>
+                        <input type="date" class="noticeWriteInput" id="noticeUntil">
+                    </div>
+                </div>
+            </section>
+
+            <section class="noticeWriteGroup noticeMainOptionGroup">
+                <div class="noticeWriteGroupHeader">
+                    <div><strong>공지 설정</strong><span>필요한 기능만 선택하세요.</span></div>
+                    <span class="noticeWriteGroupIcon">📢</span>
+                </div>
+                <label class="noticeCheckLabel">
+                    <input type="checkbox" id="noticePinned">
+                    <span class="noticeCheckMark"></span>
+                    <span class="noticeCheckText"><strong>중요공지로 상단 고정</strong><small>공지 목록의 위쪽에 먼저 표시합니다.</small></span>
+                </label>
+                <label class="noticeCheckLabel noticeAlertCheck">
+                    <input type="checkbox" id="noticeSendIndexNotice">
+                    <span class="noticeCheckMark"></span>
+                    <span class="noticeCheckText"><strong>개인 홈에 새 공지 알림</strong><small>성도의 마이홈에 새 공지가 있다는 표시를 남깁니다.</small></span>
+                </label>
+                <label class="noticeCheckLabel">
+                    <input type="checkbox" id="noticeAllowComments" checked>
+                    <span class="noticeCheckMark"></span>
+                    <span class="noticeCheckText"><strong>댓글 허용</strong><small>댓글이 필요하지 않은 공지는 선택을 해제하세요.</small></span>
+                </label>
+            </section>
+
+            <section class="noticeWriteGroup noticeArchiveSelectGroup">
+                <div class="noticeWriteGroupHeader">
+                    <div><strong>자료실 보관</strong><span>주보·설교·역사·보고서처럼 오래 남길 자료만 선택합니다.</span></div>
+                    <span class="noticeWriteGroupIcon">🗂️</span>
+                </div>
+                <label class="noticeCheckLabel noticeArchiveMainCheck">
+                    <input type="checkbox" id="noticeSaveToArchive">
+                    <span class="noticeCheckMark"></span>
+                    <span class="noticeCheckText"><strong>자료실에도 저장</strong><small>선택한 자료실 분류에 자동으로 제목형 자료가 표시됩니다.</small></span>
+                </label>
+            </section>
+
+            <section class="noticeWriteGroup noticeArchiveOptions hidden" id="noticeArchiveOptions">
+                <div class="noticeWriteGroupHeader">
+                    <div><strong>자료실 분류 선택</strong><span>저장할 자료실의 대분류와 소분류를 선택하세요.</span></div>
+                    <span class="noticeWriteGroupIcon">📂</span>
+                </div>
+                <label class="noticeWriteLabel" for="noticeArchiveMainCategory">자료실 대분류 <strong>필수</strong></label>
+                <select class="noticeWriteSelect" id="noticeArchiveMainCategory">
+                    <option value="">대분류를 선택하세요.</option>
+                    <option value="church">교회소개·역사</option>
+                    <option value="worship">예배·말씀</option>
+                    <option value="pastor">담임목사 말씀</option>
+                    <option value="nextGeneration">다음세대</option>
+                    <option value="department">교회부서</option>
+                    <option value="mission">선교·전도</option>
+                    <option value="education">교육·훈련</option>
+                    <option value="administration">행정·재정</option>
+                    <option value="media">사진·영상</option>
+                    <option value="document">문서·자료</option>
+                    <option value="custom">우리 교회 사용자 분류</option>
+                </select>
+
+                <label class="noticeWriteLabel" for="noticeArchiveSubCategory">자료실 소분류 <strong>필수</strong></label>
+                <select class="noticeWriteSelect" id="noticeArchiveSubCategory" disabled>
+                    <option value="">먼저 대분류를 선택하세요.</option>
+                </select>
+
+                <div class="noticeCustomCategoryBox hidden" id="noticeCustomCategoryBox">
+                    <label class="noticeWriteLabel" for="noticeCustomCategoryName">새 자료실 이름</label>
+                    <input type="text" class="noticeWriteInput" id="noticeCustomCategoryName" maxlength="30" placeholder="예: 건축위원회, 창립기념사업" autocomplete="off">
+                    <label class="noticeWriteLabel" for="noticeCustomCategoryIcon">자료실 아이콘</label>
+                    <input type="text" class="noticeWriteInput" id="noticeCustomCategoryIcon" maxlength="4" placeholder="예: 🏗️" autocomplete="off">
+                </div>
+
+                <label class="noticeWriteLabel" for="noticeArchiveUntil">자료실 보관 종료일</label>
+                <input type="date" class="noticeWriteInput" id="noticeArchiveUntil">
+                <label class="noticeCheckLabel noticePermanentLabel">
+                    <input type="checkbox" id="noticePermanent">
+                    <span class="noticeCheckMark"></span>
+                    <span class="noticeCheckText"><strong>장기보관</strong><small>교회역사·담임목사 말씀·예산결산처럼 계속 보관할 자료입니다.</small></span>
+                </label>
+                <div class="noticeArchiveGuide">
+                    자료실에 저장해도 게시글 원본은 한 번만 저장됩니다.
+                    `chattitle`이 선택된 분류를 보고 자동으로 보여줍니다.
+                </div>
+            </section>
+
+            <section class="noticeWriteGroup">
+                <div class="noticeWriteGroupHeader">
+                    <div><strong>대표 사진</strong><span>공지에 보여줄 사진 한 장을 선택할 수 있습니다.</span></div>
+                    <span class="noticeWriteGroupIcon">📷</span>
+                </div>
+                <input type="file" accept="image/*" class="noticeFileInput" id="noticeImageInput">
+                <label class="noticeFileSelectBtn" for="noticeImageInput">사진 선택</label>
+                <div class="noticeImagePreview hidden" id="noticeImagePreview">
+                    <img id="noticeImagePreviewImg" alt="선택한 사진 미리보기">
+                    <button type="button" class="noticeImageRemoveBtn" id="noticeImageRemoveBtn">사진 삭제</button>
+                </div>
+            </section>
+
+            <section class="noticeWriteGroup">
+                <div class="noticeWriteGroupHeader">
+                    <div><strong>PDF·문서 연결</strong><span>주보·회의자료·예산결산 문서 등을 연결합니다.</span></div>
+                    <span class="noticeWriteGroupIcon">📄</span>
+                </div>
+                <input type="url" class="noticeWriteInput" id="noticePdfUrl" maxlength="1000" placeholder="https:// 문서 주소" autocomplete="off">
+                <input type="text" class="noticeWriteInput noticeSubInput" id="noticePdfName" maxlength="60" placeholder="버튼 이름 예: 상세 주보 보기" autocomplete="off">
+            </section>
+
+            <section class="noticeWriteGroup">
+                <div class="noticeWriteGroupHeader">
+                    <div><strong>유튜브·영상 연결</strong><span>영상 파일은 저장하지 않고 링크로 연결합니다.</span></div>
+                    <span class="noticeWriteGroupIcon">▶️</span>
+                </div>
+                <input type="url" class="noticeWriteInput" id="noticeVideoUrl" maxlength="1000" placeholder="https:// 유튜브 또는 영상 주소" autocomplete="off">
+                <input type="text" class="noticeWriteInput noticeSubInput" id="noticeVideoName" maxlength="60" placeholder="버튼 이름 예: 주일설교 영상 보기" autocomplete="off">
+            </section>
+
+            <section class="noticeWriteGroup">
+                <div class="noticeWriteGroupHeader">
+                    <div><strong>사진앨범·외부 링크</strong><span>구글포토나 교회 관련 외부 페이지를 연결합니다.</span></div>
+                    <span class="noticeWriteGroupIcon">🔗</span>
+                </div>
+                <input type="url" class="noticeWriteInput" id="noticeLinkUrl" maxlength="1000" placeholder="https:// 사진앨범 또는 외부 주소" autocomplete="off">
+                <input type="text" class="noticeWriteInput noticeSubInput" id="noticeLinkName" maxlength="60" placeholder="버튼 이름 예: 행사사진 보기" autocomplete="off">
+            </section>
+
+            <div class="noticeWriteBottomGuide">
+                장례·결혼·주방봉사·예배안내처럼 일회성 내용은 자료실 저장을 선택하지 않아도 됩니다.
+                주보·설교·담임목사 오늘의 말씀·교회역사·예산결산처럼 오래 남겨야 하는 내용만 자료실 저장을 선택하세요.
+            </div>
+            <div class="noticeWriteBottomSpace"></div>
+        </main>
+    </div>
+</div>
+
+<!--==================================================
+삭제 확인 오버레이
+==================================================-->
+<div class="noticeConfirmOverlay hidden" id="noticeConfirmOverlay">
+    <div class="noticeConfirmBox">
+        <div class="noticeConfirmIcon">🗑️</div>
+        <strong>이 공지를 삭제할까요?</strong>
+        <span>공지를 삭제하면 자료실에서도 함께 사라집니다.</span>
+        <div class="noticeConfirmButtons">
+            <button type="button" class="noticeConfirmCancelBtn" id="noticeConfirmCancelBtn">취소</button>
+            <button type="button" class="noticeConfirmDeleteBtn" id="noticeConfirmDeleteBtn">삭제</button>
+        </div>
+    </div>
+</div>
+
+<!-- 토스트 알림 -->
+<div class="noticeToast" id="noticeToast"></div>
+
+<!-- JavaScript -->
+<script type="module" src="../../../churchchatnotice.js"></script>
+
+</body>
+</html>
