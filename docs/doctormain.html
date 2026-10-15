@@ -414,13 +414,16 @@
         .chat-context-btn.del { color: #ef4444; }
         .chat-context-btn.close { background: none; border: none; color: #64748b; font-size: 13px; margin-top: 2px; }
 
-        /* PC 모니터 화면(폭 768px 이상) 시 모달/팝업 스타일 최적화 (드래그 이동 & 긴 화면 & 애드몹 숨김) */
+        /* PC 모니터 화면(폭 768px 이상) 시 모달/팝업 스타일 최적화 (드래그 이동 & 긴 화면 & 크기 조절 & 애드몹 숨김) */
         @media (min-width: 768px) {
             .fullscreen-detail-view {
                 position: fixed !important;
-                width: 480px !important;
-                height: calc(100vh - 40px) !important;
-                max-height: 920px !important;
+                min-width: 340px !important;
+                max-width: 95vw !important;
+                min-height: 420px !important;
+                max-height: 98vh !important;
+                resize: both !important; /* 마우스로 가로/세로 폭 자유 조절 가능 */
+                overflow: hidden !important;
                 border-radius: 18px !important;
                 box-shadow: 0 16px 45px rgba(0,0,0,0.45) !important;
                 border: 2px solid #334155 !important;
@@ -428,19 +431,16 @@
                 bottom: auto !important;
             }
             #viewDetailChat {
-                width: 480px !important;
-                height: calc(100vh - 35px) !important;
-                max-height: 940px !important;
+                width: 480px;
+                height: calc(100vh - 35px);
             }
             #viewDetailClinicChat {
-                width: 480px !important;
-                height: calc(100vh - 35px) !important;
-                max-height: 940px !important;
+                width: 480px;
+                height: calc(100vh - 35px);
             }
             #viewDetailPatientInquiry {
-                width: 500px !important;
-                height: calc(100vh - 35px) !important;
-                max-height: 940px !important;
+                width: 500px;
+                height: calc(100vh - 35px);
             }
             .detail-top-nav {
                 cursor: grab;
@@ -451,6 +451,12 @@
             }
             .detail-top-nav button, .detail-top-nav input, .detail-top-nav select {
                 cursor: pointer;
+            }
+            /* 우측 하단 크기 조절 그립 표시 */
+            .win-resize-grip {
+                position: absolute; right: 2px; bottom: 2px; width: 16px; height: 16px;
+                cursor: nwse-resize; font-size: 13px; color: #94a3b8; font-weight: 900;
+                line-height: 1; pointer-events: none; user-select: none; z-index: 100;
             }
 
             /* 💻 PC 모니터 화면: 구글 애드몹 전면 숨김 (계정 정지 원천 방지) */
@@ -469,6 +475,30 @@
             body {
                 padding-bottom: 0 !important;
                 --bottom-ad-h: 0px !important;
+            }
+        }
+
+        /* 🖨️ A4 용지 예약 및 접수 명단 인쇄 전용 스타일 */
+        @media print {
+            body * {
+                visibility: hidden !important;
+            }
+            #printReservationContainer, #printReservationContainer * {
+                visibility: visible !important;
+            }
+            #printReservationContainer {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                display: block !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 20px !important;
+                font-family: sans-serif !important;
+            }
+            .no-print {
+                display: none !important;
             }
         }
 
@@ -1274,6 +1304,8 @@
             <span style="color:#facc15; font-size:10px; font-weight:700;">의료진 메디컬 커뮤니케이션 공식 스폰서</span>
         </div>
     </div>
+    <!-- 우측 하단 크기 조절 손잡이 -->
+    <div class="win-resize-grip" title="마우스로 모서리를 끌어서 크기를 조절하세요">⤡</div>
 </div>
 
 <!-- 원내톡 메신저 뷰 -->
@@ -1306,11 +1338,13 @@
             <span style="color:#facc15; font-size:10px; font-weight:700;">원내 메디컬 커뮤니케이션 지원 공식 스폰서</span>
         </div>
     </div>
+    <!-- 우측 하단 크기 조절 손잡이 -->
+    <div class="win-resize-grip" title="마우스로 모서리를 끌어서 크기를 조절하세요">⤡</div>
 </div>
 
 <!-- 📋 환자 실시간 접수 & 문의 확인 독립 플로팅 창 -->
 <div class="fullscreen-detail-view" id="viewDetailPatientInquiry" style="z-index:52500; display:none; flex-direction:column; background:#f8fafc;">
-    <!-- 1. 상단 네비바 (드래그 가능 헤더) -->
+    <!-- 1. 상단 네비바 (드래그 가능 헤더 + 예약표 바로가기 & 인쇄 버튼) -->
     <div class="detail-top-nav" style="background:#0284c7; color:#ffffff; border-bottom:1px solid #0369a1; padding:calc(var(--safe-top) + 8px) 14px 8px 14px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
         <div style="display:flex; align-items:center; gap:8px;">
             <button type="button" style="background:none; border:none; font-size:20px; cursor:pointer; color:#ffffff; line-height:1;" onclick="closeDetailView('viewDetailPatientInquiry')">←</button>
@@ -1320,17 +1354,20 @@
             </strong>
             <span style="font-size:10.5px; color:#e0f2fe; font-weight:800; cursor:move;" title="상단 바를 잡고 마우스로 빈 공간 어디든 끌어서 이동할 수 있습니다.">✥ 이동가능</span>
         </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-            <button type="button" style="background:rgba(255,255,255,0.2); color:#ffffff; border:1px solid rgba(255,255,255,0.4); padding:4px 8px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" onclick="renderPatientInquiryList()">🔄 새로고침</button>
+        <div style="display:flex; align-items:center; gap:5px;">
+            <button type="button" style="background:rgba(255,255,255,0.22); color:#ffffff; border:1px solid rgba(255,255,255,0.45); padding:4px 8px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" onclick="goToReservationHQ()" title="당일 예약 명단 및 월별 예약 달력으로 즉시 이동">📅 예약표 보기</button>
+            <button type="button" style="background:rgba(255,255,255,0.22); color:#ffffff; border:1px solid rgba(255,255,255,0.45); padding:4px 8px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" onclick="printInquiryReservations()" title="환자 접수 및 예약 명단을 A4 용지로 인쇄">🖨️ 인쇄</button>
+            <button type="button" style="background:rgba(255,255,255,0.18); color:#ffffff; border:1px solid rgba(255,255,255,0.35); padding:4px 7px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" onclick="renderPatientInquiryList()" title="새로고침">🔄</button>
             <button type="button" class="btn-nav-close" style="color:#ffffff;" onclick="closeDetailView('viewDetailPatientInquiry')">✕</button>
         </div>
     </div>
 
     <!-- 2. 필터 탭 바 -->
-    <div style="background:#ffffff; border-bottom:1px solid #e2e8f0; padding:8px 12px; display:flex; gap:6px; flex-shrink:0;">
+    <div style="background:#ffffff; border-bottom:1px solid #e2e8f0; padding:8px 12px; display:flex; gap:6px; flex-shrink:0; overflow-x:auto;">
         <button type="button" class="bank-chip-btn active" id="btnInqTabAll" onclick="filterPatientInquiryList('all')">전체보기</button>
         <button type="button" class="bank-chip-btn" id="btnInqTabWaiting" onclick="filterPatientInquiryList('waiting')">⏳ 미확인/대기</button>
         <button type="button" class="bank-chip-btn" id="btnInqTabDone" onclick="filterPatientInquiryList('confirmed')">✅ 확인완료</button>
+        <button type="button" class="bank-chip-btn" id="btnInqTabToday" onclick="filterPatientInquiryList('today')">⚡ 오늘 예약만</button>
     </div>
 
     <!-- 3. 환자 접수 및 문의 목록 영역 -->
@@ -1341,7 +1378,80 @@
         <span style="font-size:11.5px; color:#64748b; font-weight:700;">실시간 환자 예약 & QR 접수 내역</span>
         <button type="button" style="background:#0284c7; color:#fff; border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:900; cursor:pointer;" onclick="openModal('modalQuickPatientRegister')">➕ 새 환자 간단접수</button>
     </div>
+    <!-- 우측 하단 크기 조절 손잡이 -->
+    <div class="win-resize-grip" title="마우스로 모서리를 끌어서 크기를 조절하세요">⤡</div>
 </div>
+
+<!-- 🌟 예약 확인 및 맞춤 알림 메시지 발송 모달 -->
+<div class="modal-overlay" id="modalCustomInquiryReply" style="z-index:58000;">
+    <div class="modal-card-large" style="max-width:480px;">
+        <div class="modal-header-row">
+            <strong style="font-size:16.5px; color:#0284c7;">🔔 예약 확인 & 맞춤 알림 발송</strong>
+            <button type="button" class="btn-nav-close" onclick="closeModal('modalCustomInquiryReply')">✕</button>
+        </div>
+        
+        <!-- 환자 기본 정보 박스 -->
+        <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:12px; padding:10px 12px; font-size:13px; color:#334155; display:flex; flex-direction:column; gap:4px;">
+            <div style="display:flex; justify-content:space-between;">
+                <span><b>환자명:</b> <span id="dispReplyPatientName" style="color:#0284c7; font-weight:900;">김*진</span></span>
+                <span><b>연락처:</b> <span id="dispReplyPatientPhone">010-****-1029</span></span>
+            </div>
+            <div><b>희망과목:</b> <span id="dispReplyPatientSubject">보톡스 맞춤 케어</span></div>
+        </div>
+
+        <!-- 예약 일시 확인 및 조정 -->
+        <div>
+            <label style="font-size:12px; font-weight:800; color:#0284c7; display:block; margin-bottom:4px;">확정 예약 일시 (필요시 변경 가능)</label>
+            <div style="display:flex; gap:6px;">
+                <input type="date" id="inpReplyCustomDate" class="m-large-input" style="flex:1;">
+                <select id="inpReplyCustomTime" class="m-large-input" style="flex:1;">
+                    <option value="오전 09:00">오전 09:00</option>
+                    <option value="오전 09:30">오전 09:30</option>
+                    <option value="오전 10:00">오전 10:00</option>
+                    <option value="오전 10:30">오전 10:30</option>
+                    <option value="오전 11:00">오전 11:00</option>
+                    <option value="오전 11:30">오전 11:30</option>
+                    <option value="오후 02:00">오후 02:00</option>
+                    <option value="오후 02:30">오후 02:30</option>
+                    <option value="오후 03:00">오후 03:00</option>
+                    <option value="오후 03:30">오후 03:30</option>
+                    <option value="오후 04:00">오후 04:00</option>
+                    <option value="오후 04:30">오후 04:30</option>
+                    <option value="오후 05:00">오후 05:00</option>
+                    <option value="오후 05:30">오후 05:30</option>
+                    <option value="오후 06:00">오후 06:00</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 빠른 템플릿 추천 버튼들 -->
+        <div>
+            <label style="font-size:12px; font-weight:800; color:#0284c7; display:block; margin-bottom:4px;">알림 문구 템플릿 선택</label>
+            <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                <button type="button" class="bank-chip-btn" onclick="applyReplyTemplate('basic')">⚡ 기본 확인</button>
+                <button type="button" class="bank-chip-btn" onclick="applyReplyTemplate('time_adjust')">⏰ 시간 조정</button>
+                <button type="button" class="bank-chip-btn" onclick="applyReplyTemplate('fasting')">🍽️ 금식 안내</button>
+                <button type="button" class="bank-chip-btn" onclick="applyReplyTemplate('parking')">🚗 주차/위치</button>
+            </div>
+        </div>
+
+        <!-- 메시지 본문 직접 편집 -->
+        <div>
+            <label style="font-size:12px; font-weight:800; color:#0284c7; display:block; margin-bottom:4px;">발송 알림 메시지 내용 (직접 수정 가능)</label>
+            <textarea id="txtReplyCustomMsg" class="m-large-textarea" style="min-height:95px; font-size:13.5px;" placeholder="환자에게 전달할 안내 메시지를 입력하세요..."></textarea>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:4px;">
+            <button type="button" style="flex:1; height:46px; background:#e2e8f0; color:#334155; border:none; border-radius:10px; font-weight:800; cursor:pointer;" onclick="closeModal('modalCustomInquiryReply')">취소</button>
+            <button type="button" style="flex:2; height:46px; background:linear-gradient(135deg, #0284c7, #2563eb); color:#fff; border:none; border-radius:10px; font-weight:950; font-size:14.5px; cursor:pointer; box-shadow:0 3px 10px rgba(2,132,199,0.35);" onclick="submitCustomInquiryReplyAction()">
+                🚀 알림 전송 & 예약 확정
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 🖨️ 인쇄 전용 숨김 컨테이너 -->
+<div id="printReservationContainer" style="display:none;"></div>
 
 <!-- 닥톡 카카오톡 스타일 말풍선 롱프레스 팝업 컨텍스트 메뉴 -->
 <div class="chat-context-overlay" id="modalDocTalkContextMenu" onclick="if(event.target===this) closeDocTalkContextMenu()">
@@ -3604,6 +3714,7 @@ function closeDetailView(id) {
    📋 환자 실시간 접수 & 문의 독립 대시보드 로직
    ========================================== */
 let currentInquiryFilter = "all";
+let currentReplyingResId = null;
 
 function openPatientInquiryWindow() {
     openDetailView("viewDetailPatientInquiry");
@@ -3612,11 +3723,27 @@ function openPatientInquiryWindow() {
 
 function filterPatientInquiryList(mode) {
     currentInquiryFilter = mode;
-    ["all", "waiting", "confirmed"].forEach(k => {
+    ["all", "waiting", "confirmed", "today"].forEach(k => {
         const btn = document.getElementById(`btnInqTab${k.charAt(0).toUpperCase() + k.slice(1)}`);
         if (btn) btn.classList.toggle("active", k === mode);
     });
     renderPatientInquiryList();
+}
+
+function goToReservationHQ() {
+    // 메인 화면 예약 및 확인 탭으로 전환
+    switchDoctorSection("reserve");
+    // 예약본부 펼치기
+    const area = document.getElementById("staffReserveHQArea");
+    const badge = document.getElementById("hqToggleBadge");
+    if (area) {
+        area.style.display = "flex";
+        if (badge) badge.innerText = "접기 ▲";
+        renderReservationCalendar();
+        renderStaffDailyReservations();
+        area.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    showToast("📅 당일 예약 명단 및 월별 예약 달력으로 이동했습니다.");
 }
 
 function renderPatientInquiryList() {
@@ -3632,6 +3759,8 @@ function renderPatientInquiryList() {
         filtered = list.filter(r => r.status !== "확인완료" && r.status !== "진료완료" && r.status !== "답변완료");
     } else if (currentInquiryFilter === "confirmed") {
         filtered = list.filter(r => r.status === "확인완료" || r.status === "진료완료" || r.status === "답변완료");
+    } else if (currentInquiryFilter === "today") {
+        filtered = list.filter(r => r.date === "오늘" || r.date === "2026-10-12" || r.date === selectedCalDate);
     }
 
     if (filtered.length === 0) {
@@ -3646,7 +3775,7 @@ function renderPatientInquiryList() {
             : `<span style="background:#fef3c7; color:#92400e; border:1px solid #fde68a; font-size:11px; font-weight:900; padding:2px 8px; border-radius:6px;">⏳ 대기/미확인</span>`;
 
         return `
-            <div style="background:#ffffff; border:1.5px solid ${isDone ? '#cbd5e1' : '#38bdf8'}; border-radius:14px; padding:12px 14px; box-shadow:0 2px 8px rgba(0,0,0,0.04); display:flex; flex-direction:column; gap:6px;">
+            <div style="background:#ffffff; border:1.5px solid ${isDone ? '#cbd5e1' : '#0284c7'}; border-radius:14px; padding:12px 14px; box-shadow:0 2px 8px rgba(0,0,0,0.04); display:flex; flex-direction:column; gap:6px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <strong style="font-size:15px; color:#0f172a; display:flex; align-items:center; gap:6px;">
                         👤 ${item.name} <small style="color:#64748b; font-weight:normal; font-size:12px;">(${item.phone})</small>
@@ -3654,16 +3783,16 @@ function renderPatientInquiryList() {
                     ${statusBadge}
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:#475569;">
-                    <span>📅 희망일시: <strong style="color:#0284c7;">${item.date || '당일'} ${item.time}</strong></span>
+                    <span>📅 예약일시: <strong style="color:#0284c7;">${item.date || '당일'} ${item.time}</strong></span>
                     <span style="background:#f1f5f9; padding:2px 8px; border-radius:6px; font-weight:800;">${item.subject || '일반진료'}</span>
                 </div>
-                <div style="background:#f8fafc; border-radius:8px; padding:6px 10px; font-size:11.5px; color:#64748b; border:1px solid #f1f5f9;">
+                <div style="background:#f8fafc; border-radius:8px; padding:6px 10px; font-size:11.5px; color:#64748b; border:1px solid #f1f5f9; line-height:1.45;">
                     💬 안내: ${item.replyMsg || '직원 확인 대기 중'}
                 </div>
                 <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:2px;">
                     <a href="tel:${item.phone}" style="background:#f1f5f9; border:1px solid #cbd5e1; color:#334155; text-decoration:none; padding:5px 10px; border-radius:8px; font-size:11.5px; font-weight:900; display:inline-flex; align-items:center; gap:4px;">📞 전화</a>
-                    <button type="button" style="background:${isDone ? '#e2e8f0' : '#0284c7'}; color:${isDone ? '#475569' : '#ffffff'}; border:none; padding:5px 12px; border-radius:8px; font-size:11.5px; font-weight:900; cursor:pointer;" onclick="confirmInquiryReservation(${item.id})">
-                        ${isDone ? '알림 재전송' : '🔔 예약확인 알림'}
+                    <button type="button" style="background:${isDone ? '#e2e8f0' : 'linear-gradient(135deg, #0284c7, #2563eb)'}; color:${isDone ? '#475569' : '#ffffff'}; border:none; padding:5px 12px; border-radius:8px; font-size:11.5px; font-weight:950; cursor:pointer;" onclick="openCustomInquiryReplyModal(${item.id})">
+                        ${isDone ? '✏️ 알림 변경/재전송' : '🔔 예약확인 및 알림작성'}
                     </button>
                     <button type="button" style="background:#fee2e2; border:none; color:#ef4444; padding:5px 10px; border-radius:8px; font-size:11.5px; font-weight:900; cursor:pointer;" onclick="deleteInquiryReservation(${item.id})">🗑️ 취소</button>
                 </div>
@@ -3672,9 +3801,98 @@ function renderPatientInquiryList() {
     }).join("");
 }
 
-function confirmInquiryReservation(id) {
-    confirmStaffRes(id);
+function openCustomInquiryReplyModal(id) {
+    const list = getStaffReservations();
+    const item = list.find(r => r.id === id);
+    if (!item) return;
+
+    currentReplyingResId = id;
+    const savedClinic = localStorage.getItem("yetalkDoctorName") || "예톡아름다운 의원";
+
+    document.getElementById("dispReplyPatientName").innerText = item.name;
+    document.getElementById("dispReplyPatientPhone").innerText = item.phone || "연락처 미등록";
+    document.getElementById("dispReplyPatientSubject").innerText = item.subject || "일반진료";
+
+    const dateEl = document.getElementById("inpReplyCustomDate");
+    const timeEl = document.getElementById("inpReplyCustomTime");
+    const msgEl = document.getElementById("txtReplyCustomMsg");
+
+    if (dateEl) dateEl.value = (item.date && item.date.length === 10) ? item.date : "2026-10-12";
+    if (timeEl && item.time) timeEl.value = item.time;
+
+    // 기본 내용툴 세팅
+    const dParts = (dateEl.value || "2026-10-12").split("-");
+    const mStr = dParts.length === 3 ? `${parseInt(dParts[1])}월 ${parseInt(dParts[2])}일` : dateEl.value;
+    const curTime = timeEl ? timeEl.value : item.time;
+    if (msgEl) {
+        msgEl.value = item.replyMsg && !item.replyMsg.includes("대기 중") 
+            ? item.replyMsg 
+            : `[${savedClinic}] ${item.name}님, ${mStr} ${curTime}에 예약이 정상 확인되었습니다. 내원해 주시기 바랍니다.`;
+    }
+
+    openModal("modalCustomInquiryReply");
+}
+
+function applyReplyTemplate(type) {
+    const list = getStaffReservations();
+    const item = list.find(r => r.id === currentReplyingResId);
+    if (!item) return;
+
+    const savedClinic = localStorage.getItem("yetalkDoctorName") || "예톡아름다운 의원";
+    const dateVal = document.getElementById("inpReplyCustomDate")?.value || "2026-10-12";
+    const timeVal = document.getElementById("inpReplyCustomTime")?.value || item.time || "오전 09:30";
+    const dParts = dateVal.split("-");
+    const mStr = dParts.length === 3 ? `${parseInt(dParts[1])}월 ${parseInt(dParts[2])}일` : dateVal;
+    const msgEl = document.getElementById("txtReplyCustomMsg");
+    if (!msgEl) return;
+
+    if (type === "basic") {
+        msgEl.value = `[${savedClinic}] ${item.name}님, ${mStr} ${timeVal}에 예약이 정상 확인되었습니다. 편안한 마음으로 내원해 주시기 바랍니다.`;
+    } else if (type === "time_adjust") {
+        msgEl.value = `[${savedClinic}] ${item.name}님, 요청하신 예약 시간이 ${mStr} ${timeVal}(으)로 조정 확정되었습니다. 변동 사항이 있으시면 미리 연락 부탁드립니다.`;
+    } else if (type === "fasting") {
+        msgEl.value = `[${savedClinic}] ${item.name}님, ${mStr} ${timeVal} 검진 및 시술을 위해 전날 저녁 9시 이후 금식(물 제외) 후 내원해 주시기 바랍니다.`;
+    } else if (type === "parking") {
+        msgEl.value = `[${savedClinic}] ${item.name}님, ${mStr} ${timeVal} 예약 안내드립니다. 원내 주차장이 혼잡할 수 있으니 10분 전 여유 있게 내원 부탁드립니다.`;
+    }
+}
+
+function submitCustomInquiryReplyAction() {
+    if (!currentReplyingResId) return;
+    const staffList = getStaffReservations();
+    const item = staffList.find(r => r.id === currentReplyingResId);
+    if (!item) return;
+
+    const newDate = document.getElementById("inpReplyCustomDate")?.value || item.date || "2026-10-12";
+    const newTime = document.getElementById("inpReplyCustomTime")?.value || item.time;
+    const newMsg = document.getElementById("txtReplyCustomMsg")?.value.trim();
+
+    item.status = "확인완료";
+    item.date = newDate;
+    item.time = newTime;
+    item.replyMsg = newMsg || `${newDate} ${newTime}에 예약이 정상 확인되었습니다.`;
+
+    saveStaffReservations(staffList);
+
+    // 당일 예약 명단 및 7열 달력, 환자 예약 자동 동기화
+    selectedCalDate = newDate;
+    renderStaffDailyReservations();
+    renderReservationCalendar();
+    renderPatientMyReservation();
     renderPatientInquiryList();
+
+    // 알림 전송 (단골앱/개인앱 연동)
+    if (window.AndroidBridge && window.AndroidBridge.sendNotification) {
+        window.AndroidBridge.sendNotification(item.replyMsg);
+    }
+    try {
+        const notifs = JSON.parse(localStorage.getItem("yetalk_patient_notifications_v3") || "[]");
+        notifs.unshift({ id: Date.now(), text: item.replyMsg, time: "방금 전", read: false });
+        localStorage.setItem("yetalk_patient_notifications_v3", JSON.stringify(notifs.slice(0, 30)));
+    } catch(e) {}
+
+    closeModal("modalCustomInquiryReply");
+    showToast(`🔔 [${item.name}] 님에게 맞춤 알림이 전송되고 당일/월별 예약표에 반영되었습니다!`);
 }
 
 function deleteInquiryReservation(id) {
@@ -3686,6 +3904,65 @@ function deleteInquiryReservation(id) {
     renderReservationCalendar();
     renderPatientInquiryList();
     showToast("🗑️ 환자 접수 내역이 취소/삭제되었습니다.");
+}
+
+function printInquiryReservations() {
+    const list = getStaffReservations();
+    const savedClinic = localStorage.getItem("yetalkDoctorName") || "예톡아름다운 의원";
+    const nowStr = new Date().toLocaleString('ko-KR');
+
+    let printHtml = `
+        <div style="padding:10px; font-family:'Malgun Gothic', sans-serif;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:16px;">
+                <div>
+                    <h1 style="margin:0; font-size:22px; color:#0f172a;">${savedClinic} 환자 접수 및 예약 명단표</h1>
+                    <div style="font-size:12px; color:#64748b; margin-top:4px;">출력 일시: ${nowStr}</div>
+                </div>
+                <div style="font-size:14px; font-weight:bold;">총 건수: ${list.length}명</div>
+            </div>
+            <table style="width:100%; border-collapse:collapse; font-size:12px; text-align:left;">
+                <thead>
+                    <tr style="background:#f1f5f9; border-top:1.5px solid #334155; border-bottom:1.5px solid #334155;">
+                        <th style="padding:8px 6px; border:1px solid #cbd5e1; text-align:center; width:35px;">No</th>
+                        <th style="padding:8px 6px; border:1px solid #cbd5e1; width:70px;">성함</th>
+                        <th style="padding:8px 6px; border:1px solid #cbd5e1; width:100px;">연락처</th>
+                        <th style="padding:8px 6px; border:1px solid #cbd5e1; width:125px;">예약 희망일시</th>
+                        <th style="padding:8px 6px; border:1px solid #cbd5e1; width:95px;">진료/상담 과목</th>
+                        <th style="padding:8px 6px; border:1px solid #cbd5e1; width:75px; text-align:center;">상태</th>
+                        <th style="padding:8px 6px; border:1px solid #cbd5e1;">전송 안내 내용</th>
+                        <th style="padding:8px 6px; border:1px solid #cbd5e1; width:60px; text-align:center;">서명</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${list.map((r, idx) => `
+                        <tr style="border-bottom:1px solid #e2e8f0;">
+                            <td style="padding:7px 6px; border:1px solid #cbd5e1; text-align:center;">${idx + 1}</td>
+                            <td style="padding:7px 6px; border:1px solid #cbd5e1; font-weight:bold;">${r.name}</td>
+                            <td style="padding:7px 6px; border:1px solid #cbd5e1;">${r.phone}</td>
+                            <td style="padding:7px 6px; border:1px solid #cbd5e1; color:#0284c7; font-weight:bold;">${r.date || '당일'} ${r.time}</td>
+                            <td style="padding:7px 6px; border:1px solid #cbd5e1;">${r.subject || '일반진료'}</td>
+                            <td style="padding:7px 6px; border:1px solid #cbd5e1; text-align:center; font-weight:bold; color:${r.status === '확인완료' ? '#166534' : '#b45309'};">${r.status || '대기'}</td>
+                            <td style="padding:7px 6px; border:1px solid #cbd5e1; font-size:11px; color:#475569;">${r.replyMsg || '-'}</td>
+                            <td style="padding:7px 6px; border:1px solid #cbd5e1;"></td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+            <div style="margin-top:20px; font-size:11px; color:#64748b; text-align:right;">
+                * 본 문서는 예톡 병의원 스마트 차트 시스템에서 자동 생성된 예약 명단입니다.
+            </div>
+        </div>
+    `;
+
+    const printContainer = document.getElementById("printReservationContainer");
+    if (printContainer) {
+        printContainer.innerHTML = printHtml;
+        printContainer.style.display = "block";
+        window.print();
+        setTimeout(() => {
+            printContainer.style.display = "none";
+        }, 1000);
+    }
 }
 
 function showToast(msg) {
