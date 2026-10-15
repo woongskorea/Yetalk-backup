@@ -507,6 +507,7 @@
 
 <script>
     // 기본 가맹처 명단 데이터 (업종별)
+    // 기본 가맹처 명단 데이터 (업종별)
     let masterStoresData = {
         church: [
             { name: "예톡행복한교회", url: "churchmain.html", note: "대표 공식 교회" },
@@ -514,20 +515,28 @@
         ],
         clinic: [
             { name: "예톡아름다운의원", url: "doctormain.html", note: "대표 의원 (원장님 직영)" },
-            { name: "아름다운의원", url: "doctormain.html", note: "건강검진 및 진료" }
+            { name: "예톡 스마트치과", url: "dentalmain.html", note: "첨단 임플란트 및 교정 전문" },
+            { name: "예톡 자연한의원", url: "orientalmain.html", note: "체질 맞춤 한방 진료" }
         ],
         store: [
-            { name: "부산밀면가", url: "shopmain.html", note: "전통 방식 사골 육수 (대표 상점)" },
-            { name: "서초정성묵집", url: "shopmain.html", note: "국내산 묵 요리 전문" }
+            { name: "1인 개인 스마트홈", url: "onemain.html", note: "1인 크리에이터 및 프리랜서 맞춤홈" },
+            { name: "소상공인 나눔마켓", url: "marketmain.html", note: "착한 소비 & 동네 장터 마켓" },
+            { name: "부산밀면가", url: "foodmain.html", note: "전통 방식 사골 육수 (식당/외식)" }
         ]
     };
 
-    // 총관리자가 자유롭게 전환하며 운영할 수 있는 사업장 목록 (무제한)
-    let adminOwnedChannels = [
-        { name: "예톡아름다운의원", url: "doctormain.html", label: "🏥 예톡아름다운의원 (의원)" },
-        { name: "예톡행복한교회", url: "churchmain.html", label: "⛪ 예톡행복한교회 (교회)" },
-        { name: "부산밀면가", url: "shopmain.html", label: "🍽️ 부산밀면가 (상점/식당)" }
+    // 총관리자가 자유롭게 전환하며 운영할 수 있는 사업장 목록 (보유 7개 전용 앱 기본 등록)
+    const DEFAULT_OWNED_CHANNELS = [
+        { name: "예톡행복한교회", url: "churchmain.html", label: "⛪ 예톡행복한교회 (교회/비영리)" },
+        { name: "예톡아름다운의원", url: "doctormain.html", label: "🏥 예톡아름다운의원 (의원/병원)" },
+        { name: "예톡 스마트치과", url: "dentalmain.html", label: "🦷 예톡 스마트치과 (치과의원)" },
+        { name: "예톡 자연한의원", url: "orientalmain.html", label: "🌿 예톡 자연한의원 (한의원)" },
+        { name: "1인 개인 스마트홈", url: "onemain.html", label: "👤 1인 개인 스마트홈 (개인/크리에이터)" },
+        { name: "소상공인 나눔마켓", url: "marketmain.html", label: "🛍️ 소상공인 나눔마켓 (마켓/상점)" },
+        { name: "부산밀면가", url: "foodmain.html", label: "🍽️ 부산밀면가 (음식점/식당)" }
     ];
+
+    let adminOwnedChannels = [...DEFAULT_OWNED_CHANNELS];
 
     document.addEventListener("DOMContentLoaded", () => {
         let masterName = localStorage.getItem("yetalkUserName") || "김예톡";
@@ -547,10 +556,20 @@
         const masterNameEl = document.getElementById("adminMasterNameText");
         if (masterNameEl) masterNameEl.innerText = `${masterName} 원장님`;
 
-        // 저장된 채널 목록 불러오기
+        // 저장된 채널 목록 불러오기 및 기본 7개 앱과 병합 (누락 방지)
         const savedChannels = localStorage.getItem("yetalkOwnedChannels");
         if (savedChannels) {
-            try { adminOwnedChannels = JSON.parse(savedChannels); } catch(e) {}
+            try {
+                const parsed = JSON.parse(savedChannels);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    DEFAULT_OWNED_CHANNELS.forEach(def => {
+                        if (!parsed.some(p => p.name === def.name)) {
+                            parsed.push(def);
+                        }
+                    });
+                    adminOwnedChannels = parsed;
+                }
+            } catch(e) {}
         }
 
         // 저장된 상점 명단 불러오기
@@ -589,7 +608,7 @@
         const select = document.getElementById("masterCurrentChannelSelect");
         if (!select) return;
 
-        const currentActiveBiz = localStorage.getItem("yetalkUserStoreName") || "부산밀면가";
+        const currentActiveBiz = localStorage.getItem("yetalkUserStoreName") || localStorage.getItem("yetalkSelectedBizApp") || "예톡행복한교회";
         select.innerHTML = "";
 
         adminOwnedChannels.forEach(ch => {
@@ -607,10 +626,11 @@
         const selectedCh = adminOwnedChannels.find(c => c.name === selectedBizName) || adminOwnedChannels[0];
         localStorage.setItem("yetalkUserStoreName", selectedCh.name);
         localStorage.setItem("yetalkBizName", selectedCh.name);
+        localStorage.setItem("yetalkSelectedBizApp", selectedCh.name);
         localStorage.setItem("yetalkMyBizAppUrl", selectedCh.url);
         localStorage.setItem("yetalkSelectedMainAppUrl", selectedCh.url);
         renderChannelSelect();
-        alert(`🎉 메인홈 연결 앱이 [${selectedCh.name}] (으)로 변경되었습니다!\n예톡 메인 우측 하단 버튼을 누르면 해당 앱으로 바로 이동합니다.`);
+        alert(`🎉 메인홈 연결 앱이 [${selectedCh.name}] (으)로 변경되었습니다!\n스마트폰 및 PC 메인화면 좌측 하단의 전문앱 올린이 카드와 바로가기가 [${selectedCh.name}] 으로 즉시 연동됩니다.`);
     }
 
     // 🌟 [핵심] 총관리자 무제한 새 사업장 오픈 (shopmain.html 기본 연동)
@@ -667,19 +687,74 @@
         alert("📢 메인 상단 공지글이 즉시 반영되었습니다!");
     }
 
+    function extractYouTubeIdAdmin(input) {
+        if (!input) return "";
+        let str = input.trim();
+        if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return str;
+        let m = str.match(/shorts\/([a-zA-Z0-9_-]{11})/i);
+        if (m && m[1]) return m[1];
+        m = str.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
+        if (m && m[1]) return m[1];
+        m = str.match(/[?&]v=([a-zA-Z0-9_-]{11})/i);
+        if (m && m[1]) return m[1];
+        m = str.match(/live\/([a-zA-Z0-9_-]{11})/i);
+        if (m && m[1]) return m[1];
+        m = str.match(/embed\/([a-zA-Z0-9_-]{11})/i);
+        if (m && m[1]) return m[1];
+        return "";
+    }
+
     function pinYoutubeFeedTop() {
         let rawUrl = document.getElementById("targetYoutubeIdInput").value.trim();
-        const biz = document.getElementById("targetBizNameInput").value.trim() || "대표 추천";
-        if (!rawUrl) { alert("유튜브 주소나 영상 ID를 입력하세요."); return; }
+        const biz = document.getElementById("targetBizNameInput").value.trim() || localStorage.getItem("yetalkUserStoreName") || "대표 추천";
+        if (!rawUrl) { alert("유튜브 링크 또는 영상 ID를 입력해 주세요."); return; }
 
-        let videoId = rawUrl;
-        if (rawUrl.includes("v=")) { videoId = rawUrl.split("v=")[1].split("&")[0]; }
-        else if (rawUrl.includes("youtu.be/")) { videoId = rawUrl.split("youtu.be/")[1].split("?")[0]; }
-        else if (rawUrl.includes("shorts/")) { videoId = rawUrl.split("shorts/")[1].split("?")[0]; }
+        const videoId = extractYouTubeIdAdmin(rawUrl);
+        if (!videoId || videoId.length !== 11) {
+            alert("유효한 유튜브 영상 링크나 ID를 확인하지 못했습니다.\n입력값: " + rawUrl);
+            return;
+        }
 
+        // 1. 대표 꽂기 ID 저장
         localStorage.setItem("yetalkPinnedVideoId", videoId);
         localStorage.setItem("yetalkPinnedBizName", biz);
-        alert(`🎬 [${biz}] 영상이 예톡 1번 메인 쇼츠로 꽂혔습니다!`);
+
+        // 2. 커스텀 피드 목록 최상단에도 추가하여 index.html에서 항상 1번으로 로드되도록 보장
+        let savedList = [];
+        try { savedList = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]"); } catch(e){}
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+
+        const existingIdx = savedList.findIndex(f => f.videoId === videoId);
+        if (existingIdx >= 0) {
+            const [item] = savedList.splice(existingIdx, 1);
+            item.bizName = biz;
+            savedList.unshift(item);
+        } else {
+            savedList.unshift({
+                id: Date.now(),
+                videoId: videoId,
+                title: `${biz} 특별 대표 영상`,
+                date: dateStr,
+                timestamp: Date.now(),
+                bizName: biz,
+                shortAd: "관리자 지정 1번 특별 대표 영상",
+                targetUrl: localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html",
+                views: 520,
+                likes: 88,
+                format: 'shorts',
+                region: "전국",
+                isUploadedByMe: true
+            });
+        }
+        localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(savedList));
+
+        // 3. 숨김 해제
+        let hiddenIds = JSON.parse(localStorage.getItem("yetalkHiddenFeedIds") || "[]");
+        hiddenIds = hiddenIds.filter(id => String(id) !== String(videoId));
+        localStorage.setItem("yetalkHiddenFeedIds", JSON.stringify(hiddenIds));
+
+        alert(`🎬 [${biz}] 영상이 예톡 1번 대표 영상으로 즉시 꽂혔습니다!\n메인 화면으로 이동하시면 1번 최우선으로 재생됩니다.`);
     }
 
     function saveVideoTopAd() {

@@ -135,18 +135,21 @@
         .video-poster-bg {
             position: absolute; inset: 0; width: 100%; height: 100%;
             background-size: cover; background-position: center;
-            filter: blur(0.5px); z-index: 1; transition: opacity 0.3s ease;
+            filter: blur(0.5px); z-index: 1; transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            transform: scale(var(--user-zoom, 1));
+            transform-origin: center center;
         }
         .video-poster-bg.loaded { opacity: 0; pointer-events: none; }
 
         .yt-player-frame-box {
             position: absolute; top: 50%; left: 50%;
             width: 100vw; height: 100dvh;
-            transform: translate(-50%, -50%) scale(1.36);
+            transform: translate(-50%, -50%) scale(calc(1.36 * var(--user-zoom, 1)));
             transform-origin: center center;
             pointer-events: none;
             filter: contrast(1.04) brightness(1.02);
             z-index: 2;
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         }
         .yt-player-frame-box iframe {
             width: 100%; height: 100%; border: none;
@@ -342,7 +345,40 @@
             text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         }
 
-        /* 5. 우측 하단 상시 고정 버튼 */
+        /* 5. 우측 하단 상시 확대 및 고정 버튼 */
+        .permanent-zoom-btn {
+            position: absolute;
+            right: 78px;
+            bottom: max(env(safe-area-inset-bottom, 0px) + 172px, 178px);
+            z-index: 9997;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1.5px solid #38bdf8;
+            color: #38bdf8;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 900;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.7);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .permanent-zoom-btn:hover {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #ffffff;
+        }
+        .permanent-zoom-btn.zoomed {
+            background: linear-gradient(135deg, #0284c7, #2563eb) !important;
+            color: #ffffff !important;
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 14px rgba(56, 189, 248, 0.8) !important;
+        }
+
         .permanent-lock-btn {
             position: absolute;
             right: 78px;
@@ -494,18 +530,18 @@
                 flex-direction: row;
                 align-items: center;
                 justify-content: center;
-                gap: 28px;
+                gap: 20px;
                 width: 100%;
-                max-width: 1360px;
+                max-width: 1560px;
                 height: calc(100vh - 40px);
                 margin: 0 auto;
-                padding: 0 20px;
+                padding: 0 16px;
                 box-sizing: border-box;
             }
             .pc-desktop-left-panel {
                 display: flex !important;
                 flex-direction: column;
-                width: 320px;
+                width: 290px;
                 height: 100%;
                 max-height: 880px;
                 background: rgba(15, 23, 42, 0.92);
@@ -513,15 +549,15 @@
                 border-radius: 24px;
                 backdrop-filter: blur(16px);
                 box-shadow: 0 20px 45px rgba(0,0,0,0.6);
-                padding: 22px 18px;
+                padding: 18px 16px;
                 box-sizing: border-box;
                 overflow-y: auto;
-                gap: 16px;
+                gap: 14px;
                 flex-shrink: 0;
             }
             .main-container {
-                width: 440px !important;
-                max-width: 440px !important;
+                width: 660px !important; /* 🌟 440px에서 가로 1.5배 확대! 시원한 와이드 영상 */
+                max-width: 660px !important;
                 height: 100% !important;
                 max-height: 880px !important;
                 border-radius: 28px !important;
@@ -533,7 +569,7 @@
             .pc-desktop-right-panel {
                 display: flex !important;
                 flex-direction: column;
-                width: 380px;
+                width: 400px;
                 height: 100%;
                 max-height: 880px;
                 background: rgba(15, 23, 42, 0.94);
@@ -939,6 +975,24 @@
                 transform: scale(0.95);
             }
 
+            .btn-filter-pill {
+                background: #1e293b;
+                border: 1px solid #334155;
+                color: #94a3b8;
+                padding: 3px 8px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 800;
+                cursor: pointer;
+                transition: all 0.15s ease;
+            }
+            .btn-filter-pill:hover,
+            .btn-filter-pill.active {
+                background: #0284c7;
+                border-color: #38bdf8;
+                color: #ffffff;
+            }
+
             /* 애드센스 카드 */
             .pc-web-adsense-card {
                 background: #080d1a;
@@ -1035,6 +1089,26 @@
             </button>
         </div>
 
+        <!-- 🌟 관리자(나)의 관리창 바로가기 카드 -->
+        <div style="background:linear-gradient(135deg, #1e293b, #0f172a); border:1.5px solid #f59e0b; border-radius:14px; padding:11px 12px; display:flex; flex-direction:column; gap:7px; box-shadow:0 4px 15px rgba(245,158,11,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:16px;">👑</span>
+                    <strong style="color:#fde047; font-size:12.5px; font-weight:950;">총관리자(나) 제어창</strong>
+                </div>
+                <button type="button" onclick="location.href='admin.html'" style="padding:2px 8px; background:#f59e0b; color:#0f172a; border:none; border-radius:6px; font-size:10.5px; font-weight:900; cursor:pointer;">
+                    열기 ➔
+                </button>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; font-size:11px; background:rgba(0,0,0,0.4); padding:5px 8px; border-radius:6px;">
+                <span style="color:#94a3b8;">현재 연결 앱:</span>
+                <strong style="color:#38bdf8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:140px;" id="pcAdminCurrentAppText">예톡행복한교회</strong>
+            </div>
+            <button type="button" onclick="location.href='admin.html'" class="btn-pc-quick-action" style="background:linear-gradient(135deg, #d97706, #b45309); font-size:11.5px; padding:6px; margin:0;">
+                <span>⚙️ 관리자 대시보드 제어</span>
+            </button>
+        </div>
+
         <div class="pc-side-menu-group" style="margin-top:auto;">
             <span class="pc-side-group-title">⚡ 퀵 액션</span>
             <div style="display:flex; flex-direction:column; gap:6px;">
@@ -1042,7 +1116,7 @@
                     <span>📱 나만의 전문앱 만들기</span>
                 </button>
                 <button type="button" class="btn-pc-quick-action" style="background:linear-gradient(135deg, #0284c7, #2563eb);" onclick="openStudioModal()">
-                    <span>🎥 쇼츠 영상 올리기</span>
+                    <span>🎥 영상 올리기</span>
                 </button>
                 <button type="button" class="btn-pc-quick-action" style="background:#1e293b; border:1px solid #475569;" onclick="openProfileModal()">
                     <span>✨ 무료 회원가입 / 로그인</span>
@@ -1111,7 +1185,11 @@
         </div>
     </div>
 
-    <!-- 4. 우측 하단 상시 고정 버튼 -->
+    <!-- 4. 우측 하단 상시 확대 & 고정 버튼 -->
+    <button type="button" class="permanent-zoom-btn" id="btnPermanentZoom" onclick="cycleVideoZoomLevel()" title="화면 확대 (100% / 150% / 200%)">
+        <span id="zoomIconSpan">🔍</span>
+        <span id="zoomTextSpan">100%</span>
+    </button>
     <button type="button" class="permanent-lock-btn" id="btnPermanentLock" onclick="toggleScreenLockMode()">
         <span id="lockIconSpan">🔒</span>
         <span id="lockTextSpan">고정</span>
@@ -1345,53 +1423,68 @@
         </div>
     </div>
 
-    <!-- 3. 나의 영상 등록 모달 -->
+    <!-- 3. 나의 영상 올리기 모달 -->
     <div class="modal-overlay" id="studioModal" onclick="closeModal('studioModal')">
-        <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-card" style="max-height:88vh; overflow-y:auto;" onclick="event.stopPropagation()">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:6px;">
-                <strong style="color:#38bdf8; font-size:16px;">🎬 나의 영상 등록</strong>
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:20px;">🎬</span>
+                    <strong style="color:#38bdf8; font-size:16px;">영상 올리기 (쇼츠 & 롱폼)</strong>
+                </div>
                 <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('studioModal')">✕</button>
             </div>
-            <div style="font-size:12.5px; color:#cbd5e1; line-height:1.4;">
-                쇼츠, 롱폼, 모바일 공유링크(?si= 포함), 라이브 등 모든 유튜브 주소를 붙여넣으세요.
-            </div>
-            <input type="text" id="ytInpTitle" class="modal-input" placeholder="영상 제목 (예: 예톡행복한교회 주일예배, 부산밀면 소개)">
-            <input type="text" id="ytInpUrl" class="modal-input" placeholder="유튜브 링크를 붙여넣으세요">
-
-            <div style="background:rgba(2, 132, 199, 0.15); border:1.2px dashed #38bdf8; border-radius:8px; padding:9px 10px; text-align:left; line-height:1.45;">
-                <div style="color:#fde047; font-size:12px; font-weight:950; margin-bottom:2px;">📢 영상 등록 혜택 안내</div>
-                <div style="color:#f1f5f9; font-size:11.5px; font-weight:700;">
-                    등록하신 영상 밑에 <span style="color:#38bdf8; text-decoration:underline;">본인의 비즈니스 앱이 함께 소개</span>됩니다!
-                </div>
+            <div style="font-size:12px; color:#cbd5e1; line-height:1.4;">
+                쇼츠, 롱폼, 라이브, 모바일 공유링크(?si= 포함) 등 모든 유튜브 영상이 올라갑니다.
             </div>
 
-            <button type="button" onclick="submitNewYoutubeVideo()" class="btn-submit-action">
-                영상 등록 완료 (즉시 1번 재생)
+            <!-- 🌟 [사용자 요청] 스마트폰 자판이 올라와도 즉시 누를 수 있도록 등록 버튼을 상단에 시원하게 배치 -->
+            <button type="button" onclick="submitNewYoutubeVideo()" class="btn-submit-action" style="height:44px; margin:2px 0 6px 0; font-size:14.5px; background:linear-gradient(135deg, #0284c7, #2563eb); box-shadow:0 4px 15px rgba(2,132,199,0.5);">
+                ✨ 영상 등록 완료 (즉시 1번 재생)
             </button>
 
-            <!-- 하단 애드몹 100 공식 스폰서 슬롯 (320 × 100) -->
-            <div class="modal-admob-100-slot" style="margin-top:6px; background:#0b1326; border:1.2px solid #1e3a5f; border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:4px; box-shadow:inset 0 0 10px rgba(0,0,0,0.6);">
-                <div style="font-size:10px; color:#94a3b8; font-weight:800; display:flex; align-items:center; gap:4px;">
-                    <span style="background:#475569; color:#fff; padding:1px 5px; border-radius:3px; font-size:9.5px; font-weight:900;">AD</span>
-                    <span>Google AdMob 공식 스폰서 슬롯 (320 × 100)</span>
-                </div>
-                <strong style="color:#38bdf8; font-size:13.5px; font-weight:950; letter-spacing:-0.2px;">Google AdMob Large Banner</strong>
-                <span style="color:#facc15; font-size:11px; font-weight:800;">대한민국 소상공인 · 목회자 공식 지원 스폰서</span>
+            <!-- 1. 유튜브 링크 주소 (제일 위) -->
+            <div class="form-group-line">
+                <label class="form-label-title" style="color:#38bdf8; font-weight:900;">1. 유튜브 링크 주소 (필수)</label>
+                <input type="text" id="ytInpUrl" class="modal-input" placeholder="유튜브 링크를 붙여넣으세요 (쇼츠, 롱폼, 라이브)">
             </div>
 
-            <!-- 🌟 [사용자 요청] 맨 밑 <내가 올린 영상> 관리 토글 버튼 (누르면 열림) -->
-            <button type="button" id="btnToggleMyVideos" class="btn-toggle-my-videos" onclick="toggleMyUploadedVideosList()" style="width:100%; margin-top:8px; padding:10px 14px; background:linear-gradient(135deg, #1e293b, #0f172a); border:1.5px solid #38bdf8; border-radius:10px; color:#38bdf8; font-size:13.5px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:space-between; box-shadow:0 3px 10px rgba(0,0,0,0.5);">
-                <span style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:16px;">📂</span>
-                    <span>&lt;내가 올린 영상&gt;</span>
-                    <span id="myVideoCountBadge" style="background:#0284c7; color:#ffffff; font-size:11px; padding:2px 7px; border-radius:10px; font-weight:800;">0개</span>
-                </span>
-                <span id="myVideosArrowText" style="font-size:12px; color:#94a3b8; font-weight:800;">▼ 누르면 보기</span>
-            </button>
+            <!-- 2. 한줄 소개글 / 내용 -->
+            <div class="form-group-line">
+                <label class="form-label-title" style="color:#facc15; font-weight:900;">2. 전문앱 주인이 한줄로 적고 싶은 소개글 / 내용 (자유 입력)</label>
+                <input type="text" id="ytInpTitle" class="modal-input" placeholder="영상 소개글이나 응원 문구를 적어주세요 (예: 가을 부흥성회 은혜 나눔)">
+            </div>
 
-            <!-- <내가 올린 영상> 관리 목록 컨테이너 (기본 접힘, 버튼 누르면 열림) -->
-            <div id="myUploadedVideosContainer" style="display:none; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto; margin-top:6px; padding:8px; background:#080d1a; border-radius:10px; border:1px solid #1e3a5f;">
-                <!-- JS 동적 렌더링 -->
+            <!-- 3. 영상에 연동될 전문앱 선택 -->
+            <div class="form-group-line">
+                <label class="form-label-title" style="color:#4ade80; font-weight:900;">3. 영상에 소개될 나의 전문앱 선택 (스마트폰 좌측 하단에 노출)</label>
+                <select id="ytInpBizSelect" class="modal-input" style="background:#1e293b; color:#ffffff; font-weight:800; cursor:pointer; padding:8px 10px;"></select>
+            </div>
+
+            <!-- 전체 1번 최신 대표 고정 옵션 -->
+            <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#fde047; font-weight:800; margin:2px 0 8px 0; cursor:pointer;">
+                <input type="checkbox" id="chkPinAsTopVideo" checked style="width:16px; height:16px; accent-color:#0284c7;">
+                <span>★ 이 영상을 전체 1번 최신 대표 영상으로 즉시 올리기</span>
+            </label>
+
+            <!-- 🌟 [사용자 요청] <내가 올린 영상> 강조 및 밑으로 기본 펼침 나열 (1주일 / 1달 필터 지원) -->
+            <div style="margin-top:12px; border-top:1.5px solid #334155; padding-top:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:16px;">📂</span>
+                        <strong style="color:#38bdf8; font-size:13.5px;">내가 올린 영상 목록</strong>
+                        <span id="myVideoCountBadge" style="background:#0284c7; color:#ffffff; font-size:11px; padding:2px 7px; border-radius:10px; font-weight:900;">0개</span>
+                    </div>
+                    <div style="display:flex; gap:4px;">
+                        <button type="button" class="btn-filter-pill active" id="btnFilterAll" onclick="filterMyUploadedVideos('all')">전체</button>
+                        <button type="button" class="btn-filter-pill" id="btnFilterWeek" onclick="filterMyUploadedVideos('week')">1주일</button>
+                        <button type="button" class="btn-filter-pill" id="btnFilterMonth" onclick="filterMyUploadedVideos('month')">1달</button>
+                    </div>
+                </div>
+
+                <!-- 기본 펼침 목록 컨테이너 -->
+                <div id="myUploadedVideosContainer" style="display:flex; flex-direction:column; gap:8px; max-height:250px; overflow-y:auto; padding:6px; background:#080d1a; border-radius:10px; border:1px solid #1e3a5f;">
+                    <!-- JS 동적 렌더링 -->
+                </div>
             </div>
         </div>
     </div>
@@ -1587,14 +1680,63 @@
         let sampleList = INITIAL_SAMPLE_FEEDS.filter(s => !customIds.has(s.id));
         let list = [...customList, ...sampleList];
 
-        // 임베드 차단(Error 150/153) 발생했던 과거 레거시 ID 안전 교체
+        // 🌟 사용자가 관리자 모드 또는 설정에서 선택한 활성 앱 명칭 자동 반영
+        const currentActiveBiz = localStorage.getItem("yetalkUserStoreName") || "예톡행복한교회";
+        const currentActiveUrl = localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html";
+
         list.forEach(f => {
+            // 과거 '예톡새영상'으로 저장되었거나 내가 올린 영상인 경우 현재 활성 앱으로 자동 동기화!
+            if (f.bizName === "예톡새영상" || !f.bizName) {
+                f.bizName = currentActiveBiz;
+                f.targetUrl = currentActiveUrl;
+            }
             if (f.videoId === "M7lc1UVf-VE" || f.videoId === "jfKfPfyJRdk") {
                 f.videoId = "3JZ_D3ELwOQ";
             }
         });
+
+        // 🌟 1번 최신 대표 꽂기 영상이 설정되어 있는 경우 최우선 배치
+        const pinnedVideoId = localStorage.getItem("yetalkPinnedVideoId");
+        if (pinnedVideoId) {
+            const pinIdx = list.findIndex(f => f.videoId === pinnedVideoId);
+            if (pinIdx > 0) {
+                const [pinnedItem] = list.splice(pinIdx, 1);
+                list.unshift(pinnedItem);
+            }
+        }
+
         const hiddenIds = JSON.parse(localStorage.getItem("yetalkHiddenFeedIds") || "[]");
         return list.filter(f => !hiddenIds.includes(f.id));
+    }
+
+    /* 🌟 [사용자 요청] 화면 100% ➔ 150% ➔ 200% 순환 확대 기능 (스마트폰 & PC 모두 지원) */
+    let currentZoomLevel = 100; // 100 | 150 | 200
+
+    function cycleVideoZoomLevel() {
+        if (currentZoomLevel === 100) currentZoomLevel = 150;
+        else if (currentZoomLevel === 150) currentZoomLevel = 200;
+        else currentZoomLevel = 100;
+
+        applyVideoZoom(currentZoomLevel);
+        try { localStorage.setItem("yetalkVideoZoomLevel", currentZoomLevel); } catch(e){}
+        if (currentZoomLevel === 100) {
+            showToast("🔍 기본 화면 (100%)");
+        } else if (currentZoomLevel === 150) {
+            showToast("🔍 화면 1.5배 확대 (150%)");
+        } else {
+            showToast("🔍 화면 2배 풀확대 (200%)");
+        }
+    }
+
+    function applyVideoZoom(level) {
+        currentZoomLevel = level;
+        const textEl = document.getElementById("zoomTextSpan");
+        const btn = document.getElementById("btnPermanentZoom");
+        if (textEl) textEl.innerText = `${level}%`;
+        if (btn) btn.classList.toggle("zoomed", level > 100);
+
+        const zoomRatio = level / 100;
+        document.documentElement.style.setProperty('--user-zoom', zoomRatio);
     }
 
     let currentFeedIndex = 0;
@@ -2161,19 +2303,34 @@
 
     function updateBottomInfo(feed) {
         if (!feed) return;
-        const bizName = feed.bizName || localStorage.getItem("yetalkUserStoreName") || "예톡 아름다운의원";
-        const shortAd = feed.shortAd || "환절기 피부 맞춤 클리닉";
+        const activeBiz = localStorage.getItem("yetalkUserStoreName") || "예톡행복한교회";
+        let bizName = feed.bizName;
+        if (feed.isUploadedByMe || bizName === "예톡새영상" || !bizName) {
+            bizName = activeBiz;
+        }
+        const shortAd = feed.shortAd || feed.title || "언제나 건강과 행복을 응원합니다";
 
-        document.getElementById("whiteBizLinkText").innerText = `@${bizName}`;
-        document.getElementById("whiteBizAdText").innerText = shortAd;
+        const linkEl = document.getElementById("whiteBizLinkText");
+        const adEl = document.getElementById("whiteBizAdText");
+        if (linkEl) linkEl.innerText = `@${bizName}`;
+        if (adEl) adEl.innerText = shortAd;
         document.getElementById("feedViewCount").innerText = Number(feed.views || 838).toLocaleString();
         document.getElementById("feedLikeCount").innerText = Number(feed.likes || 146).toLocaleString();
+
+        // 🌟 PC 데스크톱 좌측 패널 관리자 연결 앱 텍스트 동기화
+        const pcAdminAppText = document.getElementById("pcAdminCurrentAppText");
+        if (pcAdminAppText) pcAdminAppText.innerText = activeBiz;
     }
 
     function goToCurrentBizApp() {
         const feeds = loadSavedFeeds();
         const curFeed = feeds[currentFeedIndex] || feeds[0];
-        window.location.href = curFeed.targetUrl || "onemain.html";
+        const activeUrl = localStorage.getItem("yetalkMyBizAppUrl");
+        if (curFeed.isUploadedByMe && activeUrl) {
+            window.location.href = activeUrl;
+        } else {
+            window.location.href = curFeed.targetUrl || activeUrl || "churchmain.html";
+        }
     }
 
     function openMyAppChoiceModal() {
@@ -2289,9 +2446,43 @@
         }, 800);
     }
 
+    /* 🌟 영상 등록에 연동할 보유 전문앱 드롭다운 옵션 갱신 */
+    function populateModalBizSelect() {
+        const sel = document.getElementById("ytInpBizSelect");
+        if (!sel) return;
+
+        const baseApps = [
+            { name: "예톡행복한교회", url: "churchmain.html" },
+            { name: "예톡 아름다운의원", url: "doctormain.html" },
+            { name: "예톡 스마트치과", url: "dentalmain.html" },
+            { name: "예톡 자연한의원", url: "orientalmain.html" },
+            { name: "1인 개인 스마트홈", url: "onemain.html" },
+            { name: "소상공인 나눔마켓", url: "marketmain.html" },
+            { name: "예톡 밀면가 (부산밀면)", url: "foodmain.html" }
+        ];
+
+        // 사용자가 직접 만든 커스텀 앱이 있다면 포함
+        const customStore = localStorage.getItem("yetalkUserStoreName");
+        const customUrl = localStorage.getItem("yetalkMyBizAppUrl");
+        if (customStore && !baseApps.some(a => a.name === customStore)) {
+            baseApps.unshift({ name: customStore, url: customUrl || "onemain.html" });
+        }
+
+        const currentActive = localStorage.getItem("yetalkUserStoreName") || localStorage.getItem("yetalkSelectedBizApp") || "예톡행복한교회";
+
+        sel.innerHTML = baseApps.map(app => {
+            const isSelected = (app.name === currentActive) ? "selected" : "";
+            const val = JSON.stringify({ name: app.name, url: app.url });
+            return `<option value='${val.replace(/'/g, "&#39;")}' ${isSelected}>${app.name} (${app.url})</option>`;
+        }).join("");
+    }
+
     function submitNewYoutubeVideo() {
         const input = document.getElementById("ytInpUrl");
         const titleInp = document.getElementById("ytInpTitle");
+        const bizSel = document.getElementById("ytInpBizSelect");
+        const chkPin = document.getElementById("chkPinAsTopVideo");
+
         const url = input.value.trim();
         if (!url) { alert("유튜브 링크를 입력해 주세요."); input.focus(); return; }
 
@@ -2301,15 +2492,31 @@
             return;
         }
 
+        let chosenBiz = "예톡행복한교회";
+        let chosenUrl = "churchmain.html";
+        if (bizSel && bizSel.value) {
+            try {
+                const parsed = JSON.parse(bizSel.value);
+                chosenBiz = parsed.name || chosenBiz;
+                chosenUrl = parsed.url || chosenUrl;
+            } catch(e) {
+                if (bizSel.value) chosenBiz = bizSel.value;
+            }
+        }
+
+        // 선택한 앱을 현재 활성 앱으로 전면 동기화 (스마트폰 좌측 하단 카드도 즉시 반영)
+        localStorage.setItem("yetalkUserStoreName", chosenBiz);
+        localStorage.setItem("yetalkMyBizAppUrl", chosenUrl);
+        localStorage.setItem("yetalkSelectedBizApp", chosenBiz);
+
         let savedList = [];
         try {
             savedList = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]");
         } catch(e) { savedList = []; }
 
         const isShorts = url.toLowerCase().includes("shorts");
-        const myStore = localStorage.getItem("yetalkUserStoreName") || "예톡새영상";
         const myRegion = localStorage.getItem("yetalkUserRegion") || "전국";
-        const title = (titleInp && titleInp.value.trim()) ? titleInp.value.trim() : `${myStore} 영상`;
+        const title = (titleInp && titleInp.value.trim()) ? titleInp.value.trim() : `${chosenBiz} 새영상`;
 
         const now = new Date();
         const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
@@ -2319,15 +2526,22 @@
             videoId: videoId,
             title: title,
             date: dateStr,
-            bizName: myStore,
+            timestamp: Date.now(),
+            bizName: chosenBiz,
             shortAd: "언제나 건강과 행복을 응원합니다",
-            targetUrl: localStorage.getItem("yetalkMyBizAppUrl") || "onemain.html",
+            targetUrl: chosenUrl,
             views: 101,
             likes: 3,
             format: isShorts ? 'shorts' : '16:9',
             region: myRegion,
             isUploadedByMe: true
         };
+
+        // 1번 최신 대표 꽂기 체크 시
+        if (!chkPin || chkPin.checked) {
+            localStorage.setItem("yetalkPinnedVideoId", videoId);
+            localStorage.setItem("yetalkPinnedBizName", chosenBiz);
+        }
 
         savedList.unshift(newFeed);
         localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(savedList));
@@ -2339,7 +2553,7 @@
         input.value = "";
         if (titleInp) titleInp.value = "";
         closeModal('studioModal');
-        showToast("🎉 영상이 1번 최신 영상으로 등록되었습니다!");
+        showToast(`🎉 [${chosenBiz}] 영상이 등록되었습니다!`);
         resetToFirstHomeScreen(true);
     }
 
@@ -2368,6 +2582,12 @@
         customFeeds = customFeeds.filter(f => String(f.id) !== String(curFeed.id));
         localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(customFeeds));
 
+        // 고정 대표 영상 해제
+        if (localStorage.getItem("yetalkPinnedVideoId") === curFeed.videoId) {
+            localStorage.removeItem("yetalkPinnedVideoId");
+            localStorage.removeItem("yetalkPinnedBizName");
+        }
+
         // 3. 숨김 목록에도 등록 (기본 영상인 경우)
         let hiddenIds = JSON.parse(localStorage.getItem("yetalkHiddenFeedIds") || "[]");
         if (!hiddenIds.includes(curFeed.id)) {
@@ -2380,26 +2600,35 @@
     }
 
     function openStudioModal() {
-        document.getElementById("ytInpUrl").value = "";
-        if (document.getElementById("ytInpTitle")) document.getElementById("ytInpTitle").value = "";
-        renderMyUploadedVideosList();
+        const urlInp = document.getElementById("ytInpUrl");
+        const titleInp = document.getElementById("ytInpTitle");
+        if (urlInp) urlInp.value = "";
+        if (titleInp) titleInp.value = "";
+        populateModalBizSelect();
+        filterMyUploadedVideos('all');
         openModal('studioModal');
     }
 
-    /* 🌟 [사용자 요청] <내가 올린 영상> 관리 토글 및 렌더링 */
-    function toggleMyUploadedVideosList() {
-        const container = document.getElementById("myUploadedVideosContainer");
-        const arrow = document.getElementById("myVideosArrowText");
-        if (!container) return;
+    /* 🌟 <내가 올린 영상> 기간 필터 및 렌더링 */
+    let currentMyVideosPeriod = 'all';
 
-        if (container.style.display === "none" || container.style.display === "") {
-            container.style.display = "flex";
-            if (arrow) arrow.innerText = "▲ 닫기";
-            renderMyUploadedVideosList();
-        } else {
-            container.style.display = "none";
-            if (arrow) arrow.innerText = "▼ 누르면 보기";
+    function filterMyUploadedVideos(period) {
+        currentMyVideosPeriod = period;
+        ['btnFilterAll', 'btnFilterWeek', 'btnFilterMonth'].forEach(btnId => {
+            const btn = document.getElementById(btnId);
+            if (btn) btn.classList.remove('active');
+        });
+        if (period === 'all') {
+            const btn = document.getElementById('btnFilterAll');
+            if (btn) btn.classList.add('active');
+        } else if (period === 'week') {
+            const btn = document.getElementById('btnFilterWeek');
+            if (btn) btn.classList.add('active');
+        } else if (period === 'month') {
+            const btn = document.getElementById('btnFilterMonth');
+            if (btn) btn.classList.add('active');
         }
+        renderMyUploadedVideosList();
     }
 
     function renderMyUploadedVideosList() {
@@ -2412,38 +2641,57 @@
             customFeeds = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]");
         } catch(e) { customFeeds = []; }
 
-        if (countBadge) countBadge.innerText = `${customFeeds.length}개`;
+        const now = Date.now();
+        const filteredList = customFeeds.filter(feed => {
+            if (currentMyVideosPeriod === 'all') return true;
+            const ts = feed.timestamp || (feed.date ? new Date(feed.date.replace(/\./g, '-')).getTime() : now);
+            if (currentMyVideosPeriod === 'week') {
+                return (now - ts) <= (7 * 24 * 60 * 60 * 1000);
+            }
+            if (currentMyVideosPeriod === 'month') {
+                return (now - ts) <= (30 * 24 * 60 * 60 * 1000);
+            }
+            return true;
+        });
 
-        if (customFeeds.length === 0) {
+        if (countBadge) countBadge.innerText = `${filteredList.length}개`;
+
+        if (filteredList.length === 0) {
             container.innerHTML = `
-                <div style="text-align:center; color:#94a3b8; font-size:12px; padding:16px 8px; line-height:1.5;">
-                    등록된 영상이 없습니다.<br>
-                    위 입력창에 유튜브 주소를 넣고 등록해 보세요!
+                <div style="text-align:center; color:#94a3b8; font-size:12px; padding:18px 8px; line-height:1.5;">
+                    ${currentMyVideosPeriod === 'all' ? '등록된 영상이 없습니다.<br>위 입력창에 유튜브 주소를 넣고 등록해 보세요!' : '해당 기간 내 등록된 영상이 없습니다.'}
                 </div>
             `;
             return;
         }
 
-        container.innerHTML = customFeeds.map((feed, idx) => {
-            const title = feed.title || feed.bizName || "예톡 등록 영상";
+        const pinnedVideoId = localStorage.getItem("yetalkPinnedVideoId");
+
+        container.innerHTML = filteredList.map((feed, idx) => {
+            const title = feed.title || `${feed.bizName || '예톡'} 영상`;
             const date = feed.date || "최근";
+            const biz = feed.bizName || "예톡행복한교회";
             const thumb = `https://i.ytimg.com/vi/${feed.videoId}/hqdefault.jpg`;
-            const isTop = (idx === 0);
+            const isTop = (pinnedVideoId && pinnedVideoId === feed.videoId) || (!pinnedVideoId && idx === 0);
 
             return `
                 <div style="display:flex; flex-direction:column; gap:6px; background:#111c33; border:1px solid ${isTop ? '#facc15' : '#1e3a5f'}; border-radius:8px; padding:8px 10px;">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <img src="${thumb}" style="width:48px; height:36px; border-radius:4px; object-fit:cover; border:1px solid #334155;" onerror="this.style.display='none'">
+                        <img src="${thumb}" style="width:52px; height:38px; border-radius:5px; object-fit:cover; border:1px solid #334155; flex-shrink:0;" onerror="this.style.display='none'">
                         <div style="flex:1; min-width:0; text-align:left;">
-                            <div style="font-size:11px; color:#38bdf8; font-weight:800;">📅 ${date} ${isTop ? '<span style="color:#facc15; font-size:10.5px; background:rgba(250,204,21,0.2); padding:1px 5px; border-radius:4px; margin-left:4px;">★ 현재 1번</span>' : ''}</div>
-                            <div style="font-size:12.5px; color:#f1f5f9; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${title}</div>
+                            <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+                                <span style="font-size:11px; color:#38bdf8; font-weight:800;">📅 ${date}</span>
+                                <span style="font-size:10.5px; color:#a7f3d0; background:#064e3b; padding:1px 5px; border-radius:4px; font-weight:800;">@${biz}</span>
+                                ${isTop ? '<span style="color:#fde047; font-size:10.5px; background:rgba(250,204,21,0.25); border:1px solid #eab308; padding:1px 6px; border-radius:4px; font-weight:900;">★ 1번 대표 영상</span>' : ''}
+                            </div>
+                            <div style="font-size:12.5px; color:#f1f5f9; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;">${title}</div>
                         </div>
                     </div>
                     <div style="display:flex; justify-content:flex-end; align-items:center; gap:6px; border-top:1px solid rgba(255,255,255,0.08); padding-top:6px;">
-                        <button type="button" onclick="setVideoAsTopFavorite(${feed.id})" style="padding:4px 9px; background:${isTop ? '#0284c7' : '#1e293b'}; color:${isTop ? '#ffffff' : '#facc15'}; border:1px solid ${isTop ? '#38bdf8' : '#eab308'}; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;">
-                            ⭐ 즐겨찾기(1번 상위배치)
+                        <button type="button" onclick="setVideoAsTopFavorite('${feed.id}')" style="padding:4px 9px; background:${isTop ? '#0284c7' : '#1e293b'}; color:${isTop ? '#ffffff' : '#facc15'}; border:1px solid ${isTop ? '#38bdf8' : '#eab308'}; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;">
+                            ${isTop ? '★ 1번 고정 유지 중' : '⭐ 1번 대표로 꽂기'}
                         </button>
-                        <button type="button" onclick="deleteUploadedVideoItem(${feed.id})" style="padding:4px 9px; background:#450a0a; color:#fca5a5; border:1px solid #ef4444; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;">
+                        <button type="button" onclick="deleteUploadedVideoItem('${feed.id}')" style="padding:4px 9px; background:#450a0a; color:#fca5a5; border:1px solid #ef4444; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;">
                             🗑️ 삭제
                         </button>
                     </div>
@@ -2465,11 +2713,19 @@
         customFeeds.unshift(targetItem);
         localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(customFeeds));
 
+        // 대표 꽂기 ID 저장
+        localStorage.setItem("yetalkPinnedVideoId", targetItem.videoId);
+        if (targetItem.bizName) {
+            localStorage.setItem("yetalkPinnedBizName", targetItem.bizName);
+            localStorage.setItem("yetalkUserStoreName", targetItem.bizName);
+            if (targetItem.targetUrl) localStorage.setItem("yetalkMyBizAppUrl", targetItem.targetUrl);
+        }
+
         let hiddenIds = JSON.parse(localStorage.getItem("yetalkHiddenFeedIds") || "[]");
         hiddenIds = hiddenIds.filter(id => String(id) !== String(feedId));
         localStorage.setItem("yetalkHiddenFeedIds", JSON.stringify(hiddenIds));
 
-        showToast("⭐ 선택하신 영상이 1번 최상위 영상으로 배치되었습니다!");
+        showToast("⭐ 선택하신 영상이 전체 1번 대표 영상으로 꽂혔습니다!");
         closeModal('studioModal');
         resetToFirstHomeScreen(true);
     }
@@ -2482,8 +2738,14 @@
             customFeeds = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]");
         } catch(e) { customFeeds = []; }
 
+        const targetFeed = customFeeds.find(f => String(f.id) === String(feedId));
         customFeeds = customFeeds.filter(f => String(f.id) !== String(feedId));
         localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(customFeeds));
+
+        if (targetFeed && localStorage.getItem("yetalkPinnedVideoId") === targetFeed.videoId) {
+            localStorage.removeItem("yetalkPinnedVideoId");
+            localStorage.removeItem("yetalkPinnedBizName");
+        }
 
         let hiddenIds = JSON.parse(localStorage.getItem("yetalkHiddenFeedIds") || "[]");
         if (!hiddenIds.includes(feedId)) {
@@ -2703,6 +2965,12 @@ https://yetalk.cc`;
     });
 
     document.addEventListener("DOMContentLoaded", () => {
+        try {
+            const savedZoom = parseInt(localStorage.getItem("yetalkVideoZoomLevel") || "100", 10);
+            if (savedZoom === 150 || savedZoom === 200) {
+                applyVideoZoom(savedZoom);
+            }
+        } catch(e){}
         renderFeedCards();
         checkLatestNoticeAlert();
     });
