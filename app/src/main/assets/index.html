@@ -1043,50 +1043,8 @@
             </div>
         </div>
 
-        <div class="pc-side-menu-group">
-            <span class="pc-side-group-title">🏛️ 예톡 패밀리 앱 바로가기</span>
-            <button type="button" class="btn-pc-nav" onclick="location.href='churchmain.html'">
-                <span class="pc-nav-icon">⛪</span>
-                <div class="pc-nav-info">
-                    <strong>우리교회 스마트홈</strong>
-                    <span>주보, 설교, 실시간예배, 온라인헌금</span>
-                </div>
-            </button>
-            <button type="button" class="btn-pc-nav" onclick="location.href='onemain.html'">
-                <span class="pc-nav-icon">👤</span>
-                <div class="pc-nav-info">
-                    <strong>1인 개인 스마트홈</strong>
-                    <span>나만의 모바일 명함 & 스마트 QR</span>
-                </div>
-            </button>
-            <button type="button" class="btn-pc-nav" onclick="location.href='doctormain.html'">
-                <span class="pc-nav-icon">🏥</span>
-                <div class="pc-nav-info">
-                    <strong>스마트 메디컬 의원</strong>
-                    <span>1:1 닥톡 상담, 예약, 진료과목</span>
-                </div>
-            </button>
-            <button type="button" class="btn-pc-nav" onclick="location.href='dentalmain.html'">
-                <span class="pc-nav-icon">🦷</span>
-                <div class="pc-nav-info">
-                    <strong>스마트 치과 포털</strong>
-                    <span>임플란트, 교정, 원내톡 예약</span>
-                </div>
-            </button>
-            <button type="button" class="btn-pc-nav" onclick="location.href='handoctormain.html'">
-                <span class="pc-nav-icon">🌿</span>
-                <div class="pc-nav-info">
-                    <strong>스마트 한의원 포털</strong>
-                    <span>체질개선, 한방진료, 건강상담</span>
-                </div>
-            </button>
-            <button type="button" class="btn-pc-nav" onclick="location.href='freeshopmain.html'">
-                <span class="pc-nav-icon">🛍️</span>
-                <div class="pc-nav-info">
-                    <strong>소상공인 나눔마켓</strong>
-                    <span>우리동네 상점 & 단골 직거래</span>
-                </div>
-            </button>
+        <div class="pc-side-menu-group" id="pcAppNavGroup">
+            <!-- JS 동적 생성: 본인 전문앱이 있으면 모델하우스앱은 싹 다 안 보이고 본인 앱만 노출! 없으면 기본 모델하우스앱 노출 -->
         </div>
 
         <!-- 🌟 관리자(나)의 관리창 바로가기 카드 -->
@@ -1309,27 +1267,7 @@
                 이동하실 앱을 선택해 주세요.
             </div>
 
-            <div class="app-select-card" onclick="safeNavigate('onemain.html')">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:20px;">👤</span>
-                    <div>
-                        <div style="font-size:14px; font-weight:900; color:#ffffff;">1인 개인앱 (onemain)</div>
-                        <div style="font-size:11px; color:#38bdf8;">개인 프로필 및 나만의 QR코드</div>
-                    </div>
-                </div>
-                <span style="color:#94a3b8; font-size:13px; font-weight:900;">➔</span>
-            </div>
-
-            <div class="app-select-card" onclick="goToMyRegisteredBizApp()">
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:20px;">💼</span>
-                    <div>
-                        <div style="font-size:14px; font-weight:900; color:#fde047;" id="myBizCardTitle">나의 비즈니스 전문앱</div>
-                        <div style="font-size:11px; color:#cbd5e1;" id="myBizCardSub">교회 / 의원 / 상점 맞춤 운영앱</div>
-                    </div>
-                </div>
-                <span style="color:#94a3b8; font-size:13px; font-weight:900;">➔</span>
-            </div>
+            <div id="myAppChoiceCardsContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
 
             <!-- 하단 애드몹 100 공식 스폰서 슬롯 (320 × 100) -->
             <div class="modal-admob-100-slot" style="margin-top:6px; background:#0b1326; border:1.2px solid #1e3a5f; border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:4px; box-shadow:inset 0 0 10px rgba(0,0,0,0.6);">
@@ -2322,29 +2260,231 @@
         if (pcAdminAppText) pcAdminAppText.innerText = activeBiz;
     }
 
+    function checkHasMySpecialApp() {
+        const hasReg = localStorage.getItem("yetalkHasRegisteredBiz") === "true" || localStorage.getItem("yetalk_has_my_special_app") === "true";
+        const store = (localStorage.getItem("yetalkUserStoreName") || "").trim();
+        const church = (localStorage.getItem("yetalkChurchName") || "").trim();
+
+        if (hasReg) return true;
+        if (church && church !== "예톡행복한교회(샘플)") return true;
+        if (store && store !== "예톡 아름다운의원" && store !== "예톡아름다운의원" && store !== "예톡 밀면가" && store !== "예톡새영상") return true;
+
+        let createdList = [];
+        try { createdList = JSON.parse(localStorage.getItem("yetalk_my_created_apps") || "[]"); } catch(e){}
+        if (createdList.length > 0) return true;
+
+        return false;
+    }
+
+    function getMyCreatedSpecialApps() {
+        let list = [];
+        try {
+            const raw = localStorage.getItem("yetalk_my_created_apps");
+            if (raw) list = JSON.parse(raw);
+        } catch(e) {}
+
+        const store = (localStorage.getItem("yetalkUserStoreName") || "").trim();
+        const church = (localStorage.getItem("yetalkChurchName") || "").trim();
+        const url = localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html";
+
+        const primaryName = store || church || "예톡행복한교회";
+        if (checkHasMySpecialApp() && primaryName && primaryName !== "예톡 밀면가" && primaryName !== "예톡 아름다운의원") {
+            if (!list.some(a => a.name === primaryName)) {
+                let icon = "💼";
+                if (primaryName.includes("교회") || url.includes("church")) icon = "⛪";
+                else if (primaryName.includes("의원") || primaryName.includes("병원") || url.includes("doctor")) icon = "🏥";
+                else if (primaryName.includes("치과") || url.includes("dental")) icon = "🦷";
+                else if (primaryName.includes("한의") || url.includes("oriental") || url.includes("handoctor")) icon = "🌿";
+                else if (primaryName.includes("식당") || primaryName.includes("카페") || primaryName.includes("마켓") || url.includes("food") || url.includes("market")) icon = "🍽️";
+
+                list.unshift({ name: primaryName, url: url, icon: icon });
+            }
+        }
+        return list;
+    }
+
+    function renderPcAppNavList() {
+        const container = document.getElementById("pcAppNavGroup");
+        if (!container) return;
+
+        const hasMyApp = checkHasMySpecialApp();
+        const myApps = getMyCreatedSpecialApps();
+
+        if (hasMyApp && myApps.length > 0) {
+            // 🌟 [사용자 요청] 본인이 하나의 전문앱을 만들면 모델하우스앱은 싹 다 안 보이게 처리!
+            let html = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid rgba(56,189,248,0.3);">
+                    <span class="pc-side-group-title" style="color:#38bdf8; margin:0; font-size:12px;">📱 나의 공식 전문앱</span>
+                    <span style="font-size:10px; background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid #0284c7; padding:2px 7px; border-radius:10px; font-weight:900;">공식 운영</span>
+                </div>
+            `;
+            myApps.forEach(app => {
+                const icon = app.icon || (app.url.includes("church") ? "⛪" : "💼");
+                html += `
+                    <button type="button" class="btn-pc-nav active-my-app" onclick="location.href='${app.url}'" style="border:1.5px solid #38bdf8; background:linear-gradient(135deg, rgba(2,132,199,0.22), rgba(15,23,42,0.92)); margin-bottom:6px; box-shadow:0 3px 12px rgba(2,132,199,0.28);">
+                        <span class="pc-nav-icon" style="font-size:22px;">${icon}</span>
+                        <div class="pc-nav-info">
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <strong style="color:#ffffff; font-size:13.5px;">${app.name}</strong>
+                                <span style="font-size:9.5px; background:#0284c7; color:#fff; padding:1px 5px; border-radius:4px; font-weight:900;">내앱</span>
+                            </div>
+                            <span style="color:#93c5fd; font-size:11px;">내가 만든 전문앱 바로가기 ➔</span>
+                        </div>
+                    </button>
+                `;
+            });
+            html += `
+                <button type="button" class="btn-pc-nav" onclick="location.href='onemain.html'" style="margin-top:2px;">
+                    <span class="pc-nav-icon">👤</span>
+                    <div class="pc-nav-info">
+                        <strong>1인 개인 스마트홈</strong>
+                        <span>나만의 모바일 명함 & 스마트 QR</span>
+                    </div>
+                </button>
+            `;
+            container.innerHTML = html;
+        } else {
+            // 🌟 기본: 아직 만든 앱이 없을 때는 종류별 모델하우스앱 노출
+            let html = `
+                <span class="pc-side-group-title">🏛️ 종류별 모델하우스앱 (체험용)</span>
+                <button type="button" class="btn-pc-nav" onclick="location.href='churchmain.html'">
+                    <span class="pc-nav-icon">⛪</span>
+                    <div class="pc-nav-info">
+                        <strong>우리교회 모델하우스</strong>
+                        <span>주보, 설교, 실시간예배, 온라인헌금</span>
+                    </div>
+                </button>
+                <button type="button" class="btn-pc-nav" onclick="location.href='doctormain.html'">
+                    <span class="pc-nav-icon">🏥</span>
+                    <div class="pc-nav-info">
+                        <strong>스마트 메디컬의원 모델하우스</strong>
+                        <span>1:1 닥톡 상담, 예약, 진료과목</span>
+                    </div>
+                </button>
+                <button type="button" class="btn-pc-nav" onclick="location.href='dentalmain.html'">
+                    <span class="pc-nav-icon">🦷</span>
+                    <div class="pc-nav-info">
+                        <strong>스마트 치과의원 모델하우스</strong>
+                        <span>임플란트, 교정, 원내톡 예약</span>
+                    </div>
+                </button>
+                <button type="button" class="btn-pc-nav" onclick="location.href='handoctormain.html'">
+                    <span class="pc-nav-icon">🌿</span>
+                    <div class="pc-nav-info">
+                        <strong>스마트 한의원 모델하우스</strong>
+                        <span>체질개선, 한방진료, 건강상담</span>
+                    </div>
+                </button>
+                <button type="button" class="btn-pc-nav" onclick="location.href='foodmain.html'">
+                    <span class="pc-nav-icon">🍜</span>
+                    <div class="pc-nav-info">
+                        <strong>소상공인 식당·상점 모델하우스</strong>
+                        <span>우리동네 상점 & 단골 직거래</span>
+                    </div>
+                </button>
+                <button type="button" class="btn-pc-nav" onclick="location.href='onemain.html'">
+                    <span class="pc-nav-icon">👤</span>
+                    <div class="pc-nav-info">
+                        <strong>1인 개인 스마트홈</strong>
+                        <span>나만의 모바일 명함 & 스마트 QR</span>
+                    </div>
+                </button>
+            `;
+            container.innerHTML = html;
+        }
+    }
+
     function goToCurrentBizApp() {
         const feeds = loadSavedFeeds();
         const curFeed = feeds[currentFeedIndex] || feeds[0];
-        const activeUrl = localStorage.getItem("yetalkMyBizAppUrl");
-        if (curFeed.isUploadedByMe && activeUrl) {
+        const activeUrl = localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html";
+        if (checkHasMySpecialApp() && activeUrl) {
             window.location.href = activeUrl;
+        } else if (curFeed && curFeed.targetUrl) {
+            window.location.href = curFeed.targetUrl;
         } else {
-            window.location.href = curFeed.targetUrl || activeUrl || "churchmain.html";
+            window.location.href = activeUrl || "churchmain.html";
         }
     }
 
     function openMyAppChoiceModal() {
-        const store = localStorage.getItem("yetalkUserStoreName");
-        const job = localStorage.getItem("yetalkUserJobType");
-        if (store) {
-            document.getElementById("myBizCardTitle").innerText = `나의 전문앱 (${store})`;
-            document.getElementById("myBizCardSub").innerText = `${job || '전문 직종'} 맞춤 앱으로 이동`;
+        const hasMyApp = checkHasMySpecialApp();
+        const myApps = getMyCreatedSpecialApps();
+        const container = document.getElementById("myAppChoiceCardsContainer");
+
+        if (container) {
+            if (hasMyApp && myApps.length > 0) {
+                // 🌟 본인이 하나의 전문앱을 만들면 모델하우스앱은 싹 다 안 보이게 처리!
+                let html = "";
+                myApps.forEach(app => {
+                    const icon = app.icon || (app.url.includes("church") ? "⛪" : "💼");
+                    html += `
+                        <div class="app-select-card" onclick="safeNavigate('${app.url}')" style="border:1.2px solid #38bdf8; background:rgba(2,132,199,0.14);">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="font-size:22px;">${icon}</span>
+                                <div>
+                                    <div style="font-size:14px; font-weight:900; color:#ffffff;">${app.name} <span style="font-size:9.5px; background:#0284c7; color:#fff; padding:1px 5px; border-radius:4px;">내앱</span></div>
+                                    <div style="font-size:11px; color:#38bdf8;">내가 만든 공식 전문앱 바로가기</div>
+                                </div>
+                            </div>
+                            <span style="color:#38bdf8; font-size:14px; font-weight:900;">➔</span>
+                        </div>
+                    `;
+                });
+                html += `
+                    <div class="app-select-card" onclick="safeNavigate('onemain.html')">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:20px;">👤</span>
+                            <div>
+                                <div style="font-size:14px; font-weight:900; color:#ffffff;">1인 개인앱 (onemain)</div>
+                                <div style="font-size:11px; color:#38bdf8;">개인 프로필 및 나만의 QR코드</div>
+                            </div>
+                        </div>
+                        <span style="color:#94a3b8; font-size:13px; font-weight:900;">➔</span>
+                    </div>
+                `;
+                container.innerHTML = html;
+            } else {
+                // 아직 앱이 없을 때는 모델하우스앱들 표시
+                container.innerHTML = `
+                    <div class="app-select-card" onclick="safeNavigate('churchmain.html')">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:20px;">⛪</span>
+                            <div>
+                                <div style="font-size:14px; font-weight:900; color:#ffffff;">우리교회 모델하우스</div>
+                                <div style="font-size:11px; color:#38bdf8;">주보, 실시간예배, 온라인헌금 체험</div>
+                            </div>
+                        </div>
+                        <span style="color:#94a3b8; font-size:13px; font-weight:900;">➔</span>
+                    </div>
+                    <div class="app-select-card" onclick="safeNavigate('doctormain.html')">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:20px;">🏥</span>
+                            <div>
+                                <div style="font-size:14px; font-weight:900; color:#ffffff;">스마트 메디컬의원 모델하우스</div>
+                                <div style="font-size:11px; color:#38bdf8;">닥톡 1:1 상담 및 진료 예약 체험</div>
+                            </div>
+                        </div>
+                        <span style="color:#94a3b8; font-size:13px; font-weight:900;">➔</span>
+                    </div>
+                    <div class="app-select-card" onclick="safeNavigate('onemain.html')">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:20px;">👤</span>
+                            <div>
+                                <div style="font-size:14px; font-weight:900; color:#ffffff;">1인 개인앱 (onemain)</div>
+                                <div style="font-size:11px; color:#38bdf8;">개인 프로필 및 나만의 QR코드</div>
+                            </div>
+                        </div>
+                        <span style="color:#94a3b8; font-size:13px; font-weight:900;">➔</span>
+                    </div>
+                `;
+            }
         }
         openModal("myAppChoiceModal");
     }
 
     function goToMyRegisteredBizApp() {
-        const myBizUrl = localStorage.getItem("yetalkMyBizAppUrl") || "onemain.html";
+        const myBizUrl = localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html";
         window.location.href = myBizUrl;
     }
 
@@ -2422,22 +2562,47 @@
         localStorage.setItem("yetalkOneName", store);
         localStorage.setItem("yetalkUserJobType", job);
         localStorage.setItem("yetalkHasRegisteredBiz", "true");
+        localStorage.setItem("yetalk_has_my_special_app", "true");
 
         let targetUrl = "onemain.html";
+        let icon = "💼";
         if (job === '담임목사' || job === '기독교사역자' || store.includes("교회")) {
             targetUrl = "churchmain.html";
+            icon = "⛪";
             localStorage.setItem("yetalkChurchName", store);
         } else if (job.includes("의사") || store.includes("의원") || store.includes("병원")) {
             targetUrl = "doctormain.html";
+            icon = "🏥";
             localStorage.setItem("yetalkDoctorName", store);
+        } else if (job.includes("치과")) {
+            targetUrl = "dentalmain.html";
+            icon = "🦷";
+            localStorage.setItem("yetalkDentalName", store);
+        } else if (job.includes("한의")) {
+            targetUrl = "handoctormain.html";
+            icon = "🌿";
+            localStorage.setItem("yetalkHanDoctorName", store);
         } else if (job.includes("자영업") || store.includes("점") || store.includes("식당")) {
             targetUrl = "promain.html?mode=shop";
+            icon = "🍽️";
             localStorage.setItem("yetalkShopName", store);
         } else {
             targetUrl = "promain.html?mode=biz";
         }
 
         localStorage.setItem("yetalkMyBizAppUrl", targetUrl);
+
+        // 🌟 생성된 전문앱 목록에 추가 (중복 방지)
+        let apps = [];
+        try { apps = JSON.parse(localStorage.getItem("yetalk_my_created_apps") || "[]"); } catch(e){}
+        if (!apps.some(a => a.name === store)) {
+            apps.unshift({ name: store, url: targetUrl, icon: icon, job: job });
+            localStorage.setItem("yetalk_my_created_apps", JSON.stringify(apps));
+        }
+
+        renderPcAppNavList();
+        populateModalBizSelect();
+
         closeModal("appCreateModal");
         showToast(`🎉 [${store}] 전용 맞춤 앱이 개설되었습니다!`);
 
@@ -2446,31 +2611,35 @@
         }, 800);
     }
 
-    /* 🌟 영상 등록에 연동할 보유 전문앱 드롭다운 옵션 갱신 */
+    /* 🌟 영상 등록에 연동할 보유 전문앱 드롭다운 옵션 갱신 (본인 전문앱 개설 시 모델하우스앱 싹 다 숨김) */
     function populateModalBizSelect() {
         const sel = document.getElementById("ytInpBizSelect");
         if (!sel) return;
 
-        const baseApps = [
-            { name: "예톡행복한교회", url: "churchmain.html" },
-            { name: "예톡 아름다운의원", url: "doctormain.html" },
-            { name: "예톡 스마트치과", url: "dentalmain.html" },
-            { name: "예톡 자연한의원", url: "orientalmain.html" },
-            { name: "1인 개인 스마트홈", url: "onemain.html" },
-            { name: "소상공인 나눔마켓", url: "marketmain.html" },
-            { name: "예톡 밀면가 (부산밀면)", url: "foodmain.html" }
-        ];
+        const hasMyApp = checkHasMySpecialApp();
+        const myApps = getMyCreatedSpecialApps();
 
-        // 사용자가 직접 만든 커스텀 앱이 있다면 포함
-        const customStore = localStorage.getItem("yetalkUserStoreName");
-        const customUrl = localStorage.getItem("yetalkMyBizAppUrl");
-        if (customStore && !baseApps.some(a => a.name === customStore)) {
-            baseApps.unshift({ name: customStore, url: customUrl || "onemain.html" });
+        let appOptions = [];
+
+        if (hasMyApp && myApps.length > 0) {
+            // 🌟 [사용자 요청] 본인이 하나의 전문앱을 만들면 모델하우스앱은 싹 다 안 보이게 처리!
+            appOptions = myApps.map(a => ({ name: a.name, url: a.url }));
+            appOptions.push({ name: "1인 개인 스마트홈", url: "onemain.html" });
+        } else {
+            // 🌟 아직 앱을 만들지 않은 방문자/체험자에게만 모델하우스앱 제공
+            appOptions = [
+                { name: "우리교회 모델하우스", url: "churchmain.html" },
+                { name: "스마트 메디컬의원 모델하우스", url: "doctormain.html" },
+                { name: "스마트 치과의원 모델하우스", url: "dentalmain.html" },
+                { name: "스마트 한의원 모델하우스", url: "handoctormain.html" },
+                { name: "소상공인 식당·상점 모델하우스", url: "foodmain.html" },
+                { name: "1인 개인 스마트홈", url: "onemain.html" }
+            ];
         }
 
-        const currentActive = localStorage.getItem("yetalkUserStoreName") || localStorage.getItem("yetalkSelectedBizApp") || "예톡행복한교회";
+        const currentActive = localStorage.getItem("yetalkUserStoreName") || localStorage.getItem("yetalkSelectedBizApp") || (appOptions[0] ? appOptions[0].name : "");
 
-        sel.innerHTML = baseApps.map(app => {
+        sel.innerHTML = appOptions.map(app => {
             const isSelected = (app.name === currentActive) ? "selected" : "";
             const val = JSON.stringify({ name: app.name, url: app.url });
             return `<option value='${val.replace(/'/g, "&#39;")}' ${isSelected}>${app.name} (${app.url})</option>`;
@@ -2973,6 +3142,13 @@ https://yetalk.cc`;
         } catch(e){}
         renderFeedCards();
         checkLatestNoticeAlert();
+        renderPcAppNavList();
+        populateModalBizSelect();
+    });
+
+    window.addEventListener("pageshow", () => {
+        renderPcAppNavList();
+        populateModalBizSelect();
     });
 </script>
 </body>
