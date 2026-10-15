@@ -68,23 +68,26 @@ function isDoctorDirtySlide(s) {
 }
 
 function checkIsSubAdminOrAbove() {
+    return checkIsAdminUser();
+}
+
+function checkIsAdminUser() {
     const job = (localStorage.getItem("yetalkUserJobType") || "").trim();
     const role = (localStorage.getItem("yetalkUserRole") || "").trim();
     const grade = (localStorage.getItem("yetalkUserGrade") || "").trim();
     const isAdmin = localStorage.getItem("yetalkIsAdmin") === "true";
     const isSubAdmin = localStorage.getItem("yetalkIsSubAdmin") === "true";
+    const authCode = (localStorage.getItem("yetalkAdminAuthCode") || "").trim();
+    const isAuthAdmin = localStorage.getItem("yetalkAdminAuth") === "true";
 
-    if (job === "일반성도" || role === "일반성도" || grade === "일반성도") {
-        return false;
-    }
-    const adminJobs = ["담임목사", "목사", "부목사", "전도사", "기독교사역자", "사역자", "관리자", "부관리자", "총관리자"];
-    if (adminJobs.some(k => job.includes(k) || role.includes(k) || grade.includes(k))) {
+    if (isAdmin || isSubAdmin || isAuthAdmin || authCode === "ADMIN" || authCode === "PASTOR") {
         return true;
     }
-    if (isAdmin || isSubAdmin) {
+    const adminJobs = ["담임목사", "목사", "부목사", "전도사", "기독교사역자", "사역자", "관리자", "부관리자", "총관리자", "원장", "직원"];
+    if (adminJobs.some(k => (job && job.includes(k)) || (role && role.includes(k)) || (grade && grade.includes(k)))) {
         return true;
     }
-    return true; // 기본값: 부관리자 이상 권한 제공
+    return false; // 일반 성도 및 방문자는 관리 권한 없음!
 }
 
 function openCardSlideEdit(secId) {
@@ -170,23 +173,30 @@ function initChurchData() {
         localStorage.setItem("yetalk_church_main_other_slides_v31", JSON.stringify(churchSlideData));
     } catch(e) {}
 
+    // 🌟 기본은 항상 첫 메뉴인 0번 (교회의꿈) 시작! (선교전도 등 임의 탭으로 튀는 현상 원천 차단)
+    sessionStorage.removeItem("church_last_active_card_idx");
+    
+    // URL에 ?sec=N 파라미터가 명시된 경우에만 해당 탭으로 이동
+    const urlParams = new URLSearchParams(window.location.search);
+    const secParam = urlParams.get("sec") || urlParams.get("tab");
+    let initialSecId = 0;
+    if (secParam !== null && !isNaN(parseInt(secParam, 10))) {
+        const parsed = parseInt(secParam, 10);
+        if (parsed >= 0 && parsed < MENU_DEFINITIONS.length) {
+            initialSecId = parsed;
+        }
+    }
+    activeSecId = initialSecId;
+
     renderChurchView();
-    setupSectionObserver();
 
     // 4회 시간대별 10자 이내 성구 배너 설정
     const pill = document.getElementById("subbarVersePill");
     if (pill) pill.innerText = getActiveShortVerse();
+}
 
-    // 세부 페이지에서 뒤로가기 시 원래 카드 위치로 복귀
-    const savedCardIdx = sessionStorage.getItem("church_last_active_card_idx");
-    if (savedCardIdx !== null && savedCardIdx !== undefined) {
-        const targetIdx = parseInt(savedCardIdx, 10);
-        if (!isNaN(targetIdx) && targetIdx >= 0 && targetIdx < MENU_DEFINITIONS.length) {
-            setTimeout(() => {
-                scrollToCard(targetIdx);
-            }, 120);
-        }
-    }
+function setupSectionObserver() {
+    // 세로 단일 메뉴 플로우용 안전 더미 함수
 }
 
 function extractYoutubeVideoId(url) {
@@ -389,6 +399,7 @@ function renderChurchMenuContent(secId) {
 
     // 🌟 3. 일반 메뉴들: 첫 이미지 + 서브페이지들이 순서대로 끝까지 배치되어 위로 스크롤하면 다 보임
     const slides = churchSlideData[secId] || createDefaultSlides(sec.cat, secId === 1);
+    const isAdmin = checkIsAdminUser();
 
     slides.forEach((slide, sIdx) => {
         const pageCard = document.createElement("section");
@@ -401,15 +412,17 @@ function renderChurchMenuContent(secId) {
                 <img class="card-bg-img" id="slide_img_${secId}_${sIdx}" src="${slide.img}" alt="${sec.cat}">
                 <div class="card-gradient-overlay"></div>
 
-                <!-- 🌟 상단 바: 메뉴 카테고리 뱃지 & 스크린 화면에서 즉시 글/사진 수정 버튼 -->
+                <!-- 🌟 상단 바: 메뉴 카테고리 뱃지 & (관리자 전용) 스크린 화면에서 즉시 글/사진 수정 버튼 -->
                 <div class="card-top-content" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                     <div style="display:flex; align-items:center; gap:6px;">
                         <span class="card-sub-tag">${sec.cat}</span>
                         <span class="card-sub-counter">${sIdx === 0 ? '첫화면' : '서브페이지 ' + (sIdx + 1)}</span>
                     </div>
+                    ${isAdmin ? `
                     <button type="button" class="btn-screen-direct-edit" onclick="event.stopPropagation(); openDirectScreenEdit(${secId}, ${sIdx});" title="이 화면 바로 수정">
                         ✏️ 이 화면 바로수정
                     </button>
+                    ` : ''}
                 </div>
 
                 <div class="card-title-center-box">
@@ -419,12 +432,24 @@ function renderChurchMenuContent(secId) {
                 <div class="card-bottom-content">
                     <div class="card-verse-highlight">${slide.verse || ""}</div>
                     <div class="card-body-text">${slide.body || ""}</div>
+
+                    ${sIdx < slides.length - 1 ? `
+                    <div class="subpage-scroll-guide" style="display:flex; align-items:center; justify-content:center; gap:5px; margin:4px 0 2px 0;">
+                        <span style="font-size:11.5px; font-weight:900; color:#fde047; text-shadow:0 1px 5px rgba(0,0,0,0.85); letter-spacing:-0.2px;">▼ 위로 스크롤하여 서브페이지 (${sIdx + 2}/${slides.length}) 보기</span>
+                    </div>
+                    ` : ''}
+
                     <div class="card-bottom-guide-row">
                         <div class="card-admin-action-group">
+                            ${isAdmin ? `
+                            <button type="button" class="btn-card-admin-room" onclick="event.stopPropagation(); location.href='churchadmin.html';" title="관리실 이동">
+                                🏢 관리실
+                            </button>
                             <button type="button" class="btn-card-admin-edit" onclick="event.stopPropagation(); openDirectScreenEdit(${secId}, ${sIdx});">
                                 ✏️ 화면수정
                             </button>
-                            <button type="button" class="btn-card-admin-room" onclick="event.stopPropagation(); goToDetailPage(${secId}, '${sec.link}');">
+                            ` : ''}
+                            <button type="button" class="btn-card-detail-view" onclick="event.stopPropagation(); goToDetailPage(${secId}, '${sec.link}');" style="display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:6px 14px; font-size:12.5px; font-weight:900; border-radius:9px; cursor:pointer; background:rgba(2,132,199,0.9); border:1.2px solid #38bdf8; color:#ffffff; box-shadow:0 2px 8px rgba(0,0,0,0.5);">
                                 자세히 보기 ▶
                             </button>
                         </div>
@@ -514,15 +539,17 @@ function renderWordWalkingKakaoView(vp, secId, nextSecId, nextMenuName) {
                             <div id="dispKakaoMeditationText">${dailyWord.meditation}</div>
                         </div>
 
-                        <!-- 🌟 복사 / 수정 / 기본 하트 7개 / 100이상 자동 증가 조회수 -->
+                        <!-- 🌟 복사 / (관리자 전용) 수정 / 기본 하트 7개 / 100이상 자동 증가 조회수 -->
                         <div class="kakao-action-btn-row">
                             <div style="display:flex; gap:5px; align-items:center;">
                                 <button type="button" class="btn-kakao-action" onclick="copyPastorWordToClipboard()" title="말씀과 묵상 클립보드 복사">
                                     📋 말씀 복사
                                 </button>
+                                ${isAdmin ? `
                                 <button type="button" class="btn-kakao-action" onclick="openEditDailyWordModal()" title="목사님 말씀 및 묵상 수정">
                                     ✏️ 말씀 수정
                                 </button>
+                                ` : ''}
                             </div>
                             <div style="display:flex; gap:5px; align-items:center;">
                                 <button type="button" class="btn-kakao-action btn-heart" onclick="clickPastorWordHeart()" title="은혜 하트">
@@ -596,6 +623,7 @@ function renderNextGenKakaoView(vp, secId, nextSecId, nextMenuName) {
 
     const today = new Date();
     const dateStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+    const isAdmin = checkIsAdminUser();
 
     const kakaoSection = document.createElement("section");
     kakaoSection.className = "church-kakao-viewport-card";
@@ -624,9 +652,11 @@ function renderNextGenKakaoView(vp, secId, nextSecId, nextMenuName) {
                                 <button type="button" class="btn-kakao-action" onclick="copyNextGenNoticeToClipboard()">
                                     📋 소식 복사
                                 </button>
+                                ${isAdmin ? `
                                 <button type="button" class="btn-kakao-action" onclick="openEditNextGenNoticeModal()">
                                     ✏️ 소식 수정
                                 </button>
+                                ` : ''}
                             </div>
                             <div style="display:flex; gap:5px; align-items:center;">
                                 <button type="button" class="btn-kakao-action btn-heart" onclick="clickNextGenHeart()">
