@@ -2300,7 +2300,47 @@
 
     function getAllNotices() {
         const raw = localStorage.getItem("yetalk_all_notices");
-        return raw ? JSON.parse(raw) : DEFAULT_GLOBAL_NOTICES;
+        let list = raw ? JSON.parse(raw) : JSON.parse(JSON.stringify(DEFAULT_GLOBAL_NOTICES));
+
+        // 🌟 [사용자 요청] 예수동행(오늘말씀)은 오후 2시에 개인앱의 공지알림에 교회공지 밑에 매일 자동으로 가도록 설정 + 애드몹 함께 연동
+        try {
+            const currentHour = new Date().getHours();
+            const storedWordRaw = localStorage.getItem("yetalk_church_daily_word");
+            const updateDate = localStorage.getItem("yetalk_church_word_updated_date");
+            const now = new Date();
+            const todayStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+
+            // 목사님이 오전 중에 말씀을 고치면, 오후 2시(14:00) 이후 매일 자동으로 교회공지 밑에 등록
+            if (storedWordRaw && (currentHour >= 14 || updateDate === todayStr)) {
+                const wordObj = JSON.parse(storedWordRaw);
+                const dailyNoticeId = "church_daily_word_" + todayStr;
+
+                if (!list.some(n => n.id === dailyNoticeId)) {
+                    const churchNoticeIdx = list.findIndex(n => n.isChurchNotice || n.sender?.includes("교회"));
+                    const dailyNoticeItem = {
+                        id: dailyNoticeId,
+                        sender: "예톡행복한교회",
+                        senderType: "church",
+                        isChurchNotice: true,
+                        isDailyWordNotice: true,
+                        title: `🕊️ [교회공지 • 오늘말씀] ${wordObj.verseRef || '오늘의 말씀'}`,
+                        content: `“${wordObj.verseText}”\n\n🕊️ 목사님의 묵상:\n${wordObj.meditation}\n\n※ 매일 오후 2시 목사님의 말씀이 자동으로 전송됩니다.`,
+                        date: `${todayStr} 14:00`,
+                        isToday: true,
+                        targetUrl: "churchmain.html?sec=6"
+                    };
+
+                    if (churchNoticeIdx !== -1) {
+                        // 교회공지 바로 밑에 배치!
+                        list.splice(churchNoticeIdx + 1, 0, dailyNoticeItem);
+                    } else {
+                        list.unshift(dailyNoticeItem);
+                    }
+                }
+            }
+        } catch(e){}
+
+        return list;
     }
 
         let currentNoticeFilterCat = "all";
@@ -2437,7 +2477,12 @@
                             ${item.content || item.body || ""}
                         </p>
                         ${item.img ? `<img src="${item.img}" style="max-height:160px; border-radius:10px; object-fit:cover; margin-top:4px;" alt="사진">` : ''}
-                        <div style="display:flex; justify-content:flex-end; border-top:1px dashed #334155; padding-top:8px; margin-top:4px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed #334155; padding-top:8px; margin-top:4px;">
+                            ${item.targetUrl ? `
+                            <button type="button" style="background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; border:1px solid #38bdf8; padding:5px 12px; border-radius:8px; font-size:12px; font-weight:950; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.3);" onclick="location.href='${item.targetUrl}'">
+                                📖 오늘말씀 바로가기 ➔
+                            </button>
+                            ` : '<div></div>'}
                             <button type="button" style="background:#0f172a; color:#38bdf8; border:1px solid #334155; padding:4px 10px; border-radius:6px; font-size:11.5px; font-weight:800; cursor:pointer;" onclick="showToast('✅ 공지사항을 확인하였습니다.')">
                                 확인완료 ✔
                             </button>

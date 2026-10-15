@@ -10,7 +10,7 @@ const MENU_DEFINITIONS = [
     { id: 3, cat: "공지알림", link: "churchnotice.html" },
     { id: 4, cat: "기도모임", link: "churchpray.html" },
     { id: 5, cat: "교회초청", link: "churchinvite.html" },
-    { id: 6, cat: "말씀동행", link: "churchjesuswalking.html" },
+    { id: 6, cat: "오늘말씀", link: "churchjesuswalking.html" },
     { id: 7, cat: "보배성도", link: "churchmember.html" },
     { id: 8, cat: "다음세대", link: "churchnextgen.html" },
     { id: 9, cat: "선교전도", link: "churchmission.html" },
@@ -385,82 +385,125 @@ function renderChurchMenuContent(secId) {
     const nextSecId = (secId + 1) % MENU_DEFINITIONS.length;
     const nextMenuName = MENU_DEFINITIONS[nextSecId].cat;
 
-    // 🌟 1. 말씀동행 (Tab 6, 구 예수동행) 카톡 스타일 특별 뷰
+    // 🌟 1. 오늘말씀 (Tab 6, 구 예수동행) 카톡 스타일 특별 뷰
     if (secId === 6) {
         renderWordWalkingKakaoView(vp, secId, nextSecId, nextMenuName);
         return;
     }
 
-    // 🌟 2. 다음세대 (Tab 8) 카톡 스타일 특별 뷰
+    // 🌟 2. 다음세대 (Tab 8) 카톡 스타일 특별 뷰 (청년부, 청소년부 등 닥톡 스타일)
     if (secId === 8) {
         renderNextGenKakaoView(vp, secId, nextSecId, nextMenuName);
         return;
     }
 
-    // 🌟 3. 일반 메뉴들: 첫 이미지 + 서브페이지들이 순서대로 끝까지 배치되어 위로 스크롤하면 다 보임
+    // 🌟 3. [사용자 요청] 일반 메뉴들: 첫 메인 이미지가 있고 그 밑에 서브페이지가 순서대로 끝까지 배치되어 위로 스크롤하면 다 보이게 설정
     const slides = churchSlideData[secId] || createDefaultSlides(sec.cat, secId === 1);
     const isAdmin = checkIsAdminUser();
 
-    slides.forEach((slide, sIdx) => {
-        const pageCard = document.createElement("section");
-        pageCard.className = "snap-card-section";
-        pageCard.id = `page_${secId}_${sIdx}`;
-        pageCard.dataset.index = secId;
+    // 1) 첫 번째 대표 메인 카드 (hero-card-section)
+    const heroSlide = slides[0] || { title: sec.cat, verse: "", body: "", img: "" };
+    const heroCard = document.createElement("section");
+    heroCard.className = "hero-card-section";
+    heroCard.id = `hero_${secId}_0`;
+    heroCard.innerHTML = `
+        <div style="position:relative; width:100%; height:100%; flex:1; display:flex; flex-direction:column; justify-content:space-between; min-height:68vh;">
+            <img class="card-bg-img" id="slide_img_${secId}_0" src="${heroSlide.img}" alt="${sec.cat}">
+            <div class="card-gradient-overlay"></div>
 
-        pageCard.innerHTML = `
-            <div class="snap-card-inner-box">
-                <img class="card-bg-img" id="slide_img_${secId}_${sIdx}" src="${slide.img}" alt="${sec.cat}">
-                <div class="card-gradient-overlay"></div>
-
-                <!-- 🌟 상단 바: 메뉴 카테고리 뱃지 & (관리자 전용) 스크린 화면에서 즉시 글/사진 수정 버튼 -->
-                <div class="card-top-content" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <span class="card-sub-tag">${sec.cat}</span>
-                        <span class="card-sub-counter">${sIdx === 0 ? '첫화면' : '서브페이지 ' + (sIdx + 1)}</span>
-                    </div>
-                    ${isAdmin ? `
-                    <button type="button" class="btn-screen-direct-edit" onclick="event.stopPropagation(); openDirectScreenEdit(${secId}, ${sIdx});" title="이 화면 바로 수정">
-                        ✏️ 이 화면 바로수정
-                    </button>
-                    ` : ''}
+            <div class="card-top-content" style="display:flex; justify-content:space-between; align-items:center; width:100%; z-index:15; padding:12px 14px;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span class="card-sub-tag">${sec.cat}</span>
+                    <span class="card-sub-counter" style="background:rgba(2,132,199,0.85); color:#fff;">대표 메인</span>
                 </div>
+                ${isAdmin ? `
+                <button type="button" class="btn-screen-direct-edit" onclick="event.stopPropagation(); openDirectScreenEdit(${secId}, 0);" title="이 화면 바로 수정">
+                    ✏️ 이 화면 바로수정
+                </button>
+                ` : ''}
+            </div>
 
-                <div class="card-title-center-box">
-                    <h2 class="card-title-main" style="text-shadow:0 2px 12px rgba(0,0,0,0.85);">${slide.title || sec.cat}</h2>
-                </div>
+            <div class="card-title-center-box" style="z-index:10; width:90%; text-align:center;">
+                <h2 class="card-title-main" style="text-shadow:0 2px 14px rgba(0,0,0,0.9); font-size:26px; color:#ffffff; font-weight:950;">${heroSlide.title || sec.cat}</h2>
+            </div>
 
-                <div class="card-bottom-content">
-                    <div class="card-verse-highlight">${slide.verse || ""}</div>
-                    <div class="card-body-text">${slide.body || ""}</div>
+            <div class="card-bottom-content" style="z-index:15; padding: 0 16px 14px 16px !important;">
+                <div class="card-verse-highlight" style="font-size:14.5px; font-weight:850; color:#fde047; text-shadow:0 1px 4px rgba(0,0,0,0.8); margin-bottom:4px;">${heroSlide.verse || ""}</div>
+                <div class="card-body-text" style="font-size:13.5px; line-height:1.6; color:#e2e8f0; margin-bottom:8px;">${heroSlide.body || ""}</div>
 
-                    ${sIdx < slides.length - 1 ? `
-                    <div class="subpage-scroll-guide" style="display:flex; align-items:center; justify-content:center; gap:5px; margin:4px 0 2px 0;">
-                        <span style="font-size:11.5px; font-weight:900; color:#fde047; text-shadow:0 1px 5px rgba(0,0,0,0.85); letter-spacing:-0.2px;">▼ 위로 스크롤하여 서브페이지 (${sIdx + 2}/${slides.length}) 보기</span>
-                    </div>
-                    ` : ''}
-
-                    <div class="card-bottom-guide-row">
-                        <div class="card-admin-action-group">
-                            ${isAdmin ? `
-                            <button type="button" class="btn-card-admin-room" onclick="event.stopPropagation(); location.href='churchadmin.html';" title="관리실 이동">
-                                🏢 관리실
-                            </button>
-                            <button type="button" class="btn-card-admin-edit" onclick="event.stopPropagation(); openDirectScreenEdit(${secId}, ${sIdx});">
-                                ✏️ 화면수정
-                            </button>
-                            ` : ''}
-                            <button type="button" class="btn-card-detail-view" onclick="event.stopPropagation(); goToDetailPage(${secId}, '${sec.link}');" style="display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:6px 14px; font-size:12.5px; font-weight:900; border-radius:9px; cursor:pointer; background:rgba(2,132,199,0.9); border:1.2px solid #38bdf8; color:#ffffff; box-shadow:0 2px 8px rgba(0,0,0,0.5);">
-                                자세히 보기 ▶
-                            </button>
-                        </div>
+                <div class="card-bottom-guide-row" style="display:flex; justify-content:flex-end;">
+                    <div class="card-admin-action-group" style="display:flex; gap:6px;">
+                        ${isAdmin ? `
+                        <button type="button" class="btn-card-admin-room" onclick="event.stopPropagation(); location.href='churchadmin.html';" title="관리실 이동">
+                            🏢 관리실
+                        </button>
+                        <button type="button" class="btn-card-admin-edit" onclick="event.stopPropagation(); openDirectScreenEdit(${secId}, 0);">
+                            ✏️ 화면수정
+                        </button>
+                        ` : ''}
+                        <button type="button" class="btn-card-detail-view" onclick="event.stopPropagation(); goToDetailPage(${secId}, '${sec.link}');" style="display:inline-flex; align-items:center; justify-content:center; gap:4px; padding:6px 14px; font-size:12.5px; font-weight:900; border-radius:9px; cursor:pointer; background:rgba(2,132,199,0.95); border:1.2px solid #38bdf8; color:#ffffff; box-shadow:0 2px 8px rgba(0,0,0,0.5);">
+                            자세히 보기 ▶
+                        </button>
                     </div>
                 </div>
             </div>
-        `;
-        vp.appendChild(pageCard);
-    });
+        </div>
 
-    // 🌟 마지막 페이지: 은혜 글귀 + 250 애드몹 + [다음 메뉴 가기] 버튼 (개인앱 방식 일체화)
+        ${slides.length > 1 ? `
+        <div class="hero-scroll-down-hint" onclick="document.getElementById('subpage_${secId}_1')?.scrollIntoView({ behavior: 'smooth' })">
+            <span>▼ 아래로 스크롤하여 서브페이지 (${slides.length - 1}개) 계속 보기</span>
+        </div>
+        ` : ''}
+    `;
+    vp.appendChild(heroCard);
+
+    // 2) 첫 메인 이미지 바로 밑으로 순서대로 이어지는 서브페이지들 (subpage-card-section)
+    for (let sIdx = 1; sIdx < slides.length; sIdx++) {
+        const sub = slides[sIdx];
+        const subCard = document.createElement("section");
+        subCard.className = "subpage-card-section";
+        subCard.id = `subpage_${secId}_${sIdx}`;
+
+        subCard.innerHTML = `
+            <div class="subpage-badge-row">
+                <span class="subpage-counter-badge">
+                    <span>📌</span> <span>서브페이지 ${sIdx}</span>
+                </span>
+                ${isAdmin ? `
+                <button type="button" class="btn-screen-direct-edit" onclick="event.stopPropagation(); openDirectScreenEdit(${secId}, ${sIdx});">
+                    ✏️ 이 서브 수정
+                </button>
+                ` : ''}
+            </div>
+
+            <div class="subpage-img-box">
+                <img class="subpage-img" id="slide_img_${secId}_${sIdx}" src="${sub.img}" alt="${sub.title || sec.cat}">
+            </div>
+
+            <h3 class="subpage-title-main">${sub.title || `${sec.cat} 안내 ${sIdx}`}</h3>
+
+            ${sub.verse ? `<div class="subpage-verse-box">${sub.verse}</div>` : ''}
+
+            <p class="subpage-desc-text">${sub.body || ""}</p>
+
+            <div class="subpage-action-row">
+                <span style="font-size:11.5px; color:#94a3b8; font-weight:800;">${sec.cat} • ${sIdx + 1}/${slides.length}</span>
+                <div style="display:flex; gap:6px;">
+                    ${isAdmin ? `
+                    <button type="button" class="btn-card-admin-edit" onclick="event.stopPropagation(); openDirectScreenEdit(${secId}, ${sIdx});">
+                        ✏️ 화면수정
+                    </button>
+                    ` : ''}
+                    <button type="button" class="btn-card-detail-view" onclick="event.stopPropagation(); goToDetailPage(${secId}, '${sec.link}');" style="padding:6px 14px; font-size:12.5px; font-weight:900; border-radius:9px; cursor:pointer; background:#0284c7; border:1.2px solid #38bdf8; color:#ffffff;">
+                        자세히 보기 ▶
+                    </button>
+                </div>
+            </div>
+        `;
+        vp.appendChild(subCard);
+    }
+
+    // 3) 마지막 페이지: 은혜 글귀 + 250 애드몹 + [다음 메뉴 가기] 버튼 (개인앱 방식 일체화)
     const endingCard = document.createElement("section");
     endingCard.className = "church-ending-snap-card";
     endingCard.innerHTML = `
@@ -484,20 +527,17 @@ function renderChurchMenuContent(secId) {
     vp.appendChild(endingCard);
 }
 
-/* 🌟 [사용자 요청] 말씀동행 (구 예수동행) 카톡 스타일 뷰:
-   목사님의 매일 말씀 & 묵상 뜨기, 수정/복사 가능, 기본 하트 7개, 옷깃만 스쳐도 100이상 자동 증가 조회수 */
+/* 🌟 [사용자 요청] 오늘말씀 (구 예수동행) 카톡 스타일 뷰:
+   공간 낭비 수식어 삭제, 오늘말씀 단독 표기, 댓글은 숨기고 숫자로만 표기 후 클릭 시 펼치기 토글 */
 function renderWordWalkingKakaoView(vp, secId, nextSecId, nextMenuName) {
-    // 1. 조회수 자동 카운터 업 ("그 곳을 본 사람의 숫자가 자동으로 100이상부터 카운터되어 올라가도록..옷깃만 스쳐도 숫자가 올라감")
     let views = parseInt(localStorage.getItem("yetalk_church_daily_views") || "128", 10);
     if (isNaN(views) || views < 100) views = 128;
     views += 1;
     localStorage.setItem("yetalk_church_daily_views", views.toString());
 
-    // 2. 기본 하트 7개
     let hearts = parseInt(localStorage.getItem("yetalk_church_daily_heart") || "7", 10);
     if (isNaN(hearts) || hearts < 7) hearts = 7;
 
-    // 3. 말씀 및 묵상 데이터 로드
     let storedWord = localStorage.getItem("yetalk_church_daily_word");
     let dailyWord = null;
     if (storedWord) {
@@ -513,20 +553,22 @@ function renderWordWalkingKakaoView(vp, secId, nextSecId, nextMenuName) {
 
     const today = new Date();
     const dateStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+    const isAdmin = checkIsAdminUser();
 
     const kakaoSection = document.createElement("section");
     kakaoSection.className = "church-kakao-viewport-card";
     kakaoSection.innerHTML = `
         <div class="church-kakao-shell">
+            <!-- 🌟 [사용자 요청] 윗 공간 낭비 글귀 삭제, 간결한 카톡 헤더 -->
             <div class="kakao-chat-date-banner">
-                📅 ${dateStr} 오늘의 말씀과 묵상
+                📅 ${dateStr} 오늘말씀과 묵상
             </div>
 
             <!-- 목사님의 카톡 말씀 말풍선 -->
             <div class="kakao-msg-row">
                 <div class="kakao-avatar">✝️</div>
-                <div class="kakao-msg-content">
-                    <span class="kakao-sender-name">최남수 담임목사님 (말씀동행)</span>
+                <div class="kakao-msg-content" style="width:100%;">
+                    <span class="kakao-sender-name">담임목사님 (오늘말씀)</span>
                     <div class="kakao-bubble-left">
                         <div class="kakao-verse-card">
                             <span class="kakao-verse-badge">📖 오늘의 성경 말씀</span>
@@ -539,7 +581,7 @@ function renderWordWalkingKakaoView(vp, secId, nextSecId, nextMenuName) {
                             <div id="dispKakaoMeditationText">${dailyWord.meditation}</div>
                         </div>
 
-                        <!-- 🌟 복사 / (관리자 전용) 수정 / 기본 하트 7개 / 100이상 자동 증가 조회수 -->
+                        <!-- 복사 / (관리자) 수정 / 하트 / 조회수 -->
                         <div class="kakao-action-btn-row">
                             <div style="display:flex; gap:5px; align-items:center;">
                                 <button type="button" class="btn-kakao-action" onclick="copyPastorWordToClipboard()" title="말씀과 묵상 클립보드 복사">
@@ -564,8 +606,14 @@ function renderWordWalkingKakaoView(vp, secId, nextSecId, nextMenuName) {
                 </div>
             </div>
 
-            <!-- 성도들의 아멘 나눔 목록 컨테이너 -->
-            <div id="pastorWordAmenList" style="display:flex; flex-direction:column; gap:8px; margin:6px 0;"></div>
+            <!-- 🌟 [사용자 요청] 댓글은 그냥 다 감추고 숫자로만 표기하고 누르면 댓글 펼쳐 보이게 토글 -->
+            <button type="button" class="btn-comment-toggle" id="btnTogglePastorAmens" onclick="togglePastorAmensAccordion()">
+                <span>💬 성도 은혜 나눔 (<strong id="dispPastorAmenCount">0</strong>개)</span>
+                <span id="arrowPastorAmenToggle" style="font-size:11.5px; color:#0284c7;">▼ 터치하여 펼치기</span>
+            </button>
+
+            <!-- 펼쳐지는 댓글 아코디언 패널 -->
+            <div class="comment-accordion-panel" id="pastorWordAmenList"></div>
 
             <!-- 카톡 스타일 메시지/아멘 입력 바 -->
             <div class="kakao-chat-input-row">
@@ -578,12 +626,12 @@ function renderWordWalkingKakaoView(vp, secId, nextSecId, nextMenuName) {
 
     renderPastorWordAmens();
 
-    // 🌟 마지막 다음 메뉴 가기 버튼
+    // 마지막 다음 메뉴 가기 버튼
     const endingCard = document.createElement("section");
     endingCard.className = "church-ending-snap-card";
     endingCard.innerHTML = `
         <div class="ending-quote-box">
-            <span class="ending-quote-tag">📖 말씀동행</span>
+            <span class="ending-quote-tag">📖 오늘말씀</span>
             <div class="ending-quote-text">“주의 말씀은 내 발에 등이요 내 길에 빛이니이다 (시 119:105)”</div>
         </div>
         <div class="ending-admob-250">
@@ -599,27 +647,63 @@ function renderWordWalkingKakaoView(vp, secId, nextSecId, nextMenuName) {
     vp.appendChild(endingCard);
 }
 
-/* 🌟 [사용자 요청] 다음세대 (Tab 8) 카톡 스타일 뷰 */
+/* 🌟 [사용자 요청] 다음세대 (Tab 8) 카톡 형식 (의원방 닥톡 스타일):
+   상단 공간 절약, 청년부, 청소년부 등 부서 탭, 댓글은 숫자로만 표기하고 클릭 시 펼치기 토글 */
+let currentNextGenDept = "youth"; // 기본 청년부
+
+const DEFAULT_NEXTGEN_DEPT_DATA = {
+    youth: {
+        title: "청년부 은혜톡",
+        avatar: "🌱",
+        sender: "청년부 담당목사 & 리더팀",
+        verse: "너는 청년의 때에 너의 창조주를 기억하라 (전도서 12:1)",
+        content: "샬롬! 사랑하는 청년 여러분, 이번 주 토요일 17:00 비전홀에서 10월 연합 찬양예배가 있습니다. 캠퍼스와 일터에서 승리하는 청년이 됩시다! ✨"
+    },
+    teen: {
+        title: "청소년부(중고등) 은혜톡",
+        avatar: "🎒",
+        sender: "중고등부 담당전도사 & 교사회",
+        verse: "네가 어려서부터 성경을 알았나니 성경은 능히 너로 하여금 그리스도 예수 안에 있는 믿음으로 말미암아 구원에 이르는 지혜가 있게 하느니라 (딤후 3:15)",
+        content: "친구들아 안녕! 이번 주일 예배 후 소그룹 모임에서 기말고사 응원 기도회가 열립니다. 주님의 지혜로 승리하자! 파이팅! 🚀"
+    },
+    child: {
+        title: "어린이부(초등) 은혜톡",
+        avatar: "🎈",
+        sender: "초등부 부장선생님 & 교사팀",
+        verse: "예수는 지혜와 키가 자라가며 하나님과 사람에게 더욱 사랑스러워 가시더라 (누가복음 2:52)",
+        content: "반가워요 예톡 꿈나무들! 이번 주일에는 성경 암송 페스티벌과 신나는 달란트 잔치가 준비되어 있어요. 모두 주일 아침 11시에 만나요! 🎁"
+    },
+    infant: {
+        title: "영유아부 은혜톡",
+        avatar: "🍼",
+        sender: "영유아부 사역팀 & 아기학교",
+        verse: "어린 아이들을 용납하고 내게 오는 것을 금하지 말라 천국이 이런 사람의 것이니라 (마태복음 19:14)",
+        content: "하나님의 가장 귀한 선물, 우리 아기들을 축복합니다. 매주 수요일 오전 10시 30분 영아실에서 부모 중보기도회가 진행됩니다. 축복합니다! 👶"
+    }
+};
+
+function switchNextGenDept(deptKey) {
+    currentNextGenDept = deptKey;
+    renderChurchMenuContent(8);
+}
+
 function renderNextGenKakaoView(vp, secId, nextSecId, nextMenuName) {
-    let views = parseInt(localStorage.getItem("yetalk_church_nextgen_views") || "145", 10);
+    let views = parseInt(localStorage.getItem(`yetalk_church_nextgen_${currentNextGenDept}_views`) || "145", 10);
     if (isNaN(views) || views < 100) views = 145;
     views += 1;
-    localStorage.setItem("yetalk_church_nextgen_views", views.toString());
+    localStorage.setItem(`yetalk_church_nextgen_${currentNextGenDept}_views`, views.toString());
 
-    let hearts = parseInt(localStorage.getItem("yetalk_church_nextgen_heart") || "15", 10);
+    let hearts = parseInt(localStorage.getItem(`yetalk_church_nextgen_${currentNextGenDept}_heart`) || "15", 10);
     if (isNaN(hearts) || hearts < 7) hearts = 15;
 
-    let storedNotice = localStorage.getItem("yetalk_church_nextgen_notice");
-    let nextgenData = null;
-    if (storedNotice) {
-        try { nextgenData = JSON.parse(storedNotice); } catch(e){}
+    let allDeptData = null;
+    try {
+        allDeptData = JSON.parse(localStorage.getItem("yetalk_church_nextgen_dept_data") || "null");
+    } catch(e){}
+    if (!allDeptData) {
+        allDeptData = JSON.parse(JSON.stringify(DEFAULT_NEXTGEN_DEPT_DATA));
     }
-    if (!nextgenData) {
-        nextgenData = {
-            verse: "너는 청년의 때에 너의 창조주를 기억하라 (전도서 12:1)",
-            content: "샬롬! 다음세대(유초등부 · 중고등부 · 청년부) 은혜 나눔터입니다.\n이번 주 토요일 17:00 비전홀에서 청년부 찬양 집회가 열립니다. 주일학교 성경 암송 페스티벌도 준비되어 있으니 많은 기도와 격려를 부탁드립니다! ✨"
-        };
-    }
+    const deptInfo = allDeptData[currentNextGenDept] || allDeptData.youth;
 
     const today = new Date();
     const dateStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
@@ -628,23 +712,32 @@ function renderNextGenKakaoView(vp, secId, nextSecId, nextMenuName) {
     const kakaoSection = document.createElement("section");
     kakaoSection.className = "church-kakao-viewport-card";
     kakaoSection.innerHTML = `
-        <div class="church-kakao-shell">
+        <!-- 🌟 [사용자 요청] 다음세대 상단 공간 절약 부서 탭 바 (청년부, 청소년부 등) -->
+        <div class="nextgen-dept-tabs" id="nextGenDeptTabs">
+            <button type="button" class="nextgen-dept-chip ${currentNextGenDept==='youth'?'active':''}" onclick="switchNextGenDept('youth')">🌱 청년부</button>
+            <button type="button" class="nextgen-dept-chip ${currentNextGenDept==='teen'?'active':''}" onclick="switchNextGenDept('teen')">🎒 청소년부</button>
+            <button type="button" class="nextgen-dept-chip ${currentNextGenDept==='child'?'active':''}" onclick="switchNextGenDept('child')">🎈 어린이부</button>
+            <button type="button" class="nextgen-dept-chip ${currentNextGenDept==='infant'?'active':''}" onclick="switchNextGenDept('infant')">🍼 영유아부</button>
+        </div>
+
+        <div class="church-kakao-shell" style="margin-top:6px;">
             <div class="kakao-chat-date-banner">
-                🎈 ${dateStr} 다음세대 은혜톡
+                📅 ${dateStr} ${deptInfo.title}
             </div>
 
+            <!-- 의원방 닥톡 스타일 카톡 메시지 -->
             <div class="kakao-msg-row">
-                <div class="kakao-avatar">🌱</div>
-                <div class="kakao-msg-content">
-                    <span class="kakao-sender-name">교육전도사 & 다음세대 사역팀</span>
+                <div class="kakao-avatar">${deptInfo.avatar}</div>
+                <div class="kakao-msg-content" style="width:100%;">
+                    <span class="kakao-sender-name">${deptInfo.sender}</span>
                     <div class="kakao-bubble-left">
                         <div class="kakao-verse-card" style="border-left-color:#10b981;">
-                            <span class="kakao-verse-badge" style="background:#059669;">🌱 다음세대 소식 & 성구</span>
-                            <div class="kakao-verse-text" id="dispNextGenVerseText">“${nextgenData.verse}”</div>
+                            <span class="kakao-verse-badge" style="background:#059669;">🌱 주간 성구</span>
+                            <div class="kakao-verse-text" id="dispNextGenVerseText">“${deptInfo.verse}”</div>
                         </div>
 
                         <div class="kakao-meditation-box" id="dispNextGenContentText">
-                            ${nextgenData.content}
+                            ${deptInfo.content}
                         </div>
 
                         <div class="kakao-action-btn-row">
@@ -671,10 +764,17 @@ function renderNextGenKakaoView(vp, secId, nextSecId, nextMenuName) {
                 </div>
             </div>
 
-            <div id="nextGenCommentList" style="display:flex; flex-direction:column; gap:8px; margin:6px 0;"></div>
+            <!-- 🌟 [사용자 요청] 댓글은 그냥 다 감추고 숫자로만 표기하고 누르면 댓글 펼쳐 보이게 토글 -->
+            <button type="button" class="btn-comment-toggle" id="btnToggleNextGenComments" onclick="toggleNextGenCommentsAccordion()">
+                <span>💬 부서 축복 응원글 (<strong id="dispNextGenCommentCount">0</strong>개)</span>
+                <span id="arrowNextGenCommentToggle" style="font-size:11.5px; color:#059669;">▼ 터치하여 펼치기</span>
+            </button>
+
+            <!-- 펼쳐지는 댓글 아코디언 패널 -->
+            <div class="comment-accordion-panel" id="nextGenCommentList"></div>
 
             <div class="kakao-chat-input-row">
-                <input type="text" id="inpNextGenMsg" class="kakao-input-text" placeholder="다음세대를 향한 응원과 축복을 남겨주세요..." onkeypress="if(event.keyCode===13) sendNextGenComment()">
+                <input type="text" id="inpNextGenMsg" class="kakao-input-text" placeholder="${deptInfo.title}에 축복과 응원을 남겨주세요..." onkeypress="if(event.keyCode===13) sendNextGenComment()">
                 <button type="button" class="btn-kakao-send" onclick="sendNextGenComment()">전송</button>
             </div>
         </div>
@@ -701,6 +801,39 @@ function renderNextGenKakaoView(vp, secId, nextSecId, nextMenuName) {
         </button>
     `;
     vp.appendChild(endingCard);
+}
+
+/* 🌟 [사용자 요청] 댓글 아코디언 접기/펼치기 토글 핸들러 */
+let isPastorAmensExpanded = false;
+function togglePastorAmensAccordion() {
+    isPastorAmensExpanded = !isPastorAmensExpanded;
+    const panel = document.getElementById("pastorWordAmenList");
+    const arrow = document.getElementById("arrowPastorAmenToggle");
+    if (panel) {
+        if (isPastorAmensExpanded) {
+            panel.classList.add("open");
+            if (arrow) arrow.innerText = "▲ 접기";
+        } else {
+            panel.classList.remove("open");
+            if (arrow) arrow.innerText = "▼ 터치하여 펼치기";
+        }
+    }
+}
+
+let isNextGenCommentsExpanded = false;
+function toggleNextGenCommentsAccordion() {
+    isNextGenCommentsExpanded = !isNextGenCommentsExpanded;
+    const panel = document.getElementById("nextGenCommentList");
+    const arrow = document.getElementById("arrowNextGenCommentToggle");
+    if (panel) {
+        if (isNextGenCommentsExpanded) {
+            panel.classList.add("open");
+            if (arrow) arrow.innerText = "▲ 접기";
+        } else {
+            panel.classList.remove("open");
+            if (arrow) arrow.innerText = "▼ 터치하여 펼치기";
+        }
+    }
 }
 
 /* 🌟 스크린 화면에서 즉시 글/사진 수정 모달 열기 */
@@ -762,8 +895,27 @@ function saveDailyWordData() {
     const obj = { verseRef: ref, verseText: text, meditation: med };
     localStorage.setItem("yetalk_church_daily_word", JSON.stringify(obj));
 
+    // 🌟 [사용자 요청] 목사님이 오전 중에 말씀을 고치면, 오후 2시 개인앱의 공지알림에 교회공지 밑에 매일 자동으로 가도록 설정 (애드몹 포함)
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+    localStorage.setItem("yetalk_church_word_updated_date", todayStr);
+
+    const wordNotice = {
+        id: "church_daily_word_" + todayStr,
+        sender: "예톡행복한교회",
+        senderType: "church",
+        isChurchNotice: true,
+        isDailyWordNotice: true,
+        title: "🕊️ [교회공지 • 오늘말씀] " + ref,
+        content: `“${text}”\n\n🕊️ 목사님의 묵상:\n${med}`,
+        date: `${todayStr} 14:00`,
+        isToday: true
+    };
+    localStorage.setItem("yetalk_church_daily_word_notice", JSON.stringify(wordNotice));
+    localStorage.setItem("yetalk_latest_notice", JSON.stringify(wordNotice));
+
     closeModal("editDailyWordModal");
-    showToast("🎉 목사님의 오늘의 말씀과 묵상이 저장되었습니다!");
+    showToast("🎉 목사님의 오늘의 말씀이 저장되었습니다! (오후 2시 개인앱 공지알림에 자동 반영)");
     renderChurchMenuContent(6);
 }
 
@@ -796,7 +948,7 @@ function sendPastorWordAmen() {
 
 function renderPastorWordAmens() {
     const container = document.getElementById("pastorWordAmenList");
-    if (!container) return;
+    const countEl = document.getElementById("dispPastorAmenCount");
 
     let amens = [];
     try { amens = JSON.parse(localStorage.getItem("yetalk_church_daily_amens") || "[]"); } catch(e){}
@@ -807,6 +959,9 @@ function renderPastorWordAmens() {
             { name: "이집사", text: "목사님 말씀에 큰 힘을 얻고 하루를 시작합니다. 감사합니다!", time: "오전 08:30" }
         ];
     }
+
+    if (countEl) countEl.innerText = amens.length;
+    if (!container) return;
 
     container.innerHTML = amens.map(a => `
         <div style="display:flex; justify-content:flex-end; align-items:flex-end; gap:6px; margin:4px 0;">
@@ -822,34 +977,26 @@ function renderPastorWordAmens() {
 
 /* 🌟 다음세대 소식 복사 & 수정 & 하트 & 댓글 핸들러 */
 function copyNextGenNoticeToClipboard() {
-    let stored = localStorage.getItem("yetalk_church_nextgen_notice");
-    let data = null;
-    if (stored) { try { data = JSON.parse(stored); } catch(e){} }
-    if (!data) {
-        data = {
-            verse: "너는 청년의 때에 너의 창조주를 기억하라 (전도서 12:1)",
-            content: "샬롬! 다음세대(유초등부 · 중고등부 · 청년부) 은혜 나눔터입니다.\n이번 주 토요일 17:00 비전홀에서 청년부 찬양 집회가 열립니다. 성도님들의 많은 기도와 격려를 부탁드립니다!"
-        };
-    }
-    const txt = `[예톡행복한교회 다음세대 은혜 나눔]\n🌱 ${data.verse}\n\n${data.content}\n\n▶ 예톡 바로가기: https://yetalk.cc`;
+    let allDeptData = null;
+    try { allDeptData = JSON.parse(localStorage.getItem("yetalk_church_nextgen_dept_data") || "null"); } catch(e){}
+    if (!allDeptData) allDeptData = DEFAULT_NEXTGEN_DEPT_DATA;
+    const deptInfo = allDeptData[currentNextGenDept] || allDeptData.youth;
+
+    const txt = `[예톡행복한교회 ${deptInfo.title}]\n🌱 ${deptInfo.verse}\n\n${deptInfo.content}\n\n▶ 예톡 바로가기: https://yetalk.cc`;
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(txt);
     }
-    showToast("📋 다음세대 소식이 복사되었습니다!");
+    showToast(`📋 [${deptInfo.title}] 소식이 복사되었습니다!`);
 }
 
 function openEditNextGenNoticeModal() {
-    let stored = localStorage.getItem("yetalk_church_nextgen_notice");
-    let data = null;
-    if (stored) { try { data = JSON.parse(stored); } catch(e){} }
-    if (!data) {
-        data = {
-            verse: "너는 청년의 때에 너의 창조주를 기억하라 (전도서 12:1)",
-            content: "샬롬! 다음세대(유초등부 · 중고등부 · 청년부) 은혜 나눔터입니다.\n이번 주 토요일 17:00 비전홀에서 청년부 찬양 집회가 열립니다. 성도님들의 많은 기도와 격려를 부탁드립니다!"
-        };
-    }
-    document.getElementById("inpEditNextGenVerse").value = data.verse || "";
-    document.getElementById("inpEditNextGenContent").value = data.content || "";
+    let allDeptData = null;
+    try { allDeptData = JSON.parse(localStorage.getItem("yetalk_church_nextgen_dept_data") || "null"); } catch(e){}
+    if (!allDeptData) allDeptData = DEFAULT_NEXTGEN_DEPT_DATA;
+    const deptInfo = allDeptData[currentNextGenDept] || allDeptData.youth;
+
+    document.getElementById("inpEditNextGenVerse").value = deptInfo.verse || "";
+    document.getElementById("inpEditNextGenContent").value = deptInfo.content || "";
     openModal("editNextGenNoticeModal");
 }
 
@@ -858,19 +1005,29 @@ function saveNextGenNoticeData() {
     const content = document.getElementById("inpEditNextGenContent").value.trim();
     if (!content) { alert("공지 내용을 입력해 주세요."); return; }
 
-    localStorage.setItem("yetalk_church_nextgen_notice", JSON.stringify({ verse, content }));
+    let allDeptData = null;
+    try { allDeptData = JSON.parse(localStorage.getItem("yetalk_church_nextgen_dept_data") || "null"); } catch(e){}
+    if (!allDeptData) allDeptData = JSON.parse(JSON.stringify(DEFAULT_NEXTGEN_DEPT_DATA));
+
+    if (!allDeptData[currentNextGenDept]) {
+        allDeptData[currentNextGenDept] = JSON.parse(JSON.stringify(DEFAULT_NEXTGEN_DEPT_DATA[currentNextGenDept] || DEFAULT_NEXTGEN_DEPT_DATA.youth));
+    }
+    allDeptData[currentNextGenDept].verse = verse;
+    allDeptData[currentNextGenDept].content = content;
+
+    localStorage.setItem("yetalk_church_nextgen_dept_data", JSON.stringify(allDeptData));
     closeModal("editNextGenNoticeModal");
-    showToast("🎉 다음세대 소식이 저장되었습니다!");
+    showToast(`🎉 [${allDeptData[currentNextGenDept].title}] 소식이 저장되었습니다!`);
     renderChurchMenuContent(8);
 }
 
 function clickNextGenHeart() {
-    let hearts = parseInt(localStorage.getItem("yetalk_church_nextgen_heart") || "15", 10);
+    let hearts = parseInt(localStorage.getItem(`yetalk_church_nextgen_${currentNextGenDept}_heart`) || "15", 10);
     hearts += 1;
-    localStorage.setItem("yetalk_church_nextgen_heart", hearts.toString());
+    localStorage.setItem(`yetalk_church_nextgen_${currentNextGenDept}_heart`, hearts.toString());
     const countEl = document.getElementById("nextGenHeartCount");
     if (countEl) countEl.innerText = hearts;
-    showToast(`❤️ 다음세대를 향한 응원 하트를 보냈습니다! (${hearts}개)`);
+    showToast(`❤️ 부서를 향한 응원 하트를 보냈습니다! (${hearts}개)`);
 }
 
 function sendNextGenComment() {
@@ -880,29 +1037,34 @@ function sendNextGenComment() {
     if (!msg) return;
 
     let comments = [];
-    try { comments = JSON.parse(localStorage.getItem("yetalk_church_nextgen_comments") || "[]"); } catch(e){}
+    const storageKey = `yetalk_church_nextgen_comments_${currentNextGenDept}`;
+    try { comments = JSON.parse(localStorage.getItem(storageKey) || "[]"); } catch(e){}
 
-    const myName = localStorage.getItem("yetalkUserName") || "은혜청년";
+    const myName = localStorage.getItem("yetalkUserName") || "은혜성도";
     comments.push({ name: myName, text: msg, time: "방금" });
-    localStorage.setItem("yetalk_church_nextgen_comments", JSON.stringify(comments));
+    localStorage.setItem(storageKey, JSON.stringify(comments));
 
     inp.value = "";
     renderNextGenComments();
-    showToast("✨ 다음세대 응원 메시지가 등록되었습니다.");
+    showToast("✨ 축복 응원 메시지가 등록되었습니다.");
 }
 
 function renderNextGenComments() {
     const container = document.getElementById("nextGenCommentList");
-    if (!container) return;
+    const countEl = document.getElementById("dispNextGenCommentCount");
 
     let comments = [];
-    try { comments = JSON.parse(localStorage.getItem("yetalk_church_nextgen_comments") || "[]"); } catch(e){}
+    const storageKey = `yetalk_church_nextgen_comments_${currentNextGenDept}`;
+    try { comments = JSON.parse(localStorage.getItem(storageKey) || "[]"); } catch(e){}
 
     if (comments.length === 0) {
         comments = [
-            { name: "청년부 회장", text: "이번 주 토요일 찬양 집회 많이 기대됩니다! 친구들과 함께 갈게요 ✨", time: "어제" }
+            { name: "은혜교사", text: "언제나 말씀 안에서 무럭무럭 자라나길 기도하고 축복합니다! ✨", time: "어제" }
         ];
     }
+
+    if (countEl) countEl.innerText = comments.length;
+    if (!container) return;
 
     container.innerHTML = comments.map(c => `
         <div style="display:flex; justify-content:flex-end; align-items:flex-end; gap:6px; margin:4px 0;">
