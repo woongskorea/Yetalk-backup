@@ -1118,23 +1118,6 @@
         }
         .yetalk-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
 
-        /* 🔒 나만의 비밀 공간 뱃지 */
-        .badge-private-space {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            background: rgba(124, 58, 237, 0.25);
-            border: 1px solid #a78bfa;
-            color: #fde047;
-            font-size: 10.5px;
-            font-weight: 850;
-            padding: 2px 8px;
-            border-radius: 10px;
-            cursor: pointer;
-            white-space: nowrap;
-            margin-top: 2px;
-        }
-
         /* 📢 오늘 공지알림 vs 💬 친구와의 톡 2개 가로 탭 바 */
         .feed-dual-tabs-bar {
             display: flex;
@@ -1484,10 +1467,7 @@
     <header class="one-fixed-header">
         <div class="header-left-box">
             <button type="button" class="btn-header-back" onclick="location.href='index.html'" title="홈으로 이동">←</button>
-            <div style="display:flex; flex-direction:column;">
-                <div class="one-header-title" id="topOneTitle">김예톡의 예톡홈</div>
-                <span class="badge-private-space" onclick="explainPrivacyMode()" title="나만의 비밀 공간 안내">🔒 나만의 비밀 공간 · 나의 QR만 공개</span>
-            </div>
+            <div class="one-header-title" id="topOneTitle">김예톡의 예톡홈</div>
         </div>
         <div class="header-right-box">
             <button type="button" class="btn-pay-quick" onclick="openPaymentModal()"><span>💳</span> 결제</button>
@@ -2381,24 +2361,27 @@
         }
 
         const myName = localStorage.getItem("yetalkUserName") || "김예톡";
-        document.getElementById("topOneTitle").innerText = `${myName}의 예톡홈`;
-        document.getElementById("dispQrCardOwner").innerText = `${myName}의 예톡홈`;
-        document.getElementById("dispMyProfileName").innerText = `${myName} (나)`;
+        const t1 = document.getElementById("topOneTitle");
+        if (t1) t1.innerText = `${myName}의 예톡홈`;
+        const t2 = document.getElementById("dispQrCardOwner");
+        if (t2) t2.innerText = `${myName}의 예톡홈`;
+        const t3 = document.getElementById("dispMyProfileName");
+        if (t3) t3.innerText = `${myName} (나)`;
 
-        updateSchedulePrivacyUI();
-        updateLivePrivacyUI();
-        renderQrSection();
-        renderPhotoSection();
+        try { updateSchedulePrivacyUI(); } catch(e){ console.error(e); }
+        try { updateLivePrivacyUI(); } catch(e){ console.error(e); }
+        try { renderQrSection(); } catch(e){ console.error(e); }
+        try { renderPhotoSection(); } catch(e){ console.error(e); }
         // 실시간 방송은 사용자가 '🔴 실시간 방송' 탭을 직접 클릭했을 때만 재생 (초기 배경 소리 방지)
-        renderCalendarGrid();
-        renderTimelineList();
-        renderFriendsList();
-        renderTodayTalkBoxes();
-        renderBizSection();
-        attachEndingScrollListeners();
+        try { renderCalendarGrid(); } catch(e){ console.error(e); }
+        try { renderTimelineList(); } catch(e){ console.error(e); }
+        try { renderFriendsList(); } catch(e){ console.error(e); }
+        try { renderTodayTalkBoxes(); } catch(e){ console.error(e); }
+        try { renderBizSection(); } catch(e){ console.error(e); }
+        try { attachEndingScrollListeners(); } catch(e){ console.error(e); }
 
-        loadSavedBankInfo();
-        buildBankVerticalList();
+        try { loadSavedBankInfo(); } catch(e){ console.error(e); }
+        try { buildBankVerticalList(); } catch(e){ console.error(e); }
 
         let startTab = "qr";
         try {
@@ -2636,20 +2619,33 @@
             targetContainer.scrollTop = 0;
         }
 
-        if (key === "live") {
-            renderLiveStreamPlayer();
-        } else {
+        try {
+            if (key === "qr") {
+                renderQrSection();
+            } else if (key === "photo") {
+                renderPhotoSection();
+            } else if (key === "live") {
+                renderLiveStreamPlayer();
+            } else if (key === "calendar") {
+                renderCalendarGrid();
+                renderTimelineList();
+            } else if (key === "friends") {
+                closeKakaoChat();
+                switchFriendMainTab(friendMainTabMode || 'boxes');
+            } else if (key === "notice") {
+                renderFullNoticeSection();
+                updateDualFeedTabsUI('notice');
+            } else if (key === "biz") {
+                renderBizSection();
+            }
+        } catch(e) {
+            console.error("Tab switch render error:", e);
+        }
+
+        if (key !== "live") {
             // 🛑 다른 메뉴 이동 시 실시간 방송 소리 및 iframe 즉시 완전 정지
             const liveHost = document.getElementById("liveVideoContainer");
             if (liveHost) liveHost.innerHTML = "";
-        }
-        if (key === "friends") {
-            closeKakaoChat();
-            switchFriendMainTab(friendMainTabMode || 'boxes');
-        }
-        if (key === "notice") {
-            renderFullNoticeSection();
-            updateDualFeedTabsUI('notice');
         }
     }
 
@@ -4640,8 +4636,14 @@
     }
 
     /* 유틸 */
-    function openModal(id) { document.getElementById(id).classList.add("open"); }
-    function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+    function openModal(id) {
+        const m = document.getElementById(id);
+        if (m) m.classList.add("open");
+    }
+    function closeModal(id) {
+        const m = document.getElementById(id);
+        if (m) m.classList.remove("open");
+    }
 
     function showToast(msg) {
         const t = document.getElementById("toastBox");
