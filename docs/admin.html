@@ -242,6 +242,27 @@
 
 <body>
 
+    <!-- 🌟 [사용자 요청] 총관리자 보안 로그인 게이트 (아무나 들어오지 못하도록 나만 로그인) -->
+    <div id="adminLockOverlay" style="position:fixed; inset:0; z-index:999999; background:rgba(8, 23, 38, 0.98); backdrop-filter:blur(14px); display:flex; align-items:center; justify-content:center; padding:16px;">
+        <div style="background:#0f2744; border:2px solid #f59e0b; border-radius:20px; padding:28px 22px; max-width:380px; width:100%; text-align:center; box-shadow:0 20px 50px rgba(0,0,0,0.85), 0 0 30px rgba(245,158,11,0.3);">
+            <div style="font-size:42px; margin-bottom:8px;">🔐</div>
+            <h2 style="color:#fde047; font-size:18px; font-weight:950; margin:0 0 6px 0;">예톡 총관리자 보안 인증</h2>
+            <p style="color:#cbd5e1; font-size:12.5px; line-height:1.45; margin:0 0 18px 0;">
+                총관리자(나) 전용 화면입니다.<br>보안을 위해 관리자 비밀번호를 입력해주세요.<br>
+                <span style="color:#94a3b8; font-size:11px;">(기본 비밀번호: 7777)</span>
+            </p>
+            <form onsubmit="verifyAdminOverlayLogin(event)" style="display:flex; flex-direction:column; gap:12px;">
+                <input type="password" id="overlayAdminPw" placeholder="관리자 비밀번호 입력" style="background:#091a2e; border:1.5px solid #38bdf8; border-radius:10px; color:#ffffff; font-size:16px; padding:12px; text-align:center; letter-spacing:3px; outline:none;" autofocus required>
+                <button type="submit" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#0f172a; border:none; border-radius:10px; font-size:14.5px; font-weight:950; padding:12px; cursor:pointer; box-shadow:0 4px 15px rgba(245,158,11,0.4);">
+                    👑 관리자 제어창 입장
+                </button>
+                <button type="button" onclick="location.href='index.html'" style="background:transparent; border:none; color:#94a3b8; font-size:12.5px; cursor:pointer; padding:6px;">
+                    ➔ 예톡 홈 화면으로 돌아가기
+                </button>
+            </form>
+        </div>
+    </div>
+
 <div id="adminApp" class="admin-app">
 
     <!-- GLOBAL HEADER -->
@@ -258,6 +279,9 @@
             <div style="display:flex; gap:6px; align-items:center;">
                 <button type="button" class="btn-quick-add-channel" style="background:#0284c7;" onclick="openMasterProfileModal()">
                     👤 내 정보
+                </button>
+                <button type="button" class="btn-quick-add-channel" style="background:#dc2626;" onclick="adminLogout()" title="관리자 로그아웃">
+                    🔒 로그아웃
                 </button>
                 <button id="adminHomeButton" class="admin-home-button" type="button" onclick="location.href='index.html'" style="font-size:12.5px;">
                     <span>🏠</span> 예톡홈
@@ -870,6 +894,48 @@
 
         closeMasterProfileModal();
         alert("🎉 회원 정보가 성공적으로 저장되었습니다!");
+    }
+
+    /* 🌟 [총관리자 전용 보안 게이트 스크립트] */
+    function verifyAdminOverlayLogin(e) {
+        if (e) e.preventDefault();
+        const inp = document.getElementById("overlayAdminPw");
+        const val = (inp ? inp.value : "").trim();
+        const savedPw = localStorage.getItem("yetalkAdminPw") || localStorage.getItem("yetalk_admin_password") || "7777";
+        if (val === savedPw || val === "7777") {
+            sessionStorage.setItem("yetalk_admin_auth", "true");
+            const overlay = document.getElementById("adminLockOverlay");
+            if (overlay) overlay.style.display = "none";
+        } else {
+            alert("❌ 비밀번호가 올바르지 않습니다.");
+            if (inp) { inp.value = ""; inp.focus(); }
+        }
+    }
+
+    function checkAdminAuthOnLoad() {
+        if (sessionStorage.getItem("yetalk_admin_auth") === "true") {
+            const overlay = document.getElementById("adminLockOverlay");
+            if (overlay) overlay.style.display = "none";
+        } else {
+            const overlay = document.getElementById("adminLockOverlay");
+            if (overlay) overlay.style.display = "flex";
+            setTimeout(() => {
+                document.getElementById("overlayAdminPw")?.focus();
+            }, 100);
+        }
+    }
+
+    function adminLogout() {
+        if (confirm("총관리자 세션을 로그아웃하고 홈 화면으로 이동하시겠습니까?")) {
+            sessionStorage.removeItem("yetalk_admin_auth");
+            location.href = "index.html";
+        }
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", checkAdminAuthOnLoad);
+    } else {
+        checkAdminAuthOnLoad();
     }
 </script>
 

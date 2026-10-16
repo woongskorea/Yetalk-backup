@@ -4,7 +4,7 @@ YETALK CHURCHMAIN.JS
 ==================================================*/
 
 const MENU_DEFINITIONS = [
-    { id: 0, cat: "교회의꿈", link: "churchintro.html" },
+    { id: 0, cat: "교회", link: "churchintro.html" },
     { id: 1, cat: "예배", link: "churchworship.html" },
     { id: 2, cat: "주보", link: "churchjubo.html" },
     { id: 3, cat: "공지알림", link: "churchnotice.html" },
@@ -23,13 +23,24 @@ const WORSHIP_SLIDE_KEYS = ["sunday", "wednesday", "friday", "dawn", "special", 
 const DEFAULT_SHARED_WORSHIP = {
     sunday: { tabName: "주일예배", title: "주일 대예배 실황", verse: "“신령과 진정으로 드리는 예배”", body: "주일 오전 11시 본당 생중계 및 설교 말씀", timeBadge: "주일 11:00", meta: "요한복음 3장 16절 ~ 18절 · 담임목사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", img: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=90" },
     wednesday: { tabName: "수요예배", title: "수요 성경강해", verse: "“주의 말씀은 내 발의 등이요”", body: "수요일 저녁 7시 30분 말씀 강해", timeBadge: "수요일 19:30", meta: "창세기 12장 1절 ~ 4절 · 담임목사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", img: "https://images.unsplash.com/photo-1507842229452-772d1c9ab458?auto=format&fit=crop&w=1600&q=90" },
-    friday: { tabName: "금요예배", title: "금요 성령기도회", verse: "“너는 내게 부르짖으라”", body: "금요일 밤 9시 뜨거운 찬양과 기도회", timeBadge: "금요일 21:00", meta: "사도행전 1장 8절 · 담임목사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", img: "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?auto=format&fit=crop&w=1600&q=90" },
+    friday: { tabName: "금요기도회", title: "금요 성령기도회", verse: "“너는 내게 부르짖으라”", body: "금요일 밤 9시 뜨거운 찬양과 기도회", timeBadge: "금요일 21:00", meta: "사도행전 1장 8절 · 담임목사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", img: "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?auto=format&fit=crop&w=1600&q=90" },
     dawn: { tabName: "새벽기도회", title: "오늘 새벽기도회", verse: "“새벽을 깨우리로다”", body: "매일 새벽 5시 30분 하루를 여는 은혜의 말씀", timeBadge: "새벽 05:30", meta: "시편 23편 1절 ~ 6절 · 교구목사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", img: "https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?auto=format&fit=crop&w=1600&q=90" },
     special: { tabName: "특별예배", title: "부흥 및 헌신예배", verse: "“내 잔이 넘치나이다”", body: "교회 창립기념 및 절기 특별 부흥성회", timeBadge: "특별 일정", meta: "에베소서 4장 11절 ~ 16절 · 초청강사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", img: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=90" },
     praise: { tabName: "찬양모음", title: "은혜로운 찬양과 경배", verse: "“호흡이 있는 자마다 여호와를 찬양할지어다”", body: "주일 찬양대 및 찬양팀 은혜 찬양 모음", timeBadge: "상시 재생", meta: "할렐루야 찬양대 및 찬양팀", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1600&q=90" }
 };
 
 function createDefaultSlides(catName, isWorship = false) {
+    if (catName === "교회" || catName === "교회의꿈") {
+        return [
+            { title: "교회", verse: "“오직 여호와를 앙망하는 자는 새 힘을 얻으리니 (사 40:31)”", body: "하나님의 거룩한 임재와 은혜가 머무는 따뜻한 사랑의 공동체입니다.", yt: "", img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90" },
+            { title: "교회", verse: "“너희는 세상의 빛이라 산 위에 있는 동네가 숨겨지지 못할 것이요 (마 5:14)”", body: "세상을 밝히고 이웃에게 그리스도의 사랑을 흘려보내는 은혜의 통로입니다.", yt: "", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90" },
+            { title: "교회", verse: "“내가 이 반석 위에 내 교회를 세우리니 음부의 권세가 이기지 못하리라 (마 16:18)”", body: "진리의 말씀 위에 굳건히 서서 믿음으로 승리하는 주님의 몸 된 교회입니다.", yt: "", img: "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?auto=format&fit=crop&w=1600&q=90" },
+            { title: "교회", verse: "“서로 사랑하라 내가 너희를 사랑한 것 같이 너희도 서로 사랑하라 (요 13:34)”", body: "모든 성도가 그리스도 안에서 한 가족 되어 기쁨과 감사를 함께 나눕니다.", yt: "", img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1600&q=90" },
+            { title: "교회", verse: "“내 집은 만민이 기도하는 집이라 일컬음을 받으리라 (사 56:7)”", body: "성령의 불길로 무릎 꿇어 부르짖으며 하나님의 능력을 체험하는 기도의 제단입니다.", yt: "", img: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?auto=format&fit=crop&w=1600&q=90" },
+            { title: "교회", verse: "“오직 성령이 너희에게 임하시면 너희가 권능을 받고 (행 1:8)”", body: "복음의 열정으로 땅끝까지 예수 그리스도의 생명의 증인으로 나아갑니다.", yt: "", img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=90" },
+            { title: "교회", verse: "“주의 집에서의 한 날이 다른 곳에서의 천 날보다 좋은즉 (시 84:10)”", body: "하나님의 영광과 임재가 가득한 영원한 은혜의 처소, 예톡행복한교회입니다.", yt: "", img: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=90" }
+        ];
+    }
     if (catName === "예배") {
         return [
             { title: "예배", verse: "“신령과 진정으로 예배하는 자들을 찾으시느니라 (요 4:23)”", body: "주일과 주중 모든 예배 실황과 은혜의 말씀을 나눕니다.", yt: "", img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90" },
@@ -133,7 +144,19 @@ function initChurchData() {
     }
 
     MENU_DEFINITIONS.forEach(m => {
-        if (m.id === 1) {
+        if (m.id === 0) {
+            // 🌟 교회 (0번 메뉴): 7개 슬라이드 완전 보장
+            const list0 = churchSlideData[0];
+            if (!list0 || !Array.isArray(list0) || list0.length < 7 || list0.some(isDoctorDirtySlide)) {
+                churchSlideData[0] = createDefaultSlides("교회", false);
+            } else {
+                churchSlideData[0].forEach(s => {
+                    if (s.title === "교회의꿈" || (s.title && (s.title.includes("1:") || s.title.includes("은혜의 비전")))) {
+                        s.title = "교회";
+                    }
+                });
+            }
+        } else if (m.id === 1) {
             churchSlideData[1] = createDefaultSlides("예배", false);
         } else if (m.id === 7) {
             // 🌟 보배성도 (성도 교제 및 셀 모임)는 이전 성형외과 케이스 데이터 완전 박멸!
@@ -197,6 +220,33 @@ function extractYoutubeVideoId(url) {
     else if (url.includes("shorts/")) videoId = url.split("shorts/")[1].split("?")[0].split("&")[0];
     else if (url.includes("v=")) videoId = url.split("v=")[1].split("&")[0];
     return videoId ? videoId.trim() : null;
+}
+
+function getCurrentLiveWorship() {
+    const savedType = localStorage.getItem("yetalk_church_live_service_type");
+    const savedName = localStorage.getItem("yetalk_church_live_worship_name");
+    if (savedName) return { name: savedName, tabKey: savedType || "sunday" };
+
+    const now = new Date();
+    const day = now.getDay(); // 0: 일, 1: 월, 2: 화, 3: 수, 4: 목, 5: 금, 6: 토
+    const hour = now.getHours();
+
+    if (day === 0) {
+        return { name: "주일 대예배", tabKey: "sunday" };
+    } else if (day === 3) {
+        return { name: "수요 성경강해", tabKey: "wednesday" };
+    } else if (day === 5) {
+        return { name: "금요 성령기도회", tabKey: "friday" };
+    } else if (hour >= 5 && hour < 7) {
+        return { name: "새벽기도회", tabKey: "dawn" };
+    } else {
+        return { name: "주일 대예배", tabKey: "sunday" };
+    }
+}
+
+function goToLiveWorship(tabKey) {
+    sessionStorage.setItem("church_last_active_card_idx", "1");
+    location.href = `churchworship.html?tab=${tabKey || 'sunday'}`;
 }
 
 function goToDetailPage(secId, targetLink) {
@@ -399,6 +449,17 @@ function renderChurchView() {
         const slides = churchSlideData[sec.id] || createDefaultSlides(sec.cat, false);
         const cur = slides[0];
 
+        let liveBannerHtml = "";
+        if (sec.id === 1) {
+            const liveInfo = getCurrentLiveWorship();
+            liveBannerHtml = `
+                <div class="card-live-blinking-pill" onclick="event.stopPropagation(); goToLiveWorship('${liveInfo.tabKey}');" title="${liveInfo.name} 실시간 라이브 시청">
+                    <span class="blinking-red-dot">●</span>
+                    <span class="live-pill-text">실시간 LIVE : [${liveInfo.name}] 생중계 바로가기 ▶</span>
+                </div>
+            `;
+        }
+
         card.innerHTML = `
             <div class="snap-card-inner-box">
                 <img class="card-bg-img" id="slide_img_${sec.id}" src="${cur.img}" alt="${sec.cat}">
@@ -418,6 +479,7 @@ function renderChurchView() {
                             </div>
                         ` : ''}
                     </div>
+                    ${sec.id === 1 ? liveBannerHtml : ''}
                 </div>
 
                 <div class="card-bottom-content">
