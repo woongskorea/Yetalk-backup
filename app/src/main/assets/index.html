@@ -144,7 +144,7 @@
         .yt-player-frame-box {
             position: absolute; top: 50%; left: 50%;
             width: 100vw; height: 100dvh;
-            transform: translate(-50%, -50%) scale(calc(1.36 * var(--user-zoom, 1)));
+            transform: translate(-50%, -50%) scale(var(--user-zoom, 1));
             transform-origin: center center;
             pointer-events: none;
             filter: contrast(1.04) brightness(1.02);
@@ -162,8 +162,8 @@
         /* 3. 우측 세로 퀵 액션 바 (10% 축소 최적화로 7개 메뉴 완벽 수용) */
         .right-actions-bar {
             position: absolute; right: 10px;
-            bottom: max(env(safe-area-inset-bottom, 0px) + 115px, 120px);
-            z-index: 9998; display: flex; flex-direction: column; gap: 7px;
+            bottom: max(env(safe-area-inset-bottom, 0px) + 108px, 112px);
+            z-index: 9998; display: flex; flex-direction: column; gap: 5px;
             align-items: center;
             pointer-events: auto !important;
             transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease;
@@ -1098,8 +1098,10 @@
                         👑 관리자
                     </button>
                 </div>
-                <div class="brand-subtext-main">누구에게나 무료로 만들어주는 2개의 앱</div>
-                <div class="brand-subtext-badge">(개인앱 · 전문앱)</div>
+                <div class="brand-subtext-main" style="display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin-top:1px;">
+                    <span>누구에게나 무료로 만들어주는 2개의 앱</span>
+                    <span class="brand-subtext-badge" style="background:rgba(56,189,248,0.22); color:#38bdf8; border:1px solid rgba(56,189,248,0.5); padding:1px 6px; border-radius:6px; font-weight:800; font-size:11.5px;">(개인앱 · 전문앱)</span>
+                </div>
             </div>
             <div class="header-actions-right">
                 <button type="button" class="btn-simple-icon" onclick="openSearchModalDirect()" title="검색">
@@ -1112,12 +1114,12 @@
             </div>
         </div>
 
-        <!-- 🌟 실시간 공지알림 롤링 띠 배너 (의원/교회 등 공지 등록 시 즉시 표출) -->
-        <div class="header-notice-ticker" id="headerNoticeTicker" style="display:flex; align-items:center; gap:7px; background:linear-gradient(90deg, rgba(30, 58, 138, 0.94), rgba(15, 23, 42, 0.94)); border:1.2px solid #38bdf8; border-radius:20px; padding:6px 12px; margin-top:6px; cursor:pointer; backdrop-filter:blur(6px); box-shadow:0 3px 12px rgba(56, 189, 248, 0.4);" onclick="openLatestNoticePopup()">
-            <span style="font-size:14px;">📢</span>
-            <span style="font-size:12.5px; font-weight:900; color:#fde047; white-space:nowrap;" id="noticeTickerTag">[의원 공지]</span>
-            <span style="font-size:12.5px; font-weight:750; color:#f8fafc; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;" id="noticeTickerText">예톡 아름다운의원 스마트 QR 예약 및 1:1 맞춤 진료 상담 오픈</span>
-            <span style="font-size:11.5px; color:#38bdf8; font-weight:900; white-space:nowrap;">확인 ➔</span>
+        <!-- 🌟 실시간 공지알림 롤링 띠 배너: 오른쪽 퀵 액션 버튼(앱만들기 등)과 겹치지 않도록 가로 폭 max-width: calc(100% - 68px) 제한 -->
+        <div class="header-notice-ticker" id="headerNoticeTicker" style="display:flex; align-items:center; gap:7px; background:linear-gradient(90deg, rgba(30, 58, 138, 0.94), rgba(15, 23, 42, 0.94)); border:1.2px solid #38bdf8; border-radius:20px; padding:5px 10px; margin-top:5px; cursor:pointer; backdrop-filter:blur(6px); box-shadow:0 3px 12px rgba(56, 189, 248, 0.4); max-width:calc(100% - 68px);" onclick="openLatestNoticePopup()">
+            <span style="font-size:13px;">📢</span>
+            <span style="font-size:12px; font-weight:900; color:#fde047; white-space:nowrap;" id="noticeTickerTag">[의원 공지]</span>
+            <span style="font-size:12px; font-weight:750; color:#f8fafc; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;" id="noticeTickerText">예톡 아름다운의원 스마트 QR 예약 및 1:1 맞춤 진료 상담 오픈</span>
+            <span style="font-size:11px; color:#38bdf8; font-weight:900; white-space:nowrap;">확인 ➔</span>
         </div>
     </div>
 
@@ -1196,12 +1198,12 @@
             <span class="btn-side-label" style="color:#7dd3fc; font-weight:950;">댓글</span>
         </button>
 
-        <!-- 🌟 [사용자 요청] 나의 영상 메뉴 동그라미 버튼 -->
-        <button type="button" class="btn-side-action" onclick="openMyVideosModal()">
-            <div class="btn-side-circle" style="background:rgba(88, 28, 135, 0.7); border-color:#c084fc;">
+        <!-- 🌟 [사용자 요청] 나의 영상 메뉴: 탭 시 빨강 활성화 토글 및 내가 올린 영상만 스크롤 표출 (새창 없음) -->
+        <button type="button" class="btn-side-action" id="btnSideMyVideos" onclick="toggleMyVideosFilterMode()" title="내가 올린 영상만 보기 (토글)">
+            <div class="btn-side-circle" id="circleMyVideos" style="background:rgba(88, 28, 135, 0.7); border-color:#c084fc;">
                 <span style="font-size:16px;">🎬</span>
             </div>
-            <span class="btn-side-label" style="color:#e9d5ff; font-weight:950;">나의영상</span>
+            <span class="btn-side-label" id="labelMyVideos" style="color:#e9d5ff; font-weight:950;">나의영상</span>
         </button>
 
         <button type="button" class="btn-side-action" id="btnAdminDelete" onclick="deleteCurrentVideoForMe()">
@@ -1705,6 +1707,8 @@
         }
     ];
 
+    let isMyVideosOnlyMode = false;
+
     function loadSavedFeeds() {
         let saved = localStorage.getItem("yetalkSavedCustomFeeds");
         let customList = [];
@@ -1713,6 +1717,23 @@
                 let parsed = JSON.parse(saved);
                 if (Array.isArray(parsed)) customList = parsed;
             } catch(e) {}
+        }
+
+        // 🌟 [사용자 요청] <나의 영상> 모드 활성화 시: 내가 올린 영상만 중앙에서 스크롤로 표출 (다른 사람 영상 숨김)
+        if (isMyVideosOnlyMode) {
+            const hiddenIds = JSON.parse(localStorage.getItem("yetalkHiddenFeedIds") || "[]");
+            let myFeeds = customList.filter(f => !hiddenIds.includes(f.id));
+            if (myFeeds.length > 0) {
+                const currentActiveBiz = localStorage.getItem("yetalkUserStoreName") || "예톡행복한교회";
+                const currentActiveUrl = localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html";
+                myFeeds.forEach(f => {
+                    if (f.bizName === "예톡새영상" || !f.bizName) {
+                        f.bizName = currentActiveBiz;
+                        f.targetUrl = currentActiveUrl;
+                    }
+                });
+                return myFeeds;
+            }
         }
 
         let customIds = new Set(customList.map(c => c.id));
@@ -2480,13 +2501,49 @@
         }
     }
 
-    /* 🌟 우측 액션 바 🎬 나의 영상 클릭 시 모달 열기 및 목록 바로 스크롤 */
-    function openMyVideosModal() {
-        openStudioModal();
-        setTimeout(() => {
-            const sec = document.getElementById("myUploadedVideosContainer");
-            if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 150);
+    /* 🌟 [사용자 요청] 우측 <나의 영상> 버튼: 새 창/표 없이 동그라미만 빨강으로 활성화되고 중앙에서 내가 올린 영상만 스크롤 표출 */
+    function toggleMyVideosFilterMode() {
+        let customFeeds = [];
+        try {
+            customFeeds = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]");
+        } catch(e){}
+
+        if (!isMyVideosOnlyMode && customFeeds.length === 0) {
+            showToast("📂 아직 직접 등록하신 영상이 없습니다.\n[영상올리기] 버튼으로 나의 영상을 먼저 올려보세요!");
+            return;
+        }
+
+        isMyVideosOnlyMode = !isMyVideosOnlyMode;
+
+        const circle = document.getElementById("circleMyVideos");
+        const label = document.getElementById("labelMyVideos");
+
+        if (isMyVideosOnlyMode) {
+            if (circle) {
+                circle.style.setProperty("background", "#dc2626", "important");
+                circle.style.setProperty("border-color", "#fca5a5", "important");
+                circle.style.setProperty("box-shadow", "0 0 16px rgba(220, 38, 38, 0.9)", "important");
+            }
+            if (label) {
+                label.style.color = "#fca5a5";
+                label.innerText = "나의영상●";
+            }
+            showToast("🎬 [나의 영상만 보기] ON\n내가 등록한 영상만 스크롤하여 시청합니다.");
+        } else {
+            if (circle) {
+                circle.style.removeProperty("background");
+                circle.style.removeProperty("border-color");
+                circle.style.removeProperty("box-shadow");
+            }
+            if (label) {
+                label.style.color = "#e9d5ff";
+                label.innerText = "나의영상";
+            }
+            showToast("🌐 [전체 영상 보기] 모드로 복귀했습니다.");
+        }
+
+        renderFeedCards();
+        resetToFirstHomeScreen(true);
     }
 
     function escapeHtml(str) {
@@ -3016,46 +3073,117 @@
         resetToFirstHomeScreen(true);
     }
 
+    function isMasterAdminUser() {
+        const isAuth = sessionStorage.getItem("yetalk_admin_auth") === "true" || localStorage.getItem("yetalk_admin_auth") === "true";
+        const userName = (localStorage.getItem("yetalkUserName") || "").trim();
+        return isAuth || userName === "김예톡" || userName.includes("관리자") || userName.includes("원장님");
+    }
+
+    /* 🌟 [사용자 요청] 삭제 권한 분기:
+       - 일반 회원: 본인 화면 또는 본인이 올린 영상만 삭제
+       - 내가(총관리자): 예톡TV 전체에서 해당 영상을 완전 삭제 */
     function deleteCurrentVideoForMe() {
         const feeds = loadSavedFeeds();
         if (!feeds || feeds.length === 0) return;
         const curFeed = feeds[currentFeedIndex] || feeds[0];
         if (!curFeed) return;
 
-        if (!confirm("현재 영상을 삭제하시겠습니까?")) return;
+        const isMaster = isMasterAdminUser();
+        const isMyUpload = curFeed.isUploadedByMe === true;
 
-        // 1. 해당 플레이어 즉각 정지 및 제거 (소리 겹침 원천 차단)
-        if (ytPlayerMap[curFeed.id]) {
-            try {
-                ytPlayerMap[curFeed.id].pauseVideo();
-                ytPlayerMap[curFeed.id].mute();
-                ytPlayerMap[curFeed.id].stopVideo();
-                ytPlayerMap[curFeed.id].destroy();
-            } catch(e){}
-            delete ytPlayerMap[curFeed.id];
+        if (isMaster) {
+            // 🌟 총관리자가 삭제 누르면 예톡TV 전체에서 영구 삭제
+            const title = curFeed.title || curFeed.shortAd || curFeed.bizName || '현재 영상';
+            if (!confirm(`👑 [총관리자 권한]\n이 영상을 예톡TV 전체에서 완전 삭제하시겠습니까?\n\n• 영상: ${title}\n• 채널: ${curFeed.bizName || '예톡'}\n\n※ 확인 시 모든 성도와 회원 화면에서 완전히 삭제됩니다.`)) {
+                return;
+            }
+
+            // 플레이어 정지 및 제거
+            if (ytPlayerMap[curFeed.id]) {
+                try {
+                    ytPlayerMap[curFeed.id].pauseVideo();
+                    ytPlayerMap[curFeed.id].mute();
+                    ytPlayerMap[curFeed.id].destroy();
+                } catch(e){}
+                delete ytPlayerMap[curFeed.id];
+            }
+
+            // 전체 커스텀 피드 목록에서 영구 제거
+            let customFeeds = [];
+            try { customFeeds = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]"); } catch(e){}
+            customFeeds = customFeeds.filter(f => String(f.id) !== String(curFeed.id) && f.videoId !== curFeed.videoId);
+            localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(customFeeds));
+
+            // 고정 대표 영상 해제
+            if (localStorage.getItem("yetalkPinnedVideoId") === curFeed.videoId) {
+                localStorage.removeItem("yetalkPinnedVideoId");
+                localStorage.removeItem("yetalkPinnedBizName");
+            }
+
+            // 교회 라이브 송출 해제
+            if (curFeed.id === 'church_live_top_feed') {
+                localStorage.removeItem("yetalk_church_live_broadcast");
+                localStorage.removeItem("yetalk_church_live_video_url");
+            }
+
+            // 숨김 목록에 추가하여 전체 영구 차단
+            let hiddenIds = JSON.parse(localStorage.getItem("yetalkHiddenFeedIds") || "[]");
+            if (!hiddenIds.includes(curFeed.id)) {
+                hiddenIds.push(curFeed.id);
+                localStorage.setItem("yetalkHiddenFeedIds", JSON.stringify(hiddenIds));
+            }
+
+            try { localStorage.removeItem(`yetalk_feed_comments_${curFeed.id}`); } catch(e){}
+
+            showToast("🗑️ [총관리자] 예톡TV 전체에서 영상이 완전 삭제되었습니다.");
+            resetToFirstHomeScreen(true);
+        } else if (isMyUpload) {
+            // 🌟 본인 회원이 직접 올린 영상 삭제
+            if (!confirm("내가 올린 이 영상을 삭제하시겠습니까?")) return;
+
+            if (ytPlayerMap[curFeed.id]) {
+                try {
+                    ytPlayerMap[curFeed.id].pauseVideo();
+                    ytPlayerMap[curFeed.id].mute();
+                    ytPlayerMap[curFeed.id].destroy();
+                } catch(e){}
+                delete ytPlayerMap[curFeed.id];
+            }
+
+            let customFeeds = [];
+            try { customFeeds = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]"); } catch(e){}
+            customFeeds = customFeeds.filter(f => String(f.id) !== String(curFeed.id));
+            localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(customFeeds));
+
+            if (localStorage.getItem("yetalkPinnedVideoId") === curFeed.videoId) {
+                localStorage.removeItem("yetalkPinnedVideoId");
+                localStorage.removeItem("yetalkPinnedBizName");
+            }
+
+            showToast("🗑️ 등록하신 나의 영상이 삭제되었습니다.");
+            resetToFirstHomeScreen(true);
+        } else {
+            // 🌟 타인의 영상 또는 기본 영상: 본인 회원 화면에서만 삭제(숨김)
+            if (!confirm("이 영상을 내 화면에서 삭제(숨김)하시겠습니까?\n(회원님의 스마트폰 화면에서만 제외됩니다)")) return;
+
+            if (ytPlayerMap[curFeed.id]) {
+                try {
+                    ytPlayerMap[curFeed.id].pauseVideo();
+                    ytPlayerMap[curFeed.id].mute();
+                    ytPlayerMap[curFeed.id].destroy();
+                } catch(e){}
+                delete ytPlayerMap[curFeed.id];
+            }
+
+            let hiddenIds = JSON.parse(localStorage.getItem("yetalkHiddenFeedIds") || "[]");
+            if (!hiddenIds.includes(curFeed.id)) {
+                hiddenIds.push(curFeed.id);
+                localStorage.setItem("yetalkHiddenFeedIds", JSON.stringify(hiddenIds));
+            }
+
+            showToast("🗑️ 내 화면에서 영상이 삭제(숨김)되었습니다.");
+            resetToFirstHomeScreen(true);
         }
-
-        // 2. 사용자가 직접 등록한 커스텀 피드 목록에서 삭제
-        let customFeeds = [];
-        try { customFeeds = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]"); } catch(e){}
-        customFeeds = customFeeds.filter(f => String(f.id) !== String(curFeed.id));
-        localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(customFeeds));
-
-        // 고정 대표 영상 해제
-        if (localStorage.getItem("yetalkPinnedVideoId") === curFeed.videoId) {
-            localStorage.removeItem("yetalkPinnedVideoId");
-            localStorage.removeItem("yetalkPinnedBizName");
-        }
-
-        // 3. 숨김 목록에도 등록 (기본 영상인 경우)
-        let hiddenIds = JSON.parse(localStorage.getItem("yetalkHiddenFeedIds") || "[]");
-        if (!hiddenIds.includes(curFeed.id)) {
-            hiddenIds.push(curFeed.id);
-            localStorage.setItem("yetalkHiddenFeedIds", JSON.stringify(hiddenIds));
-        }
-
-        showToast("🗑️ 영상이 삭제되었습니다.");
-        resetToFirstHomeScreen(true);
     }
 
     function openStudioModal() {
@@ -3425,10 +3553,9 @@ https://yetalk.cc`;
 
     document.addEventListener("DOMContentLoaded", () => {
         try {
-            const savedZoom = parseInt(localStorage.getItem("yetalkVideoZoomLevel") || "100", 10);
-            if (savedZoom === 150 || savedZoom === 200) {
-                applyVideoZoom(savedZoom);
-            }
+            // 🌟 [사용자 요청] 스마트폰 & PC 모두 기본 화면은 무조건 100% 표준 배율로 초기화
+            applyVideoZoom(100);
+            localStorage.setItem("yetalkVideoZoomLevel", "100");
         } catch(e){}
         renderFeedCards();
         checkLatestNoticeAlert();
