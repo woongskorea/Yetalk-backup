@@ -194,6 +194,17 @@
         .btn-worship-ctrl:active {
             transform: scale(0.96); background: #0284c7;
         }
+        .btn-worship-ctrl.btn-worship-heart-display {
+            background: rgba(244, 63, 94, 0.16) !important;
+            border-color: rgba(244, 63, 94, 0.5) !important;
+            color: #fca5a5 !important;
+            cursor: default !important;
+            pointer-events: none !important;
+            user-select: none;
+        }
+        .btn-worship-ctrl.btn-worship-heart-display:active {
+            transform: none !important;
+        }
         .btn-worship-ctrl.locked {
             background: #dc2626 !important; border-color: #ef4444 !important;
             color: #ffffff !important; box-shadow: 0 0 12px rgba(239, 68, 68, 0.7) !important;
@@ -594,25 +605,11 @@
     const SPEED_RATES = [1.0, 1.25, 1.5];
     let currentSpeedIndex = 0;
 
-    // 🌟 하트: 7에서 시작 매일 5개씩 기본 추가 (이모티콘 제외)
+    // 🌟 하트: 7에서 시작 매일 5개씩 기본 추가 (개별 클릭 차단으로 서버비 절감)
     function getChurchHearts() {
         const BASE_TIMESTAMP = 1760716800000; // 2025-10-18 00:00:00 KST
         const days = Math.max(0, Math.floor((Date.now() - BASE_TIMESTAMP) / (1000 * 60 * 60 * 24)));
-        const base = 7 + (days * 5);
-        let clicks = 0;
-        try { clicks = parseInt(localStorage.getItem("yetalk_church_heart_clicks") || "0", 10); } catch(e){}
-        return base + clicks;
-    }
-
-    function toggleChurchHeart(idx = activeWorshipIndex) {
-        let clicks = 0;
-        try { clicks = parseInt(localStorage.getItem("yetalk_church_heart_clicks") || "0", 10); } catch(e){}
-        clicks += 1;
-        localStorage.setItem("yetalk_church_heart_clicks", clicks);
-        const count = getChurchHearts();
-        const textEl = document.getElementById(`churchHeartText_${idx}`);
-        if (textEl) textEl.innerText = `하트 ${count}`;
-        showToast("💖 주일예배에 은혜와 응원의 하트를 보냈습니다!");
+        return 7 + (days * 5);
     }
 
     function goBackToMain() {
@@ -799,9 +796,9 @@
 
             <!-- 🌟 영상 바로 밑 5대 컨트롤 바 (이모티콘 없이 1줄 배치: 하트, 확대, 속도, 화면고정, 관리실) -->
             <div class="worship-ctrl-bar-under-video">
-                <button type="button" class="btn-worship-ctrl" id="btnHeart_${idx}" onclick="toggleChurchHeart(${idx})" title="좋아요 (기본 7개 + 매일 5개씩 추가)">
+                <div class="btn-worship-ctrl btn-worship-heart-display" id="btnHeart_${idx}" title="하트 (기본 7개 + 매일 5개씩 자동 추가)">
                     <span id="churchHeartText_${idx}">하트 ${getChurchHearts()}</span>
-                </button>
+                </div>
                 <button type="button" class="btn-worship-ctrl" id="btnZoom_${idx}" onclick="cycleWorshipZoom(${idx})" title="화면 배율 (100% / 150% / 200%)">
                     <span id="zoomText_${idx}">${ZOOM_LABELS[currentZoomIndex]}</span>
                 </button>

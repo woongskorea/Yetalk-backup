@@ -708,9 +708,12 @@
             background: rgba(244, 63, 94, 0.22) !important;
             border-color: #f43f5e !important;
             color: #ffffff !important;
+            cursor: default !important;
+            pointer-events: none !important;
+            user-select: none;
         }
         .mini-tool-pill.mini-heart-pill:active {
-            background: #f43f5e !important;
+            transform: none !important;
         }
         .mini-tool-pill.locked {
             background: rgba(220, 38, 38, 0.9) !important;
@@ -1480,11 +1483,11 @@
     <!-- 3. 하단 좌측: 하트/조회/100%배율/삭제/고정 도구 및 전문앱 홍보 통합 카드 (가로 확장 & 상시 선명 노출) -->
     <div class="bottom-left-info-bar" id="bottomLeftInfoBar">
         <div class="bottom-tool-stats-row">
-            <!-- 🌟 하트: 7에서 시작 매일 5개씩 기본 추가 및 클릭 응원 -->
-            <button type="button" class="mini-tool-pill mini-heart-pill" id="btnFeedHeart" onclick="toggleFeedHeart()" title="좋아요 (기본 7개 + 매일 5개씩 추가)">
+            <!-- 🌟 하트: 7에서 시작 매일 5개씩 기본 추가 (서버 비용 절감을 위해 개별 클릭 차단) -->
+            <div class="mini-tool-pill mini-heart-pill" id="btnFeedHeart" title="좋아요 (기본 7개 + 매일 5개씩 자동 추가)">
                 <span style="color:#f43f5e; font-size:12px;">💖</span>
                 <span id="feedLikeCount">7</span>
-            </button>
+            </div>
             <div class="zoom-delete-pill-group">
                 <!-- 🌟 1. 확대: 100% / 150% / 200% 3개만 순환 -->
                 <button type="button" class="mini-tool-pill" id="btnPermanentZoom" onclick="cycleVideoZoomLevel()" title="화면 배율 (100% / 150% / 200%)">
@@ -2248,30 +2251,11 @@
         showToast(`⚡ ${label}`);
     }
 
-    /* 🌟 [사용자 요청] 하트 이모티콘: 7에서 시작 매일 5개씩 기본 추가 + 클릭 시 응원 증가 */
+    /* 🌟 [사용자 요청] 하트 이모티콘: 7에서 시작 매일 5개씩 기본 추가 (개별 클릭 차단으로 서버비 절감) */
     function getFeedHearts(feedId) {
         const BASE_TIMESTAMP = 1760716800000; // 2025-10-18 00:00:00 KST
         const daysPassed = Math.max(0, Math.floor((Date.now() - BASE_TIMESTAMP) / (1000 * 60 * 60 * 24)));
-        const baseHearts = 7 + (daysPassed * 5);
-        let userLikes = 0;
-        try {
-            userLikes = parseInt(localStorage.getItem(`yetalk_user_likes_${feedId || 'home'}`) || "0", 10);
-        } catch(e){}
-        return baseHearts + userLikes;
-    }
-
-    function toggleFeedHeart() {
-        const feeds = loadSavedFeeds();
-        const curFeed = feeds[currentFeedIndex] || { id: "home" };
-        const key = `yetalk_user_likes_${curFeed.id}`;
-        let curLikes = 0;
-        try { curLikes = parseInt(localStorage.getItem(key) || "0", 10); } catch(e){}
-        curLikes += 1;
-        localStorage.setItem(key, curLikes);
-
-        const countEl = document.getElementById("feedLikeCount");
-        if (countEl) countEl.innerText = getFeedHearts(curFeed.id);
-        showToast("💖 좋아요! 은혜와 응원을 보냅니다.");
+        return 7 + (daysPassed * 5);
     }
 
     let currentFeedIndex = 0;
