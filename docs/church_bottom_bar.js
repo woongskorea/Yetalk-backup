@@ -97,6 +97,48 @@ YETALK CHURCH COMMON BOTTOM NAV BAR (church_bottom_bar.js)
             gap: 3px !important;
         }
 
+        /* 🌟 [사용자 요청] 컴퓨터(PC/태블릿) 화면: 구글 정책 준수 및 화면 최적화를 위해 모든 애드몹 일괄 완전 숨김 */
+        @media (min-width: 768px) {
+            body {
+                padding-bottom: 56px !important;
+            }
+            .church-common-admob-footer,
+            .church-fixed-admob-footer,
+            .bottom-fixed-admob-footer,
+            .fixed-bottom-admob,
+            .global-fixed-bottom-admob,
+            .coupang-admob-slot,
+            .coupang-admob-card,
+            .admob-safety-bar,
+            .admob-display-slot,
+            .detail-admob-banner,
+            .infeed-admob-box,
+            .grace-admob-250-slot,
+            .admob-medium-rectangle-card,
+            .admob-mission-guide-box,
+            .admob-large-box,
+            .admob-250-ending-box,
+            .admob-250-card,
+            .admob-250-overlay,
+            .bottom-fixed-admob-100,
+            .admob-safety-wrapper,
+            .admob-250-wrapper,
+            [class*="admob"],
+            [id*="admob"],
+            [class*="Admob"],
+            [id*="Admob"] {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                min-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                overflow: hidden !important;
+            }
+        }
+
         .church-common-nav-btn {
             background: none !important;
             border: none !important;
@@ -729,9 +771,26 @@ YETALK CHURCH COMMON BOTTOM NAV BAR (church_bottom_bar.js)
         }
     };
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initChurchNav);
-    } else {
-        initChurchNav();
+    function checkAndHidePcAdmob() {
+        const isPc = (window.innerWidth >= 768) || (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.AndroidBridge);
+        if (isPc) {
+            document.querySelectorAll('.church-common-admob-footer, .church-fixed-admob-footer, .bottom-fixed-admob-footer, .fixed-bottom-admob, .global-fixed-bottom-admob, [class*="admob"], [id*="admob"], [class*="Admob"], [id*="Admob"]').forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+            });
+            document.body.style.setProperty('padding-bottom', '56px', 'important');
+        }
     }
+
+    function onChurchNavReady() {
+        initChurchNav();
+        checkAndHidePcAdmob();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', onChurchNavReady);
+    } else {
+        onChurchNavReady();
+    }
+    window.addEventListener('pageshow', checkAndHidePcAdmob);
+    window.addEventListener('resize', checkAndHidePcAdmob);
 })();

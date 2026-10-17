@@ -186,6 +186,25 @@
             box-shadow: inset 0 0 15px rgba(0,0,0,0.8); gap: 2px;
         }
 
+        /* 🌟 [사용자 요청] 컴퓨터(PC) 환경: 애드몹 전면 숨김 및 전체 확장 */
+        @media (min-width: 768px) {
+            :root {
+                --admob-h: 0px !important;
+                --safe-bottom: 0px !important;
+                --admob-total: 0px !important;
+                --view-h: calc(100dvh - var(--header-h) - var(--nav-h)) !important;
+            }
+            .bottom-fixed-admob-footer,
+            .admob-safety-bar,
+            .admob-display-slot,
+            [class*="admob"],
+            [id*="admob"] {
+                display: none !important;
+                height: 0 !important;
+                overflow: hidden !important;
+            }
+        }
+
         /* 내장 풀스크린 상세 페이지 */
         .detail-fullscreen-view {
             display: none; position: fixed; inset: 0; background: #0b0f19; z-index: 21000;
@@ -790,7 +809,20 @@
         setTimeout(() => t.classList.remove("show"), 2200);
     }
 
-    document.addEventListener("DOMContentLoaded", initPage);
+    function checkPcAdmobHide() {
+        if (window.innerWidth >= 768 || (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.AndroidBridge)) {
+            document.querySelectorAll('.bottom-fixed-admob-footer, [class*="admob"], [id*="admob"]').forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+            });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        initPage();
+        checkPcAdmobHide();
+    });
+    window.addEventListener("resize", checkPcAdmobHide);
+    window.addEventListener("pageshow", checkPcAdmobHide);
 </script>
 </body>
 </html>

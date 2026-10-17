@@ -337,6 +337,23 @@
             box-shadow: inset 0 0 15px rgba(0,0,0,0.8); gap: 2px;
         }
 
+        /* 🌟 [사용자 요청] 컴퓨터(PC) 환경: 애드몹 전면 숨김 및 예배 화면 전체 확장 */
+        @media (min-width: 768px) {
+            :root {
+                --admob-h: 0px !important;
+                --view-h: calc(100dvh - var(--header-h) - var(--tabs-h)) !important;
+            }
+            .bottom-fixed-admob-footer,
+            .admob-safety-bar,
+            .admob-display-slot,
+            [class*="admob"],
+            [id*="admob"] {
+                display: none !important;
+                height: 0 !important;
+                overflow: hidden !important;
+            }
+        }
+
         @media (min-width: 1024px) {
             .worship-shell {
                 max-width: 1240px !important;
@@ -1045,11 +1062,22 @@
         renderWorshipSection(activeWorshipIndex);
     }
 
+    function checkPcAdmobHide() {
+        if (window.innerWidth >= 768 || (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.AndroidBridge)) {
+            document.querySelectorAll('.bottom-fixed-admob-footer, [class*="admob"], [id*="admob"]').forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+            });
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
         document.body.setAttribute('data-theme', savedTheme);
         initPage();
+        checkPcAdmobHide();
     });
+    window.addEventListener("resize", checkPcAdmobHide);
+    window.addEventListener("pageshow", checkPcAdmobHide);
 </script>
 </body>
 </html>
