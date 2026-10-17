@@ -438,6 +438,39 @@
                 </div>
                 <button type="button" id="admobToggleBtn" class="plan-save-btn" style="background:#e11d48;" onclick="toggleAdmobMode()">광고 켜짐</button>
             </div>
+
+            <!-- 5. 🌟 [사용자 요청] 컴퓨터(PC) 상 애드몹 일괄 감춤 제어 -->
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:10px 12px; border-radius:8px; border:1.5px solid #38bdf8; margin-top:6px;">
+                <div>
+                    <div style="font-size:13px; font-weight:950; color:#38bdf8;">🖥️ 컴퓨터(PC) 구글 애드몹 일괄 차단/숨김</div>
+                    <div style="font-size:11px; color:#94a3b8; margin-top:2px;">PC 화면에서 구글 애드몹 정책 위반 방지를 위해 전체 일괄 숨김 처리합니다.</div>
+                </div>
+                <button type="button" id="pcAdmobToggleBtn" class="plan-save-btn" style="background:#10b981; font-weight:950; padding:6px 12px; white-space:nowrap;" onclick="togglePcAdmobGlobal()">PC 애드몹 숨김 (ON)</button>
+            </div>
+        </section>
+
+        <!-- 🌟 [사용자 요청] 총관리자 전용 보안 비밀번호 변경 카드 -->
+        <section class="admin-control-box" style="border-color:#f59e0b; background:#101b2b; margin-top:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:18px;">🔐</span>
+                    <strong style="color:#fde047; font-size:14.5px; font-weight:950;">총관리자 전용 보안 비밀번호 변경</strong>
+                </div>
+                <span style="font-size:11px; color:#facc15; font-weight:800;">나만 아는 비밀번호 설정</span>
+            </div>
+            <p style="font-size:11.5px; color:#94a3b8; margin:0; line-height:1.45;">
+                기본 비밀번호는 너무 쉬우므로, 회원이나 방문자가 알 수 없는 강력한 나만의 비밀번호로 변경하세요.
+            </p>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <input type="password" id="inpCurrentAdminPw" class="plan-config-input" style="flex:1; min-width:130px;" placeholder="현재 관리자 비밀번호">
+                    <input type="password" id="inpNewAdminPw" class="plan-config-input" style="flex:1; min-width:130px;" placeholder="새 비밀번호 (4자리 이상)">
+                    <input type="password" id="inpNewAdminPwConfirm" class="plan-config-input" style="flex:1; min-width:130px;" placeholder="새 비밀번호 확인">
+                </div>
+                <button type="button" class="plan-save-btn" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#0f172a; font-weight:950; height:40px; font-size:14px;" onclick="changeMasterAdminPassword()">
+                    🔑 총관리자 비밀번호 즉시 변경 및 저장
+                </button>
+            </div>
         </section>
 
         <!-- 은혜로운 재정 관리 기도문 카드 -->
@@ -617,6 +650,7 @@
             document.getElementById("videoPlayingAdInput").value = localStorage.getItem("yetalkVideoPlayingAd") || "";
         }
         updateAdmobBtnUI(localStorage.getItem("yetalkNoAdsMode") === "true");
+        initPcAdmobToggleUI();
 
         renderChannelSelect();
     });
@@ -806,6 +840,82 @@
         }
     }
 
+    /* 🌟 [사용자 요청] 컴퓨터(PC) 상 구글 애드몹 전체 일괄 감춤 제어 */
+    function initPcAdmobToggleUI() {
+        const isHidden = localStorage.getItem("yetalk_hide_admob_pc") !== "false"; // 기본값: PC에서는 감춤 (true)
+        const btn = document.getElementById("pcAdmobToggleBtn");
+        if (btn) {
+            if (isHidden) {
+                btn.innerText = "PC 애드몹 숨김 (ON)";
+                btn.style.background = "#10b981";
+            } else {
+                btn.innerText = "PC 애드몹 노출 (OFF)";
+                btn.style.background = "#64748b";
+            }
+        }
+    }
+
+    function togglePcAdmobGlobal() {
+        const isCurrentlyHidden = localStorage.getItem("yetalk_hide_admob_pc") !== "false";
+        const nextState = !isCurrentlyHidden;
+        localStorage.setItem("yetalk_hide_admob_pc", nextState ? "true" : "false");
+        initPcAdmobToggleUI();
+        if (nextState) {
+            alert("🖥️ 컴퓨터(PC) 상에서 모든 구글 애드몹이 일괄 숨김(차단) 처리되었습니다.\n구글 정책 위반 걱정 없이 안전하게 운영됩니다.");
+        } else {
+            alert("🖥️ 컴퓨터(PC) 상에서 구글 애드몹 배너가 노출되도록 설정되었습니다.");
+        }
+    }
+
+    /* 🌟 [사용자 요청] 총관리자 보안 비밀번호 변경 로직 */
+    function changeMasterAdminPassword() {
+        const curInp = document.getElementById("inpCurrentAdminPw");
+        const newInp = document.getElementById("inpNewAdminPw");
+        const confirmInp = document.getElementById("inpNewAdminPwConfirm");
+
+        const curPw = (curInp ? curInp.value : "").trim();
+        const newPw = (newInp ? newInp.value : "").trim();
+        const confirmPw = (confirmInp ? confirmInp.value : "").trim();
+
+        const savedPw = localStorage.getItem("yetalkAdminPw") || localStorage.getItem("yetalk_admin_password") || "7777";
+
+        if (!curPw) {
+            alert("현재 관리자 비밀번호를 입력해주세요.");
+            curInp?.focus();
+            return;
+        }
+        if (curPw !== savedPw) {
+            alert("❌ 현재 관리자 비밀번호가 올바르지 않습니다.");
+            curInp?.focus();
+            return;
+        }
+        if (!newPw || newPw.length < 4) {
+            alert("새 비밀번호는 최소 4자리 이상이어야 안전합니다.");
+            newInp?.focus();
+            return;
+        }
+        if (newPw === "7777") {
+            alert("기본 비밀번호(7777)는 너무 쉬우므로 다른 비밀번호를 입력해주세요.");
+            newInp?.focus();
+            return;
+        }
+        if (newPw !== confirmPw) {
+            alert("❌ 새 비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+            confirmInp?.focus();
+            return;
+        }
+
+        localStorage.setItem("yetalkAdminPw", newPw);
+        localStorage.setItem("yetalk_admin_password", newPw);
+        localStorage.setItem("yetalkUserPw", newPw); // 내정보 비밀번호와도 동기화
+
+        if (curInp) curInp.value = "";
+        if (newInp) newInp.value = "";
+        if (confirmInp) confirmInp.value = "";
+
+        alert(`🎉 총관리자 비밀번호가 성공적으로 변경되었습니다!\n새 비밀번호는 나만 기억하시고 안전하게 보관하세요.`);
+    }
+
     function saveAdminMasterAccount() {
         const bank = document.getElementById("adminBankNameInput").value.trim();
         const acc = document.getElementById("adminGlobalBankAccountInput").value.trim();
@@ -883,7 +993,11 @@
         localStorage.setItem("yetalkUserName", name);
         localStorage.setItem("yetalkUserId", name);
         localStorage.setItem("yetalkAdminId", id);
-        if (pw) localStorage.setItem("yetalkAdminPw", pw);
+        if (pw) {
+            localStorage.setItem("yetalkAdminPw", pw);
+            localStorage.setItem("yetalk_admin_password", pw);
+            localStorage.setItem("yetalkUserPw", pw);
+        }
         localStorage.setItem("yetalkAdminAddress", addr);
         localStorage.setItem("yetalkAdminAddressDetail", addrDetail);
         localStorage.setItem("yetalkUserContact", phone);
@@ -901,8 +1015,9 @@
         const inp = document.getElementById("overlayAdminPw");
         const val = (inp ? inp.value : "").trim();
         const savedPw = localStorage.getItem("yetalkAdminPw") || localStorage.getItem("yetalk_admin_password") || "7777";
-        if (val === savedPw || val === "7777") {
+        if (val === savedPw) {
             sessionStorage.setItem("yetalk_admin_auth", "true");
+            localStorage.setItem("yetalk_admin_auth", "true"); // 🌟 영구 로그인 유지!
             const overlay = document.getElementById("adminLockOverlay");
             if (overlay) overlay.style.display = "none";
         } else {
@@ -912,7 +1027,7 @@
     }
 
     function checkAdminAuthOnLoad() {
-        if (sessionStorage.getItem("yetalk_admin_auth") === "true") {
+        if (sessionStorage.getItem("yetalk_admin_auth") === "true" || localStorage.getItem("yetalk_admin_auth") === "true") {
             const overlay = document.getElementById("adminLockOverlay");
             if (overlay) overlay.style.display = "none";
         } else {
@@ -927,6 +1042,7 @@
     function adminLogout() {
         if (confirm("총관리자 세션을 로그아웃하고 홈 화면으로 이동하시겠습니까?")) {
             sessionStorage.removeItem("yetalk_admin_auth");
+            localStorage.removeItem("yetalk_admin_auth"); // 🌟 영구 로그인 해제
             location.href = "index.html";
         }
     }

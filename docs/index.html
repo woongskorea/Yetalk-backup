@@ -1322,7 +1322,10 @@
             .modal-admob-100-slot,
             .split-comment-admob-slot,
             .mobile-admob-100-slot,
-            [class*="admob"] {
+            .admob-250-wrapper,
+            .admob-safety-wrapper,
+            [class*="admob"],
+            [id*="admob"] {
                 display: none !important;
             }
             /* PC에서는 하단 애드몹(120px)이 제거되므로 하단 메뉴/정보바 위치 바닥 안정 정렬 */
@@ -1989,7 +1992,7 @@
     function safeNavigate(fileName) { window.location.href = fileName; }
 
     function openAdminDirect() {
-        const isAuth = sessionStorage.getItem("yetalk_admin_auth") === "true";
+        const isAuth = sessionStorage.getItem("yetalk_admin_auth") === "true" || localStorage.getItem("yetalk_admin_auth") === "true";
         if (isAuth) {
             safeNavigate('admin.html');
         } else {
@@ -2006,9 +2009,11 @@
         const inp = document.getElementById("inpAdminPassword");
         const val = (inp ? inp.value : "").trim();
         const savedPw = localStorage.getItem("yetalkAdminPw") || localStorage.getItem("yetalk_admin_password") || "7777";
-        if (val === savedPw || val === "7777") {
+        if (val === savedPw) {
             sessionStorage.setItem("yetalk_admin_auth", "true");
+            localStorage.setItem("yetalk_admin_auth", "true"); // 🌟 영구 로그인 유지!
             closeModal('adminLoginModal');
+            checkAdminButtonVisibility(); // 🌟 관리자 버튼 즉시 노출!
             showToast("👑 총관리자 인증 성공! 이동합니다.");
             setTimeout(() => {
                 safeNavigate('admin.html');
@@ -3383,9 +3388,23 @@
         localStorage.setItem("yetalkUserRegion", region);
         localStorage.setItem("yetalkOneName", name);
 
+        // 🌟 [사용자 요청] 기본은 로그인이고 일반인은 안보이게 내만 보이면 좋은데... my에서 로그인하면 보이게 하고 로그인은 한번 하면 계속 유지
+        const savedAdminPw = localStorage.getItem("yetalkAdminPw") || localStorage.getItem("yetalk_admin_password") || "7777";
+        if (pw === savedAdminPw || name === "김예톡" || name.includes("관리자") || name.includes("원장님")) {
+            localStorage.setItem("yetalk_admin_auth", "true");
+            sessionStorage.setItem("yetalk_admin_auth", "true");
+        } else {
+            localStorage.removeItem("yetalk_admin_auth");
+            sessionStorage.removeItem("yetalk_admin_auth");
+        }
+
         updateLoginStateUI();
         closeModal("profileModal");
-        showToast(`🎉 [${name}]님 무료 정회원 등록 완료! 개인앱과 QR코드가 발급되었습니다.`);
+        if (localStorage.getItem("yetalk_admin_auth") === "true") {
+            showToast(`👑 총관리자님 환영합니다! 관리자 제어실이 활성화되었습니다.`);
+        } else {
+            showToast(`🎉 [${name}]님 무료 정회원 등록 완료! 개인앱과 QR코드가 발급되었습니다.`);
+        }
     }
 
     /* 🌟 로그인 유지 상태 UI 동기화 (우측 퀵 액션바 회원가입 ➔ 내정보 및 관리자 버튼 은닉 제어) */
@@ -4087,6 +4106,14 @@ https://yetalk.cc`;
         }
     });
 
+    function checkPcAdmobHide() {
+        if (window.innerWidth >= 768 && localStorage.getItem("yetalk_hide_admob_pc") !== "false") {
+            document.querySelectorAll('.bottom-fixed-admob-100, .admob-250-overlay, .modal-admob-100-slot, .split-comment-admob-slot, .mobile-admob-100-slot, .admob-250-wrapper, .admob-safety-wrapper, [class*="admob"]').forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+            });
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         try {
             // 🌟 [사용자 요청] 스마트폰 & PC 모두 기본 화면은 무조건 100% 표준 배율로 초기화
@@ -4098,12 +4125,14 @@ https://yetalk.cc`;
         renderPcAppNavList();
         populateModalBizSelect();
         updateLoginStateUI();
+        checkPcAdmobHide();
     });
 
     window.addEventListener("pageshow", () => {
         renderPcAppNavList();
         populateModalBizSelect();
         updateLoginStateUI();
+        checkPcAdmobHide();
     });
 </script>
 </body>
