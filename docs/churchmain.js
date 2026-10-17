@@ -196,8 +196,27 @@ function initChurchData() {
     renderChurchView();
     setupSectionObserver();
 
-    // 4초 간격 첫 메뉴(교회 카드 0) 자동 슬라이드 시작
-    startCard0AutoSlide();
+    // 🌟 [사용자 요청] 하부페이지에서 복귀 시 해당 메뉴 카드로 자동 스크롤 복귀
+    let initialCard = 0;
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const cardParam = urlParams.get("card");
+        const lastCard = sessionStorage.getItem("church_last_active_card_idx");
+        if (cardParam !== null && !isNaN(parseInt(cardParam, 10))) {
+            initialCard = parseInt(cardParam, 10);
+        } else if (lastCard !== null && !isNaN(parseInt(lastCard, 10))) {
+            initialCard = parseInt(lastCard, 10);
+        }
+    } catch(e) {}
+
+    if (initialCard > 0 && initialCard < MENU_DEFINITIONS.length) {
+        setTimeout(() => {
+            scrollToCard(initialCard);
+        }, 150);
+    } else {
+        // 4초 간격 첫 메뉴(교회 카드 0) 자동 슬라이드 시작
+        startCard0AutoSlide();
+    }
 }
 
 let churchSlide0Timer = null;
@@ -486,6 +505,13 @@ function renderChurchView() {
                 <div class="card-bottom-content">
                     <div class="card-verse-highlight" id="slide_verse_${sec.id}">${cur.verse}</div>
                     <div class="card-body-text" id="slide_body_${sec.id}">${cur.body}</div>
+                    ${sec.id === 6 ? `
+                        <div style="margin-top:10px;">
+                            <button type="button" onclick="event.stopPropagation(); goToDetailPage(6, 'churchjesuswalking.html');" style="background:linear-gradient(135deg, #0284c7, #2563eb); border:1.5px solid #38bdf8; border-radius:24px; padding:7px 16px; color:#ffffff; font-size:13px; font-weight:950; box-shadow:0 4px 14px rgba(2,132,199,0.5); cursor:pointer; display:inline-flex; align-items:center; gap:5px;">
+                                <span>🕊️</span> <span>담임목사님과 함께 (콕 누르세요 👆)</span>
+                            </button>
+                        </div>
+                    ` : ''}
                 </div>
 
                 <div class="slide-dots" id="dots_${sec.id}">
