@@ -467,7 +467,16 @@
             <div id="chatMessagesList" style="display:flex; flex-direction:column; gap:12px;"></div>
         </div>
 
+        <!-- 🌟 첨부파일/사진 미리보기 바 -->
+        <div id="memberAttachPreview" style="display:none; padding:4px 12px; background:#f8fafc; border-top:1px solid #e2e8f0; font-size:12px; align-items:center; justify-content:space-between; flex-shrink:0;">
+            <div id="memberAttachInfo" style="display:flex; align-items:center; gap:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:85%;"></div>
+            <button type="button" onclick="clearMemberAttachment()" style="background:none; border:none; color:#ef4444; font-weight:900; cursor:pointer; font-size:14px; padding:2px 6px;">✕</button>
+        </div>
         <footer class="kakao-chat-input-bar">
+            <input type="file" id="memberPhotoInput" accept="image/*" style="display:none;" onchange="handleMemberPhotoSelect(this)">
+            <input type="file" id="memberFileInput" style="display:none;" onchange="handleMemberFileSelect(this)">
+            <button type="button" class="btn-chat-plus" onclick="document.getElementById('memberPhotoInput').click()" title="사진 첨부">📷</button>
+            <button type="button" class="btn-chat-plus" onclick="document.getElementById('memberFileInput').click()" title="파일 첨부">📁</button>
             <button type="button" class="btn-chat-plus" onclick="quickPrayerBlessing()" title="기도 축복">🙏</button>
             <input type="text" class="input-chat-text" id="inpChatText" placeholder="은혜로운 나눔이나 기도제목을 입력하세요..." onkeydown="if(event.key==='Enter') sendChatMessage();">
             <button type="button" class="btn-chat-send" onclick="sendChatMessage()">전송</button>
@@ -742,6 +751,89 @@
         renderRoomGrid();
     }
 
+    let memberAttachedImg = null;
+    let memberAttachedFile = null;
+
+    function handleMemberPhotoSelect(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            memberAttachedImg = e.target.result;
+            showMemberAttachPreview('photo', file.name, memberAttachedImg);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function handleMemberFileSelect(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            memberAttachedFile = { name: file.name, data: e.target.result };
+            showMemberAttachPreview('file', file.name);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function showMemberAttachPreview(type, name, imgData) {
+        const bar = document.getElementById("memberAttachPreview");
+        const info = document.getElementById("memberAttachInfo");
+        if (!bar || !info) return;
+        if (type === 'photo') {
+            info.innerHTML = `<img src="${imgData}" style="width:22px; height:22px; object-fit:cover; border-radius:4px;"> <span>사진: ${escapeHtml(name)}</span>`;
+        } else {
+            info.innerHTML = `<span>📁 파일: ${escapeHtml(name)}</span>`;
+        }
+        bar.style.display = "flex";
+    }
+
+    function clearMemberAttachment() {
+        memberAttachedImg = null;
+        memberAttachedFile = null;
+        const bar = document.getElementById("memberAttachPreview");
+        if (bar) bar.style.display = "none";
+        const pi = document.getElementById("memberPhotoInput");
+        if (pi) pi.value = "";
+        const fi = document.getElementById("memberFileInput");
+        if (fi) fi.value = "";
+    }
+
+    function viewMemberChatImg(imgUrl) {
+        const w = window.open("");
+        if (w) {
+            w.document.write(`<title>사진 보기</title><body style="margin:0; background:#000; display:flex; align-items:center; justify-content:center; min-height:100vh;"><img src="${imgUrl}" style="max-width:100%; max-height:100vh; object-fit:contain;"></body>`);
+        }
+    }
+
+    function editMemberChatMessage(msgId) {
+        if (!activeRoom) return;
+        const list = roomMessages[activeRoom.id] || [];
+        const msg = list.find(m => m.id === msgId);
+        if (!msg) return;
+        const newText = prompt("나눔 글을 수정하세요:", msg.text);
+        if (newText === null) return;
+        if (!newText.trim()) {
+            showToast("내용을 입력해주세요.");
+            return;
+        }
+        msg.text = newText.trim();
+        saveAllMessages();
+        renderChatMessages();
+        showToast("수정되었습니다.");
+    }
+
+    function deleteMemberChatMessage(msgId) {
+        if (!activeRoom) return;
+        if (!confirm("이 메시지를 삭제하시겠습니까?")) return;
+        if (roomMessages[activeRoom.id]) {
+            roomMessages[activeRoom.id] = roomMessages[activeRoom.id].filter(m => m.id !== msgId);
+            saveAllMessages();
+            renderChatMessages();
+            showToast("삭제되었습니다.");
+        }
+    }
+
     // 채팅 메시지 렌더링
     function renderChatMessages() {
         if (!activeRoom) return;
@@ -758,16 +850,32 @@
                 return;
             }
 
+            const isMyMsg = msg.isMe || msg.sender === myRealName;
             const row = document.createElement("div");
-            row.className = "chat-msg-row " + (msg.isMe ? "me" : "other");
+            row.className = "chat-msg-row " + (isMyMsg ? "me" : "other");
 
-            if (!msg.isMe) {
+            const imgHtml = msg.img ? `<div style="margin-bottom:6px;"><img src="${msg.img}" style="max-width:100%; max-height:220px; border-radius:8px; display:block; cursor:pointer;" onclick="viewMemberChatImg('${msg.img}')"></div>` : '';
+            const fileHtml = msg.file ? `<div style="margin-bottom:6px; background:rgba(0,0,0,0.06); padding:6px 10px; border-radius:6px; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:12px;"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">📁 ${escapeHtml(msg.file.name)}</span><a href="${msg.file.data}" download="${escapeHtml(msg.file.name)}" style="background:#16a34a; color:#fff; text-decoration:none; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:800; white-space:nowrap;">다운로드</a></div>` : '';
+
+            const editDelBtns = `
+                <div style="display:flex; gap:4px; margin-top:4px; justify-content:${isMyMsg ? 'flex-end' : 'flex-start'};">
+                    <button type="button" onclick="editMemberChatMessage(${msg.id})" style="background:none; border:none; color:#64748b; font-size:10.5px; font-weight:700; cursor:pointer; padding:1px 4px;">수정</button>
+                    <button type="button" onclick="deleteMemberChatMessage(${msg.id})" style="background:none; border:none; color:#ef4444; font-size:10.5px; font-weight:700; cursor:pointer; padding:1px 4px;">삭제</button>
+                </div>
+            `;
+
+            if (!isMyMsg) {
                 row.innerHTML = `
                     <div class="chat-avatar">${msg.avatar || '🌱'}</div>
                     <div class="chat-msg-content">
                         <span class="chat-sender-name">${escapeHtml(msg.sender)}</span>
                         <div class="chat-bubble-wrap">
-                            <div class="chat-bubble">${escapeHtml(msg.text)}</div>
+                            <div class="chat-bubble">
+                                ${imgHtml}
+                                ${fileHtml}
+                                ${msg.text ? `<div>${escapeHtml(msg.text)}</div>` : ''}
+                                ${editDelBtns}
+                            </div>
                             <span class="chat-time">${msg.time}</span>
                         </div>
                     </div>
@@ -776,7 +884,12 @@
                 row.innerHTML = `
                     <div class="chat-msg-content">
                         <div class="chat-bubble-wrap">
-                            <div class="chat-bubble">${escapeHtml(msg.text)}</div>
+                            <div class="chat-bubble">
+                                ${imgHtml}
+                                ${fileHtml}
+                                ${msg.text ? `<div>${escapeHtml(msg.text)}</div>` : ''}
+                                ${editDelBtns}
+                            </div>
                             <span class="chat-time">${msg.time}</span>
                         </div>
                     </div>
@@ -791,7 +904,7 @@
         if (!activeRoom) return;
         const inp = document.getElementById("inpChatText");
         const text = inp.value.trim();
-        if (!text) return;
+        if (!text && !memberAttachedImg && !memberAttachedFile) return;
 
         const now = new Date();
         const timeStr = `${now.getHours() < 12 ? '오전' : '오후'} ${(now.getHours() % 12 || 12).toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -803,10 +916,13 @@
             avatar: "👤",
             time: timeStr,
             isMe: true,
-            text: text
+            text: text || (memberAttachedImg ? "사진을 공유했습니다." : "파일을 공유했습니다."),
+            img: memberAttachedImg,
+            file: memberAttachedFile
         });
 
         saveAllMessages();
+        clearMemberAttachment();
         renderChatMessages();
 
         inp.value = "";

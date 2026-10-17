@@ -99,17 +99,17 @@
         .float-write { background: #fee500; color: #191919; font-size: 20px; font-weight: 950; }
 
         .detail-modal {
-            display: none; position: fixed; inset: 0; background: #BACEE0; z-index: 200;
-            flex-direction: column; overflow-y: auto; max-width: 480px; margin: 0 auto; color: #1e293b;
-            padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 110px);
+            display: none; position: fixed; inset: 0; background: #BACEE0; z-index: 2000000;
+            flex-direction: column; overflow: hidden; max-width: 480px; margin: 0 auto; color: #1e293b;
+            height: 100dvh;
         }
         .detail-modal.open { display: flex; }
         .detail-header {
             height: auto; min-height: 52px; background: #BACEE0; color: #191919; display: flex;
             align-items: center; justify-content: space-between; padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px 10px 16px;
-            position: sticky; top: 0; z-index: 210; font-weight: 900; border-bottom: 1px solid rgba(0,0,0,0.06);
+            position: sticky; top: 0; z-index: 210; font-weight: 900; border-bottom: 1px solid rgba(0,0,0,0.06); flex-shrink: 0;
         }
-        .detail-body { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; }
+        .detail-body { padding: 12px 14px 100px 14px; flex: 1; display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .detail-main-bubble {
             background: #ffffff; border-radius: 14px; padding: 16px; border: 1px solid #bcd0e2;
             box-shadow: 0 1px 4px rgba(0,0,0,0.05); margin-bottom: 12px;
@@ -209,12 +209,14 @@
     <!-- 헤더 -->
     <header class="med-header">
         <div class="med-logo" style="cursor:default;">
+            <span onclick="location.href='churchnextgen.html'" style="cursor:pointer; font-size:22px; line-height:1; padding-right:4px;" title="부서선택으로">‹</span>
             ✝ <span id="headerDeptTitle">청년대화방</span>
-            <button type="button" onclick="editCurrentRoomName()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:12px; font-size:11px; font-weight:800; color:#475569; padding:2px 7px; margin-left:6px; cursor:pointer;" title="대화방 이름 변경">✏️ 이름변경</button>
+            <button type="button" onclick="editCurrentRoomName()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:12px; font-size:11px; font-weight:800; color:#475569; padding:2px 7px; margin-left:4px; cursor:pointer;" title="대화방 이름 변경">✏️ 이름변경</button>
         </div>
-        <button type="button" class="btn-go-home" onclick="location.href='churchnextgen.html'">
-            ‹ 부서선택
-        </button>
+        <div style="display:flex; align-items:center; gap:6px;">
+            <button type="button" onclick="openCafeWriteScreen()" style="background:#fee500; color:#191919; border:1px solid #ca8a04; border-radius:14px; font-size:11.5px; font-weight:950; padding:4px 10px; cursor:pointer;">✏️ 새글쓰기</button>
+            <button type="button" class="btn-go-home" onclick="location.href='churchnextgen.html'">‹ 부서선택</button>
+        </div>
     </header>
 
     <!-- 실시간 인기 베스트글 (1위 1개만 단독 노출) -->
@@ -226,16 +228,16 @@
         <div id="bestPostsContainer"></div>
     </section>
 
-    <!-- 메인 피드 리스트 (메디게이트형 고밀도 피드) -->
-    <main class="feed-list" id="feedListContainer"></main>
-
-    <!-- 🌟 [사용자 요청] 애드몹 바로 위에 배치된 새글쓰기 바 -->
-    <div style="position:fixed; bottom:92px; left:50%; transform:translateX(-50%); width:calc(100% - 24px); max-width:456px; z-index:95; display:flex; justify-content:space-between; align-items:center; pointer-events:none;">
-        <button type="button" class="float-btn float-top" onclick="scrollToTop()" title="맨 위로" style="pointer-events:auto; width:40px; height:40px; border-radius:50%; background:#ffffff; color:#475569; border:1px solid #cbd5e1; box-shadow:0 2px 8px rgba(0,0,0,0.15); font-weight:900; font-size:15px; cursor:pointer;">⌃</button>
-        <button type="button" onclick="openCafeWriteScreen()" style="pointer-events:auto; height:42px; padding:0 20px; border-radius:21px; background:#fee500; color:#191919; border:1.5px solid #eab308; box-shadow:0 3px 12px rgba(0,0,0,0.18); font-size:14px; font-weight:950; display:flex; align-items:center; gap:6px; cursor:pointer;">
+    <!-- 🌟 [사용자 요청] 새글쓰기 상단 배치 (애드몹 위 겹침 완전 제거) -->
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 14px 2px 14px;">
+        <span style="font-size:12.5px; font-weight:900; color:#475569;">전체 나눔글 (최신 4개)</span>
+        <button type="button" onclick="openCafeWriteScreen()" style="background:#fee500; color:#191919; border:1.5px solid #eab308; border-radius:20px; padding:6px 16px; font-size:13px; font-weight:950; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(0,0,0,0.1); cursor:pointer;">
             ✏️ 새글쓰기
         </button>
     </div>
+
+    <!-- 메인 피드 리스트 (메디게이트형 고밀도 피드) -->
+    <main class="feed-list" id="feedListContainer"></main>
 
     <!-- 🌟 [사용자 요청] 기본 하단 고정 애드몹만 유지 (목록/본문 내 애드몹은 제거) -->
     <div class="fixed-bottom-admob" style="position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; height:85px; background:#050a14; border-top:1px solid #1e293b; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding-bottom:max(env(safe-area-inset-bottom, 0px), 6px); box-sizing:content-box; z-index:90;">
@@ -530,9 +532,10 @@
         const container = document.getElementById("feedListContainer");
         container.innerHTML = "";
 
-        const config = DEPT_CONFIG[currentDept] || DEPT_CONFIG["청년교회"];
+        // 🌟 [사용자 요청] 글 박스는 네개만 보이게 (베스트 1개 + 일반피드 3개 = 총 4개)
+        const displayPosts = posts.slice(0, 3);
 
-        posts.forEach(p => {
+        displayPosts.forEach(p => {
             const card = document.createElement("div");
             card.className = "post-card";
             card.onclick = () => openDetailModal(p.id);
@@ -638,6 +641,11 @@
         cancelReplyMode();
         renderModalComments(p);
 
+        const bAdmob = document.querySelector('.fixed-bottom-admob');
+        if (bAdmob) bAdmob.style.display = 'none';
+        const comWrap = document.getElementById('churchCommonFixedWrapper');
+        if (comWrap) comWrap.style.setProperty('display', 'none', 'important');
+
         const modal = document.getElementById("detailModal");
         modal.scrollTop = 0;
         modal.classList.add("open");
@@ -645,6 +653,11 @@
 
     function closeDetailModal() {
         cancelReplyMode();
+        const bAdmob = document.querySelector('.fixed-bottom-admob');
+        if (bAdmob) bAdmob.style.display = 'flex';
+        const comWrap = document.getElementById('churchCommonFixedWrapper');
+        if (comWrap) comWrap.style.removeProperty('display');
+
         document.getElementById("detailModal").classList.remove("open");
         renderFeed();
     }
@@ -766,7 +779,10 @@
                                         <strong style="font-size:12px; color:#0f172a;">${r.author}</strong>
                                         <span style="font-size:10.5px; color:#94a3b8; margin-left:4px;">${r.time || '방금'}</span>
                                     </div>
-                                    ${r.author === myRealName ? `<button type="button" style="background:none; border:none; color:#ef4444; font-size:10.5px; font-weight:800; cursor:pointer;" onclick="deleteReplyItem(${c.id}, ${r.id})">삭제</button>` : ''}
+                                    <div style="display:flex; gap:4px;">
+                                        <button type="button" style="background:#eff6ff; border:none; color:#2563eb; font-size:10.5px; font-weight:800; padding:1px 5px; border-radius:3px; cursor:pointer;" onclick="editReplyItem(${c.id}, ${r.id})">수정</button>
+                                        <button type="button" style="background:#fee2e2; border:none; color:#ef4444; font-size:10.5px; font-weight:800; padding:1px 5px; border-radius:3px; cursor:pointer;" onclick="deleteReplyItem(${c.id}, ${r.id})">삭제</button>
+                                    </div>
                                 </div>
                                 <div style="font-size:12.5px; color:#334155; line-height:1.4; word-break:break-all;">${r.text}</div>
                             </div>
@@ -781,9 +797,10 @@
                         <strong style="font-size:12.5px; color:#0f172a;">${c.author}</strong>
                         <span style="font-size:11px; color:#94a3b8; margin-left:6px;">${c.time || '방금'}</span>
                     </div>
-                    <div style="display:flex; gap:6px;">
+                    <div style="display:flex; gap:4px;">
                         <button type="button" style="background:#f1f5f9; border:none; border-radius:4px; padding:2px 6px; font-size:11px; font-weight:800; color:#475569; cursor:pointer;" onclick="startReplyToComment(${c.id}, '${c.author}')">답글</button>
-                        ${isMyComment ? `<button type="button" style="background:#fee2e2; border:none; border-radius:4px; padding:2px 6px; font-size:11px; font-weight:800; color:#ef4444; cursor:pointer;" onclick="deleteComment(${c.id})">삭제</button>` : ''}
+                        <button type="button" style="background:#eff6ff; border:none; border-radius:4px; padding:2px 6px; font-size:11px; font-weight:800; color:#2563eb; cursor:pointer;" onclick="editComment(${c.id})">수정</button>
+                        <button type="button" style="background:#fee2e2; border:none; border-radius:4px; padding:2px 6px; font-size:11px; font-weight:800; color:#ef4444; cursor:pointer;" onclick="deleteComment(${c.id})">삭제</button>
                     </div>
                 </div>
                 <div style="font-size:13px; color:#334155; line-height:1.45; word-break:break-all;">${c.text}</div>
@@ -847,6 +864,34 @@
         c.replies = c.replies.filter(r => r.id !== replyId);
         savePostsToLocal();
         renderModalComments(targetPost);
+    }
+
+    function editComment(commentId) {
+        const targetPost = posts.find(p => p.id === activePostId);
+        if (!targetPost || !targetPost.comments) return;
+        const c = targetPost.comments.find(item => item.id === commentId);
+        if (!c) return;
+        const newText = prompt("댓글 내용을 수정하세요:", c.text);
+        if (newText !== null && newText.trim()) {
+            c.text = newText.trim();
+            savePostsToLocal();
+            renderModalComments(targetPost);
+        }
+    }
+
+    function editReplyItem(commentId, replyId) {
+        const targetPost = posts.find(p => p.id === activePostId);
+        if (!targetPost || !targetPost.comments) return;
+        const c = targetPost.comments.find(item => item.id === commentId);
+        if (!c || !c.replies) return;
+        const r = c.replies.find(item => item.id === replyId);
+        if (!r) return;
+        const newText = prompt("답글 내용을 수정하세요:", r.text);
+        if (newText !== null && newText.trim()) {
+            r.text = newText.trim();
+            savePostsToLocal();
+            renderModalComments(targetPost);
+        }
     }
 
     function openCafeWriteScreen() {

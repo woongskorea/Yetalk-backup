@@ -550,13 +550,15 @@
             <!-- 메디게이트 스타일 댓글 한 줄 입력창 -->
             <div class="medigate-comment-input-bar">
                 <button type="button" class="btn-comment-cam" onclick="document.getElementById('fileCommentPhoto').click()" title="사진 첨부">📷</button>
+                <button type="button" class="btn-comment-cam" onclick="document.getElementById('fileCommentDoc').click()" title="파일 첨부">📁</button>
                 <input type="text" class="input-comment-text" id="inpCommentContent" placeholder="은혜로운 댓글을 남겨주세요..." onkeydown="if(event.key==='Enter') submitComment();">
                 <button type="button" class="btn-comment-submit" onclick="submitComment()">등록</button>
             </div>
 
-            <!-- 댓글 사진 첨부 미리보기 썸네일 -->
+            <!-- 댓글 사진/파일 첨부 미리보기 썸네일 -->
             <div class="comment-attached-thumb-box" id="boxCommentThumb">
-                <img id="imgCommentThumb" alt="댓글 사진">
+                <img id="imgCommentThumb" alt="댓글 사진" style="display:none;">
+                <span id="txtCommentFileBadge" style="display:none; font-size:12px; font-weight:800; color:#1e40af; padding:4px 8px;"></span>
                 <button type="button" class="btn-del-thumb" onclick="removeCommentThumb()">✕</button>
             </div>
 
@@ -631,6 +633,7 @@
     <!-- 숨은 파일 인풋들 -->
     <input type="file" id="fileQuickPhoto" class="hidden-file-input" accept="image/*" onchange="handleQuickPhotoUpload(this)">
     <input type="file" id="fileCommentPhoto" class="hidden-file-input" accept="image/*" onchange="handleCommentPhotoUpload(this)">
+    <input type="file" id="fileCommentDoc" class="hidden-file-input" onchange="handleCommentDocUpload(this)">
     <input type="file" id="pastorModalFileInput" class="hidden-file-input" accept="image/*" onchange="handleModalPhotoUpload(this)">
 
     <!-- 토스트 알림 -->
@@ -773,6 +776,7 @@
     let myRealName = localStorage.getItem("yetalkUserName") || "김예톡 성도";
     let modalUploadedImage = null;
     let commentAttachedImage = null;
+    let commentAttachedFile = null;
 
     document.addEventListener("DOMContentLoaded", () => {
         const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
@@ -1156,6 +1160,7 @@
             card.className = "comment-card";
 
             let imgHtml = c.img ? `<img class="comment-body-img" src="${c.img}" alt="댓글 첨부">` : '';
+            let fileHtml = c.file ? `<div style="margin:4px 0; background:#f1f5f9; padding:5px 8px; border-radius:6px; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:11.5px;"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">📁 ${escapeHtml(c.file.name)}</span><a href="${c.file.data}" download="${escapeHtml(c.file.name)}" style="background:#0284c7; color:#fff; text-decoration:none; padding:2px 7px; border-radius:4px; font-size:11px; font-weight:800; white-space:nowrap;">다운로드</a></div>` : '';
 
             card.innerHTML = `
                 <div class="comment-top-line">
@@ -1163,10 +1168,14 @@
                         <span class="comment-user-name">${escapeHtml(c.author)}</span>
                         <span class="comment-user-time">${c.time}</span>
                     </div>
-                    <button type="button" class="btn-comment-delete" onclick="deleteComment(${c.id})">삭제</button>
+                    <div style="display:flex; gap:4px;">
+                        <button type="button" class="btn-comment-delete" style="color:#2563eb;" onclick="editComment(${c.id})">수정</button>
+                        <button type="button" class="btn-comment-delete" onclick="deleteComment(${c.id})">삭제</button>
+                    </div>
                 </div>
-                <div class="comment-body-text">${escapeHtml(c.text)}</div>
+                ${c.text ? `<div class="comment-body-text">${escapeHtml(c.text)}</div>` : ''}
                 ${imgHtml}
+                ${fileHtml}
                 <div class="comment-actions-bar">
                     <span style="cursor:pointer;" onclick="likeComment(${c.id})">❤️ 좋아요 ${c.likes || 0}</span>
                     <button type="button" class="btn-reply-toggle" onclick="toggleReplyBox(${c.id})">💬 답글쓰기</button>
@@ -1190,7 +1199,10 @@
                                 <span class="comment-user-name">↳ ${escapeHtml(rep.author)}</span>
                                 <span class="comment-user-time">${rep.time}</span>
                             </div>
-                            <button type="button" class="btn-comment-delete" onclick="deleteReply(${c.id}, ${rep.id})">삭제</button>
+                            <div style="display:flex; gap:4px;">
+                                <button type="button" class="btn-comment-delete" style="color:#2563eb;" onclick="editReply(${c.id}, ${rep.id})">수정</button>
+                                <button type="button" class="btn-comment-delete" onclick="deleteReply(${c.id}, ${rep.id})">삭제</button>
+                            </div>
                         </div>
                         <div class="comment-body-text">${escapeHtml(rep.text)}</div>
                         ${repImg}
@@ -1207,8 +1219,8 @@
     function submitComment() {
         const inp = document.getElementById("inpCommentContent");
         const text = inp.value.trim();
-        if (!text && !commentAttachedImage) {
-            showToast("댓글 내용을 입력해주세요.");
+        if (!text && !commentAttachedImage && !commentAttachedFile) {
+            showToast("댓글 내용 또는 사진/파일을 첨부해주세요.");
             return;
         }
 
@@ -1218,6 +1230,7 @@
             time: "방금",
             text: text,
             img: commentAttachedImage,
+            file: commentAttachedFile,
             likes: 0,
             replies: []
         };
@@ -1264,6 +1277,38 @@
         showToast("💬 답글이 등록되었습니다.");
     }
 
+    function editComment(id) {
+        const c = commentList.find(item => item.id === id);
+        if (!c) return;
+        const newText = prompt("댓글을 수정하세요:", c.text);
+        if (newText === null) return;
+        if (!newText.trim()) {
+            showToast("내용을 입력해주세요.");
+            return;
+        }
+        c.text = newText.trim();
+        saveComments();
+        renderComments();
+        showToast("수정되었습니다.");
+    }
+
+    function editReply(parentId, replyId) {
+        const parent = commentList.find(c => c.id === parentId);
+        if (!parent || !parent.replies) return;
+        const rep = parent.replies.find(r => r.id === replyId);
+        if (!rep) return;
+        const newText = prompt("답글을 수정하세요:", rep.text);
+        if (newText === null) return;
+        if (!newText.trim()) {
+            showToast("내용을 입력해주세요.");
+            return;
+        }
+        rep.text = newText.trim();
+        saveComments();
+        renderComments();
+        showToast("수정되었습니다.");
+    }
+
     function deleteComment(id) {
         if (!confirm("댓글을 삭제하시겠습니까?")) return;
         commentList = commentList.filter(c => c.id !== id);
@@ -1306,16 +1351,40 @@
         if (!file) return;
         compressAndLoadImage(file, (base64) => {
             commentAttachedImage = base64;
-            document.getElementById("imgCommentThumb").src = base64;
+            const img = document.getElementById("imgCommentThumb");
+            img.src = base64;
+            img.style.display = "block";
             document.getElementById("boxCommentThumb").style.display = "block";
         });
         input.value = "";
     }
 
+    // 🌟 댓글 파일 첨부
+    function handleCommentDocUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            commentAttachedFile = { name: file.name, data: e.target.result };
+            const badge = document.getElementById("txtCommentFileBadge");
+            if (badge) {
+                badge.innerText = `📁 ${file.name}`;
+                badge.style.display = "inline-block";
+            }
+            document.getElementById("boxCommentThumb").style.display = "block";
+        };
+        reader.readAsDataURL(file);
+        input.value = "";
+    }
+
     function removeCommentThumb() {
         commentAttachedImage = null;
+        commentAttachedFile = null;
         document.getElementById("boxCommentThumb").style.display = "none";
-        document.getElementById("imgCommentThumb").src = "";
+        const img = document.getElementById("imgCommentThumb");
+        if (img) { img.style.display = "none"; img.src = ""; }
+        const badge = document.getElementById("txtCommentFileBadge");
+        if (badge) { badge.style.display = "none"; badge.innerText = ""; }
     }
 
     // 🌟 이미지 압축 유틸

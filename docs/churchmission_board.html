@@ -82,9 +82,8 @@
 
         /* 상세 모달 */
         .detail-modal {
-            display: none; position: fixed; inset: 0; background: #ffffff; z-index: 1000005;
-            flex-direction: column; overflow-y: scroll; -webkit-overflow-scrolling: touch;
-            overscroll-behavior-y: contain; max-width: 480px; margin: 0 auto;
+            display: none; position: fixed; inset: 0; background: #ffffff; z-index: 2000000;
+            flex-direction: column; overflow: hidden; max-width: 480px; margin: 0 auto; height: 100dvh;
         }
         .detail-modal.open { display: flex; }
         .detail-header {
@@ -92,7 +91,7 @@
             align-items: center; justify-content: space-between; padding: 0 16px;
             position: sticky; top: 0; z-index: 210; font-weight: 800; flex-shrink: 0;
         }
-        .detail-body { padding: 16px 16px 100px 16px; flex: 1; display: flex; flex-direction: column; }
+        .detail-body { padding: 16px 16px 100px 16px; flex: 1; display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         body.detail-modal-open .church-common-fixed-wrapper {
             display: none !important;
         }
@@ -159,7 +158,10 @@
             ✝ <span id="headerRoomTitle">선교대화방</span>
             <button type="button" onclick="editMissionRoomName()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:12px; font-size:11px; font-weight:800; color:#475569; padding:2px 7px; margin-left:4px; cursor:pointer;" title="대화방 이름 변경">✏️ 이름변경</button>
         </div>
-        <button type="button" class="btn-go-home" onclick="location.href='churchmission.html'">방목록</button>
+        <div style="display:flex; align-items:center; gap:6px;">
+            <button type="button" onclick="openWriteModal()" style="background:#0284c7; color:#ffffff; border:1px solid #38bdf8; border-radius:14px; font-size:11.5px; font-weight:950; padding:4px 10px; cursor:pointer;">✏️ 새글쓰기</button>
+            <button type="button" class="btn-go-home" onclick="location.href='churchmission.html'">방목록</button>
+        </div>
     </header>
 
     <!-- 방장/팀장 최신순 베스트글 (1개 단독 노출) -->
@@ -171,16 +173,16 @@
         <div id="bestPostsContainer"></div>
     </section>
 
-    <!-- 피드 목록 -->
-    <main class="feed-list" id="feedListContainer"></main>
-
-    <!-- 🌟 [사용자 요청] 중복 인피드 애드몹 삭제 완료, 애드몹 바로 위에 배치된 새글쓰기 바 -->
-    <div style="position:fixed; bottom:92px; left:50%; transform:translateX(-50%); width:calc(100% - 24px); max-width:456px; z-index:95; display:flex; justify-content:space-between; align-items:center; pointer-events:none;">
-        <button type="button" class="float-btn float-top" onclick="window.scrollTo({top:0, behavior:'smooth'})" title="맨 위로" style="pointer-events:auto; width:40px; height:40px; border-radius:50%; background:#ffffff; color:#475569; border:1px solid #cbd5e1; box-shadow:0 2px 8px rgba(0,0,0,0.15); font-weight:900; font-size:15px; cursor:pointer;">⌃</button>
-        <button type="button" onclick="openWriteModal()" style="pointer-events:auto; height:42px; padding:0 20px; border-radius:21px; background:#0284c7; color:#ffffff; border:1.5px solid #38bdf8; box-shadow:0 3px 12px rgba(2,132,199,0.35); font-size:14px; font-weight:950; display:flex; align-items:center; gap:6px; cursor:pointer;">
+    <!-- 🌟 [사용자 요청] 새글쓰기 상단 배치 (애드몹 위 겹침 완전 제거) -->
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 12px 2px 12px;">
+        <span style="font-size:12.5px; font-weight:900; color:#475569;">선교·전도 나눔 (최신 4개)</span>
+        <button type="button" onclick="openWriteModal()" style="background:#0284c7; color:#ffffff; border:1.5px solid #38bdf8; border-radius:20px; padding:6px 16px; font-size:13px; font-weight:950; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(2,132,199,0.3); cursor:pointer;">
             ✏️ 새글쓰기
         </button>
     </div>
+
+    <!-- 피드 목록 -->
+    <main class="feed-list" id="feedListContainer"></main>
 
     <!-- 상세 모달 -->
     <div class="detail-modal" id="detailModal">
@@ -190,7 +192,13 @@
             <span onclick="closeDetailModal()" style="cursor:pointer; font-size:12px;">닫기</span>
         </div>
         <div class="detail-body">
-            <div class="detail-title" id="detailTitleText"></div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;">
+                <div class="detail-title" id="detailTitleText" style="flex:1;"></div>
+                <div style="display:flex; gap:5px; flex-shrink:0;">
+                    <button type="button" onclick="editActivePost()" style="background:#eff6ff; border:1px solid #3b82f6; color:#2563eb; font-size:11px; font-weight:800; padding:3px 7px; border-radius:4px; cursor:pointer;">✏️ 수정</button>
+                    <button type="button" onclick="deleteActivePost()" style="background:#fee2e2; border:1px solid #f87171; color:#dc2626; font-size:11px; font-weight:800; padding:3px 7px; border-radius:4px; cursor:pointer;">🗑️ 삭제</button>
+                </div>
+            </div>
             <div class="detail-meta" id="detailMetaText"></div>
 
             <div class="detail-img-box" id="detailImgBox"><img id="detailImg" class="detail-img" alt="사진"></div>
@@ -399,7 +407,10 @@
         const container = document.getElementById("feedListContainer");
         container.innerHTML = "";
 
-        posts.forEach(p => {
+        // 🌟 [사용자 요청] 글 박스는 네개만 보이게 (베스트 1개 + 일반피드 3개 = 총 4개)
+        const displayPosts = posts.slice(0, 3);
+
+        displayPosts.forEach(p => {
             const card = document.createElement("div");
             card.className = "post-card";
             card.onclick = () => openDetailModal(p.id);
@@ -473,11 +484,21 @@
         }
 
         renderComments(p);
+
+        // 🌟 [사용자 요청] 바닥 고정 애드몹 바 완전히 숨기기 (스크롤 걸림 100% 해소)
+        const bottomBar = document.getElementById("churchCommonFixedWrapper");
+        if (bottomBar) bottomBar.style.setProperty("display", "none", "important");
+
         document.body.classList.add("detail-modal-open");
-        document.getElementById("detailModal").classList.add("open");
+        const modal = document.getElementById("detailModal");
+        modal.scrollTop = 0;
+        modal.classList.add("open");
     }
 
     function closeDetailModal() {
+        const bottomBar = document.getElementById("churchCommonFixedWrapper");
+        if (bottomBar) bottomBar.style.removeProperty("display");
+
         document.body.classList.remove("detail-modal-open");
         document.getElementById("detailModal").classList.remove("open");
         renderFeed();
@@ -488,25 +509,69 @@
         openWriteModal();
     }
 
+    function editActivePost() {
+        const p = posts.find(item => item.id === activePostId);
+        if (!p) return;
+        closeDetailModal();
+        openWriteModal(p);
+    }
+
+    function deleteActivePost() {
+        if (!confirm("이 게시글을 삭제하시겠습니까?")) return;
+        posts = posts.filter(item => item.id !== activePostId);
+        savePosts();
+        closeDetailModal();
+        renderBestPosts();
+        renderFeed();
+    }
+
     function renderComments(p) {
         const container = document.getElementById("commentListContainer");
         container.innerHTML = "";
         const list = p.comments || [];
         document.getElementById("detailCommentsCount").innerText = list.length;
 
-        list.forEach(c => {
+        list.forEach((c, idx) => {
             const div = document.createElement("div");
             div.style.padding = "8px 0";
             div.style.borderBottom = "1px solid #f1f5f9";
             div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
-                    <strong style="font-size:12.5px; color:#0f172a;">${c.author}</strong>
-                    <span style="font-size:11px; color:#94a3b8;">${c.time}</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+                    <div>
+                        <strong style="font-size:12.5px; color:#0f172a;">${c.author}</strong>
+                        <span style="font-size:11px; color:#94a3b8; margin-left:4px;">${c.time}</span>
+                    </div>
+                    <div style="display:flex; gap:4px;">
+                        <button type="button" style="background:#eff6ff; border:none; color:#2563eb; font-size:11px; font-weight:800; padding:1px 6px; border-radius:3px; cursor:pointer;" onclick="editMissionComment(${c.id || idx})">수정</button>
+                        <button type="button" style="background:#fee2e2; border:none; color:#ef4444; font-size:11px; font-weight:800; padding:1px 6px; border-radius:3px; cursor:pointer;" onclick="deleteMissionComment(${c.id || idx})">삭제</button>
+                    </div>
                 </div>
                 <div style="font-size:13px; color:#334155; line-height:1.45;">${c.text}</div>
             `;
             container.appendChild(div);
         });
+    }
+
+    function editMissionComment(commentId) {
+        const p = posts.find(item => item.id === activePostId);
+        if (!p || !p.comments) return;
+        const c = p.comments.find((cm, idx) => (cm.id === commentId || idx === commentId));
+        if (!c) return;
+        const newText = prompt("댓글 내용을 수정하세요:", c.text);
+        if (newText !== null && newText.trim()) {
+            c.text = newText.trim();
+            savePosts();
+            renderComments(p);
+        }
+    }
+
+    function deleteMissionComment(commentId) {
+        if (!confirm("댓글을 삭제하시겠습니까?")) return;
+        const p = posts.find(item => item.id === activePostId);
+        if (!p || !p.comments) return;
+        p.comments = p.comments.filter((cm, idx) => (cm.id !== commentId && idx !== commentId));
+        savePosts();
+        renderComments(p);
     }
 
     function submitComment() {
@@ -529,15 +594,41 @@
         document.getElementById("commentInput").value = "";
     }
 
-    function openWriteModal() {
-        document.getElementById("inpTitle").value = "";
-        document.getElementById("inpContent").value = "";
-        document.getElementById("inpWebLink").value = "";
-        attachedImgData = null;
-        attachedFileName = null;
-        attachedFileData = null;
-        document.getElementById("attachedPreviewBox").style.display = "none";
-        document.getElementById("attachedFileBadge").style.display = "none";
+    let editingPostId = null;
+
+    function openWriteModal(editPost = null) {
+        if (editPost) {
+            editingPostId = editPost.id;
+            document.getElementById("inpTitle").value = editPost.title || "";
+            document.getElementById("inpContent").value = editPost.content || "";
+            document.getElementById("inpWebLink").value = editPost.link || "";
+            attachedImgData = editPost.img || null;
+            if (attachedImgData) {
+                document.getElementById("attachedPreviewImg").src = attachedImgData;
+                document.getElementById("attachedPreviewBox").style.display = "block";
+            } else {
+                document.getElementById("attachedPreviewBox").style.display = "none";
+            }
+            attachedFileName = editPost.fileName || null;
+            attachedFileData = editPost.fileData || null;
+            if (attachedFileName) {
+                const badge = document.getElementById("attachedFileBadge");
+                badge.innerText = `📄 ${attachedFileName} 첨부됨`;
+                badge.style.display = "block";
+            } else {
+                document.getElementById("attachedFileBadge").style.display = "none";
+            }
+        } else {
+            editingPostId = null;
+            document.getElementById("inpTitle").value = "";
+            document.getElementById("inpContent").value = "";
+            document.getElementById("inpWebLink").value = "";
+            attachedImgData = null;
+            attachedFileName = null;
+            attachedFileData = null;
+            document.getElementById("attachedPreviewBox").style.display = "none";
+            document.getElementById("attachedFileBadge").style.display = "none";
+        }
         document.getElementById("writeModal").classList.add("open");
     }
 
@@ -585,21 +676,36 @@
             author = "김예톡";
         }
 
-        const newPost = {
-            id: Date.now(),
-            title: title,
-            content: content || "내용이 없습니다.",
-            author: author,
-            time: "방금",
-            views: 1,
-            link: link,
-            img: attachedImgData,
-            fileName: attachedFileName,
-            fileData: attachedFileData,
-            comments: []
-        };
+        if (editingPostId) {
+            const p = posts.find(item => item.id === editingPostId);
+            if (p) {
+                p.title = title;
+                p.content = content || "내용이 없습니다.";
+                p.link = link;
+                if (attachedImgData !== null) p.img = attachedImgData;
+                if (attachedFileName !== null) {
+                    p.fileName = attachedFileName;
+                    p.fileData = attachedFileData;
+                }
+            }
+            editingPostId = null;
+        } else {
+            const newPost = {
+                id: Date.now(),
+                title: title,
+                content: content || "내용이 없습니다.",
+                author: author,
+                time: "방금",
+                views: 1,
+                link: link,
+                img: attachedImgData,
+                fileName: attachedFileName,
+                fileData: attachedFileData,
+                comments: []
+            };
+            posts.unshift(newPost);
+        }
 
-        posts.unshift(newPost);
         savePosts();
         renderFeed();
         renderBestPosts();
