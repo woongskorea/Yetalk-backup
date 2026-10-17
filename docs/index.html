@@ -197,13 +197,20 @@
         }
         .right-actions-bar::-webkit-scrollbar { display: none; }
 
-        /* 🌟 [사용자 요청 완벽 해결]
-           숏폼 플랫폼(유튜브 쇼츠, 틱톡) 표준: 영상 재생 중에도 상단 헤더, 로고, 관리자 버튼,
-           우측 세로 8대 메뉴는 100% 상시 선명하게 노출되며 언제든 즉각 클릭 가능! */
-        .right-actions-bar {
-            opacity: 1 !important;
-            visibility: visible !important;
-            pointer-events: auto !important;
+        /* 🌟 [영상 재생 중 풀스크린 모드 - 필수 핵심 기능]
+           영상 재생 중 상단 헤더와 우측 메뉴를 숨겨 화면을 시원하게 풀스크린으로 표시. */
+        body.is-playing-mode .top-header-wrapper {
+            transform: translateY(-125%) !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        body.is-playing-mode .right-actions-bar .btn-side-action {
+            display: none !important;
+        }
+        .right-actions-bar.hide-ui {
+            transform: translateX(130%) !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
 
         .btn-side-action {
@@ -2093,6 +2100,8 @@
     let isMyVideosOnlyMode = false;
 
     function loadSavedFeeds() {
+        const currentActiveBiz = localStorage.getItem("yetalkUserStoreName") || "예톡행복한교회";
+        const currentActiveUrl = localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html";
         let saved = localStorage.getItem("yetalkSavedCustomFeeds");
         let customList = [];
         if (saved) {
@@ -2107,8 +2116,6 @@
             const hiddenIds = JSON.parse(localStorage.getItem("yetalkHiddenFeedIds") || "[]");
             let myFeeds = customList.filter(f => !hiddenIds.includes(f.id));
             if (myFeeds.length > 0) {
-                const currentActiveBiz = localStorage.getItem("yetalkUserStoreName") || "예톡행복한교회";
-                const currentActiveUrl = localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html";
                 myFeeds.forEach(f => {
                     if (f.bizName === "예톡새영상" || !f.bizName) {
                         f.bizName = currentActiveBiz;
@@ -2122,10 +2129,6 @@
         let customIds = new Set(customList.map(c => c.id));
         let sampleList = INITIAL_SAMPLE_FEEDS.filter(s => !customIds.has(s.id));
         let list = [...customList, ...sampleList];
-
-        // 🌟 사용자가 관리자 모드 또는 설정에서 선택한 활성 앱 명칭 자동 반영
-        const currentActiveBiz = localStorage.getItem("yetalkUserStoreName") || "예톡행복한교회";
-        const currentActiveUrl = localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html";
 
         list.forEach(f => {
             // 과거 '예톡새영상'으로 저장되었거나 내가 올린 영상인 경우 현재 활성 앱으로 자동 동기화!
@@ -2470,9 +2473,11 @@
     }
 
     function setControlsVisibility(show) {
-        // 🌟 [사용자 요청 완벽 반영] 숏폼 플랫폼 표준:
-        // 영상 재생 중에도 상단 헤더, 로고, 관리자 버튼, 우측 8대 세로 메뉴는 100% 상시 선명하게 노출!
-        // 어떠한 경우에도 UI를 숨기지 않아 먹통 현상을 원천 방지합니다.
+        if (show) {
+            document.body.classList.remove("is-playing-mode");
+        } else {
+            document.body.classList.add("is-playing-mode");
+        }
     }
 
     function handleFeedTouch(feedId) {
@@ -2495,16 +2500,23 @@
                 if (state === YT.PlayerState.PLAYING) {
                     p.pauseVideo();
                     isVideoPaused = true;
-                    showToast("⏸️ 영상 일시정지");
+                    setControlsVisibility(true); // 🌟 일시정지 시: 상단 메뉴 및 우측 모든 메뉴 다시 표시
                 } else {
                     p.playVideo();
                     try { p.unMute(); } catch(e){}
                     isVideoPaused = false;
-                    showToast("▶️ 영상 재생");
+                    setControlsVisibility(false); // 🌟 재생 시: 풀스크린 모드로 헤더 및 우측바 숨김
                 }
             } catch(e) {
-                try { p.playVideo(); } catch(err){}
+                try {
+                    p.playVideo();
+                    setControlsVisibility(false);
+                } catch(err){}
             }
+        } else {
+            // 플레이어가 아직 준비 중일 때는 UI 토글 지원
+            const isPlaying = document.body.classList.contains("is-playing-mode");
+            setControlsVisibility(isPlaying);
         }
     }
 
@@ -3986,7 +3998,6 @@ https://yetalk.cc`;
         const submitBtn = document.getElementById("btnProfileSubmit");
         const statusBadge = document.getElementById("profileModalStatusBadge");
 
-        const isAdmin = isMasterAdminUser();
         const isLoggedIn = localStorage.getItem("yetalkLoggedIn") === "true";
 
         if (isAdmin) {
@@ -4067,11 +4078,11 @@ https://yetalk.cc`;
     function resetToFirstHomeScreen(forceRerender = false) {
         isScreenLocked = false;
         applyScreenLockUI();
+        const container = document.getElementById("feedScrollContainer");
 
         if (forceRerender) {
             stopAndClearAllPlayers();
             currentFeedIndex = 0;
-            const container = document.getElementById("feedScrollContainer");
             if (container) container.scrollTo({ top: 0, behavior: 'instant' });
             setControlsVisibility(true);
             document.getElementById("commentDrawerWrapper")?.classList.remove("show");
@@ -4079,7 +4090,6 @@ https://yetalk.cc`;
             return;
         }
 
-        const container = document.getElementById("feedScrollContainer");
         if (container) {
             container.scrollTo({ top: 0, behavior: 'smooth' });
         }
