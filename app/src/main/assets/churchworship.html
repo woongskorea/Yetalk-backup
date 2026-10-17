@@ -174,18 +174,19 @@
             background: transparent; z-index: 5; cursor: default;
         }
 
-        /* 🌟 영상 바로 밑 3대 컨트롤 버튼 바: [🔍 100/150/200%] [🔒 화면고정] [🏛️ 관리실] */
+        /* 🌟 영상 바로 밑 5대 컨트롤 버튼 바: [하트 7] [확대 100%] [속도 100%] [화면고정] [관리실] (1줄 정돈) */
         .worship-ctrl-bar-under-video {
             display: flex; justify-content: space-between; align-items: center;
-            gap: 6px; padding: 4px 0 2px 0; flex-shrink: 0;
-            position: relative; z-index: 260000;
+            gap: 3.5px; padding: 4px 0 2px 0; flex-shrink: 0;
+            position: relative; z-index: 260000; width: 100%;
         }
         .btn-worship-ctrl {
-            flex: 1; height: 38px;
+            flex: 1; height: 36px; min-width: 0;
             background: #131f37; border: 1.2px solid rgba(56, 189, 248, 0.35);
-            color: #ffffff; font-size: 12px; font-weight: 850;
-            border-radius: 9px; cursor: pointer; display: inline-flex;
-            align-items: center; justify-content: center; gap: 4px;
+            color: #ffffff; font-size: 11px; font-weight: 850;
+            border-radius: 7px; cursor: pointer; display: inline-flex;
+            align-items: center; justify-content: center; gap: 0;
+            padding: 0 2px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.4);
             transition: all 0.15s ease;
             white-space: nowrap;
@@ -583,10 +584,36 @@
     let isPlayingMode = false;
     let ytPlayerInstance = null;
 
-    // 🌟 화면 확대: 100%, 150%, 200% 순환 기능
+    // 🌟 화면 확대: 100%, 150%, 200% 3개만 순환 기능 (이모티콘 제외하여 1줄 배치)
     const ZOOM_FACTORS = [1.0, 1.5, 2.0];
-    const ZOOM_LABELS = ["🔍 100%", "🔍 150%", "🔍 200%"];
+    const ZOOM_LABELS = ["확대 100%", "확대 150%", "확대 200%"];
     let currentZoomIndex = 0;
+
+    // 🌟 재생 속도: 100%, 130%, 150% 3개만 순환 기능 (이모티콘 제외)
+    const SPEED_LABELS = ["속도 100%", "속도 130%", "속도 150%"];
+    const SPEED_RATES = [1.0, 1.25, 1.5];
+    let currentSpeedIndex = 0;
+
+    // 🌟 하트: 7에서 시작 매일 5개씩 기본 추가 (이모티콘 제외)
+    function getChurchHearts() {
+        const BASE_TIMESTAMP = 1760716800000; // 2025-10-18 00:00:00 KST
+        const days = Math.max(0, Math.floor((Date.now() - BASE_TIMESTAMP) / (1000 * 60 * 60 * 24)));
+        const base = 7 + (days * 5);
+        let clicks = 0;
+        try { clicks = parseInt(localStorage.getItem("yetalk_church_heart_clicks") || "0", 10); } catch(e){}
+        return base + clicks;
+    }
+
+    function toggleChurchHeart(idx = activeWorshipIndex) {
+        let clicks = 0;
+        try { clicks = parseInt(localStorage.getItem("yetalk_church_heart_clicks") || "0", 10); } catch(e){}
+        clicks += 1;
+        localStorage.setItem("yetalk_church_heart_clicks", clicks);
+        const count = getChurchHearts();
+        const textEl = document.getElementById(`churchHeartText_${idx}`);
+        if (textEl) textEl.innerText = `하트 ${count}`;
+        showToast("💖 주일예배에 은혜와 응원의 하트를 보냈습니다!");
+    }
 
     function goBackToMain() {
         sessionStorage.setItem("church_last_active_card_idx", "1");
@@ -617,7 +644,7 @@
     function cycleWorshipZoom(idx = activeWorshipIndex) {
         currentZoomIndex = (currentZoomIndex + 1) % ZOOM_FACTORS.length;
         applyWorshipZoom(idx);
-        showToast(`🔍 화면 배율: ${ZOOM_LABELS[currentZoomIndex]}`);
+        showToast(`화면 배율: ${ZOOM_LABELS[currentZoomIndex]}`);
     }
 
     function applyWorshipZoom(idx = activeWorshipIndex) {
@@ -632,28 +659,47 @@
         }
     }
 
+    function cycleWorshipSpeed(idx = activeWorshipIndex) {
+        currentSpeedIndex = (currentSpeedIndex + 1) % SPEED_LABELS.length;
+        const label = SPEED_LABELS[currentSpeedIndex];
+        const rate = SPEED_RATES[currentSpeedIndex];
+
+        const textEl = document.getElementById(`speedText_${idx}`);
+        if (textEl) textEl.innerText = label;
+
+        const iframe = document.getElementById(`worshipIframe_${idx}`);
+        if (iframe && iframe.contentWindow) {
+            try {
+                iframe.contentWindow.postMessage(JSON.stringify({
+                    event: 'command',
+                    func: 'setPlaybackRate',
+                    args: [rate]
+                }), '*');
+            } catch(e){}
+        }
+        showToast(`재생 속도: ${label}`);
+    }
+
     function toggleScreenLock(idx = activeWorshipIndex) {
         isScreenLocked = !isScreenLocked;
         const vp = document.getElementById("worshipViewport");
         const guard = document.getElementById("worshipTouchGuard");
         const btn = document.getElementById(`btnLock_${idx}`);
-        const icon = document.getElementById(`lockIcon_${idx}`);
         const text = document.getElementById(`lockText_${idx}`);
 
         if (btn) {
             btn.classList.toggle("locked", isScreenLocked);
-            if (icon) icon.innerText = isScreenLocked ? "🔒" : "🔓";
             if (text) text.innerText = isScreenLocked ? "고정ON" : "화면고정";
         }
 
         if (isScreenLocked) {
             if (vp) vp.classList.add("locked-scroll");
             if (guard) guard.style.display = "block";
-            showToast(`🔒 화면 보호 ON: 터치 및 스크롤이 차단되었습니다.`);
+            showToast("화면 보호 ON: 터치 및 스크롤이 차단되었습니다.");
         } else {
             if (vp) vp.classList.remove("locked-scroll");
             if (guard) guard.style.display = "none";
-            showToast("🔓 화면 고정이 해제되었습니다.");
+            showToast("화면 고정이 해제되었습니다.");
         }
     }
 
@@ -751,17 +797,22 @@
                 <div class="yt-inapp-guard-top" title="예톡 인앱 플레이어"></div>
             </div>
 
-            <!-- 🌟 영상 바로 밑 3대 컨트롤 바: [🔍 100%] [🔒 화면고정] [🏛️ 관리실] -->
+            <!-- 🌟 영상 바로 밑 5대 컨트롤 바 (이모티콘 없이 1줄 배치: 하트, 확대, 속도, 화면고정, 관리실) -->
             <div class="worship-ctrl-bar-under-video">
-                <button type="button" class="btn-worship-ctrl" id="btnZoom_${idx}" onclick="cycleWorshipZoom(${idx})">
+                <button type="button" class="btn-worship-ctrl" id="btnHeart_${idx}" onclick="toggleChurchHeart(${idx})" title="좋아요 (기본 7개 + 매일 5개씩 추가)">
+                    <span id="churchHeartText_${idx}">하트 ${getChurchHearts()}</span>
+                </button>
+                <button type="button" class="btn-worship-ctrl" id="btnZoom_${idx}" onclick="cycleWorshipZoom(${idx})" title="화면 배율 (100% / 150% / 200%)">
                     <span id="zoomText_${idx}">${ZOOM_LABELS[currentZoomIndex]}</span>
                 </button>
-                <button type="button" class="btn-worship-ctrl ${isScreenLocked ? 'locked' : ''}" id="btnLock_${idx}" onclick="toggleScreenLock(${idx})">
-                    <span id="lockIcon_${idx}">${isScreenLocked ? '🔒' : '🔓'}</span>
+                <button type="button" class="btn-worship-ctrl" id="btnSpeed_${idx}" onclick="cycleWorshipSpeed(${idx})" title="재생 속도 (100% / 130% / 150%)">
+                    <span id="speedText_${idx}">${SPEED_LABELS[currentSpeedIndex]}</span>
+                </button>
+                <button type="button" class="btn-worship-ctrl ${isScreenLocked ? 'locked' : ''}" id="btnLock_${idx}" onclick="toggleScreenLock(${idx})" title="화면 스크롤 고정">
                     <span id="lockText_${idx}">${isScreenLocked ? '고정ON' : '화면고정'}</span>
                 </button>
-                <button type="button" class="btn-worship-ctrl" id="btnAdmin_${idx}" onclick="openAdminModal(${idx})">
-                    <span>🏛️</span> <span>관리실</span>
+                <button type="button" class="btn-worship-ctrl" id="btnAdmin_${idx}" onclick="openAdminModal(${idx})" title="예배 관리실">
+                    <span>관리실</span>
                 </button>
             </div>
 

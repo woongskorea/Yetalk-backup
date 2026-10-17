@@ -681,19 +681,21 @@
             flex-wrap: nowrap;
         }
 
-        /* 🌟 100% 확대, 삭제, 화면고정 미니 툴 칩 */
+        /* 🌟 100% 확대, 속도, 고정, 삭제, 하트 미니 툴 칩 (세로폭 확대 적용) */
         .mini-tool-pill {
             background: rgba(15, 23, 42, 0.88);
             border: 1.2px solid rgba(56, 189, 248, 0.7);
             color: #38bdf8;
-            padding: 3px 6px;
-            border-radius: 12px;
-            font-size: 10.5px;
+            padding: 6px 9px;
+            min-height: 29px;
+            border-radius: 14px;
+            font-size: 11px;
             font-weight: 900;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 2px;
+            justify-content: center;
+            gap: 3px;
             transition: all 0.15s ease;
             outline: none;
             backdrop-filter: blur(6px);
@@ -702,6 +704,14 @@
             flex-shrink: 0;
         }
         .mini-tool-pill:active { transform: scale(0.92); }
+        .mini-tool-pill.mini-heart-pill {
+            background: rgba(244, 63, 94, 0.22) !important;
+            border-color: #f43f5e !important;
+            color: #ffffff !important;
+        }
+        .mini-tool-pill.mini-heart-pill:active {
+            background: #f43f5e !important;
+        }
         .mini-tool-pill.locked {
             background: rgba(220, 38, 38, 0.9) !important;
             border-color: #ef4444 !important;
@@ -1470,24 +1480,31 @@
     <!-- 3. 하단 좌측: 하트/조회/100%배율/삭제/고정 도구 및 전문앱 홍보 통합 카드 (가로 확장 & 상시 선명 노출) -->
     <div class="bottom-left-info-bar" id="bottomLeftInfoBar">
         <div class="bottom-tool-stats-row">
-            <div class="bottom-view-stats">
-                <div class="stat-item"><span style="color:#f43f5e;">❤</span> <span id="feedLikeCount">3</span></div>
-                <div class="stat-item" style="color:rgba(255,255,255,0.4);">•</div>
-                <div class="stat-item">조회 <span id="feedViewCount">101</span>회</div>
-            </div>
-            <!-- 🌟 [사용자 요청] 100% 옆에 삭제 버튼 나란히 배치 -->
+            <!-- 🌟 하트: 7에서 시작 매일 5개씩 기본 추가 및 클릭 응원 -->
+            <button type="button" class="mini-tool-pill mini-heart-pill" id="btnFeedHeart" onclick="toggleFeedHeart()" title="좋아요 (기본 7개 + 매일 5개씩 추가)">
+                <span style="color:#f43f5e; font-size:12px;">💖</span>
+                <span id="feedLikeCount">7</span>
+            </button>
             <div class="zoom-delete-pill-group">
-                <button type="button" class="mini-tool-pill" id="btnPermanentZoom" onclick="cycleVideoZoomLevel()" title="화면 배율 (100% / 150% / 200% / 80%)">
+                <!-- 🌟 1. 확대: 100% / 150% / 200% 3개만 순환 -->
+                <button type="button" class="mini-tool-pill" id="btnPermanentZoom" onclick="cycleVideoZoomLevel()" title="화면 배율 (100% / 150% / 200%)">
                     <span id="zoomIconSpan">🔍</span>
                     <span id="zoomTextSpan">100%</span>
                 </button>
-                <button type="button" class="mini-tool-pill mini-delete-pill" id="btnAdminDelete" onclick="deleteCurrentVideoForMe()" title="현재 영상 삭제">
-                    <span>🗑️</span>
-                    <span>삭제</span>
+                <!-- 🌟 2. 속도: 100% / 130% / 150% -->
+                <button type="button" class="mini-tool-pill" id="btnVideoSpeed" onclick="cycleVideoSpeed()" title="재생 속도 (100% / 130% / 150%)">
+                    <span id="speedIconSpan">⚡</span>
+                    <span id="speedTextSpan">속도 100%</span>
                 </button>
+                <!-- 🌟 3. 고정 -->
                 <button type="button" class="mini-tool-pill" id="btnPermanentLock" onclick="toggleScreenLockMode()" title="화면 스크롤 고정">
                     <span id="lockIconSpan">🔒</span>
                     <span id="lockTextSpan">고정</span>
+                </button>
+                <!-- 🌟 4. 삭제 -->
+                <button type="button" class="mini-tool-pill mini-delete-pill" id="btnAdminDelete" onclick="deleteCurrentVideoForMe()" title="현재 영상 삭제">
+                    <span>🗑️</span>
+                    <span>삭제</span>
                 </button>
             </div>
         </div>
@@ -2173,13 +2190,12 @@
         return list.filter(f => !hiddenIds.includes(f.id));
     }
 
-    /* 🌟 [사용자 요청] 화면 100% ➔ 150% ➔ 200% ➔ 80% 순환 확대/축소 기능 (스마트폰 & PC 모두 지원) */
-    let currentZoomLevel = 100; // 100 | 150 | 200 | 80
+    /* 🌟 [사용자 요청] 화면 100% ➔ 150% ➔ 200% 3개만 순환 확대 기능 (스마트폰 & PC 모두 지원) */
+    let currentZoomLevel = 100; // 100 | 150 | 200
 
     function cycleVideoZoomLevel() {
         if (currentZoomLevel === 100) currentZoomLevel = 150;
         else if (currentZoomLevel === 150) currentZoomLevel = 200;
-        else if (currentZoomLevel === 200) currentZoomLevel = 80;
         else currentZoomLevel = 100;
 
         applyVideoZoom(currentZoomLevel);
@@ -2190,8 +2206,6 @@
             showToast("🔍 화면 1.5배 확대 (150%)");
         } else if (currentZoomLevel === 200) {
             showToast("🔍 화면 2배 풀확대 (200%)");
-        } else if (currentZoomLevel === 80) {
-            showToast("🔍 화면 축소 와이드뷰 (80%)");
         }
     }
 
@@ -2204,6 +2218,60 @@
 
         const zoomRatio = level / 100;
         document.documentElement.style.setProperty('--user-zoom', zoomRatio);
+    }
+
+    /* 🌟 [사용자 요청] 재생 속도 100% ➔ 130% ➔ 150% 3개만 순환 토글 */
+    let currentSpeedIndex = 0;
+    const SPEED_LABELS = ["속도 100%", "속도 130%", "속도 150%"];
+    const SPEED_RATES = [1.0, 1.25, 1.5]; // 유튜브 API 재생 배율
+
+    function cycleVideoSpeed() {
+        currentSpeedIndex = (currentSpeedIndex + 1) % SPEED_LABELS.length;
+        const rate = SPEED_RATES[currentSpeedIndex];
+        const label = SPEED_LABELS[currentSpeedIndex];
+
+        const textEl = document.getElementById("speedTextSpan");
+        if (textEl) textEl.innerText = label;
+
+        const btn = document.getElementById("btnVideoSpeed");
+        if (btn) btn.classList.toggle("zoomed", currentSpeedIndex !== 0);
+
+        const feeds = loadSavedFeeds();
+        const curFeed = feeds[currentFeedIndex];
+        if (curFeed && ytPlayerMap[curFeed.id]) {
+            try {
+                if (typeof ytPlayerMap[curFeed.id].setPlaybackRate === "function") {
+                    ytPlayerMap[curFeed.id].setPlaybackRate(rate);
+                }
+            } catch(e){}
+        }
+        showToast(`⚡ ${label}`);
+    }
+
+    /* 🌟 [사용자 요청] 하트 이모티콘: 7에서 시작 매일 5개씩 기본 추가 + 클릭 시 응원 증가 */
+    function getFeedHearts(feedId) {
+        const BASE_TIMESTAMP = 1760716800000; // 2025-10-18 00:00:00 KST
+        const daysPassed = Math.max(0, Math.floor((Date.now() - BASE_TIMESTAMP) / (1000 * 60 * 60 * 24)));
+        const baseHearts = 7 + (daysPassed * 5);
+        let userLikes = 0;
+        try {
+            userLikes = parseInt(localStorage.getItem(`yetalk_user_likes_${feedId || 'home'}`) || "0", 10);
+        } catch(e){}
+        return baseHearts + userLikes;
+    }
+
+    function toggleFeedHeart() {
+        const feeds = loadSavedFeeds();
+        const curFeed = feeds[currentFeedIndex] || { id: "home" };
+        const key = `yetalk_user_likes_${curFeed.id}`;
+        let curLikes = 0;
+        try { curLikes = parseInt(localStorage.getItem(key) || "0", 10); } catch(e){}
+        curLikes += 1;
+        localStorage.setItem(key, curLikes);
+
+        const countEl = document.getElementById("feedLikeCount");
+        if (countEl) countEl.innerText = getFeedHearts(curFeed.id);
+        showToast("💖 좋아요! 은혜와 응원을 보냅니다.");
     }
 
     let currentFeedIndex = 0;
@@ -2397,6 +2465,9 @@
             if (poster) poster.classList.add("loaded");
             try {
                 event.target.setPlaybackQuality('hd1080');
+                if (typeof event.target.setPlaybackRate === "function") {
+                    event.target.setPlaybackRate(SPEED_RATES[currentSpeedIndex]);
+                }
             } catch(e){}
             if (!admobReplayTimer) {
                 const overlay = document.getElementById("admob250Overlay");
@@ -3098,8 +3169,8 @@
 
         if (linkEl) linkEl.innerText = `@${bizName}`;
         if (adEl) adEl.innerHTML = `${escapeHtml(shortAd)} <span style="font-size:10px; opacity:0.85; margin-left:3px;">✏️</span>`;
-        document.getElementById("feedViewCount").innerText = Number(feed.views || 838).toLocaleString();
-        document.getElementById("feedLikeCount").innerText = Number(feed.likes || 146).toLocaleString();
+        if (document.getElementById("feedViewCount")) document.getElementById("feedViewCount").innerText = Number(feed ? feed.views || 838 : 838).toLocaleString();
+        if (document.getElementById("feedLikeCount")) document.getElementById("feedLikeCount").innerText = getFeedHearts(feed ? feed.id : 'home');
 
         // 🌟 PC 데스크톱 좌측 패널 관리자 연결 앱 텍스트 동기화
         const pcAdminAppText = document.getElementById("pcAdminCurrentAppText");
