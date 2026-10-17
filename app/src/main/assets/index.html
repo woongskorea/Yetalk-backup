@@ -36,6 +36,10 @@
             padding: calc(env(safe-area-inset-top, 0px) + 8px) 14px 10px 14px;
             display: flex; flex-direction: column; gap: 3px;
             transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease;
+            pointer-events: none; /* 빈 영역은 뒤/옆 요소로 클릭 전달 */
+        }
+        .top-header-wrapper > * {
+            pointer-events: auto; /* 로고, 공지알림 등 내부 요소는 정상 클릭 */
         }
         .top-header-wrapper.hide-header {
             transform: translateY(-105%) !important;
@@ -88,6 +92,29 @@
             font-size: 15px; color: #ffffff; font-weight: 850;
             letter-spacing: -0.3px; text-shadow: 0 1px 4px rgba(0,0,0,0.95);
             white-space: nowrap; margin-top: 1px;
+        }
+        .brand-apply-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            font-weight: 950;
+            color: #fde047;
+            background: rgba(234, 179, 8, 0.22);
+            border: 1.2px solid rgba(250, 204, 21, 0.7);
+            border-radius: 14px;
+            padding: 2.5px 10px;
+            width: fit-content;
+            margin-top: 3px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(250, 204, 21, 0.35);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.85);
+            pointer-events: auto !important;
+            transition: transform 0.15s, background 0.15s;
+        }
+        .brand-apply-link:active {
+            transform: scale(0.95);
+            background: rgba(234, 179, 8, 0.38);
         }
         .brand-subtext-badge {
             display: none !important;
@@ -163,9 +190,9 @@
         /* 3. 우측 세로 퀵 액션 바 (상단 2개 + 중간 비움 + 하단 6개 분할 배치) */
         .right-actions-bar {
             position: absolute; right: 8px;
-            top: max(env(safe-area-inset-top, 0px) + 8px, 10px);
+            top: max(env(safe-area-inset-top, 0px) + 20px, 22px);
             bottom: max(env(safe-area-inset-bottom, 0px) + 128px, 132px);
-            z-index: 9998; display: flex; flex-direction: column; gap: 3.5px;
+            z-index: 10005 !important; display: flex; flex-direction: column; gap: 3.5px;
             align-items: center;
             pointer-events: auto !important;
             transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease;
@@ -194,6 +221,7 @@
         .btn-side-action {
             display: flex; flex-direction: column; align-items: center; gap: 1.5px;
             background: none; border: none; cursor: pointer; color: #ffffff; outline: none;
+            pointer-events: auto !important;
         }
         /* 🌟 [사용자 요청] 동그라미 5% 살짝 확대 (33px -> 35px) */
         .btn-side-circle {
@@ -1371,7 +1399,7 @@
         <div class="header-top-row">
             <div class="brand-group">
                 <div class="header-logo-row">
-                    <div class="header-logo-title" onclick="resetToFirstHomeScreen()">
+                    <div class="header-logo-title" onclick="openAdminDirect()" title="예톡 총관리자실 (나만 입장)">
                         <span>나의 앱</span>
                         <span class="brand-highlight">예톡<span class="leaf-icon">🌿</span></span>
                     </div>
@@ -1384,15 +1412,17 @@
                 <div class="brand-subtext-main">
                     누구에게나 무료로 만들어주는 2개의 앱
                 </div>
+                <div class="brand-apply-link" onclick="event.stopPropagation(); openAppCreateModal();" title="나만의 앱 만들기 무료 신청">
+                    지금 신청하세요!! 👉
+                </div>
             </div>
         </div>
 
-        <!-- 🌟 실시간 공지알림 롤링 띠 배너: 헤더 높이 축소로 화면 상단에 시원하게 배치 -->
-        <div class="header-notice-ticker" id="headerNoticeTicker" style="display:flex; align-items:center; gap:7px; background:linear-gradient(90deg, rgba(30, 58, 138, 0.94), rgba(15, 23, 42, 0.94)); border:1.2px solid #38bdf8; border-radius:20px; padding:5px 10px; margin-top:5px; cursor:pointer; backdrop-filter:blur(6px); box-shadow:0 3px 12px rgba(56, 189, 248, 0.4); max-width:calc(100% - 68px);" onclick="openLatestNoticePopup()">
-            <span style="font-size:13px;">📢</span>
-            <span style="font-size:12px; font-weight:900; color:#fde047; white-space:nowrap;" id="noticeTickerTag">[의원 공지]</span>
-            <span style="font-size:12px; font-weight:750; color:#f8fafc; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;" id="noticeTickerText">예톡 아름다운의원 스마트 QR 예약 및 1:1 맞춤 진료 상담 오픈</span>
-            <span style="font-size:11px; color:#38bdf8; font-weight:900; white-space:nowrap;">확인 ➔</span>
+        <!-- 🌟 실시간 공지알림 롤링 띠 배너: 의원공지 및 확인 글자 삭제, 가로세로 여유있게 확장 -->
+        <div class="header-notice-ticker" id="headerNoticeTicker" style="display:flex; align-items:center; gap:8px; background:linear-gradient(90deg, rgba(30, 58, 138, 0.94), rgba(15, 23, 42, 0.94)); border:1.2px solid #38bdf8; border-radius:20px; padding:7px 12px; margin-top:5px; cursor:pointer; backdrop-filter:blur(6px); box-shadow:0 3px 12px rgba(56, 189, 248, 0.4); max-width:calc(100% - 54px);" onclick="openLatestNoticePopup()">
+            <span style="font-size:13.5px;">📢</span>
+            <span style="display:none;" id="noticeTickerTag"></span>
+            <span style="font-size:12.5px; font-weight:750; color:#f8fafc; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;" id="noticeTickerText">예톡 아름다운의원 스마트 QR 예약 및 1:1 맞춤 진료 상담 오픈</span>
         </div>
     </div>
 
@@ -1441,8 +1471,9 @@
     <div class="right-actions-bar" id="rightActionsBar">
         <!-- 🌟 1위: 무료 회원가입 (가장 위, 밝은 골드/옐로우 컬러로 눈에 확 띄게 강조) -->
         <button type="button" class="btn-side-action" id="btnSideJoinOrProfile" onclick="openProfileModal()" title="무료 회원가입 / 내정보">
-            <div class="btn-side-circle" id="circleSideJoin" style="background:linear-gradient(135deg, #f59e0b, #eab308); border:2px solid #fef08a; box-shadow:0 0 14px rgba(250, 204, 21, 0.75);">
+            <div class="btn-side-circle" id="circleSideJoin" style="position:relative; background:linear-gradient(135deg, #f59e0b, #eab308); border:2px solid #fef08a; box-shadow:0 0 14px rgba(250, 204, 21, 0.75);">
                 <span style="font-size:16px;">👤</span>
+                <span style="position:absolute; top:-3px; right:-4px; background:#ef4444; color:#ffffff; font-size:8px; font-weight:950; padding:1px 3px; border-radius:4px; line-height:1; letter-spacing:-0.2px; box-shadow:0 1px 3px rgba(0,0,0,0.6);">MY</span>
             </div>
             <span class="btn-side-label" id="labelSideJoin" style="color:#fef08a; font-weight:950; text-shadow:0 1px 3px rgba(0,0,0,0.9);">회원가입</span>
         </button>
@@ -1842,7 +1873,7 @@
             </p>
 
             <form onsubmit="submitAdminLogin(event)" style="display:flex; flex-direction:column; gap:10px;">
-                <input type="password" id="inpAdminPassword" class="modal-input" placeholder="관리자 비밀번호 (기본: 7777)" style="text-align:center; font-size:16px; letter-spacing:3px; height:46px;" autofocus required>
+                <input type="password" id="inpAdminPassword" class="modal-input" placeholder="관리자 비밀번호를 입력하세요" style="text-align:center; font-size:16px; letter-spacing:3px; height:46px;" autofocus required>
                 <button type="submit" class="btn-submit-action" style="height:44px; font-size:14.5px; background:linear-gradient(135deg, #d97706, #b45309); box-shadow:0 4px 15px rgba(217,119,6,0.4);">
                     👑 관리자 제어창 입장
                 </button>
@@ -4007,19 +4038,21 @@ https://yetalk.cc`;
             const raw = localStorage.getItem("yetalk_latest_notice");
             const ticker = document.getElementById("headerNoticeTicker");
             if (!ticker) return;
+            const tagEl = document.getElementById("noticeTickerTag");
+            const textEl = document.getElementById("noticeTickerText");
             if (raw) {
                 const notice = JSON.parse(raw);
                 if (notice && (notice.title || notice.content)) {
-                    document.getElementById("noticeTickerTag").innerText = `[${notice.source || '공지'}]`;
-                    document.getElementById("noticeTickerText").innerText = `${notice.title || notice.content}`;
+                    if (tagEl) tagEl.innerText = "";
+                    if (textEl) textEl.innerText = `${notice.title || notice.content}`;
                     ticker.style.display = "flex";
                     return;
                 }
             }
             // 기본값
             ticker.style.display = "flex";
-            document.getElementById("noticeTickerTag").innerText = "[의원 공지]";
-            document.getElementById("noticeTickerText").innerText = "예톡 아름다운의원 스마트 QR 예약 및 1:1 맞춤 진료 상담 오픈";
+            if (tagEl) tagEl.innerText = "";
+            if (textEl) textEl.innerText = "예톡 아름다운의원 스마트 QR 예약 및 1:1 맞춤 진료 상담 오픈";
         } catch(e){}
     }
 
