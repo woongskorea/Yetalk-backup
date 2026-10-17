@@ -787,6 +787,23 @@
         .cal-selected-date-info {
             font-size: 13.5px; font-weight: 950; color: #fde047;
             display: flex; justify-content: space-between; align-items: center;
+            white-space: nowrap !important; gap: 8px;
+        }
+        #dispSelectedDateLabel {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            flex-shrink: 0 !important;
+            font-size: 13px !important;
+            font-weight: 950 !important;
+            color: #fde047 !important;
+        }
+        #dispSelectedDateCount {
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+            font-size: 11.5px !important;
+            color: #38bdf8 !important;
+            font-weight: 900 !important;
         }
         .cal-input-row { display: flex; gap: 6px; }
         .cal-time-input {
@@ -1340,26 +1357,52 @@
             }
         }
 
-        /* 🪟 드래그 이동 & 크기조절 가능한 다중 개인 채팅창 (Movable & Resizable Floating Multi-Chat) */
+        /* 🪟 개인 채팅창 (모바일: 고정 하단 애드몹 바로 위까지 확장되어 중복 방지, PC: 이동/크기조절 가능) */
         .movable-chat-window {
             position: fixed;
-            width: 330px;
-            height: 440px;
-            min-width: 280px;
-            min-height: 340px;
-            max-width: 96vw;
-            max-height: 85vh;
             background: #b2c7d9;
-            border-radius: 16px;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.15);
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.15);
             display: flex;
             flex-direction: column;
             z-index: 25000;
-            resize: both;
             overflow: hidden;
-            top: 75px;
-            left: 20px;
         }
+
+        /* 🌟 [사용자 요청] 모바일 화면: 톡 열기 시 하단 고정 애드몹 바로 위까지 구글 간격만 두고 내려와서 밑의 애드몹 중복 노출 완전 방지 */
+        @media (max-width: 1023px) {
+            .movable-chat-window {
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                width: 100% !important;
+                max-width: 480px !important;
+                top: var(--header-h) !important;
+                bottom: calc(var(--admob-total) + 6px) !important;
+                height: auto !important;
+                max-height: calc(100dvh - var(--header-h) - var(--admob-total) - 6px) !important;
+                resize: none !important;
+            }
+            .movable-chat-window .chat-win-admob {
+                display: none !important;
+            }
+        }
+
+        /* PC 화면: 이동 및 크기 조절 가능한 플로팅 다중 윈도우 */
+        @media (min-width: 1024px) {
+            .movable-chat-window {
+                width: 380px;
+                height: 520px;
+                min-width: 280px;
+                min-height: 340px;
+                max-width: 96vw;
+                max-height: 85vh;
+                border-radius: 16px;
+                resize: both;
+                top: 75px;
+                left: 20px;
+            }
+        }
+
         .movable-chat-window.minimized {
             height: 48px !important;
             min-height: 48px !important;
@@ -1961,7 +2004,7 @@
 <div class="modal-overlay" id="bigCardEditModal">
     <div class="modal-card">
         <div class="modal-header">
-            <strong style="color:#a78bfa; font-size:16px;" id="dispBigEditHeaderTitle">📷 사진 & 글 편집</strong>
+            <strong style="color:#a78bfa; font-size:16px;" id="dispBigEditHeaderTitle">📷 사진 및 글 편집</strong>
             <button type="button" style="background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer;" onclick="closeModal('bigCardEditModal')">✕</button>
         </div>
 
@@ -3136,11 +3179,10 @@
                 <img class="v-page-bg-img" src="${HAPPY_DEFAULT_IMAGE}" alt="행복한 힐링 그림">
                 <div class="v-page-gradient-overlay"></div>
                 
-                <!-- 상단 액션 바: [✏️ 내 사진 & 글 등록], [⚙️ 수정] 및 우측 [🔒 비공개 (터치 시 공개)] -->
+                <!-- 상단 액션 바: [✏️ 편집] 및 우측 [🔒 비공개 (터치 시 공개)] -->
                 <div class="card-single-action-bar">
                     <div style="display:flex; gap:6px; align-items:center;">
-                        <button type="button" class="btn-action-pill" onclick="openBigEditModal('photo', 0)">✏️ 내 사진 & 글 등록</button>
-                        <button type="button" class="btn-action-pill ${isEditMode ? 'active' : ''}" onclick="toggleEditMode()">${isEditMode ? '수정 ON 🔴' : '⚙️ 수정'}</button>
+                        <button type="button" class="btn-action-pill" onclick="openBigEditModal('photo', 0)">✏️ 편집</button>
                     </div>
                     <button type="button" class="btn-privacy-pill" onclick="toggleAppearancePrivacy()" style="background:#dc2626; border-color:#f87171; color:#fff;" title="터치 시 [내 모습 전체 공개]로 전환">
                         🔒 비공개 (행복 그림)
@@ -3178,11 +3220,10 @@
                 <img class="v-page-bg-img" src="${item.img || HAPPY_DEFAULT_IMAGE}" alt="내 모습 ${idx+1}">
                 <div class="v-page-gradient-overlay"></div>
                 
-                <!-- 상단 액션 바: 한 줄에 [✏️ 사진 & 글 편집], [⚙️ 수정], [🗑️ 삭제] 및 우측 [👁️ 공개] -->
+                <!-- 상단 액션 바: 한 줄에 [✏️ 편집], [🗑️ 삭제] 및 우측 [👁️ 내 모습 공개중] -->
                 <div class="card-single-action-bar">
                     <div style="display:flex; gap:6px; align-items:center;">
-                        <button type="button" class="btn-action-pill" onclick="openBigEditModal('photo', ${idx})">✏️ 사진 & 글 편집</button>
-                        <button type="button" class="btn-action-pill ${isEditMode ? 'active' : ''}" onclick="toggleEditMode()">${isEditMode ? '수정 ON 🔴' : '⚙️ 수정'}</button>
+                        <button type="button" class="btn-action-pill" onclick="openBigEditModal('photo', ${idx})">✏️ 편집</button>
                         ${list.length > 1 ? `<button type="button" class="btn-action-pill btn-pill-del" onclick="deletePage('photo', ${idx})">🗑️ 삭제</button>` : ''}
                     </div>
                     <button type="button" class="btn-privacy-pill" onclick="toggleAppearancePrivacy()" style="background:#0284c7; border-color:#38bdf8; color:#fff;" title="터치 시 [비공개]로 전환">
@@ -3228,11 +3269,10 @@
                 <img class="v-page-bg-img" src="${item.img}" alt="비즈니스 ${idx+1}">
                 <div class="v-page-gradient-overlay"></div>
                 
-                <!-- 상단 액션 바: 한 줄에 [✏️ 사진 & 글 편집], [⚙️ 수정], [🗑️ 삭제] -->
+                <!-- 상단 액션 바: 한 줄에 [✏️ 편집], [🗑️ 삭제] -->
                 <div class="card-single-action-bar">
                     <div style="display:flex; gap:6px; align-items:center;">
-                        <button type="button" class="btn-action-pill" onclick="openBigEditModal('biz', ${idx})">✏️ 사진 & 글 편집</button>
-                        <button type="button" class="btn-action-pill ${isEditMode ? 'active' : ''}" onclick="toggleEditMode()">${isEditMode ? '수정 ON 🔴' : '⚙️ 수정'}</button>
+                        <button type="button" class="btn-action-pill" onclick="openBigEditModal('biz', ${idx})">✏️ 편집</button>
                         ${list.length > 1 ? `<button type="button" class="btn-action-pill btn-pill-del" onclick="deletePage('biz', ${idx})">🗑️ 삭제</button>` : ''}
                     </div>
                 </div>
@@ -4137,6 +4177,13 @@
             return;
         }
 
+        // 모바일 환경에서는 화면을 시원하게 채우도록 이전 열린 창을 닫고 단일 창으로 유지
+        if (window.innerWidth < 1024) {
+            Object.keys(openFloatingChatWindows).forEach(id => {
+                closeFloatingChatWindow(id);
+            });
+        }
+
         const winCount = Object.keys(openFloatingChatWindows).length;
         const offsetTop = 75 + ((winCount % 6) * 28);
         const offsetLeft = 15 + ((winCount % 5) * 20);
@@ -4145,8 +4192,10 @@
         winEl.className = "movable-chat-window";
         winEl.id = `win_chat_${friendId}`;
         winEl.style.zIndex = ++floatingChatZIndex;
-        winEl.style.top = `${offsetTop}px`;
-        winEl.style.left = `${offsetLeft}px`;
+        if (window.innerWidth >= 1024) {
+            winEl.style.top = `${offsetTop}px`;
+            winEl.style.left = `${offsetLeft}px`;
+        }
 
         winEl.onmousedown = () => { winEl.style.zIndex = ++floatingChatZIndex; };
         winEl.ontouchstart = () => { winEl.style.zIndex = ++floatingChatZIndex; };
@@ -4159,9 +4208,11 @@
                     <button type="button" class="btn-win-tool" onclick="window.location.href='tel:${friend.phone || '010-1234-5678'}'" title="일반 전화 연결" style="pointer-events:auto;">📞</button>
                 </div>
                 <div class="chat-win-tools" style="pointer-events:auto;">
-                    <button type="button" class="btn-win-tool" onclick="minimizeFloatingChat('${friendId}')" title="최소화">—</button>
-                    <button type="button" class="btn-win-tool" onclick="toggleMaximizeFloatingChat('${friendId}')" title="최대화/복원">□</button>
-                    <button type="button" class="btn-win-tool close" onclick="closeFloatingChatWindow('${friendId}')" title="닫기">✕</button>
+                    ${window.innerWidth >= 1024 ? `
+                        <button type="button" class="btn-win-tool" onclick="minimizeFloatingChat('${friendId}')" title="최소화">—</button>
+                        <button type="button" class="btn-win-tool" onclick="toggleMaximizeFloatingChat('${friendId}')" title="최대화/복원">□</button>
+                    ` : ''}
+                    <button type="button" class="btn-win-tool close" onclick="closeFloatingChatWindow('${friendId}')" title="대화창 닫기" style="font-size:15px; font-weight:950; min-width:30px;">✕</button>
                 </div>
             </div>
             <div class="chat-win-body" id="chatWinBody_${friendId}"></div>
@@ -4169,16 +4220,14 @@
                 <input type="text" class="chat-win-input" id="inpChatWin_${friendId}" placeholder="따뜻한 메시지 전송..." onkeydown="if(event.key==='Enter') sendFloatingChatMessage('${friendId}')">
                 <button type="button" class="btn-chat-win-send" onclick="sendFloatingChatMessage('${friendId}')">전송</button>
             </div>
-            <!-- 스마트폰 전용 애드몹 슬롯 (컴퓨터 환경에서는 비노출) -->
-            <div class="chat-win-admob">
-                <span>AD • Google AdMob 공식 스폰서 슬롯 (300 × 50)</span>
-            </div>
         `;
 
         host.appendChild(winEl);
         openFloatingChatWindows[friendId] = true;
 
-        makeWindowDraggable(winEl, document.getElementById(`winHdr_${friendId}`));
+        if (window.innerWidth >= 1024) {
+            makeWindowDraggable(winEl, document.getElementById(`winHdr_${friendId}`));
+        }
         renderFloatingChatMessages(friendId);
 
         const inp = document.getElementById(`inpChatWin_${friendId}`);
