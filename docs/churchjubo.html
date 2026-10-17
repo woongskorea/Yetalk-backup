@@ -136,22 +136,42 @@
             width: 100%; height: auto; max-height: 480px; object-fit: contain; display: block;
         }
 
-        /* 1면 순서 테이블 (한 페이지 쏙 맞춤 최적화) */
-        .order-table { width: 100%; border-collapse: collapse; margin-top: 2px; }
-        .order-table tr { border-bottom: 1px solid #f1f5f9; }
-        .order-table td { padding: 5.5px 3px; font-size: 13.5px; font-weight: 700; color: #334155; }
-        .order-table td.col-part { font-weight: 900; color: #0f172a; width: 75px; }
-        .order-table td.col-who { text-align: right; color: #64748b; font-size: 12.5px; }
+        /* 1면 순서 테이블: 또렷하고 굵은 글자 (희미함 완전 해결) */
+        .order-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+        .order-table tr { border-bottom: 1.5px solid #cbd5e1; }
+        .order-table td { padding: 8px 4px; font-size: 15px; font-weight: 850; color: #0f172a; }
+        .order-table td.col-part { font-weight: 950; color: #0369a1; width: 90px; font-size: 15.5px; }
+        .order-table td.col-who { text-align: right; color: #1e293b; font-size: 14px; font-weight: 850; }
 
         .sermon-highlight-box {
-            background: #f0f9ff; border: 1.2px solid #bae6fd; border-radius: 8px;
-            padding: 7px 10px; margin: 2px 0;
+            background: #f0f9ff; border: 1.5px solid #7dd3fc; border-radius: 10px;
+            padding: 10px 12px; margin: 4px 0 8px 0; color: #0f172a; font-weight: 850; font-size: 15.5px;
         }
 
-        /* 2~6면 본문 */
+        /* 2~6면 본문: 진하고 선명한 서체 */
         .jubo-body-text {
-            font-size: 15.5px; line-height: 1.85; color: #334155; word-break: keep-all; white-space: pre-line;
-            font-weight: 600;
+            font-size: 16px; line-height: 1.85; color: #0f172a; word-break: keep-all; white-space: pre-line;
+            font-weight: 750;
+        }
+
+        @media (min-width: 1024px) {
+            .jubo-shell { max-width: 1240px !important; }
+            .snap-page-section { max-width: 1100px; margin-left: auto; margin-right: auto; padding: 26px 32px; }
+            .jubo-main-title { font-size: 24px; }
+            .jubo-body-text { font-size: 17.5px; line-height: 1.9; }
+            .order-table td { padding: 10px 6px; font-size: 16px; }
+            .order-table td.col-part { font-size: 16.5px; width: 120px; }
+            .order-table td.col-who { font-size: 15.5px; }
+        }
+
+        .inp-table-cell {
+            background: #1e293b; border: 1px solid #334155; border-radius: 6px;
+            color: #ffffff; padding: 6px 8px; font-size: 13px; width: 100%; outline: none; font-family: inherit;
+        }
+        .inp-table-cell:focus { border-color: #38bdf8; }
+        .btn-table-del {
+            background: #dc2626; border: none; color: white; border-radius: 6px;
+            padding: 5px 8px; font-size: 12px; cursor: pointer; line-height: 1; font-weight: 900;
         }
 
         /* 4층 하단 고정 100 애드몹 */
@@ -315,10 +335,33 @@
             </div>
         </div>
 
+        <!-- 🌟 1면 전용 예배순서표 행 편집기 (칸 추가/삭제/수정 100% 지원) -->
+        <div id="sectionOrderTableEditor" style="display:none; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="m-lbl" style="color:#38bdf8;">📋 예배 순서 칸(행) 편집</span>
+                <button type="button" class="btn-quick-act" onclick="addOrderRowModal()" style="background:#0284c7; color:#fff; border:none; padding:4px 9px; border-radius:6px; font-weight:900; cursor:pointer;">
+                    ➕ 칸(순서) 추가
+                </button>
+            </div>
+            <div style="max-height:220px; overflow-y:auto; border:1px solid #334155; border-radius:8px; padding:6px; background:#0b1324;">
+                <table style="width:100%; border-collapse:collapse;" id="tblOrderEditor">
+                    <thead>
+                        <tr style="color:#94a3b8; font-size:11.5px; border-bottom:1px solid #1e293b; text-align:left;">
+                            <th style="padding:4px; width:75px;">구분</th>
+                            <th style="padding:4px;">내용 / 말씀 / 찬송</th>
+                            <th style="padding:4px; width:75px;">인도자</th>
+                            <th style="padding:4px; width:36px; text-align:center;">삭제</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyOrderEditor"></tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- 본문 내용 작성 -->
         <div>
             <div class="m-lbl-row">
-                <span class="m-lbl">주보 본문 내용 (길이에 구애받지 않음)</span>
+                <span class="m-lbl" id="lblEditBodyTitle">주보 본문 내용 (길이에 구애받지 않음)</span>
                 <div class="quick-helper-btns">
                     <button type="button" class="btn-quick-act" onclick="clearBodyField()">🗑️ 본문 비우기</button>
                     <button type="button" class="btn-quick-act" onclick="quickPasteClipboardToBody()">📋 바로붙여넣기</button>
@@ -484,14 +527,21 @@
                 const rows = (item.orderRows && item.orderRows.length > 0) ? item.orderRows : DEFAULT_ORDER_ROWS;
                 let tableHtml = `<table class="order-table">`;
                 rows.forEach(r => {
-                    tableHtml += `<tr><td class="col-part">${r.part}</td><td>${r.content}</td><td class="col-who">${r.who}</td></tr>`;
+                    tableHtml += `<tr><td class="col-part">${r.part}</td><td class="col-content">${r.content}</td><td class="col-who">${r.who}</td></tr>`;
                 });
                 tableHtml += `</table>`;
 
+                let bodyHighlight = "";
+                if (item.body && item.body.trim()) {
+                    bodyHighlight = `
+                        <div class="sermon-highlight-box">
+                            <strong style="font-size:15px; color:#0369a1; display:block; line-height:1.5;" id="sec_body_${idx}">${item.body}</strong>
+                        </div>
+                    `;
+                }
+
                 html += `
-                    <div class="sermon-highlight-box">
-                        <strong style="font-size:13.5px; color:#0369a1; display:block;" id="sec_body_${idx}">${item.body}</strong>
-                    </div>
+                    ${bodyHighlight}
                     ${tableHtml}
                 `;
             } else {
@@ -594,15 +644,27 @@
     // 🌟 관리자 수정 모달 오픈
     function openJuboEditModal() {
         const item = juboPagesData[activePageIdx] || DEFAULT_PAGES[activePageIdx];
+        const secTable = document.getElementById("sectionOrderTableEditor");
+        const tbody = document.getElementById("tbodyOrderEditor");
+        const lblBody = document.getElementById("lblEditBodyTitle");
 
         if (activePageIdx === 0) {
-            document.getElementById("modalEditTitleLabel").innerText = `✏️ [제 1 면 예배순서] 내용 수정`;
+            document.getElementById("modalEditTitleLabel").innerText = `✏️ [제 1 면 예배순서] 순서표 및 내용 수정`;
             document.getElementById("inpEditTitle").value = item.title || "주일 예배 순서";
+            lblBody.innerText = "설교 및 말씀 안내 (주보 상단 강조 박스)";
+            document.getElementById("inpEditBody").value = item.body || "말씀: 하나님의 사랑과 성도의 사명 (담임목사)";
+
+            // 1면 전용 순서표 행 편집기 활성화
+            secTable.style.display = "flex";
+            tbody.innerHTML = "";
             const rows = (item.orderRows && item.orderRows.length > 0) ? item.orderRows : DEFAULT_ORDER_ROWS;
-            const orderListText = rows.map(r => `• ${r.part}: ${r.content} (${r.who})`).join("\n");
-            document.getElementById("inpEditBody").value = `${item.body || '말씀: 하나님의 사랑과 성도의 사명 (담임목사)'}\n\n[예배 순서 목록]\n${orderListText}`;
+            rows.forEach(r => {
+                appendOrderRowToEditor(r.part, r.content, r.who);
+            });
         } else {
+            secTable.style.display = "none";
             document.getElementById("modalEditTitleLabel").innerText = `✏️ [제 ${activePageIdx + 1} 면] 내용 및 사진 수정`;
+            lblBody.innerText = "주보 본문 내용 (길이에 구애받지 않음 / 줄바꿈 반영)";
             document.getElementById("inpEditTitle").value = item.title || "";
             document.getElementById("inpEditBody").value = item.body || "";
         }
@@ -611,6 +673,24 @@
         updateImgPreviewUI();
 
         document.getElementById("juboEditModal").classList.add("open");
+    }
+
+    // 🌟 1면 순서표 행 추가 헬퍼
+    function appendOrderRowToEditor(part = "", content = "", who = "") {
+        const tbody = document.getElementById("tbodyOrderEditor");
+        const tr = document.createElement("tr");
+        tr.style.borderBottom = "1px solid #1e293b";
+        tr.innerHTML = `
+            <td style="padding:4px;"><input type="text" class="inp-table-cell inp-row-part" value="${part}" placeholder="구분 (예: 기도)"></td>
+            <td style="padding:4px;"><input type="text" class="inp-table-cell inp-row-content" value="${content}" placeholder="내용/말씀/찬송"></td>
+            <td style="padding:4px;"><input type="text" class="inp-table-cell inp-row-who" value="${who}" placeholder="인도자"></td>
+            <td style="padding:4px; text-align:center;"><button type="button" class="btn-table-del" onclick="this.closest('tr').remove()" title="칸 삭제">✕</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function addOrderRowModal() {
+        appendOrderRowToEditor("", "", "다 함 께");
     }
 
     function closeModal(id) {
@@ -708,40 +788,20 @@
         }
 
         if (activePageIdx === 0) {
-            const lines = newBody.split("\n");
-            const newOrderRows = [];
-            let sermonLines = [];
-            let parsingOrders = false;
-            lines.forEach(line => {
-                const tr = line.trim();
-                if (tr.includes("[예배 순서") || tr.includes("[예배순서")) {
-                    parsingOrders = true;
-                    return;
-                }
-                if (parsingOrders && tr.startsWith("•")) {
-                    const clean = tr.replace(/^•\s*/, '');
-                    const colonIdx = clean.indexOf(":");
-                    if (colonIdx > -1) {
-                        const part = clean.substring(0, colonIdx).trim();
-                        let rest = clean.substring(colonIdx + 1).trim();
-                        let who = "다 함 께";
-                        const openP = rest.lastIndexOf("(");
-                        const closeP = rest.lastIndexOf(")");
-                        if (openP > -1 && closeP > openP) {
-                            who = rest.substring(openP + 1, closeP).trim();
-                            rest = rest.substring(0, openP).trim();
-                        }
-                        newOrderRows.push({ part, content: rest, who });
-                    }
-                } else if (!parsingOrders) {
-                    sermonLines.push(line);
+            const tableRows = [];
+            document.querySelectorAll("#tbodyOrderEditor tr").forEach(tr => {
+                const part = tr.querySelector(".inp-row-part")?.value.trim() || "";
+                const content = tr.querySelector(".inp-row-content")?.value.trim() || "";
+                const who = tr.querySelector(".inp-row-who")?.value.trim() || "";
+                if (part || content) {
+                    tableRows.push({ part, content, who });
                 }
             });
 
             juboPagesData[0].title = newTitle;
-            juboPagesData[0].body = sermonLines.join("\n").trim() || newBody;
-            if (newOrderRows.length > 0) {
-                juboPagesData[0].orderRows = newOrderRows;
+            juboPagesData[0].body = newBody;
+            if (tableRows.length > 0) {
+                juboPagesData[0].orderRows = tableRows;
             }
         } else {
             juboPagesData[activePageIdx].title = newTitle;

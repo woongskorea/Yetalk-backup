@@ -196,6 +196,40 @@
         }
         .m-textarea:focus, .m-input:focus { border-color: #38bdf8; }
 
+        @media (min-width: 1024px) {
+            .intro-shell { max-width: 1240px !important; }
+            .snap-page-section { max-width: 1100px; margin-left: auto; margin-right: auto; padding: 26px 30px; }
+            .attached-photo-wrap img { max-height: 480px; }
+            .clean-leader-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+        }
+
+        body[data-theme="white"] { background: #fbf9f4 !important; color: #1e293b !important; }
+        body[data-theme="white"] .intro-shell { background: #fbf9f4 !important; }
+        body[data-theme="white"] .intro-header { background: #ffffff !important; border-bottom: 1.5px solid #e2e8f0 !important; }
+        body[data-theme="white"] .header-title-text { color: #0f172a !important; }
+        body[data-theme="white"] .intro-tabs { background: #ffffff !important; border-bottom: 1.5px solid #e2e8f0 !important; }
+        body[data-theme="white"] .intro-tab { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #475569 !important; }
+        body[data-theme="white"] .intro-tab.active { background: #0284c7 !important; border-color: #0284c7 !important; color: #ffffff !important; }
+        body[data-theme="white"] .snap-page-section { background: #ffffff !important; border-color: #e2e8f0 !important; box-shadow: 0 4px 20px rgba(0,0,0,0.06) !important; }
+        body[data-theme="white"] .article-main-title { color: #0f172a !important; }
+        body[data-theme="white"] .article-text-body { color: #1e293b !important; }
+        body[data-theme="white"] .bullet-point-line { color: #334155 !important; }
+        body[data-theme="white"] .clean-leader-card { background: #f8fafc !important; border-color: #e2e8f0 !important; }
+        body[data-theme="white"] .clean-leader-name { color: #0f172a !important; }
+        body[data-theme="white"] .clean-leader-desc { color: #64748b !important; }
+        body[data-theme="white"] .clean-timeline-year { color: #0369a1 !important; }
+        body[data-theme="white"] .clean-timeline-text { color: #1e293b !important; }
+
+        .btn-leader-edit-item {
+            background: #1e3a5f; border: 1px solid #38bdf8; color: #38bdf8;
+            font-size: 11px; font-weight: 850; padding: 4px 8px; border-radius: 6px;
+            cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+            gap: 4px; margin-top: 6px; width: 100%; transition: all 0.15s;
+        }
+        .btn-leader-edit-item:hover { background: #0284c7; color: #ffffff; }
+        body[data-theme="white"] .btn-leader-edit-item { background: #e0f2fe; border-color: #7dd3fc; color: #0284c7; }
+        body[data-theme="white"] .btn-leader-edit-item:hover { background: #0284c7; color: #ffffff; }
+
         .yetalk-toast {
             position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%) translateY(20px);
             background: rgba(15, 23, 42, 0.95); color: #38bdf8; border: 1px solid #38bdf8;
@@ -224,11 +258,12 @@
     <!-- 2층 가로 롤링 칩 메뉴 (요청 순서 100% 매칭) -->
     <nav class="intro-tabs" id="introTabNav">
         <button type="button" class="intro-tab active" onclick="scrollToSection(0)">환영인사</button>
-        <button type="button" class="intro-tab" onclick="scrollToSection(1)">교회비전</button>
-        <button type="button" class="intro-tab" onclick="scrollToSection(2)">섬기는 이</button>
-        <button type="button" class="intro-tab" onclick="scrollToSection(3)">부서사역</button>
-        <button type="button" class="intro-tab" onclick="scrollToSection(4)">파송선교사</button>
-        <button type="button" class="intro-tab" onclick="scrollToSection(5)">교회역사</button>
+        <button type="button" class="intro-tab" onclick="scrollToSection(1)">담임목사</button>
+        <button type="button" class="intro-tab" onclick="scrollToSection(2)">교회비전</button>
+        <button type="button" class="intro-tab" onclick="scrollToSection(3)">섬기는 이</button>
+        <button type="button" class="intro-tab" onclick="scrollToSection(4)">부서사역</button>
+        <button type="button" class="intro-tab" onclick="scrollToSection(5)">파송선교사</button>
+        <button type="button" class="intro-tab" onclick="scrollToSection(6)">교회역사</button>
     </nav>
 
     <!-- 3층 세로 스냅 뷰포트 (상단 이미지 카드 없이 바로 본문 시작) -->
@@ -248,6 +283,53 @@
     </footer>
 
     <div class="yetalk-toast" id="yetalkToast"></div>
+</div>
+
+<!-- 🌟 [사용자 요청] 섬기는 이 개별 사역자 수정/추가 모달 -->
+<div class="edit-modal-overlay" id="servantEditModal" onclick="closeModal('servantEditModal')">
+    <div class="edit-modal-card" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:8px;">
+            <strong style="font-size:16px; color:#38bdf8;" id="lblServantModalTitle">✏️ 사역자 개별 수정</strong>
+            <button type="button" style="background:none; border:none; font-size:24px; color:#64748b; cursor:pointer;" onclick="closeModal('servantEditModal')">✕</button>
+        </div>
+        <div>
+            <span class="m-lbl">성명 및 직분</span>
+            <input type="text" class="m-input" id="inpServantName" placeholder="예: 최남수 담임목사, 김은혜 전도사">
+        </div>
+        <div>
+            <span class="m-lbl">담당 사역 / 교구</span>
+            <input type="text" class="m-input" id="inpServantRole" placeholder="예: 담임목회 및 강단 말씀, 1교구 / 미디어">
+        </div>
+        <div>
+            <span class="m-lbl">사역자 사진 (파일 선택 또는 이미지 링크)</span>
+            <div style="display:flex; align-items:center; gap:8px; background:#162238; border:1px dashed #38bdf8; border-radius:8px; padding:8px 12px;">
+                <img id="prevServantImgThumb" style="width:52px; height:52px; border-radius:6px; object-fit:cover; border:1px solid #38bdf8; display:none;" src="" alt="미리보기">
+                <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                    <div style="display:flex; gap:6px;">
+                        <label for="inpServantFileNative" style="background:#0284c7; color:#fff; font-size:12px; font-weight:900; padding:6px 12px; border-radius:6px; cursor:pointer;">
+                            📁 사진 선택
+                        </label>
+                        <button type="button" id="btnRemoveServantImg" style="display:none; background:#dc2626; color:#fff; border:none; font-size:11px; font-weight:800; padding:4px 8px; border-radius:6px; cursor:pointer;" onclick="removeServantAttachedImg()">
+                            삭제
+                        </button>
+                    </div>
+                    <input type="text" class="m-input" id="inpServantImg" placeholder="또는 이미지 URL" style="padding:6px 8px; font-size:12px;">
+                </div>
+                <input type="file" id="inpServantFileNative" accept="image/*" style="display:none;" onchange="handleServantImgFile(event)">
+            </div>
+        </div>
+        <div>
+            <span class="m-lbl">사역 소개 / 약력</span>
+            <textarea class="m-input" id="inpServantDesc" style="height:90px; resize:vertical;" placeholder="소개 및 약력을 입력하세요."></textarea>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+            <button type="button" id="btnDeleteServant" style="padding:10px 16px; background:#dc2626; color:white; border:none; border-radius:8px; font-weight:850; cursor:pointer;" onclick="deleteCurrentServant()">🗑️ 사역자 삭제</button>
+            <div style="display:flex; gap:8px;">
+                <button type="button" style="padding:10px 18px; background:#334155; color:white; border:none; border-radius:8px; font-weight:800; cursor:pointer;" onclick="closeModal('servantEditModal')">취소</button>
+                <button type="button" style="padding:10px 22px; background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; border-radius:8px; font-weight:950; cursor:pointer;" onclick="saveServantData()">저장하기</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- 🌟 관리자 글/사진/파일 수정 모달 -->
@@ -299,9 +381,9 @@
 
 <script>
     const STORAGE_KEY = "yetalk_church_intro_custom_sections_v4";
-    const TAB_KEYS = ["welcome", "vision", "servants", "ministry", "missionary", "history"];
+    const TAB_KEYS = ["welcome", "pastor", "vision", "servants", "ministry", "missionary", "history"];
 
-    // 6대 메뉴 기본 데이터 (요청 순서 100% 매칭)
+    // 7대 메뉴 기본 데이터 (요청 순서 100% 매칭: 환영인사 -> 담임목사 -> 교회비전 -> 섬기는 이 -> 부서사역 -> 파송선교사 -> 교회역사)
     const DEFAULT_DATA = {
         welcome: {
             tabName: "환영인사",
@@ -314,6 +396,13 @@
                 "이웃을 내 몸과 같이 사랑하며 섬기는 따뜻한 나눔",
                 "다음 세대를 기도의 용사로 세우는 비전 교육"
             ]
+        },
+        pastor: {
+            tabName: "담임목사",
+            badge: "담임목사",
+            title: "최남수 담임목사 목회비전과 인사",
+            img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&auto=format&fit=crop&q=80",
+            body: "“오직 기도와 말씀으로 무장하여 세상을 변화시키는 영적 용사를 세우겠습니다.”\n\n할렐루야! 예톡행복한교회 담임목사 최남수입니다.\n우리 교회는 모든 성도가 성령의 충만함을 입어 삶의 자리에서 예수 그리스도의 살아계심을 증거하는 거룩한 비전 공동체입니다.\n\n날마다 새벽을 깨우며 눈물로 기도하고, 진리의 말씀으로 영혼을 치유하며 열방을 향해 복음의 빛을 비추는 사명에 온 성도가 함께 동역하고 있습니다.\n\n여러분의 귀한 가정이 믿음 위에 굳건히 세워지고, 자녀들이 다음 세대의 다니엘과 요셉으로 성장하도록 늘 기도와 사랑으로 섬기겠습니다.\n\n• 약력: 총신대학교 신학대학원(M.Div) 졸업\n• 목회철학: 오직 성경, 오직 기도, 영혼 구원과 제자 훈련\n• 저서: 「기도가 전부다」, 「말씀으로 일어서는 사람」"
         },
         vision: {
             tabName: "교회비전",
@@ -332,7 +421,7 @@
             badge: "섬기는 이",
             title: "교회를 섬기는 사역자 및 직분자",
             img: "",
-            body: "기도와 말씀으로 교회를 든든히 세워가는 사역팀을 소개합니다.",
+            body: "기도와 말씀으로 교회를 든든히 세워가는 사역팀을 소개합니다. (각 사역자별 [✏️ 개별 수정] 버튼으로 사진과 약력을 한 분씩 직접 편집하실 수 있습니다.)",
             leaders: [
                 {
                     name: "최남수 담임목사",
@@ -390,27 +479,51 @@
             badge: "교회역사",
             title: "하나님의 인도하심으로 걸어온 은혜의 발자취",
             img: "",
-            body: "눈물의 기도와 헌신으로 일군 하나님의 살아계신 역사입니다.",
-            historyList: [
-                { year: "2026년", text: "예톡 스마트 미디어 선교 플랫폼 런칭 및 글로벌 비전 선포" },
-                { year: "2020년", text: "온라인 실시간 예배 시스템 구축 및 비전센터 봉헌" },
-                { year: "2015년", text: "제2성전 건축 입당 감사예배 및 해외 단독 선교사 파송" },
-                { year: "2008년", text: "교회 설립 10주년 기념 감사 축제 및 지역 나눔 사역 확대" },
-                { year: "1998년", text: "성령의 인도하심으로 예톡행복한교회 첫 개척 예배" }
-            ]
+            body: "눈물의 기도와 헌신으로 일군 하나님의 살아계신 역사입니다.\n\n• 2026년: 예톡 스마트 미디어 선교 플랫폼 런칭 및 글로벌 비전 선포\n• 2020년: 온라인 실시간 예배 시스템 구축 및 비전센터 봉헌\n• 2015년: 제2성전 건축 입당 감사예배 및 해외 단독 선교사 파송\n• 2008년: 교회 설립 10주년 기념 감사 축제 및 지역 나눔 사역 확대\n• 1998년: 성령의 인도하심으로 예톡행복한교회 첫 개척 예배"
         }
     };
 
     let currentSectionIdx = 0;
     let churchSections = {};
+    let activeServantIdx = -1;
 
     function loadSections() {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
-            try { churchSections = JSON.parse(raw); } catch(e) { churchSections = DEFAULT_DATA; }
+            try { churchSections = JSON.parse(raw); } catch(e) { churchSections = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
         } else {
-            churchSections = DEFAULT_DATA;
+            churchSections = JSON.parse(JSON.stringify(DEFAULT_DATA));
         }
+
+        // 🌟 담임목사 한 페이지 보장
+        if (!churchSections.pastor) {
+            churchSections.pastor = JSON.parse(JSON.stringify(DEFAULT_DATA.pastor));
+        }
+
+        // 🌟 섬기는 이 사역자 리스트 보장
+        if (!churchSections.servants || !Array.isArray(churchSections.servants.leaders)) {
+            if (!churchSections.servants) churchSections.servants = { ...DEFAULT_DATA.servants };
+            churchSections.servants.leaders = JSON.parse(JSON.stringify(DEFAULT_DATA.servants.leaders));
+        }
+
+        // 🌟 [사용자 요청] 교회역사: 화면수정에 없는 글이 밖에는 보이는 버그 원천 해결!
+        // 기존 분리되어 있던 historyList 항목들을 본문(body)에 일원화하여, 화면수정에 적힌 내용이 100% 그대로 밖에도 표시되도록 동기화!
+        if (churchSections.history) {
+            if (churchSections.history.historyList && Array.isArray(churchSections.history.historyList) && churchSections.history.historyList.length > 0) {
+                const historyLines = churchSections.history.historyList.map(h => `• ${h.year}: ${h.text}`);
+                let curBody = churchSections.history.body || "";
+                historyLines.forEach(hl => {
+                    const yearPart = hl.split(":")[0];
+                    if (!curBody.includes(yearPart)) {
+                        curBody += (curBody ? "\n" : "") + hl;
+                    }
+                });
+                churchSections.history.body = curBody;
+                delete churchSections.history.historyList;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+            }
+        }
+
         renderViewport();
     }
 
@@ -445,46 +558,59 @@
             // 🌟 관리자 모드에 작성된 본문 내용만 정확하게 출력 (• 또는 - 기호는 파란 불릿 줄로 자동 서식 적용)
             let formattedBody = "";
             const lines = (item.body || "").split("\n");
+            let hasTimeline = false;
+            let timelineHtml = `<div class="clean-timeline-box" style="margin-top:10px;">`;
+
             lines.forEach(line => {
                 const tr = line.trim();
-                if (tr.startsWith("•") || tr.startsWith("-") || tr.startsWith("*")) {
+                if (!tr) return;
+
+                // 타임라인 형식 (연도: 내용 또는 • 연도: 내용)
+                const timelineMatch = tr.match(/^(?:[•\-\*]\s*)?((?:19|20)\d{2}년?)\s*[:：\-]\s*(.+)$/);
+                if (key === "history" && timelineMatch) {
+                    hasTimeline = true;
+                    timelineHtml += `
+                        <div class="clean-timeline-row">
+                            <span class="clean-timeline-year">${timelineMatch[1]}</span>
+                            <span class="clean-timeline-text">${timelineMatch[2]}</span>
+                        </div>
+                    `;
+                } else if (tr.startsWith("•") || tr.startsWith("-") || tr.startsWith("*")) {
                     formattedBody += `<div class="bullet-point-line">${tr.replace(/^[•\-\*]\s*/, '')}</div>`;
-                } else if (tr) {
+                } else {
                     formattedBody += `<p class="article-text-body" style="margin-bottom:8px;">${tr}</p>`;
                 }
             });
-            html += formattedBody;
+            timelineHtml += `</div>`;
 
-            // 섬기는 이 (리더 2열 그리드)
-            if (key === "servants" && item.leaders) {
-                html += `<div class="clean-leader-grid">`;
-                item.leaders.forEach(l => {
+            html += formattedBody;
+            if (key === "history" && hasTimeline) {
+                html += timelineHtml;
+            }
+
+            // 🌟 [사용자 요청] 섬기는 이: 한사람씩 개별 수정 지원
+            if (key === "servants") {
+                const leaders = item.leaders || DEFAULT_DATA.servants.leaders;
+                html += `<div class="clean-leader-grid" style="margin-top:10px;">`;
+                leaders.forEach((l, lIdx) => {
                     html += `
                         <div class="clean-leader-card">
-                            <img class="clean-leader-img" src="${l.img}" alt="${l.name}">
+                            <img class="clean-leader-img" src="${l.img || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400'}" alt="${l.name}">
                             <div class="clean-leader-info">
                                 <span class="clean-leader-name">${l.name}</span>
                                 <span class="clean-leader-role">${l.role}</span>
                                 <span class="clean-leader-desc">${l.desc}</span>
+                                <button type="button" class="btn-leader-edit-item" onclick="event.stopPropagation(); openServantEdit(${lIdx})">✏️ 개별 수정</button>
                             </div>
                         </div>
                     `;
                 });
                 html += `</div>`;
-            }
-
-            // 교회역사 타임라인
-            if (key === "history" && item.historyList) {
-                html += `<div class="clean-timeline-box">`;
-                item.historyList.forEach(h => {
-                    html += `
-                        <div class="clean-timeline-row">
-                            <span class="clean-timeline-year">${h.year}</span>
-                            <span class="clean-timeline-text">${h.text}</span>
-                        </div>
-                    `;
-                });
-                html += `</div>`;
+                html += `
+                    <button type="button" style="margin-top:12px; width:100%; padding:11px; background:#1e3a5f; border:1.5px dashed #38bdf8; border-radius:10px; color:#38bdf8; font-weight:900; font-size:13.5px; cursor:pointer;" onclick="openServantAdd()">
+                        ➕ 새 사역자(섬기는 이) 추가
+                    </button>
+                `;
             }
 
             sec.innerHTML = html;
@@ -597,7 +723,6 @@
             btnDel.style.display = "none";
         }
 
-        // 🌟 기존 불릿 항목(파란 동그라미)이 있다면 본문 속에 자연스럽게 통합하여 불러오기!
         let fullBody = item.body || "";
         if (item.bullets && item.bullets.length > 0) {
             const missingBullets = item.bullets.filter(b => !fullBody.includes(b.replace(/^[•\-\*]\s*/, "")));
@@ -662,6 +787,116 @@
         scrollToSection(currentSectionIdx);
         closeModal("generalPageEditModal");
         showToast("✨ 수정 내용이 안전하게 저장되었습니다.");
+    }
+
+    // 🌟 [사용자 요청] 사역자 개별 수정 로직
+    function openServantEdit(leaderIdx) {
+        activeServantIdx = leaderIdx;
+        const leader = churchSections.servants.leaders[leaderIdx];
+        document.getElementById("lblServantModalTitle").innerText = `✏️ [${leader.name}] 정보 수정`;
+        document.getElementById("inpServantName").value = leader.name || "";
+        document.getElementById("inpServantRole").value = leader.role || "";
+        document.getElementById("inpServantDesc").value = leader.desc || "";
+        document.getElementById("inpServantImg").value = leader.img || "";
+
+        const thumb = document.getElementById("prevServantImgThumb");
+        const btnDel = document.getElementById("btnRemoveServantImg");
+        if (leader.img && leader.img.trim()) {
+            thumb.src = leader.img;
+            thumb.style.display = "block";
+            btnDel.style.display = "block";
+        } else {
+            thumb.style.display = "none";
+            btnDel.style.display = "none";
+        }
+
+        document.getElementById("btnDeleteServant").style.display = "block";
+        openModal("servantEditModal");
+    }
+
+    function openServantAdd() {
+        activeServantIdx = -1;
+        document.getElementById("lblServantModalTitle").innerText = "➕ 새 사역자 추가";
+        document.getElementById("inpServantName").value = "";
+        document.getElementById("inpServantRole").value = "";
+        document.getElementById("inpServantDesc").value = "";
+        document.getElementById("inpServantImg").value = "";
+        document.getElementById("prevServantImgThumb").style.display = "none";
+        document.getElementById("btnRemoveServantImg").style.display = "none";
+        document.getElementById("btnDeleteServant").style.display = "none";
+        openModal("servantEditModal");
+    }
+
+    function handleServantImgFile(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                let w = img.width, h = img.height;
+                if (w > 800) { h = Math.round((h * 800) / w); w = 800; }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+                const base64 = canvas.toDataURL("image/jpeg", 0.9);
+                document.getElementById("inpServantImg").value = base64;
+                const thumb = document.getElementById("prevServantImgThumb");
+                thumb.src = base64;
+                thumb.style.display = "block";
+                document.getElementById("btnRemoveServantImg").style.display = "block";
+                showToast("📷 사역자 사진이 선택되었습니다.");
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeServantAttachedImg() {
+        document.getElementById("inpServantImg").value = "";
+        document.getElementById("prevServantImgThumb").style.display = "none";
+        document.getElementById("btnRemoveServantImg").style.display = "none";
+        const fileInp = document.getElementById("inpServantFileNative");
+        if (fileInp) fileInp.value = "";
+        showToast("사역자 사진이 제거되었습니다.");
+    }
+
+    function saveServantData() {
+        const name = document.getElementById("inpServantName").value.trim();
+        const role = document.getElementById("inpServantRole").value.trim();
+        const desc = document.getElementById("inpServantDesc").value.trim();
+        const img = document.getElementById("inpServantImg").value.trim();
+
+        if (!name) { alert("사역자 성명 및 직분을 입력해 주세요."); return; }
+
+        if (!churchSections.servants) churchSections.servants = { ...DEFAULT_DATA.servants };
+        if (!Array.isArray(churchSections.servants.leaders)) churchSections.servants.leaders = [];
+
+        const servantItem = { name, role, desc, img };
+
+        if (activeServantIdx >= 0 && activeServantIdx < churchSections.servants.leaders.length) {
+            churchSections.servants.leaders[activeServantIdx] = servantItem;
+        } else {
+            churchSections.servants.leaders.push(servantItem);
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        renderViewport();
+        scrollToSection(3); // '섬기는 이' 섹션으로 이동
+        closeModal("servantEditModal");
+        showToast("✨ 사역자 정보가 안전하게 저장되었습니다.");
+    }
+
+    function deleteCurrentServant() {
+        if (activeServantIdx < 0) return;
+        if (!confirm("이 사역자를 목록에서 삭제하시겠습니까?")) return;
+
+        churchSections.servants.leaders.splice(activeServantIdx, 1);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        renderViewport();
+        scrollToSection(3);
+        closeModal("servantEditModal");
+        showToast("🗑️ 사역자가 삭제되었습니다.");
     }
 
     function openModal(id) { document.getElementById(id)?.classList.add("show"); }
