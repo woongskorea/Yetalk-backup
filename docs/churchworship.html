@@ -363,19 +363,21 @@
             }
         }
 
-        body[data-theme="white"] { background: #fbf9f4 !important; color: #1e293b !important; }
+        body[data-theme="white"] { background: #fbf9f4 !important; color: #0f172a !important; }
         body[data-theme="white"] .worship-shell { background: #fbf9f4 !important; }
         body[data-theme="white"] .worship-snap-section { background: #fbf9f4 !important; }
-        body[data-theme="white"] .worship-tabs-bar { background: #ffffff !important; border-bottom: 1.5px solid #e2e8f0 !important; }
-        body[data-theme="white"] .w-tab-chip { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #475569 !important; }
-        body[data-theme="white"] .w-tab-chip.active { background: #0284c7 !important; color: #ffffff !important; border-color: #0284c7 !important; }
-        body[data-theme="white"] .sermon-info-card { background: #ffffff !important; border-color: #e2e8f0 !important; box-shadow: 0 4px 16px rgba(0,0,0,0.05) !important; }
-        body[data-theme="white"] .sermon-title-text { color: #0f172a !important; }
-        body[data-theme="white"] .sermon-meta-text { color: #64748b !important; }
-        body[data-theme="white"] .past-worship-header-btn { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #0f172a !important; }
+        body[data-theme="white"] .worship-tabs-bar { background: #ffffff !important; border-bottom: 1.5px solid #cbd5e1 !important; }
+        body[data-theme="white"] .w-tab-chip { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #0f172a !important; font-weight: 850 !important; }
+        body[data-theme="white"] .w-tab-chip.active { background: #0284c7 !important; color: #ffffff !important; border-color: #0284c7 !important; font-weight: 950 !important; }
+        body[data-theme="white"] .w-tab-chip.is-live-chip { background: #ef4444 !important; color: #ffffff !important; border-color: #dc2626 !important; font-weight: 950 !important; }
+        body[data-theme="white"] .sermon-info-card { background: #ffffff !important; border-color: #cbd5e1 !important; box-shadow: 0 4px 16px rgba(0,0,0,0.06) !important; }
+        body[data-theme="white"] .sermon-title-text, body[data-theme="white"] .sermon-title-main { color: #0f172a !important; font-weight: 950 !important; }
+        body[data-theme="white"] .sermon-meta-text { color: #475569 !important; font-weight: 800 !important; }
+        body[data-theme="white"] .detail-line { color: #334155 !important; font-weight: 750 !important; }
+        body[data-theme="white"] .past-worship-header-btn { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #0f172a !important; font-weight: 900 !important; }
         body[data-theme="white"] .past-worship-item { background: #ffffff !important; border-color: #e2e8f0 !important; }
-        body[data-theme="white"] .past-item-title { color: #0f172a !important; }
-        body[data-theme="white"] .btn-worship-ctrl { background: #ffffff !important; border-color: #cbd5e1 !important; color: #0f172a !important; }
+        body[data-theme="white"] .past-item-title { color: #0f172a !important; font-weight: 850 !important; }
+        body[data-theme="white"] .btn-worship-ctrl { background: #ffffff !important; border-color: #cbd5e1 !important; color: #0f172a !important; font-weight: 900 !important; }
 
         /* 🌟 관리실 모달 */
         .modal-overlay {
@@ -721,13 +723,6 @@
         sec.dataset.index = idx;
 
         sec.innerHTML = `
-            <!-- 영상 바로 위 예배종류 표시 -->
-            <div class="worship-kind-header-row">
-                <div class="worship-kind-badge">
-                    <span>✝️</span> <span>${item.tabName} 실황</span>
-                </div>
-                ${isLive ? '<span class="worship-live-tag">🔴 LIVE</span>' : ''}
-            </div>
 
             <!-- 영상 박스 (100%, 150%, 200% 순환 확대 지원) -->
             <div class="yt-player-box" id="ytBox_${idx}">
@@ -811,13 +806,27 @@
 
     function syncTabMenuUI(idx) {
         const liveKey = getLiveTabKey();
+        const isLiveBroadcast = (localStorage.getItem("yetalk_church_live_broadcast") === "true");
         document.querySelectorAll(".w-tab-chip").forEach((chip, i) => {
             const isMatch = (i === idx);
             chip.classList.toggle("active", isMatch);
             const key = WORSHIP_KEYS[i];
             const item = worshipData[key] || DEFAULT_DATA[key];
-            const isLive = (key === liveKey);
-            chip.innerHTML = `${isLive ? '<span class="live-dot-pulse">●</span> ' : ''}${item.tabName}`;
+            const isLive = isLiveBroadcast && (key === liveKey || key === "sunday");
+            chip.classList.toggle("is-live-chip", isLive);
+            if (isLive) {
+                chip.style.background = "#ef4444";
+                chip.style.borderColor = "#dc2626";
+                chip.style.color = "#ffffff";
+                chip.style.boxShadow = "0 2px 10px rgba(239, 68, 68, 0.5)";
+                chip.innerHTML = `<span class="live-dot-pulse" style="color:#ffffff;">●</span> ${item.tabName}`;
+            } else {
+                chip.style.background = "";
+                chip.style.borderColor = "";
+                chip.style.color = "";
+                chip.style.boxShadow = "";
+                chip.innerHTML = `${item.tabName}`;
+            }
             if (isMatch) chip.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
         });
     }

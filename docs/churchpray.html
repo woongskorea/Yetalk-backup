@@ -279,6 +279,12 @@
 
     <!-- [1단계 로비] -->
     <main class="lobby-view-container" id="lobbyView">
+        <!-- 🌟 [사용자 요청] 매일 4번 바뀌는 좋은 말씀 배너 -->
+        <div class="verse-cycle-card" style="margin: 0 0 10px 0; background:#fffdf5; border:1.5px solid #facc15; border-radius:12px; padding:12px 14px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.04); width:100%;">
+            <div style="font-size:11.5px; font-weight:900; color:#d97706; margin-bottom:4px;" id="dispPrayVerseTag">🌅 오늘 아침 좋은 말씀</div>
+            <div style="font-family:'Nanum Myeongjo', serif; font-size:14px; line-height:1.55; color:#1e293b; font-weight:750;" id="dispPrayVerseText">“너는 내게 부르짖으라 내가 네게 응답하겠고 크고 은밀한 일을 보이리라 (렘 33:3)”</div>
+        </div>
+
         <div class="lobby-grid-rooms" id="lobbyRoomsGrid"></div>
         <button type="button" class="btn-open-create-room" onclick="openCreateRoomModal()">
             <span>➕</span> <strong>새 성전 기도방 개설하기</strong>
@@ -404,20 +410,36 @@
 </div>
 
 <script>
-    const ROOMS_STORAGE_KEY = "yetalk_prayer_rooms_list_master_v5";
+    const ROOMS_STORAGE_KEY = "yetalk_prayer_rooms_list_master_v6";
     const GLOBAL_DEFAULT_BGM = "https://www.youtube.com/watch?v=M7lc1UVf-VE";
     const THEMES = ['sky', 'yellow', 'pink', 'dark'];
 
+    // 🌟 [사용자 요청] 기본 4대 성전 기도방 (추가는 + 개설하기 지원)
     const DEFAULT_ROOMS = [
         { id: "room_1", name: "예수님 사랑방", status: "ACTIVE", leader: "최남수 담임목사", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] },
-        { id: "room_2", name: "예수님 소망방", status: "EMPTY", leader: "비어있음 (자유 개설)", youtube: "", members: [] },
-        { id: "room_3", name: "예수님 기쁨방", status: "EMPTY", leader: "비어있음", youtube: "", members: [] },
-        { id: "room_4", name: "예수님 찬양방", status: "ACTIVE", leader: "할렐루야 찬양팀", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] },
-        { id: "room_5", name: "예수님 영광방", status: "EMPTY", leader: "비어있음", youtube: "", members: [] },
-        { id: "room_6", name: "복음전도방", status: "EMPTY", leader: "비어있음", youtube: "", members: [] },
-        { id: "room_7", name: "가정예배방", status: "EMPTY", leader: "비어있음", youtube: "", members: [] },
-        { id: "room_8", name: "교회기도방", status: "ACTIVE", leader: "중보기도 사역팀", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] }
+        { id: "room_2", name: "예수님 소망방", status: "ACTIVE", leader: "중보기도 사역팀", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] },
+        { id: "room_3", name: "예수님 은혜방", status: "EMPTY", leader: "비어있음 (자유 개설)", youtube: "", members: [] },
+        { id: "room_4", name: "할렐루야 찬양방", status: "ACTIVE", leader: "찬양 사역팀", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] }
     ];
+
+    const PRAY_WORDS = {
+        morning: { tag: "🌅 오늘 아침 좋은 말씀", text: "“새벽을 깨우리로다 내가 만민 중에서 주께 감사하리이다 (시 57:8-9)”" },
+        noon: { tag: "☀️ 한낮의 기도의 제단", text: "“쉬지 말고 기도하라 범사에 감사하라 이는 너희를 향하신 뜻이니라 (살전 5:17-18)”" },
+        evening: { tag: "🌆 저녁의 감사 기도", text: "“아무 것도 염려하지 말고 다만 모든 일에 기도와 간구로 아뢰라 (빌 4:6)”" },
+        night: { tag: "🌙 밤의 치유와 중보", text: "“너는 내게 부르짖으라 내가 네게 응답하겠고 크고 은밀한 일을 보이리라 (렘 33:3)”" }
+    };
+
+    function updatePrayDailyVerse() {
+        const hour = new Date().getHours();
+        let w = PRAY_WORDS.night;
+        if (hour >= 5 && hour < 11) w = PRAY_WORDS.morning;
+        else if (hour >= 11 && hour < 17) w = PRAY_WORDS.noon;
+        else if (hour >= 17 && hour < 22) w = PRAY_WORDS.evening;
+        const tagEl = document.getElementById("dispPrayVerseTag");
+        const txtEl = document.getElementById("dispPrayVerseText");
+        if (tagEl) tagEl.innerText = w.tag;
+        if (txtEl) txtEl.innerText = w.text;
+    }
 
     let prayerRooms = [];
     let currentRoom = null;
@@ -436,6 +458,8 @@
         currentThemeIdx = THEMES.indexOf(savedTheme);
         if (currentThemeIdx === -1) currentThemeIdx = 0;
         applyTheme(THEMES[currentThemeIdx]);
+
+        updatePrayDailyVerse();
 
         const saved = localStorage.getItem(ROOMS_STORAGE_KEY);
         if (saved) {
@@ -957,7 +981,19 @@
 
         inp.value = "";
         closeLeaderAdminModal();
-        showToast("📢 반원 전체 알림을 전송했습니다!");
+
+        // 🌟 [사용자 요청] 인도자 공지를 성도 개인앱(onemain.html) 공지알림으로 즉시 자동 발송!
+        try {
+            const noticePayload = {
+                source: `[${currentRoom.name}] 인도자(${currentRoom.leader || getMyName()}) 공지`,
+                title: val,
+                date: "방금",
+                timestamp: Date.now()
+            };
+            localStorage.setItem("yetalk_latest_notice", JSON.stringify(noticePayload));
+        } catch(e) {}
+
+        showToast("📢 반원 전체 및 개인앱으로 알림을 전송했습니다!");
     }
 
     function closeLeaderAdminModal() {

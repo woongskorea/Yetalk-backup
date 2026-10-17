@@ -410,10 +410,16 @@
         </div>
     </div>
 
+    <!-- 🌟 [사용자 요청] 매일 4번 바뀌는 좋은 글 배너 -->
+    <div class="verse-cycle-card" style="margin: 6px 12px 10px 12px; background:#fffdf5; border:1.5px solid #facc15; border-radius:12px; padding:12px 14px; text-align:center; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+        <div style="font-size:11.5px; font-weight:900; color:#d97706; margin-bottom:4px;" id="dispMemberVerseTag">🌅 오늘 아침 좋은 글</div>
+        <div style="font-family:'Nanum Myeongjo', serif; font-size:14px; line-height:1.55; color:#1e293b; font-weight:750;" id="dispMemberVerseText">“아침에 나로 하여금 주의 인자한 말씀을 듣게 하소서 (시 143:8)”</div>
+    </div>
+
     <!-- 3. 소모임 2열 카드 그리드 & 개설 버튼 -->
     <main class="room-grid-viewport">
 
-        <!-- 🌟 기본 10대 셀방 + 추가 개설 소모임 그리드 -->
+        <!-- 🌟 기본 4대 셀방 + 추가 개설 소모임 그리드 -->
         <div class="room-grid" id="roomGridContainer"></div>
 
         <!-- 🌟 [➕ 새 셀(목장) 소모임방 개설하기] 버튼 -->
@@ -561,23 +567,36 @@
 </div>
 
 <script>
-    const STORAGE_KEY_ROOMS = "yetalk_church_cell_rooms_v6";
+    const STORAGE_KEY_ROOMS = "yetalk_church_cell_rooms_v8";
     const STORAGE_KEY_MESSAGES = "yetalk_church_cell_messages_v6";
     const MUSIC_STORAGE_KEY = "yetalk_church_bg_prayer_music";
 
-    // 🌟 10대 기본 셀(목장) 소모임방 (요청사항 완벽 반영)
+    // 🌟 [사용자 요청] 기본 4대 셀(목장) 소모임방 (추가는 + 개설하기 지원)
     const DEFAULT_CELL_ROOMS = [
         { id: 1, title: "행복셀", leader: "최남수 담임목사", status: "ON", locked: false, members: ["최남수 담임목사", "김예톡 성도", "이바나바 집사"], pending: [] },
         { id: 2, title: "나눔셀", leader: "김예톡 구역장", status: "OFF", locked: false, members: ["김예톡 구역장", "정안나 권사"], pending: [] },
         { id: 3, title: "예수동행셀", leader: "박바나바 목자", status: "ON", locked: false, members: ["박바나바 목자", "한디모데 성도"], pending: [] },
-        { id: 4, title: "성령충만셀", leader: "이드보라 마을장", status: "ON", locked: false, members: ["이드보라 마을장", "오요셉 집사"], pending: [] },
-        { id: 5, title: "열린청년셀", leader: "청년부 디렉터", status: "OFF", locked: false, members: ["청년부 디렉터", "송마리아 청년"], pending: [] },
-        { id: 6, title: "은혜셀", leader: "권사회 중보팀", status: "ON", locked: false, members: ["권사회 중보팀", "신에스더 권사"], pending: [] },
-        { id: 7, title: "사랑셀", leader: "사랑나눔 섬김이", status: "OFF", locked: false, members: ["사랑나눔 섬김이"], pending: [] },
-        { id: 8, title: "소망셀", leader: "새가족 섬김이", status: "OFF", locked: false, members: ["새가족 섬김이"], pending: [] },
-        { id: 9, title: "기쁨셀", leader: "찬양 사역팀", status: "ON", locked: false, members: ["찬양 사역팀", "조다윗 찬양사"], pending: [] },
-        { id: 10, title: "비전셀", leader: "세계선교 리더", status: "OFF", locked: false, members: ["세계선교 리더"], pending: [] }
+        { id: 4, title: "성령충만셀", leader: "이드보라 마을장", status: "ON", locked: false, members: ["이드보라 마을장", "오요셉 집사"], pending: [] }
     ];
+
+    const FOUR_TIMES_WORDS = {
+        morning: { tag: "🌅 오늘 아침 좋은 글", text: "“아침에 나로 하여금 주의 인자한 말씀을 듣게 하소서 (시 143:8)”" },
+        noon: { tag: "☀️ 한낮의 은혜 말씀", text: "“오직 여호와를 앙망하는 자는 새 힘을 얻으리니 (사 40:31)”" },
+        evening: { tag: "🌆 저녁의 감사 말씀", text: "“평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라 (요 14:27)”" },
+        night: { tag: "🌙 안식의 축복 말씀", text: "“내가 평안히 눕고 자기도 하리니 나를 안전히 살게 하시는 이는 오직 여호와이시니이다 (시 4:8)”" }
+    };
+
+    function updateMemberDailyVerse() {
+        const hour = new Date().getHours();
+        let w = FOUR_TIMES_WORDS.night;
+        if (hour >= 5 && hour < 11) w = FOUR_TIMES_WORDS.morning;
+        else if (hour >= 11 && hour < 17) w = FOUR_TIMES_WORDS.noon;
+        else if (hour >= 17 && hour < 22) w = FOUR_TIMES_WORDS.evening;
+        const tagEl = document.getElementById("dispMemberVerseTag");
+        const txtEl = document.getElementById("dispMemberVerseText");
+        if (tagEl) tagEl.innerText = w.tag;
+        if (txtEl) txtEl.innerText = w.text;
+    }
 
     let roomList = [];
     let activeRoom = null;
@@ -590,6 +609,7 @@
         document.body.setAttribute('data-theme', savedTheme);
 
         myRealName = localStorage.getItem("yetalkUserName") || "김예톡 성도";
+        updateMemberDailyVerse();
         loadRoomList();
         loadAllMessages();
         renderRoomGrid();
@@ -921,7 +941,19 @@
 
         inp.value = "";
         closeLeaderControlModal();
-        showToast("📢 반원 전체 알림을 성공적으로 보냈습니다!");
+
+        // 🌟 [사용자 요청] 인도자 공지를 성도 개인앱(onemain.html) 공지알림으로 즉시 자동 발송!
+        try {
+            const noticePayload = {
+                source: `[${activeRoom.title}] 인도자 (${activeRoom.leader}) 공지`,
+                title: noticeText,
+                date: "방금",
+                timestamp: Date.now()
+            };
+            localStorage.setItem("yetalk_latest_notice", JSON.stringify(noticePayload));
+        } catch(e) {}
+
+        showToast("📢 반원 전체 및 개인앱으로 알림을 성공적으로 보냈습니다!");
     }
 
     // 인도자실: 반원 내보내기

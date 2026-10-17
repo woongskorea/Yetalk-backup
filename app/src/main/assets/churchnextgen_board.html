@@ -198,19 +198,20 @@
 <div class="medigate-app" id="appRoot">
     <!-- 헤더 -->
     <header class="med-header">
-        <div class="med-logo" onclick="location.href='churchnextgen.html'">
+        <div class="med-logo" style="cursor:default;">
             ✝ <span id="headerDeptTitle">청년대화방</span>
+            <button type="button" onclick="editCurrentRoomName()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:12px; font-size:11px; font-weight:800; color:#475569; padding:2px 7px; margin-left:6px; cursor:pointer;" title="대화방 이름 변경">✏️ 이름변경</button>
         </div>
         <button type="button" class="btn-go-home" onclick="location.href='churchnextgen.html'">
             ‹ 부서선택
         </button>
     </header>
 
-    <!-- 실시간 인기 베스트글 3개 -->
+    <!-- 실시간 인기 베스트글 (1위 1개만 단독 노출) -->
     <section class="best-section">
         <div class="best-header">
             <span class="best-title">🔥 실시간 인기 베스트글</span>
-            <span class="best-sub-tabs">조회수 랭킹순</span>
+            <span class="best-sub-tabs">1위</span>
         </div>
         <div id="bestPostsContainer"></div>
     </section>
@@ -218,10 +219,12 @@
     <!-- 메인 피드 리스트 (메디게이트형 고밀도 피드) -->
     <main class="feed-list" id="feedListContainer"></main>
 
-    <!-- 플로팅 버튼 -->
-    <div class="floating-group" style="bottom:100px;">
-        <button type="button" class="float-btn float-top" onclick="scrollToTop()" title="맨 위로">⌃</button>
-        <button type="button" class="float-btn float-write" onclick="openCafeWriteScreen()" title="새글쓰기">✏️</button>
+    <!-- 🌟 [사용자 요청] 애드몹 바로 위에 배치된 새글쓰기 바 -->
+    <div style="position:fixed; bottom:92px; left:50%; transform:translateX(-50%); width:calc(100% - 24px); max-width:456px; z-index:95; display:flex; justify-content:space-between; align-items:center; pointer-events:none;">
+        <button type="button" class="float-btn float-top" onclick="scrollToTop()" title="맨 위로" style="pointer-events:auto; width:40px; height:40px; border-radius:50%; background:#ffffff; color:#475569; border:1px solid #cbd5e1; box-shadow:0 2px 8px rgba(0,0,0,0.15); font-weight:900; font-size:15px; cursor:pointer;">⌃</button>
+        <button type="button" onclick="openCafeWriteScreen()" style="pointer-events:auto; height:42px; padding:0 20px; border-radius:21px; background:#fee500; color:#191919; border:1.5px solid #eab308; box-shadow:0 3px 12px rgba(0,0,0,0.18); font-size:14px; font-weight:950; display:flex; align-items:center; gap:6px; cursor:pointer;">
+            ✏️ 새글쓰기
+        </button>
     </div>
 
     <!-- 🌟 [사용자 요청] 기본 하단 고정 애드몹만 유지 (목록/본문 내 애드몹은 제거) -->
@@ -416,9 +419,25 @@
 
     function applyDeptSetup() {
         const config = DEPT_CONFIG[currentDept] || DEPT_CONFIG["청년교회"];
-        document.getElementById("headerDeptTitle").innerText = config.chatTitle;
+        const customTitle = localStorage.getItem("church_nextgen_room_name_" + currentDept);
+        document.getElementById("headerDeptTitle").innerText = customTitle || config.chatTitle;
         const topicSelect = document.getElementById("cafeTopicSelect");
-        topicSelect.innerHTML = `<option value="${currentDept}" selected>[${config.prefix}] ${config.chatTitle}</option>`;
+        topicSelect.innerHTML = `<option value="${currentDept}" selected>[${config.prefix}] ${customTitle || config.chatTitle}</option>`;
+    }
+
+    function editCurrentRoomName() {
+        const config = DEPT_CONFIG[currentDept] || DEPT_CONFIG["청년교회"];
+        const curName = document.getElementById("headerDeptTitle").innerText;
+        const newName = prompt("변경할 대화방 이름을 입력하세요:", curName);
+        if (newName && newName.trim()) {
+            localStorage.setItem("church_nextgen_room_name_" + currentDept, newName.trim());
+            document.getElementById("headerDeptTitle").innerText = newName.trim();
+            const topicSelect = document.getElementById("cafeTopicSelect");
+            if (topicSelect) {
+                topicSelect.innerHTML = `<option value="${currentDept}" selected>[${config.prefix}] ${newName.trim()}</option>`;
+            }
+            alert(`대화방 이름이 '${newName.trim()}'(으)로 변경되었습니다.`);
+        }
     }
 
     function loadDeptPosts() {
@@ -468,7 +487,7 @@
         container.innerHTML = "";
 
         const config = DEPT_CONFIG[currentDept] || DEPT_CONFIG["청년교회"];
-        const sorted = [...posts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 3);
+        const sorted = [...posts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 1);
 
         sorted.forEach(p => {
             const item = document.createElement("div");

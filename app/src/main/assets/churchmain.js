@@ -196,20 +196,18 @@ function initChurchData() {
     renderChurchView();
     setupSectionObserver();
 
-    // 4회 시간대별 10자 이내 성구 배너 설정
-    const pill = document.getElementById("subbarVersePill");
-    if (pill) pill.innerText = getActiveShortVerse();
+    // 4초 간격 첫 메뉴(교회 카드 0) 자동 슬라이드 시작
+    startCard0AutoSlide();
+}
 
-    // 세부 페이지에서 뒤로가기 시 원래 카드 위치로 복귀
-    const savedCardIdx = sessionStorage.getItem("church_last_active_card_idx");
-    if (savedCardIdx !== null && savedCardIdx !== undefined) {
-        const targetIdx = parseInt(savedCardIdx, 10);
-        if (!isNaN(targetIdx) && targetIdx >= 0 && targetIdx < MENU_DEFINITIONS.length) {
-            setTimeout(() => {
-                scrollToCard(targetIdx);
-            }, 120);
-        }
-    }
+let churchSlide0Timer = null;
+function startCard0AutoSlide() {
+    if (churchSlide0Timer) clearInterval(churchSlide0Timer);
+    churchSlide0Timer = setInterval(() => {
+        const editModal = document.getElementById("cardSlideEditModal");
+        if (editModal && editModal.style.display === "flex") return;
+        changeCardSlide(0, 1);
+    }, 4000);
 }
 
 function extractYoutubeVideoId(url) {
@@ -451,13 +449,16 @@ function renderChurchView() {
 
         let liveBannerHtml = "";
         if (sec.id === 1) {
+            const isLive = localStorage.getItem("yetalk_church_live_broadcast") === "true";
             const liveInfo = getCurrentLiveWorship();
-            liveBannerHtml = `
-                <div class="card-live-blinking-pill" onclick="event.stopPropagation(); goToLiveWorship('${liveInfo.tabKey}');" title="${liveInfo.name} 실시간 라이브 시청">
-                    <span class="blinking-red-dot">●</span>
-                    <span class="live-pill-text">실시간 LIVE : [${liveInfo.name}] 생중계 바로가기 ▶</span>
-                </div>
-            `;
+            if (isLive) {
+                liveBannerHtml = `
+                    <div class="card-live-blinking-pill" style="background:#ef4444; border-color:#dc2626; box-shadow:0 2px 10px rgba(239,68,68,0.5);" onclick="event.stopPropagation(); goToLiveWorship('${liveInfo.tabKey}');" title="${liveInfo.name} 실시간 라이브 시청">
+                        <span class="blinking-red-dot" style="color:#ffffff;">●</span>
+                        <span class="live-pill-text" style="color:#ffffff; font-weight:950;">주일예배 LIVE 생중계 ▶</span>
+                    </div>
+                `;
+            }
         }
 
         card.innerHTML = `
@@ -532,6 +533,9 @@ function changeCardSlide(secId, dir) {
     if (idx < 0) idx = slides.length - 1;
     currentSlideIndices[secId] = idx;
     updateSlideContent(secId, idx);
+    if (secId === 0) {
+        startCard0AutoSlide();
+    }
 }
 
 function updateSlideContent(secId, idx) {
