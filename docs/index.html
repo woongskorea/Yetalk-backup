@@ -28,23 +28,18 @@
             .main-container { max-width: 520px; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
         }
 
-        /* 1. 상단 미니멀 오버레이 헤더 */
+        /* 1. 상단 미니멀 오버레이 헤더 (상시 100% 노출) */
         .top-header-wrapper {
             position: absolute; top: 0; left: 0; right: 0;
             background: linear-gradient(to bottom, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.2) 75%, transparent 100%);
-            z-index: 9999;
+            z-index: 10010 !important;
             padding: calc(env(safe-area-inset-top, 0px) + 8px) 14px 10px 14px;
             display: flex; flex-direction: column; gap: 3px;
             transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease;
             pointer-events: none; /* 빈 영역은 뒤/옆 요소로 클릭 전달 */
         }
         .top-header-wrapper > * {
-            pointer-events: auto; /* 로고, 공지알림 등 내부 요소는 정상 클릭 */
-        }
-        .top-header-wrapper.hide-header {
-            transform: translateY(-105%) !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
+            pointer-events: auto !important; /* 로고, 관리자 버튼, 공지알림 등 내부 요소는 상시 정상 클릭 */
         }
 
         .header-top-row {
@@ -192,30 +187,23 @@
             position: absolute; right: 8px;
             top: max(env(safe-area-inset-top, 0px) + 20px, 22px);
             bottom: max(env(safe-area-inset-bottom, 0px) + 128px, 132px);
-            z-index: 10005 !important; display: flex; flex-direction: column; gap: 3.5px;
+            z-index: 10015 !important; display: flex !important; flex-direction: column; gap: 3.5px;
             align-items: center;
             pointer-events: auto !important;
-            transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease;
+            transition: opacity 0.25s ease;
             overflow-y: auto;
             overflow-x: hidden;
             padding-right: 2px;
         }
         .right-actions-bar::-webkit-scrollbar { display: none; }
 
-        /* 🌟 [영상 재생 중 풀스크린 모드]
-           상단 헤더와 우측 메뉴를 숨겨 화면을 시원하게 풀스크린으로 표시. */
-        body.is-playing-mode .top-header-wrapper {
-            transform: translateY(-125%) !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-        }
-        body.is-playing-mode .right-actions-bar .btn-side-action {
-            display: none !important;
-        }
-        .right-actions-bar.hide-ui {
-            transform: translateX(130%) !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
+        /* 🌟 [사용자 요청 완벽 해결]
+           숏폼 플랫폼(유튜브 쇼츠, 틱톡) 표준: 영상 재생 중에도 상단 헤더, 로고, 관리자 버튼,
+           우측 세로 8대 메뉴는 100% 상시 선명하게 노출되며 언제든 즉각 클릭 가능! */
+        .right-actions-bar {
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
         }
 
         .btn-side-action {
@@ -2013,8 +2001,9 @@
     function safeNavigate(fileName) { window.location.href = fileName; }
 
     function openAdminDirect() {
-        const isAuth = sessionStorage.getItem("yetalk_admin_auth") === "true" || localStorage.getItem("yetalk_admin_auth") === "true";
+        const isAuth = sessionStorage.getItem("yetalk_admin_auth") === "true" || localStorage.getItem("yetalk_admin_auth") === "true" || isMasterAdminUser();
         if (isAuth) {
+            localStorage.setItem("yetalk_admin_auth", "true");
             safeNavigate('admin.html');
         } else {
             openModal('adminLoginModal');
@@ -2329,30 +2318,35 @@
         if (!slotEl) return;
 
         const isFirst = (idx === 0);
+        const safeOrigin = (window.location.protocol.startsWith('http') && window.location.origin && window.location.origin !== 'null') ? window.location.origin : undefined;
+        const playerVars = {
+            autoplay: isFirst ? 1 : 0,
+            mute: isFirst ? 1 : 0,
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
+            playsinline: 1,
+            rel: 0,
+            modestbranding: 1,
+            iv_load_policy: 3,
+            enablejsapi: 1
+        };
+        if (safeOrigin) playerVars.origin = safeOrigin;
+
         try {
             ytPlayerMap[feed.id] = new YT.Player(`player_slot_${feed.id}`, {
                 videoId: feed.videoId,
-                playerVars: {
-                    autoplay: isFirst ? 1 : 0,
-                    mute: isFirst ? 1 : 0,
-                    controls: 0,
-                    disablekb: 1,
-                    fs: 0,
-                    playsinline: 1,
-                    rel: 0,
-                    modestbranding: 1,
-                    iv_load_policy: 3,
-                    vq: 'hd1080',
-                    origin: window.location.origin
-                },
+                playerVars: playerVars,
                 events: {
                     onReady: (event) => {
                         try {
                             event.target.setPlaybackQuality('hd1080');
                         } catch(e){}
                         if (idx === currentFeedIndex) {
-                            event.target.mute();
-                            event.target.playVideo();
+                            try {
+                                event.target.mute();
+                                event.target.playVideo();
+                            } catch(e){}
                             setTimeout(() => {
                                 try {
                                     if (idx === currentFeedIndex) {
@@ -2360,7 +2354,7 @@
                                         event.target.setPlaybackQuality('hd1080');
                                     }
                                 } catch(e){}
-                            }, 300);
+                            }, 400);
                         } else {
                             try {
                                 event.target.pauseVideo();
@@ -2374,7 +2368,7 @@
                     onError: (event) => {
                         console.warn("YouTube player error:", event.data);
                         const poster = document.getElementById(`poster_${feed.id}`);
-                        if (poster) poster.classList.add("loaded");
+                        if (poster) poster.classList.remove("loaded");
                     }
                 }
             });
@@ -2476,11 +2470,9 @@
     }
 
     function setControlsVisibility(show) {
-        if (show) {
-            document.body.classList.remove("is-playing-mode");
-        } else {
-            document.body.classList.add("is-playing-mode");
-        }
+        // 🌟 [사용자 요청 완벽 반영] 숏폼 플랫폼 표준:
+        // 영상 재생 중에도 상단 헤더, 로고, 관리자 버튼, 우측 8대 세로 메뉴는 100% 상시 선명하게 노출!
+        // 어떠한 경우에도 UI를 숨기지 않아 먹통 현상을 원천 방지합니다.
     }
 
     function handleFeedTouch(feedId) {
@@ -2489,19 +2481,30 @@
             return;
         }
 
-        const p = ytPlayerMap[feedId];
-        if (!p || typeof p.getPlayerState !== 'function') return;
+        let p = ytPlayerMap[feedId];
+        if (!p) {
+            const feeds = loadSavedFeeds();
+            const fIdx = feeds.findIndex(f => String(f.id) === String(feedId));
+            if (fIdx >= 0) initFeedPlayerAt(fIdx, feeds);
+            p = ytPlayerMap[feedId];
+        }
 
-        const state = p.getPlayerState();
-        if (state === YT.PlayerState.PLAYING) {
-            p.pauseVideo();
-            isVideoPaused = true;
-            setControlsVisibility(true); // 🌟 일시정지: 메뉴 모두 노출
-        } else {
-            p.playVideo();
-            try { p.setPlaybackQuality('hd1080'); } catch(e){}
-            isVideoPaused = false;
-            setControlsVisibility(false); // 🌟 재생: 풀스크린 모드
+        if (p && typeof p.getPlayerState === 'function') {
+            try {
+                const state = p.getPlayerState();
+                if (state === YT.PlayerState.PLAYING) {
+                    p.pauseVideo();
+                    isVideoPaused = true;
+                    showToast("⏸️ 영상 일시정지");
+                } else {
+                    p.playVideo();
+                    try { p.unMute(); } catch(e){}
+                    isVideoPaused = false;
+                    showToast("▶️ 영상 재생");
+                }
+            } catch(e) {
+                try { p.playVideo(); } catch(err){}
+            }
         }
     }
 
@@ -4164,10 +4167,10 @@ https://yetalk.cc`;
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        // 🌟 [사용자 요청] 최초 기본 정보 및 관리자 모드 자동 초기화 (아예 빈 상태 방지 및 관리자 모드 보장)
-        if (!localStorage.getItem("yetalkUserName")) {
-            localStorage.setItem("yetalkUserName", "김예톡");
-            localStorage.setItem("yetalkUserId", "yetalk");
+        // 🌟 [사용자 요청] 최초 기본 정보 및 관리자 모드 자동 초기화 (총관리자 최웅식 / ID: 최예톡 및 관리자 인증 보장)
+        if (!localStorage.getItem("yetalkUserName") || localStorage.getItem("yetalkUserName") === "김예톡") {
+            localStorage.setItem("yetalkUserName", "최웅식");
+            localStorage.setItem("yetalkUserId", "최예톡");
             localStorage.setItem("yetalkUserPw", "7777");
             localStorage.setItem("yetalkUserRegion", "부산진구");
             localStorage.setItem("yetalk_admin_auth", "true");
@@ -4183,6 +4186,7 @@ https://yetalk.cc`;
         renderPcAppNavList();
         populateModalBizSelect();
         updateLoginStateUI();
+        checkAdminButtonVisibility();
         checkPcAdmobHide();
     });
 
@@ -4190,6 +4194,7 @@ https://yetalk.cc`;
         renderPcAppNavList();
         populateModalBizSelect();
         updateLoginStateUI();
+        checkAdminButtonVisibility();
         checkPcAdmobHide();
     });
 </script>
