@@ -703,17 +703,44 @@
             white-space: nowrap;
             flex-shrink: 0;
         }
-        .mini-tool-pill:active { transform: scale(0.92); }
         .mini-tool-pill.mini-heart-pill {
             background: rgba(244, 63, 94, 0.22) !important;
             border-color: #f43f5e !important;
             color: #ffffff !important;
-            cursor: default !important;
-            pointer-events: none !important;
-            user-select: none;
+            cursor: pointer !important;
+            pointer-events: auto !important;
+            padding: 6px 11px !important;
+            font-size: 15px !important;
+            line-height: 1;
+            transition: transform 0.15s ease;
         }
         .mini-tool-pill.mini-heart-pill:active {
-            transform: none !important;
+            transform: scale(0.88) !important;
+            background: rgba(244, 63, 94, 0.45) !important;
+        }
+
+        /* 🌟 하트 누를 때마다 위로 한 계단씩 퐁퐁 올라가는 플로팅 효과 */
+        @keyframes floatStepUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                opacity: 0.95;
+                transform: translateY(-28px) scale(1.35) rotate(-6deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-56px) scale(1.6) rotate(6deg);
+            }
+        }
+        .floating-rising-heart {
+            position: fixed;
+            z-index: 9999999;
+            font-size: 24px;
+            pointer-events: none;
+            animation: floatStepUp 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            filter: drop-shadow(0 2px 8px rgba(244, 63, 94, 0.6));
         }
         .mini-tool-pill.locked {
             background: rgba(220, 38, 38, 0.9) !important;
@@ -1483,30 +1510,25 @@
     <!-- 3. 하단 좌측: 하트/조회/100%배율/삭제/고정 도구 및 전문앱 홍보 통합 카드 (가로 확장 & 상시 선명 노출) -->
     <div class="bottom-left-info-bar" id="bottomLeftInfoBar">
         <div class="bottom-tool-stats-row">
-            <!-- 🌟 하트: 7에서 시작 매일 5개씩 기본 추가 (서버 비용 절감을 위해 개별 클릭 차단) -->
-            <div class="mini-tool-pill mini-heart-pill" id="btnFeedHeart" title="좋아요 (기본 7개 + 매일 5개씩 자동 추가)">
-                <span style="color:#f43f5e; font-size:12px;">💖</span>
-                <span id="feedLikeCount">7</span>
-            </div>
+            <!-- 🌟 하트: 숫자 없이 이모티콘만, 누를 때마다 위로 한 계단씩 퐁퐁 올라가는 플로팅 효과 (서버비 0원) -->
+            <button type="button" class="mini-tool-pill mini-heart-pill" id="btnFeedHeart" onclick="triggerFeedHeartStep(event)" title="하트">
+                <span style="font-size:14px; line-height:1;">💖</span>
+            </button>
             <div class="zoom-delete-pill-group">
-                <!-- 🌟 1. 확대: 100% / 150% / 200% 3개만 순환 -->
-                <button type="button" class="mini-tool-pill" id="btnPermanentZoom" onclick="cycleVideoZoomLevel()" title="화면 배율 (100% / 150% / 200%)">
-                    <span id="zoomIconSpan">🔍</span>
-                    <span id="zoomTextSpan">100%</span>
+                <!-- 🌟 1. 화면확대: 숫자 없이 '화면확대' -->
+                <button type="button" class="mini-tool-pill" id="btnPermanentZoom" onclick="cycleVideoZoomLevel()" title="화면확대 (100% / 150% / 200%)">
+                    <span id="zoomTextSpan">화면확대</span>
                 </button>
-                <!-- 🌟 2. 속도: 100% / 130% / 150% -->
-                <button type="button" class="mini-tool-pill" id="btnVideoSpeed" onclick="cycleVideoSpeed()" title="재생 속도 (100% / 130% / 150%)">
-                    <span id="speedIconSpan">⚡</span>
-                    <span id="speedTextSpan">속도 100%</span>
+                <!-- 🌟 2. 음성속도: 숫자 없이 '음성속도' -->
+                <button type="button" class="mini-tool-pill" id="btnVideoSpeed" onclick="cycleVideoSpeed()" title="음성속도 (100% / 130% / 150%)">
+                    <span id="speedTextSpan">음성속도</span>
                 </button>
-                <!-- 🌟 3. 고정 -->
-                <button type="button" class="mini-tool-pill" id="btnPermanentLock" onclick="toggleScreenLockMode()" title="화면 스크롤 고정">
-                    <span id="lockIconSpan">🔒</span>
-                    <span id="lockTextSpan">고정</span>
+                <!-- 🌟 3. 화면고정: 숫자 없이 '화면고정' -->
+                <button type="button" class="mini-tool-pill" id="btnPermanentLock" onclick="toggleScreenLockMode()" title="화면고정">
+                    <span id="lockTextSpan">화면고정</span>
                 </button>
                 <!-- 🌟 4. 삭제 -->
                 <button type="button" class="mini-tool-pill mini-delete-pill" id="btnAdminDelete" onclick="deleteCurrentVideoForMe()" title="현재 영상 삭제">
-                    <span>🗑️</span>
                     <span>삭제</span>
                 </button>
             </div>
@@ -2193,7 +2215,7 @@
         return list.filter(f => !hiddenIds.includes(f.id));
     }
 
-    /* 🌟 [사용자 요청] 화면 100% ➔ 150% ➔ 200% 3개만 순환 확대 기능 (스마트폰 & PC 모두 지원) */
+    /* 🌟 [사용자 요청] 화면 100% ➔ 150% ➔ 200% 3개만 순환 확대 기능 (버튼에는 숫자 표시 없이 '화면확대' 유지) */
     let currentZoomLevel = 100; // 100 | 150 | 200
 
     function cycleVideoZoomLevel() {
@@ -2204,11 +2226,11 @@
         applyVideoZoom(currentZoomLevel);
         try { localStorage.setItem("yetalkVideoZoomLevel", currentZoomLevel); } catch(e){}
         if (currentZoomLevel === 100) {
-            showToast("🔍 기본 화면 (100%)");
+            showToast("🔍 화면확대: 100% (기본)");
         } else if (currentZoomLevel === 150) {
-            showToast("🔍 화면 1.5배 확대 (150%)");
+            showToast("🔍 화면확대: 150% (1.5배)");
         } else if (currentZoomLevel === 200) {
-            showToast("🔍 화면 2배 풀확대 (200%)");
+            showToast("🔍 화면확대: 200% (2배 풀확대)");
         }
     }
 
@@ -2216,16 +2238,16 @@
         currentZoomLevel = level;
         const textEl = document.getElementById("zoomTextSpan");
         const btn = document.getElementById("btnPermanentZoom");
-        if (textEl) textEl.innerText = `${level}%`;
+        if (textEl) textEl.innerText = "화면확대";
         if (btn) btn.classList.toggle("zoomed", level !== 100);
 
         const zoomRatio = level / 100;
         document.documentElement.style.setProperty('--user-zoom', zoomRatio);
     }
 
-    /* 🌟 [사용자 요청] 재생 속도 100% ➔ 130% ➔ 150% 3개만 순환 토글 */
+    /* 🌟 [사용자 요청] 재생 속도 100% ➔ 130% ➔ 150% 3개만 순환 (버튼에는 숫자 표시 없이 '음성속도' 유지) */
     let currentSpeedIndex = 0;
-    const SPEED_LABELS = ["속도 100%", "속도 130%", "속도 150%"];
+    const SPEED_LABELS = ["100% (보통)", "130% (빠름)", "150% (매우빠름)"];
     const SPEED_RATES = [1.0, 1.25, 1.5]; // 유튜브 API 재생 배율
 
     function cycleVideoSpeed() {
@@ -2234,7 +2256,7 @@
         const label = SPEED_LABELS[currentSpeedIndex];
 
         const textEl = document.getElementById("speedTextSpan");
-        if (textEl) textEl.innerText = label;
+        if (textEl) textEl.innerText = "음성속도";
 
         const btn = document.getElementById("btnVideoSpeed");
         if (btn) btn.classList.toggle("zoomed", currentSpeedIndex !== 0);
@@ -2248,10 +2270,25 @@
                 }
             } catch(e){}
         }
-        showToast(`⚡ ${label}`);
+        showToast(`⚡ 음성속도: ${label}`);
     }
 
-    /* 🌟 [사용자 요청] 하트 이모티콘: 7에서 시작 매일 5개씩 기본 추가 (개별 클릭 차단으로 서버비 절감) */
+    /* 🌟 [사용자 요청] 하트: 숫자 빼고 이모티콘만, 누를 때마다 위로 한 계단씩 퐁퐁 올라가는 플로팅 효과 (서버비 0원) */
+    function triggerFeedHeartStep(e) {
+        const btn = e ? e.currentTarget : document.getElementById("btnFeedHeart");
+        if (btn) {
+            const floating = document.createElement("div");
+            floating.className = "floating-rising-heart";
+            floating.innerHTML = "💖";
+            const rect = btn.getBoundingClientRect();
+            floating.style.left = (rect.left + rect.width / 2 - 12) + "px";
+            floating.style.top = (rect.top - 6) + "px";
+            document.body.appendChild(floating);
+            setTimeout(() => floating.remove(), 850);
+        }
+        showToast("💖 하트가 한 계단 올라갔습니다!");
+    }
+
     function getFeedHearts(feedId) {
         const BASE_TIMESTAMP = 1760716800000; // 2025-10-18 00:00:00 KST
         const daysPassed = Math.max(0, Math.floor((Date.now() - BASE_TIMESTAMP) / (1000 * 60 * 60 * 24)));
@@ -3424,19 +3461,16 @@
     function applyScreenLockUI() {
         const container = document.getElementById("feedScrollContainer");
         const lockBtn = document.getElementById("btnPermanentLock");
-        const lockIcon = document.getElementById("lockIconSpan");
         const lockText = document.getElementById("lockTextSpan");
 
         if (isScreenLocked) {
             container?.classList.add("locked-scroll");
             lockBtn?.classList.add("locked");
-            if (lockIcon) lockIcon.innerText = "🔒";
-            if (lockText) lockText.innerText = "고정중";
+            if (lockText) lockText.innerText = "고정ON";
         } else {
             container?.classList.remove("locked-scroll");
             lockBtn?.classList.remove("locked");
-            if (lockIcon) lockIcon.innerText = "🔓";
-            if (lockText) lockText.innerText = "고정";
+            if (lockText) lockText.innerText = "화면고정";
         }
     }
 
