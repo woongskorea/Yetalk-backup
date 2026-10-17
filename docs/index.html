@@ -757,8 +757,13 @@
             max-height: calc(100dvh - 50px); overflow-y: auto;
         }
         .modal-input {
-            width: 100%; background: #1e293b; border: 1px solid #334155; border-radius: 8px;
-            padding: 9px 12px; color: white; font-size: 13.5px; outline: none;
+            width: 100%; background: #172338; border: 1.2px solid #294568; border-radius: 8px;
+            padding: 9.5px 12px; color: #cbd5e1; font-size: 13.5px; font-weight: 700; outline: none;
+            transition: border-color 0.18s, color 0.18s, background 0.18s;
+        }
+        .modal-input:focus {
+            color: #ffffff; border-color: #38bdf8; background: #0f1c30;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
         }
         .form-group-line { display: flex; flex-direction: column; gap: 4px; text-align: left; }
         .form-label-title { font-size: 12px; color: #facc15; font-weight: 850; }
@@ -1677,7 +1682,8 @@
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:8px;">
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:20px;">🌿</span>
-                    <strong style="color:#fde047; font-size:17px; font-weight:950;">예톡 무료 회원가입</strong>
+                    <strong style="color:#fde047; font-size:17px; font-weight:950;" id="profileModalMainTitle">예톡 무료 회원가입</strong>
+                    <span id="profileModalStatusBadge" style="margin-left:4px;"></span>
                 </div>
                 <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('profileModal')">✕</button>
             </div>
@@ -1708,7 +1714,7 @@
                 <input type="text" id="inpMyRegion" class="modal-input" placeholder="예: 부산진구, 해운대구, 서초구, 강남구">
             </div>
 
-            <button type="button" class="btn-submit-action" onclick="saveSimpleProfile()">
+            <button type="button" class="btn-submit-action" id="btnProfileSubmit" onclick="saveSimpleProfile()">
                 ✨ 예톡 무료 회원가입 완료
             </button>
         </div>
@@ -3400,11 +3406,9 @@
 
         updateLoginStateUI();
         closeModal("profileModal");
-        if (localStorage.getItem("yetalk_admin_auth") === "true") {
-            showToast(`👑 총관리자님 환영합니다! 관리자 제어실이 활성화되었습니다.`);
-        } else {
-            showToast(`🎉 [${name}]님 무료 정회원 등록 완료! 개인앱과 QR코드가 발급되었습니다.`);
-        }
+
+        // 🌟 [사용자 요청] 무료회원 가입 완료 누르면 지정된 축하 알림창(alert) 팝업
+        alert(`축하합니다. 본인의 개인 앱과 홈페이지가 만들어졌습니다.\n\n전문앱과 홈페이지도 신청하시면 완전 무료(유지비 제로)로 자동으로 만들어집니다.\n\n감동적인 유튜브 링크하시면 본인 전문앱이 홍보가 됩니다.`);
     }
 
     /* 🌟 로그인 유지 상태 UI 동기화 (우측 퀵 액션바 회원가입 ➔ 내정보 및 관리자 버튼 은닉 제어) */
@@ -3947,10 +3951,42 @@ https://yetalk.cc`;
     }
 
     function openProfileModal() {
-        document.getElementById("inpMyName").value = localStorage.getItem("yetalkUserName") || "";
-        document.getElementById("inpMyId").value = localStorage.getItem("yetalkUserId") || "";
-        document.getElementById("inpMyPw").value = localStorage.getItem("yetalkUserPw") || "";
-        document.getElementById("inpMyRegion").value = localStorage.getItem("yetalkUserRegion") || "";
+        const savedName = localStorage.getItem("yetalkUserName") || "김예톡";
+        const savedId = localStorage.getItem("yetalkUserId") || "yetalk";
+        const savedPw = localStorage.getItem("yetalkUserPw") || localStorage.getItem("yetalkAdminPw") || localStorage.getItem("yetalk_admin_password") || "7777";
+        const savedRegion = localStorage.getItem("yetalkUserRegion") || "부산진구";
+
+        const inpName = document.getElementById("inpMyName");
+        const inpId = document.getElementById("inpMyId");
+        const inpPw = document.getElementById("inpMyPw");
+        const inpRegion = document.getElementById("inpMyRegion");
+
+        if (inpName) inpName.value = savedName;
+        if (inpId) inpId.value = savedId;
+        if (inpPw) inpPw.value = savedPw;
+        if (inpRegion) inpRegion.value = savedRegion;
+
+        const titleEl = document.getElementById("profileModalMainTitle");
+        const submitBtn = document.getElementById("btnProfileSubmit");
+        const statusBadge = document.getElementById("profileModalStatusBadge");
+
+        const isAdmin = isMasterAdminUser();
+        const isLoggedIn = localStorage.getItem("yetalkLoggedIn") === "true";
+
+        if (isAdmin) {
+            if (titleEl) titleEl.innerText = "예톡 회원 정보 (총관리자)";
+            if (submitBtn) submitBtn.innerText = "✨ 회원 정보 수정 및 저장";
+            if (statusBadge) statusBadge.innerHTML = `<span style="background:rgba(234,179,8,0.22); border:1.2px solid #facc15; color:#fde047; padding:2px 7px; border-radius:10px; font-size:11px; font-weight:900;">👑 관리자 모드</span>`;
+        } else if (isLoggedIn) {
+            if (titleEl) titleEl.innerText = "예톡 내 정보 수정";
+            if (submitBtn) submitBtn.innerText = "✨ 회원 정보 수정 및 저장";
+            if (statusBadge) statusBadge.innerHTML = `<span style="background:rgba(56,189,248,0.2); border:1.2px solid #38bdf8; color:#38bdf8; padding:2px 7px; border-radius:10px; font-size:11px; font-weight:800;">✓ 정회원</span>`;
+        } else {
+            if (titleEl) titleEl.innerText = "예톡 무료 회원가입";
+            if (submitBtn) submitBtn.innerText = "✨ 예톡 무료 회원가입 완료";
+            if (statusBadge) statusBadge.innerHTML = "";
+        }
+
         openModal('profileModal');
     }
 
@@ -4115,6 +4151,15 @@ https://yetalk.cc`;
     }
 
     document.addEventListener("DOMContentLoaded", () => {
+        // 🌟 [사용자 요청] 최초 기본 정보 및 관리자 모드 자동 초기화 (아예 빈 상태 방지 및 관리자 모드 보장)
+        if (!localStorage.getItem("yetalkUserName")) {
+            localStorage.setItem("yetalkUserName", "김예톡");
+            localStorage.setItem("yetalkUserId", "yetalk");
+            localStorage.setItem("yetalkUserPw", "7777");
+            localStorage.setItem("yetalkUserRegion", "부산진구");
+            localStorage.setItem("yetalk_admin_auth", "true");
+            localStorage.setItem("yetalkLoggedIn", "true");
+        }
         try {
             // 🌟 [사용자 요청] 스마트폰 & PC 모두 기본 화면은 무조건 100% 표준 배율로 초기화
             applyVideoZoom(100);
