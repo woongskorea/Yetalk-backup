@@ -648,18 +648,28 @@
             <!-- 상단 교회 아이콘 -->
             <div style="font-size:42px; margin-bottom:8px; line-height:1;">⛪</div>
             <!-- 제목 -->
-            <h3 style="font-size:20px; font-weight:950; color:#0f172a; margin-bottom:8px; letter-spacing:-0.4px;">교회 성도 간편 가입</h3>
+            <h3 style="font-size:20px; font-weight:950; color:#0f172a; margin-bottom:8px; letter-spacing:-0.4px;">교회 성도 & 예톡 간편 가입</h3>
             <!-- 설명 안내 -->
-            <p style="font-size:13px; color:#475569; font-weight:600; line-height:1.55; margin-bottom:20px; word-break:keep-all;">
-                <strong>[예]</strong>를 선택하시면 자동 성도 등록과 함께<br>교회 소식 알림 및 은혜로운 교제 서비스를 제공합니다.
+            <p style="font-size:13px; color:#475569; font-weight:600; line-height:1.55; margin-bottom:16px; word-break:keep-all;">
+                <strong>[예]</strong>를 선택하시면 예톡 회원가입과 본교회 성도등록이<br>한 번에 동시에 자동으로 완료됩니다.
             </p>
             <!-- 이름 인풋 -->
             <div style="width:100%; margin-bottom:10px;">
-                <input type="text" id="inpSimpleJoinName" value="김예톡" placeholder="성도 이름 입력" style="width:100%; height:48px; background:#e8edf3; border:none; border-radius:12px; padding:0 16px; font-size:15px; font-weight:800; color:#0f172a; outline:none; text-align:left; font-family:inherit;">
+                <input type="text" id="inpSimpleJoinName" value="최웅식" placeholder="성도 이름 입력" style="width:100%; height:48px; background:#e8edf3; border:none; border-radius:12px; padding:0 16px; font-size:15px; font-weight:800; color:#0f172a; outline:none; text-align:left; font-family:inherit;">
             </div>
             <!-- 전화번호 인풋 -->
-            <div style="width:100%; margin-bottom:22px;">
+            <div style="width:100%; margin-bottom:10px;">
                 <input type="tel" id="inpSimpleJoinPhone" value="010-1234-5678" placeholder="휴대폰 번호 입력" style="width:100%; height:48px; background:#e8edf3; border:none; border-radius:12px; padding:0 16px; font-size:15px; font-weight:800; color:#0f172a; outline:none; text-align:left; font-family:inherit;">
+            </div>
+            <!-- 🌟 [사용자 요청] 연하게 표시되는 예톡 자동 연동 아이디 -->
+            <div style="width:100%; margin-bottom:18px; text-align:left;">
+                <div style="display:flex; align-items:center; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; padding:7px 12px; gap:6px;">
+                    <span style="font-size:11.5px; color:#94a3b8; font-weight:800; white-space:nowrap;">자동 아이디:</span>
+                    <input type="text" id="inpSimpleJoinAutoId" value="최예톡" readonly style="border:none; background:transparent; font-size:12.5px; font-weight:800; color:#64748b; outline:none; width:100%; font-family:inherit;">
+                </div>
+                <div style="font-size:10.5px; color:#94a3b8; margin-top:4px; padding-left:2px;">
+                    ※ 예톡 가입자는 기존 계정으로 성도 등록만 즉시 연동됩니다.
+                </div>
             </div>
             <!-- 하단 2개 버튼 그리드 (media_1791638788357.png) -->
             <div style="display:grid; grid-template-columns:1fr 1.6fr; gap:10px; width:100%;">
@@ -1032,12 +1042,36 @@
 
     /* 🌟 성도 간편 가입 모달 (media_1791638788357.png) 열기/닫기/완료 */
     function openSimpleMemberJoinModal() {
-        const uName = localStorage.getItem("yetalkUserName") || "김예톡";
-        const uPhone = localStorage.getItem("yetalkUserPhone") || "010-1234-5678";
+        const savedName = localStorage.getItem("yetalkUserName") || "";
+        const savedPhone = localStorage.getItem("yetalkUserPhone") || "";
+        const savedId = localStorage.getItem("yetalkUserId") || "";
+
         const inpName = document.getElementById("inpSimpleJoinName");
         const inpPhone = document.getElementById("inpSimpleJoinPhone");
-        if (inpName) inpName.value = uName;
-        if (inpPhone) inpPhone.value = uPhone;
+        const inpAutoId = document.getElementById("inpSimpleJoinAutoId");
+
+        const defaultName = savedName || "최웅식";
+        const defaultPhone = savedPhone || "010-1234-5678";
+        let autoId = savedId;
+        if (!autoId) {
+            autoId = (defaultName === "최웅식" || defaultName.includes("최")) ? "최예톡" : `ye_${defaultName}`;
+        }
+
+        if (inpName) inpName.value = defaultName;
+        if (inpPhone) inpPhone.value = defaultPhone;
+        if (inpAutoId) inpAutoId.value = autoId;
+
+        // 이름 입력 시 연한 자동 아이디 실시간 동적 반영
+        if (inpName) {
+            inpName.oninput = () => {
+                const curN = inpName.value.trim();
+                if (inpAutoId) {
+                    if (curN === "최웅식") inpAutoId.value = "최예톡";
+                    else if (curN) inpAutoId.value = `ye_${curN}`;
+                    else inpAutoId.value = "ye_member";
+                }
+            };
+        }
 
         const modal = document.getElementById("simpleMemberJoinModal");
         if (modal) modal.style.display = "flex";
@@ -1049,17 +1083,49 @@
     }
 
     function confirmSimpleMemberJoin() {
-        const name = (document.getElementById("inpSimpleJoinName")?.value || "김예톡").trim() || "김예톡";
-        const phone = (document.getElementById("inpSimpleJoinPhone")?.value || "010-1234-5678").trim() || "010-1234-5678";
+        const inpName = document.getElementById("inpSimpleJoinName");
+        const inpPhone = document.getElementById("inpSimpleJoinPhone");
+        const inpAutoId = document.getElementById("inpSimpleJoinAutoId");
+
+        const name = (inpName?.value || "최웅식").trim() || "최웅식";
+        const phone = (inpPhone?.value || "010-1234-5678").trim() || "010-1234-5678";
+        let myId = (inpAutoId?.value || "").trim();
+        if (!myId) myId = (name === "최웅식") ? "최예톡" : `ye_${name}`;
         const currentChurch = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
 
+        // 🌟 1. 예톡 홈 정회원 자동 동시 가입 및 로그인 유지
+        localStorage.setItem("yetalkLoggedIn", "true");
         localStorage.setItem("yetalkUserName", name);
+        localStorage.setItem("yetalkUserId", myId);
         localStorage.setItem("yetalkUserPhone", phone);
+        if (!localStorage.getItem("yetalkUserPw")) {
+            localStorage.setItem("yetalkUserPw", "1234");
+        }
+        if (!localStorage.getItem("yetalkUserRegion")) {
+            localStorage.setItem("yetalkUserRegion", "부산진구");
+        }
+        localStorage.setItem("yetalkOneName", name);
+
+        // 예톡 전체 회원 DB(yetalk_registered_members)에 자동 저장
+        let regMembers = [];
+        try { regMembers = JSON.parse(localStorage.getItem("yetalk_registered_members") || "[]"); } catch(e){}
+        if (!regMembers.some(m => m.name === name || (m.id && m.id === myId))) {
+            regMembers.unshift({
+                id: myId,
+                name: name,
+                phone: phone,
+                region: localStorage.getItem("yetalkUserRegion") || "부산진구",
+                date: new Date().toISOString().split('T')[0],
+                biz: currentChurch
+            });
+            localStorage.setItem("yetalk_registered_members", JSON.stringify(regMembers));
+        }
+
+        // 🌟 2. 교회 성도 명부(yetalk_church_members_db_v2)에 자동 추가
         localStorage.setItem("yetalkIsRegularMember", "true");
         localStorage.setItem("yetalkMyChurchName", currentChurch);
         localStorage.setItem("yetalkUserStoreName", currentChurch);
 
-        // churchadmin.html 성도 명부(yetalk_church_members_db_v2)에 자동 추가
         let members = [];
         try { members = JSON.parse(localStorage.getItem("yetalk_church_members_db_v2")) || []; } catch(e){ members = []; }
         if (!members.some(m => m.name === name || m.phone === phone)) {
@@ -1067,14 +1133,15 @@
                 id: "m_" + Date.now(),
                 name: name,
                 phone: phone,
+                userId: myId,
                 grade: "정회원"
             });
             localStorage.setItem("yetalk_church_members_db_v2", JSON.stringify(members));
         }
 
         closeSimpleMemberJoinModal();
-        alert(`🎉 [성도 간편 가입 완료]\n\n${name} 성도님, [${currentChurch}] 본교회 성도로 등록되었습니다!\n은혜로운 교회 소식과 예배를 함께 누리세요.`);
-        showToast(`✅ [${name}] 성도 간편 가입 완료!`);
+        alert(`🎉 [예톡 회원가입 & 교회 성도 간편 등록 완료]\n\n• 성도명: ${name}\n• 예톡 아이디: ${myId}\n• 소속교회: ${currentChurch}\n\n예톡 계정과 [${currentChurch}] 본교회 성도 등록이 동시에 완료되었습니다!\n은혜로운 교회 소식과 예배를 함께 누리세요.`);
+        showToast(`✅ [${name}] 성도 및 예톡 가입 완료!`);
     }
 
     /* 🌟 성도가입 클릭 시 원클릭 등록 분기 */

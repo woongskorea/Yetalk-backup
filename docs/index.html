@@ -235,6 +235,21 @@
         }
         .btn-side-action:active .btn-side-circle { transform: scale(0.9); }
 
+        /* 🌟 [사용자 요청] 영상올리기와 앱만들기 차별화를 위해 5~10% 살짝 크게 확대 (35px -> 38.5px) */
+        .btn-side-circle.scale-prominent {
+            width: 38.5px !important;
+            height: 38.5px !important;
+        }
+        .btn-side-circle.scale-prominent .brand-plus-square {
+            width: 26.5px !important;
+            height: 26.5px !important;
+        }
+        .btn-side-circle.scale-prominent .inner-red-badge {
+            width: 23px !important;
+            height: 23px !important;
+            font-size: 16.5px !important;
+        }
+
         .btn-side-label {
             font-size: 9.5px; font-weight: 850; color: #ffffff;
             text-shadow: 0 1px 4px rgba(0,0,0,0.95);
@@ -1486,9 +1501,9 @@
             <span class="btn-side-label" id="labelSideJoin" style="color:#fef08a; font-weight:950; text-shadow:0 1px 3px rgba(0,0,0,0.9);">회원가입</span>
         </button>
 
-        <!-- 🌟 2위: 영상올리기 -->
+        <!-- 🌟 2위: 영상올리기 (차별화 5~10% 확대) -->
         <button type="button" class="btn-side-action" onclick="openStudioModal()" title="영상올리기">
-            <div class="btn-side-circle circle-yetalk-brand-box">
+            <div class="btn-side-circle circle-yetalk-brand-box scale-prominent">
                 <div class="brand-plus-square">
                     <span class="brand-plus-icon">＋</span>
                 </div>
@@ -1512,9 +1527,9 @@
             <span class="btn-side-label" style="color:#7dd3fc;">검색</span>
         </button>
 
-        <!-- 5위: 앱만들기 -->
+        <!-- 5위: 앱만들기 (차별화 5~10% 확대) -->
         <button type="button" class="btn-side-action" onclick="openAppCreateModal()" title="앱만들기">
-            <div class="btn-side-circle circle-red-plus">
+            <div class="btn-side-circle circle-red-plus scale-prominent">
                 <div class="inner-red-badge">＋</div>
             </div>
             <span class="btn-side-label" style="color:#f87171; font-weight:900;">앱만들기</span>
@@ -1696,12 +1711,12 @@
 
             <div class="form-group-line">
                 <label class="form-label-title">이름 / 성함 (필수)</label>
-                <input type="text" id="inpMyName" class="modal-input" placeholder="성함을 입력하세요 (예: 김예톡)">
+                <input type="text" id="inpMyName" class="modal-input" placeholder="성함을 입력하세요 (예: 최웅식)">
             </div>
 
             <div class="form-group-line">
                 <label class="form-label-title">아이디 (미입력 시 이름과 동일)</label>
-                <input type="text" id="inpMyId" class="modal-input" placeholder="사용할 아이디 입력">
+                <input type="text" id="inpMyId" class="modal-input" placeholder="사용할 아이디 입력 (예: 최예톡)">
             </div>
 
             <div class="form-group-line">
@@ -2674,10 +2689,10 @@
         if (titleEl) titleEl.innerText = feed.shortAd || feed.title || "실시간 영상";
         if (chanEl) chanEl.innerText = `@${feed.bizName || '예톡'}`;
 
-        // 작성자 기본값 세팅 (로그인/회원가입 이름 또는 김예톡)
+        // 작성자 기본값 세팅 (로그인/회원가입 이름 또는 최웅식)
         const authorInp = document.getElementById("inpPcCommentAuthor");
         if (authorInp && !authorInp.value) {
-            authorInp.value = localStorage.getItem("yetalkUserName") || "김예톡";
+            authorInp.value = localStorage.getItem("yetalkUserName") || "최웅식";
         }
 
         const comments = getVideoComments(feed.id);
@@ -2730,7 +2745,7 @@
 
         const authorInp = document.getElementById("inpPcCommentAuthor");
         const textInp = document.getElementById("inpPcCommentText");
-        const author = authorInp ? (authorInp.value.trim() || "김예톡") : "김예톡";
+        const author = authorInp ? (authorInp.value.trim() || "최웅식") : "최웅식";
         const text = textInp ? textInp.value.trim() : "";
 
         if (!text) {
@@ -2952,7 +2967,7 @@
 
         const authorInp = document.getElementById("inpSplitAuthor");
         const textInp = document.getElementById("inpSplitText");
-        const author = authorInp ? (authorInp.value.trim() || "김예톡") : "김예톡";
+        const author = authorInp ? (authorInp.value.trim() || "최웅식") : "최웅식";
         const text = textInp ? textInp.value.trim() : "";
 
         if (!text) {
@@ -3049,35 +3064,25 @@
         const linkEl = document.getElementById("whiteBizLinkText");
         const adEl = document.getElementById("whiteBizAdText");
 
+        // 🌟 [사용자 요청]
+        // 좌측 하단에 지금 관리자 모드에서 '예톡행복한교회'로 선택되어 있으면 밑에도 예톡tv 대신에 '예톡행복한교회'로 보여야 함.
+        // 내가 관리자모드에서 선택한 이름으로 보여야 함.
+        // 다른 회원들도 본인 전문앱이고 전문앱을 선택 안 한 경우에는 '예톡TV'로 해주고
+        // 그 밑에 광고글은 내가 미리 적을 수 있게 기본: "행복하세요, 건강하세요, 사랑합니다." (관리자실에서 변경 가능)
         const userStore = (localStorage.getItem("yetalkUserStoreName") || "").trim();
-        const userJob = localStorage.getItem("yetalkUserJobType") || "";
-        const hasRegisteredBiz = localStorage.getItem("yetalkHasRegisteredBiz") === "true";
+        const userChurch = (localStorage.getItem("yetalkChurchName") || "").trim();
+        const selectedBiz = (localStorage.getItem("yetalkSelectedBizApp") || "").trim();
         const userPromo = localStorage.getItem("yetalkUserPromoText");
 
-        let bizName = feed.bizName;
-        let shortAd = feed.shortAd;
-
-        if (feed.isUploadedByMe) {
-            // 본인이 올린 영상일 때:
-            if (hasRegisteredBiz && (userJob.includes("프리랜서") || userJob.includes("비즈니스") || userJob.includes("개인"))) {
-                // 🌟 [사용자 요청] 개인 비즈니스/프리랜서에 체크한 사람: 개인 프리랜서로 표출
-                bizName = userStore ? `${userStore} 프리랜서` : "개인 프리랜서";
-                shortAd = userPromo || "개인 전문 비즈니스 & 프리랜서 활동";
-            } else if (hasRegisteredBiz && userStore && userStore !== "예톡새영상") {
-                // 🌟 의원, 병원, 교회, 상점 등 공식 전문앱 개설자
-                bizName = userStore;
-                shortAd = userPromo || "공식 전문앱 바로가기";
-            } else {
-                // 🌟 [사용자 요청] 순수 개인앱 회원이 올린 링크 영상은 전부 예톡TV 이름으로 표출 (개인앱은 좌하단 전문앱 소개에 올리지 않음)
-                bizName = "예톡TV";
-                shortAd = userPromo || feed.title || "언제나 건강과 행복을 응원합니다";
-            }
-        } else {
-            if (!bizName || bizName === "예톡새영상") bizName = "예톡TV";
-            if (!shortAd || shortAd === "언제나 건강과 행복을 응원합니다") {
-                shortAd = userPromo || feed.title || "언제나 건강과 행복을 응원합니다";
+        let activeMyBiz = userStore || selectedBiz || userChurch;
+        if (!activeMyBiz || activeMyBiz === "예톡새영상") {
+            if (isMasterAdminUser() || checkHasMySpecialApp()) {
+                activeMyBiz = "예톡행복한교회";
             }
         }
+
+        let bizName = activeMyBiz || (feed && feed.bizName && feed.bizName !== "예톡새영상" ? feed.bizName : "예톡TV");
+        let shortAd = userPromo || "행복하세요, 건강하세요, 사랑합니다.";
 
         if (linkEl) linkEl.innerText = `@${bizName}`;
         if (adEl) adEl.innerHTML = `${escapeHtml(shortAd)} <span style="font-size:10px; opacity:0.85; margin-left:3px;">✏️</span>`;
@@ -3091,10 +3096,10 @@
 
     /* 🌟 [사용자 요청] 좌측 하단 전문앱 밑 한줄 홍보글 탭/클릭 시 직접 즉시 수정 */
     function editMyPromoText() {
-        const curVal = localStorage.getItem("yetalkUserPromoText") || document.getElementById("whiteBizAdText")?.innerText.replace("✏️", "").trim() || "";
+        const curVal = localStorage.getItem("yetalkUserPromoText") || "행복하세요, 건강하세요, 사랑합니다.";
         const newVal = prompt("전문앱 밑 한줄 홍보글을 입력하세요 (즉시 반영됩니다):", curVal);
         if (newVal !== null) {
-            const trimmed = newVal.trim() || "언제나 건강과 행복을 응원합니다";
+            const trimmed = newVal.trim() || "행복하세요, 건강하세요, 사랑합니다.";
             localStorage.setItem("yetalkUserPromoText", trimmed);
             const feeds = loadSavedFeeds();
             const curFeed = feeds[currentFeedIndex];
@@ -3396,7 +3401,7 @@
 
         // 🌟 [사용자 요청] 기본은 로그인이고 일반인은 안보이게 내만 보이면 좋은데... my에서 로그인하면 보이게 하고 로그인은 한번 하면 계속 유지
         const savedAdminPw = localStorage.getItem("yetalkAdminPw") || localStorage.getItem("yetalk_admin_password") || "7777";
-        if (pw === savedAdminPw || name === "김예톡" || name.includes("관리자") || name.includes("원장님")) {
+        if (pw === savedAdminPw || name === "최웅식" || name === "최예톡" || name === "김예톡" || name.includes("관리자") || name.includes("원장님")) {
             localStorage.setItem("yetalk_admin_auth", "true");
             sessionStorage.setItem("yetalk_admin_auth", "true");
         } else {
@@ -3633,7 +3638,7 @@
     function isMasterAdminUser() {
         const isAuth = sessionStorage.getItem("yetalk_admin_auth") === "true" || localStorage.getItem("yetalk_admin_auth") === "true";
         const userName = (localStorage.getItem("yetalkUserName") || "").trim();
-        return isAuth || userName === "김예톡" || userName.includes("관리자") || userName.includes("원장님");
+        return isAuth || userName === "최웅식" || userName === "최예톡" || userName === "김예톡" || userName.includes("관리자") || userName.includes("원장님");
     }
 
     /* 🌟 [사용자 요청] 삭제 권한 분기:
@@ -3951,10 +3956,18 @@ https://yetalk.cc`;
     }
 
     function openProfileModal() {
-        const savedName = localStorage.getItem("yetalkUserName") || "김예톡";
-        const savedId = localStorage.getItem("yetalkUserId") || "yetalk";
-        const savedPw = localStorage.getItem("yetalkUserPw") || localStorage.getItem("yetalkAdminPw") || localStorage.getItem("yetalk_admin_password") || "7777";
+        const isAdmin = isMasterAdminUser();
+        let savedName = localStorage.getItem("yetalkUserName") || "";
+        let savedId = localStorage.getItem("yetalkUserId") || "";
+        let savedPw = localStorage.getItem("yetalkUserPw") || localStorage.getItem("yetalkAdminPw") || localStorage.getItem("yetalk_admin_password") || "";
         const savedRegion = localStorage.getItem("yetalkUserRegion") || "부산진구";
+
+        // 🌟 [사용자 요청] 총관리자가 김예톡 아니고 최웅식으로 정상적으로 보이고 화면에서는 그냥 최예톡으로 아이디가 보이게 설정
+        if (isAdmin || !savedName || savedName === "김예톡") {
+            if (!savedName || savedName === "김예톡") savedName = "최웅식";
+            if (!savedId || savedId === "yetalk" || savedId === "김예톡") savedId = "최예톡";
+            if (!savedPw) savedPw = localStorage.getItem("yetalkAdminPw") || "7777";
+        }
 
         const inpName = document.getElementById("inpMyName");
         const inpId = document.getElementById("inpMyId");
