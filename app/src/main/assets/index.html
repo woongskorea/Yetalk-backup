@@ -26,16 +26,13 @@
 
         @media (min-width: 768px) {
             .main-container { max-width: 520px; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
-            /* 🌟 [사용자 요청] 컴퓨터(PC) 상에서 애드몹 전체 완전 감춤 (구글 정책 위반 원천 방지) */
+            /* 🌟 [사용자 요청] 컴퓨터(PC) 상에서 고정 배너 감춤, 영상 종료 후 250 리플레이 카드는 허용 */
             .bottom-fixed-admob-100,
-            .admob-250-overlay,
             .modal-admob-100-slot,
             .split-comment-admob-slot,
             .mobile-admob-100-slot,
             .admob-250-wrapper,
-            .admob-safety-wrapper,
-            [class*="admob"],
-            [id*="admob"] {
+            .admob-safety-wrapper {
                 display: none !important;
             }
             .bottom-left-info-bar {
@@ -216,11 +213,11 @@
             top: max(env(safe-area-inset-top, 0px) + 20px, 22px);
             bottom: max(env(safe-area-inset-bottom, 0px) + 128px, 132px);
             z-index: 10015 !important;
-            display: none !important; /* 🌟 [사용자 요청] 기본: 영상 정지, 영상 종료, 애드몹 노출 중 및 종료 후 세로 메뉴 7개 모두 완전 비노출 */
+            display: flex;
             flex-direction: column; gap: 3.5px;
             align-items: center;
-            pointer-events: none !important;
-            opacity: 0;
+            pointer-events: auto;
+            opacity: 1;
             transition: opacity 0.25s ease, transform 0.25s ease;
             overflow-y: auto;
             overflow-x: hidden;
@@ -228,31 +225,65 @@
         }
         .right-actions-bar::-webkit-scrollbar { display: none; }
 
-        /* 🌟 [사용자 요청] 영상 재생 중 재생시에만 세로 동그라미 메뉴도 보이게! */
-        body.is-playing-video .right-actions-bar {
-            display: flex !important;
-            opacity: 1 !important;
-            pointer-events: auto !important;
-        }
-        body.is-playing-video .right-actions-bar .btn-side-action {
-            display: flex !important;
-        }
+        /* ==============================================================
+           🌟 [사용자 요청 완벽 반영] 3단계 핵심 화면 UI 규칙 (모바일 & PC 공통)
+           1) 영상 재생 중: 상단, 우측세로 메뉴 완전히 없어짐... 하단만 두고 깔끔한 풀영상!
+           2) 잠시 중지(일시정지) 시: 상단, 우측세로메뉴 다 보이게!
+           3) 영상 끝난 후: 우측세로메뉴만 ❌ 안 보여야 함 (애드몹 겹침 방지)!
+                          상단, 하단 메뉴는 보여도 간섭 안 되니까 애드몹과 함께 ✅ 보임!
+        ============================================================== */
 
-        /* 🌟 [사용자 요청] 영상 끝나고 애드몹 250 노출 시: 우측 세로 메뉴, 상단 헤더 등 모든 UI 완전 차단 (애드몹 독점 클린 노출) */
-        body.has-admob-250 .top-header-wrapper,
-        body.has-admob-250 .right-actions-bar,
-        body.has-admob-250 .bottom-left-info-bar,
-        body.has-admob-250 .permanent-zoom-btn,
-        body.has-admob-250 .permanent-lock-btn,
-        body.has-admob-250 .bottom-fixed-admob-100,
-        body:not(.is-playing-video) .right-actions-bar,
-        .admob-250-overlay.show ~ .right-actions-bar,
-        .admob-250-overlay[style*="display: flex"] ~ .right-actions-bar,
-        .admob-250-overlay.show ~ .top-header-wrapper,
-        .admob-250-overlay[style*="display: flex"] ~ .top-header-wrapper {
+        /* 🌟 [1] 영상 재생 중: 상단 헤더 & 우측 세로 메뉴 완전히 없어짐! 하단만 남음! */
+        body.is-video-playing .top-header-wrapper {
+            transform: translateY(-130%) !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        body.is-video-playing .right-actions-bar {
             display: none !important;
             opacity: 0 !important;
             pointer-events: none !important;
+            transform: translateX(130%) !important;
+        }
+
+        /* 🌟 [2] 잠시 중지(일시정지) 시: 상단 헤더 & 우측 세로 메뉴 다 보이게! */
+        body.is-video-paused .top-header-wrapper {
+            transform: translateY(0) !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        body.is-video-paused .right-actions-bar {
+            display: flex !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            transform: translateX(0) !important;
+        }
+        body.is-video-paused .right-actions-bar .btn-side-action {
+            display: flex !important;
+        }
+
+        /* 🌟 [3] 영상 끝난 후 & 애드몹 250 노출 시:
+              - 우측 세로 메뉴: 애드몹 겹침 방지를 위해 100% 완전 은폐!
+              - 상단 헤더 & 하단 메뉴: 애드몹과 간섭 안 되므로 함께 보임! */
+        body.has-admob-250 .right-actions-bar,
+        .admob-250-overlay.show ~ .right-actions-bar,
+        .admob-250-overlay[style*="display: flex"] ~ .right-actions-bar {
+            display: none !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transform: translateX(130%) !important;
+        }
+        body.has-admob-250 .top-header-wrapper {
+            transform: translateY(0) !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            z-index: 26000 !important;
+        }
+        body.has-admob-250 .bottom-left-info-bar,
+        body.has-admob-250 .bottom-fixed-admob-100 {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            z-index: 26000 !important;
         }
 
         .right-actions-bar.hide-ui {
@@ -908,11 +939,11 @@
             box-shadow: inset 0 0 15px rgba(0,0,0,0.8); gap: 4px;
         }
 
-        /* 🌟 영상 종료 시 표시되는 애드몹 250 오버레이 (우측 메뉴 및 어떤 UI도 침범 불가) */
+        /* 🌟 영상 종료 시 표시되는 애드몹 250 오버레이 (상단/하단 메뉴와 함께 중앙 독점 배치) */
         .admob-250-overlay {
             display: none; position: fixed; inset: 0; z-index: 25000 !important;
-            background: rgba(0, 0, 0, 0.94); backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px); align-items: center; justify-content: center;
+            background: rgba(0, 0, 0, 0.82); backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center;
             padding: 20px;
         }
         .admob-250-card {
@@ -1514,16 +1545,13 @@
                 gap: 2px;
             }
 
-            /* 🌟 [사용자 요청] 컴퓨터(PC) 상에서 애드몹 전체 완전 감춤 (구글 정책 위반 원천 방지) */
+            /* 🌟 [사용자 요청] 컴퓨터(PC) 상에서 고정 배너 감춤, 영상 종료 후 250 리플레이 카드는 허용 */
             .bottom-fixed-admob-100,
-            .admob-250-overlay,
             .modal-admob-100-slot,
             .split-comment-admob-slot,
             .mobile-admob-100-slot,
             .admob-250-wrapper,
-            .admob-safety-wrapper,
-            [class*="admob"],
-            [id*="admob"] {
+            .admob-safety-wrapper {
                 display: none !important;
             }
             /* PC에서는 하단 애드몹(120px)이 제거되므로 하단 메뉴/정보바 위치 바닥 안정 정렬 */
@@ -2741,18 +2769,18 @@
                 document.body.classList.remove("has-admob-250");
             }
             isVideoPaused = false;
-            updatePlaybackUiState(true); // 🌟 [사용자 요청] 영상 재생 중 재생시에만 세로 동그라미 메뉴 표시!
+            updatePlaybackUiState('playing'); // 🌟 [사용자 요청] 영상 재생 중: 상단, 우측세로 메뉴 완전히 없어짐... 하단만 두고 풀스크린!
         }
 
         if (event.data === YT.PlayerState.PAUSED) {
             isVideoPaused = true;
-            updatePlaybackUiState(false); // 🌟 [사용자 요청] 정지 시 세로 메뉴 7개 모두 안 보이게
+            updatePlaybackUiState('paused'); // 🌟 [사용자 요청] 잠시 중지 시: 상단, 우측세로메뉴 다 보이게!
         }
 
         if (event.data === YT.PlayerState.ENDED) {
             currentEndedFeedId = feedId;
             isVideoPaused = true;
-            updatePlaybackUiState(false); // 🌟 [사용자 요청] 영상 끝나고 세로 메뉴 7개 모두 안 보이게
+            updatePlaybackUiState('ended'); // 🌟 [사용자 요청] 영상 끝난 후: 우측세로메뉴 안 보임(애드몹 겹침 방지), 상단/하단은 보임!
             showAdmob250AndReplay(feedId);
         }
     }
@@ -2763,7 +2791,7 @@
         if (p && typeof p.pauseVideo === 'function') {
             try { p.pauseVideo(); } catch(e){}
         }
-        updatePlaybackUiState(false); // 🌟 [사용자 요청] 애드몹 노출 중 세로 메뉴 7개 완전 비노출
+        updatePlaybackUiState('ended'); // 🌟 [사용자 요청] 애드몹 노출 중: 우측 메뉴만 ❌ 숨김, 상단/하단 메뉴는 ✅ 보임
         document.body.classList.add("has-admob-250");
 
         const overlay = document.getElementById("admob250Overlay");
@@ -2806,8 +2834,6 @@
             overlay.style.display = "none";
         }
         document.body.classList.remove("has-admob-250");
-        // 🌟 [사용자 요청] 애드몹 끝난 후에도 재생이 시작되기 전까지 세로 메뉴 7개 모두 비노출 유지!
-        updatePlaybackUiState(false);
 
         const p = ytPlayerMap[feedId];
         if (p && typeof p.seekTo === 'function') {
@@ -2815,25 +2841,33 @@
             p.playVideo();
             try { p.setPlaybackQuality('hd1080'); } catch(e){}
             isVideoPaused = false;
+            updatePlaybackUiState('playing');
         }
     }
 
-    // 🌟 [사용자 요청] 영상 재생/정지 상태에 따른 UI 제어: 오직 영상 재생 중(PLAYING)일 때만 세로 7대 메뉴 노출!
-    function updatePlaybackUiState(isPlaying) {
-        if (isPlaying) {
-            document.body.classList.add("is-playing-video");
-            document.body.classList.add("is-playing-mode");
+    // 🌟 [사용자 요청 완벽 반영] 3단계 핵심 화면 UI 규칙 (모바일 & PC 공통)
+    // 1) 영상 재생 중: 상단, 우측세로 메뉴 완전히 없어짐... 하단만 두고 깔끔한 풀영상!
+    // 2) 잠시 중지(일시정지) 시: 상단, 우측세로메뉴 다 보이게!
+    // 3) 영상 끝난 후: 우측세로메뉴만 ❌ 안 보여야 함 (애드몹 겹침 방지)!
+    //                상단, 하단 메뉴는 보여도 간섭 안 되니까 애드몹과 함께 ✅ 보임!
+    function updatePlaybackUiState(state) {
+        if (state === 'playing' || state === true) {
+            document.body.classList.add("is-video-playing");
             document.body.classList.remove("is-video-paused");
             document.body.classList.remove("has-admob-250");
-        } else {
-            document.body.classList.remove("is-playing-video");
-            document.body.classList.remove("is-playing-mode");
+        } else if (state === 'paused' || state === false) {
+            document.body.classList.remove("is-video-playing");
             document.body.classList.add("is-video-paused");
+            document.body.classList.remove("has-admob-250");
+        } else if (state === 'ended') {
+            document.body.classList.remove("is-video-playing");
+            document.body.classList.remove("is-video-paused");
+            document.body.classList.add("has-admob-250");
         }
     }
 
     function setControlsVisibility(show) {
-        updatePlaybackUiState(!show);
+        updatePlaybackUiState(show ? 'paused' : 'playing');
     }
 
     function handleFeedTouch(feedId) {
@@ -2856,14 +2890,14 @@
                 if (state === YT.PlayerState.PLAYING) {
                     p.pauseVideo();
                     isVideoPaused = true;
-                    updatePlaybackUiState(false); // 🌟 정지 시 세로 메뉴 7개 모두 안보이게
+                    updatePlaybackUiState('paused'); // 🌟 [사용자 요청] 일시정지 시: 상단, 우측세로메뉴 다 보이게!
                     showToast("⏸️ 영상 일시정지");
                 } else {
                     p.playVideo();
                     try { p.unMute(); } catch(e){}
                     isVideoPaused = false;
+                    updatePlaybackUiState('playing'); // 🌟 [사용자 요청] 재생 시: 상단, 우측세로 메뉴 완전히 없어짐! 하단만 두고 풀영상
                     showToast("▶️ 영상 재생");
-                    // 🌟 실제 재생이 시작되면 onStateChange(PLAYING)에서 updatePlaybackUiState(true) 처리
                 }
             } catch(e) {
                 try { p.playVideo(); } catch(err){}
@@ -4614,7 +4648,7 @@ https://yetalk.cc`;
 
     function checkPcAdmobHide() {
         if ((window.innerWidth >= 768 || (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.AndroidBridge)) && localStorage.getItem("yetalk_hide_admob_pc") !== "false") {
-            document.querySelectorAll('.bottom-fixed-admob-100, .admob-250-overlay, .modal-admob-100-slot, .split-comment-admob-slot, .mobile-admob-100-slot, .admob-250-wrapper, .admob-safety-wrapper, [class*="admob"], [id*="admob"]').forEach(el => {
+            document.querySelectorAll('.bottom-fixed-admob-100, .modal-admob-100-slot, .split-comment-admob-slot, .mobile-admob-100-slot, .admob-250-wrapper, .admob-safety-wrapper').forEach(el => {
                 el.style.setProperty('display', 'none', 'important');
             });
         }
