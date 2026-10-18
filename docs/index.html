@@ -583,11 +583,11 @@
             justify-content: center;
         }
 
-        /* 4. 하단 좌측: 올린이 전문앱/비즈니스 통합 카드 (가로 확장 및 상시 선명 노출, 좌측 살짝 이동 및 여유 공간 확보) */
+        /* 4. 하단 좌측: 올린이 전문앱/비즈니스 통합 카드 (우측 단골내앱 원형 버튼과 겹침 없는 안전 여백 확보) */
         .bottom-left-info-bar {
             position: absolute; left: 6px;
             bottom: max(env(safe-area-inset-bottom, 0px) + 128px, 132px);
-            width: calc(100% - 56px); max-width: 345px; z-index: 9998;
+            width: calc(100% - 66px); max-width: 300px; z-index: 9998;
             display: flex !important; flex-direction: column; gap: 5px;
             text-align: left;
             pointer-events: auto !important;
@@ -614,12 +614,13 @@
             border: 1.5px solid #38bdf8;
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border-radius: 14px;
-            padding: 8px 14px;
+            padding: 7px 12px;
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 2.5px;
             box-shadow: 0 6px 22px rgba(0, 0, 0, 0.8), 0 0 14px rgba(56, 189, 248, 0.3);
             width: 100%;
+            max-width: 285px; /* 🌟 [사용자 요청] 우측 단골내앱 버튼과 절대 겹치지 않도록 안전 여백 보장 */
             cursor: pointer;
             pointer-events: auto !important;
             transition: transform 0.15s, border-color 0.15s;
@@ -1571,11 +1572,13 @@
             </div>
         </div>
 
-        <!-- 🌟 실시간 공지알림 롤링 띠 배너: 의원공지 및 확인 글자 삭제, 가로세로 여유있게 확장 -->
-        <div class="header-notice-ticker" id="headerNoticeTicker" style="display:flex; align-items:center; gap:8px; background:linear-gradient(90deg, rgba(30, 58, 138, 0.94), rgba(15, 23, 42, 0.94)); border:1.2px solid #38bdf8; border-radius:20px; padding:7px 12px; margin-top:5px; cursor:pointer; backdrop-filter:blur(6px); box-shadow:0 3px 12px rgba(56, 189, 248, 0.4); max-width:calc(100% - 54px);" onclick="openLatestNoticePopup()">
-            <span style="font-size:13.5px;">📢</span>
+        <!-- 🌟 [사용자 요청] 실시간 한줄 말씀/공지 롤링 띠 배너: ... 생략 없이 끝까지 이동 & 5개 메시지 자동 순환 -->
+        <div class="header-notice-ticker" id="headerNoticeTicker" style="display:flex; align-items:center; gap:8px; background:linear-gradient(90deg, rgba(30, 58, 138, 0.94), rgba(15, 23, 42, 0.94)); border:1.2px solid #38bdf8; border-radius:20px; padding:7px 12px; margin-top:5px; cursor:pointer; backdrop-filter:blur(6px); box-shadow:0 3px 12px rgba(56, 189, 248, 0.4); max-width:calc(100% - 54px); overflow:hidden;" onclick="openLatestNoticePopup()">
+            <span style="font-size:13.5px; flex-shrink:0;">📢</span>
             <span style="display:none;" id="noticeTickerTag"></span>
-            <span style="font-size:12.5px; font-weight:750; color:#f8fafc; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;" id="noticeTickerText">예톡 아름다운의원 스마트 QR 예약 및 1:1 맞춤 진료 상담 오픈</span>
+            <div class="ticker-scroll-track" id="tickerScrollTrack" style="flex:1; overflow:hidden; position:relative; white-space:nowrap;">
+                <span style="font-size:12.5px; font-weight:750; color:#f8fafc; white-space:nowrap; display:inline-block; transition:transform 0.4s ease, opacity 0.3s ease;" id="noticeTickerText">“예수 그리스도는 어제나 오늘이나 영원토록 동일하시니라” (히 13:8)</span>
+            </div>
         </div>
     </div>
 
@@ -4383,27 +4386,87 @@ https://yetalk.cc`;
         renderPcCommentsForCurrentVideo(firstFeed);
     }
 
-    /* 🌟 실시간 공지알림 연동 로직 */
+    const TICKER_MESSAGES = [
+        "“예수 그리스도는 어제나 오늘이나 영원토록 동일하시니라” (히브리서 13:8) ✝️",
+        "“너는 마음을 다하여 여호와를 신뢰하고 네 명철을 의지하지 말라” (잠언 3:5) 📖",
+        "“평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라” (요한복음 14:27) 🕊️",
+        "“두려워하지 말라 내가 너와 함께 함이라 놀라지 말라 나는 네 하나님이 됨이라” (이사야 41:10) ☀️",
+        "예톡을 사랑해주세요. 감사합니다~ 🌿"
+    ];
+
+    let currentTickerIdx = 0;
+    let tickerAnimationTimer = null;
+
+    /* 🌟 [사용자 요청] 상단 한줄 말씀/공지: ... 생략 없이 끝까지 이동 & 5개 메시지 자동 순환 */
     function checkLatestNoticeAlert() {
         try {
-            const raw = localStorage.getItem("yetalk_latest_notice");
             const ticker = document.getElementById("headerNoticeTicker");
-            if (!ticker) return;
-            const tagEl = document.getElementById("noticeTickerTag");
             const textEl = document.getElementById("noticeTickerText");
-            if (raw) {
-                const notice = JSON.parse(raw);
-                if (notice && (notice.title || notice.content)) {
-                    if (tagEl) tagEl.innerText = "";
-                    if (textEl) textEl.innerText = `${notice.title || notice.content}`;
-                    ticker.style.display = "flex";
-                    return;
-                }
-            }
-            // 기본값
+            const track = document.getElementById("tickerScrollTrack");
+            if (!ticker || !textEl || !track) return;
+
             ticker.style.display = "flex";
-            if (tagEl) tagEl.innerText = "";
-            if (textEl) textEl.innerText = "예톡 아름다운의원 스마트 QR 예약 및 1:1 맞춤 진료 상담 오픈";
+
+            let activeMessages = [...TICKER_MESSAGES];
+            const raw = localStorage.getItem("yetalk_latest_notice");
+            if (raw) {
+                try {
+                    const notice = JSON.parse(raw);
+                    if (notice && (notice.title || notice.content)) {
+                        activeMessages.unshift(`📢 ${notice.title || notice.content}`);
+                    }
+                } catch(e){}
+            }
+
+            if (tickerAnimationTimer) {
+                clearTimeout(tickerAnimationTimer);
+                tickerAnimationTimer = null;
+            }
+
+            function cycleMessage() {
+                const msg = activeMessages[currentTickerIdx % activeMessages.length];
+                currentTickerIdx = (currentTickerIdx + 1) % activeMessages.length;
+
+                // 부드러운 페이드아웃 후 새 메시지 교체
+                textEl.style.transition = "opacity 0.25s ease, transform 0.25s ease";
+                textEl.style.opacity = "0";
+                textEl.style.transform = "translateX(0px)";
+
+                setTimeout(() => {
+                    textEl.innerText = msg;
+                    textEl.style.opacity = "1";
+
+                    setTimeout(() => {
+                        const textWidth = textEl.scrollWidth || textEl.offsetWidth;
+                        const trackWidth = track.clientWidth || track.offsetWidth;
+                        const overflow = textWidth - trackWidth;
+
+                        if (overflow > 4) {
+                            // ... 생략 없이 마지막 글자까지 완전히 읽을 수 있도록 자연스러운 스크롤
+                            const speed = 30; // 초당 30px의 편안한 이동 속도
+                            const duration = Math.max(3.2, (overflow + 12) / speed);
+
+                            // 1.2초간 시작 부분 머무른 후 스크롤 시작
+                            tickerAnimationTimer = setTimeout(() => {
+                                textEl.style.transition = `transform ${duration}s linear`;
+                                textEl.style.transform = `translateX(-${overflow + 14}px)`;
+
+                                // 끝까지 도달 후 1.5초간 머문 후 다음 메시지로 이동
+                                tickerAnimationTimer = setTimeout(() => {
+                                    cycleMessage();
+                                }, (duration * 1000) + 1500);
+                            }, 1200);
+                        } else {
+                            // 짧은 메시지는 4.5초간 노출 후 다음 메시지로
+                            tickerAnimationTimer = setTimeout(() => {
+                                cycleMessage();
+                            }, 4500);
+                        }
+                    }, 60);
+                }, 260);
+            }
+
+            cycleMessage();
         } catch(e){}
     }
 
