@@ -49,12 +49,19 @@
         /* 1. 상단 미니멀 오버레이 헤더 (상시 100% 노출) */
         .top-header-wrapper {
             position: absolute; top: 0; left: 0; right: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.2) 75%, transparent 100%);
+            background: linear-gradient(to bottom, rgba(5, 10, 20, 0.96) 0%, rgba(6, 12, 24, 0.90) 80%, rgba(6, 12, 24, 0.5) 95%, transparent 100%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             z-index: 10010 !important;
-            padding: calc(env(safe-area-inset-top, 0px) + 8px) 14px 10px 14px;
+            padding: calc(env(safe-area-inset-top, 0px) + 8px) 14px 14px 14px;
             display: flex; flex-direction: column; gap: 3px;
-            transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease;
+            transition: transform 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease, background 0.3s ease;
             pointer-events: none; /* 빈 영역은 뒤/옆 요소로 클릭 전달 */
+        }
+        /* 🌟 [사용자 요청] 영상 정지 시 및 초기 로딩 시: 상단 글씨가 유튜브 텍스트와 절대 겹치지 않도록 더 짙은 바탕색 보호막 */
+        body:not(.is-playing-mode) .top-header-wrapper {
+            background: linear-gradient(to bottom, rgba(3, 7, 18, 0.98) 0%, rgba(5, 11, 22, 0.95) 84%, rgba(6, 12, 24, 0.6) 96%, transparent 100%);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.55);
         }
         .top-header-wrapper > * {
             pointer-events: auto !important; /* 로고, 관리자 버튼, 공지알림 등 내부 요소는 상시 정상 클릭 */
@@ -101,21 +108,31 @@
             transform: scale(0.92);
         }
 
-        /* 🌟 [사용자 요청] 홍보글 깔끔한 2줄 안내 & 클릭 시 앱 만들기 호출 */
+        /* 🌟 [사용자 요청] 홍보글 깔끔한 2줄 안내 & 클릭 시 앱 만들기 호출 (유튜브 글자와 중복 방지 반투명 캡슐) */
         .brand-subtext-main {
             font-size: 13.5px; color: #ffffff; font-weight: 850;
-            letter-spacing: -0.3px; text-shadow: 0 1px 3px rgba(0,0,0,0.95);
+            letter-spacing: -0.3px; text-shadow: 0 2px 4px rgba(0,0,0,1);
             white-space: nowrap; margin-top: 2px;
             cursor: pointer; pointer-events: auto !important;
             transition: opacity 0.15s ease;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 7px;
+            border-radius: 6px;
+            display: inline-block;
+            width: fit-content;
         }
         .brand-subtext-main:active { opacity: 0.75; }
         .brand-subtext-sub {
             font-size: 12.5px; color: #38bdf8; font-weight: 850;
-            letter-spacing: -0.3px; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
-            white-space: nowrap; margin-top: 1px;
+            letter-spacing: -0.3px; text-shadow: 0 2px 4px rgba(0,0,0,1);
+            white-space: nowrap; margin-top: 2px;
             cursor: pointer; pointer-events: auto !important;
             transition: opacity 0.15s ease;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 7px;
+            border-radius: 6px;
+            display: inline-block;
+            width: fit-content;
         }
         .brand-subtext-sub:active { opacity: 0.75; }
         .brand-subtext-badge {
@@ -836,15 +853,18 @@
             color: #ffffff !important;
             border-color: #ffffff !important;
         }
-        /* 🌟 [사용자 요청] 100% 옆 삭제 버튼 스타일 */
+        /* 🌟 [사용자 요청] 100% 옆 삭제 버튼 스타일: 눈에 확 띄는 선명한 레드 배경 + 순백색 볼드 글씨 */
         .mini-tool-pill.mini-delete-pill {
-            background: rgba(220, 38, 38, 0.35) !important;
-            border-color: #ef4444 !important;
-            color: #fca5a5 !important;
+            background: #dc2626 !important;
+            border: 1.2px solid #f87171 !important;
+            color: #ffffff !important;
+            font-weight: 950 !important;
+            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.6) !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
         }
         .mini-tool-pill.mini-delete-pill:active {
-            background: #ef4444 !important;
-            color: #ffffff !important;
+            background: #b91c1c !important;
+            transform: scale(0.92);
         }
 
         /* 6. 최하단 애드몹 100 고정 슬롯 */
@@ -2521,7 +2541,8 @@
             const card = document.createElement("div");
             card.id = `card_${feed.id}`;
             card.className = "shorts-card";
-            const posterUrl = `https://i.ytimg.com/vi/${feed.videoId}/hqdefault.jpg`;
+            // 🌟 [사용자 요청] 유튜브 초기화면 고화질(1080p/720p HD) maxresdefault 우선 적용
+            const posterUrl = `https://i.ytimg.com/vi/${feed.videoId}/maxresdefault.jpg`;
 
             card.innerHTML = `
                 <div class="video-poster-bg" id="poster_${feed.id}" style="background-image: url('${posterUrl}');"></div>
@@ -2531,6 +2552,7 @@
                 <div class="touch-overlay" onclick="handleFeedTouch(${feed.id})"></div>
             `;
             container.appendChild(card);
+            setupHighResPoster(feed.id, feed.videoId);
         });
 
         setupFeedScrollListener();
@@ -2541,6 +2563,43 @@
         }
         renderPcFeedList();
         renderPcCommentsForCurrentVideo(feeds[0]);
+    }
+
+    // 🌟 [사용자 요청] 유튜브 초기화면 해상도 향상 (maxresdefault -> sddefault -> hqdefault 자동 폴백)
+    function setupHighResPoster(feedId, videoId) {
+        if (!videoId) return;
+        const maxResUrl = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+        const sdResUrl = `https://i.ytimg.com/vi/${videoId}/sddefault.jpg`;
+        const hqResUrl = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+
+        const img = new Image();
+        img.onload = function() {
+            const posterEl = document.getElementById(`poster_${feedId}`);
+            if (!posterEl) return;
+            if (img.naturalWidth > 120) {
+                posterEl.style.backgroundImage = `url('${maxResUrl}')`;
+            } else {
+                const sdImg = new Image();
+                sdImg.onload = function() {
+                    if (sdImg.naturalWidth > 120) {
+                        posterEl.style.backgroundImage = `url('${sdResUrl}')`;
+                    } else {
+                        posterEl.style.backgroundImage = `url('${hqResUrl}')`;
+                    }
+                };
+                sdImg.onerror = function() {
+                    posterEl.style.backgroundImage = `url('${hqResUrl}')`;
+                };
+                sdImg.src = sdResUrl;
+            }
+        };
+        img.onerror = function() {
+            const posterEl = document.getElementById(`poster_${feedId}`);
+            if (posterEl) {
+                posterEl.style.backgroundImage = `url('${hqResUrl}')`;
+            }
+        };
+        img.src = maxResUrl;
     }
 
     function initAllFeedPlayers() {
