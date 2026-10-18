@@ -301,7 +301,7 @@
     <div class="admin-master-channel-bar">
         <div class="master-badge-title">
             <span>👑 연결 앱:</span>
-            <select id="masterCurrentChannelSelect" class="master-channel-select" onchange="handleAdminChannelSwitch(this.value)"></select>
+            <select id="masterCurrentChannelSelect" class="master-channel-select" style="font-size:12.5px; font-weight:800; max-width:215px; height:34px; padding:2px 6px;" onchange="handleAdminChannelSwitch(this.value)"></select>
         </div>
         <button type="button" class="btn-quick-add-channel" onclick="openNewChannelModal()">
             ＋ 새 사업장 오픈
@@ -588,6 +588,7 @@
     let masterStoresData = {
         church: [
             { name: "예톡행복한교회", url: "churchmain.html", note: "대표 공식 교회 (담임목사)" },
+            { name: "최웅식의 작은교회", url: "minichurch.html", note: "미니교회 / 가정예배 (1페이지 스냅)" },
             { name: "은혜로운새빛교회", url: "churchmain.html", note: "청년부 성경통독 운영" }
         ],
         clinic: [
@@ -611,9 +612,10 @@
         { name: "정믿음", id: "faith_jung", role: "정회원 / 자영업 대표", phone: "010-4567-8901", region: "강남구", date: "2026-10-12" }
     ];
 
-    // 총관리자가 자유롭게 전환하며 운영할 수 있는 사업장 목록 (보유 7개 전용 앱 기본 등록)
+    // 🌟 [사용자 요청] 총관리자 전용 사업장 목록에 [최웅식의 작은교회 (minichurch.html)] 추가
     const DEFAULT_OWNED_CHANNELS = [
         { name: "예톡행복한교회", url: "churchmain.html", label: "⛪ 예톡행복한교회 (교회/비영리)" },
+        { name: "최웅식의 작은교회", url: "minichurch.html", label: "⛪ 최웅식의 작은교회 (미니교회/가정예배)" },
         { name: "예톡아름다운의원", url: "doctormain.html", label: "🏥 예톡아름다운의원 (의원/병원)" },
         { name: "예톡 스마트치과", url: "dentalmain.html", label: "🦷 예톡 스마트치과 (치과의원)" },
         { name: "예톡 자연한의원", url: "orientalmain.html", label: "🌿 예톡 자연한의원 (한의원)" },
@@ -641,14 +643,14 @@
         const masterNameEl = document.getElementById("adminMasterNameText");
         if (masterNameEl) masterNameEl.innerText = `${masterName} 원장님`;
 
-        // 저장된 채널 목록 불러오기 및 기본 7개 앱과 병합 (누락 방지)
+        // 저장된 채널 목록 불러오기 및 기본 앱과 병합 (누락 방지)
         const savedChannels = localStorage.getItem("yetalkOwnedChannels");
         if (savedChannels) {
             try {
                 const parsed = JSON.parse(savedChannels);
                 if (Array.isArray(parsed) && parsed.length > 0) {
                     DEFAULT_OWNED_CHANNELS.forEach(def => {
-                        if (!parsed.some(p => p.name === def.name)) {
+                        if (!parsed.some(p => p.url === def.url || p.name === def.name)) {
                             parsed.push(def);
                         }
                     });
@@ -712,7 +714,9 @@
             opt.value = ch.name;
             opt.innerText = ch.label || ch.name;
             opt.dataset.targetUrl = ch.url;
-            if (ch.name === currentActiveBiz) opt.selected = true;
+            opt.style.fontSize = "13px";
+            opt.style.padding = "6px 8px";
+            if (ch.name === currentActiveBiz || (currentActiveBiz.includes("작은교회") && ch.url === "minichurch.html")) opt.selected = true;
             select.appendChild(opt);
         });
     }
@@ -725,6 +729,10 @@
         localStorage.setItem("yetalkSelectedBizApp", selectedCh.name);
         localStorage.setItem("yetalkMyBizAppUrl", selectedCh.url);
         localStorage.setItem("yetalkSelectedMainAppUrl", selectedCh.url);
+        if (selectedCh.url === "minichurch.html") {
+            localStorage.setItem("yetalkMiniChurchName", selectedCh.name);
+            localStorage.setItem("yetalkChurchName", selectedCh.name);
+        }
         renderChannelSelect();
         alert(`🎉 메인홈 연결 앱이 [${selectedCh.name}] (으)로 변경되었습니다!\n스마트폰 및 PC 메인화면 좌측 하단의 전문앱 올린이 카드와 바로가기가 [${selectedCh.name}] 으로 즉시 연동됩니다.`);
     }
