@@ -59,7 +59,9 @@
             pointer-events: none; /* 빈 영역은 뒤/옆 요소로 클릭 전달 */
         }
         /* 🌟 [사용자 요청] 영상 정지 시 및 초기 로딩 시: 상단 글씨가 유튜브 텍스트와 절대 겹치지 않도록 더 짙은 바탕색 보호막 */
-        body:not(.is-playing-mode) .top-header-wrapper {
+        body:not(.is-playing-video) .top-header-wrapper,
+        body:not(.is-playing-mode) .top-header-wrapper,
+        body.is-video-paused .top-header-wrapper {
             background: linear-gradient(to bottom, rgba(3, 7, 18, 0.98) 0%, rgba(5, 11, 22, 0.95) 84%, rgba(6, 12, 24, 0.6) 96%, transparent 100%);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.55);
         }
@@ -208,31 +210,44 @@
             position: absolute; inset: 0; width: 100%; height: 100%; z-index: 5; cursor: pointer;
         }
 
-        /* 3. 우측 세로 퀵 액션 바 (상단 2개 + 중간 비움 + 하단 6개 분할 배치) */
+        /* 3. 우측 세로 퀵 액션 바 (세로 7~8개 동그라미 메뉴) */
         .right-actions-bar {
             position: absolute; right: 8px;
             top: max(env(safe-area-inset-top, 0px) + 20px, 22px);
             bottom: max(env(safe-area-inset-bottom, 0px) + 128px, 132px);
-            z-index: 10015 !important; display: flex !important; flex-direction: column; gap: 3.5px;
+            z-index: 10015 !important;
+            display: none !important; /* 🌟 [사용자 요청] 기본: 영상 정지, 영상 종료, 애드몹 노출 중 및 종료 후 세로 메뉴 7개 모두 완전 비노출 */
+            flex-direction: column; gap: 3.5px;
             align-items: center;
-            pointer-events: auto !important;
-            transition: opacity 0.25s ease;
+            pointer-events: none !important;
+            opacity: 0;
+            transition: opacity 0.25s ease, transform 0.25s ease;
             overflow-y: auto;
             overflow-x: hidden;
             padding-right: 2px;
         }
         .right-actions-bar::-webkit-scrollbar { display: none; }
 
-        /* 🌟 [영상 재생 중 풀스크린 모드 - 필수 핵심 기능]
-           영상 재생 중 상단 헤더와 우측 메뉴를 숨겨 화면을 시원하게 풀스크린으로 표시. */
-        body.is-playing-mode .top-header-wrapper {
-            transform: translateY(-125%) !important;
+        /* 🌟 [사용자 요청] 영상 재생 중 재생시에만 세로 동그라미 메뉴도 보이게! */
+        body.is-playing-video .right-actions-bar {
+            display: flex !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        body.is-playing-video .right-actions-bar .btn-side-action {
+            display: flex !important;
+        }
+
+        /* 🌟 [사용자 요청] 영상 끝나고 애드몹 250 노출 시 및 종료 후: 우측 세로 메뉴 철저히 차단 (수익 삭감 원천 방지) */
+        body.has-admob-250 .right-actions-bar,
+        body:not(.is-playing-video) .right-actions-bar,
+        .admob-250-overlay.show ~ .right-actions-bar,
+        .admob-250-overlay[style*="display: flex"] ~ .right-actions-bar {
+            display: none !important;
             opacity: 0 !important;
             pointer-events: none !important;
         }
-        body.is-playing-mode .right-actions-bar .btn-side-action {
-            display: none !important;
-        }
+
         .right-actions-bar.hide-ui {
             transform: translateX(130%) !important;
             opacity: 0 !important;
@@ -886,11 +901,11 @@
             box-shadow: inset 0 0 15px rgba(0,0,0,0.8); gap: 4px;
         }
 
-        /* 🌟 영상 종료 시 표시되는 애드몹 250 오버레이 */
+        /* 🌟 영상 종료 시 표시되는 애드몹 250 오버레이 (우측 메뉴 및 어떤 UI도 침범 불가) */
         .admob-250-overlay {
-            display: none; position: fixed; inset: 0; z-index: 9999;
-            background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px); align-items: center; justify-content: center;
+            display: none; position: fixed; inset: 0; z-index: 25000 !important;
+            background: rgba(0, 0, 0, 0.94); backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px); align-items: center; justify-content: center;
             padding: 20px;
         }
         .admob-250-card {
@@ -2715,17 +2730,18 @@
                 if (overlay) overlay.style.display = "none";
             }
             isVideoPaused = false;
-            setControlsVisibility(false); // 🌟 재생 중: 상위메뉴, 우측바(삭제 제외) 숨기고 시원한 풀스크린 모드
+            updatePlaybackUiState(true); // 🌟 [사용자 요청] 영상 재생 중 재생시에만 세로 동그라미 메뉴 표시!
         }
 
         if (event.data === YT.PlayerState.PAUSED) {
             isVideoPaused = true;
-            setControlsVisibility(true); // 🌟 일시정지 시: 상단 메뉴 및 우측 모든 메뉴 다시 표시
+            updatePlaybackUiState(false); // 🌟 [사용자 요청] 정지 시 세로 메뉴 7개 모두 안 보이게
         }
 
         if (event.data === YT.PlayerState.ENDED) {
             currentEndedFeedId = feedId;
-            setControlsVisibility(true);
+            isVideoPaused = true;
+            updatePlaybackUiState(false); // 🌟 [사용자 요청] 영상 끝나고 세로 메뉴 7개 모두 안 보이게
             showAdmob250AndReplay(feedId);
         }
     }
@@ -2736,6 +2752,9 @@
         if (p && typeof p.pauseVideo === 'function') {
             try { p.pauseVideo(); } catch(e){}
         }
+        updatePlaybackUiState(false); // 🌟 [사용자 요청] 애드몹 노출 중 세로 메뉴 7개 완전 비노출
+        document.body.classList.add("has-admob-250");
+
         const overlay = document.getElementById("admob250Overlay");
         const countdownEl = document.getElementById("admobReplayCountdown");
         if (overlay) {
@@ -2771,22 +2790,35 @@
         }
         const overlay = document.getElementById("admob250Overlay");
         if (overlay) overlay.style.display = "none";
+        document.body.classList.remove("has-admob-250");
+        // 🌟 [사용자 요청] 애드몹 끝난 후에도 재생이 시작되기 전까지 세로 메뉴 7개 모두 비노출 유지!
+        updatePlaybackUiState(false);
+
         const p = ytPlayerMap[feedId];
         if (p && typeof p.seekTo === 'function') {
             p.seekTo(0, true);
             p.playVideo();
             try { p.setPlaybackQuality('hd1080'); } catch(e){}
             isVideoPaused = false;
-            setControlsVisibility(false);
+        }
+    }
+
+    // 🌟 [사용자 요청] 영상 재생/정지 상태에 따른 UI 제어: 오직 영상 재생 중(PLAYING)일 때만 세로 7대 메뉴 노출!
+    function updatePlaybackUiState(isPlaying) {
+        if (isPlaying) {
+            document.body.classList.add("is-playing-video");
+            document.body.classList.add("is-playing-mode");
+            document.body.classList.remove("is-video-paused");
+            document.body.classList.remove("has-admob-250");
+        } else {
+            document.body.classList.remove("is-playing-video");
+            document.body.classList.remove("is-playing-mode");
+            document.body.classList.add("is-video-paused");
         }
     }
 
     function setControlsVisibility(show) {
-        if (show) {
-            document.body.classList.remove("is-playing-mode");
-        } else {
-            document.body.classList.add("is-playing-mode");
-        }
+        updatePlaybackUiState(!show);
     }
 
     function handleFeedTouch(feedId) {
@@ -2809,23 +2841,18 @@
                 if (state === YT.PlayerState.PLAYING) {
                     p.pauseVideo();
                     isVideoPaused = true;
-                    setControlsVisibility(true); // 🌟 일시정지 시: 상단 메뉴 및 우측 모든 메뉴 다시 표시
+                    updatePlaybackUiState(false); // 🌟 정지 시 세로 메뉴 7개 모두 안보이게
+                    showToast("⏸️ 영상 일시정지");
                 } else {
                     p.playVideo();
                     try { p.unMute(); } catch(e){}
                     isVideoPaused = false;
-                    setControlsVisibility(false); // 🌟 재생 시: 풀스크린 모드로 헤더 및 우측바 숨김
+                    showToast("▶️ 영상 재생");
+                    // 🌟 실제 재생이 시작되면 onStateChange(PLAYING)에서 updatePlaybackUiState(true) 처리
                 }
             } catch(e) {
-                try {
-                    p.playVideo();
-                    setControlsVisibility(false);
-                } catch(err){}
+                try { p.playVideo(); } catch(err){}
             }
-        } else {
-            // 플레이어가 아직 준비 중일 때는 UI 토글 지원
-            const isPlaying = document.body.classList.contains("is-playing-mode");
-            setControlsVisibility(isPlaying);
         }
     }
 
@@ -4451,7 +4478,6 @@ https://yetalk.cc`;
             } catch(e){}
         }
 
-        setControlsVisibility(true);
         updateBottomInfo(firstFeed);
         renderPcCommentsForCurrentVideo(firstFeed);
     }
