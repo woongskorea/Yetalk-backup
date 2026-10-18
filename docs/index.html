@@ -101,17 +101,23 @@
             transform: scale(0.92);
         }
 
-        /* 🌟 [사용자 요청] 홍보글 깔끔한 2줄 안내 */
+        /* 🌟 [사용자 요청] 홍보글 깔끔한 2줄 안내 & 클릭 시 앱 만들기 호출 */
         .brand-subtext-main {
             font-size: 13.5px; color: #ffffff; font-weight: 850;
             letter-spacing: -0.3px; text-shadow: 0 1px 3px rgba(0,0,0,0.95);
             white-space: nowrap; margin-top: 2px;
+            cursor: pointer; pointer-events: auto !important;
+            transition: opacity 0.15s ease;
         }
+        .brand-subtext-main:active { opacity: 0.75; }
         .brand-subtext-sub {
             font-size: 12.5px; color: #38bdf8; font-weight: 850;
             letter-spacing: -0.3px; text-shadow: 0 1px 3px rgba(0,0,0,0.9);
             white-space: nowrap; margin-top: 1px;
+            cursor: pointer; pointer-events: auto !important;
+            transition: opacity 0.15s ease;
         }
+        .brand-subtext-sub:active { opacity: 0.75; }
         .brand-subtext-badge {
             display: none !important;
         }
@@ -1550,11 +1556,11 @@
                         👑 관리자
                     </button>
                 </div>
-                <!-- 🌟 [사용자 요청] 홍보글 깔끔한 2줄 안내 -->
-                <div class="brand-subtext-main">
+                <!-- 🌟 [사용자 요청] QR코드와 그 밑줄 클릭 시 '나만의 앱 만들기' 모달 즉시 호출 -->
+                <div class="brand-subtext-main" onclick="openAppCreateModal()" title="나만의 맞춤형 앱 무료 만들기 (클릭)">
                     QR코드,개인앱 누구에게나 무료로 만들어주는 앱
                 </div>
-                <div class="brand-subtext-sub">
+                <div class="brand-subtext-sub" onclick="openAppCreateModal()" title="나만의 맞춤형 앱 무료 만들기 (클릭)">
                     의원,교회,업종별앱 모두 무료입니다.(유지비 제로)
                 </div>
             </div>
@@ -1880,13 +1886,13 @@
             <div class="form-group-line">
                 <label class="form-label-title">직업 / 직종 선택</label>
                 <div class="vertical-select-tabs" id="jobTabsCreate">
-                    <button type="button" class="btn-tab-option active" onclick="selectUserJob('담임목사', 'jobTabsCreate')">⛪ 담임목사</button>
-                    <button type="button" class="btn-tab-option" onclick="selectUserJob('기독교사역자', 'jobTabsCreate')">✝ 기독교사역자 (이단금지)</button>
-                    <button type="button" class="btn-tab-option" onclick="selectUserJob('의사', 'jobTabsCreate')">🏥 의사</button>
-                    <button type="button" class="btn-tab-option" onclick="selectUserJob('치과의사', 'jobTabsCreate')">🦷 치과의사</button>
-                    <button type="button" class="btn-tab-option" onclick="selectUserJob('한의사', 'jobTabsCreate')">🌿 한의사</button>
-                    <button type="button" class="btn-tab-option" onclick="selectUserJob('모든 자영업', 'jobTabsCreate')">🏢 모든 자영업 / 상점 대표</button>
-                    <button type="button" class="btn-tab-option" onclick="selectUserJob('프리랜서', 'jobTabsCreate')">👤 프리랜서 / 개인</button>
+                    <button type="button" class="btn-tab-option" data-job="담임목사" onclick="selectUserJob(this, '담임목사')">⛪ 담임목사</button>
+                    <button type="button" class="btn-tab-option" data-job="기독교사역자" onclick="selectUserJob(this, '기독교사역자')">✝ 기독교사역자 (이단금지,본인이름교회로 제작)</button>
+                    <button type="button" class="btn-tab-option" data-job="의사" onclick="selectUserJob(this, '의사')">🏥 의사</button>
+                    <button type="button" class="btn-tab-option" data-job="치과의사" onclick="selectUserJob(this, '치과의사')">🦷 치과의사</button>
+                    <button type="button" class="btn-tab-option" data-job="한의사" onclick="selectUserJob(this, '한의사')">🌿 한의사</button>
+                    <button type="button" class="btn-tab-option" data-job="모든 자영업" onclick="selectUserJob(this, '모든 자영업')">🏢 모든 자영업 / 상점 대표</button>
+                    <button type="button" class="btn-tab-option" data-job="프리랜서" onclick="selectUserJob(this, '프리랜서')">👤 프리랜서 / 개인</button>
                 </div>
             </div>
 
@@ -2378,14 +2384,53 @@
     let currentFeedIndex = 0;
     let isVideoPaused = false;
     let isScreenLocked = false;
-    let selectedJob = '담임목사';
+    let selectedJob = '';
     let ytPlayerMap = {};
 
-    function selectUserJob(job, containerId) {
+    /* 🌟 [사용자 요청] 직종 선택 처리:
+       - 의사/치과의사/한의사 개별 단일 선택 완벽 보장 (더 이상 '의사' 클릭 시 치과/한의사 중복 활성화 없음)
+       - 담임목사 기본 강조 제거
+       - 기독교사역자 선택 시 '(이단금지, 본인이름교회로 제작)' 자동 안내 및 상호명에 본인이름+예수님의교회 적용
+    */
+    function selectUserJob(btnOrJob, jobOrContainer) {
+        let btnEl = null;
+        let job = '';
+        if (typeof btnOrJob === 'string') {
+            job = btnOrJob;
+            const container = document.getElementById(jobOrContainer || 'jobTabsCreate');
+            if (container) {
+                container.querySelectorAll('.btn-tab-option').forEach(b => {
+                    if (b.getAttribute('data-job') === job) btnEl = b;
+                });
+            }
+        } else {
+            btnEl = btnOrJob;
+            job = jobOrContainer;
+        }
+
         selectedJob = job;
-        document.querySelectorAll(`#${containerId} .btn-tab-option`).forEach(btn => {
-            btn.classList.toggle("active", btn.innerText.includes(job));
-        });
+        const container = document.getElementById('jobTabsCreate');
+        if (container) {
+            container.querySelectorAll('.btn-tab-option').forEach(b => b.classList.remove('active'));
+        }
+        if (btnEl && btnEl.classList) {
+            btnEl.classList.add('active');
+        }
+
+        const storeInp = document.getElementById("inpMyStoreCreate");
+        if (job === '기독교사역자') {
+            const userName = (localStorage.getItem("yetalkUserName") || "").trim() || "성도";
+            if (storeInp) {
+                storeInp.value = `${userName} 예수님의교회`;
+                storeInp.placeholder = `${userName} 예수님의교회 (본인이름+예수님의교회)`;
+            }
+            showToast(`✝ 기독교사역자는 담임목사가 아니므로\n[${userName} 예수님의교회]로 앱이 제작됩니다.`);
+        } else if (job === '담임목사') {
+            if (storeInp && storeInp.value.includes("예수님의교회")) {
+                storeInp.value = localStorage.getItem("yetalkChurchName") || localStorage.getItem("yetalkUserStoreName") || "예톡행복한교회";
+                storeInp.placeholder = "예: 예톡행복한교회";
+            }
+        }
     }
 
     function stopAndClearAllPlayers() {
@@ -3640,18 +3685,51 @@
     }
 
     function openAppCreateModal() {
+        selectedJob = ''; // 🌟 담임목사 등 기본 선택 강조 제거 (선택 강요 없음)
         const savedStore = localStorage.getItem("yetalkUserStoreName") || "";
-        document.getElementById("inpMyStoreCreate").value = savedStore;
+        const inp = document.getElementById("inpMyStoreCreate");
+        if (inp) {
+            inp.value = savedStore;
+            inp.placeholder = "예: 예톡행복한교회, 부산밀면가, 예톡의원";
+        }
+        const tabs = document.getElementById("jobTabsCreate");
+        if (tabs) {
+            tabs.querySelectorAll('.btn-tab-option').forEach(btn => btn.classList.remove('active'));
+        }
         openModal("appCreateModal");
     }
 
     function createSpecializedApp() {
-        const store = document.getElementById("inpMyStoreCreate").value.trim();
-        if (!store) { alert("상호명 또는 활동명을 입력해 주세요."); return; }
+        if (!selectedJob) {
+            alert("직업 / 직종을 선택해 주세요.");
+            return;
+        }
+        const storeInp = document.getElementById("inpMyStoreCreate");
+        let store = storeInp ? storeInp.value.trim() : "";
+        if (!store && selectedJob !== '기독교사역자') {
+            alert("상호명 또는 활동명을 입력해 주세요.");
+            if (storeInp) storeInp.focus();
+            return;
+        }
         registerBizAppProcess(store, selectedJob);
     }
 
     function registerBizAppProcess(store, job) {
+        // 🌟 [사용자 요청] 기독교사역자 선택 시:
+        // 상호를 적었더라도 담임목사가 아니므로 [본인이름 + 예수님의교회]로 교회 이름이 뜨게 처리!
+        if (job === '기독교사역자') {
+            const userName = (localStorage.getItem("yetalkUserName") || "").trim();
+            let baseName = userName;
+            if (store) {
+                const cleaned = store.replace(/(예수님의교회|예수님교회|교회|사역자|전도사|간사|목사|목자).*/g, '').trim();
+                if (cleaned && cleaned.length >= 2 && cleaned.length <= 8) {
+                    baseName = cleaned;
+                }
+            }
+            if (!baseName) baseName = "성도";
+            store = `${baseName} 예수님의교회`;
+        }
+
         localStorage.setItem("yetalkUserStoreName", store);
         localStorage.setItem("yetalkOneName", store);
         localStorage.setItem("yetalkUserJobType", job);
@@ -3664,15 +3742,15 @@
             targetUrl = "churchmain.html";
             icon = "⛪";
             localStorage.setItem("yetalkChurchName", store);
-        } else if (job.includes("의사") || store.includes("의원") || store.includes("병원")) {
+        } else if (job === '의사' || store.includes("의원") || store.includes("병원")) {
             targetUrl = "doctormain.html";
             icon = "🏥";
             localStorage.setItem("yetalkDoctorName", store);
-        } else if (job.includes("치과")) {
+        } else if (job === '치과의사' || job.includes("치과")) {
             targetUrl = "dentalmain.html";
             icon = "🦷";
             localStorage.setItem("yetalkDentalName", store);
-        } else if (job.includes("한의")) {
+        } else if (job === '한의사' || job.includes("한의")) {
             targetUrl = "handoctormain.html";
             icon = "🌿";
             localStorage.setItem("yetalkHanDoctorName", store);
