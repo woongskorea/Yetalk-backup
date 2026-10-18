@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>예톡 미니교회 · 가정예배</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800;900&family=Nanum+Myeongjo:wght@700;800&display=swap');
+
+        * {
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-main: #070b14;
+            --card-glass: rgba(15, 23, 42, 0.78);
+            --card-border: rgba(56, 189, 248, 0.35);
+            --neon-blue: #38bdf8;
+            --neon-green: #4ade80;
+            --neon-gold: #fde047;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding-bottom: 120px;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(2, 132, 199, 0.18) 0%, transparent 60%),
+                radial-gradient(circle at 100% 50%, rgba(74, 222, 128, 0.08) 0%, transparent 50%);
+        }
+
+        /* 서리유리 (Frosted Glass) 효과 */
+        .glass-card {
+            background: var(--card-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1.2px solid var(--card-border);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+
+        /* 1. 상단 헤더 바 */
+        .mini-header-wrapper {
+            position: sticky; top: 0; left: 0; right: 0;
+            z-index: 100;
+            background: rgba(7, 11, 20, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px 10px 14px;
+        }
+
+        .header-top-nav {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .btn-home-back {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            padding: 5px 11px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+        .btn-home-back:active { transform: scale(0.95); background: rgba(56, 189, 248, 0.25); }
+
+        .header-badge-tag {
+            font-size: 11px;
+            font-weight: 850;
+            color: var(--neon-green);
+            background: rgba(74, 222, 128, 0.12);
+            border: 1px solid rgba(74, 222, 128, 0.35);
+            padding: 3px 9px;
+            border-radius: 12px;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+
+        .btn-header-share {
+            background: rgba(2, 132, 199, 0.25);
+            border: 1px solid var(--neon-blue);
+            color: #ffffff;
+            padding: 5px 11px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        /* 교회명 & 사역자/가장 표기 */
+        .church-title-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        }
+        .church-main-name {
+            font-size: 22px;
+            font-weight: 950;
+            color: #ffffff;
+            letter-spacing: -0.4px;
+            display: flex; align-items: center; gap: 6px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+        }
+        .btn-inline-edit {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: var(--neon-gold);
+            font-size: 11px;
+            font-weight: 850;
+            padding: 3px 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: transform 0.15s;
+        }
+        .btn-inline-edit:active { transform: scale(0.92); }
+
+        .church-sub-minister {
+            font-size: 12.5px;
+            color: var(--text-muted);
+            margin-top: 3px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .minister-name-highlight {
+            color: var(--neon-blue);
+            font-weight: 850;
+        }
+
+        /* 📢 한줄 말씀 롤링 띠 */
+        .marquee-container {
+            margin-top: 8px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 14px;
+            padding: 6px 10px;
+            display: flex; align-items: center; gap: 6px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .marquee-track {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+        .marquee-text {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 750;
+            color: #f1f5f9;
+            animation: miniTickerScroll 18s linear infinite;
+        }
+        @keyframes miniTickerScroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* 2. 메인 컨텐츠 뷰포트 */
+        .mini-content-container {
+            padding: 12px 14px;
+            display: flex; flex-direction: column; gap: 14px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 섹션 공통 헤더 */
+        .section-header-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .section-title {
+            font-size: 14.5px;
+            font-weight: 900;
+            color: #ffffff;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .section-action-btn {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: var(--neon-blue);
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 2px;
+        }
+
+        /* 영상 카드 */
+        .video-player-card {
+            padding: 10px;
+            overflow: hidden;
+        }
+        .video-frame-box {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 비율 */
+            background: #000000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+        }
+        .video-frame-box iframe {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border: none;
+        }
+        .video-bottom-controls {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 8px; gap: 6px; flex-wrap: wrap;
+        }
+        .video-chip-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #cbd5e1;
+            padding: 4px 9px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .video-chip-btn:active { background: var(--neon-blue); color: #ffffff; }
+
+        /* 말씀 & 설교 나눔 카드 */
+        .grace-scripture-card {
+            padding: 14px;
+        }
+        .scripture-verse-box {
+            background: rgba(2, 132, 199, 0.1);
+            border-left: 3.5px solid var(--neon-blue);
+            padding: 10px 12px;
+            border-radius: 0 10px 10px 0;
+            font-family: 'Nanum Myeongjo', serif;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #f8fafc;
+            margin-bottom: 8px;
+        }
+        .grace-notes-body {
+            font-size: 12.5px;
+            color: #cbd5e1;
+            line-height: 1.55;
+            white-space: pre-wrap;
+        }
+        .scripture-actions-row {
+            display: flex; justify-content: flex-end; gap: 6px; margin-top: 10px;
+        }
+
+        /* 📋 가장을 위한 가정예배 순서지 카드 */
+        .worship-order-card {
+            padding: 14px;
+        }
+        .order-step-list {
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .order-step-item {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 8px 12px;
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 12.5px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .order-step-item:active { background: rgba(56, 189, 248, 0.12); }
+        .order-step-left {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .order-num-badge {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--neon-blue);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 900;
+        }
+        .order-step-title {
+            font-weight: 850; color: #ffffff;
+        }
+        .order-step-desc {
+            font-size: 11px; color: var(--text-muted);
+        }
+
+        /* 기도제목 카드 */
+        .prayer-card {
+            padding: 14px;
+        }
+        .prayer-item-box {
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .prayer-item-box:last-child { border-bottom: none; }
+        .prayer-text-wrap {
+            flex: 1; font-size: 12.5px; line-height: 1.45; color: #e2e8f0;
+        }
+        .btn-amen-counter {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 3px;
+            white-space: nowrap;
+            transition: transform 0.15s;
+        }
+        .btn-amen-counter:active { transform: scale(0.9); background: #ef4444; color: #ffffff; }
+
+        /* 은혜 나눔 댓글 피드 */
+        .fellowship-card {
+            padding: 14px;
+        }
+        .fellowship-input-row {
+            display: flex; gap: 6px; margin-bottom: 10px;
+        }
+        .inp-fellowship-author {
+            width: 75px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 6px 8px;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 750;
+            outline: none;
+            text-align: center;
+        }
+        .inp-fellowship-msg {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 6px 10px;
+            color: #ffffff;
+            font-size: 12px;
+            outline: none;
+        }
+        .btn-fellowship-send {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            border: none;
+            border-radius: 8px;
+            color: #ffffff;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .fellowship-list {
+            display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto;
+        }
+        .fellowship-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 6px 10px;
+            display: flex; align-items: baseline; gap: 6px;
+            font-size: 12px;
+        }
+        .fellowship-item-name {
+            color: var(--neon-blue); font-weight: 850; white-space: nowrap;
+        }
+        .fellowship-item-text {
+            color: #cbd5e1; word-break: break-all;
+        }
+
+        /* 헌금 및 선교 후원 카드 */
+        .offering-card {
+            padding: 14px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 27, 75, 0.6));
+        }
+        .offering-box-inner {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px dashed rgba(250, 204, 21, 0.5);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .offering-account-row {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .offering-account-text {
+            font-size: 14px; font-weight: 950; color: #fde047; letter-spacing: 0.5px;
+        }
+        .offering-holder-text {
+            font-size: 12px; color: var(--text-muted);
+        }
+        .btn-copy-account {
+            width: 100%;
+            height: 40px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 950;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+            margin-top: 4px;
+        }
+        .btn-copy-account:active { transform: scale(0.98); }
+
+        /* 3. 최하단 애드몹 100 고정 푸터 */
+        .mini-admob-footer {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: 100px;
+            background: rgba(7, 11, 20, 0.95);
+            border-top: 1px solid rgba(56, 189, 248, 0.3);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 999;
+            backdrop-filter: blur(12px);
+            padding: 6px 10px;
+        }
+        .admob-badge-text {
+            font-size: 9.5px; color: #64748b; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 2px;
+        }
+        .admob-content-inner {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .admob-title {
+            font-size: 13.5px; font-weight: 900; color: var(--neon-blue);
+        }
+        .admob-desc {
+            font-size: 10.5px; color: var(--neon-gold); font-weight: 700;
+        }
+
+        /* 모달 공통 */
+        .mini-modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 10000;
+            align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        .mini-modal-overlay.show { display: flex; }
+        .mini-modal-card {
+            background: #0f172a;
+            border: 1.5px solid var(--neon-blue);
+            border-radius: 18px;
+            padding: 18px;
+            width: 100%; max-width: 420px;
+            color: #ffffff;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.9);
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .modal-input {
+            width: 100%;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 9px 12px;
+            color: #ffffff;
+            font-size: 13.5px;
+            outline: none;
+        }
+        .modal-input:focus { border-color: var(--neon-blue); }
+        .modal-btn-row {
+            display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px;
+        }
+        .btn-modal-cancel {
+            background: #334155; color: #ffffff; border: none; padding: 8px 14px;
+            border-radius: 8px; font-size: 12.5px; cursor: pointer;
+        }
+        .btn-modal-save {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            color: #ffffff; border: none; padding: 8px 18px;
+            border-radius: 8px; font-size: 12.5px; font-weight: 900; cursor: pointer;
+        }
+
+        /* 토스트 */
+        .mini-toast {
+            position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.95);
+            color: var(--neon-blue);
+            border: 1px solid var(--neon-blue);
+            padding: 8px 16px; border-radius: 20px;
+            font-size: 12px; font-weight: 850;
+            z-index: 20000;
+            opacity: 0; visibility: hidden;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.8);
+        }
+        .mini-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <!-- 1. 상단 헤더 -->
+    <header class="mini-header-wrapper">
+        <div class="header-top-nav">
+            <a href="index.html" class="btn-home-back">
+                ◀ 예톡 홈
+            </a>
+            <span class="header-badge-tag">
+                🌿 미니교회 · 가정예배 365
+            </span>
+            <button type="button" class="btn-header-share" onclick="shareMiniChurch()">
+                📤 나눔·공유
+            </button>
+        </div>
+
+        <div class="church-title-row">
+            <h1 class="church-main-name" id="dispChurchName">
+                김예톡 예수님의교회
+            </h1>
+            <button type="button" class="btn-inline-edit" onclick="openChurchNameEditModal()">
+                ✏️ 이름수정
+            </button>
+        </div>
+
+        <div class="church-sub-minister">
+            <span id="dispMinisterRole">사역자 / 가장:</span>
+            <strong class="minister-name-highlight" id="dispMinisterName">김예톡 성도</strong>
+            <button type="button" class="btn-inline-edit" style="padding:1px 5px; font-size:10px;" onclick="openMinisterEditModal()">✏️</button>
+        </div>
+
+        <!-- 📢 한줄 말씀 롤링 띠 -->
+        <div class="marquee-container">
+            <span style="font-size:13px; flex-shrink:0;">📢</span>
+            <div class="marquee-track">
+                <span class="marquee-text" id="dispMarqueeVerse">
+                    “예수 그리스도는 어제나 오늘이나 영원토록 동일하시니라” (히브리서 13:8) ✝️ 오늘도 주님의 평강이 온 가정에 충만하시기를 축복합니다 🌿
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 2. 본문 컨텐츠 (스크롤) -->
+    <main class="mini-content-container">
+
+        <!-- [카드 1] 📺 주일 및 가정예배 실시간/찬양 영상 -->
+        <section class="glass-card video-player-card">
+            <div class="section-header-row">
+                <span class="section-title">
+                    📺 주일 & 가정예배 찬양·말씀
+                </span>
+                <button type="button" class="section-action-btn" onclick="openVideoEditModal()">
+                    ✏️ 영상 변경
+                </button>
+            </div>
+
+            <div class="video-frame-box">
+                <iframe id="miniYtIframe" src="https://www.youtube.com/embed/9w_0aE83DQU?enablejsapi=1&rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+
+            <div class="video-bottom-controls">
+                <button type="button" class="video-chip-btn" onclick="setPresetVideo('9w_0aE83DQU', '주 예수보다 더 귀한 것은 없네')">🎵 은혜 찬양 1</button>
+                <button type="button" class="video-chip-btn" onclick="setPresetVideo('yqWARJvh000', '가장 귀한 은혜의 말씀')">📖 추천 설교 2</button>
+                <button type="button" class="video-chip-btn" onclick="setPresetVideo('j9V78UaoWcE', '마음이 평온해지는 기도 음악')">🙏 기도 찬양 3</button>
+            </div>
+        </section>
+
+        <!-- [카드 2] 📖 오늘의 은혜 말씀 & 가정 설교 나눔 -->
+        <section class="glass-card grace-scripture-card">
+            <div class="section-header-row">
+                <span class="section-title">
+                    📖 오늘의 은혜 말씀 & 축복
+                </span>
+                <button type="button" class="section-action-btn" onclick="openScriptureEditModal()">
+                    ✏️ 말씀 수정
+                </button>
+            </div>
+
+            <div class="scripture-verse-box" id="dispScriptureVerse">
+                “내게 능력 주시는 자 안에서 내가 모든 것을 할 수 있느니라” (빌립보서 4:13)
+            </div>
+
+            <div class="grace-notes-body" id="dispGraceNote">
+주님이 주시는 거룩한 평강과 사랑이 우리 가정과 일터의 모든 삶의 자리에 넘쳐나기를 기도합니다.
+어떤 형편에서든지 주님을 바라보며 감사의 고백을 드리는 믿음의 승리자가 됩시다.
+            </div>
+
+            <div class="scripture-actions-row">
+                <button type="button" class="btn-inline-edit" onclick="shareScriptureKakao()">
+                    🌿 카카오톡 말씀 전도·공유
+                </button>
+            </div>
+        </section>
+
+        <!-- [카드 3] 📋 가장을 위한 가정예배 5분 순서지 -->
+        <section class="glass-card worship-order-card">
+            <div class="section-header-row">
+                <span class="section-title">
+                    📋 가장이 이끄는 가정예배 순서
+                </span>
+                <span style="font-size:11px; color:var(--neon-green); font-weight:800;">5분 은혜 순서지</span>
+            </div>
+
+            <div class="order-step-list">
+                <div class="order-step-item" onclick="toggleCreedBox()">
+                    <div class="order-step-left">
+                        <span class="order-num-badge">1</span>
+                        <div>
+                            <div class="order-step-title">신앙고백 (사도신경)</div>
+                            <div class="order-step-desc">다 함께 입술을 열어 신앙을 고백합니다 (터치 시 전문 보기)</div>
+                        </div>
+                    </div>
+                    <span>▼</span>
+                </div>
+                <!-- 사도신경 전문 토글 박스 -->
+                <div id="creedBox" style="display:none; background:rgba(0,0,0,0.4); border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.6; color:#cbd5e1;">
+                    전능하사 천지를 만드신 하나님 아버지를 내가 믿사오며, 그 외아들 우리 주 예수 그리스도를 믿사오니, 이는 성령으로 잉태하사 동정녀 마리아에게 나시고, 본디오 빌라도에게 고난을 받으사, 십자가에 못 박혀 죽으시고, 장사한 지 사흘 만에 죽은 자 가운데서 다시 살아나시며, 하늘에 오르사 전능하신 하나님 우편에 앉아 계시다가, 저리로서 산 자와 죽은 자를 심판하러 오시리라. 성령을 믿사오며, 거룩한 공회와, 성도가 서로 교통하는 것과, 죄를 사하여 주시는 것과, 몸이 다시 사는 것과, 영원히 사는 것을 믿사옵나이다. 아멘.
+                </div>
+
+                <div class="order-step-item">
+                    <div class="order-step-left">
+                        <span class="order-num-badge">2</span>
+                        <div>
+                            <div class="order-step-title">찬송 (통일 찬송가)</div>
+                            <div class="order-step-desc">상단의 예배 찬양 영상을 틀고 온 가족이 함께 찬양합니다</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-step-item">
+                    <div class="order-step-left">
+                        <span class="order-num-badge">3</span>
+                        <div>
+                            <div class="order-step-title">성경 봉독 & 가장의 은혜 나눔</div>
+                            <div class="order-step-desc">위의 오늘의 말씀을 읽고 서로 감사한 일을 나눕니다</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-step-item" onclick="toggleLordPrayerBox()">
+                    <div class="order-step-left">
+                        <span class="order-num-badge">4</span>
+                        <div>
+                            <div class="order-step-title">합심 기도 & 주기도문</div>
+                            <div class="order-step-desc">가족의 손을 잡고 기도 후 주기도문으로 마칩니다 (터치 시 전문 보기)</div>
+                        </div>
+                    </div>
+                    <span>▼</span>
+                </div>
+                <!-- 주기도문 전문 토글 박스 -->
+                <div id="lordPrayerBox" style="display:none; background:rgba(0,0,0,0.4); border-radius:8px; padding:10px 12px; font-size:12px; line-height:1.6; color:#cbd5e1;">
+                    하늘에 계신 우리 아버지여, 이름이 거룩히 여김을 받으시오며, 나라가 임하시오며, 뜻이 하늘에서 이루어진 것 같이 땅에서도 이루어지이다. 오늘 우리에게 일용할 양식을 주시옵고, 우리가 우리에게 죄 지은 자를 사하여 준 것 같이 우리 죄를 사하여 주시옵고, 우리를 시험에 들게 하지 마시옵고, 다만 악에서 구하시옵소서. 나라와 권세와 영광이 아버지께 영원히 있사옵나이다. 아멘.
+                </div>
+            </div>
+        </section>
+
+        <!-- [카드 4] 🙏 가족 & 성도 중보 기도제목 -->
+        <section class="glass-card prayer-card">
+            <div class="section-header-row">
+                <span class="section-title">
+                    🙏 우리 가정 & 사역 중보 기도
+                </span>
+                <button type="button" class="section-action-btn" onclick="openPrayerAddModal()">
+                    ＋ 기도제목 추가
+                </button>
+            </div>
+
+            <div id="prayerListContainer">
+                <!-- 기도제목 동적 렌더링 -->
+            </div>
+        </section>
+
+        <!-- [카드 5] 💬 은혜 나눔 한줄 교제 -->
+        <section class="glass-card fellowship-card">
+            <div class="section-header-row">
+                <span class="section-title">
+                    💬 은혜의 나눔 & 성도 교제
+                </span>
+                <span style="font-size:11px; color:var(--text-muted);">실시간 나눔</span>
+            </div>
+
+            <div class="fellowship-input-row">
+                <input type="text" id="inpFellowAuthor" class="inp-fellowship-author" placeholder="이름" maxlength="6">
+                <input type="text" id="inpFellowMsg" class="inp-fellowship-msg" placeholder="은혜의 한마디를 나누어주세요">
+                <button type="button" class="btn-fellowship-send" onclick="submitFellowshipComment()">등록</button>
+            </div>
+
+            <div class="fellowship-list" id="fellowshipListBox">
+                <!-- 댓글 동적 렌더링 -->
+            </div>
+        </section>
+
+        <!-- [카드 6] 🏛️ 온라인 헌금 & 선교 후원 안내 -->
+        <section class="glass-card offering-card">
+            <div class="section-header-row">
+                <span class="section-title" style="color:#fde047;">
+                    🏛️ 온라인 헌금 & 선교 후원 안내
+                </span>
+                <button type="button" class="section-action-btn" style="color:#fde047;" onclick="openOfferingEditModal()">
+                    ✏️ 계좌 수정
+                </button>
+            </div>
+
+            <div class="offering-box-inner">
+                <div class="offering-account-row">
+                    <span style="font-size:12px; color:#cbd5e1;" id="dispBankName">카카오뱅크</span>
+                    <span class="offering-account-text" id="dispAccountNum">3333-01-2345678</span>
+                </div>
+                <div class="offering-holder-text" id="dispAccountHolder">
+                    예금주: 김예톡 (미니교회 · 선교후원)
+                </div>
+                <button type="button" class="btn-copy-account" onclick="copyOfferingAccount()">
+                    📋 계좌번호 간편 복사하기
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 3. 최하단 애드몹 100 고정 배너 푸터 -->
+    <footer class="mini-admob-footer">
+        <span class="admob-badge-text">AD • Google AdMob 공식 스폰서 슬롯 (320 × 100)</span>
+        <div class="admob-content-inner">
+            <strong class="admob-title">Google AdMob Large Banner</strong>
+            <span class="admob-desc">한국 미니교회 및 가정예배 미디어 공식 후원</span>
+        </div>
+    </footer>
+
+    <!-- 🌟 수정 모달: 교회 이름 수정 -->
+    <div class="mini-modal-overlay" id="churchNameModal" onclick="closeModal('churchNameModal')">
+        <div class="mini-modal-card" onclick="event.stopPropagation()">
+            <strong style="color:var(--neon-blue); font-size:15.5px;">⛪ 교회명 / 예배처소명 수정</strong>
+            <span style="font-size:12px; color:#cbd5e1;">원하시는 미니교회 또는 가정예배 처소의 이름을 입력해주세요.</span>
+            <input type="text" id="inpEditChurchName" class="modal-input" placeholder="예: 김예톡 예수님의교회, 은혜가정교회">
+            <div class="modal-btn-row">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('churchNameModal')">취소</button>
+                <button type="button" class="btn-modal-save" onclick="saveChurchName()">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 수정 모달: 사역자/가장 이름 수정 -->
+    <div class="mini-modal-overlay" id="ministerModal" onclick="closeModal('ministerModal')">
+        <div class="mini-modal-card" onclick="event.stopPropagation()">
+            <strong style="color:var(--neon-blue); font-size:15.5px;">👤 사역자 / 가장 직분 및 이름 수정</strong>
+            <input type="text" id="inpEditMinisterRole" class="modal-input" placeholder="직분 (예: 사역자 / 가장 / 성도)">
+            <input type="text" id="inpEditMinisterName" class="modal-input" placeholder="성함 (예: 김예톡 성도)">
+            <div class="modal-btn-row">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('ministerModal')">취소</button>
+                <button type="button" class="btn-modal-save" onclick="saveMinisterInfo()">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 수정 모달: 영상 URL/ID 변경 -->
+    <div class="mini-modal-overlay" id="videoModal" onclick="closeModal('videoModal')">
+        <div class="mini-modal-card" onclick="event.stopPropagation()">
+            <strong style="color:var(--neon-blue); font-size:15.5px;">📺 예배 및 찬양 영상 변경</strong>
+            <span style="font-size:12px; color:#cbd5e1;">유튜브 링크(공유링크 포함) 또는 영상 ID(11자리)를 입력하세요.</span>
+            <input type="text" id="inpEditVideoUrl" class="modal-input" placeholder="예: https://youtu.be/9w_0aE83DQU">
+            <div class="modal-btn-row">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('videoModal')">취소</button>
+                <button type="button" class="btn-modal-save" onclick="saveVideoUrl()">영상 적용</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 수정 모달: 말씀 및 나눔 수정 -->
+    <div class="mini-modal-overlay" id="scriptureModal" onclick="closeModal('scriptureModal')">
+        <div class="mini-modal-card" onclick="event.stopPropagation()">
+            <strong style="color:var(--neon-blue); font-size:15.5px;">📖 오늘의 말씀 & 은혜 나눔 수정</strong>
+            <input type="text" id="inpEditScriptureVerse" class="modal-input" placeholder="성경 구절 (예: 시편 23:1)">
+            <textarea id="inpEditGraceNote" class="modal-input" rows="4" placeholder="가정 및 성도들과 나눌 은혜의 메시지"></textarea>
+            <div class="modal-btn-row">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('scriptureModal')">취소</button>
+                <button type="button" class="btn-modal-save" onclick="saveScriptureData()">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 추가 모달: 기도제목 추가 -->
+    <div class="mini-modal-overlay" id="prayerModal" onclick="closeModal('prayerModal')">
+        <div class="mini-modal-card" onclick="event.stopPropagation()">
+            <strong style="color:var(--neon-blue); font-size:15.5px;">🙏 새 기도제목 등록</strong>
+            <input type="text" id="inpEditPrayerText" class="modal-input" placeholder="기도제목을 입력해주세요">
+            <div class="modal-btn-row">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('prayerModal')">취소</button>
+                <button type="button" class="btn-modal-save" onclick="saveNewPrayer()">기도제목 등록</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 수정 모달: 헌금 계좌 정보 수정 -->
+    <div class="mini-modal-overlay" id="offeringModal" onclick="closeModal('offeringModal')">
+        <div class="mini-modal-card" onclick="event.stopPropagation()">
+            <strong style="color:var(--neon-gold); font-size:15.5px;">🏛️ 온라인 헌금/후원 계좌 정보 수정</strong>
+            <input type="text" id="inpEditBankName" class="modal-input" placeholder="은행명 (예: 카카오뱅크, 농협)">
+            <input type="text" id="inpEditAccountNum" class="modal-input" placeholder="계좌번호 (- 포함 가능)">
+            <input type="text" id="inpEditAccountHolder" class="modal-input" placeholder="예금주 (예: 김예톡)">
+            <div class="modal-btn-row">
+                <button type="button" class="btn-modal-cancel" onclick="closeModal('offeringModal')">취소</button>
+                <button type="button" class="btn-modal-save" onclick="saveOfferingInfo()">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="mini-toast" id="miniToast"></div>
+
+    <script>
+        /* 🌟 상태 및 데이터 관리 */
+        const STORAGE_KEY_NAME = "yetalkMiniChurchName";
+        const STORAGE_KEY_MINISTER = "yetalk_minichurch_minister";
+        const STORAGE_KEY_VIDEO = "yetalk_minichurch_video_id";
+        const STORAGE_KEY_SCRIPTURE = "yetalk_minichurch_scripture";
+        const STORAGE_KEY_PRAYERS = "yetalk_minichurch_prayers";
+        const STORAGE_KEY_FELLOWSHIP = "yetalk_minichurch_comments";
+        const STORAGE_KEY_BANK = "yetalk_minichurch_bank";
+
+        let currentVideoId = "9w_0aE83DQU";
+
+        // 토스트 표시 함수
+        function showToast(msg) {
+            const toast = document.getElementById("miniToast");
+            if (!toast) return;
+            toast.innerText = msg;
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 2200);
+        }
+
+        function openModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.add("show");
+        }
+        function closeModal(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove("show");
+        }
+
+        /* 1. 교회명 관리 */
+        function loadChurchName() {
+            const saved = localStorage.getItem(STORAGE_KEY_NAME) || localStorage.getItem("yetalkChurchName") || "김예톡 예수님의교회";
+            const el = document.getElementById("dispChurchName");
+            if (el) el.innerText = saved;
+            document.title = `${saved} - 미니교회 · 가정예배`;
+        }
+
+        function openChurchNameEditModal() {
+            const cur = document.getElementById("dispChurchName").innerText;
+            document.getElementById("inpEditChurchName").value = cur;
+            openModal("churchNameModal");
+        }
+
+        function saveChurchName() {
+            const val = document.getElementById("inpEditChurchName").value.trim();
+            if (!val) { alert("교회명을 입력해주세요."); return; }
+            localStorage.setItem(STORAGE_KEY_NAME, val);
+            localStorage.setItem("yetalkChurchName", val);
+            localStorage.setItem("yetalkUserStoreName", val);
+            loadChurchName();
+            closeModal("churchNameModal");
+            showToast("✨ 교회명이 성공적으로 변경되었습니다!");
+        }
+
+        /* 2. 사역자 / 가장 정보 */
+        function loadMinisterInfo() {
+            let data = { role: "사역자 / 가장:", name: "김예톡 성도" };
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_MINISTER);
+                if (raw) data = Object.assign(data, JSON.parse(raw));
+                else {
+                    const uName = localStorage.getItem("yetalkUserName");
+                    if (uName && uName !== "성도") data.name = `${uName} 성도`;
+                }
+            } catch(e){}
+            document.getElementById("dispMinisterRole").innerText = data.role;
+            document.getElementById("dispMinisterName").innerText = data.name;
+        }
+
+        function openMinisterEditModal() {
+            document.getElementById("inpEditMinisterRole").value = document.getElementById("dispMinisterRole").innerText;
+            document.getElementById("inpEditMinisterName").value = document.getElementById("dispMinisterName").innerText;
+            openModal("ministerModal");
+        }
+
+        function saveMinisterInfo() {
+            const role = document.getElementById("inpEditMinisterRole").value.trim() || "사역자 / 가장:";
+            const name = document.getElementById("inpEditMinisterName").value.trim() || "김예톡 성도";
+            const data = { role, name };
+            localStorage.setItem(STORAGE_KEY_MINISTER, JSON.stringify(data));
+            loadMinisterInfo();
+            closeModal("ministerModal");
+            showToast("✨ 직분 및 성함이 변경되었습니다.");
+        }
+
+        /* 3. 예배 영상 관리 */
+        function extractYouTubeId(url) {
+            if (!url) return "";
+            if (url.length === 11 && !url.includes("/") && !url.includes(".")) return url;
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : "";
+        }
+
+        function loadVideo() {
+            const saved = localStorage.getItem(STORAGE_KEY_VIDEO) || "9w_0aE83DQU";
+            currentVideoId = saved;
+            const iframe = document.getElementById("miniYtIframe");
+            if (iframe) {
+                iframe.src = `https://www.youtube.com/embed/${saved}?enablejsapi=1&rel=0`;
+            }
+        }
+
+        function openVideoEditModal() {
+            document.getElementById("inpEditVideoUrl").value = `https://youtu.be/${currentVideoId}`;
+            openModal("videoModal");
+        }
+
+        function saveVideoUrl() {
+            const raw = document.getElementById("inpEditVideoUrl").value.trim();
+            const yId = extractYouTubeId(raw);
+            if (!yId) {
+                alert("올바른 유튜브 링크 또는 11자리 영상 ID를 입력해주세요.");
+                return;
+            }
+            localStorage.setItem(STORAGE_KEY_VIDEO, yId);
+            loadVideo();
+            closeModal("videoModal");
+            showToast("📺 예배 영상이 변경되었습니다!");
+        }
+
+        function setPresetVideo(yId, title) {
+            localStorage.setItem(STORAGE_KEY_VIDEO, yId);
+            loadVideo();
+            showToast(`🎵 [${title}] 영상으로 변경되었습니다.`);
+        }
+
+        /* 4. 말씀 및 은혜 나눔 관리 */
+        function loadScriptureData() {
+            let data = {
+                verse: "“내게 능력 주시는 자 안에서 내가 모든 것을 할 수 있느니라” (빌립보서 4:13)",
+                note: "주님이 주시는 거룩한 평강과 사랑이 우리 가정과 일터의 모든 삶의 자리에 넘쳐나기를 기도합니다.\n어떤 형편에서든지 주님을 바라보며 감사의 고백을 드리는 믿음의 승리자가 됩시다."
+            };
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_SCRIPTURE);
+                if (raw) data = Object.assign(data, JSON.parse(raw));
+            } catch(e){}
+            document.getElementById("dispScriptureVerse").innerText = data.verse;
+            document.getElementById("dispGraceNote").innerText = data.note;
+        }
+
+        function openScriptureEditModal() {
+            document.getElementById("inpEditScriptureVerse").value = document.getElementById("dispScriptureVerse").innerText;
+            document.getElementById("inpEditGraceNote").value = document.getElementById("dispGraceNote").innerText;
+            openModal("scriptureModal");
+        }
+
+        function saveScriptureData() {
+            const verse = document.getElementById("inpEditScriptureVerse").value.trim();
+            const note = document.getElementById("inpEditGraceNote").value.trim();
+            if (!verse) { alert("말씀 구절을 입력해주세요."); return; }
+            localStorage.setItem(STORAGE_KEY_SCRIPTURE, JSON.stringify({ verse, note }));
+            loadScriptureData();
+            closeModal("scriptureModal");
+            showToast("📖 은혜의 말씀이 저장되었습니다!");
+        }
+
+        function shareScriptureKakao() {
+            const churchName = document.getElementById("dispChurchName").innerText;
+            const verse = document.getElementById("dispScriptureVerse").innerText;
+            const shareText = `[${churchName} 오늘의 은혜 말씀]\n\n${verse}\n\n✝️ 예톡 미니교회 모바일 앱:\n${window.location.href}`;
+            if (navigator.share) {
+                navigator.share({ title: churchName, text: shareText, url: window.location.href }).catch(()=>{});
+            } else {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    showToast("📋 말씀과 링크가 복사되었습니다! 카톡에 붙여넣기 하세요.");
+                }).catch(() => {
+                    showToast("공유하기를 지원하지 않는 브라우저입니다.");
+                });
+            }
+        }
+
+        /* 5. 사도신경 / 주기도문 아코디언 */
+        function toggleCreedBox() {
+            const box = document.getElementById("creedBox");
+            if (!box) return;
+            box.style.display = box.style.display === "none" ? "block" : "none";
+        }
+
+        function toggleLordPrayerBox() {
+            const box = document.getElementById("lordPrayerBox");
+            if (!box) return;
+            box.style.display = box.style.display === "none" ? "block" : "none";
+        }
+
+        /* 6. 기도제목 관리 */
+        const DEFAULT_PRAYERS = [
+            { id: 1, text: "1. 우리 가정이 오직 주님만을 섬기는 거룩한 믿음의 가정 되게 하소서", count: 18 },
+            { id: 2, text: "2. 자녀들의 앞길과 일터 위에 주님의 지혜와 형통의 복을 더하소서", count: 15 },
+            { id: 3, text: "3. 영육간의 연약한 환우 성도들을 치료하시고 새 힘을 주옵소서", count: 21 }
+        ];
+
+        function loadPrayers() {
+            let prayers = DEFAULT_PRAYERS;
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_PRAYERS);
+                if (raw) prayers = JSON.parse(raw);
+            } catch(e){}
+
+            const container = document.getElementById("prayerListContainer");
+            if (!container) return;
+            container.innerHTML = prayers.map((p, idx) => `
+                <div class="prayer-item-box">
+                    <div class="prayer-text-wrap">${p.text}</div>
+                    <button type="button" class="btn-amen-counter" onclick="incrementAmen(${idx})">
+                        🙏 아멘 <span>${p.count || 0}</span>
+                    </button>
+                </div>
+            `).join("");
+        }
+
+        function incrementAmen(idx) {
+            let prayers = DEFAULT_PRAYERS;
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_PRAYERS);
+                if (raw) prayers = JSON.parse(raw);
+            } catch(e){}
+            if (prayers[idx]) {
+                prayers[idx].count = (prayers[idx].count || 0) + 1;
+                localStorage.setItem(STORAGE_KEY_PRAYERS, JSON.stringify(prayers));
+                loadPrayers();
+                showToast("🙏 '아멘'으로 함께 마음을 모았습니다!");
+            }
+        }
+
+        function openPrayerAddModal() {
+            document.getElementById("inpEditPrayerText").value = "";
+            openModal("prayerModal");
+        }
+
+        function saveNewPrayer() {
+            const val = document.getElementById("inpEditPrayerText").value.trim();
+            if (!val) { alert("기도제목을 입력해주세요."); return; }
+            let prayers = DEFAULT_PRAYERS;
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_PRAYERS);
+                if (raw) prayers = JSON.parse(raw);
+            } catch(e){}
+            prayers.push({ id: Date.now(), text: `${prayers.length + 1}. ${val}`, count: 1 });
+            localStorage.setItem(STORAGE_KEY_PRAYERS, JSON.stringify(prayers));
+            loadPrayers();
+            closeModal("prayerModal");
+            showToast("🙏 새 기도제목이 등록되었습니다!");
+        }
+
+        /* 7. 은혜 나눔 교제 (댓글) */
+        const DEFAULT_FELLOWSHIP = [
+            { author: "김예톡", msg: "온 가족이 함께 모여 감사함으로 예배드립니다! 아멘 🌿" },
+            { author: "이성도", msg: "사역자님의 귀한 섬김과 기도에 늘 큰 힘을 얻습니다." },
+            { author: "박권사", msg: "오늘도 주님의 은혜 안에서 평안한 하루 되세요!" }
+        ];
+
+        function loadFellowshipComments() {
+            let list = DEFAULT_FELLOWSHIP;
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_FELLOWSHIP);
+                if (raw) list = JSON.parse(raw);
+            } catch(e){}
+
+            const box = document.getElementById("fellowshipListBox");
+            if (!box) return;
+            box.innerHTML = list.map(item => `
+                <div class="fellowship-item">
+                    <span class="fellowship-item-name">${item.author}:</span>
+                    <span class="fellowship-item-text">${item.msg}</span>
+                </div>
+            `).join("");
+        }
+
+        function submitFellowshipComment() {
+            const authorInp = document.getElementById("inpFellowAuthor");
+            const msgInp = document.getElementById("inpFellowMsg");
+            const author = authorInp.value.trim() || "성도";
+            const msg = msgInp.value.trim();
+            if (!msg) { alert("은혜의 한마디를 입력해주세요."); return; }
+
+            let list = DEFAULT_FELLOWSHIP;
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_FELLOWSHIP);
+                if (raw) list = JSON.parse(raw);
+            } catch(e){}
+
+            list.unshift({ author, msg });
+            localStorage.setItem(STORAGE_KEY_FELLOWSHIP, JSON.stringify(list));
+            msgInp.value = "";
+            loadFellowshipComments();
+            showToast("💬 은혜의 나눔이 등록되었습니다!");
+        }
+
+        /* 8. 헌금 계좌 정보 관리 */
+        function loadOfferingInfo() {
+            let data = {
+                bank: "카카오뱅크",
+                acc: "3333-01-2345678",
+                holder: "예금주: 김예톡 (미니교회 · 선교후원)"
+            };
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY_BANK);
+                if (raw) data = Object.assign(data, JSON.parse(raw));
+            } catch(e){}
+            document.getElementById("dispBankName").innerText = data.bank;
+            document.getElementById("dispAccountNum").innerText = data.acc;
+            document.getElementById("dispAccountHolder").innerText = data.holder;
+        }
+
+        function openOfferingEditModal() {
+            document.getElementById("inpEditBankName").value = document.getElementById("dispBankName").innerText;
+            document.getElementById("inpEditAccountNum").value = document.getElementById("dispAccountNum").innerText;
+            document.getElementById("inpEditAccountHolder").value = document.getElementById("dispAccountHolder").innerText;
+            openModal("offeringModal");
+        }
+
+        function saveOfferingInfo() {
+            const bank = document.getElementById("inpEditBankName").value.trim() || "카카오뱅크";
+            const acc = document.getElementById("inpEditAccountNum").value.trim() || "3333-01-2345678";
+            let holder = document.getElementById("inpEditAccountHolder").value.trim();
+            if (holder && !holder.startsWith("예금주:")) holder = `예금주: ${holder}`;
+            const data = { bank, acc, holder: holder || "예금주: 김예톡" };
+            localStorage.setItem(STORAGE_KEY_BANK, JSON.stringify(data));
+            loadOfferingInfo();
+            closeModal("offeringModal");
+            showToast("🏛️ 헌금 계좌 정보가 저장되었습니다!");
+        }
+
+        function copyOfferingAccount() {
+            const bank = document.getElementById("dispBankName").innerText;
+            const acc = document.getElementById("dispAccountNum").innerText;
+            const holder = document.getElementById("dispAccountHolder").innerText;
+            const textToCopy = `${bank} ${acc} (${holder})`;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showToast("📋 계좌정보가 복사되었습니다!");
+            }).catch(() => {
+                showToast(`복사 실패: ${acc}`);
+            });
+        }
+
+        function shareMiniChurch() {
+            const churchName = document.getElementById("dispChurchName").innerText;
+            const shareText = `[${churchName} 모바일 미니교회·가정예배]\n\n언제 어디서나 온 가족과 함께 주일 예배와 은혜의 말씀을 나눕니다.\n\n⛪ 바로가기:\n${window.location.href}`;
+            if (navigator.share) {
+                navigator.share({ title: churchName, text: shareText, url: window.location.href }).catch(()=>{});
+            } else {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    showToast("📋 미니교회 안내 링크가 복사되었습니다!");
+                });
+            }
+        }
+
+        /* 초기화 */
+        document.addEventListener("DOMContentLoaded", () => {
+            loadChurchName();
+            loadMinisterInfo();
+            loadVideo();
+            loadScriptureData();
+            loadPrayers();
+            loadFellowshipComments();
+            loadOfferingInfo();
+
+            const savedAuthor = localStorage.getItem("yetalkUserName") || "김예톡";
+            const authorInp = document.getElementById("inpFellowAuthor");
+            if (authorInp) authorInp.value = savedAuthor;
+        });
+    </script>
+</body>
+</html>
