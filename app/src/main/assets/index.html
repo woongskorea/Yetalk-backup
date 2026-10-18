@@ -1008,9 +1008,9 @@
         .form-label-title { font-size: 12px; color: #facc15; font-weight: 850; }
 
         .vertical-select-tabs {
-            display: flex; flex-direction: column; gap: 4px;
+            display: flex; flex-direction: column; gap: 5px;
             background: #0b1120; padding: 6px; border-radius: 8px; border: 1px solid #334155;
-            max-height: 160px; overflow-y: auto;
+            max-height: 240px; overflow-y: auto;
         }
         .btn-tab-option {
             background: #1e293b; border: 1px solid #334155; color: #cbd5e1;
@@ -1984,8 +1984,9 @@
             <div class="form-group-line">
                 <label class="form-label-title">직업 / 직종 선택</label>
                 <div class="vertical-select-tabs" id="jobTabsCreate">
-                    <button type="button" class="btn-tab-option" data-job="담임목사" onclick="selectUserJob(this, '담임목사')">⛪ 담임목사</button>
-                    <button type="button" class="btn-tab-option" data-job="기독교사역자" onclick="selectUserJob(this, '기독교사역자')">✝ 기독교사역자 (이단금지,본인이름교회로 제작)</button>
+                    <button type="button" class="btn-tab-option" data-job="가장(크리스챤)" onclick="selectUserJob(this, '가장(크리스챤)')">✝️ 가장(크리스챤) - 가정교회·움직이는교회</button>
+                    <button type="button" class="btn-tab-option" data-job="기독교사역자" onclick="selectUserJob(this, '기독교사역자')">✝️ 기독교사역자 - 움직이는교회</button>
+                    <button type="button" class="btn-tab-option" data-job="담임목사" onclick="selectUserJob(this, '담임목사')">⛪ 담임목사 (본교회)</button>
                     <button type="button" class="btn-tab-option" data-job="의사" onclick="selectUserJob(this, '의사')">🏥 의사</button>
                     <button type="button" class="btn-tab-option" data-job="치과의사" onclick="selectUserJob(this, '치과의사')">🦷 치과의사</button>
                     <button type="button" class="btn-tab-option" data-job="한의사" onclick="selectUserJob(this, '한의사')">🌿 한의사</button>
@@ -2532,17 +2533,18 @@
         }
 
         const storeInp = document.getElementById("inpMyStoreCreate");
-        if (job === '기독교사역자') {
+        if (job === '가장(크리스챤)' || job === '기독교사역자') {
+            const userName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkProfileName") || "김예톡";
+            const defaultMovingChurch = `${userName}의 움직이는교회`;
             if (storeInp) {
-                // 🌟 [사용자 요청] 기독교사역자 선택 시 "김예톡 예수님의교회"로 기본 표시되고, 사용자가 자유롭게 교회 이름을 수정할 수 있도록 허용
-                if (!storeInp.value || storeInp.value.includes("예수님의교회") || storeInp.value.includes("최웅식")) {
-                    storeInp.value = "김예톡 예수님의교회";
+                if (!storeInp.value || storeInp.value.includes("예수님의교회") || storeInp.value.includes("최웅식") || storeInp.value.includes("움직이는교회") || storeInp.value.includes("행복한교회")) {
+                    storeInp.value = defaultMovingChurch;
                 }
-                storeInp.placeholder = "예: 김예톡 예수님의교회 (교회이름 직접 수정 가능)";
+                storeInp.placeholder = `예: ${defaultMovingChurch} (자유롭게 수정 가능)`;
             }
-            showToast("✝ 기독교사역자는 담임목사가 아니므로\n[김예톡 예수님의교회]로 시작하며 자유롭게 수정 가능합니다.");
+            showToast(`✝️ ${job}: [${defaultMovingChurch}]로 시작하며 자유롭게 수정 가능합니다.`);
         } else if (job === '담임목사') {
-            if (storeInp && storeInp.value.includes("예수님의교회")) {
+            if (storeInp && (storeInp.value.includes("예수님의교회") || storeInp.value.includes("움직이는교회"))) {
                 storeInp.value = localStorage.getItem("yetalkChurchName") || localStorage.getItem("yetalkUserStoreName") || "예톡행복한교회";
                 storeInp.placeholder = "예: 예톡행복한교회";
             }
@@ -3896,13 +3898,14 @@
     }
 
     function registerBizAppProcess(store, job) {
-        // 🌟 [사용자 요청] 기독교사역자 선택 시:
-        // "김예톡 예수님의교회" 기본 제공 및 사용자가 자유롭게 수정한 교회명 그대로 인정,
-        // 기존 교회앱(churchmain.html)은 절대 손대지 않고 새 단일 미니교회앱(minichurch.html)으로 이동!
-        if (job === '기독교사역자') {
+        // 🌟 [사용자 요청] 가장(크리스챤) 및 기독교사역자 선택 시:
+        // "<<누구의 움직이는교회>>" (예: 김예톡의 움직이는교회) 기본 제공 및 수정 가능,
+        // 기존 교회앱(churchmain.html)은 절대 손대지 않고 새 미니교회앱(minichurch.html)으로 즉시 개설 및 이동!
+        if (job === '기독교사역자' || job === '가장(크리스챤)') {
             store = (store || "").trim();
             if (!store) {
-                store = "김예톡 예수님의교회";
+                const userName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkProfileName") || "김예톡";
+                store = `${userName}의 움직이는교회`;
             }
         }
 
@@ -3914,7 +3917,7 @@
 
         let targetUrl = "onemain.html";
         let icon = "💼";
-        if (job === '기독교사역자') {
+        if (job === '기독교사역자' || job === '가장(크리스챤)') {
             targetUrl = "minichurch.html";
             icon = "⛪";
             localStorage.setItem("yetalkMiniChurchName", store);
