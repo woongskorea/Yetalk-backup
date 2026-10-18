@@ -238,11 +238,18 @@
             display: flex !important;
         }
 
-        /* 🌟 [사용자 요청] 영상 끝나고 애드몹 250 노출 시 및 종료 후: 우측 세로 메뉴 철저히 차단 (수익 삭감 원천 방지) */
+        /* 🌟 [사용자 요청] 영상 끝나고 애드몹 250 노출 시: 우측 세로 메뉴, 상단 헤더 등 모든 UI 완전 차단 (애드몹 독점 클린 노출) */
+        body.has-admob-250 .top-header-wrapper,
         body.has-admob-250 .right-actions-bar,
+        body.has-admob-250 .bottom-left-info-bar,
+        body.has-admob-250 .permanent-zoom-btn,
+        body.has-admob-250 .permanent-lock-btn,
+        body.has-admob-250 .bottom-fixed-admob-100,
         body:not(.is-playing-video) .right-actions-bar,
         .admob-250-overlay.show ~ .right-actions-bar,
-        .admob-250-overlay[style*="display: flex"] ~ .right-actions-bar {
+        .admob-250-overlay[style*="display: flex"] ~ .right-actions-bar,
+        .admob-250-overlay.show ~ .top-header-wrapper,
+        .admob-250-overlay[style*="display: flex"] ~ .top-header-wrapper {
             display: none !important;
             opacity: 0 !important;
             pointer-events: none !important;
@@ -2727,7 +2734,11 @@
             } catch(e){}
             if (!admobReplayTimer) {
                 const overlay = document.getElementById("admob250Overlay");
-                if (overlay) overlay.style.display = "none";
+                if (overlay) {
+                    overlay.classList.remove("show");
+                    overlay.style.display = "none";
+                }
+                document.body.classList.remove("has-admob-250");
             }
             isVideoPaused = false;
             updatePlaybackUiState(true); // 🌟 [사용자 요청] 영상 재생 중 재생시에만 세로 동그라미 메뉴 표시!
@@ -2758,6 +2769,7 @@
         const overlay = document.getElementById("admob250Overlay");
         const countdownEl = document.getElementById("admobReplayCountdown");
         if (overlay) {
+            overlay.classList.add("show");
             overlay.style.display = "flex";
             let remaining = 3;
             if (countdownEl) countdownEl.innerText = `${remaining}초 후 영상이 다시 시작됩니다...`;
@@ -2789,7 +2801,10 @@
             admobReplayTimer = null;
         }
         const overlay = document.getElementById("admob250Overlay");
-        if (overlay) overlay.style.display = "none";
+        if (overlay) {
+            overlay.classList.remove("show");
+            overlay.style.display = "none";
+        }
         document.body.classList.remove("has-admob-250");
         // 🌟 [사용자 요청] 애드몹 끝난 후에도 재생이 시작되기 전까지 세로 메뉴 7개 모두 비노출 유지!
         updatePlaybackUiState(false);
