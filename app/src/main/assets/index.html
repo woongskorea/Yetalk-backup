@@ -2294,7 +2294,7 @@
                 쇼츠, 롱폼, 라이브, 모바일 공유링크(?si= 포함) 등 모든 유튜브 영상이 올라갑니다.
             </div>
             <div style="font-size:11.5px; color:#fde047; font-weight:800; background:rgba(253, 224, 71, 0.1); border:1px solid rgba(253, 224, 71, 0.3); border-radius:8px; padding:6px 10px; line-height:1.4;">
-                💡 <b>전회원 클라우드 송출 안내</b>: 1인(업체)당 최신 대표 영상 2개까지 전회원에게 실시간 자동 전파되며, 서버 유지비는 0원(무료)으로 안전하게 운영됩니다.
+                💡 <b>전회원 클라우드 송출 안내</b>: ⛪교회·🏥의원은 주일예배/시술영상 <b>30개</b>, 🍜식당은 <b>10개</b>까지 전회원에게 실시간 자동 보존되며, 유튜브 스트리밍 기반으로 <b>서버 비용 0원(적자 0%)</b>으로 안전하게 운영됩니다.
             </div>
 
             <!-- 🌟 [사용자 요청] 스마트폰 자판이 올라와도 즉시 누를 수 있도록 등록 버튼을 두껍고 시원하게 배치 -->
@@ -2595,9 +2595,10 @@
                 <div class="cms-cloud-info-box">
                     <span style="font-size:22px;">☁️</span>
                     <div>
-                        <strong style="color:#38bdf8; font-size:12.5px;">전회원 실시간 클라우드 자동 동기화</strong>
+                        <strong style="color:#38bdf8; font-size:12.5px;">전회원 실시간 클라우드 자동 동기화 (서버비 0원 안심 보존)</strong>
                         <p style="color:#94a3b8; font-size:11px; margin:2px 0 0 0; line-height:1.4;">
-                            여기서 등록한 영상은 파이어베이스 클라우드를 통해 <b>모든 회원들의 스마트폰과 컴퓨터에 즉시 자동 반영</b>됩니다.
+                            등록한 영상은 파이어베이스 클라우드를 통해 <b>모든 성도·고객들의 스마트폰과 컴퓨터에 즉시 자동 반영</b>됩니다.<br>
+                            <span style="color:#fde047;">⛪ 교회·🏥 의원은 주일예배/시술영상 <b>30개 대용량 보관</b></span> (유튜브 스트리밍 기반으로 서버비 영구 0원!)
                         </p>
                     </div>
                 </div>
@@ -4444,6 +4445,20 @@
         }).join("");
     }
 
+    function getCloudVideoSlotLimit(bizName, targetUrl) {
+        const str = ((bizName || '') + ' ' + (targetUrl || '')).toLowerCase();
+        if (str.includes('church') || str.includes('교회') || str.includes('mini')) {
+            return 30; // ⛪ 교회/미니교회: 주일 1·2부, 수요예배, 금요철야, 새벽기도 등 30개 예배 영상 영구 보존!
+        }
+        if (str.includes('doctor') || str.includes('dental') || str.includes('handoc') || str.includes('의원') || str.includes('치과') || str.includes('한의원') || str.includes('병원')) {
+            return 30; // 🏥 병원/의원: 다양한 질환별 시술 사례 & 건강 상담 30개 영상 보존!
+        }
+        if (str.includes('shop') || str.includes('식당') || str.includes('상점')) {
+            return 10; // 🍜 식당/상점: 대표 메뉴 및 매장 안내 10개 보존!
+        }
+        return 3; // 👤 일반 개인 회원은 3개
+    }
+
     function submitNewYoutubeVideo() {
         const input = document.getElementById("ytInpUrl");
         const titleInp = document.getElementById("ytInpTitle");
@@ -4496,7 +4511,7 @@
             date: dateStr,
             timestamp: Date.now(),
             bizName: chosenBiz,
-            shortAd: promoText, // 🌟 사용자가 입력한 한줄 소개글/홍보글이 바로 저장되어 좌측 하단에 즉시 표출!
+            shortAd: promoText,
             targetUrl: chosenUrl,
             views: 101,
             likes: 3,
@@ -4518,14 +4533,15 @@
         hiddenIds = hiddenIds.filter(id => String(id) !== String(newFeed.id));
         localStorage.setItem("yetalkHiddenFeedIds", JSON.stringify(hiddenIds));
 
-        // 🌟 [사용자 제안 완벽 반영: 업체/회원당 클라우드 슬롯 2개 제한 정책]
-        // 서버 비용 100% 영구 무료 보장 & 도배 방지:
-        // 클라우드(공용 서버)에는 최신 대표 영상 2개만 송출되며, 3번째부터는 오래된 영상을 자동 교체!
-        // 본인 스마트폰(로컬스토리지)에는 모든 과거 영상이 안전하게 그대로 보관됩니다.
+        // 🌟 [사용자 요청 완벽 반영: 교회·의원 30개 대용량 클라우드 아카이브 보존 정책]
+        // - 교회(우리교회, 미니교회): 주일 1·2부, 수요예배, 금요철야, 새벽예배 등 30개 예배 영상 영구 보존!
+        // - 의원(메디컬, 치과, 한의원): 질환별 시술 및 치료 케이스 30개 영상 영구 보존!
+        // ※ 30개 링크도 고작 6KB에 불과하여 Firebase 평생 무료(1GB) 안에서 서버비는 0원(완전 무료) 유지!
         if (window.yetalkDb && window.yetalkFs) {
             try {
                 const { doc, deleteDoc, collection, addDoc, getDocs, query, where, orderBy, serverTimestamp } = window.yetalkFs;
                 const authorName = localStorage.getItem("yetalkUserName") || "예톡회원";
+                const maxSlots = getCloudVideoSlotLimit(chosenBiz, chosenUrl);
 
                 const checkQ = query(
                     collection(window.yetalkDb, "yetalk_videos"),
@@ -4534,9 +4550,9 @@
                 );
 
                 getDocs(checkQ).then(snap => {
-                    if (snap && snap.size >= 2) {
+                    if (snap && snap.size >= maxSlots) {
                         const docsToDelete = [];
-                        let countToDelete = snap.size - 1;
+                        let countToDelete = snap.size - (maxSlots - 1);
                         snap.forEach(d => {
                             if (countToDelete > 0) {
                                 docsToDelete.push(d.id);
@@ -4564,7 +4580,7 @@
                         createdAt: serverTimestamp()
                     });
                 }).then(() => {
-                    console.log("Firebase Firestore: 2-slot managed video registered!");
+                    console.log(`Firebase Firestore: [${chosenBiz}] video registered (Capacity: ${maxSlots} slots)!`);
                 }).catch(err => {
                     console.warn("Firestore notice:", err);
                 });
@@ -5817,14 +5833,15 @@ https://yetalk.cc`;
         savedList.unshift(newFeed);
         localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(savedList));
 
-        // 🌟 [사용자 제안 완벽 반영: 업체/회원당 클라우드 슬롯 2개 제한 정책]
-        // 서버 비용 100% 영구 무료 보장 & 도배 방지:
-        // 클라우드(공용 서버)에는 최신 대표 영상 2개만 송출되며, 3번째부터는 오래된 영상을 자동 교체!
-        // 본인 스마트폰(로컬스토리지)에는 모든 과거 영상이 안전하게 그대로 보관됩니다.
+        // 🌟 [사용자 요청 완벽 반영: 교회·의원 30개 대용량 클라우드 아카이브 보존 정책]
+        // - 교회: 30개 (주일 1·2부, 수요예배, 금요철야, 새벽예배 등 한달치 예배 전체 영구 보존)
+        // - 의원: 30개 (시술/치료 케이스 및 건강 안내 영상 영구 보존)
+        // - 식당/상점: 10개, 일반 회원: 3개 (도배 방지)
         if (window.yetalkDb && window.yetalkFs) {
             try {
                 const { doc, deleteDoc, collection, addDoc, getDocs, query, where, orderBy, serverTimestamp } = window.yetalkFs;
                 const authorName = localStorage.getItem("yetalkUserName") || "예톡회원";
+                const maxSlots = getCloudVideoSlotLimit(chosenBiz, chosenUrl);
 
                 const checkQ = query(
                     collection(window.yetalkDb, "yetalk_videos"),
@@ -5833,9 +5850,9 @@ https://yetalk.cc`;
                 );
 
                 getDocs(checkQ).then(snap => {
-                    if (snap && snap.size >= 2) {
+                    if (snap && snap.size >= maxSlots) {
                         const docsToDelete = [];
-                        let countToDelete = snap.size - 1;
+                        let countToDelete = snap.size - (maxSlots - 1);
                         snap.forEach(d => {
                             if (countToDelete > 0) {
                                 docsToDelete.push(d.id);
@@ -5941,7 +5958,7 @@ https://yetalk.cc`;
                 return;
             }
             const { collection, getDocs, query, orderBy, limit } = window.yetalkFs;
-            const q = query(collection(window.yetalkDb, "yetalk_videos"), orderBy("createdAt", "desc"), limit(40));
+            const q = query(collection(window.yetalkDb, "yetalk_videos"), orderBy("createdAt", "desc"), limit(100));
             const snap = await getDocs(q);
             if (!snap.empty) {
                 let localFeeds = [];
