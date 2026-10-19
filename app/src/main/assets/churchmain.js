@@ -11,7 +11,7 @@ const MENU_DEFINITIONS = [
     { id: 4, cat: "기도모임", link: "churchpray.html" },
     { id: 5, cat: "교회초청", link: "churchinvite.html" },
     { id: 6, cat: "예수동행", link: "churchjesuswalking.html" },
-    { id: 7, cat: "보배성도", link: "churchmember.html" },
+    { id: 7, cat: "소모임방", link: "churchmember.html" },
     { id: 8, cat: "다음세대", link: "churchnextgen.html" },
     { id: 9, cat: "선교전도", link: "churchmission.html" },
     { id: 10, cat: "보물창고", link: "churcharchive.html" }
@@ -48,12 +48,12 @@ function createDefaultSlides(catName, isWorship = false) {
             { title: "예배", verse: "살아계신 하나님을 깊이 만나는 축제", body: "뜨거운 찬양과 기도로 살아계신 하나님을 깊이 만납니다.", yt: "", img: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?auto=format&fit=crop&w=1600&q=90" }
         ];
     }
-    if (catName === "보배성도") {
+    if (catName === "보배성도" || catName === "소모임방") {
         return [
-            { title: "보배성도", verse: "주 안에서 하나 되는 행복셀 나눔", body: "주 안에서 하나 되어 기쁨과 감사를 나누는 은혜의 행복셀 모임입니다.", yt: "", img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1600&q=90" },
-            { title: "보배성도", verse: "사랑과 선행으로 격려하는 은혜의 교제", body: "말씀으로 세워지고 기도로 중보하며 함께 자라가는 나눔셀 모임입니다.", yt: "", img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=90" },
-            { title: "보배성도", verse: "세상의 빛과 소금 된 존귀한 성도들", body: "세상의 빛과 소금으로 부르심 받은 존귀한 성도들의 믿음의 교제입니다.", yt: "", img: "https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=1600&q=90" },
-            { title: "보배성도", verse: "선교 사역 및 미디어 방송 공식 후원", body: "주님의 평안과 풍성한 은혜가 사랑하는 성도님의 가정과 삶에 충만하시길 기도합니다.", yt: "", img: "", isAdmob250: true }
+            { title: "소모임방", verse: "주 안에서 하나 되는 행복셀 나눔", body: "주 안에서 하나 되어 기쁨과 감사를 나누는 은혜의 행복셀 모임입니다.", yt: "", img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1600&q=90" },
+            { title: "소모임방", verse: "사랑과 선행으로 격려하는 은혜의 교제", body: "말씀으로 세워지고 기도로 중보하며 함께 자라가는 나눔셀 모임입니다.", yt: "", img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=90" },
+            { title: "소모임방", verse: "세상의 빛과 소금 된 존귀한 성도들", body: "세상의 빛과 소금으로 부르심 받은 존귀한 성도들의 믿음의 교제입니다.", yt: "", img: "https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=1600&q=90" },
+            { title: "소모임방", verse: "선교 사역 및 미디어 방송 공식 후원", body: "주님의 평안과 풍성한 은혜가 사랑하는 성도님의 가정과 삶에 충만하시길 기도합니다.", yt: "", img: "", isAdmob250: true }
         ];
     }
     if (catName === "공지알림") {
@@ -177,10 +177,10 @@ function initChurchData() {
                 churchSlideData[3] = createDefaultSlides("공지알림", false);
             }
         } else if (m.id === 7) {
-            // 🌟 보배성도 (성도 교제 및 셀 모임): 마지막 슬라이드에 250 애드몹 보장!
+            // 🌟 소모임방 (성도 교제 및 셀 모임): 마지막 슬라이드에 250 애드몹 보장!
             const list7 = churchSlideData[7];
             if (!list7 || !Array.isArray(list7) || list7.length < 3 || !list7[list7.length - 1].isAdmob250 || list7.some(isDoctorDirtySlide) || needVerseMigration) {
-                churchSlideData[7] = createDefaultSlides("보배성도", false);
+                churchSlideData[7] = createDefaultSlides("소모임방", false);
             }
         } else if (m.id === 6) {
             const list6 = churchSlideData[6];
@@ -558,7 +558,7 @@ function renderChurchView() {
                         </div>
                     ` : ''}
 
-                    <!-- 🌟 [사용자 요청] 이미지 바탕 맨 아래에 포함된 한줄 메뉴 (예톡TV, 복음, 오시는길, 헌금, 쿠팡) -->
+                    <!-- 🌟 [사용자 요청] 이미지 바탕 맨 아래에 포함된 한줄 4대 메뉴 (예톡TV, 복음, 오시는길, 헌금) -->
                     <div class="card-embedded-quick-nav">
                         <button type="button" class="c-quick-nav-btn" onclick="event.stopPropagation(); handleBottomNav('tv');" title="예톡TV 숏폼 보기">
                             <span class="c-quick-icon">📺</span>
@@ -575,10 +575,6 @@ function renderChurchView() {
                         <button type="button" class="c-quick-nav-btn c-quick-offering" onclick="event.stopPropagation(); handleBottomNav('offering');" title="온라인 헌금">
                             <span class="c-quick-icon">💳</span>
                             <span class="c-quick-label">헌금</span>
-                        </button>
-                        <button type="button" class="c-quick-nav-btn c-quick-coupang" onclick="event.stopPropagation(); handleBottomNav('coupang');" title="쿠팡 복음선교">
-                            <span class="c-quick-icon">🛒</span>
-                            <span class="c-quick-label">쿠팡</span>
                         </button>
                     </div>
                 </div>

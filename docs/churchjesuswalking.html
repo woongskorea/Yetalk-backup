@@ -558,13 +558,13 @@
         </div>
     </section>
 
-    <!-- 🌟 [사용자 요청] 방언기도,기도음악,찬양기도 아주 얇게 하얀 박스위에 배치(이모티콘 없이) -->
+    <!-- 🌟 [사용자 요청] 방언기도,찬양기도 두가지로 통일 + 뒤에 중지/재생 버튼 -->
     <div class="prayer-music-thin-box" style="margin: 0 12px 8px 12px; padding: 4px 8px; background: #ffffff; border-radius: 10px; border: 1.5px solid #bcd0e2; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-        <span style="font-size:11px; font-weight:900; color:#475569; padding-left:4px; white-space:nowrap;">기도음악</span>
+        <span style="font-size:11px; font-weight:900; color:#475569; padding-left:4px; white-space:nowrap;">기도</span>
         <div style="display:flex; gap:6px; flex:1; justify-content:flex-end;">
             <button type="button" class="btn-prayer-thin" id="btnPastorBgm_1" onclick="togglePastorBgm(1)">방언기도</button>
-            <button type="button" class="btn-prayer-thin" id="btnPastorBgm_2" onclick="togglePastorBgm(2)">기도음악</button>
             <button type="button" class="btn-prayer-thin" id="btnPastorBgm_3" onclick="togglePastorBgm(3)">찬양기도</button>
+            <button type="button" class="btn-prayer-thin" id="btnPastorBgm_stop" onclick="togglePastorBgmStop()">⏹️ 중지</button>
         </div>
     </div>
 
@@ -705,16 +705,8 @@
         </div>
         <p style="font-size:11.5px; color:#cbd5e1; line-height:1.4;">성도들이 묵상하면서 함께 들을 <strong>유튜브 라이브/음성 주소</strong>를 입력해주세요.</p>
         <div>
-            <span style="font-size:11px; color:#facc15; font-weight:800; display:block; margin-bottom:5px;">⚡ 빠른 추천 프리셋</span>
-            <div style="display:flex; gap:6px;">
-                <button type="button" onclick="setPastorLivePreset('bus')" style="flex:1; background:#1e293b; border:1px solid #334155; color:#93c5fd; padding:6px 2px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">🚌 천국버스예배</button>
-                <button type="button" onclick="setPastorLivePreset('praise')" style="flex:1; background:#1e293b; border:1px solid #334155; color:#c084fc; padding:6px 2px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">🎵 은혜찬양</button>
-                <button type="button" onclick="setPastorLivePreset('word')" style="flex:1; background:#1e293b; border:1px solid #334155; color:#34d399; padding:6px 2px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">📖 말씀강해</button>
-            </div>
-        </div>
-        <div>
-            <label style="display:block; font-size:11.5px; color:#94a3b8; margin-bottom:4px;">🎥 유튜브 라이브 주소 (URL 또는 영상ID)</label>
-            <input type="text" id="inpPastorLiveYtUrl" placeholder="https://www.youtube.com/watch?v=..." style="width:100%; background:#1e293b; border:1px solid #38bdf8; border-radius:8px; padding:8px 10px; font-size:12.5px; color:#fff; outline:none; box-sizing:border-box;">
+            <label style="display:block; font-size:11.5px; color:#94a3b8; margin-bottom:4px;">🎥 유튜브 라이브 주소 (클릭 시 자동 초기화)</label>
+            <input type="text" id="inpPastorLiveYtUrl" placeholder="https://www.youtube.com/watch?v=..." onclick="this.value='';" onfocus="this.select();" style="width:100%; background:#334155; border:1.5px solid #64748b; border-radius:8px; padding:8px 10px; font-size:12.5px; color:#f8fafc; outline:none; box-sizing:border-box;">
         </div>
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
             <button type="button" onclick="closePastorLiveUrlModal()" style="padding:7px 14px; background:#334155; color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">취소</button>
@@ -1726,12 +1718,22 @@
     let pastorBgmNodes = [];
     let pastorBgmTimer = null;
 
+    let lastPastorPrayerType = 1;
+
     function togglePastorBgm(type) {
         if (currentPastorBgmType === type) {
             stopPastorBgm();
             return;
         }
         startPastorBgm(type);
+    }
+
+    function togglePastorBgmStop() {
+        if (currentPastorBgmType) {
+            stopPastorBgm();
+        } else {
+            startPastorBgm(lastPastorPrayerType || 1);
+        }
     }
 
     function stopPastorBgm() {
@@ -1745,18 +1747,29 @@
             const btn = document.getElementById(`btnPastorBgm_${i}`);
             if (btn) btn.classList.remove("active");
         }
+        const stopBtn = document.getElementById("btnPastorBgm_stop");
+        if (stopBtn) {
+            stopBtn.innerText = "▶️ 재생";
+            stopBtn.classList.remove("active");
+        }
         const st = document.getElementById("pastorPrayerMusicStatus");
-        if (st) st.innerText = "원하는 음악을 터치하세요";
+        if (st) st.innerText = "기도를 선택하세요";
     }
 
     function startPastorBgm(type) {
         stopPastorBgm();
         currentPastorBgmType = type;
+        lastPastorPrayerType = type;
         const activeBtn = document.getElementById(`btnPastorBgm_${type}`);
         if (activeBtn) activeBtn.classList.add("active");
-        const names = { 1: "🎹 잔잔한 기도 연주 중...", 2: "🌿 묵상 찬양 연주 중...", 3: "🔥 성령 임재 연주 중..." };
+        const stopBtn = document.getElementById("btnPastorBgm_stop");
+        if (stopBtn) {
+            stopBtn.innerText = "⏹️ 중지";
+            stopBtn.classList.add("active");
+        }
+        const names = { 1: "방언기도 연주 중...", 3: "찬양기도 연주 중..." };
         const st = document.getElementById("pastorPrayerMusicStatus");
-        if (st) st.innerText = names[type] || "기도 음악 재생 중...";
+        if (st) st.innerText = names[type] || "기도 재생 중...";
 
         try {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
