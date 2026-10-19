@@ -1448,12 +1448,17 @@
                 background: #000;
             }
 
-            /* PC 스마트폰 모드 활성화 시 메인 컨테이너 내부 모바일 쇼츠 UI 숨김 */
+            /* PC 스마트폰 모드 활성화 시 메인 컨테이너 내부 모바일 쇼츠 UI 및 하단 고정 하트/도구바 완전 숨김 */
             .main-container.mode-phone-active .top-header-wrapper,
             .main-container.mode-phone-active .feed-scroll-container,
             .main-container.mode-phone-active .right-actions-bar,
             .main-container.mode-phone-active .right-bottom-dangol-btn,
             .main-container.mode-phone-active .bottom-nav-container,
+            .main-container.mode-phone-active .bottom-left-info-bar,
+            .main-container.mode-phone-active .permanent-zoom-btn,
+            .main-container.mode-phone-active .permanent-lock-btn,
+            .main-container.mode-phone-active .admob-safety-wrapper,
+            .main-container.mode-phone-active .bottom-fixed-admob-100,
             .main-container.mode-phone-active .center-floating-ad-banner {
                 display: none !important;
             }
@@ -2869,7 +2874,7 @@
                     <label class="cms-label">🖼️ 대표 사진 (스마트폰 최상단 히어로 이미지)</label>
                     <div class="cms-photo-upload-box">
                         <div class="cms-photo-preview-wrap">
-                            <img id="pcCmsPhotoPreview" src="church_main_bg.jpg" onerror="this.src='church_main_bg.jpg'" alt="대표 사진 미리보기" />
+                            <img id="pcCmsPhotoPreview" src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=600&q=80" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=600&q=80'" alt="대표 사진 미리보기" />
                             <span class="cms-photo-badge">실시간 미리보기</span>
                         </div>
                         <div class="cms-photo-action-col">
@@ -3506,6 +3511,18 @@
         });
     }
 
+    function stopAllVideoPlayback() {
+        Object.keys(ytPlayerMap).forEach(id => {
+            try {
+                if (ytPlayerMap[id]) {
+                    ytPlayerMap[id].pauseVideo();
+                    ytPlayerMap[id].mute();
+                }
+            } catch(e){}
+        });
+        isVideoPaused = true;
+    }
+
     function onYouTubeIframeAPIReady() {
         initAllFeedPlayers();
     }
@@ -3635,6 +3652,15 @@
                         try {
                             event.target.setPlaybackQuality('hd1080');
                         } catch(e){}
+                        const isPcDesk = (window.innerWidth >= 1024);
+                        const isShortsActive = document.querySelector(".main-container")?.classList.contains("mode-shorts-active");
+                        if (isPcDesk && !isShortsActive) {
+                            try {
+                                event.target.mute();
+                                event.target.pauseVideo();
+                            } catch(e){}
+                            return;
+                        }
                         if (idx === currentFeedIndex) {
                             try {
                                 event.target.mute();
@@ -3642,7 +3668,7 @@
                             } catch(e){}
                             setTimeout(() => {
                                 try {
-                                    if (idx === currentFeedIndex) {
+                                    if (idx === currentFeedIndex && (!isPcDesk || isShortsActive)) {
                                         event.target.unMute();
                                         event.target.setPlaybackQuality('hd1080');
                                     }
@@ -4517,9 +4543,19 @@
         }
     }
 
+    function sanitizeAppName(name) {
+        if (!name) return "예톡 아름다운의원";
+        let n = String(name).trim();
+        if (n === "예톡 아름다운 원" || n === "예톡 아름다운" || n === "예톡아름다운" || n === "아름다운 원" || n === "아름다운 의원" || n === "아름다운의원" || n === "예톡 아름다운 원 (실시간 앱 화면)") {
+            return "예톡 아름다운의원";
+        }
+        return n;
+    }
+
     function checkHasMySpecialApp() {
         const hasReg = localStorage.getItem("yetalkHasRegisteredBiz") === "true" || localStorage.getItem("yetalk_has_my_special_app") === "true";
-        const store = (localStorage.getItem("yetalkUserStoreName") || "").trim();
+        let store = (localStorage.getItem("yetalkUserStoreName") || "").trim();
+        store = sanitizeAppName(store);
         const church = (localStorage.getItem("yetalkChurchName") || "").trim();
 
         if (hasReg) return true;
@@ -4540,7 +4576,20 @@
             if (raw) list = JSON.parse(raw);
         } catch(e) {}
 
-        const store = (localStorage.getItem("yetalkUserStoreName") || "").trim();
+        let listModified = false;
+        list.forEach(app => {
+            const clean = sanitizeAppName(app.name);
+            if (clean !== app.name) {
+                app.name = clean;
+                listModified = true;
+            }
+        });
+        if (listModified) {
+            try { localStorage.setItem("yetalk_my_created_apps", JSON.stringify(list)); } catch(e){}
+        }
+
+        let store = (localStorage.getItem("yetalkUserStoreName") || "").trim();
+        store = sanitizeAppName(store);
         const church = (localStorage.getItem("yetalkChurchName") || "").trim();
         const url = localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html";
 
@@ -5935,10 +5984,11 @@ https://yetalk.cc`;
     function initPcWorkDesk() {
         if (window.innerWidth < 1024) return;
         setPcCenterMode('phone');
+        stopAllVideoPlayback();
 
         // 기본 활성 앱: 저장된 앱이 있으면 해당 앱으로, 없으면 churchmain.html
         const savedUrl = localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html";
-        const savedName = localStorage.getItem("yetalkUserStoreName") || localStorage.getItem("yetalkChurchName") || "우리교회";
+        const savedName = sanitizeAppName(localStorage.getItem("yetalkUserStoreName") || localStorage.getItem("yetalkChurchName") || "우리교회");
         const type = savedUrl.includes("church") || savedUrl.includes("mini") ? "church" : (savedUrl.includes("doctor") || savedUrl.includes("dental") || savedUrl.includes("handoc") ? "doctor" : (savedUrl.includes("shop") || savedUrl.includes("pro") ? "shop" : "personal"));
 
         selectPcAppPreview(savedUrl, savedName, type);
@@ -5955,7 +6005,7 @@ https://yetalk.cc`;
             container.classList.remove("mode-shorts-active");
             if (btnPhone) btnPhone.classList.add("active");
             if (btnShorts) btnShorts.classList.remove("active");
-            if (typeof pauseCurrentVideo === "function") pauseCurrentVideo();
+            stopAllVideoPlayback();
         } else {
             container.classList.remove("mode-phone-active");
             container.classList.add("mode-shorts-active");
@@ -5972,6 +6022,7 @@ https://yetalk.cc`;
     }
 
     function handlePcAppNavClick(url, name, type) {
+        name = sanitizeAppName(name);
         if (window.innerWidth >= 1024) {
             selectPcAppPreview(url, name, type);
         } else {
@@ -5980,6 +6031,7 @@ https://yetalk.cc`;
     }
 
     function selectPcAppPreview(url, name, type) {
+        name = sanitizeAppName(name);
         activePcApp = { url, name, type };
 
         // 1. Center Phone Frame
@@ -6376,14 +6428,16 @@ https://yetalk.cc`;
 
         window._pendingCmsHeroImg = null;
 
-        let curName = name;
-        let curDesc = "성도와 이웃을 섬기는 사랑과 은혜의 공동체";
+        let curName = sanitizeAppName(name);
+        let curDesc = "정직한 진료, 환자 중심의 따뜻한 의료 상담";
         let curPhone = "010-1234-5678";
         let curBank = "국민 123-456-78901 (예톡)";
-        let curPhoto = "church_main_bg.jpg";
+        let curPhoto = "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=90";
 
-        if (type === 'church' || urlIncludes(activePcApp.url, 'church') || urlIncludes(activePcApp.url, 'mini')) {
-            if (urlIncludes(activePcApp.url, 'mini')) {
+        const effectiveUrl = (activePcApp && activePcApp.url) ? activePcApp.url : '';
+
+        if (type === 'church' || urlIncludes(effectiveUrl, 'church') || urlIncludes(effectiveUrl, 'mini')) {
+            if (urlIncludes(effectiveUrl, 'mini')) {
                 curName = localStorage.getItem("yetalk_minichurch_v5_name") || "김예톡의 움직이는교회";
                 curDesc = "가정, 일터, 삶의 모든 자리가 살아 숨쉬는 교회입니다";
                 try {
@@ -6395,27 +6449,45 @@ https://yetalk.cc`;
                 curDesc = localStorage.getItem("yetalkUserPromoText") || "말씀과 기도로 영혼을 살리는 은혜의 공동체";
                 curPhone = localStorage.getItem("yetalkChurchPhone") || "010-1234-5678";
                 curBank = localStorage.getItem("yetalkChurchBank") || "국민 123-456-78901 (예톡교회)";
-                curPhoto = localStorage.getItem("yetalkChurchHeroBg") || "church_main_bg.jpg";
+                curPhoto = localStorage.getItem("yetalkChurchHeroBg") || "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1200&q=80";
             }
-        } else if (type === 'shop') {
-            curName = localStorage.getItem("yetalkShopName") || "소상공인 착한식당";
+        } else if (type === 'shop' || urlIncludes(effectiveUrl, 'shop') || urlIncludes(effectiveUrl, 'food') || urlIncludes(effectiveUrl, 'pro')) {
+            curName = localStorage.getItem("yetalkShopName") || curName || "소상공인 착한식당";
             curDesc = localStorage.getItem("yetalkShopDesc") || "정성껏 만든 따뜻하고 건강한 집밥 한 상";
             curPhone = "051-888-9999";
             curBank = "부산 098-765-43210 (착한식당)";
-            curPhoto = "church_main_bg.jpg";
-        } else if (type === 'doctor') {
-            curName = name;
-            curDesc = "정직한 진료, 환자 중심의 따뜻한 의료 상담";
-            curPhone = "02-1234-5678";
-            curBank = "신한 110-222-33333 (메디컬의원)";
-            curPhoto = "church_main_bg.jpg";
+            curPhoto = localStorage.getItem("yetalkShopHeroBg") || "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80";
+        } else if (type === 'doctor' || urlIncludes(effectiveUrl, 'doctor') || urlIncludes(effectiveUrl, 'dental') || urlIncludes(effectiveUrl, 'handoc')) {
+            curName = sanitizeAppName(localStorage.getItem("yetalkDoctorName") || curName || "예톡 아름다운의원");
+            curDesc = localStorage.getItem("yetalkDoctorDesc") || "정직한 진료, 환자 중심의 따뜻한 의료 상담";
+            curPhone = localStorage.getItem("yetalkDoctorPhone") || "02-1234-5678";
+            curBank = localStorage.getItem("yetalkDoctorBank") || "신한 110-222-33333 (메디컬의원)";
+
+            const doctorBg = localStorage.getItem("yetalkDoctorHeroBg");
+            if (doctorBg) {
+                curPhoto = doctorBg;
+            } else {
+                try {
+                    const pages = JSON.parse(localStorage.getItem("yetalk_doctor_intro_pages_v3") || "[]");
+                    if (pages[0] && pages[0].img) curPhoto = pages[0].img;
+                } catch(e){}
+            }
+            if (!curPhoto || curPhoto === "church_main_bg.jpg") {
+                curPhoto = "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=90";
+            }
         }
 
         if (inpName) inpName.value = curName;
         if (inpDesc) inpDesc.value = curDesc;
         if (inpPhone) inpPhone.value = curPhone;
         if (inpBank) inpBank.value = curBank;
-        if (previewImg) previewImg.src = curPhoto;
+        if (previewImg) {
+            previewImg.src = curPhoto;
+            previewImg.onerror = function() {
+                this.onerror = null;
+                this.src = "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80";
+            };
+        }
         if (inpUrl) inpUrl.value = curPhoto.startsWith('data:') ? '컴퓨터 업로드 사진' : curPhoto;
     }
 
@@ -6687,7 +6759,8 @@ https://yetalk.cc`;
     }
 
     function applyPcCmsChanges() {
-        const appName = document.getElementById("pcCmsAppName")?.value.trim() || "예톡";
+        let appName = document.getElementById("pcCmsAppName")?.value.trim() || "";
+        appName = sanitizeAppName(appName);
         const appDesc = document.getElementById("pcCmsAppDesc")?.value.trim() || "";
         const appPhone = document.getElementById("pcCmsAppPhone")?.value.trim() || "";
         const appBank = document.getElementById("pcCmsAppBank")?.value.trim() || "";
@@ -6718,24 +6791,61 @@ https://yetalk.cc`;
                     localStorage.setItem("yetalkChurchHeroBg", window._pendingCmsHeroImg);
                 }
             }
-        } else if (curType === 'shop') {
+        } else if (curType === 'shop' || urlIncludes(curUrl, 'shop') || urlIncludes(curUrl, 'food') || urlIncludes(curUrl, 'pro')) {
             localStorage.setItem("yetalkShopName", appName);
             localStorage.setItem("yetalkUserStoreName", appName);
             localStorage.setItem("yetalkUserPromoText", appDesc);
             if (window._pendingCmsHeroImg) {
                 localStorage.setItem("yetalkShopHeroBg", window._pendingCmsHeroImg);
             }
-        } else if (curType === 'doctor') {
+        } else if (curType === 'doctor' || urlIncludes(curUrl, 'doctor') || urlIncludes(curUrl, 'dental') || urlIncludes(curUrl, 'handoc')) {
             localStorage.setItem("yetalkDoctorName", appName);
             localStorage.setItem("yetalkUserStoreName", appName);
+            localStorage.setItem("yetalkDoctorDesc", appDesc);
+            localStorage.setItem("yetalkDoctorPhone", appPhone);
+            localStorage.setItem("yetalkDoctorBank", appBank);
+            if (window._pendingCmsHeroImg) {
+                localStorage.setItem("yetalkDoctorHeroBg", window._pendingCmsHeroImg);
+                try {
+                    let pages = JSON.parse(localStorage.getItem("yetalk_doctor_intro_pages_v3") || "[]");
+                    if (!pages || pages.length === 0) {
+                        pages = [
+                            {
+                                title: "의원소개",
+                                img: window._pendingCmsHeroImg,
+                                desc: appDesc || "안녕하세요, 예톡아름다운 의원입니다.\n\n저희 의원은 불필요한 과잉진료를 철저히 지양하고, 최신 검사 장비와 1:1 맞춤 진료를 통해 환자분들의 건강과 자연스러운 아름다움을 안전하게 회복시켜 드립니다."
+                            }
+                        ];
+                    } else {
+                        pages[0].img = window._pendingCmsHeroImg;
+                        if (appDesc) pages[0].desc = appDesc;
+                    }
+                    localStorage.setItem("yetalk_doctor_intro_pages_v3", JSON.stringify(pages));
+                } catch(e){}
+            }
         }
 
-        // Center Phone Iframe Reload
+        // Preview header labels
+        const badgeText = document.getElementById("pcCenterAppNameText");
+        if (badgeText) badgeText.textContent = `${appName} (실시간 앱 화면)`;
+        const rightName = document.getElementById("pcRightActiveAppName");
+        if (rightName) rightName.textContent = appName;
+
+        // Smooth Phone Iframe Reload
         const iframe = document.getElementById("pcAppIframe");
         if (iframe) {
-            iframe.src = iframe.src;
+            try {
+                if (iframe.contentWindow) {
+                    iframe.contentWindow.location.reload();
+                } else {
+                    iframe.src = curUrl;
+                }
+            } catch(e) {
+                iframe.src = curUrl;
+            }
         }
 
+        renderPcAppNavList();
         playTokSound();
         showToast(`✨ [${appName}] 변경사항이 실시간 스마트폰 화면에 즉시 적용되었습니다!`);
     }
@@ -6817,41 +6927,53 @@ https://yetalk.cc`;
     }, 65000);
 
     document.addEventListener("DOMContentLoaded", () => {
-        // 🌟 [사용자 요청] 최초 기본 정보 및 관리자 모드 자동 초기화 (총관리자 최웅식 / ID: 최예톡 및 관리자 인증 보장)
-        if (!localStorage.getItem("yetalkUserName") || localStorage.getItem("yetalkUserName") === "김예톡") {
-            localStorage.setItem("yetalkUserName", "최웅식");
-            localStorage.setItem("yetalkUserId", "최예톡");
-            localStorage.setItem("yetalkUserPw", "7777");
-            localStorage.setItem("yetalkUserRegion", "부산진구");
-            localStorage.setItem("yetalk_admin_auth", "true");
-            localStorage.setItem("yetalkLoggedIn", "true");
-        }
         try {
-            // 🌟 [사용자 요청] 스마트폰 & PC 모두 기본 화면은 무조건 100% 표준 배율로 초기화
-            applyVideoZoom(100);
-            localStorage.setItem("yetalkVideoZoomLevel", "100");
+            if (!localStorage.getItem("yetalkUserName") || localStorage.getItem("yetalkUserName") === "김예톡") {
+                localStorage.setItem("yetalkUserName", "최웅식");
+                localStorage.setItem("yetalkUserId", "최예톡");
+                localStorage.setItem("yetalkUserPw", "7777");
+                localStorage.setItem("yetalkUserRegion", "부산진구");
+                localStorage.setItem("yetalk_admin_auth", "true");
+                localStorage.setItem("yetalkLoggedIn", "true");
+            }
         } catch(e){}
-        renderFeedCards();
-        checkLatestNoticeAlert();
-        renderPcAppNavList();
-        populateModalBizSelect();
-        updateLoginStateUI();
-        checkAdminButtonVisibility();
-        checkPcAdmobHide();
+
+        // Sanitize broken clinic/doctor name in storage
+        try {
+            const rawStore = localStorage.getItem("yetalkUserStoreName");
+            if (rawStore && (rawStore === "예톡 아름다운 원" || rawStore === "예톡아름다운" || rawStore.includes("아름다운 원") || rawStore === "아름다운 의원" || rawStore === "아름다운의원")) {
+                localStorage.setItem("yetalkUserStoreName", "예톡 아름다운의원");
+            }
+            const rawDoctor = localStorage.getItem("yetalkDoctorName");
+            if (rawDoctor && (rawDoctor === "예톡 아름다운 원" || rawDoctor === "예톡아름다운" || rawDoctor.includes("아름다운 원") || rawDoctor === "아름다운 의원" || rawDoctor === "아름다운의원")) {
+                localStorage.setItem("yetalkDoctorName", "예톡 아름다운의원");
+            }
+        } catch(e){}
+
+        try { applyVideoZoom(100); localStorage.setItem("yetalkVideoZoomLevel", "100"); } catch(e){}
+        try { renderFeedCards(); } catch(e){ console.error(e); }
+        try { checkLatestNoticeAlert(); } catch(e){ console.error(e); }
+        try { renderPcAppNavList(); } catch(e){ console.error(e); }
+        try { populateModalBizSelect(); } catch(e){ console.error(e); }
+        try { updateLoginStateUI(); } catch(e){ console.error(e); }
+        try { checkAdminButtonVisibility(); } catch(e){ console.error(e); }
+        try { checkPcAdmobHide(); } catch(e){ console.error(e); }
 
         if (window.innerWidth >= 1024) {
-            initPcWorkDesk();
+            try { initPcWorkDesk(); } catch(e){ console.error(e); }
+            try { stopAllVideoPlayback(); } catch(e){}
         }
     });
 
     window.addEventListener("pageshow", () => {
-        renderPcAppNavList();
-        populateModalBizSelect();
-        updateLoginStateUI();
-        checkAdminButtonVisibility();
-        checkPcAdmobHide();
+        try { renderPcAppNavList(); } catch(e){}
+        try { populateModalBizSelect(); } catch(e){}
+        try { updateLoginStateUI(); } catch(e){}
+        try { checkAdminButtonVisibility(); } catch(e){}
+        try { checkPcAdmobHide(); } catch(e){}
         if (window.innerWidth >= 1024) {
-            initPcWorkDesk();
+            try { initPcWorkDesk(); } catch(e){}
+            try { stopAllVideoPlayback(); } catch(e){}
         }
     });
 </script>

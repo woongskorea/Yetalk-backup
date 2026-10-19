@@ -76,7 +76,7 @@
         }
         .cross-icon { color: #ffffff; font-size: 16px; font-weight: 900; line-height: 1; }
         .clinic-brand-title {
-            font-size: 18.5px; font-weight: 950; color: #38bdf8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            font-size: 15.5px; font-weight: 900; color: #38bdf8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.5px; flex-shrink: 1; min-width: 0;
         }
         .btn-yetalk-home-pill {
             background: rgba(2, 132, 199, 0.2); border: 1.5px solid #38bdf8;
@@ -187,6 +187,15 @@
         }
 
         /* 1번 탭 (나의 QR) - 개인앱 스타일 모던 카드 (파란 점선 완전 제거) */
+        /* 🌟 [사용자 요청] 컴퓨터(PC 화면 및 iframe)에서는 스마트폰 스캔용 QR 코드 카드 완전 숨김 */
+        body.is-pc-mode .qr-card-center {
+            display: none !important;
+        }
+        @media (min-width: 1024px) {
+            .qr-card-center {
+                display: none !important;
+            }
+        }
         .qr-card-center {
             position: absolute; top: 46%; left: 50%; transform: translate(-50%, -50%);
             z-index: 15; background: #ffffff; padding: 14px 14px 12px 14px; border-radius: 22px;
@@ -1729,9 +1738,11 @@ function toggleDoctorEditMode() {
 function renderIntroSection() {
     const host = document.getElementById("sec_intro");
     if (!host) return;
-    host.innerHTML = "";
-
-    const savedClinic = localStorage.getItem("yetalkDoctorName") || "예톡아름다운 의원";
+    let savedClinic = localStorage.getItem("yetalkDoctorName") || "예톡아름다운 의원";
+    if (!savedClinic || savedClinic === "예톡행복한의원" || savedClinic === "예톡아름다운" || savedClinic === "예톡 아름다운 원" || savedClinic.includes("아름다운 원") || savedClinic === "아름다운 의원" || savedClinic === "아름다운의원") {
+        savedClinic = "예톡아름다운 의원";
+        localStorage.setItem("yetalkDoctorName", savedClinic);
+    }
 
     introPages.forEach((item, idx) => {
         const page = document.createElement("section");
@@ -2455,6 +2466,10 @@ function saveIntroData() {
 function loadIntroData() {
     const raw = localStorage.getItem("yetalk_doctor_intro_pages_v3");
     introPages = raw ? JSON.parse(raw) : DEFAULT_INTRO_PAGES;
+    const heroBg = localStorage.getItem("yetalkDoctorHeroBg");
+    if (heroBg && introPages && introPages.length > 0) {
+        introPages[0].img = heroBg;
+    }
 }
 
 function saveBeautyData() {
@@ -3987,6 +4002,9 @@ function showToast(msg) {
 
 /* 초기화 실행 */
 document.addEventListener("DOMContentLoaded", () => {
+    if (window.self !== window.top || window.innerWidth >= 1024) {
+        document.body.classList.add("is-pc-mode");
+    }
     loadIntroData();
     loadBeautyData();
     loadDocTalkChatData();
@@ -3997,10 +4015,10 @@ document.addEventListener("DOMContentLoaded", () => {
     makeWindowDraggable("viewDetailClinicChat");
     makeWindowDraggable("viewDetailPatientInquiry");
 
-    // 병원 명칭 기본값 "예톡아름다운 의원" 적용
+    // 병원 명칭 기본값 "예톡 아름다운의원" 적용
     let savedClinic = localStorage.getItem("yetalkDoctorName");
-    if (!savedClinic || savedClinic === "예톡행복한의원") {
-        savedClinic = "예톡아름다운 의원";
+    if (!savedClinic || savedClinic === "예톡행복한의원" || savedClinic === "예톡아름다운" || savedClinic === "예톡 아름다운 원" || savedClinic.includes("아름다운 원") || savedClinic === "아름다운 의원" || savedClinic === "아름다운의원") {
+        savedClinic = "예톡 아름다운의원";
         localStorage.setItem("yetalkDoctorName", savedClinic);
     }
     const clinicTitleEl = document.getElementById("dispClinicTitle");
