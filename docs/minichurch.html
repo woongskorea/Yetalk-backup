@@ -2818,6 +2818,7 @@
             }
             // 🌟 [사용자 요청] 서브페이지 진입 시 하단고정 100 애드몹 숨김 모드 활성화
             document.body.classList.add("in-subpage-mode");
+            window._subpageOriginMenu = currentActiveMenu;
 
             try {
                 if (window.history && window.history.pushState) {
@@ -2840,12 +2841,13 @@
                     window.history.back();
                 } catch(e){}
             }
-            if (currentActiveMenu !== 'home') {
-                scrollToMiniMenu('home');
+            if (window._subpageOriginMenu && window._subpageOriginMenu !== currentActiveMenu) {
+                scrollToMiniMenu(window._subpageOriginMenu);
+                window._subpageOriginMenu = null;
             }
         }
 
-        /* 🌟 [사용자 요청] 뒤로가기 시 예톡홈/단골내앱으로 가지 않고 움직이는교회 바로 앞 화면/첫화면으로 이동 */
+        /* 🌟 [사용자 요청] 뒤로가기 시 보고 있던 화면 상태 안전 유지 */
         window.handleAppBackPress = function() {
             // 1. 1:1 대화 모달이 열려 있는 경우
             const dmModal = document.getElementById("directChatModal");
@@ -2861,20 +2863,13 @@
                 return true;
             }
 
-            // 3. 서브 상세 페이지가 열려 있는 경우 -> 서브페이지 닫고 홈 슬라이드로 안전 복귀
+            // 3. 서브 상세 페이지가 열려 있는 경우 -> 서브페이지 닫고 보고 있던 메뉴로 안전 복귀
             const sub = document.getElementById("homeDetailSubpage");
             if (sub && (sub.classList.contains("active") || isSubpageOpen)) {
                 closeHomeDetailSubpage(true);
                 return true;
             }
 
-            // 4. 홈이 아닌 다른 메뉴(채팅교제, 기도제목, 소식알림, 헌금)를 보고 있는 경우 -> 홈 메뉴 첫화면으로 복귀!
-            if (currentActiveMenu !== 'home') {
-                scrollToMiniMenu('home');
-                return true;
-            }
-
-            // 5. 이미 홈 화면인 경우
             return false;
         };
 

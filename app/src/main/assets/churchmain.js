@@ -196,28 +196,46 @@ function initChurchData() {
     renderChurchView();
     setupSectionObserver();
 
-    // 🌟 [사용자 요청] 하부페이지에서 복귀 시 해당 메뉴 카드로 자동 스크롤 복귀
-    let initialCard = 0;
+    // 🌟 [사용자 요청] 하부페이지에서 복귀 시 보고 있던 해당 메뉴 카드로 자동 복귀
+    restoreLastActiveCard(false);
+}
+
+function restoreLastActiveCard(instant) {
+    let targetCard = 0;
     try {
         const urlParams = new URLSearchParams(window.location.search);
         const cardParam = urlParams.get("card");
         const lastCard = sessionStorage.getItem("church_last_active_card_idx");
         if (cardParam !== null && !isNaN(parseInt(cardParam, 10))) {
-            initialCard = parseInt(cardParam, 10);
+            targetCard = parseInt(cardParam, 10);
         } else if (lastCard !== null && !isNaN(parseInt(lastCard, 10))) {
-            initialCard = parseInt(lastCard, 10);
+            targetCard = parseInt(lastCard, 10);
         }
     } catch(e) {}
 
-    if (initialCard > 0 && initialCard < MENU_DEFINITIONS.length) {
-        setTimeout(() => {
-            scrollToCard(initialCard);
-        }, 150);
+    if (targetCard > 0 && targetCard < MENU_DEFINITIONS.length) {
+        activeSecId = targetCard;
+        updateChipsBar(targetCard);
+        const target = document.getElementById(`section_card_${targetCard}`);
+        const vp = document.getElementById("churchViewport");
+        if (target && vp) {
+            if (instant) {
+                vp.scrollTop = target.offsetTop;
+            } else {
+                setTimeout(() => {
+                    scrollToCard(targetCard);
+                }, 100);
+            }
+        }
     } else {
         // 4초 간격 첫 메뉴(교회 카드 0) 자동 슬라이드 시작
         startCard0AutoSlide();
     }
 }
+
+window.addEventListener("pageshow", () => {
+    restoreLastActiveCard(true);
+});
 
 let churchSlide0Timer = null;
 function startCard0AutoSlide() {
@@ -623,6 +641,7 @@ function setupSectionObserver() {
 
             if (closestIdx !== activeSecId && closestIdx >= 0 && closestIdx < MENU_DEFINITIONS.length) {
                 activeSecId = closestIdx;
+                try { sessionStorage.setItem("church_last_active_card_idx", closestIdx.toString()); } catch(e){}
                 updateChipsBar(closestIdx);
             }
         });
@@ -676,6 +695,7 @@ let programmaticTimer = null;
 function scrollToCard(index) {
     if (index < 0 || index >= MENU_DEFINITIONS.length) return;
     activeSecId = index;
+    try { sessionStorage.setItem("church_last_active_card_idx", index.toString()); } catch(e){}
     updateChipsBar(index);
     const target = document.getElementById(`section_card_${index}`);
     const vp = document.getElementById("churchViewport");

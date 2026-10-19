@@ -13,7 +13,7 @@
         .medigate-app {
             width: 100%; max-width: 480px; min-height: 100vh; background: #BACEE0;
             display: flex; flex-direction: column; position: relative; border-left: 1px solid #a3b8cc; border-right: 1px solid #a3b8cc;
-            padding-bottom: 95px;
+            padding-bottom: 145px;
         }
         @media (min-width: 768px) {
             .fixed-bottom-admob,
@@ -23,14 +23,49 @@
                 height: 0 !important;
                 overflow: hidden !important;
             }
-            .medigate-app { padding-bottom: 24px !important; }
+            .medigate-app { padding-bottom: 70px !important; }
             .btn-new-post-floating { bottom: 24px !important; }
+            .fixed-quick-comment-bar { bottom: 0 !important; }
         }
         @media (min-width: 1024px) {
             .medigate-app { max-width: 1240px !important; border: none; }
             .detail-modal { max-width: 1240px !important; }
             .cafe-write-screen { max-width: 1240px !important; }
         }
+
+        /* 🌟 기도 음악 BGM 3종 버튼 */
+        .btn-prayer-music {
+            background: #f8fafc; border: 1.2px solid #cbd5e1; border-radius: 8px;
+            padding: 7px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 3px; cursor: pointer; transition: all 0.15s ease;
+        }
+        .btn-prayer-music:active { transform: scale(0.95); }
+        .btn-prayer-music.active {
+            background: linear-gradient(135deg, #0284c7, #2563eb); border-color: #38bdf8;
+            color: #ffffff; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+        }
+        .btn-prayer-music .music-icon { font-size: 16px; }
+        .btn-prayer-music .music-name { font-size: 11px; font-weight: 850; color: #1e293b; }
+        .btn-prayer-music.active .music-name { color: #ffffff; font-weight: 950; }
+
+        /* 라이브 음성 상단 바 */
+        .live-dot-blink { animation: blinkLiveDot 1s infinite alternate; }
+        @keyframes blinkLiveDot { from { opacity: 1; transform: scale(1); } to { opacity: 0.2; transform: scale(0.85); } }
+        .live-audio-bar {
+            background: #0f172a; border-bottom: 1.5px solid #1e3a5f;
+            padding: 8px 14px; color: #f8fafc; font-size: 12px; font-weight: 850;
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            position: sticky; top: 54px; z-index: 95;
+        }
+
+        /* 하단 편한 한줄 대화 댓글 입력창 */
+        .fixed-quick-comment-bar {
+            position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 480px; background: #BACEE0; border-top: 1.2px solid rgba(0,0,0,0.08);
+            padding: 8px 12px; display: flex; align-items: center; gap: 8px; z-index: 89;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+        }
+
         .med-header {
             height: auto; min-height: 54px; display: flex; justify-content: space-between; align-items: center;
             padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px 10px 16px; background: #BACEE0; border-bottom: 1px solid rgba(0,0,0,0.06);
@@ -211,33 +246,90 @@
         <div class="med-logo" style="cursor:default;">
             <span onclick="location.href='churchnextgen.html'" style="cursor:pointer; font-size:22px; line-height:1; padding-right:4px;" title="부서선택으로">‹</span>
             ✝ <span id="headerDeptTitle">청년대화방</span>
-            <button type="button" onclick="editCurrentRoomName()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:12px; font-size:11px; font-weight:800; color:#475569; padding:2px 7px; margin-left:4px; cursor:pointer;" title="대화방 이름 변경">✏️ 이름변경</button>
+            <button type="button" onclick="openRoomConfigModal()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:12px; font-size:11px; font-weight:800; color:#475569; padding:2px 7px; margin-left:4px; cursor:pointer;" title="대화방 이름/방장/비밀방 설정">✏️ 방설정</button>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
-            <button type="button" onclick="openCafeWriteScreen()" style="background:#fee500; color:#191919; border:1px solid #ca8a04; border-radius:14px; font-size:11.5px; font-weight:950; padding:4px 10px; cursor:pointer;">✏️ 새글쓰기</button>
+            <button type="button" id="btnLiveAudioToggle" class="btn-live-audio" onclick="toggleLiveAudioStream()" style="background:#dc2626; color:#ffffff; border:1px solid #ef4444; border-radius:14px; font-size:11.5px; font-weight:950; padding:4px 9px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(220,38,38,0.4);">
+                <span class="live-dot-blink" style="color:#fff; font-size:9px;">●</span>
+                <span id="txtLiveAudioBtn">LIVE ON</span>
+            </button>
             <button type="button" class="btn-go-home" onclick="location.href='churchnextgen.html'">‹ 부서선택</button>
         </div>
     </header>
 
-    <!-- 실시간 인기 베스트글 (1위 1개만 단독 노출) -->
-    <section class="best-section">
-        <div class="best-header">
-            <span class="best-title">🔥 실시간 인기 베스트글</span>
-            <span class="best-sub-tabs">1위</span>
+    <!-- 🌟 라이브 유튜브 음성 한줄 플레이어 바 (빨강 ON 버튼 연동) -->
+    <div id="liveAudioBar" class="live-audio-bar" style="display:none;">
+        <div style="display:flex; align-items:center; gap:6px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+            <span style="color:#ef4444; font-weight:950; font-size:12px;" class="live-dot-blink">🔴 LIVE</span>
+            <span id="txtLiveStatus" style="font-size:11.5px; color:#e2e8f0; text-overflow:ellipsis; overflow:hidden;">실시간 기도회 / 예배 라이브 음성 청취 중... 🔊</span>
         </div>
+        <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+            <button type="button" onclick="openLiveUrlConfigModal()" style="background:#1e3a5f; border:1px solid #38bdf8; color:#38bdf8; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">주소설정</button>
+            <button type="button" onclick="stopLiveAudio()" style="background:#475569; border:none; color:#fff; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">정지</button>
+        </div>
+    </div>
+    <div id="hiddenLiveYtIframeContainer" style="display:none; width:0; height:0;"></div>
+
+    <!-- 🌟 [사용자 요청] 압축된 실시간 1위 베스트글 (중복 대형제목 제거) -->
+    <section class="best-section-compact" style="margin: 8px 12px 6px 12px; padding: 8px 12px; border-radius: 12px; background: #ffffff; border: 1px solid #bcd0e2; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
         <div id="bestPostsContainer"></div>
     </section>
 
-    <!-- 🌟 [사용자 요청] 새글쓰기 상단 배치 (애드몹 위 겹침 완전 제거) -->
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 14px 2px 14px;">
-        <span style="font-size:12.5px; font-weight:900; color:#475569;">전체 나눔글 (최신 4개)</span>
-        <button type="button" onclick="openCafeWriteScreen()" style="background:#fee500; color:#191919; border:1.5px solid #eab308; border-radius:20px; padding:6px 16px; font-size:13px; font-weight:950; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(0,0,0,0.1); cursor:pointer;">
-            ✏️ 새글쓰기
-        </button>
+    <!-- 🌟 [사용자 요청] 그 밑에 기도 음악 3종류 선택 바 -->
+    <div class="prayer-music-container" style="margin: 0 12px 8px 12px; padding: 8px 12px; background: #ffffff; border-radius: 12px; border: 1px solid #bcd0e2; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:11.5px; font-weight:900; color:#1e293b; display:inline-flex; align-items:center; gap:4px;">
+                <span>🎵</span> <strong>기도 음악 BGM</strong>
+            </span>
+            <span id="prayerMusicStatus" style="font-size:10.5px; font-weight:800; color:#64748b;">원하는 음악을 터치하세요</span>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px;">
+            <button type="button" class="btn-prayer-music" id="btnPrayerMusic_1" onclick="togglePrayerBgm(1)">
+                <span class="music-icon">🎹</span>
+                <span class="music-name">잔잔한 기도</span>
+            </button>
+            <button type="button" class="btn-prayer-music" id="btnPrayerMusic_2" onclick="togglePrayerBgm(2)">
+                <span class="music-icon">🌿</span>
+                <span class="music-name">묵상 찬양</span>
+            </button>
+            <button type="button" class="btn-prayer-music" id="btnPrayerMusic_3" onclick="togglePrayerBgm(3)">
+                <span class="music-icon">🔥</span>
+                <span class="music-name">성령 임재</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 🌟 [사용자 요청] 새글쓰기는 긴글이나 압축 박스로 보이고 -->
+    <div class="collapsible-longwrite-box" style="margin: 0 12px 8px 12px; background: #ffffff; border-radius: 12px; border: 1.5px solid #bcd0e2; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+        <div class="longwrite-summary-bar" onclick="toggleLongWriteAccordion()" style="padding: 8px 14px; background: #f8fafc; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:13px;">✏️</span>
+                <strong style="font-size:12.5px; color:#0f172a;">은혜 나눔 & 기도제목 긴 글 작성하기</strong>
+                <span style="font-size:10px; background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe; padding:1px 5px; border-radius:4px; font-weight:800;">압축 박스</span>
+            </div>
+            <span id="longwriteToggleArrow" style="font-size:12px; font-weight:900; color:#64748b; transition:transform 0.2s;">▼</span>
+        </div>
+        <div id="longwriteDetailPanel" style="display:none; padding: 10px 14px; border-top: 1px solid #f1f5f9;">
+            <input type="text" id="inlineLongTitle" placeholder="제목을 입력하세요" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; font-size:13px; font-weight:800; margin-bottom:8px; outline:none; box-sizing:border-box;">
+            <textarea id="inlineLongContent" placeholder="은혜로운 이야기나 나눔, 기도제목을 자세히 적어주세요." style="width:100%; min-height:85px; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; font-size:12.5px; line-height:1.5; outline:none; resize:vertical; font-family:inherit; margin-bottom:8px; box-sizing:border-box;"></textarea>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <button type="button" onclick="openCafeWriteScreen()" style="background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; font-size:11px; font-weight:800; padding:5px 10px; border-radius:6px; cursor:pointer;">📷 사진첨부 / 상세편집기</button>
+                <button type="button" onclick="submitInlineLongPost()" style="background:#fee500; border:1px solid #ca8a04; color:#191919; font-size:12px; font-weight:950; padding:6px 16px; border-radius:8px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.1);">글 등록</button>
+            </div>
+        </div>
     </div>
 
     <!-- 메인 피드 리스트 (메디게이트형 고밀도 피드) -->
     <main class="feed-list" id="feedListContainer"></main>
+
+    <!-- 🌟 [사용자 요청] 맨밑에는 편하게쓰는 댓글창으로 해줘....둘다 있으면 좋겠네 -->
+    <div class="fixed-quick-comment-bar">
+        <div style="flex:1; display:flex; align-items:center; background:#ffffff; border:1px solid #cbd5e1; border-radius:20px; padding:3px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+            <span style="font-size:14px; margin-right:4px;">💬</span>
+            <input type="text" id="quickChatInput" placeholder="편하게 한줄 대화 및 은혜의 글을 남겨주세요..." style="flex:1; border:none; background:transparent; outline:none; font-size:12.5px; color:#0f172a;" onkeypress="if(event.key==='Enter') submitQuickChatPost()">
+        </div>
+        <button type="button" onclick="submitQuickChatPost()" style="background:#fee500; border:1px solid #ca8a04; color:#191919; font-size:12px; font-weight:950; padding:6px 14px; border-radius:18px; cursor:pointer; flex-shrink:0; box-shadow:0 1px 4px rgba(0,0,0,0.1);">등록</button>
+    </div>
 
     <!-- 🌟 [사용자 요청] 기본 하단 고정 애드몹만 유지 (목록/본문 내 애드몹은 제거) -->
     <div class="fixed-bottom-admob" style="position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; height:85px; background:#050a14; border-top:1px solid #1e293b; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding-bottom:max(env(safe-area-inset-bottom, 0px), 6px); box-sizing:content-box; z-index:90;">
@@ -367,6 +459,87 @@
     </div>
 </div>
 
+<!-- 🌟 [사용자 요청] 방이름 변경 / 방장 등록 / 오픈·폐쇄(비밀방) 모달 -->
+<div id="roomConfigModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.72); z-index:999999; align-items:center; justify-content:center; padding:16px;">
+    <div style="width:100%; max-width:360px; background:#ffffff; border-radius:16px; padding:20px; box-shadow:0 8px 30px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:14px;" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:8px;">
+            <strong style="font-size:16px; color:#0f172a;">⚙️ 대화방 설정 & 방장 등록</strong>
+            <button type="button" onclick="closeRoomConfigModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:#64748b;">✕</button>
+        </div>
+        <div>
+            <label style="display:block; font-size:12px; font-weight:800; color:#475569; margin-bottom:4px;">1. 대화방 이름</label>
+            <input type="text" id="cfgRoomName" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; font-size:13.5px; font-weight:800; box-sizing:border-box;">
+        </div>
+        <div>
+            <label style="display:block; font-size:12px; font-weight:800; color:#475569; margin-bottom:4px;">2. 방장 등록 (직분/실명)</label>
+            <input type="text" id="cfgLeaderName" placeholder="예: 김청년 회장 / 담당 교역자" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; font-size:13.5px; font-weight:800; box-sizing:border-box;">
+        </div>
+        <div>
+            <label style="display:block; font-size:12px; font-weight:800; color:#475569; margin-bottom:6px;">3. 오픈 / 폐쇄 선택 (비밀방 설정)</label>
+            <div style="display:flex; gap:14px; align-items:center;">
+                <label style="display:flex; align-items:center; gap:5px; font-size:13px; font-weight:850; cursor:pointer;">
+                    <input type="radio" name="roomAccessMode" value="public" id="modePublic" onchange="togglePinInput(false)">
+                    <span>🟢 오픈 (공개방)</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:5px; font-size:13px; font-weight:850; cursor:pointer;">
+                    <input type="radio" name="roomAccessMode" value="secret" id="modeSecret" onchange="togglePinInput(true)">
+                    <span>🔒 폐쇄 (비밀방)</span>
+                </label>
+            </div>
+        </div>
+        <div id="pinInputGroup" style="display:none; background:#fef2f2; border:1px solid #fecaca; padding:10px; border-radius:8px;">
+            <label style="display:block; font-size:11.5px; font-weight:800; color:#b91c1c; margin-bottom:4px;">비밀방 입장 4자리 PIN 번호</label>
+            <input type="password" id="cfgPinCode" maxlength="4" placeholder="••••" style="width:100%; border:1.5px solid #ef4444; border-radius:6px; padding:8px; font-size:16px; font-weight:900; text-align:center; letter-spacing:6px; box-sizing:border-box;">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+            <button type="button" onclick="closeRoomConfigModal()" style="padding:8px 14px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; font-weight:800; cursor:pointer;">취소</button>
+            <button type="button" onclick="saveRoomConfig()" style="padding:8px 18px; background:#0284c7; color:#fff; border:none; border-radius:8px; font-weight:950; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.3);">저장하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 🔒 비밀방 PIN 인증 모달 -->
+<div id="roomPinModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:9999999; align-items:center; justify-content:center; padding:16px;">
+    <div style="width:100%; max-width:320px; background:#ffffff; border-radius:18px; padding:22px; text-align:center; box-shadow:0 8px 30px rgba(0,0,0,0.4); display:flex; flex-direction:column; gap:12px;">
+        <span style="font-size:36px;">🔒</span>
+        <strong style="font-size:16px; color:#0f172a;" id="roomPinTitle">비공개 비밀 대화방입니다</strong>
+        <p style="font-size:12px; color:#64748b; line-height:1.4;">방장이 설정한 <strong>4자리 PIN 비밀번호</strong>를 입력하세요.</p>
+        <input type="password" id="enterPinCode" maxlength="4" placeholder="••••" style="width:100%; border:1.5px solid #0284c7; border-radius:10px; padding:10px; font-size:22px; font-weight:900; text-align:center; letter-spacing:8px; outline:none; box-sizing:border-box;" onkeypress="if(event.key==='Enter') verifyRoomPin()">
+        <button type="button" onclick="verifyRoomPin()" style="width:100%; padding:11px; background:#0284c7; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:950; cursor:pointer; box-shadow:0 2px 8px rgba(2,132,199,0.4);">입장하기</button>
+        <button type="button" onclick="location.href='churchnextgen.html'" style="background:none; border:none; color:#64748b; font-size:12px; cursor:pointer; font-weight:800;">‹ 부서선택으로 나가기</button>
+    </div>
+</div>
+
+<!-- ⚙️ 라이브 유튜브 음성 주소 설정 모달 (Image 4 스타일) -->
+<div id="liveUrlModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:999999; align-items:center; justify-content:center; padding:16px;">
+    <div style="width:100%; max-width:380px; background:#0b1329; border:1.5px solid #1e3a5f; border-radius:16px; padding:20px; color:#fff; box-shadow:0 8px 30px rgba(0,0,0,0.5); display:flex; flex-direction:column; gap:12px;" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding-bottom:8px;">
+            <strong style="font-size:15px; color:#38bdf8;">⚙️ 라이브 유튜브 음성 주소 관리</strong>
+            <button type="button" onclick="closeLiveUrlModal()" style="background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">✕</button>
+        </div>
+        <p style="font-size:11.5px; color:#cbd5e1; line-height:1.4;">성도와 청년들이 대화하면서 들을 <strong>유튜브 라이브/음성 주소</strong>를 입력해주세요.</p>
+        <div>
+            <span style="font-size:11px; color:#facc15; font-weight:800; display:block; margin-bottom:5px;">⚡ 빠른 추천 프리셋 (원클릭 등록)</span>
+            <div style="display:flex; gap:6px;">
+                <button type="button" onclick="setLivePreset('bus')" style="flex:1; background:#1e293b; border:1px solid #334155; color:#93c5fd; padding:6px 2px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">🚌 천국버스예배</button>
+                <button type="button" onclick="setLivePreset('praise')" style="flex:1; background:#1e293b; border:1px solid #334155; color:#c084fc; padding:6px 2px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">🎵 은혜찬양</button>
+                <button type="button" onclick="setLivePreset('word')" style="flex:1; background:#1e293b; border:1px solid #334155; color:#34d399; padding:6px 2px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">📖 말씀강해</button>
+            </div>
+        </div>
+        <div>
+            <label style="display:block; font-size:11.5px; color:#94a3b8; margin-bottom:4px;">🎥 유튜브 라이브 주소 (URL 또는 영상ID)</label>
+            <input type="text" id="inpLiveYoutubeUrl" placeholder="https://www.youtube.com/watch?v=..." style="width:100%; background:#1e293b; border:1px solid #38bdf8; border-radius:8px; padding:8px 10px; font-size:12.5px; color:#fff; outline:none; box-sizing:border-box;">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+            <button type="button" onclick="closeLiveUrlModal()" style="padding:7px 14px; background:#334155; color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">취소</button>
+            <button type="button" onclick="saveAndStartLiveAudio()" style="padding:7px 18px; background:linear-gradient(135deg, #dc2626, #b91c1c); color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:950; cursor:pointer; box-shadow:0 2px 8px rgba(220,38,38,0.4);">저장 및 재생 ▶</button>
+        </div>
+    </div>
+</div>
+
+<!-- 토스트 알림 -->
+<div id="boardToast" style="display:none; position:fixed; bottom:145px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.92); color:#ffffff; padding:9px 18px; border-radius:22px; font-size:12.5px; font-weight:900; z-index:9999999; box-shadow:0 4px 16px rgba(0,0,0,0.3); pointer-events:none;"></div>
+
 <script>
     const DEPT_CONFIG = {
         "청년교회": { chatTitle: "청년대화방", prefix: "청년의 꿈" },
@@ -439,24 +612,358 @@
     function applyDeptSetup() {
         const config = DEPT_CONFIG[currentDept] || DEPT_CONFIG["청년교회"];
         const customTitle = localStorage.getItem("church_nextgen_room_name_" + currentDept);
-        document.getElementById("headerDeptTitle").innerText = customTitle || config.chatTitle;
+        const customLeader = localStorage.getItem("church_nextgen_leader_name_" + currentDept);
+        const titleText = customTitle || config.chatTitle;
+        document.getElementById("headerDeptTitle").innerText = titleText + (customLeader ? ` (${customLeader})` : "");
         const topicSelect = document.getElementById("cafeTopicSelect");
-        topicSelect.innerHTML = `<option value="${currentDept}" selected>[${config.prefix}] ${customTitle || config.chatTitle}</option>`;
+        if (topicSelect) {
+            topicSelect.innerHTML = `<option value="${currentDept}" selected>[${config.prefix}] ${titleText}</option>`;
+        }
+        checkRoomAccessPin();
     }
 
-    function editCurrentRoomName() {
-        const config = DEPT_CONFIG[currentDept] || DEPT_CONFIG["청년교회"];
-        const curName = document.getElementById("headerDeptTitle").innerText;
-        const newName = prompt("변경할 대화방 이름을 입력하세요:", curName);
-        if (newName && newName.trim()) {
-            localStorage.setItem("church_nextgen_room_name_" + currentDept, newName.trim());
-            document.getElementById("headerDeptTitle").innerText = newName.trim();
-            const topicSelect = document.getElementById("cafeTopicSelect");
-            if (topicSelect) {
-                topicSelect.innerHTML = `<option value="${currentDept}" selected>[${config.prefix}] ${newName.trim()}</option>`;
-            }
-            alert(`대화방 이름이 '${newName.trim()}'(으)로 변경되었습니다.`);
+    function checkRoomAccessPin() {
+        const isSecret = localStorage.getItem("church_nextgen_is_secret_" + currentDept) === "true";
+        const passed = sessionStorage.getItem("church_nextgen_pin_passed_" + currentDept) === "true";
+        if (isSecret && !passed) {
+            const config = DEPT_CONFIG[currentDept] || DEPT_CONFIG["청년교회"];
+            const roomName = localStorage.getItem("church_nextgen_room_name_" + currentDept) || config.chatTitle;
+            document.getElementById("roomPinTitle").innerText = `🔒 ${roomName} (비밀방)`;
+            document.getElementById("enterPinCode").value = "";
+            document.getElementById("roomPinModal").style.display = "flex";
+        } else {
+            document.getElementById("roomPinModal").style.display = "none";
         }
+    }
+
+    function verifyRoomPin() {
+        const entered = document.getElementById("enterPinCode").value.trim();
+        const expected = localStorage.getItem("church_nextgen_pin_" + currentDept) || "1234";
+        if (entered === expected) {
+            sessionStorage.setItem("church_nextgen_pin_passed_" + currentDept, "true");
+            document.getElementById("roomPinModal").style.display = "none";
+            showToast("🔓 비밀방에 입장하셨습니다!");
+        } else {
+            showToast("⚠️ 비밀번호가 일치하지 않습니다.");
+            document.getElementById("enterPinCode").value = "";
+        }
+    }
+
+    function openRoomConfigModal() {
+        const config = DEPT_CONFIG[currentDept] || DEPT_CONFIG["청년교회"];
+        const savedName = localStorage.getItem("church_nextgen_room_name_" + currentDept) || config.chatTitle;
+        const savedLeader = localStorage.getItem("church_nextgen_leader_name_" + currentDept) || "";
+        const isSecret = localStorage.getItem("church_nextgen_is_secret_" + currentDept) === "true";
+        const savedPin = localStorage.getItem("church_nextgen_pin_" + currentDept) || "";
+
+        document.getElementById("cfgRoomName").value = savedName;
+        document.getElementById("cfgLeaderName").value = savedLeader;
+        if (isSecret) {
+            document.getElementById("modeSecret").checked = true;
+            document.getElementById("pinInputGroup").style.display = "block";
+            document.getElementById("cfgPinCode").value = savedPin;
+        } else {
+            document.getElementById("modePublic").checked = true;
+            document.getElementById("pinInputGroup").style.display = "none";
+            document.getElementById("cfgPinCode").value = "";
+        }
+        document.getElementById("roomConfigModal").style.display = "flex";
+    }
+
+    function closeRoomConfigModal() {
+        document.getElementById("roomConfigModal").style.display = "none";
+    }
+
+    function togglePinInput(isSecret) {
+        document.getElementById("pinInputGroup").style.display = isSecret ? "block" : "none";
+    }
+
+    function saveRoomConfig() {
+        const name = document.getElementById("cfgRoomName").value.trim();
+        const leader = document.getElementById("cfgLeaderName").value.trim();
+        const isSecret = document.getElementById("modeSecret").checked;
+        const pin = document.getElementById("cfgPinCode").value.trim();
+
+        if (!name) {
+            showToast("대화방 이름을 입력해주세요.");
+            return;
+        }
+        if (isSecret && pin.length < 4) {
+            showToast("비밀방 PIN 번호는 4자리를 입력해주세요.");
+            return;
+        }
+
+        localStorage.setItem("church_nextgen_room_name_" + currentDept, name);
+        localStorage.setItem("church_nextgen_leader_name_" + currentDept, leader);
+        localStorage.setItem("church_nextgen_is_secret_" + currentDept, isSecret ? "true" : "false");
+        if (isSecret) {
+            localStorage.setItem("church_nextgen_pin_" + currentDept, pin);
+            sessionStorage.setItem("church_nextgen_pin_passed_" + currentDept, "true");
+        }
+
+        applyDeptSetup();
+        closeRoomConfigModal();
+        showToast("✨ 대화방 설정이 저장되었습니다!");
+    }
+
+    /* 🌟 라이브 유튜브 음성 한줄 플레이어 */
+    let isLiveAudioPlaying = false;
+    function toggleLiveAudioStream() {
+        if (isLiveAudioPlaying) {
+            stopLiveAudio();
+        } else {
+            const savedUrl = localStorage.getItem("church_nextgen_live_url");
+            if (!savedUrl) {
+                openLiveUrlConfigModal();
+            } else {
+                startLiveAudio(savedUrl);
+            }
+        }
+    }
+
+    function openLiveUrlConfigModal() {
+        const savedUrl = localStorage.getItem("church_nextgen_live_url") || "https://www.youtube.com/watch?v=0k2k2Wk0bV8";
+        document.getElementById("inpLiveYoutubeUrl").value = savedUrl;
+        document.getElementById("liveUrlModal").style.display = "flex";
+    }
+
+    function closeLiveUrlModal() {
+        document.getElementById("liveUrlModal").style.display = "none";
+    }
+
+    function setLivePreset(type) {
+        const presets = {
+            bus: "https://www.youtube.com/watch?v=0k2k2Wk0bV8",
+            praise: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            word: "https://www.youtube.com/watch?v=5qap5aO4i9A"
+        };
+        document.getElementById("inpLiveYoutubeUrl").value = presets[type] || "";
+    }
+
+    function saveAndStartLiveAudio() {
+        const url = document.getElementById("inpLiveYoutubeUrl").value.trim();
+        if (!url) {
+            showToast("유튜브 주소를 입력해주세요.");
+            return;
+        }
+        localStorage.setItem("church_nextgen_live_url", url);
+        closeLiveUrlModal();
+        startLiveAudio(url);
+    }
+
+    function startLiveAudio(url) {
+        let videoId = extractYtId(url) || "0k2k2Wk0bV8";
+        isLiveAudioPlaying = true;
+        document.getElementById("btnLiveAudioToggle").style.background = "#b91c1c";
+        document.getElementById("txtLiveAudioBtn").innerText = "LIVE ON";
+        document.getElementById("liveAudioBar").style.display = "flex";
+        document.getElementById("txtLiveStatus").innerText = `실시간 라이브 음성 청취 중... 🔊`;
+
+        const container = document.getElementById("hiddenLiveYtIframeContainer");
+        container.innerHTML = `
+            <iframe id="liveAudioIframe" width="1" height="1"
+                src="https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&playsinline=1"
+                allow="autoplay" style="border:none; visibility:hidden;"></iframe>
+        `;
+        showToast("🔴 라이브 유튜브 음성 스트리밍을 시작합니다.");
+    }
+
+    function stopLiveAudio() {
+        isLiveAudioPlaying = false;
+        document.getElementById("btnLiveAudioToggle").style.background = "#dc2626";
+        document.getElementById("txtLiveAudioBtn").innerText = "LIVE OFF";
+        document.getElementById("liveAudioBar").style.display = "none";
+        document.getElementById("hiddenLiveYtIframeContainer").innerHTML = "";
+        showToast("⏹️ 라이브 음성 재생이 정지되었습니다.");
+    }
+
+    function extractYtId(url) {
+        if (!url) return null;
+        let id = null;
+        if (url.includes("youtube.com/live/")) id = url.split("youtube.com/live/")[1].split("?")[0].split("&")[0];
+        else if (url.includes("youtu.be/")) id = url.split("youtu.be/")[1].split("?")[0].split("&")[0];
+        else if (url.includes("shorts/")) id = url.split("shorts/")[1].split("?")[0].split("&")[0];
+        else if (url.includes("v=")) id = url.split("v=")[1].split("&")[0];
+        else if (url.length === 11) id = url;
+        return id ? id.trim() : null;
+    }
+
+    /* 🌟 WebAudio 기도 음악 3종류 */
+    let prayerBgmCtx = null;
+    let currentBgmType = null;
+    let prayerBgmNodes = [];
+    let prayerBgmTimer = null;
+
+    function togglePrayerBgm(type) {
+        if (currentBgmType === type) {
+            stopPrayerBgm();
+            return;
+        }
+        startPrayerBgm(type);
+    }
+
+    function stopPrayerBgm() {
+        currentBgmType = null;
+        if (prayerBgmTimer) clearInterval(prayerBgmTimer);
+        prayerBgmNodes.forEach(n => {
+            try { n.gain.setTargetAtTime(0, prayerBgmCtx.currentTime, 0.4); setTimeout(() => n.osc.stop(), 500); } catch(e){}
+        });
+        prayerBgmNodes = [];
+        document.querySelectorAll(".btn-prayer-music").forEach(b => b.classList.remove("active"));
+        const st = document.getElementById("prayerMusicStatus");
+        if (st) st.innerText = "원하는 음악을 터치하세요";
+    }
+
+    function startPrayerBgm(type) {
+        stopPrayerBgm();
+        currentBgmType = type;
+        document.getElementById(`btnPrayerMusic_${type}`)?.classList.add("active");
+        const names = { 1: "🎹 잔잔한 기도 연주 중...", 2: "🌿 묵상 찬양 연주 중...", 3: "🔥 성령 임재 연주 중..." };
+        const st = document.getElementById("prayerMusicStatus");
+        if (st) st.innerText = names[type] || "기도 음악 재생 중...";
+
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!prayerBgmCtx) prayerBgmCtx = new AudioContext();
+            if (prayerBgmCtx.state === "suspended") prayerBgmCtx.resume();
+        } catch(e) {
+            return;
+        }
+
+        const chordsMap = {
+            1: [
+                [261.63, 329.63, 392.00, 523.25], // C
+                [246.94, 293.66, 392.00, 493.88], // G
+                [220.00, 261.63, 329.63, 440.00], // Am
+                [174.61, 261.63, 349.23, 440.00]  // F
+            ],
+            2: [
+                [174.61, 220.00, 261.63, 349.23], // F
+                [261.63, 329.63, 392.00, 523.25], // C
+                [146.83, 220.00, 261.63, 293.66], // Dm
+                [233.08, 293.66, 349.23, 466.16]  // Bb
+            ],
+            3: [
+                [146.83, 220.00, 293.66, 369.99], // D
+                [220.00, 277.18, 329.63, 440.00], // A
+                [123.47, 185.00, 220.00, 293.66], // Bm
+                [196.00, 246.94, 293.66, 392.00]  // G
+            ]
+        };
+
+        let chordIdx = 0;
+        const chords = chordsMap[type];
+
+        function playChord() {
+            if (!currentBgmType) return;
+            const freqs = chords[chordIdx % chords.length];
+            chordIdx++;
+
+            const filter = prayerBgmCtx.createBiquadFilter();
+            filter.type = "lowpass";
+            filter.frequency.setValueAtTime(type === 3 ? 550 : 850, prayerBgmCtx.currentTime);
+
+            const now = prayerBgmCtx.currentTime;
+            const duration = 3.8;
+
+            freqs.forEach((f, i) => {
+                const osc = prayerBgmCtx.createOscillator();
+                const gain = prayerBgmCtx.createGain();
+
+                osc.type = (type === 1) ? (i % 2 === 0 ? "triangle" : "sine") : (type === 2 ? "sine" : "triangle");
+                osc.frequency.setValueAtTime(f, now);
+
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.038 / freqs.length, now + 1.2);
+                gain.gain.setValueAtTime(0.038 / freqs.length, now + duration - 1.0);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+                osc.connect(gain);
+                gain.connect(filter);
+                filter.connect(prayerBgmCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + duration + 0.1);
+                prayerBgmNodes.push({ osc, gain });
+            });
+        }
+
+        playChord();
+        prayerBgmTimer = setInterval(playChord, 3600);
+    }
+
+    /* 🌟 압축 긴글쓰기 아코디언 & 하단 빠른 한줄 대화창 */
+    function toggleLongWriteAccordion() {
+        const panel = document.getElementById("longwriteDetailPanel");
+        const arrow = document.getElementById("longwriteToggleArrow");
+        const isHidden = (panel.style.display === "none");
+        panel.style.display = isHidden ? "block" : "none";
+        if (arrow) arrow.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+    }
+
+    function submitInlineLongPost() {
+        const title = document.getElementById("inlineLongTitle").value.trim();
+        const content = document.getElementById("inlineLongContent").value.trim();
+        if (!title || !content) {
+            showToast("제목과 내용을 모두 입력해주세요.");
+            return;
+        }
+
+        const newPost = {
+            id: Date.now(),
+            title: title,
+            content: content,
+            author: myRealName || "김예톡",
+            time: "방금",
+            views: 1,
+            comments: []
+        };
+
+        posts.unshift(newPost);
+        savePostsToLocal();
+        renderFeed();
+        renderBestPosts();
+
+        document.getElementById("inlineLongTitle").value = "";
+        document.getElementById("inlineLongContent").value = "";
+        toggleLongWriteAccordion();
+        showToast("🎉 은혜 나눔 글이 등록되었습니다!");
+    }
+
+    function submitQuickChatPost() {
+        const input = document.getElementById("quickChatInput");
+        const text = input.value.trim();
+        if (!text) {
+            showToast("대화 내용을 입력해주세요.");
+            return;
+        }
+
+        const title = text.length > 25 ? text.slice(0, 25) + "..." : text;
+        const newPost = {
+            id: Date.now(),
+            title: title,
+            content: text,
+            author: myRealName || "김예톡",
+            time: "방금",
+            views: 5,
+            comments: []
+        };
+
+        posts.unshift(newPost);
+        savePostsToLocal();
+        renderFeed();
+        renderBestPosts();
+
+        input.value = "";
+        showToast("💬 대화글이 등록되었습니다!");
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById("boardToast");
+        if (!t) return;
+        t.innerText = msg;
+        t.style.display = "block";
+        setTimeout(() => { t.style.display = "none"; }, 2300);
     }
 
     function loadDeptPosts() {
@@ -510,18 +1017,22 @@
 
         sorted.forEach(p => {
             const item = document.createElement("div");
-            item.className = "best-post-item";
+            item.className = "best-post-item-compact";
             item.onclick = () => openDetailModal(p.id);
 
             const r = calcReactions(p.views);
 
             item.innerHTML = `
-                <div class="best-post-title"><span style="background:#fee500; color:#191919; padding:1px 6px; border-radius:5px; font-size:11px; font-weight:950; margin-right:4px;">[${config.prefix}]</span> “${p.title}”</div>
-                <div class="best-post-meta" style="margin-top:3px;">
-                    <span class="views-highlight" style="color:#e11d48; font-weight:850; display:inline-flex; align-items:center; gap:2px;">❤️ ${r.hearts.toLocaleString()}</span>
-                    <span style="color:#d97706; font-weight:850; display:inline-flex; align-items:center; gap:2px;">💪 ${r.fightings.toLocaleString()}</span>
-                    <span>· ${p.author}</span>
-                    <span>· 💬 ${(p.comments ? p.comments.length : 0)}</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; cursor:pointer;">
+                    <div style="display:flex; align-items:center; gap:5px; min-width:0; flex:1; overflow:hidden;">
+                        <span style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; font-size:10px; font-weight:950; padding:2px 6px; border-radius:4px; flex-shrink:0;">BEST 1위</span>
+                        <span style="background:#fee500; color:#191919; padding:1px 5px; border-radius:4px; font-size:11px; font-weight:950; flex-shrink:0;">[${config.prefix}]</span>
+                        <span style="font-size:13px; font-weight:850; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">“${p.title}”</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:#64748b; font-weight:800; flex-shrink:0;">
+                        <span style="color:#e11d48;">❤️ ${r.hearts.toLocaleString()}</span>
+                        <span>· ${p.author}</span>
+                    </div>
                 </div>
             `;
             container.appendChild(item);

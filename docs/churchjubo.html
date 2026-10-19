@@ -13,7 +13,7 @@
             --safe-top: max(env(safe-area-inset-top, 0px) + 12px, 14px);
             --header-base-h: 46px;
             --header-h: calc(var(--header-base-h) + var(--safe-top));
-            --tab-h: 44px;
+            --tab-h: 0px;
             --admob-h: max(env(safe-area-inset-bottom, 0px) + 85px, 90px);
             --view-h: calc(100dvh - var(--header-h) - var(--tab-h) - var(--admob-h));
             --primary: #0284c7;
@@ -60,21 +60,11 @@
             box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
         }
 
-        /* 2층 가로 롤링 칩 메뉴 */
+        /* 2층 가로 롤링 칩 메뉴: 상단 공간 낭비 방지를 위해 숨김 처리 (사용자 요청 반영) */
         .jubo-tabs {
-            height: var(--tab-h); background: #0c1424; border-bottom: 1.5px solid #1e293b;
-            display: flex; gap: 6px; overflow-x: auto; padding: 0 10px; align-items: center;
-            flex-shrink: 0; z-index: 99; scrollbar-width: none;
-        }
-        .jubo-tabs::-webkit-scrollbar { display: none; }
-        .jubo-tab {
-            background: #1a263c; border: 1px solid #334155; color: #94a3b8; font-size: 12.5px;
-            font-weight: 850; padding: 6px 13px; border-radius: 18px; cursor: pointer; white-space: nowrap;
-            flex-shrink: 0; transition: all 0.2s;
-        }
-        .jubo-tab.active {
-            background: linear-gradient(135deg, #0284c7, #0ea5e9); color: #ffffff; border-color: #38bdf8;
-            box-shadow: 0 2px 10px rgba(2, 132, 199, 0.45); font-weight: 950;
+            display: none !important;
+            height: 0px !important;
+            overflow: hidden !important;
         }
 
         /* 🌟 3층 세로 연속 스냅 뷰포트 (위아래 연속 스크롤 + 정확한 탁! 탁! 스냅) */
@@ -136,16 +126,15 @@
             width: 100%; height: auto; max-height: 480px; object-fit: contain; display: block;
         }
 
-        /* 1면 순서 테이블: 또렷하고 굵은 글자 (희미함 완전 해결) */
+        /* 1면 순서 테이블: 또렷하고 굵은 글자 (희미함 완전 해결 & 11개 순서 컴팩트 배치) */
         .order-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
-        .order-table tr { border-bottom: 1.5px solid #cbd5e1; }
-        .order-table td { padding: 8px 4px; font-size: 15px; font-weight: 850; color: #0f172a; }
-        .order-table td.col-part { font-weight: 950; color: #0369a1; width: 90px; font-size: 15.5px; }
-        .order-table td.col-who { text-align: right; color: #1e293b; font-size: 14px; font-weight: 850; }
+        .order-table tr { border-bottom: 1.2px solid #e2e8f0; }
+        .order-table td { padding: 5px 3px; font-size: 13.5px; font-weight: 850; color: #0f172a; line-height: 1.35; }
+        .order-table td.col-part { font-weight: 950; color: #0369a1; width: 76px; font-size: 14px; white-space: nowrap; }
+        .order-table td.col-who { text-align: right; color: #334155; font-size: 13px; font-weight: 850; width: 85px; white-space: nowrap; }
 
         .sermon-highlight-box {
-            background: #f0f9ff; border: 1.5px solid #7dd3fc; border-radius: 10px;
-            padding: 10px 12px; margin: 4px 0 8px 0; color: #0f172a; font-weight: 850; font-size: 15.5px;
+            display: none;
         }
 
         /* 2~6면 본문: 진하고 선명한 서체 */
@@ -402,12 +391,16 @@
     let isScrollProgrammatic = false;
 
     const DEFAULT_ORDER_ROWS = [
-        { part: "묵 도", content: "경배와 찬양", who: "다 함 께" },
+        { part: "묵 도", content: "경배와 찬양 (예배의 부름)", who: "다 함 께" },
+        { part: "신앙고백", content: "사도신경", who: "다 함 께" },
+        { part: "교 독 문", content: "교독문 24번 (시편 46편)", who: "다 함 께" },
         { part: "찬 송", content: "28장 (복의 근원 강림하사)", who: "다 함 께" },
         { part: "기 도", content: "주일 대표기도", who: "장로 / 권사" },
-        { part: "성경봉독", content: "요한복음 3:16", who: "인 도 자" },
+        { part: "성경봉독", content: "요한복음 3장 16절 ~ 18절", who: "인 도 자" },
         { part: "찬 양", content: "은혜의 강가로", who: "할렐루야 찬양대" },
         { part: "말 씀", content: "하나님의 사랑과 성도의 사명", who: "담임목사" },
+        { part: "봉 헌", content: "50장 (내게 있는 모든 것을)", who: "다 함 께" },
+        { part: "교회소식", content: "새가족 환영 및 공동체 광고", who: "인 도 자" },
         { part: "축 도", content: "축도 및 파송 찬양", who: "담임목사" }
     ];
 
@@ -498,7 +491,16 @@
     function loadSavedJuboData() {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
-            try { juboPagesData = JSON.parse(raw); } catch(e) { juboPagesData = DEFAULT_PAGES; }
+            try { 
+                juboPagesData = JSON.parse(raw); 
+                if (juboPagesData && juboPagesData[0]) {
+                    // 🌟 사용자 요청: 주보 순서가 최소 10개 이상 되도록 자동 업그레이드
+                    if (!juboPagesData[0].orderRows || juboPagesData[0].orderRows.length < 10) {
+                        juboPagesData[0].orderRows = DEFAULT_ORDER_ROWS;
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(juboPagesData));
+                    }
+                }
+            } catch(e) { juboPagesData = DEFAULT_PAGES; }
         } else {
             juboPagesData = DEFAULT_PAGES;
         }
@@ -538,28 +540,16 @@
                 `;
             }
 
-            // 1면 예배순서 특별 테이블
+            // 1면 예배순서 특별 테이블: 상단 여백 낭비(중복 말씀 박스) 제거하고 11개 순서 표 바로 시작
             if (idx === 0) {
-                const rows = (item.orderRows && item.orderRows.length > 0) ? item.orderRows : DEFAULT_ORDER_ROWS;
+                const rows = (item.orderRows && item.orderRows.length >= 10) ? item.orderRows : DEFAULT_ORDER_ROWS;
                 let tableHtml = `<table class="order-table">`;
                 rows.forEach(r => {
                     tableHtml += `<tr><td class="col-part">${r.part}</td><td class="col-content">${r.content}</td><td class="col-who">${r.who}</td></tr>`;
                 });
                 tableHtml += `</table>`;
 
-                let bodyHighlight = "";
-                if (item.body && item.body.trim()) {
-                    bodyHighlight = `
-                        <div class="sermon-highlight-box">
-                            <strong style="font-size:15px; color:#0369a1; display:block; line-height:1.5;" id="sec_body_${idx}">${item.body}</strong>
-                        </div>
-                    `;
-                }
-
-                html += `
-                    ${bodyHighlight}
-                    ${tableHtml}
-                `;
+                html += `${tableHtml}`;
             } else {
                 html += `<div class="jubo-body-text" id="sec_body_${idx}">${item.body}</div>`;
             }
