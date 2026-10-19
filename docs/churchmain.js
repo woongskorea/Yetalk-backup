@@ -32,49 +32,49 @@ const DEFAULT_SHARED_WORSHIP = {
 function createDefaultSlides(catName, isWorship = false) {
     if (catName === "교회" || catName === "교회의꿈") {
         return [
-            { title: "교회", verse: "“오직 여호와를 앙망하는 자는 새 힘을 얻으리니 (사 40:31)”", body: "하나님의 거룩한 임재와 은혜가 머무는 따뜻한 사랑의 공동체입니다.", yt: "", img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90" },
-            { title: "교회", verse: "“너희는 세상의 빛이라 산 위에 있는 동네가 숨겨지지 못할 것이요 (마 5:14)”", body: "세상을 밝히고 이웃에게 그리스도의 사랑을 흘려보내는 은혜의 통로입니다.", yt: "", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90" },
-            { title: "교회", verse: "“내가 이 반석 위에 내 교회를 세우리니 음부의 권세가 이기지 못하리라 (마 16:18)”", body: "진리의 말씀 위에 굳건히 서서 믿음으로 승리하는 주님의 몸 된 교회입니다.", yt: "", img: "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?auto=format&fit=crop&w=1600&q=90" },
-            { title: "교회", verse: "“서로 사랑하라 내가 너희를 사랑한 것 같이 너희도 서로 사랑하라 (요 13:34)”", body: "모든 성도가 그리스도 안에서 한 가족 되어 기쁨과 감사를 함께 나눕니다.", yt: "", img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1600&q=90" },
-            { title: "교회", verse: "“내 집은 만민이 기도하는 집이라 일컬음을 받으리라 (사 56:7)”", body: "성령의 불길로 무릎 꿇어 부르짖으며 하나님의 능력을 체험하는 기도의 제단입니다.", yt: "", img: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?auto=format&fit=crop&w=1600&q=90" },
-            { title: "교회", verse: "“오직 성령이 너희에게 임하시면 너희가 권능을 받고 (행 1:8)”", body: "복음의 열정으로 땅끝까지 예수 그리스도의 생명의 증인으로 나아갑니다.", yt: "", img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=90" },
-            { title: "교회", verse: "“주의 집에서의 한 날이 다른 곳에서의 천 날보다 좋은즉 (시 84:10)”", body: "하나님의 영광과 임재가 가득한 영원한 은혜의 처소, 예톡행복한교회입니다.", yt: "", img: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=90" }
+            { title: "교회", verse: "2026 온 성도 사랑과 감사의 축제", body: "하나님의 거룩한 임재와 은혜가 머무는 따뜻한 사랑의 공동체입니다.", yt: "", img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90" },
+            { title: "교회", verse: "세상을 밝히는 복음의 빛과 사랑", body: "세상을 밝히고 이웃에게 그리스도의 사랑을 흘려보내는 은혜의 통로입니다.", yt: "", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90" },
+            { title: "교회", verse: "말씀 위에 굳건히 서는 믿음의 교회", body: "진리의 말씀 위에 굳건히 서서 믿음으로 승리하는 주님의 몸 된 교회입니다.", yt: "", img: "https://images.unsplash.com/photo-1519834785169-98be25ec3f84?auto=format&fit=crop&w=1600&q=90" },
+            { title: "교회", verse: "그리스도 안에서 하나 되는 사랑의 교제", body: "모든 성도가 그리스도 안에서 한 가족 되어 기쁨과 감사를 함께 나눕니다.", yt: "", img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1600&q=90" },
+            { title: "교회", verse: "성령의 능력으로 부르짖는 기도의 제단", body: "성령의 불길로 무릎 꿇어 부르짖으며 하나님의 능력을 체험하는 기도의 제단입니다.", yt: "", img: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?auto=format&fit=crop&w=1600&q=90" },
+            { title: "교회", verse: "땅끝까지 전하는 예수 생명의 증인", body: "복음의 열정으로 땅끝까지 예수 그리스도의 생명의 증인으로 나아갑니다.", yt: "", img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=90" },
+            { title: "교회", verse: "하나님의 영광과 임재가 가득한 처소", body: "하나님의 영광과 임재가 가득한 영원한 은혜의 처소, 예톡행복한교회입니다.", yt: "", img: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=90" }
         ];
     }
     if (catName === "예배") {
         return [
-            { title: "예배", verse: "“신령과 진정으로 예배하는 자들을 찾으시느니라 (요 4:23)”", body: "주일과 주중 모든 예배 실황과 은혜의 말씀을 나눕니다.", yt: "", img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90" },
-            { title: "예배", verse: "“주의 말씀은 내 발의 등이요 내 길에 빛이니이다 (시 119:105)”", body: "성령의 임재와 말씀의 능력을 경험하는 은혜의 축제입니다.", yt: "", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90" },
-            { title: "예배", verse: "“너희는 여호와를 만날 만한 때에 찾으라 가까이 계실 때에 그를 부르라 (사 55:6)”", body: "뜨거운 찬양과 기도로 살아계신 하나님을 깊이 만납니다.", yt: "", img: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?auto=format&fit=crop&w=1600&q=90" }
+            { title: "예배", verse: "신령과 진정으로 드리는 거룩한 예배", body: "주일과 주중 모든 예배 실황과 은혜의 말씀을 나눕니다.", yt: "", img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90" },
+            { title: "예배", verse: "주의 말씀은 내 발의 등이요 내 길의 빛", body: "성령의 임재와 말씀의 능력을 경험하는 은혜의 축제입니다.", yt: "", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90" },
+            { title: "예배", verse: "살아계신 하나님을 깊이 만나는 축제", body: "뜨거운 찬양과 기도로 살아계신 하나님을 깊이 만납니다.", yt: "", img: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?auto=format&fit=crop&w=1600&q=90" }
         ];
     }
     if (catName === "보배성도") {
         return [
-            { title: "보배성도", verse: "“우리가 서로 사랑하면 하나님이 우리 안에 거하시고 (요일 4:12)”", body: "주 안에서 하나 되어 기쁨과 감사를 나누는 은혜의 행복셀 모임입니다.", yt: "", img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1600&q=90" },
-            { title: "보배성도", verse: "“서로 돌아보아 사랑과 선행을 격려하며 (히 10:24)”", body: "말씀으로 세워지고 기도로 중보하며 함께 자라가는 나눔셀 모임입니다.", yt: "", img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=90" },
-            { title: "보배성도", verse: "“너희는 택하신 족속이요 왕 같은 제사장들이요 (벧전 2:9)”", body: "세상의 빛과 소금으로 부르심 받은 존귀한 성도들의 믿음의 교제입니다.", yt: "", img: "https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=1600&q=90" },
-            { title: "보배성도", verse: "“오직 여호와를 앙망하는 자는 새 힘을 얻으리니 (사 40:31)”", body: "주님의 평안과 풍성한 은혜가 사랑하는 성도님의 가정과 삶에 충만하시길 기도합니다.", yt: "", img: "", isAdmob250: true }
+            { title: "보배성도", verse: "주 안에서 하나 되는 행복셀 나눔", body: "주 안에서 하나 되어 기쁨과 감사를 나누는 은혜의 행복셀 모임입니다.", yt: "", img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1600&q=90" },
+            { title: "보배성도", verse: "사랑과 선행으로 격려하는 은혜의 교제", body: "말씀으로 세워지고 기도로 중보하며 함께 자라가는 나눔셀 모임입니다.", yt: "", img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=90" },
+            { title: "보배성도", verse: "세상의 빛과 소금 된 존귀한 성도들", body: "세상의 빛과 소금으로 부르심 받은 존귀한 성도들의 믿음의 교제입니다.", yt: "", img: "https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=1600&q=90" },
+            { title: "보배성도", verse: "선교 사역 및 미디어 방송 공식 후원", body: "주님의 평안과 풍성한 은혜가 사랑하는 성도님의 가정과 삶에 충만하시길 기도합니다.", yt: "", img: "", isAdmob250: true }
         ];
     }
     if (catName === "공지알림") {
         return [
-            { title: "공지알림", verse: "“너희는 세상의 소금이니 소금이 만일 그 맛을 잃으면 (마 5:13)”", body: "하나님의 거룩한 사랑과 교회의 은혜로운 주요 소식을 함께 나눕니다.", yt: "", img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90" },
-            { title: "공지알림", verse: "“주의 말씀은 내 발의 등이요 내 길에 빛이니이다 (시 119:105)”", body: "성도 여러분의 영적 성장과 동역을 위한 안내 말씀입니다.", yt: "", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90" },
-            { title: "공지알림", verse: "“평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라 (요 14:27)”", body: "선교 사역과 복음 전파를 후원하는 공식 스폰서 슬롯과 함께합니다.", yt: "", img: "", isAdmob250: true }
+            { title: "공지알림", verse: "은혜와 사랑이 넘치는 교회 주요 소식", body: "하나님의 거룩한 사랑과 교회의 은혜로운 주요 소식을 함께 나눕니다.", yt: "", img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90" },
+            { title: "공지알림", verse: "성도 영적 성장을 위한 목회 안내", body: "성도 여러분의 영적 성장과 동역을 위한 안내 말씀입니다.", yt: "", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90" },
+            { title: "공지알림", verse: "선교 사역 및 복음 전파 공식 스폰서", body: "선교 사역과 복음 전파를 후원하는 공식 스폰서 슬롯과 함께합니다.", yt: "", img: "", isAdmob250: true }
         ];
     }
     if (catName === "예수동행") {
         return [
-            { title: "예수동행", verse: "“내가 너희를 고아와 같이 버려두지 아니하고 너희에게로 오리라 (요 14:18)”", body: "매일 삶의 모든 순간마다 주님을 의식하고 동행하는 24시간 은혜의 여정입니다.", yt: "", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90" },
-            { title: "예수동행", verse: "“나는 포도나무요 너희는 가지라 그가 내 안에, 내가 그 안에 거하면 (요 15:5)”", body: "동행일기와 나눔을 통해 날마다 주님의 인도하심을 깊이 누립니다.", yt: "", img: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=1600&q=90" },
-            { title: "예수동행", verse: "“여호와는 나의 목자시니 내게 부족함이 없으리로다 (시 23:1)”", body: "선한 목자 되신 예수님 품 안에서 온전한 평안과 안식을 얻습니다.", yt: "", img: "https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?auto=format&fit=crop&w=1600&q=90" }
+            { title: "예수동행", verse: "24시간 주님을 의식하는 은혜의 동행", body: "매일 삶의 모든 순간마다 주님을 의식하고 동행하는 24시간 은혜의 여정입니다.", yt: "", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90" },
+            { title: "예수동행", verse: "동행일기로 날마다 누리는 주님의 인도", body: "동행일기와 나눔을 통해 날마다 주님의 인도하심을 깊이 누립니다.", yt: "", img: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?auto=format&fit=crop&w=1600&q=90" },
+            { title: "예수동행", verse: "선한 목자 예수님 품 안의 참된 평안", body: "선한 목자 되신 예수님 품 안에서 온전한 평안과 안식을 얻습니다.", yt: "", img: "https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?auto=format&fit=crop&w=1600&q=90" }
         ];
     }
-    // 🌟 1:은혜의 비전 등 불필요한 번호/수식어 완전 삭제, 메뉴의 제목만 크게 표시!
+    // 🌟 메뉴의 한줄 행사/소제목만 선명하게 표시!
     return [
-        { title: catName, verse: "“오직 여호와를 앙망하는 자는 새 힘을 얻으리니 (사 40:31)”", body: "하나님의 거룩한 임재와 은혜가 머무는 따뜻한 공동체입니다.", yt: "", img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90" },
-        { title: catName, verse: "“믿음은 바라는 것들의 실상이요 보이지 않는 것들의 증거니 (히 11:1)”", body: "날마다 말씀으로 승리하는 은혜의 동행입니다.", yt: "", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90" },
-        { title: catName, verse: "“서로 사랑하라 내가 너희를 사랑한 것 같이 너희도 서로 사랑하라 (요 13:34)”", body: "그리스도의 따뜻한 사랑을 온 세상에 전합니다.", yt: "", img: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?auto=format&fit=crop&w=1600&q=90" }
+        { title: catName, verse: `2026 ${catName} 사랑과 은혜의 축제`, body: "하나님의 거룩한 임재와 은혜가 머무는 따뜻한 공동체입니다.", yt: "", img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90" },
+        { title: catName, verse: `날마다 말씀으로 승리하는 ${catName}`, body: "날마다 말씀으로 승리하는 은혜의 동행입니다.", yt: "", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90" },
+        { title: catName, verse: "그리스도의 따뜻한 사랑을 온 세상에", body: "그리스도의 따뜻한 사랑을 온 세상에 전합니다.", yt: "", img: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?auto=format&fit=crop&w=1600&q=90" }
     ];
 }
 
@@ -141,8 +141,13 @@ let isWorshipLocked = false;
 let worshipYtPlayer = null;
 
 function initChurchData() {
-    const STORAGE_KEY_V40 = "yetalk_church_main_slides_v40";
-    let saved = localStorage.getItem(STORAGE_KEY_V40) || localStorage.getItem("yetalk_church_main_other_slides_v38") || localStorage.getItem("yetalk_church_main_other_slides_v33") || localStorage.getItem("yetalk_church_main_other_slides_v31");
+    const STORAGE_KEY_V41 = "yetalk_church_main_slides_v41";
+    let saved = localStorage.getItem(STORAGE_KEY_V41);
+    let needVerseMigration = false;
+    if (!saved) {
+        saved = localStorage.getItem("yetalk_church_main_slides_v40") || localStorage.getItem("yetalk_church_main_other_slides_v38") || localStorage.getItem("yetalk_church_main_other_slides_v33") || localStorage.getItem("yetalk_church_main_other_slides_v31");
+        needVerseMigration = true;
+    }
     if (saved) {
         try {
             saved = saved.replace(/photo-1519681393784-d120267933ba/g, 'photo-1438232992991-995b7058bbb3')
@@ -153,9 +158,9 @@ function initChurchData() {
 
     MENU_DEFINITIONS.forEach(m => {
         if (m.id === 0) {
-            // 🌟 교회 (0번 메뉴): 7개 슬라이드 완전 보장
+            // 🌟 교회 (0번 메뉴): 7개 슬라이드 완전 보장 & 한줄 행사/소제목 적용
             const list0 = churchSlideData[0];
-            if (!list0 || !Array.isArray(list0) || list0.length < 7 || list0.some(isDoctorDirtySlide)) {
+            if (!list0 || !Array.isArray(list0) || list0.length < 7 || list0.some(isDoctorDirtySlide) || needVerseMigration) {
                 churchSlideData[0] = createDefaultSlides("교회", false);
             } else {
                 churchSlideData[0].forEach(s => {
@@ -168,24 +173,24 @@ function initChurchData() {
             churchSlideData[1] = createDefaultSlides("예배", false);
         } else if (m.id === 3) {
             const list3 = churchSlideData[3];
-            if (!list3 || !Array.isArray(list3) || list3.length < 3 || !list3[list3.length - 1].isAdmob250 || list3.some(isDoctorDirtySlide)) {
+            if (!list3 || !Array.isArray(list3) || list3.length < 3 || !list3[list3.length - 1].isAdmob250 || list3.some(isDoctorDirtySlide) || needVerseMigration) {
                 churchSlideData[3] = createDefaultSlides("공지알림", false);
             }
         } else if (m.id === 7) {
             // 🌟 보배성도 (성도 교제 및 셀 모임): 마지막 슬라이드에 250 애드몹 보장!
             const list7 = churchSlideData[7];
-            if (!list7 || !Array.isArray(list7) || list7.length < 3 || !list7[list7.length - 1].isAdmob250 || list7.some(isDoctorDirtySlide)) {
+            if (!list7 || !Array.isArray(list7) || list7.length < 3 || !list7[list7.length - 1].isAdmob250 || list7.some(isDoctorDirtySlide) || needVerseMigration) {
                 churchSlideData[7] = createDefaultSlides("보배성도", false);
             }
         } else if (m.id === 6) {
             const list6 = churchSlideData[6];
-            if (!list6 || !Array.isArray(list6) || list6.length < 3 || list6.some(isDoctorDirtySlide)) {
+            if (!list6 || !Array.isArray(list6) || list6.length < 3 || list6.some(isDoctorDirtySlide) || needVerseMigration) {
                 churchSlideData[6] = createDefaultSlides("예수동행", false);
             }
         } else {
             const currentList = churchSlideData[m.id];
             const hasDirtyData = Array.isArray(currentList) && currentList.some(isDoctorDirtySlide);
-            if (!currentList || !Array.isArray(currentList) || currentList.length < 3 || hasDirtyData) {
+            if (!currentList || !Array.isArray(currentList) || currentList.length < 3 || hasDirtyData || needVerseMigration) {
                 churchSlideData[m.id] = createDefaultSlides(m.cat, false);
             } else {
                 // 이전 데이터의 "1: 은혜의 비전" 등의 수식어 정제
@@ -200,7 +205,8 @@ function initChurchData() {
     });
 
     try {
-        localStorage.setItem(STORAGE_KEY_V40, JSON.stringify(churchSlideData));
+        localStorage.setItem(STORAGE_KEY_V41, JSON.stringify(churchSlideData));
+        localStorage.setItem("yetalk_church_main_slides_v40", JSON.stringify(churchSlideData));
         localStorage.setItem("yetalk_church_main_other_slides_v38", JSON.stringify(churchSlideData));
         localStorage.setItem("yetalk_church_main_other_slides_v33", JSON.stringify(churchSlideData));
         localStorage.setItem("yetalk_church_main_other_slides_v31", JSON.stringify(churchSlideData));
@@ -545,12 +551,36 @@ function renderChurchView() {
                     <div class="card-verse-highlight" id="slide_verse_${sec.id}">${cur.verse}</div>
                     <div class="card-body-text" id="slide_body_${sec.id}">${cur.body}</div>
                     ${sec.id === 6 ? `
-                        <div style="margin-top:10px;">
-                            <button type="button" onclick="event.stopPropagation(); goToDetailPage(6, 'churchjesuswalking.html');" style="background:linear-gradient(135deg, #0284c7, #2563eb); border:1.5px solid #38bdf8; border-radius:24px; padding:7px 16px; color:#ffffff; font-size:13px; font-weight:950; box-shadow:0 4px 14px rgba(2,132,199,0.5); cursor:pointer; display:inline-flex; align-items:center; gap:5px;">
+                        <div style="margin-top:6px;">
+                            <button type="button" onclick="event.stopPropagation(); goToDetailPage(6, 'churchjesuswalking.html');" style="background:linear-gradient(135deg, #0284c7, #2563eb); border:1.5px solid #38bdf8; border-radius:24px; padding:6px 14px; color:#ffffff; font-size:12.5px; font-weight:950; box-shadow:0 4px 14px rgba(2,132,199,0.5); cursor:pointer; display:inline-flex; align-items:center; gap:5px;">
                                 <span>🕊️</span> <span>담임목사님과 함께 (콕 누르세요 👆)</span>
                             </button>
                         </div>
                     ` : ''}
+
+                    <!-- 🌟 [사용자 요청] 이미지 바탕 맨 아래에 포함된 한줄 메뉴 (예톡TV, 복음, 오시는길, 헌금, 쿠팡) -->
+                    <div class="card-embedded-quick-nav">
+                        <button type="button" class="c-quick-nav-btn" onclick="event.stopPropagation(); handleBottomNav('tv');" title="예톡TV 숏폼 보기">
+                            <span class="c-quick-icon">📺</span>
+                            <span class="c-quick-label">예톡TV</span>
+                        </button>
+                        <button type="button" class="c-quick-nav-btn" onclick="event.stopPropagation(); handleBottomNav('gospel');" title="복음 말씀">
+                            <span class="c-quick-icon">📖</span>
+                            <span class="c-quick-label">복음</span>
+                        </button>
+                        <button type="button" class="c-quick-nav-btn" onclick="event.stopPropagation(); handleBottomNav('map');" title="오시는길 약도">
+                            <span class="c-quick-icon">📍</span>
+                            <span class="c-quick-label">오시는길</span>
+                        </button>
+                        <button type="button" class="c-quick-nav-btn c-quick-offering" onclick="event.stopPropagation(); handleBottomNav('offering');" title="온라인 헌금">
+                            <span class="c-quick-icon">💳</span>
+                            <span class="c-quick-label">헌금</span>
+                        </button>
+                        <button type="button" class="c-quick-nav-btn c-quick-coupang" onclick="event.stopPropagation(); handleBottomNav('coupang');" title="쿠팡 복음선교">
+                            <span class="c-quick-icon">🛒</span>
+                            <span class="c-quick-label">쿠팡</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="slide-dots" id="dots_${sec.id}">
@@ -1008,6 +1038,7 @@ function saveCurrentCardData() {
         if (tempEditImgBase64) shared[sharedKey].img = tempEditImgBase64;
         localStorage.setItem(SHARED_WORSHIP_KEY, JSON.stringify(shared));
     } else {
+        localStorage.setItem("yetalk_church_main_slides_v41", JSON.stringify(churchSlideData));
         localStorage.setItem("yetalk_church_main_slides_v40", JSON.stringify(churchSlideData));
         localStorage.setItem("yetalk_church_main_other_slides_v38", JSON.stringify(churchSlideData));
         localStorage.setItem("yetalk_church_main_other_slides_v33", JSON.stringify(churchSlideData));
