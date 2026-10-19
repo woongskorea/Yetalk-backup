@@ -162,28 +162,60 @@
         .tab-page::-webkit-scrollbar { display: none; }
 
         /* ==============================================================
-           [메뉴 1. 홈] 80% 풀스크린 사진 + 우측 '관리자' 버튼 + 유튜브 쇼츠 스타일 자막 3줄
+           [메뉴 1. 홈] 🌟 [사용자 요청] 좌우 5개 사진 가로 캐러셀 + 글/그림 수정 + 풀스크린 상세
            ============================================================== */
-        .home-hero-wrap {
+        .home-carousel-container {
             position: relative;
             width: 100%;
             height: 100%;
             background: #000000;
             overflow: hidden;
             flex-shrink: 0;
-            cursor: pointer;
         }
-        .home-hero-img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            display: block;
-            transition: transform 0.4s ease;
+
+        /* 상단 제어 바: 좌측 페이지 도트 인디케이터 + 우측 관리자 버튼 */
+        .home-top-controls {
+            position: absolute;
+            top: 12px;
+            left: 14px;
+            right: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 60;
+            pointer-events: none;
+        }
+        .home-top-controls > * {
+            pointer-events: auto;
+        }
+
+        .home-slide-dots {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .home-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.35);
+            cursor: pointer;
+            transition: all 0.22s ease;
+        }
+        .home-dot.active {
+            width: 22px;
+            border-radius: 10px;
+            background: var(--neon-blue);
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.9);
         }
 
         /* 🌟 [사용자 요청] 사진 우측 '관리자' 버튼 (ON일 때 빨강색!) */
         .admin-toggle-btn {
-            position: absolute; top: 14px; right: 14px;
-            z-index: 50;
             padding: 6px 14px;
             border-radius: 20px;
             font-size: 13px;
@@ -193,7 +225,7 @@
             transition: all 0.2s ease;
         }
         .admin-toggle-btn.off {
-            background: rgba(15, 23, 42, 0.75);
+            background: rgba(15, 23, 42, 0.85);
             border: 1.2px solid rgba(255, 255, 255, 0.3);
             color: #e2e8f0;
             backdrop-filter: blur(8px);
@@ -210,11 +242,105 @@
             50% { transform: scale(1.04); }
         }
 
+        /* 좌우 네비 화살표 버튼 */
+        .btn-carousel-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: 900;
+            cursor: pointer;
+            z-index: 45;
+            transition: all 0.18s;
+        }
+        .btn-carousel-nav:active {
+            transform: translateY(-50%) scale(0.9);
+            background: rgba(56, 189, 248, 0.7);
+        }
+        .btn-carousel-nav.prev { left: 8px; }
+        .btn-carousel-nav.next { right: 8px; }
+
+        /* 🌟 좌우 5개 가로 스크롤 스냅 트랙 */
+        .home-carousel-track {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .home-carousel-track::-webkit-scrollbar { display: none; }
+
+        .home-carousel-slide {
+            flex: 0 0 100%;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            overflow: hidden;
+            background: #000;
+            cursor: pointer;
+        }
+        .home-slide-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.4s ease;
+        }
+
+        /* 슬라이드 번호 배지 */
+        .home-slide-counter-badge {
+            position: absolute;
+            bottom: calc(134px);
+            right: 14px;
+            background: rgba(0, 0, 0, 0.72);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11.5px;
+            font-weight: 900;
+            z-index: 25;
+            backdrop-filter: blur(4px);
+        }
+
+        /* 관리자 모드 시 슬라이드별 즉시 수정 버튼 */
+        .btn-slide-quick-edit {
+            position: absolute;
+            top: 56px;
+            right: 14px;
+            background: rgba(220, 38, 38, 0.92);
+            border: 1.2px solid #fca5a5;
+            color: #ffffff;
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            z-index: 55;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.6);
+        }
+
         /* 🌟 유튜브 쇼츠 자막 스타일: 이미지 하단 3줄 글 공간 */
         .home-shorts-caption {
             position: absolute; bottom: 0; left: 0; right: 0;
-            background: linear-gradient(to top, rgba(6, 10, 18, 0.96) 0%, rgba(6, 10, 18, 0.78) 60%, transparent 100%);
-            padding: 34px 16px 16px 16px;
+            background: linear-gradient(to top, rgba(6, 10, 18, 0.98) 0%, rgba(6, 10, 18, 0.82) 65%, transparent 100%);
+            padding: 36px 16px 16px 16px;
             display: flex; flex-direction: column; gap: 5px;
             z-index: 20;
         }
@@ -223,7 +349,7 @@
             font-weight: 850;
             color: #ffffff;
             line-height: 1.55;
-            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
             white-space: pre-wrap;
             word-break: keep-all;
             display: -webkit-box;
@@ -374,16 +500,59 @@
             min-height: 0; /* 끝까지 꽉 차도록 */
         }
         .chat-bubble-row {
-            display: flex; align-items: flex-end; gap: 6px; position: relative;
+            display: flex; flex-direction: column; gap: 3px; position: relative;
         }
         .chat-bubble-row.my {
-            justify-content: flex-end;
+            align-items: flex-end;
         }
         .chat-bubble-row.other {
-            justify-content: flex-start;
+            align-items: flex-start;
         }
+
+        /* 🌟 [사용자 요청] 공식 대화방 글 적은 사람 이름 상시 노출 & 클릭 시 1:1 대화 연결 */
+        .chat-author-line {
+            display: inline-flex; align-items: center; gap: 4px;
+            cursor: pointer;
+            padding: 1px 4px;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+        .chat-author-line:active {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        .chat-author-chip {
+            font-size: 12px;
+            font-weight: 850;
+            color: #1e293b;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .chat-bubble-row.my .chat-author-chip {
+            color: #1e3a8a;
+        }
+        .chat-author-line .dm-tag {
+            font-size: 10px;
+            font-weight: 900;
+            background: #0284c7;
+            color: #ffffff;
+            padding: 1px 6px;
+            border-radius: 8px;
+            letter-spacing: -0.2px;
+        }
+
+        .chat-bubble-content-wrap {
+            display: flex; align-items: flex-end; gap: 6px;
+            max-width: 82%;
+        }
+        .chat-bubble-row.my .chat-bubble-content-wrap {
+            flex-direction: row;
+        }
+        .chat-bubble-row.other .chat-bubble-content-wrap {
+            flex-direction: row;
+        }
+
         .chat-bubble-content {
-            max-width: 76%;
             padding: 10px 14px;
             font-size: 15px;
             font-weight: 700;
@@ -401,33 +570,38 @@
             border-radius: 4px 16px 16px 16px;
         }
         .chat-time-tag {
-            font-size: 10px; color: #475569; font-weight: 700; white-space: nowrap;
+            font-size: 10px; color: #475569; font-weight: 700; white-space: nowrap; flex-shrink: 0;
         }
+
+        /* 🌟 [사용자 요청] 이름 입력창 삭제로 공간 확보된 와이드 메시지 입력 바 */
         .chat-input-dock {
             background: #ffffff;
             border-top: 1px solid #cbd5e1;
-            padding: 8px 10px;
-            display: flex; align-items: center; gap: 6px;
+            padding: 8px 12px;
+            display: flex; align-items: center; gap: 8px;
             flex-shrink: 0;
         }
-        .inp-chat-name {
-            width: 80px; height: 38px;
-            background: #f1f5f9; border: 1px solid #cbd5e1;
-            border-radius: 8px; padding: 0 8px;
-            font-size: 13px; font-weight: 850; color: #1e293b;
-            text-align: center; outline: none;
-        }
         .inp-chat-body {
-            flex: 1; height: 38px;
-            background: #f1f5f9; border: 1px solid #cbd5e1;
-            border-radius: 20px; padding: 0 14px;
-            font-size: 14.5px; color: #0f172a; outline: none;
+            flex: 1; height: 42px;
+            background: #f1f5f9; border: 1.2px solid #cbd5e1;
+            border-radius: 22px; padding: 0 16px;
+            font-size: 15px; color: #0f172a; outline: none;
+            transition: border-color 0.15s ease;
+        }
+        .inp-chat-body:focus {
+            border-color: #0284c7;
+            background: #ffffff;
         }
         .btn-chat-post {
-            height: 38px; padding: 0 15px;
+            height: 42px; padding: 0 18px;
             background: #fee500; border: 1px solid #e5ce00;
-            border-radius: 20px; font-size: 13.5px; font-weight: 950;
-            color: #191919; cursor: pointer;
+            border-radius: 22px; font-size: 14px; font-weight: 950;
+            color: #191919; cursor: pointer; flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+        .btn-chat-post:active {
+            transform: scale(0.96);
+            background: #ebd200;
         }
 
         /* ==============================================================
@@ -467,15 +641,42 @@
             flex: 1; font-size: 16.5px;
             font-weight: 750; line-height: 1.6; color: #f1f5f9;
         }
+        /* 🌟 [사용자 요청] 오른쪽에 눈에 확 띄는 선명한 노랑/골드 아멘 버튼 (검정 굵은 글씨) */
         .btn-amen {
-            background: rgba(239, 68, 68, 0.18);
-            border: 1.2px solid rgba(239, 68, 68, 0.5);
-            color: #fca5a5;
-            padding: 6px 13px; border-radius: 18px;
-            font-size: 13px; font-weight: 950; cursor: pointer;
+            background: linear-gradient(135deg, #fde047, #facc15) !important;
+            border: 1.5px solid #ffffff !important;
+            color: #000000 !important;
+            padding: 7px 14px; border-radius: 20px;
+            font-size: 13.5px; font-weight: 950; cursor: pointer;
+            white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 5px;
+            box-shadow: 0 3px 12px rgba(250, 204, 21, 0.55);
+            transition: transform 0.15s ease, filter 0.15s ease;
+        }
+        .btn-amen:active { transform: scale(0.93); filter: brightness(0.92); }
+        .btn-amen .amen-badge {
+            background: #000000;
+            color: #fde047;
+            padding: 1px 7px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 950;
+        }
+        .btn-prayer-del {
+            background: #1e293b;
+            border: 1px solid #475569;
+            color: #f87171;
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-size: 11.5px;
+            font-weight: 850;
+            cursor: pointer;
             white-space: nowrap;
         }
-        .btn-amen:active { transform: scale(0.92); background: #ef4444; color: #fff; }
+        .btn-prayer-del:active {
+            background: #dc2626;
+            color: #ffffff;
+        }
 
         /* 소식알림: 교회앱 공지알림 피드 스타일 */
         .notice-feed-list {
@@ -676,26 +877,27 @@
         <main class="main-content-view" id="mainContentView">
 
             <!-- ==============================================
-                 [메뉴 1. 홈] 80% 풀스크린 사진 + 우측 '관리자' 버튼 + 쇼츠 자막 3줄
+                 [메뉴 1. 홈] 🌟 [사용자 요청] 좌우 5개 사진 가로 캐러셀 + 글/그림 수정 + 풀스크린 상세
                  ============================================== -->
             <section class="tab-page" id="tab_home">
-                <div class="home-hero-wrap" onclick="openHomeDetailSubpage()">
-                    <!-- 80% 풀스크린 천국버스교회 사진 -->
-                    <img id="homeHeroImg" class="home-hero-img" src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200&auto=format&fit=crop&q=80" alt="천국버스교회">
-
-                    <!-- 🌟 [사용자 요청] 사진 우측 관리자 버튼 (ON은 빨강색! ON시 이름·그림·글 모두 수정) -->
-                    <button type="button" class="admin-toggle-btn off" id="btnAdminHome" onclick="toggleAdminMode(event)">
-                        ⚙️ 관리자 <span id="adminStatusText">OFF</span>
-                    </button>
-
-                    <!-- 유튜브 쇼츠 자막 스타일 3줄 글 공간 -->
-                    <div class="home-shorts-caption">
-                        <p class="home-caption-text" id="dispHomeCaption">상처 입은 영혼이 참된 안식을 누리고 치유되는 거룩한 은혜의 처소입니다.
-온 세상을 달리는 천국버스교회와 함께 하나님의 살아계심을 경험하는 은혜의 복된 처소가 되기를 축복합니다.</p>
-                        <div class="home-caption-minister" id="dispHomeMinister">
-                            사역자 / 가장: <span id="dispMinisterSpan">김예톡</span>
+                <div class="home-carousel-container">
+                    <!-- 상단 제어 바: 슬라이드 인디케이터 도트 + 우측 관리자 버튼 -->
+                    <div class="home-top-controls">
+                        <div class="home-slide-dots" id="homeSlideDots">
+                            <!-- JS 동적 렌더링: ● ○ ○ ○ ○ -->
                         </div>
-                        <div class="home-detail-hint">👉 터치하여 전체 사진 및 상세 소식 보기</div>
+                        <button type="button" class="admin-toggle-btn off" id="btnAdminHome" onclick="toggleAdminMode(event)">
+                            ⚙️ 관리자 <span id="adminStatusText">OFF</span>
+                        </button>
+                    </div>
+
+                    <!-- 좌우 네비게이션 버튼 -->
+                    <button type="button" class="btn-carousel-nav prev" id="btnCarouselPrev" onclick="navigateHomeCarousel(-1)" aria-label="이전 사진">‹</button>
+                    <button type="button" class="btn-carousel-nav next" id="btnCarouselNext" onclick="navigateHomeCarousel(1)" aria-label="다음 사진">›</button>
+
+                    <!-- 좌우 스냅 트랙 (5개 슬라이드 동적 렌더링) -->
+                    <div class="home-carousel-track" id="homeCarouselTrack">
+                        <!-- 동적 렌더링 -->
                     </div>
                 </div>
             </section>
@@ -716,8 +918,8 @@
                         <!-- 카톡 스타일 메시지들 -->
                     </div>
 
+                    <!-- 🌟 [사용자 요청] 이름입력창 제거하여 글작성 공간 극대화한 와이드 입력바 -->
                     <div class="chat-input-dock">
-                        <input type="text" id="inpChatAuthor" class="inp-chat-name" placeholder="이름" maxlength="6">
                         <input type="text" id="inpChatText" class="inp-chat-body" placeholder="은혜로운 한마디를 나누세요..." onkeydown="if(event.key==='Enter') submitChatMessage()">
                         <button type="button" class="btn-chat-post" onclick="submitChatMessage()">전송</button>
                     </div>
@@ -872,11 +1074,11 @@
     <!-- ==============================================
          바텀 시트 모달들
          ============================================== -->
-    <!-- 1. 🌟 [사용자 요청] 관리자 ON 시 첫페이지에서 이름, 사진, 글 모두 수정하는 모달 -->
+    <!-- 1. 🌟 [사용자 요청] 관리자 ON 시 첫페이지에서 이름, 사진 5개, 글 모두 수정하는 모달 -->
     <div class="bottom-sheet-overlay" id="homeMasterAdminModal" onclick="closeModal('homeMasterAdminModal')">
         <div class="bottom-sheet-panel" onclick="event.stopPropagation()">
             <div class="sheet-head-row">
-                <span class="sheet-title-text">⚙️ 관리자 설정 (이름 · 그림 · 글 수정)</span>
+                <span class="sheet-title-text">⚙️ 움직이는교회 관리 (이름 · 5대 사진/글 수정)</span>
                 <button type="button" class="sheet-close-btn" onclick="closeModal('homeMasterAdminModal')">✕</button>
             </div>
             
@@ -884,21 +1086,36 @@
             <label style="font-size:13px; color:#38bdf8; font-weight:900;">⛪ 움직이는교회 이름 (회원이름 움직이는 교회)</label>
             <input type="text" id="inpMasterChurchTitle" class="sheet-inp" placeholder="예: 김예톡 움직이는 교회">
 
-            <!-- 2) 대표 사진 수정 -->
-            <label style="font-size:13px; color:var(--neon-gold); font-weight:900; margin-top:4px;">🖼️ 대표 사진 (URL 또는 천국버스 기본 사진)</label>
+            <!-- 2) 슬라이드 선택 탭 (1번 ~ 5번) -->
+            <div style="margin-top:6px; display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                    <label style="font-size:13px; color:var(--neon-gold); font-weight:900;">🖼️ 수정할 사진 슬라이드 선택 (최대 5개)</label>
+                    <div style="display:flex; gap:4px;">
+                        <button type="button" style="background:#0284c7; color:#fff; border:none; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" onclick="addNewSlideAdmin()">＋ 슬라이드 추가</button>
+                        <button type="button" style="background:#dc2626; color:#fff; border:none; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" onclick="deleteCurrentSlideAdmin()">🗑️ 삭제</button>
+                    </div>
+                </div>
+                <!-- 1~5번 슬라이드 탭 칩 -->
+                <div id="adminSlideTabRow" style="display:flex; gap:6px; overflow-x:auto; padding:3px 0;">
+                    <!-- JS 동적 렌더링: [ 1번 사진 ] [ 2번 사진 ] ... -->
+                </div>
+            </div>
+
+            <!-- 3) 선택된 슬라이드의 사진 수정 -->
+            <label style="font-size:12.5px; color:#fde047; font-weight:850; margin-top:4px;">📷 사진 (URL 또는 천국버스/폰사진)</label>
             <input type="text" id="inpMasterHeroImg" class="sheet-inp" placeholder="사진 URL을 입력하세요">
             <div style="display:flex; gap:6px;">
-                <button type="button" class="btn-sheet-cancel" style="height:36px; font-size:12px;" onclick="setHeavenlyBusDefault()">🚌 천국버스교회 사진</button>
+                <button type="button" class="btn-sheet-cancel" style="height:36px; font-size:12px;" onclick="setHeavenlyBusDefault()">🚌 천국버스 사진</button>
                 <button type="button" class="btn-sheet-cancel" style="height:36px; font-size:12px;" onclick="triggerLocalHeroUpload()">📁 폰에서 사진 올리기</button>
                 <input type="file" id="inpLocalHeroFile" accept="image/*" style="display:none;" onchange="handleHeroLocalUpload(event)">
             </div>
 
-            <!-- 3) 3줄 자막 요약글 -->
-            <label style="font-size:13px; color:#4ade80; font-weight:900; margin-top:4px;">📝 홈 화면 3줄 자막 요약글</label>
+            <!-- 4) 3줄 자막 요약글 -->
+            <label style="font-size:12.5px; color:#4ade80; font-weight:850; margin-top:4px;">📝 홈 화면 3줄 자막 요약글 (유튜브 쇼츠 스타일)</label>
             <textarea id="inpMasterCaption" class="sheet-textarea" rows="3" placeholder="홈 화면 사진 하단에 3줄로 표시될 은혜로운 요약글"></textarea>
 
-            <!-- 4) 상세 페이지 전체 본문 -->
-            <label style="font-size:13px; color:#cbd5e1; font-weight:900;">📖 상세 페이지 전체 본문</label>
+            <!-- 5) 상세 페이지 전체 본문 -->
+            <label style="font-size:12.5px; color:#cbd5e1; font-weight:850;">📖 사진 터치 시 열리는 상세 소식 본문</label>
             <textarea id="inpMasterFullBody" class="sheet-textarea" rows="5" placeholder="사진 터치 시 열리는 상세 소식 본문"></textarea>
 
             <div class="sheet-btn-row">
@@ -1071,6 +1288,29 @@
                 <button type="button" class="btn-sheet-cancel" onclick="closeModal('memberJoinModal')">취소</button>
                 <button type="button" class="btn-sheet-submit" onclick="saveMemberJoin()">가입 완료</button>
             </div>
+    <!-- 9. 🌟 [사용자 요청] 공식 대화방 이름 클릭 시 열리는 1:1 은혜 대화창 모달 -->
+    <div class="bottom-sheet-overlay" id="directChatModal" onclick="closeModal('directChatModal')">
+        <div class="bottom-sheet-panel" onclick="event.stopPropagation()" style="max-height:88vh; max-height:88dvh; height:580px; display:flex; flex-direction:column; padding-bottom:calc(max(env(safe-area-inset-bottom, 0px), 18px) + 12px);">
+            <div class="sheet-head-row">
+                <span class="sheet-title-text" id="dmModalTitle">💬 1:1 은혜 대화</span>
+                <button type="button" class="sheet-close-btn" onclick="closeModal('directChatModal')">✕</button>
+            </div>
+            
+            <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.06); padding:8px 12px; border-radius:10px;">
+                <div style="font-size:13.5px; font-weight:850; color:#38bdf8;" id="dmPartnerInfo">👤 상대: 김성도</div>
+                <button type="button" style="background:#0284c7; color:#fff; border:none; padding:4px 10px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer;" onclick="goToPersonalFriendChat()">📱 개인앱 대화방</button>
+            </div>
+
+            <!-- 1:1 대화 내용 스크롤 -->
+            <div class="chat-msg-area" id="dmMsgArea" style="flex:1; overflow-y:auto; background:#abc1d1; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px; min-height:0; margin:6px 0;">
+                <!-- 동적 렌더링 -->
+            </div>
+
+            <!-- 1:1 메시지 전송 바 -->
+            <div style="display:flex; align-items:center; gap:6px; background:#fff; padding:6px 10px; border-radius:24px; box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+                <input type="text" id="inpDmText" style="flex:1; height:38px; border:none; background:transparent; font-size:14.5px; outline:none; color:#111; padding-left:8px;" placeholder="따뜻한 은혜의 한마디를 전하세요..." onkeydown="if(event.key==='Enter') submitDirectChatMessage()">
+                <button type="button" style="background:#fee500; border:1px solid #e5ce00; border-radius:20px; padding:0 16px; height:38px; font-size:13.5px; font-weight:950; color:#191919; cursor:pointer;" onclick="submitDirectChatMessage()">전송</button>
+            </div>
         </div>
     </div>
 
@@ -1200,56 +1440,8 @@
             }
         }
 
-        /* 🌟 1. [사용자 요청] 첫페이지 관리자 ON 시 이름, 그림, 글을 한자리에서 수정 */
-        function openMasterAdminModal() {
-            const stories = getStories();
-            const topStory = stories[0] || DEFAULT_STORIES_V4[0];
-            const curTitle = document.getElementById("dispChurchTitle").innerText;
-
-            document.getElementById("inpMasterChurchTitle").value = curTitle;
-            document.getElementById("inpMasterHeroImg").value = topStory.heroImg;
-            document.getElementById("inpMasterCaption").value = topStory.caption;
-            document.getElementById("inpMasterFullBody").value = topStory.fullBody || topStory.caption;
-
-            openModal("homeMasterAdminModal");
-        }
-
-        function saveMasterAdminData() {
-            const newTitle = document.getElementById("inpMasterChurchTitle").value.trim();
-            const heroImg = document.getElementById("inpMasterHeroImg").value.trim() || DEFAULT_STORIES_V4[0].heroImg;
-            const caption = document.getElementById("inpMasterCaption").value.trim();
-            const fullBody = document.getElementById("inpMasterFullBody").value.trim() || caption;
-
-            if (newTitle) {
-                localStorage.setItem(STORAGE_KEY_NAME, newTitle);
-                loadChurchTitle();
-            }
-            if (!caption) { alert("홈에 표시될 자막 요약글을 입력해주세요."); return; }
-
-            let stories = getStories();
-            if (stories.length > 0) {
-                stories[0].heroImg = heroImg;
-                stories[0].caption = caption;
-                stories[0].fullBody = fullBody;
-            } else {
-                stories.unshift({
-                    id: Date.now(),
-                    heroImg,
-                    caption,
-                    fullBody,
-                    date: "2026.10.19",
-                    author: "사역자"
-                });
-            }
-
-            localStorage.setItem(STORAGE_KEY_STORIES, JSON.stringify(stories));
-            loadHomeData();
-            closeModal("homeMasterAdminModal");
-            showToast("✨ 교회 이름과 사진, 글이 모두 저장되었습니다!");
-        }
-
-        /* 🌟 홈 소식 관리 데이터 */
-        const DEFAULT_STORIES_V4 = [
+        /* 🌟 [사용자 요청] 좌우 5개 사진 슬라이드 기본 데이터 (천국버스교회, 가정예배, 치유, 전도, 감사) */
+        const DEFAULT_STORIES_V5 = [
             {
                 id: 1,
                 heroImg: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200&auto=format&fit=crop&q=80",
@@ -1261,9 +1453,33 @@
             {
                 id: 2,
                 heroImg: "https://images.unsplash.com/photo-1519491050282-cf00c82424b4?w=1200&auto=format&fit=crop&q=80",
-                caption: "두세 사람이 내 이름으로 모인 곳에는 나도 그들 중에 있느니라 (마 18:20)\n주님 주시는 은혜와 평강이 우리 가정과 일터 가운데 풍성하기를 소망합니다.",
+                caption: "“두세 사람이 내 이름으로 모인 곳에는 나도 그들 중에 있느니라” (마 18:20)\n주님 주시는 은혜와 평강이 우리 가정과 일터 가운데 풍성하기를 소망합니다.",
                 fullBody: "“두세 사람이 내 이름으로 모인 곳에는 나도 그들 중에 있느니라” (마태복음 18:20)\n\n주님 주시는 은혜와 평강이 우리 가정과 일터 가운데 풍성하기를 소망합니다. 매일 삶의 자리에서 드려지는 작은 예배를 통하여 하나님의 크신 위로와 능력을 경험하는 복된 날 되시길 축복합니다.",
                 date: "2026.10.18",
+                author: "김예톡"
+            },
+            {
+                id: 3,
+                heroImg: "https://images.unsplash.com/photo-1507692049790-de58290a4334?w=1200&auto=format&fit=crop&q=80",
+                caption: "“여호와는 나의 목자시니 내게 부족함이 없으리로다” (시 23:1)\n지치고 상한 마음에 주님의 참된 위로와 생명의 샘물이 솟아납니다.",
+                fullBody: "“여호와는 나의 목자시니 내게 부족함이 없으리로다 그가 나를 푸른 풀밭에 누이시며 쉴 만한 물 가로 인도하시는도다” (시편 23:1-2)\n\n세상의 분주함 속에서 잠시 멈추어 주님의 임재 앞에 머무는 시간입니다. 상처 입은 영혼을 싸매시고 새 힘을 주시는 주님의 따스한 손길을 경험하시길 기도합니다.",
+                date: "2026.10.17",
+                author: "김예톡"
+            },
+            {
+                id: 4,
+                heroImg: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=1200&auto=format&fit=crop&q=80",
+                caption: "“너희는 세상의 빛이라 산 위에 있는 동네가 숨겨지지 못할 것이요” (마 5:14)\n어디서나 복음의 증인으로 살아가는 거룩한 성도의 삶을 축복합니다.",
+                fullBody: "“너희는 세상의 빛이라 산 위에 있는 동네가 숨겨지지 못할 것이요” (마태복음 5:14)\n\n우리가 머무는 가정이 교회요, 우리가 일하는 직장이 선교지입니다. 천국버스교회와 함께 온 세상을 향해 그리스도의 사랑과 향기를 전파하는 믿음의 증인이 되시기를 간절히 소망합니다.",
+                date: "2026.10.16",
+                author: "김예톡"
+            },
+            {
+                id: 5,
+                heroImg: "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=1200&auto=format&fit=crop&q=80",
+                caption: "“항상 기뻐하라 쉬지 말고 기도하라 범사에 감사하라” (살전 5:16-18)\n감사가 넘치는 곳에 하나님의 기적과 응답이 시작됩니다.",
+                fullBody: "“항상 기뻐하라 쉬지 말고 기도하라 범사에 감사하라 이것이 그리스도 예수 안에서 너희를 향하신 하나님의 뜻이니라” (데살로니가전서 5:16-18)\n\n어떤 상황에서도 주님을 신뢰하며 감사의 제사를 드릴 때 모든 흑암이 물러가고 하늘 문이 열립니다. 우리 모든 성도님의 삶에 날마다 기쁨과 찬송이 가득하기를 축원합니다.",
+                date: "2026.10.15",
                 author: "김예톡"
             }
         ];
@@ -1271,31 +1487,214 @@
         function getStories() {
             try {
                 const raw = localStorage.getItem(STORAGE_KEY_STORIES);
-                if (raw) return JSON.parse(raw);
+                if (raw) {
+                    let parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        while (parsed.length < 5 && DEFAULT_STORIES_V5[parsed.length]) {
+                            parsed.push(DEFAULT_STORIES_V5[parsed.length]);
+                        }
+                        return parsed.slice(0, 5);
+                    }
+                }
             } catch(e){}
-            return DEFAULT_STORIES_V4;
+            return JSON.parse(JSON.stringify(DEFAULT_STORIES_V5));
         }
+
+        /* 🌟 [사용자 요청] 좌우 5개 사진 가로 캐러셀 동적 렌더링 */
+        let currentHomeSlideIndex = 0;
+        let isCarouselScrolling = false;
 
         function loadHomeData() {
             const stories = getStories();
-            const topStory = stories[0] || DEFAULT_STORIES_V4[0];
-
-            const imgEl = document.getElementById("homeHeroImg");
-            if (imgEl) imgEl.src = topStory.heroImg || DEFAULT_STORIES_V4[0].heroImg;
-
-            const captionEl = document.getElementById("dispHomeCaption");
-            if (captionEl) captionEl.innerText = topStory.caption || DEFAULT_STORIES_V4[0].caption;
+            const track = document.getElementById("homeCarouselTrack");
+            const dotsContainer = document.getElementById("homeSlideDots");
+            if (!track) return;
 
             const uName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkProfileName") || "김예톡";
-            const minEl = document.getElementById("dispMinisterSpan");
-            if (minEl) minEl.innerText = topStory.author || uName;
+
+            // 슬라이드 렌더링
+            track.innerHTML = stories.map((s, idx) => `
+                <div class="home-carousel-slide" onclick="openHomeDetailSubpage(${idx})">
+                    <img class="home-slide-img" src="${s.heroImg || DEFAULT_STORIES_V5[0].heroImg}" alt="움직이는교회 ${idx+1}">
+                    <div class="home-slide-counter-badge">${idx + 1} / ${stories.length}</div>
+                    ${isAdminMode ? `
+                        <button type="button" class="btn-slide-quick-edit" onclick="event.stopPropagation(); openEditSlideModal(${idx})">
+                            ✏️ ${idx + 1}번 사진·글 수정
+                        </button>
+                    ` : ''}
+                    <div class="home-shorts-caption">
+                        <p class="home-caption-text">${escapeHtml(s.caption)}</p>
+                        <div class="home-caption-minister">
+                            사역자 / 가장: <span>${escapeHtml(s.author || uName)}</span>
+                        </div>
+                        <div class="home-detail-hint">👉 터치하여 전체 사진 및 상세 소식 보기</div>
+                    </div>
+                </div>
+            `).join("");
+
+            // 도트 인디케이터 렌더링
+            if (dotsContainer) {
+                dotsContainer.innerHTML = stories.map((_, idx) => `
+                    <div class="home-dot ${idx === currentHomeSlideIndex ? 'active' : ''}" onclick="scrollCarouselTo(${idx})"></div>
+                `).join("");
+            }
+
+            setupCarouselScrollObserver();
+        }
+
+        function setupCarouselScrollObserver() {
+            const track = document.getElementById("homeCarouselTrack");
+            if (!track || track._hasObserver) return;
+            track._hasObserver = true;
+
+            let cTimer = null;
+            track.addEventListener('scroll', () => {
+                if (isCarouselScrolling) return;
+                clearTimeout(cTimer);
+                cTimer = setTimeout(() => {
+                    const slideWidth = track.clientWidth;
+                    if (slideWidth <= 0) return;
+                    const idx = Math.round(track.scrollLeft / slideWidth);
+                    updateCarouselDots(idx);
+                }, 60);
+            }, { passive: true });
+        }
+
+        function updateCarouselDots(activeIdx) {
+            currentHomeSlideIndex = activeIdx;
+            const dots = document.querySelectorAll(".home-dot");
+            dots.forEach((d, idx) => {
+                if (idx === activeIdx) d.classList.add("active");
+                else d.classList.remove("active");
+            });
+        }
+
+        function scrollCarouselTo(idx) {
+            const track = document.getElementById("homeCarouselTrack");
+            if (!track) return;
+            isCarouselScrolling = true;
+            updateCarouselDots(idx);
+            track.scrollTo({ left: idx * track.clientWidth, behavior: 'smooth' });
+            setTimeout(() => { isCarouselScrolling = false; }, 400);
+        }
+
+        function navigateHomeCarousel(dir) {
+            const stories = getStories();
+            let nextIdx = currentHomeSlideIndex + dir;
+            if (nextIdx < 0) nextIdx = 0;
+            if (nextIdx >= stories.length) nextIdx = stories.length - 1;
+            scrollCarouselTo(nextIdx);
+        }
+
+        /* 🌟 [사용자 요청] 관리자 ON 시 첫페이지에서 5대 사진·글을 선택 수정 */
+        let adminActiveSlideIdx = 0;
+        function openMasterAdminModal(focusIdx = 0) {
+            adminActiveSlideIdx = focusIdx;
+            const curTitle = document.getElementById("dispChurchTitle").innerText;
+            document.getElementById("inpMasterChurchTitle").value = curTitle;
+            renderAdminSlideTabs();
+            loadAdminSlideInputs(adminActiveSlideIdx);
+            openModal("homeMasterAdminModal");
+        }
+
+        function openEditSlideModal(idx) {
+            openMasterAdminModal(idx);
+        }
+
+        function renderAdminSlideTabs() {
+            const stories = getStories();
+            const tabRow = document.getElementById("adminSlideTabRow");
+            if (!tabRow) return;
+            tabRow.innerHTML = stories.map((s, idx) => `
+                <button type="button" style="padding:6px 12px; border-radius:14px; font-size:12.5px; font-weight:900; cursor:pointer; white-space:nowrap; border:1.2px solid ${idx === adminActiveSlideIdx ? 'var(--neon-blue)' : '#475569'}; background:${idx === adminActiveSlideIdx ? 'var(--neon-blue)' : '#1e293b'}; color:${idx === adminActiveSlideIdx ? '#060a12' : '#cbd5e1'}; box-shadow:${idx === adminActiveSlideIdx ? '0 0 10px rgba(56,189,248,0.6)' : 'none'};" onclick="selectAdminSlideTab(${idx})">
+                    ${idx + 1}번 사진
+                </button>
+            `).join("");
+        }
+
+        function selectAdminSlideTab(idx) {
+            adminActiveSlideIdx = idx;
+            renderAdminSlideTabs();
+            loadAdminSlideInputs(idx);
+        }
+
+        function loadAdminSlideInputs(idx) {
+            const stories = getStories();
+            const story = stories[idx] || DEFAULT_STORIES_V5[0];
+            document.getElementById("inpMasterHeroImg").value = story.heroImg || DEFAULT_STORIES_V5[0].heroImg;
+            document.getElementById("inpMasterCaption").value = story.caption || "";
+            document.getElementById("inpMasterFullBody").value = story.fullBody || story.caption || "";
+        }
+
+        function saveMasterAdminData() {
+            const newTitle = document.getElementById("inpMasterChurchTitle").value.trim();
+            const heroImg = document.getElementById("inpMasterHeroImg").value.trim() || DEFAULT_STORIES_V5[0].heroImg;
+            const caption = document.getElementById("inpMasterCaption").value.trim();
+            const fullBody = document.getElementById("inpMasterFullBody").value.trim() || caption;
+
+            if (newTitle) {
+                localStorage.setItem(STORAGE_KEY_NAME, newTitle);
+                loadChurchTitle();
+            }
+            if (!caption) { alert("홈에 표시될 자막 요약글을 입력해주세요."); return; }
+
+            let stories = getStories();
+            if (!stories[adminActiveSlideIdx]) {
+                adminActiveSlideIdx = 0;
+            }
+            stories[adminActiveSlideIdx].heroImg = heroImg;
+            stories[adminActiveSlideIdx].caption = caption;
+            stories[adminActiveSlideIdx].fullBody = fullBody;
+
+            localStorage.setItem(STORAGE_KEY_STORIES, JSON.stringify(stories));
+            loadHomeData();
+            closeModal("homeMasterAdminModal");
+            scrollCarouselTo(adminActiveSlideIdx);
+            showToast(`✨ ${adminActiveSlideIdx + 1}번 사진과 글이 저장되었습니다!`);
+        }
+
+        function addNewSlideAdmin() {
+            let stories = getStories();
+            if (stories.length >= 5) {
+                alert("사진은 좌우 최대 5개까지 등록 가능합니다.");
+                return;
+            }
+            const nextIdx = stories.length;
+            const sample = DEFAULT_STORIES_V5[nextIdx] || DEFAULT_STORIES_V5[0];
+            stories.push({
+                id: Date.now(),
+                heroImg: sample.heroImg,
+                caption: sample.caption,
+                fullBody: sample.fullBody,
+                date: "2026.10.19",
+                author: "김예톡"
+            });
+            localStorage.setItem(STORAGE_KEY_STORIES, JSON.stringify(stories));
+            loadHomeData();
+            openMasterAdminModal(nextIdx);
+            showToast(`📸 ${nextIdx + 1}번 슬라이드가 추가되었습니다!`);
+        }
+
+        function deleteCurrentSlideAdmin() {
+            let stories = getStories();
+            if (stories.length <= 1) {
+                alert("최소 1개의 사진 슬라이드는 유지되어야 합니다.");
+                return;
+            }
+            if (!confirm(`현재 ${adminActiveSlideIdx + 1}번 사진 슬라이드를 삭제하시겠습니까?`)) return;
+            stories.splice(adminActiveSlideIdx, 1);
+            localStorage.setItem(STORAGE_KEY_STORIES, JSON.stringify(stories));
+            adminActiveSlideIdx = Math.max(0, adminActiveSlideIdx - 1);
+            loadHomeData();
+            openMasterAdminModal(adminActiveSlideIdx);
+            showToast("슬라이드가 삭제되었습니다.");
         }
 
         /* 🌟 홈 터치 시 서브 상세 페이지 (풀스크린 사진 + 친구채팅 + 이전소식) */
         function openHomeDetailSubpage(storyIdx = 0) {
             const stories = getStories();
             activeStoryIndex = (storyIdx >= 0 && storyIdx < stories.length) ? storyIdx : 0;
-            const item = stories[activeStoryIndex] || DEFAULT_STORIES_V4[0];
+            const item = stories[activeStoryIndex] || DEFAULT_STORIES_V5[0];
 
             document.getElementById("subpageImg").src = item.heroImg;
             document.getElementById("subpageBody").innerText = item.fullBody || item.caption;
@@ -1308,12 +1707,63 @@
                 sub.scrollTop = 0;
                 sub.classList.add("active");
             }
+            pushNavHistoryState('detail');
         }
 
         function closeHomeDetailSubpage() {
             const sub = document.getElementById("homeDetailSubpage");
             if (sub) sub.classList.remove("active");
+            if (currentActiveMenu !== 'home') {
+                scrollToMiniMenu('home');
+            }
         }
+
+        /* 🌟 [사용자 요청] 뒤로가기 시 예톡홈/단골내앱으로 가지 않고 움직이는교회 바로 앞 화면/첫화면으로 이동 */
+        window.handleAppBackPress = function() {
+            // 1. 1:1 대화 모달이 열려 있는 경우
+            const dmModal = document.getElementById("directChatModal");
+            if (dmModal && dmModal.classList.contains("show")) {
+                closeModal("directChatModal");
+                return true;
+            }
+
+            // 2. 바텀 시트 모달이 열려 있는 경우
+            const openModals = document.querySelectorAll(".bottom-sheet-overlay.show");
+            if (openModals.length > 0) {
+                openModals.forEach(m => m.classList.remove("show"));
+                return true;
+            }
+
+            // 3. 서브 상세 페이지가 열려 있는 경우 -> 서브페이지 닫고 홈 슬라이드로 안전 복귀
+            const sub = document.getElementById("homeDetailSubpage");
+            if (sub && sub.classList.contains("active")) {
+                closeHomeDetailSubpage();
+                return true;
+            }
+
+            // 4. 홈이 아닌 다른 메뉴(채팅교제, 기도제목, 소식알림, 헌금)를 보고 있는 경우 -> 홈 메뉴 첫화면으로 복귀!
+            if (currentActiveMenu !== 'home') {
+                scrollToMiniMenu('home');
+                return true;
+            }
+
+            // 5. 이미 홈 화면인 경우 안드로이드 시스템 기본 위임 (두 번 누르면 종료 안내)
+            return false;
+        };
+
+        function pushNavHistoryState(name) {
+            try {
+                if (window.history && window.history.pushState) {
+                    window.history.pushState({ page: name, ts: Date.now() }, "");
+                }
+            } catch(e){}
+        }
+
+        window.addEventListener("popstate", () => {
+            if (window.handleAppBackPress && window.handleAppBackPress()) {
+                // Handled gracefully!
+            }
+        });
 
         /* 🌟 [사용자 요청] 은혜의 지난 소식 모아보기: 누르면 즉시 상단에 뜨도록 수정! */
         function renderStoryHistoryList(stories) {
@@ -1330,7 +1780,7 @@
                     <div class="story-history-item" style="${isCur ? 'border-color:var(--neon-blue); background:rgba(2,132,199,0.22);' : ''}" onclick="selectHistoryStory(${idx})">
                         <img class="story-history-thumb" src="${s.heroImg}" alt="소식">
                         <div class="story-history-info">
-                            <div class="story-history-title">${isCur ? '👉 [현재보기] ' : ''}${titleFirstLine}</div>
+                            <div class="story-history-title">${isCur ? '👉 [현재보기] ' : ''}${escapeHtml(titleFirstLine)}</div>
                             <div class="story-history-date">${s.date || '최근'} · ${s.author || '사역자'}</div>
                         </div>
                         <button type="button" style="background:#dc2626; color:#fff; border:none; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;" onclick="event.stopPropagation(); deleteStory(${idx})">삭제</button>
@@ -1350,7 +1800,7 @@
             document.getElementById("subpageTitle").innerText = `교회 소식 (${activeStoryIndex + 1}/${stories.length})`;
 
             const sub = document.getElementById("homeDetailSubpage");
-            if (sub) sub.scrollTop = 0; // 즉시 맨 위로 스크롤하여 변경 내용 보여줌!
+            if (sub) sub.scrollTop = 0;
 
             renderStoryHistoryList(stories);
             showToast(`📖 [${item.caption.split('\n')[0].substring(0, 15)}...] 소식을 열었습니다.`);
@@ -1358,14 +1808,14 @@
 
         /* 🌟 [사용자 요청] 새 소식 추가하기 (최상단 등록) */
         function openStoryAddModal() {
-            document.getElementById("inpAddHeroImg").value = DEFAULT_STORIES_V4[0].heroImg;
+            document.getElementById("inpAddHeroImg").value = DEFAULT_STORIES_V5[0].heroImg;
             document.getElementById("inpAddHeroCaption").value = "";
             document.getElementById("inpAddHeroFullBody").value = "";
             openModal("storyAddModal");
         }
 
         function saveNewStoryData() {
-            const heroImg = document.getElementById("inpAddHeroImg").value.trim() || DEFAULT_STORIES_V4[0].heroImg;
+            const heroImg = document.getElementById("inpAddHeroImg").value.trim() || DEFAULT_STORIES_V5[0].heroImg;
             const caption = document.getElementById("inpAddHeroCaption").value.trim();
             const fullBody = document.getElementById("inpAddHeroFullBody").value.trim() || caption;
             if (!caption) { alert("자막 요약글을 입력해주세요."); return; }
@@ -1375,7 +1825,6 @@
             const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
 
             let stories = getStories();
-            // 🌟 최상단 unshift!
             stories.unshift({
                 id: Date.now(),
                 heroImg,
@@ -1384,6 +1833,7 @@
                 date: dateStr,
                 author: uName
             });
+            if (stories.length > 5) stories = stories.slice(0, 5); // 5개 유지
 
             localStorage.setItem(STORAGE_KEY_STORIES, JSON.stringify(stories));
             loadHomeData();
@@ -1393,13 +1843,7 @@
         }
 
         function openStoryEditModal() {
-            const stories = getStories();
-            const item = stories[activeStoryIndex] || DEFAULT_STORIES_V4[0];
-            document.getElementById("inpMasterHeroImg").value = item.heroImg;
-            document.getElementById("inpMasterCaption").value = item.caption;
-            document.getElementById("inpMasterFullBody").value = item.fullBody || item.caption;
-            document.getElementById("inpMasterChurchTitle").value = document.getElementById("dispChurchTitle").innerText;
-            openModal("homeMasterAdminModal");
+            openMasterAdminModal(activeStoryIndex);
         }
 
         function deleteStory(idx) {
@@ -1418,11 +1862,11 @@
         }
 
         function setHeavenlyBusDefault() {
-            document.getElementById("inpMasterHeroImg").value = DEFAULT_STORIES_V4[0].heroImg;
+            document.getElementById("inpMasterHeroImg").value = DEFAULT_STORIES_V5[0].heroImg;
             showToast("🚌 천국버스교회 기본 사진이 입력되었습니다.");
         }
         function setHeavenlyBusAddDefault() {
-            document.getElementById("inpAddHeroImg").value = DEFAULT_STORIES_V4[0].heroImg;
+            document.getElementById("inpAddHeroImg").value = DEFAULT_STORIES_V5[0].heroImg;
             showToast("🚌 천국버스교회 사진이 적용되었습니다.");
         }
 
@@ -1500,7 +1944,9 @@
             document.title = `${saved} - 움직이는교회`;
         }
 
-        /* 🌟 2. 채팅교제: 끝까지 꽉 채운 카톡방 */
+        /* 🌟 [사용자 요청] 2. 채팅교제: 공식적인 전체 대화방
+             - 글 적은 사람 이름 상시 노출 & 이름 누르면 1:1 채팅창 연결
+             - 하단 입력창에 '김예톡' 이름 입력칸 제거 (공간 확보) */
         const DEFAULT_CHAT_V3 = [
             { id: 1, author: "김예톡", isMe: true, text: "오늘도 주 안에서 평안하신지요? 함께 말씀을 나누고 기도합니다! 아멘 🌿", time: "오후 2:30" },
             { id: 2, author: "이성도", isMe: false, text: "사역자님의 귀한 섬김에 늘 큰 은혜와 도전을 받습니다. 감사합니다!", time: "오후 2:32" },
@@ -1518,21 +1964,24 @@
             if (!stream) return;
             stream.innerHTML = chats.map(c => `
                 <div class="chat-bubble-row ${c.isMe ? 'my' : 'other'}">
-                    ${c.isMe ? `<span class="chat-time-tag">${c.time}</span>` : ''}
-                    <div class="chat-bubble-content" onclick="openChatActionMenu(${c.id})">
-                        ${!c.isMe ? `<div style="font-size:11.5px; font-weight:850; color:#475569; margin-bottom:2px;">${c.author}</div>` : ''}
-                        <span>${c.text}</span>
+                    <div class="chat-author-line" onclick="event.stopPropagation(); openDirectChatWithName('${escapeHtml(c.author)}')">
+                        <span class="chat-author-chip">👤 ${escapeHtml(c.author)} ${c.isMe ? '<small style="opacity:0.75;">(나)</small>' : '<span class="dm-tag">1:1대화 💬</span>'}</span>
                     </div>
-                    ${!c.isMe ? `<span class="chat-time-tag">${c.time}</span>` : ''}
+                    <div class="chat-bubble-content-wrap">
+                        ${c.isMe ? `<span class="chat-time-tag">${c.time}</span>` : ''}
+                        <div class="chat-bubble-content" onclick="openChatActionMenu(${c.id})">
+                            <span>${escapeHtml(c.text)}</span>
+                        </div>
+                        ${!c.isMe ? `<span class="chat-time-tag">${c.time}</span>` : ''}
+                    </div>
                 </div>
             `).join("");
             stream.scrollTop = stream.scrollHeight;
         }
 
         function submitChatMessage() {
-            const authorInp = document.getElementById("inpChatAuthor");
             const textInp = document.getElementById("inpChatText");
-            const author = authorInp.value.trim() || (localStorage.getItem("yetalk_user_name") || "김예톡");
+            const author = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkProfileName") || "김예톡";
             const text = textInp.value.trim();
             if (!text) return;
 
@@ -1551,6 +2000,70 @@
             localStorage.setItem(STORAGE_KEY_CHAT, JSON.stringify(chats));
             textInp.value = "";
             loadChatMessages();
+        }
+
+        /* 🌟 [사용자 요청] 대화 상대방 이름 클릭 시 1:1 채팅창 오픈 */
+        let currentDmPartner = "김성도";
+        function openDirectChatWithName(partnerName) {
+            if (!partnerName) partnerName = "성도";
+            currentDmPartner = partnerName;
+            const titleEl = document.getElementById("dmModalTitle");
+            if (titleEl) titleEl.innerText = `💬 [${partnerName}] 님과의 1:1 대화`;
+            const infoEl = document.getElementById("dmPartnerInfo");
+            if (infoEl) infoEl.innerText = `👤 대화 상대: ${partnerName}`;
+
+            loadDirectChatMessages();
+            openModal("directChatModal");
+            pushNavHistoryState('dm');
+        }
+
+        function loadDirectChatMessages() {
+            const area = document.getElementById("dmMsgArea");
+            if (!area) return;
+            const key = "yetalk_dm_" + currentDmPartner;
+            let msgs = [
+                { isMe: false, text: `샬롬! ${currentDmPartner} 성도님과 따뜻한 1:1 은혜 대화를 시작해보세요. 🌿`, time: "오후 12:00" }
+            ];
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw) msgs = JSON.parse(raw);
+            } catch(e){}
+
+            area.innerHTML = msgs.map(m => `
+                <div class="chat-bubble-row ${m.isMe ? 'my' : 'other'}">
+                    <div class="chat-bubble-content-wrap">
+                        ${m.isMe ? `<span class="chat-time-tag">${m.time}</span>` : ''}
+                        <div class="chat-bubble-content">
+                            <span>${escapeHtml(m.text)}</span>
+                        </div>
+                        ${!m.isMe ? `<span class="chat-time-tag">${m.time}</span>` : ''}
+                    </div>
+                </div>
+            `).join("");
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function submitDirectChatMessage() {
+            const inp = document.getElementById("inpDmText");
+            const text = inp.value.trim();
+            if (!text) return;
+
+            const key = "yetalk_dm_" + currentDmPartner;
+            let msgs = [];
+            try {
+                const raw = localStorage.getItem(key);
+                if (raw) msgs = JSON.parse(raw);
+            } catch(e){}
+
+            const now = new Date();
+            const hours = now.getHours();
+            const ampm = hours >= 12 ? '오후' : '오전';
+            const timeStr = `${ampm} ${hours % 12 || 12}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            msgs.push({ isMe: true, text, time: timeStr });
+            localStorage.setItem(key, JSON.stringify(msgs));
+            inp.value = "";
+            loadDirectChatMessages();
         }
 
         function openChatActionMenu(chatId) {
@@ -1620,7 +2133,7 @@
             showToast("채팅방이 초기화되었습니다.");
         }
 
-        /* 🌟 3. 기도제목 관리 */
+        /* 🌟 [사용자 요청] 3. 기도제목 관리: 오른쪽에 선명한 노랑/골드 아멘 버튼 (검정 굵은 글씨) */
         const DEFAULT_PRAYERS_V3 = [
             { id: 1, text: "1. 우리 가정과 일터가 하나님을 기쁘시게 하는 거룩한 예배의 처소가 되게 하소서", count: 45 },
             { id: 2, text: "2. 온 세상을 향해 달리는 천국버스교회의 복음 사역 위에 성령의 능력을 더하소서", count: 32 },
@@ -1638,12 +2151,12 @@
             if (!container) return;
             container.innerHTML = prayers.map((p, idx) => `
                 <div class="prayer-item">
-                    <div class="prayer-text">${p.text}</div>
-                    <div style="display:flex; align-items:center; gap:6px;">
+                    <div class="prayer-text">${escapeHtml(p.text)}</div>
+                    <div style="display:flex; align-items:center; gap:8px;">
                         <button type="button" class="btn-amen" onclick="incrementAmen(${idx})">
-                            🙏 아멘 <span>${p.count || 0}</span>
+                            🙏 아멘 <span class="amen-badge">${p.count || 0}</span>
                         </button>
-                        <button type="button" style="background:#dc2626; color:#fff; border:none; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;" onclick="deletePrayer(${idx})">삭제</button>
+                        <button type="button" class="btn-prayer-del" onclick="deletePrayer(${idx})">삭제</button>
                     </div>
                 </div>
             `).join("");
@@ -1681,6 +2194,16 @@
             loadPrayers();
             closeModal("addPrayerModal");
             showToast("🙏 새 기도제목이 등록되었습니다!");
+        }
+
+        function escapeHtml(str) {
+            if (!str) return "";
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
         function deletePrayer(idx) {
@@ -2036,15 +2559,12 @@
             isAdminMode = localStorage.getItem(STORAGE_KEY_ADMIN) === "true";
             loadChurchTitle();
             loadHomeData();
+            loadChatMessages();
             loadPrayers();
             loadNoticeFeed();
             loadOfferingInfo();
             updateAdminUI();
             setupScrollSnapObserver();
-
-            const savedAuthor = localStorage.getItem("yetalk_user_name") || "김예톡";
-            const authorInp = document.getElementById("inpChatAuthor");
-            if (authorInp) authorInp.value = savedAuthor;
         });
     </script>
 </body>
