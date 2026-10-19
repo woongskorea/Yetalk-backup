@@ -371,15 +371,23 @@
            ============================================================== */
         .subpage-view {
             display: none;
-            position: absolute; inset: 0;
+            position: fixed; inset: 0;
             background: var(--bg-main);
-            z-index: 500;
+            z-index: 1500;
             flex-direction: column;
             overflow-y: auto;
-            padding-bottom: var(--admob-footer-h);
+            padding-bottom: 40px;
         }
         .subpage-view.active {
             display: flex;
+        }
+        /* 🌟 [사용자 요청] 서브페이지 맨밑에 250 애드몹이 있으므로 하단고정 애드몹 100짜리는 완전 은폐/삭제 */
+        body.in-subpage-mode .footer-admob-100,
+        .subpage-view.active ~ .footer-admob-100 {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
         }
         .subpage-top-nav {
             position: sticky; top: 0;
@@ -2806,6 +2814,9 @@
                 sub.classList.add("active");
                 isSubpageOpen = true;
             }
+            // 🌟 [사용자 요청] 서브페이지 진입 시 하단고정 100 애드몹 숨김 모드 활성화
+            document.body.classList.add("in-subpage-mode");
+
             try {
                 if (window.history && window.history.pushState) {
                     window.history.pushState({ page: 'homeDetailSubpage', ts: Date.now() }, "");
@@ -2819,6 +2830,9 @@
                 sub.classList.remove("active");
             }
             isSubpageOpen = false;
+            // 🌟 [사용자 요청] 서브페이지 닫힐 때 하단고정 100 애드몹 복귀
+            document.body.classList.remove("in-subpage-mode");
+
             if (!fromPopState && window.history.state && window.history.state.page === 'homeDetailSubpage') {
                 try {
                     window.history.back();
