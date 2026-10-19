@@ -671,10 +671,19 @@ function updateSlideContent(secId, idx) {
     checkAdmobFooterExclusion();
 }
 
-// 🌟 [구글 애드몹 정책 준수] 250 애드몹(보배성도/공지알림 마지막장 or 11번 엔딩카드)이 노출될 때는 100 고정 애드몹 완전 숨김
+// 🌟 [사용자 요청 & 구글 정책] 컴퓨터(PC) 및 PC iframe 내부 또는 250 애드몹 노출 시 100 하단 애드몹 완전 숨김
 function checkAdmobFooterExclusion() {
     const footer100 = document.getElementById("churchFixedAdmobFooter");
     if (!footer100) return;
+
+    // PC 환경(아이프레임 포함)에서는 애드몹 완전 숨김
+    const isPc = (window.parent !== window) || (window.innerWidth >= 900) || location.search.includes("pc=1") || (sessionStorage.getItem("yetalk_is_pc") === "true");
+    if (isPc) {
+        footer100.style.setProperty("display", "none", "important");
+        document.body.classList.add("is-pc-mode");
+        return;
+    }
+
     const slides = churchSlideData[activeSecId];
     const curSlide = slides ? slides[currentSlideIndices[activeSecId] || 0] : null;
     const is250Active = (activeSecId === 11) || (curSlide && curSlide.isAdmob250);

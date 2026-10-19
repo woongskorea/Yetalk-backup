@@ -1208,13 +1208,15 @@
                 background: #020617 !important;
                 position: relative !important;
             }
-            /* 🌟 [사용자 요청] 우측 남는 모든 영역을 100% 채워 넓고 시원한 CMS 데스크 구축 */
+            /* 🌟 [사용자 요청] 우측 관리창: 너비 조절 가능 & 리사이저 핸들 구비 */
             .pc-desktop-right-panel {
                 display: flex !important;
                 flex-direction: column;
-                flex: 1 1 auto !important;
-                max-width: none !important;
-                min-width: 380px !important;
+                position: relative !important;
+                width: var(--pc-right-panel-w, 460px) !important;
+                max-width: 75vw !important;
+                min-width: 320px !important;
+                flex: 0 0 auto !important;
                 height: 100% !important;
                 max-height: none !important;
                 background: rgba(15, 23, 42, 0.95);
@@ -1227,6 +1229,82 @@
                 overflow: hidden;
                 gap: 10px;
                 flex-shrink: 0;
+            }
+            /* 🌟 [사용자 요청] 우측 관리창 좌측 리사이저 핸들 (가로폭 자유 조절) */
+            .pc-panel-resizer {
+                position: absolute;
+                left: -7px;
+                top: 0;
+                bottom: 0;
+                width: 14px;
+                cursor: ew-resize;
+                z-index: 1000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                user-select: none;
+                touch-action: none;
+            }
+            .pc-panel-resizer:hover, .pc-panel-resizer.is-resizing {
+                background: rgba(56, 189, 248, 0.18);
+            }
+            .pc-panel-resizer .resizer-knob {
+                width: 4px;
+                height: 54px;
+                background: #38bdf8;
+                border-radius: 4px;
+                box-shadow: 0 0 10px rgba(56, 189, 248, 0.9);
+                transition: transform 0.15s ease, background 0.15s ease;
+            }
+            .pc-panel-resizer:hover .resizer-knob, .pc-panel-resizer.is-resizing .resizer-knob {
+                background: #fde047;
+                box-shadow: 0 0 14px rgba(253, 224, 71, 1);
+                transform: scaleY(1.3);
+            }
+
+            /* 🌟 [사용자 요청] 4개 메뉴 밑 1줄 실시간 알림 바 (새것 올 때까지 계속 표시) */
+            .pc-real-alert-ticker {
+                margin-top: 8px;
+                background: linear-gradient(90deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+                border: 1.2px solid rgba(56, 189, 248, 0.35);
+                border-radius: 10px;
+                padding: 7px 11px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+            }
+            .pc-real-alert-ticker:hover {
+                border-color: #facc15;
+                background: rgba(30, 41, 59, 1);
+                box-shadow: 0 0 12px rgba(250, 204, 21, 0.3);
+            }
+            .pc-real-alert-ticker .ticker-badge {
+                background: #0284c7;
+                color: #ffffff;
+                font-size: 10.5px;
+                font-weight: 950;
+                padding: 2px 6px;
+                border-radius: 6px;
+                white-space: nowrap;
+                letter-spacing: -0.2px;
+            }
+            .pc-real-alert-ticker .ticker-text {
+                flex: 1;
+                font-size: 12px;
+                color: #f8fafc;
+                font-weight: 750;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .pc-real-alert-ticker .ticker-arrow {
+                font-size: 11px;
+                color: #38bdf8;
+                font-weight: 800;
+                white-space: nowrap;
             }
             .pc-desktop-left-panel::-webkit-scrollbar,
             .pc-desktop-right-panel::-webkit-scrollbar {
@@ -1916,8 +1994,9 @@
                     min-width: 460px !important;
                 }
                 .pc-desktop-right-panel {
-                    flex: 1 1 auto !important;
-                    min-width: 340px !important;
+                    width: var(--pc-right-panel-w, 420px) !important;
+                    flex: 0 0 auto !important;
+                    min-width: 300px !important;
                 }
             }
 
@@ -2660,7 +2739,7 @@
             <!-- 1. 유튜브 링크 주소 (제일 위) -->
             <div class="form-group-line">
                 <label class="form-label-title" style="color:#38bdf8; font-weight:900;">1. 유튜브 링크 주소 (필수)</label>
-                <input type="text" id="ytInpUrl" class="modal-input" placeholder="유튜브 링크를 붙여넣으세요 (쇼츠, 롱폼, 라이브)">
+                <input type="text" id="ytInpUrl" class="modal-input" placeholder="유튜브 링크를 붙여넣으세요 (쇼츠, 롱폼, 라이브)" onclick="this.value='';" onfocus="this.select();">
             </div>
 
             <!-- 2. 한줄 소개글 / 내용 -->
@@ -2816,7 +2895,12 @@
 </div> <!-- /main-container -->
 
     <!-- 🌟 PC 데스크톱 우측 패널 (실시간 CMS 데스크 & 실시간 톡! 알림 바) -->
-    <aside class="pc-desktop-right-panel">
+    <aside class="pc-desktop-right-panel" id="pcDesktopRightPanel">
+        <!-- 🌟 [사용자 요청] 우측 관리창 좌측 끝부분 마우스 드래그 가로폭 조절 리사이저 핸들 -->
+        <div class="pc-panel-resizer" id="pcPanelResizer" title="마우스로 드래그하여 관리창 폭을 조절하세요">
+            <div class="resizer-knob"></div>
+        </div>
+
         <!-- 1. 패널 헤더: 현재 관리 중인 앱 & 톡! 소리 테스트 버튼 -->
         <div class="pc-cms-header">
             <div class="pc-cms-header-left">
@@ -2847,6 +2931,12 @@
             </div>
             <div class="pc-alert-bar-row" id="pcAlertBarRow">
                 <!-- JS 동적 렌더링: 업종별 실시간 알림 버튼 & 숫자 배지 -->
+            </div>
+            <!-- 🌟 [사용자 요청] 실시간 접수현황 4개 메뉴 밑 1줄 실시간 알림 바 (새것 올 때까지 계속 표시, 클릭 시 전체보기) -->
+            <div class="pc-real-alert-ticker" id="pcRealAlertTicker" onclick="openPcRealAlertDetail()" title="클릭 시 전체 접수 내역을 확인합니다">
+                <span class="ticker-badge">LIVE 접수</span>
+                <span class="ticker-text" id="pcRealAlertTickerText">📢 [실시간 대기] 신규 회원가입 및 접수 신청이 도착하면 이곳에 1줄로 실시간 표시됩니다.</span>
+                <span class="ticker-arrow">전체보기 ➔</span>
             </div>
         </div>
 
@@ -2888,7 +2978,7 @@
                                 📁 컴퓨터 사진 올리기
                                 <input type="file" id="pcFileInput" accept="image/*" style="display:none;" onchange="handlePcCmsFileUpload(event)">
                             </label>
-                            <input type="text" id="pcCmsPhotoUrl" class="cms-input-sm" placeholder="또는 웹 이미지 주소(URL) 입력" oninput="handlePcCmsUrlInput(this.value)">
+                            <input type="text" id="pcCmsPhotoUrl" class="cms-input-sm" placeholder="또는 웹 이미지 주소(URL) 입력" onclick="this.value=''; handlePcCmsUrlInput('');" onfocus="this.select();" oninput="handlePcCmsUrlInput(this.value)">
                             <span class="cms-input-hint">컴퓨터에 저장된 사진을 선택하거나 이미지 주소를 입력하세요.</span>
                         </div>
                     </div>
@@ -2937,7 +3027,7 @@
                             📁 사진 첨부
                             <input type="file" id="pcCmsNoticeFile" accept="image/*" style="display:none;" onchange="handleNoticeFileUpload(event)">
                         </label>
-                        <input type="text" id="pcCmsNoticePhotoUrl" class="cms-input flex-1" placeholder="또는 이미지 주소(URL) 입력" />
+                        <input type="text" id="pcCmsNoticePhotoUrl" class="cms-input flex-1" placeholder="또는 이미지 주소(URL) 입력" onclick="this.value='';" onfocus="this.select();" />
                     </div>
                     <div id="pcNoticeThumbWrap" style="display:none; margin-top:6px;">
                         <img id="pcNoticeThumb" style="max-height:80px; border-radius:8px; border:1px solid #334155;" />
@@ -2963,7 +3053,7 @@
 
                 <div class="cms-form-group">
                     <label class="cms-label">🔗 유튜브 영상 링크 (URL)</label>
-                    <input type="text" id="pcCmsYtUrl" class="cms-input" placeholder="https://youtu.be/... 또는 shorts 링크" />
+                    <input type="text" id="pcCmsYtUrl" class="cms-input" placeholder="https://youtu.be/... 또는 shorts 링크" onclick="this.value='';" onfocus="this.select();" />
                 </div>
                 <div class="cms-form-group">
                     <label class="cms-label">🎬 영상 제목 및 한줄 홍보문구</label>
@@ -4880,6 +4970,21 @@
         updateLoginStateUI();
         closeModal("profileModal");
 
+        // 🌟 [사용자 요청] 진짜 회원가입 시 실시간 접수 알림 발송 및 1줄 바 등록
+        try {
+            handleIncomingRealAlert({
+                id: Date.now(),
+                type: 'join',
+                bizType: 'personal',
+                categoryKey: 'chat',
+                label: '신규 회원가입',
+                name: name,
+                detail: `${name} (${region}) 님 예톡 무료 정회원 가입 완료`,
+                time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: Date.now()
+            });
+        } catch(e){}
+
         // 🌟 [사용자 요청] 무료회원 가입 완료 누르면 지정된 축하 알림창(alert) 팝업
         alert(`축하합니다. 본인의 개인 앱과 홈페이지가 만들어졌습니다.\n\n전문앱과 홈페이지도 신청하시면 완전 무료(유지비 제로)로 자동으로 만들어집니다.\n\n감동적인 유튜브 링크하시면 본인 전문앱이 홍보가 됩니다.`);
     }
@@ -6040,10 +6145,11 @@ https://yetalk.cc`;
         name = sanitizeAppName(name);
         activePcApp = { url, name, type };
 
-        // 1. Center Phone Frame
+        // 1. Center Phone Frame (PC 모드 쿼리 ?pc=1 자동 주입)
         const iframe = document.getElementById("pcAppIframe");
-        if (iframe && iframe.src !== url) {
-            iframe.src = url;
+        const targetUrl = url.includes('?') ? (url + '&pc=1') : (url + '?pc=1');
+        if (iframe && !iframe.src.endsWith(targetUrl) && iframe.src !== targetUrl) {
+            iframe.src = targetUrl;
         }
         const badgeText = document.getElementById("pcCenterAppNameText");
         if (badgeText) {
@@ -6065,8 +6171,9 @@ https://yetalk.cc`;
             }
         });
 
-        // 4. Render alert dock
+        // 4. Render alert dock & ticker
         renderPcAlertDock(type);
+        updateRealAlertTickerUI();
 
         // 5. Prepopulate CMS fields
         populatePcCmsFields(type, name);
@@ -6099,6 +6206,132 @@ https://yetalk.cc`;
 
         const reqBadge = document.getElementById("pcCmsReqBadge");
         if (reqBadge) reqBadge.textContent = totalBadge;
+    }
+
+    /* 🌟 [사용자 요청] 실시간 접수 4개 메뉴 밑 1줄 알림 표시 (새것 올 때까지 계속 유지 & 클릭 시 전체보기) */
+    function updateRealAlertTickerUI(alertItem) {
+        const textEl = document.getElementById("pcRealAlertTickerText");
+        if (!textEl) return;
+        if (!alertItem) {
+            try {
+                const list = JSON.parse(localStorage.getItem("yetalk_real_incoming_alerts")) || [];
+                if (list.length > 0) alertItem = list[0];
+            } catch(e){}
+        }
+        if (alertItem) {
+            const timeStr = alertItem.time || '방금 전';
+            const nameStr = alertItem.name ? `<strong>${alertItem.name}</strong> - ` : '';
+            const labelStr = alertItem.label || '실시간 접수';
+            const descStr = alertItem.detail || alertItem.desc || '';
+            textEl.innerHTML = `<span style="color:#fde047; font-weight:900;">[${labelStr}]</span> ${nameStr}${descStr} <span style="color:#94a3b8; font-size:11px;">(${timeStr})</span>`;
+        } else {
+            textEl.innerHTML = `📢 [실시간 대기] 신규 회원가입 및 접수 신청이 도착하면 이곳에 1줄로 실시간 표시됩니다.`;
+        }
+    }
+
+    function openPcRealAlertDetail() {
+        switchCmsTab('requests');
+    }
+
+    /* 🌟 [사용자 요청] 진짜 회원가입/접수/신청 시에만 알림 수신 및 실시간 갱신 */
+    function handleIncomingRealAlert(data) {
+        if (!data) return;
+        try {
+            let alerts = JSON.parse(localStorage.getItem("yetalk_real_incoming_alerts")) || [];
+            alerts.unshift(data);
+            if (alerts.length > 50) alerts = alerts.slice(0, 50);
+            localStorage.setItem("yetalk_real_incoming_alerts", JSON.stringify(alerts));
+        } catch(e){}
+
+        const curType = activePcApp?.type || data.bizType || 'church';
+        const list = alertDataMap[curType] || alertDataMap.church;
+        if (list) {
+            let targetCat = list.find(c => c.key === data.categoryKey || c.label.includes(data.label) || (data.label && data.label.includes(c.label)));
+            if (!targetCat) targetCat = list[0];
+            if (targetCat) {
+                targetCat.count = (targetCat.count || 0) + 1;
+                if (!targetCat.items) targetCat.items = [];
+                targetCat.items.unshift({
+                    id: data.id || Date.now(),
+                    name: data.name || '신규 신청자',
+                    desc: data.detail || data.desc || '',
+                    time: data.time || '방금 전'
+                });
+            }
+        }
+
+        renderPcAlertDock(curType);
+        updateRealAlertTickerUI(data);
+        renderPcCmsRequestsList();
+        playTokSound();
+        showToast(`🔔 [실시간 접수] ${data.label}: ${data.name || ''} 신청 도착!`);
+    }
+
+    /* 🌟 [사용자 요청] 우측 관리창 좌측 끝부분 마우스 드래그 가로폭 조절 */
+    function initPcPanelResizer() {
+        const resizer = document.getElementById("pcPanelResizer");
+        const panel = document.getElementById("pcDesktopRightPanel") || document.querySelector(".pc-desktop-right-panel");
+        const iframe = document.getElementById("pcAppIframe");
+        if (!resizer || !panel) return;
+
+        const savedW = localStorage.getItem("yetalk_pc_cms_panel_width");
+        if (savedW) {
+            const parsed = parseInt(savedW, 10);
+            if (parsed >= 300 && parsed <= window.innerWidth - 350) {
+                panel.style.width = parsed + "px";
+                panel.style.setProperty("--pc-right-panel-w", parsed + "px");
+            }
+        }
+
+        let isResizing = false;
+        let startX = 0;
+        let startW = 0;
+
+        function onStart(e) {
+            if (e.button !== undefined && e.button !== 0) return;
+            isResizing = true;
+            resizer.classList.add("is-resizing");
+            startX = e.touches ? e.touches[0].clientX : e.clientX;
+            startW = panel.getBoundingClientRect().width;
+            if (iframe) iframe.style.pointerEvents = "none";
+            document.body.style.userSelect = "none";
+            document.body.style.cursor = "ew-resize";
+
+            window.addEventListener("mousemove", onMove);
+            window.addEventListener("mouseup", onEnd);
+            window.addEventListener("touchmove", onMove, { passive: false });
+            window.addEventListener("touchend", onEnd);
+        }
+
+        function onMove(e) {
+            if (!isResizing) return;
+            const curX = e.touches ? e.touches[0].clientX : e.clientX;
+            const delta = startX - curX;
+            const maxW = Math.max(350, window.innerWidth - 420);
+            const newW = Math.max(320, Math.min(maxW, startW + delta));
+            panel.style.width = newW + "px";
+            panel.style.setProperty("--pc-right-panel-w", newW + "px");
+        }
+
+        function onEnd() {
+            if (!isResizing) return;
+            isResizing = false;
+            resizer.classList.remove("is-resizing");
+            if (iframe) iframe.style.pointerEvents = "";
+            document.body.style.userSelect = "";
+            document.body.style.cursor = "";
+            const curW = parseInt(panel.style.width, 10);
+            if (curW) {
+                localStorage.setItem("yetalk_pc_cms_panel_width", curW.toString());
+            }
+            window.removeEventListener("mousemove", onMove);
+            window.removeEventListener("mouseup", onEnd);
+            window.removeEventListener("touchmove", onMove);
+            window.removeEventListener("touchend", onEnd);
+        }
+
+        resizer.addEventListener("mousedown", onStart);
+        resizer.addEventListener("touchstart", onStart, { passive: true });
     }
 
     /* ========================================================
@@ -6917,20 +7150,24 @@ https://yetalk.cc`;
         }
     }
 
-    // 🌟 PC 화면 활성화 시 65초마다 실시간 접수 시뮬레이션 및 부드러운 "톡!" 알림
-    setInterval(() => {
-        if (window.innerWidth >= 1024 && !document.hidden) {
-            const curType = activePcApp?.type || 'church';
-            const list = alertDataMap[curType];
-            if (list && list.length > 0) {
-                const item = list[Math.floor(Math.random() * list.length)];
-                item.count = Math.min((item.count || 0) + 1, 9);
-                renderPcAlertDock(curType);
-                playTokSound();
-                showToast(`🔔 [실시간 알림] ${item.label}에 새로운 신청/요청이 접수되었습니다!`);
-            }
+    // 🌟 [사용자 요청] 가짜 65초 시뮬레이션 삭제 ➔ 실제 회원가입/접수/신청 시에만 알림 수신 및 1줄 지속 표시
+    window.addEventListener("message", (e) => {
+        if (e.data && e.data.type === "YETALK_REAL_ALERT") {
+            handleIncomingRealAlert(e.data.data);
         }
-    }, 65000);
+    });
+    window.addEventListener("storage", (e) => {
+        if (e.key === "yetalk_real_incoming_alerts") {
+            try {
+                const list = JSON.parse(e.newValue);
+                if (list && list.length > 0) {
+                    updateRealAlertTickerUI(list[0]);
+                    renderPcAlertDock(activePcApp?.type || 'church');
+                    renderPcCmsRequestsList();
+                }
+            } catch(err){}
+        }
+    });
 
     document.addEventListener("DOMContentLoaded", () => {
         try {
@@ -6967,6 +7204,8 @@ https://yetalk.cc`;
 
         if (window.innerWidth >= 1024) {
             try { initPcWorkDesk(); } catch(e){ console.error(e); }
+            try { initPcPanelResizer(); } catch(e){ console.error(e); }
+            try { updateRealAlertTickerUI(); } catch(e){ console.error(e); }
             try { stopAllVideoPlayback(); } catch(e){}
         }
     });
@@ -6979,6 +7218,8 @@ https://yetalk.cc`;
         try { checkPcAdmobHide(); } catch(e){}
         if (window.innerWidth >= 1024) {
             try { initPcWorkDesk(); } catch(e){}
+            try { initPcPanelResizer(); } catch(e){ console.error(e); }
+            try { updateRealAlertTickerUI(); } catch(e){ console.error(e); }
             try { stopAllVideoPlayback(); } catch(e){}
         }
     });

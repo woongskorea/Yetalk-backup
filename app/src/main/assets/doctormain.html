@@ -14,7 +14,7 @@
             --header-h: calc(48px + var(--safe-top));
             --tabs-h: 44px;
             --sub-bar-h: 42px;
-            --bottom-ad-h: calc(78px + var(--safe-bottom));
+            --bottom-ad-h: 0px;
             --snap-view-h: calc(100dvh - var(--header-h) - var(--tabs-h) - var(--sub-bar-h) - var(--bottom-ad-h));
             --primary: #0284c7;
             --primary-dark: #0369a1;
@@ -288,15 +288,9 @@
         }
         .btn-float-single-right:active { transform: scale(0.92); }
 
-        /* 닥톡/원내톡 하단 고정 애드몹 슬롯 (네비게이션바 잘림 방지 넉넉한 하단 패딩) */
+        /* 🌟 [사용자 요청] 닥톡/원내톡 하단 애드몹 전체 숨김 */
         .detail-bottom-admob {
-            width: 100%; background: #080d1a; border-top: 1.5px solid #1e3a5f;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 8px 10px calc(var(--safe-bottom) + 38px) 10px; flex-shrink: 0; box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
-            margin-top: auto; box-sizing: border-box;
-        }
-        .detail-bottom-admob .admob-display-box {
-            width: min(calc(100% - 20px), 360px); height: 52px; flex-shrink: 0;
+            display: none !important;
         }
 
         /* 닥톡 피드 카드 & 유튜브 임베드 카드 */
@@ -368,18 +362,11 @@
             display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 66000;
         }
 
-        /* 4. 최하단 고정 애드몹 슬롯 (320x100) */
-        .bottom-fixed-admob-100 {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            height: var(--bottom-ad-h); padding-bottom: var(--safe-bottom);
-            background: #080d1a; border-top: 1.5px solid #1e3a5f;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 40000 !important; box-shadow: 0 -4px 20px rgba(0,0,0,0.7);
-        }
-        .admob-display-box {
-            width: min(calc(100% - 24px), 360px); height: 58px;
-            background: #0b1326; border: 1px solid #1e293b; border-radius: 8px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+        /* 🌟 [사용자 요청] 최하단 고정 애드몹 슬롯 전체 숨김 */
+        .bottom-fixed-admob-100,
+        .admob-display-box,
+        .doctor-bottom-admob {
+            display: none !important;
         }
 
         /* 예약 본부 토글 헤더 */
@@ -2806,6 +2793,28 @@ function submitQuickPatientRegisterAction() {
     saveStaffReservations(staffList);
     localStorage.setItem("yetalk_my_latest_res_id", newRes.id.toString());
 
+    // 🌟 [사용자 요청] 실제 예약 접수 시 실시간 접수 알림 부모창 전달 및 저장
+    try {
+        const alertPayload = {
+            id: Date.now(),
+            type: 'doctor_patient',
+            bizType: 'doctor',
+            categoryKey: 'reserve',
+            label: '진료 예약',
+            name: name,
+            detail: `${name} 님 [진료예약] ${sub} (${dStr} ${tStr})`,
+            time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+            timestamp: Date.now()
+        };
+        let alerts = JSON.parse(localStorage.getItem("yetalk_real_incoming_alerts")) || [];
+        alerts.unshift(alertPayload);
+        if (alerts.length > 50) alerts = alerts.slice(0, 50);
+        localStorage.setItem("yetalk_real_incoming_alerts", JSON.stringify(alerts));
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: "YETALK_REAL_ALERT", data: alertPayload }, "*");
+        }
+    } catch(e){}
+
     closeModal("modalQuickPatientRegister");
     showToast(`🎉 [${name}님] 자동 회원가입 및 예약접수 완료!`);
     switchDoctorSection("reserve");
@@ -3643,19 +3652,23 @@ function makeWindowDraggable(elementId) {
     const handle = el.querySelector(".detail-top-nav");
     if (!handle) return;
 
+    handle.style.cursor = "move";
+    handle.style.touchAction = "none";
+
     let isDragging = false;
     let startX = 0, startY = 0;
     let initialLeft = 0, initialTop = 0;
 
-    handle.addEventListener("mousedown", (e) => {
+    function onStart(e) {
         if (e.target.closest("button, input, textarea, select, a")) return;
-        if (window.innerWidth < 768) return;
 
         isDragging = true;
         bringWindowToFront(el);
 
-        startX = e.clientX;
-        startY = e.clientY;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        startX = clientX;
+        startY = clientY;
 
         const rect = el.getBoundingClientRect();
         initialLeft = rect.left;
@@ -3666,40 +3679,53 @@ function makeWindowDraggable(elementId) {
         el.style.top = initialTop + "px";
         el.style.right = "auto";
         el.style.bottom = "auto";
+        el.style.position = "fixed";
 
         document.body.style.userSelect = "none";
 
-        const onMouseMove = (ev) => {
+        const onMove = (ev) => {
             if (!isDragging) return;
-            const deltaX = ev.clientX - startX;
-            const deltaY = ev.clientY - startY;
+            const curX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+            const curY = ev.touches ? ev.touches[0].clientY : ev.clientY;
+            const deltaX = curX - startX;
+            const deltaY = curY - startY;
 
             let newLeft = initialLeft + deltaX;
             let newTop = initialTop + deltaY;
 
-            newLeft = Math.max(10, Math.min(window.innerWidth - 120, newLeft));
-            newTop = Math.max(5, Math.min(window.innerHeight - 80, newTop));
+            const maxW = Math.max(10, window.innerWidth - 80);
+            const maxH = Math.max(10, window.innerHeight - 60);
+            newLeft = Math.max(0, Math.min(maxW, newLeft));
+            newTop = Math.max(0, Math.min(maxH, newTop));
 
             el.style.left = newLeft + "px";
             el.style.top = newTop + "px";
         };
 
-        const onMouseUp = () => {
+        const onEnd = () => {
             isDragging = false;
             document.body.style.userSelect = "";
-            window.removeEventListener("mousemove", onMouseMove);
-            window.removeEventListener("mouseup", onMouseUp);
+            window.removeEventListener("mousemove", onMove);
+            window.removeEventListener("mouseup", onEnd);
+            window.removeEventListener("touchmove", onMove);
+            window.removeEventListener("touchend", onEnd);
         };
 
-        window.addEventListener("mousemove", onMouseMove);
-        window.addEventListener("mouseup", onMouseUp);
-    });
+        window.addEventListener("mousemove", onMove);
+        window.addEventListener("mouseup", onEnd);
+        window.addEventListener("touchmove", onMove, { passive: false });
+        window.addEventListener("touchend", onEnd);
+    }
+
+    handle.addEventListener("mousedown", onStart);
+    handle.addEventListener("touchstart", onStart, { passive: true });
 
     el.addEventListener("mousedown", () => {
-        if (window.innerWidth >= 768) {
-            bringWindowToFront(el);
-        }
+        bringWindowToFront(el);
     });
+    el.addEventListener("touchstart", () => {
+        bringWindowToFront(el);
+    }, { passive: true });
 }
 
 function openModal(id) {
