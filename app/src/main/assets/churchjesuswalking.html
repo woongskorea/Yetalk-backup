@@ -502,64 +502,39 @@
 
 <div class="jesus-walk-app" id="appRoot" style="background:#e6eef8 !important;">
 
-    <!-- 1. 상단 헤더 -->
-    <header class="med-header">
-        <div style="display:flex; align-items:center; gap:6px;">
-            <button type="button" class="btn-header-back" onclick="goToChurchHome()" aria-label="뒤로가기">‹</button>
-            <div class="med-header-title">
-                ✝ <strong>담임목사 예수동행</strong>
-            </div>
-            <button type="button" onclick="openPastorLeaderConfigModal()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:12px; font-size:11px; font-weight:800; color:#475569; padding:2px 8px; margin-left:4px; cursor:pointer;" title="인도자 및 담임목사 설정">✏️ 인도자·담임목사</button>
+    <!-- 1. 헤더: 한 줄 단일행 (<-, 방이름, 방장, 입장(비공개), 예톡TV) -->
+    <header class="med-header" style="height:52px; background:#BACEE0; border-bottom:1.2px solid rgba(0,0,0,0.08); display:flex; justify-content:space-between; align-items:center; padding:calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px 12px; position:sticky; top:0; z-index:100; gap:6px;">
+        <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
+            <button type="button" class="btn-header-back" onclick="goToChurchHome()" style="background:none; border:none; font-size:24px; font-weight:900; color:#191919; cursor:pointer; line-height:1; padding:2px 4px;" title="뒤로가기">‹</button>
+            <strong id="headerJesusTitle" style="font-size:15.5px; font-weight:950; color:#191919; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">담임목사 예수동행</strong>
         </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-            <button type="button" id="btnPastorLiveAudioToggle" class="btn-live-audio" onclick="togglePastorLiveAudio()" style="background:#dc2626; color:#ffffff; border:1px solid #ef4444; border-radius:14px; font-size:11.5px; font-weight:950; padding:4px 9px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(220,38,38,0.4);">
-                <span class="live-dot-blink" style="color:#fff; font-size:9px;">●</span>
-                <span id="txtPastorLiveBtn">LIVE ON</span>
-            </button>
+        <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+            <button type="button" onclick="openLeaderUnifiedModal()" style="background:#ffffff; border:1.2px solid #94a3b8; border-radius:12px; font-size:11.5px; font-weight:900; color:#0f172a; padding:4px 9px; cursor:pointer;">👑 방장</button>
+            <button type="button" id="btnJesusLockState" onclick="toggleJesusLockState()" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; font-size:11px; font-weight:850; color:#2563eb; padding:4px 8px; cursor:pointer;">입장(공개)</button>
+            <button type="button" onclick="location.href='churchmain.html'" style="background:#dc2626; color:#ffffff; border:none; border-radius:12px; font-size:11px; font-weight:950; padding:4px 8px; cursor:pointer;">📺 예톡TV</button>
         </div>
     </header>
 
     <!-- 🌟 라이브 유튜브 음성 한줄 플레이어 바 -->
-    <div id="pastorLiveAudioBar" class="live-audio-bar" style="display:none;">
+    <div id="pastorLiveAudioBar" class="live-audio-bar" style="display:none; background:#0f172a; border-bottom:1.5px solid #1e3a5f; padding:7px 12px; color:#f8fafc; font-size:11.5px; font-weight:850; justify-content:space-between; align-items:center; position:sticky; top:52px; z-index:95;">
         <div style="display:flex; align-items:center; gap:6px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
             <span style="color:#ef4444; font-weight:950; font-size:12px;" class="live-dot-blink">🔴 LIVE</span>
             <span id="txtPastorLiveStatus" style="font-size:11.5px; color:#e2e8f0; text-overflow:ellipsis; overflow:hidden;">목사님 라이브 음성 / 기도회 방송 청취 중... 🔊</span>
         </div>
         <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
-            <button type="button" onclick="openPastorLiveUrlModal()" style="background:#1e3a5f; border:1px solid #38bdf8; color:#38bdf8; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">주소설정</button>
+            <button type="button" onclick="openLeaderUnifiedModal()" style="background:#1e3a5f; border:1px solid #38bdf8; color:#38bdf8; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">주소설정</button>
             <button type="button" onclick="stopPastorLiveAudio()" style="background:#475569; border:none; color:#fff; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">정지</button>
         </div>
     </div>
     <div id="hiddenPastorLiveYtContainer" style="display:none; width:0; height:0;"></div>
 
-    <!-- 🌟 [사용자 요청] 실시간 인기베스트글 옆에 새글쓰기 노랑색 버튼 두고 -->
-    <section class="best-section-compact" style="margin: 8px 12px 6px 12px; padding: 8px 12px; border-radius: 12px; background: #ffffff; border: 1.5px solid #bcd0e2; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-size:13px;">🔥</span>
-                <strong style="font-size:13px; color:#0f172a;">실시간 인기 베스트글</strong>
-            </div>
-            <button type="button" onclick="openPastorEditModal()" style="background:#fee500; border:1px solid #ca8a04; color:#191919; font-size:11.5px; font-weight:950; padding:4px 11px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-                ✏️ 새글쓰기
-            </button>
-        </div>
-        <div id="pastorBestPostContainer">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; cursor:pointer;" onclick="openPastorEditModal()">
-                <div style="display:flex; align-items:center; gap:5px; min-width:0; flex:1; overflow:hidden;">
-                    <span style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; font-size:10px; font-weight:950; padding:2px 6px; border-radius:4px; flex-shrink:0;">BEST 1위</span>
-                    <span style="background:#fee500; color:#191919; padding:1px 5px; border-radius:4px; font-size:11px; font-weight:950; flex-shrink:0;">[예수동행]</span>
-                    <span id="bestPastorPostTitle" style="font-size:13px; font-weight:850; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">“내가 그리스도와 함께 십자가에 못 박혔나니”</span>
-                </div>
-                <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:#64748b; font-weight:800; flex-shrink:0;">
-                    <span style="color:#e11d48;" id="bestPastorPostLikes">❤️ 18</span>
-                    <span id="bestPastorPostAuthor">· 담임목사</span>
-                </div>
-            </div>
-        </div>
+    <!-- 🌟 [사용자 요청] 실시간 인기베스트글 (한줄로 진하게, 방장 선택, 하트=방문수, 새글쓰기 버튼 제외) -->
+    <section class="best-section-compact" style="margin: 8px 12px 6px 12px; padding: 7px 12px; border-radius: 10px; background: #ffffff; border: 1.2px solid #bcd0e2; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+        <div id="pastorBestPostContainer"></div>
     </section>
 
-    <!-- 🌟 [사용자 요청] 방언기도,찬양기도 두가지로 통일 + 뒤에 중지/재생 버튼 -->
-    <div class="prayer-music-thin-box" style="margin: 0 12px 8px 12px; padding: 4px 8px; background: #ffffff; border-radius: 10px; border: 1.5px solid #bcd0e2; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+    <!-- 🌟 [사용자 요청] 방언기도, 찬양기도 두가지로 통일 + 뒤에 중지/재생 버튼 -->
+    <div class="prayer-music-thin-box" style="margin: 0 12px 8px 12px; padding: 4px 10px; background: #ffffff; border-radius: 10px; border: 1.2px solid #bcd0e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
         <span style="font-size:11px; font-weight:900; color:#475569; padding-left:4px; white-space:nowrap;">기도</span>
         <div style="display:flex; gap:6px; flex:1; justify-content:flex-end;">
             <button type="button" class="btn-prayer-thin" id="btnPastorBgm_1" onclick="togglePastorBgm(1)">방언기도</button>
@@ -592,25 +567,70 @@
     <!-- 숨은 파일 인풋들 -->
     <input type="file" id="pastorInlinePhotoInput" class="hidden-file-input" accept="image/*" onchange="handlePastorInlinePhotoSelected(this)">
 
-    <!-- 🌟 [사용자 요청] 인도자 / 담임목사 설정 모달 -->
-    <div id="pastorLeaderConfigModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.72); z-index:999999; align-items:center; justify-content:center; padding:16px;">
-        <div style="width:100%; max-width:360px; background:#ffffff; border-radius:16px; padding:20px; box-shadow:0 8px 30px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:14px;" onclick="event.stopPropagation()">
+    <!-- 🌟 [사용자 요청] 3-in-1 방장 통합 모달 (방이름 변경, 베스트글 지정, 라이브 유튜브 음성 설정 및 실행) -->
+    <div id="modalLeaderUnified" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:999999; align-items:center; justify-content:center; padding:14px;">
+        <div style="width:100%; max-width:380px; background:#ffffff; border-radius:18px; padding:18px 16px; box-shadow:0 10px 35px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:12px; max-height:90vh; overflow-y:auto;" onclick="event.stopPropagation()">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:8px;">
-                <strong style="font-size:16px; color:#0f172a;">⚙️ 인도자 · 담임목사 설정</strong>
-                <button type="button" onclick="closePastorLeaderConfigModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:#64748b;">✕</button>
+                <strong style="font-size:15.5px; color:#0f172a; display:flex; align-items:center; gap:5px;">👑 방장 관리 및 방송 설정</strong>
+                <button type="button" onclick="closeLeaderUnifiedModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:#64748b;">✕</button>
             </div>
-            <div>
-                <label style="display:block; font-size:12px; font-weight:800; color:#475569; margin-bottom:4px;">1. 담임목사 및 인도자 명칭</label>
-                <input type="text" id="cfgPastorLeaderName" placeholder="예: 최남수 담임목사" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; font-size:13.5px; font-weight:800; box-sizing:border-box;">
+
+            <!-- 1) 방이름 & 방장 명칭 변경 -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+                <span style="font-size:12px; font-weight:900; color:#0284c7;">1️⃣ 대화방 이름 & 방장 명칭 변경</span>
+                <div>
+                    <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">대화방 이름</label>
+                    <input type="text" id="inpLeaderRoomTitle" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">방장 명칭 (인도자, 담임목사 등)</label>
+                    <input type="text" id="inpLeaderUserTitle" placeholder="예: 담임목사, 인도자" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
+                </div>
+                <button type="button" onclick="saveLeaderRoomNameAndUser()" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:7px; font-size:12px; font-weight:900; cursor:pointer;">💾 이름 변경 저장</button>
             </div>
-            <div>
-                <label style="display:block; font-size:12px; font-weight:800; color:#475569; margin-bottom:4px;">2. 대화방 / 동행 명칭</label>
-                <input type="text" id="cfgPastorRoomTitle" placeholder="예: 담임목사 예수동행" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; font-size:13.5px; font-weight:800; box-sizing:border-box;">
+
+            <!-- 2) 베스트글 지정 ("베스트글은 방장이 선택") -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+                <span style="font-size:12px; font-weight:900; color:#d97706;">2️⃣ 실시간 베스트글 지정 (방장 원클릭 선택)</span>
+                <div style="font-size:11px; color:#64748b;">상단에 노출할 베스트글을 선택하세요:</div>
+                <select id="selBestPostPicker" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12.5px; font-weight:800; box-sizing:border-box; background:#fff;"></select>
+                <button type="button" onclick="applyLeaderBestPostSelection()" style="background:#d97706; color:#fff; border:none; border-radius:6px; padding:7px; font-size:12px; font-weight:900; cursor:pointer;">📌 선택한 글을 베스트로 고정</button>
             </div>
-            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
-                <button type="button" onclick="closePastorLeaderConfigModal()" style="padding:8px 14px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; font-weight:800; cursor:pointer;">취소</button>
-                <button type="button" onclick="savePastorLeaderConfig()" style="padding:8px 18px; background:#0284c7; color:#fff; border:none; border-radius:8px; font-weight:950; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.3);">저장하기</button>
+
+            <!-- 3) 라이브 유튜브 음성 설정 및 직접 실행 -->
+            <div style="background:#0f172a; border:1px solid #1e3a5f; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; color:#fff;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:900; color:#ef4444;">3️⃣ 라이브 유튜브 음성 (기도회/예배)</span>
+                    <span id="dispLiveIndicatorInModal" style="font-size:10px; background:#475569; padding:1px 5px; border-radius:4px;">대기중</span>
+                </div>
+                <p style="font-size:10.5px; color:#94a3b8; margin:0;">클릭 시 기존 주소가 자동 초기화되어 편리하게 붙여넣을 수 있습니다.</p>
+                <input type="text" id="inpLeaderLiveYtUrl"
+                       style="width:100%; background:#1e293b; border:1px solid #334155; border-radius:6px; padding:8px 9px; font-size:12.5px; color:#38bdf8; font-weight:800; box-sizing:border-box;"
+                       onclick="this.value='';" onfocus="this.select();"
+                       placeholder="https://www.youtube.com/watch?v=...">
+                <div style="display:flex; gap:6px;">
+                    <button type="button" onclick="startLeaderLiveAudioDirect()" style="flex:1; background:#dc2626; color:#fff; border:none; border-radius:6px; padding:8px; font-size:12px; font-weight:950; cursor:pointer;">▶️ 라이브 방송 시작</button>
+                    <button type="button" onclick="stopPastorLiveAudio()" style="background:#475569; color:#fff; border:none; border-radius:6px; padding:8px 12px; font-size:12px; font-weight:900; cursor:pointer;">⏹️ 정지</button>
+                </div>
             </div>
+
+            <!-- 4) 공개 / 비공개 (PIN) 설정 -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+                <span style="font-size:12px; font-weight:900; color:#334155;">4️⃣ 입장 공개 / 비공개 설정</span>
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <label style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:800; cursor:pointer;">
+                        <input type="radio" name="radUnifiedLock" value="public" id="radLockPublic" onchange="toggleModalPinGroup(false)"> 공개방
+                    </label>
+                    <label style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:800; cursor:pointer;">
+                        <input type="radio" name="radUnifiedLock" value="secret" id="radLockSecret" onchange="toggleModalPinGroup(true)"> 비공개(비밀방)
+                    </label>
+                </div>
+                <div id="unifiedPinInputBox" style="display:none; margin-top:4px;">
+                    <input type="password" id="inpUnifiedPinCode" maxlength="4" placeholder="비밀번호 4자리" style="width:120px; border:1.5px solid #ef4444; border-radius:6px; padding:5px 8px; font-size:14px; text-align:center; letter-spacing:3px;">
+                </div>
+            </div>
+
+            <button type="button" onclick="closeLeaderUnifiedModal()" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:8px; font-size:12.5px; font-weight:900; color:#475569; cursor:pointer; margin-top:2px;">닫기</button>
         </div>
     </div>
 
@@ -675,13 +695,18 @@
     <input type="file" id="fileCommentDoc" class="hidden-file-input" onchange="handleCommentDocUpload(this)">
     <input type="file" id="pastorModalFileInput" class="hidden-file-input" accept="image/*" onchange="handleModalPhotoUpload(this)">
 
-    <!-- 🌟 [사용자 요청] 맨밑에는 편하게쓰는 댓글창으로 해줘 -->
-    <div class="fixed-quick-comment-bar">
-        <div style="flex:1; display:flex; align-items:center; background:#ffffff; border:1px solid #cbd5e1; border-radius:20px; padding:3px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-            <span style="font-size:14px; margin-right:4px;">💬</span>
-            <input type="text" id="quickPastorCommentInput" placeholder="목사님 말씀에 아멘 & 한줄 은혜 나눔..." style="flex:1; border:none; background:transparent; outline:none; font-size:12.5px; color:#0f172a;" onkeypress="if(event.key==='Enter') submitQuickPastorComment()">
+    <!-- 🌟 [사용자 요청] 맨밑에 한줄 댓글창 간단하게 안에 희미한 글도 적지말고 + 카톡 답장 연동 -->
+    <div class="fixed-quick-comment-bar" style="position:fixed; bottom:75px; left:50%; transform:translateX(-50%); width:100%; max-width:520px; background:#BACEE0; border-top:1px solid rgba(0,0,0,0.08); padding:6px 12px; display:flex; flex-direction:column; gap:4px; z-index:89;">
+        <!-- 카톡 답장 중 표시 바 -->
+        <div id="replyIndicatorBar" style="display:none; padding:4px 10px; background:rgba(255,255,255,0.95); border-radius:8px; font-size:11.5px; color:#0f172a; justify-content:space-between; align-items:center; border:1px solid #cbd5e1;">
+            <span id="replyIndicatorText" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85%;">↩️ 답장 작성 중...</span>
+            <button type="button" onclick="cancelReplyMode()" style="background:none; border:none; color:#ef4444; font-weight:900; cursor:pointer; font-size:13px; padding:0 4px;">✕</button>
         </div>
-        <button type="button" onclick="submitQuickPastorComment()" style="background:#fee500; border:1px solid #ca8a04; color:#191919; font-size:12px; font-weight:950; padding:6px 14px; border-radius:18px; cursor:pointer; flex-shrink:0; box-shadow:0 1px 4px rgba(0,0,0,0.1);">등록</button>
+        <div style="display:flex; align-items:center; gap:6px; width:100%;">
+            <button type="button" onclick="document.getElementById('pastorInlinePhotoInput').click()" style="width:34px; height:34px; border-radius:50%; background:#ffffff; border:1px solid #cbd5e1; font-size:18px; color:#475569; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="사진 첨부">+</button>
+            <input type="text" id="quickPastorCommentInput" placeholder="" style="flex:1; height:36px; background:#ffffff; border:1px solid #cbd5e1; border-radius:18px; padding:0 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;" onkeypress="if(event.key==='Enter') submitQuickPastorComment()">
+            <button type="button" onclick="submitQuickPastorComment()" style="height:36px; padding:0 14px; background:#fee500; color:#191919; border:none; border-radius:18px; font-size:13px; font-weight:950; cursor:pointer; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.1);">전송</button>
+        </div>
     </div>
 
     <!-- 🌟 하단 고정 100 애드몹 -->
@@ -694,25 +719,6 @@
     <!-- 토스트 알림 -->
     <div class="yetalk-toast" id="yetalkToast"></div>
 
-</div>
-
-<!-- ⚙️ 목사님 라이브 유튜브 음성 주소 설정 모달 -->
-<div id="pastorLiveUrlModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:999999; align-items:center; justify-content:center; padding:16px;">
-    <div style="width:100%; max-width:380px; background:#0b1329; border:1.5px solid #1e3a5f; border-radius:16px; padding:20px; color:#fff; box-shadow:0 8px 30px rgba(0,0,0,0.5); display:flex; flex-direction:column; gap:12px;" onclick="event.stopPropagation()">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding-bottom:8px;">
-            <strong style="font-size:15px; color:#38bdf8;">⚙️ 목사님 라이브 음성 주소 관리</strong>
-            <button type="button" onclick="closePastorLiveUrlModal()" style="background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">✕</button>
-        </div>
-        <p style="font-size:11.5px; color:#cbd5e1; line-height:1.4;">성도들이 묵상하면서 함께 들을 <strong>유튜브 라이브/음성 주소</strong>를 입력해주세요.</p>
-        <div>
-            <label style="display:block; font-size:11.5px; color:#94a3b8; margin-bottom:4px;">🎥 유튜브 라이브 주소 (클릭 시 자동 초기화)</label>
-            <input type="text" id="inpPastorLiveYtUrl" placeholder="https://www.youtube.com/watch?v=..." onclick="this.value='';" onfocus="this.select();" style="width:100%; background:#334155; border:1.5px solid #64748b; border-radius:8px; padding:8px 10px; font-size:12.5px; color:#f8fafc; outline:none; box-sizing:border-box;">
-        </div>
-        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
-            <button type="button" onclick="closePastorLiveUrlModal()" style="padding:7px 14px; background:#334155; color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">취소</button>
-            <button type="button" onclick="saveAndStartPastorLiveAudio()" style="padding:7px 18px; background:linear-gradient(135deg, #dc2626, #b91c1c); color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:950; cursor:pointer; box-shadow:0 2px 8px rgba(220,38,38,0.4);">저장 및 재생 ▶</button>
-        </div>
-    </div>
 </div>
 
 <script>
@@ -929,16 +935,66 @@
         renderPastorFeed();
     }
 
+    let activeReplyTarget = null;
+    function prepareReplyTo(author, snippet, commentId) {
+        activeReplyTarget = { author, snippet: (snippet || '').slice(0, 30), commentId };
+        const bar = document.getElementById("replyIndicatorBar");
+        const txt = document.getElementById("replyIndicatorText");
+        if (bar && txt) {
+            txt.innerText = `↩️ ${author} 님에게 답장 중: "${activeReplyTarget.snippet}..."`;
+            bar.style.display = "flex";
+        }
+        const input = document.getElementById("quickPastorCommentInput");
+        if (input) {
+            input.focus();
+            input.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    }
+
+    function cancelReplyMode() {
+        activeReplyTarget = null;
+        const bar = document.getElementById("replyIndicatorBar");
+        if (bar) bar.style.display = "none";
+    }
+
     function renderPastorFeed() {
-        const bestTitle = document.getElementById("bestPastorPostTitle");
-        const bestLikes = document.getElementById("bestPastorPostLikes");
-        const bestAuthor = document.getElementById("bestPastorPostAuthor");
         const savedLeader = localStorage.getItem("yetalk_pastor_leader_name") || "담임목사 최남수";
         const savedRoomTitle = localStorage.getItem("yetalk_pastor_room_title") || "담임목사 예수동행";
 
-        if (bestTitle && currentWordData) bestTitle.innerText = `“${currentWordData.scripture ? currentWordData.scripture.slice(0, 36) : '오늘의 말씀'}”`;
-        if (bestLikes && currentWordData) bestLikes.innerText = `❤️ ${currentWordData.likes || 18}`;
-        if (bestAuthor) bestAuthor.innerText = `· ${savedLeader}`;
+        const titleEl = document.getElementById("headerJesusTitle");
+        if (titleEl) titleEl.innerText = savedRoomTitle;
+
+        // 🌟 실시간 베스트글 (1줄 진하게, 방장 선택, 하트=방문수)
+        const bestContainer = document.getElementById("pastorBestPostContainer");
+        if (bestContainer) {
+            const bestId = localStorage.getItem("yetalk_pastor_best_id") || "main";
+            let bestTitleText = currentWordData ? currentWordData.scripture : "내가 그리스도와 함께 십자가에 못 박혔나니";
+            let bestViewsCount = currentWordData ? (currentWordData.views || 28) : 28;
+            let bestAuthorText = savedLeader;
+
+            if (bestId !== "main") {
+                const found = commentList.find(c => String(c.id) === String(bestId));
+                if (found) {
+                    bestTitleText = found.text;
+                    bestViewsCount = found.likes || 1;
+                    bestAuthorText = found.author || savedLeader;
+                }
+            }
+
+            bestContainer.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; cursor:pointer;" onclick="openPastorEditModal()">
+                    <div style="display:flex; align-items:center; gap:5px; min-width:0; flex:1; overflow:hidden;">
+                        <span style="color:#d97706; font-size:12px; font-weight:950; flex-shrink:0;">🔥 실시간 베스트:</span>
+                        <span style="background:#fee500; color:#191919; padding:1px 5px; border-radius:4px; font-size:11px; font-weight:950; flex-shrink:0;">[예수동행]</span>
+                        <strong style="font-size:13px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">“${escapeHtml(bestTitleText.slice(0, 36))}”</strong>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:#64748b; font-weight:800; flex-shrink:0;">
+                        <span style="color:#e11d48; font-weight:900;">❤️ ${bestViewsCount.toLocaleString()}</span>
+                        <span>· ${escapeHtml(bestAuthorText)}</span>
+                    </div>
+                </div>
+            `;
+        }
 
         const container = document.getElementById("pastorFeedListContainer");
         if (!container) return;
@@ -1051,35 +1107,138 @@
         });
     }
 
-    function togglePastorAccordion(id) {
-        const body = document.getElementById(`pastorBody_${id}`);
-        const arrow = document.getElementById(`pastorArrow_${id}`);
-        if (!body) return;
-        const isHidden = (body.style.display === "none");
-        body.style.display = isHidden ? "block" : "none";
-        if (arrow) arrow.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
-    }
-
-    function openPastorLeaderConfigModal() {
+    function openLeaderUnifiedModal() {
         const savedLeader = localStorage.getItem("yetalk_pastor_leader_name") || "담임목사 최남수";
         const savedTitle = localStorage.getItem("yetalk_pastor_room_title") || "담임목사 예수동행";
-        document.getElementById("cfgPastorLeaderName").value = savedLeader;
-        document.getElementById("cfgPastorRoomTitle").value = savedTitle;
-        document.getElementById("pastorLeaderConfigModal").style.display = "flex";
+        const isSecret = localStorage.getItem("yetalk_pastor_is_secret") === "true";
+        const savedPin = localStorage.getItem("yetalk_pastor_pin") || "";
+        const savedLiveUrl = localStorage.getItem("yetalk_pastor_live_url") || "https://www.youtube.com/watch?v=0k2k2Wk0bV8";
+
+        document.getElementById("inpLeaderRoomTitle").value = savedTitle;
+        document.getElementById("inpLeaderUserTitle").value = savedLeader;
+        document.getElementById("inpLeaderLiveYtUrl").value = savedLiveUrl;
+
+        // Populate best post dropdown
+        const sel = document.getElementById("selBestPostPicker");
+        if (sel) {
+            sel.innerHTML = "";
+            const opt0 = document.createElement("option");
+            opt0.value = "main";
+            opt0.innerText = `[❤️ ${currentWordData ? (currentWordData.views || 28) : 28}] ${currentWordData ? currentWordData.scripture.slice(0, 30) : '오늘의 묵상 말씀'}`;
+            sel.appendChild(opt0);
+
+            commentList.forEach(c => {
+                const opt = document.createElement("option");
+                opt.value = c.id;
+                opt.innerText = `[❤️ ${(c.likes || 1)}] ${c.author}: ${c.text.slice(0, 25)}`;
+                sel.appendChild(opt);
+            });
+            const curBest = localStorage.getItem("yetalk_pastor_best_id") || "main";
+            sel.value = curBest;
+        }
+
+        if (isSecret) {
+            document.getElementById("radLockSecret").checked = true;
+            document.getElementById("unifiedPinInputBox").style.display = "block";
+            document.getElementById("inpUnifiedPinCode").value = savedPin;
+        } else {
+            document.getElementById("radLockPublic").checked = true;
+            document.getElementById("unifiedPinInputBox").style.display = "none";
+            document.getElementById("inpUnifiedPinCode").value = "";
+        }
+
+        const ind = document.getElementById("dispLiveIndicatorInModal");
+        if (ind) {
+            ind.innerText = isPastorLiveAudioPlaying ? "🔴 방송중" : "대기중";
+            ind.style.background = isPastorLiveAudioPlaying ? "#dc2626" : "#475569";
+        }
+
+        document.getElementById("modalLeaderUnified").style.display = "flex";
     }
 
-    function closePastorLeaderConfigModal() {
-        document.getElementById("pastorLeaderConfigModal").style.display = "none";
+    function closeLeaderUnifiedModal() {
+        document.getElementById("modalLeaderUnified").style.display = "none";
     }
 
-    function savePastorLeaderConfig() {
-        const leader = document.getElementById("cfgPastorLeaderName").value.trim();
-        const title = document.getElementById("cfgPastorRoomTitle").value.trim();
-        if (leader) localStorage.setItem("yetalk_pastor_leader_name", leader);
-        if (title) localStorage.setItem("yetalk_pastor_room_title", title);
-        closePastorLeaderConfigModal();
+    function toggleModalPinGroup(isSecret) {
+        const box = document.getElementById("unifiedPinInputBox");
+        if (box) box.style.display = isSecret ? "block" : "none";
+    }
+
+    function saveLeaderRoomNameAndUser() {
+        const title = document.getElementById("inpLeaderRoomTitle").value.trim();
+        const leader = document.getElementById("inpLeaderUserTitle").value.trim();
+        const isSecret = document.getElementById("radLockSecret").checked;
+        const pin = document.getElementById("inpUnifiedPinCode").value.trim();
+
+        if (title) {
+            localStorage.setItem("yetalk_pastor_room_title", title);
+            const titleEl = document.getElementById("headerJesusTitle");
+            if (titleEl) titleEl.innerText = title;
+        }
+        if (leader) {
+            localStorage.setItem("yetalk_pastor_leader_name", leader);
+        }
+
+        localStorage.setItem("yetalk_pastor_is_secret", isSecret ? "true" : "false");
+        if (isSecret && pin) {
+            localStorage.setItem("yetalk_pastor_pin", pin);
+        }
+        updateJesusLockStateButton();
         renderPastorFeed();
-        showToast("✨ 인도자 및 담임목사 설정이 저장되었습니다!");
+        showToast("💾 방이름 및 설정이 저장되었습니다!");
+    }
+
+    function applyLeaderBestPostSelection() {
+        const sel = document.getElementById("selBestPostPicker");
+        if (!sel || !sel.value) return;
+        localStorage.setItem("yetalk_pastor_best_id", sel.value);
+        renderPastorFeed();
+        showToast("📌 방장 지정 실시간 베스트글이 설정되었습니다!");
+    }
+
+    function startLeaderLiveAudioDirect() {
+        const inp = document.getElementById("inpLeaderLiveYtUrl");
+        const url = inp ? inp.value.trim() : "";
+        if (url) {
+            localStorage.setItem("yetalk_pastor_live_url", url);
+            startPastorLiveAudio(url);
+        } else {
+            showToast("유튜브 주소를 입력해주세요.");
+        }
+        closeLeaderUnifiedModal();
+    }
+
+    function toggleJesusLockState() {
+        const isSecret = localStorage.getItem("yetalk_pastor_is_secret") === "true";
+        if (isSecret) {
+            localStorage.setItem("yetalk_pastor_is_secret", "false");
+            showToast("🔓 공개방으로 전환되었습니다.");
+        } else {
+            localStorage.setItem("yetalk_pastor_is_secret", "true");
+            if (!localStorage.getItem("yetalk_pastor_pin")) {
+                localStorage.setItem("yetalk_pastor_pin", "1234");
+            }
+            showToast("🔒 비공개(비밀방)로 설정되었습니다. (기본 PIN: 1234)");
+        }
+        updateJesusLockStateButton();
+    }
+
+    function updateJesusLockStateButton() {
+        const btn = document.getElementById("btnJesusLockState");
+        if (!btn) return;
+        const isSecret = localStorage.getItem("yetalk_pastor_is_secret") === "true";
+        if (isSecret) {
+            btn.innerText = "입장(비공개)";
+            btn.style.background = "#fef2f2";
+            btn.style.borderColor = "#fecaca";
+            btn.style.color = "#dc2626";
+        } else {
+            btn.innerText = "입장(공개)";
+            btn.style.background = "#eff6ff";
+            btn.style.borderColor = "#bfdbfe";
+            btn.style.color = "#2563eb";
+        }
     }
 
     // 🌟 하루 3회 말씀 받기 (3개 후보 중 목사님 직접 선택)
@@ -1880,23 +2039,31 @@
         const inp = document.getElementById("quickPastorCommentInput");
         const text = inp.value.trim();
         if (!text) {
-            showToast("한줄 은혜 나눔을 입력해주세요.");
+            showToast("은혜 나눔을 입력해주세요.");
             return;
         }
+
+        let finalText = text;
+        if (activeReplyTarget) {
+            finalText = `[↩️ @${activeReplyTarget.author}] ${text}`;
+        }
+
         const newComment = {
             id: Date.now(),
             author: myRealName,
             time: "방금",
-            text: text,
+            text: finalText,
             img: null,
             file: null,
-            likes: 0,
+            likes: 1,
             replies: []
         };
         commentList.unshift(newComment);
         saveComments();
         renderComments();
+        renderPastorFeed();
         inp.value = "";
+        cancelReplyMode();
         showToast("💬 은혜 나눔이 등록되었습니다!");
     }
 </script>

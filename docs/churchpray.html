@@ -291,20 +291,47 @@
 
 <div class="pray-shell">
 
-    <!-- 1. 헤더 -->
-    <header class="pray-header">
-        <div class="header-left">
-            <button type="button" class="btn-back" onclick="handleHeaderBackClick()">‹</button>
-            <strong class="header-title-text" id="dispHeaderTitleText">성전 24시 기도처</strong>
-            <button type="button" class="btn-theme-cycle-multi" onclick="cycleChatTheme()" title="테마 색상 변경"></button>
+    <!-- 1. 헤더: 한 줄 단일행 (<-, 방이름, 방장, 입장(비공개), 예톡TV) -->
+    <header class="med-header" style="height:52px; background:#BACEE0; border-bottom:1.2px solid rgba(0,0,0,0.08); display:flex; justify-content:space-between; align-items:center; padding:calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px 12px; position:sticky; top:0; z-index:100; gap:6px;">
+        <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
+            <button type="button" class="btn-back" onclick="handleHeaderBackClick()" style="background:none; border:none; font-size:24px; font-weight:900; color:#191919; cursor:pointer; line-height:1; padding:2px 4px;" title="뒤로가기">‹</button>
+            <strong id="dispHeaderTitleText" style="font-size:15.5px; font-weight:950; color:#191919; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">성전 기도모임</strong>
         </div>
-
-        <div class="header-right">
-            <button type="button" class="btn-room-lock" id="btnLockToggle" style="display:none;" onclick="toggleRoomLock()">🔓 공개</button>
-            <button type="button" class="btn-leader-room" id="btnLeaderRoom" style="display:none;" onclick="openLeaderAdminModal()">인도자👑</button>
-            <button type="button" class="btn-room-lock" id="btnLeaveRoom" style="display:none; background:#fee2e2; border-color:#f87171; color:#b91c1c;" onclick="leaveCurrentRoom()">🚪 나가기</button>
+        <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+            <button type="button" onclick="openLeaderUnifiedModal()" style="background:#ffffff; border:1.2px solid #94a3b8; border-radius:12px; font-size:11.5px; font-weight:900; color:#0f172a; padding:4px 9px; cursor:pointer;">👑 방장</button>
+            <button type="button" id="btnPrayRoomLockState" onclick="toggleRoomLockState()" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; font-size:11px; font-weight:850; color:#2563eb; padding:4px 8px; cursor:pointer;">입장(공개)</button>
+            <button type="button" onclick="location.href='churchmain.html'" style="background:#dc2626; color:#ffffff; border:none; border-radius:12px; font-size:11px; font-weight:950; padding:4px 8px; cursor:pointer;">📺 예톡TV</button>
         </div>
     </header>
+
+    <!-- 🌟 라이브 유튜브 음성 한줄 플레이어 바 -->
+    <div id="prayLiveAudioBar" class="live-audio-bar" style="display:none; background:#0f172a; border-bottom:1.5px solid #1e3a5f; padding:7px 12px; color:#f8fafc; font-size:11.5px; font-weight:850; justify-content:space-between; align-items:center; position:sticky; top:52px; z-index:95;">
+        <div style="display:flex; align-items:center; gap:6px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+            <span style="color:#ef4444; font-weight:950; font-size:12px;" class="live-dot-blink">🔴 LIVE</span>
+            <span id="txtPrayLiveStatus" style="font-size:11.5px; color:#e2e8f0; text-overflow:ellipsis; overflow:hidden;">실시간 성전 기도회 라이브 음성 청취 중... 🔊</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+            <button type="button" onclick="openLeaderUnifiedModal()" style="background:#1e3a5f; border:1px solid #38bdf8; color:#38bdf8; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">주소설정</button>
+            <button type="button" onclick="stopPrayLiveAudio()" style="background:#475569; border:none; color:#fff; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">정지</button>
+        </div>
+    </div>
+    <div id="hiddenPrayLiveYtContainer" style="display:none; width:0; height:0;"></div>
+
+    <!-- 🌟 [사용자 요청] 실시간 인기베스트글 (한줄로 진하게, 방장 선택, 하트=방문수, 새글쓰기 버튼 제외) -->
+    <section class="best-section-compact" style="margin: 8px 12px 6px 12px; padding: 7px 12px; border-radius: 10px; background: #ffffff; border: 1.2px solid #bcd0e2; box-shadow: 0 1px 3px rgba(0,0,0,0.06); flex-shrink:0;">
+        <div id="prayBestPostContainer"></div>
+    </section>
+
+    <!-- 🌟 [사용자 요청] 방언기도, 찬양기도 두가지로 통일 + 뒤에 중지/재생 버튼 -->
+    <div class="prayer-music-thin-box" style="margin: 0 12px 8px 12px; padding: 4px 10px; background: #ffffff; border-radius: 10px; border: 1.2px solid #bcd0e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-shrink:0;">
+        <span style="font-size:11px; font-weight:900; color:#475569; padding-left:4px; white-space:nowrap;">기도</span>
+        <div style="display:flex; gap:6px; flex:1; justify-content:flex-end;">
+            <button type="button" class="btn-prayer-thin active" id="btnPrayBgmTongue" onclick="switchPrayerBgmTrack('tongue')">방언기도</button>
+            <button type="button" class="btn-prayer-thin" id="btnPrayBgmPraise" onclick="switchPrayerBgmTrack('praise')">찬양기도</button>
+            <button type="button" class="btn-prayer-thin" id="btnPrayBgmStop" onclick="togglePrayerBgmStop()">⏹️ 중지</button>
+        </div>
+        <div id="bgmIframeHost" class="bgm-hidden-frame" style="display:none; width:0; height:0;"></div>
+    </div>
 
     <!-- [1단계 로비] -->
     <main class="lobby-view-container" id="lobbyView">
@@ -322,19 +349,15 @@
 
     <!-- [2단계 방 내부] -->
     <section class="room-view-container" id="roomView">
-        <div class="bgm-bar">
-            <div class="bgm-selector-group">
-                <button type="button" class="bgm-chip-btn active" id="btnBgmTongue" onclick="switchPrayerBgmTrack('tongue')">🗣️ 방언</button>
-                <button type="button" class="bgm-chip-btn" id="btnBgmPraise" onclick="switchPrayerBgmTrack('praise')">🎶 찬양</button>
-                <button type="button" class="bgm-chip-btn" id="btnBgmMeditate" onclick="switchPrayerBgmTrack('meditate')">🕊️ 묵상</button>
-            </div>
-            <button type="button" class="btn-bgm-toggle" id="btnBgmToggle" onclick="toggleBgmSound()">중지 ⏹</button>
-            <div id="bgmIframeHost" class="bgm-hidden-frame"></div>
-        </div>
-
         <div class="chat-viewport" id="chatViewport"></div>
 
-        <footer class="chat-single-input-wrap">
+        <!-- 🌟 [사용자 요청] 맨밑에 한줄 댓글창 간단하게 안에 희미한 글도 적지말고 + 카톡 답장 연동 -->
+        <footer class="fixed-quick-comment-bar" style="position:fixed; bottom:var(--admob-total-h); left:50%; transform:translateX(-50%); width:100%; max-width:480px; background:#BACEE0; border-top:1px solid rgba(0,0,0,0.08); padding:6px 12px; display:flex; flex-direction:column; gap:4px; z-index:150;">
+            <!-- 카톡 답장 중 표시 바 -->
+            <div id="replyIndicatorBar" style="display:none; padding:4px 10px; background:rgba(255,255,255,0.95); border-radius:8px; font-size:11.5px; color:#0f172a; justify-content:space-between; align-items:center; border:1px solid #cbd5e1;">
+                <span id="replyIndicatorText" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85%;">↩️ 답장 작성 중...</span>
+                <button type="button" onclick="cancelReplyMode()" style="background:none; border:none; color:#ef4444; font-weight:900; cursor:pointer; font-size:13px; padding:0 4px;">✕</button>
+            </div>
             <!-- 첨부파일/사진 미리보기 바 -->
             <div id="prayAttachPreview" style="display:none; width:100%; padding:4px 8px; background:#f1f5f9; border-radius:8px; font-size:11.5px; align-items:center; justify-content:space-between; box-sizing:border-box;">
                 <div id="prayAttachInfo" style="display:flex; align-items:center; gap:6px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:85%;"></div>
@@ -343,12 +366,9 @@
             <div style="display:flex; align-items:center; gap:6px; width:100%;">
                 <input type="file" id="prayPhotoInput" accept="image/*" style="display:none;" onchange="handlePrayPhotoSelect(this)">
                 <input type="file" id="prayFileInput" style="display:none;" onchange="handlePrayFileSelect(this)">
-                <button type="button" class="pray-attach-btn" onclick="document.getElementById('prayPhotoInput').click()" title="사진 첨부">📷</button>
-                <button type="button" class="pray-attach-btn" onclick="document.getElementById('prayFileInput').click()" title="파일 첨부">📁</button>
-                <input type="text" class="input-prayer-single" id="inpDirectPrayerText"
-                       placeholder="기도 내용을 적고 [전송]을 누르세요..."
-                       onkeydown="if(event.key === 'Enter') submitSinglePrayer()">
-                <button type="button" class="btn-submit-send" onclick="submitSinglePrayer()">전송</button>
+                <button type="button" onclick="document.getElementById('prayPhotoInput').click()" style="width:34px; height:34px; border-radius:50%; background:#ffffff; border:1px solid #cbd5e1; font-size:18px; color:#475569; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="사진 첨부">+</button>
+                <input type="text" class="input-prayer-single" id="inpDirectPrayerText" placeholder="" style="flex:1; height:36px; background:#ffffff; border:1px solid #cbd5e1; border-radius:18px; padding:0 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;" onkeypress="if(event.key==='Enter') submitSinglePrayer()">
+                <button type="button" onclick="submitSinglePrayer()" style="height:36px; padding:0 14px; background:#fee500; color:#191919; border:none; border-radius:18px; font-size:13px; font-weight:950; cursor:pointer; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.1);">전송</button>
             </div>
         </footer>
     </section>
@@ -392,59 +412,68 @@
     </div>
 </div>
 
-<!-- 인도자실 모달 (반원 내보내기, 문닫기열기, 알림발송, 승인) -->
-<div class="modal-overlay" id="leaderAdminModal">
-    <div class="leader-modal-card" style="max-height:85vh; overflow-y:auto;">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:6px;">
-            <strong style="color:#38bdf8; font-size:15px;">👑 인도자실 (기도방 관리)</strong>
-            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeLeaderAdminModal()">✕</button>
+<!-- 🌟 [사용자 요청] 3-in-1 방장 통합 모달 (방이름 변경, 베스트글 지정, 라이브 유튜브 음성 설정 및 실행) -->
+<div id="modalLeaderUnified" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:999999; align-items:center; justify-content:center; padding:14px;">
+    <div style="width:100%; max-width:380px; background:#ffffff; border-radius:18px; padding:18px 16px; box-shadow:0 10px 35px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:12px; max-height:90vh; overflow-y:auto;" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:8px;">
+            <strong style="font-size:15.5px; color:#0f172a; display:flex; align-items:center; gap:5px;">👑 방장 관리 및 방송 설정</strong>
+            <button type="button" onclick="closeLeaderUnifiedModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:#64748b;">✕</button>
         </div>
 
-        <div>
-            <label class="m-label">1. 기도방 이름</label>
-            <input type="text" class="m-input" id="inpLeaderRoomName" value="예수님 사랑방">
+        <!-- 1) 방이름 & 방장 명칭 변경 -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+            <span style="font-size:12px; font-weight:900; color:#0284c7;">1️⃣ 기도방 이름 & 방장 명칭 변경</span>
+            <div>
+                <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">기도방 이름</label>
+                <input type="text" id="inpLeaderRoomTitle" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
+            </div>
+            <div>
+                <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">방장 명칭 (인도자, 담당목회자 등)</label>
+                <input type="text" id="inpLeaderUserTitle" placeholder="예: 최남수 담임목사 / 중보기도팀장" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
+            </div>
+            <button type="button" onclick="saveLeaderRoomNameAndUser()" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:7px; font-size:12px; font-weight:900; cursor:pointer;">💾 이름 변경 저장</button>
         </div>
 
-        <div>
-            <label class="m-label">2. 인도자 이름</label>
-            <input type="text" class="m-input" id="inpLeaderUserName" placeholder="예: 최남수 담임목사">
+        <!-- 2) 베스트글 지정 ("베스트글은 방장이 선택") -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+            <span style="font-size:12px; font-weight:900; color:#d97706;">2️⃣ 실시간 베스트글 지정 (방장 원클릭 선택)</span>
+            <div style="font-size:11px; color:#64748b;">상단에 노출할 베스트글을 선택하세요:</div>
+            <select id="selBestPostPicker" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12.5px; font-weight:800; box-sizing:border-box; background:#fff;"></select>
+            <button type="button" onclick="applyLeaderBestPostSelection()" style="background:#d97706; color:#fff; border:none; border-radius:6px; padding:7px; font-size:12px; font-weight:900; cursor:pointer;">📌 선택한 글을 베스트로 고정</button>
         </div>
 
-        <div>
-            <label class="m-label">3. 유튜브 찬양 BGM 링크</label>
-            <input type="text" class="m-input" id="inpLeaderYtUrl" placeholder="https://youtu.be/... (비워두면 관리실 설정 찬양)">
-        </div>
-
-        <!-- 📢 반원 전체 알림 발송 -->
-        <div style="background:#162238; border:1px solid #334155; border-radius:8px; padding:10px;">
-            <label class="m-label">📢 반원 전체 알림 보내기</label>
+        <!-- 3) 라이브 유튜브 음성 설정 및 직접 실행 -->
+        <div style="background:#0f172a; border:1px solid #1e3a5f; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; color:#fff;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; font-weight:900; color:#ef4444;">3️⃣ 라이브 유튜브 음성 (기도회/예배)</span>
+                <span id="dispLiveIndicatorInModal" style="font-size:10px; background:#475569; padding:1px 5px; border-radius:4px;">대기중</span>
+            </div>
+            <p style="font-size:10.5px; color:#94a3b8; margin:0;">클릭 시 기존 주소가 자동 초기화되어 편리하게 붙여넣을 수 있습니다.</p>
+            <input type="text" id="inpLeaderLiveYtUrl"
+                   style="width:100%; background:#1e293b; border:1px solid #334155; border-radius:6px; padding:8px 9px; font-size:12.5px; color:#38bdf8; font-weight:800; box-sizing:border-box;"
+                   onclick="this.value='';" onfocus="this.select();"
+                   placeholder="https://www.youtube.com/watch?v=...">
             <div style="display:flex; gap:6px;">
-                <input type="text" class="m-input" id="inpLeaderNotice" placeholder="예: 지금 함께 기도합시다!">
-                <button type="button" style="background:#0284c7; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:11.5px; font-weight:900; white-space:nowrap; cursor:pointer;" onclick="sendLeaderNoticeInPrayRoom()">전송</button>
+                <button type="button" onclick="startLeaderLiveAudioDirect()" style="flex:1; background:#dc2626; color:#fff; border:none; border-radius:6px; padding:8px; font-size:12px; font-weight:950; cursor:pointer;">▶️ 라이브 방송 시작</button>
+                <button type="button" onclick="stopPrayLiveAudio()" style="background:#475569; color:#fff; border:none; border-radius:6px; padding:8px 12px; font-size:12px; font-weight:900; cursor:pointer;">⏹️ 정지</button>
             </div>
         </div>
 
-        <!-- 📩 들어오기 신청 대기자 승인 -->
-        <div style="background:#162238; border:1px solid #334155; border-radius:8px; padding:10px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <label class="m-label" style="margin-bottom:0;">📩 들어오기 신청 대기자</label>
-                <span id="txtPrayPendingCount" style="color:#facc15; font-size:11px;">0명</span>
+        <!-- 4) 공개 / 비공개 (PIN) 설정 -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+            <span style="font-size:12px; font-weight:900; color:#334155;">4️⃣ 입장 공개 / 비공개 설정</span>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <label style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:800; cursor:pointer;">
+                    <input type="radio" name="radUnifiedLock" value="public" id="radLockPublic" onchange="toggleModalPinGroup(false)"> 공개방
+                </label>
+                <label style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:800; cursor:pointer;">
+                    <input type="radio" name="radUnifiedLock" value="secret" id="radLockSecret" onchange="toggleModalPinGroup(true)"> 비공개(비밀방)
+                </label>
             </div>
-            <div id="prayPendingList" style="display:flex; flex-direction:column; gap:4px; margin-top:6px;"></div>
-        </div>
-
-        <!-- 👥 참여 반원 명단 & 내보내기 -->
-        <div style="background:#162238; border:1px solid #334155; border-radius:8px; padding:10px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <label class="m-label" style="margin-bottom:0;">👥 참여 반원 명단</label>
-                <span id="txtPrayMemberCount" style="color:#38bdf8; font-size:11px;">1명</span>
+            <div id="unifiedPinInputBox" style="display:none; margin-top:4px;">
+                <input type="password" id="inpUnifiedRoomPin" maxlength="6" placeholder="비밀번호(PIN) 숫자 4~6자리" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:6px 9px; font-size:12px; box-sizing:border-box;">
             </div>
-            <div id="prayMemberList" style="display:flex; flex-direction:column; gap:4px; margin-top:6px;"></div>
-        </div>
-
-        <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:6px;">
-            <button type="button" style="background:#334155; color:white; border:none; padding:8px 14px; border-radius:6px; font-size:12.5px; cursor:pointer;" onclick="closeLeaderAdminModal()">닫기</button>
-            <button type="button" style="background:#0284c7; color:white; border:none; padding:8px 18px; border-radius:6px; font-size:13px; font-weight:950; cursor:pointer;" onclick="saveLeaderSettings()">저장하기</button>
+            <button type="button" onclick="saveUnifiedLockState()" style="background:#475569; color:#fff; border:none; border-radius:6px; padding:7px; font-size:12px; font-weight:900; cursor:pointer; margin-top:4px;">🔒 입장 설정 저장</button>
         </div>
     </div>
 </div>
@@ -518,10 +547,9 @@
 
         document.getElementById("lobbyView").style.display = "flex";
         document.getElementById("roomView").classList.remove("active");
-        document.getElementById("dispHeaderTitleText").innerText = "성전 24시 기도처";
-        document.getElementById("btnLockToggle").style.display = "none";
-        document.getElementById("btnLeaderRoom").style.display = "none";
-        document.getElementById("btnLeaveRoom").style.display = "none";
+        document.getElementById("dispHeaderTitleText").innerText = "성전 기도모임";
+        updatePrayLockUI();
+        renderPrayBestPost();
 
         const container = document.getElementById("lobbyRoomsGrid");
         container.innerHTML = "";
@@ -599,12 +627,8 @@
         document.getElementById("roomView").classList.add("active");
         document.getElementById("dispHeaderTitleText").innerText = room.name;
 
-        const lockBtn = document.getElementById("btnLockToggle");
-        lockBtn.style.display = "inline-block";
-        updateLockBtnUI();
-        document.getElementById("btnLeaderRoom").style.display = "inline-block";
-        document.getElementById("btnLeaveRoom").style.display = "inline-block";
-
+        updatePrayLockUI();
+        renderPrayBestPost();
         renderChatMessages();
         initBgmAudio();
     }
@@ -833,6 +857,7 @@
                         <div class="bubble-prayer-body">${escapePrayHtml(msg.body)}</div>
                         <div class="bubble-reactions-bar">
                             <div class="reactions-group">
+                                <button type="button" class="btn-reaction-pill" onclick="preparePrayReplyTo('${escapePrayHtml(msg.name)}', '${escapePrayHtml((msg.body||'').slice(0, 30))}')" style="color:#2563eb; font-size:11px;">↩️ 답장</button>
                                 <button type="button" class="btn-reaction-pill" onclick="addReaction(${msg.id}, 'heart')">
                                     <span>💖</span> <span>${msg.hearts || 3}</span>
                                 </button>
@@ -853,15 +878,40 @@
         viewport.scrollTop = viewport.scrollHeight;
     }
 
+    // 🌟 [사용자 요청] 카톡 스타일 답장 모드
+    let activePrayReplyTarget = null;
+    function preparePrayReplyTo(author, snippet) {
+        activePrayReplyTarget = { author, snippet };
+        const bar = document.getElementById("replyIndicatorBar");
+        const txt = document.getElementById("replyIndicatorText");
+        if (bar && txt) {
+            txt.innerText = `↩️ [${author}] 님에게 답장 중: "${snippet}..."`;
+            bar.style.display = "flex";
+        }
+        const inp = document.getElementById("inpDirectPrayerText");
+        if (inp) inp.focus();
+    }
+
+    function cancelReplyMode() {
+        activePrayReplyTarget = null;
+        const bar = document.getElementById("replyIndicatorBar");
+        if (bar) bar.style.display = "none";
+    }
+
     function submitSinglePrayer() {
         if (!currentRoom) return;
         const input = document.getElementById("inpDirectPrayerText");
-        const contentVal = input.value.trim();
+        let contentVal = input.value.trim();
 
         if (!contentVal && !prayAttachedImg && !prayAttachedFile) {
             showToast("기도 내용을 입력하거나 사진/파일을 첨부해주세요.");
             input.focus();
             return;
+        }
+
+        if (activePrayReplyTarget && contentVal) {
+            contentVal = `[↩️ @${activePrayReplyTarget.author}] ${contentVal}`;
+            cancelReplyMode();
         }
 
         let msgs = [];
@@ -912,168 +962,238 @@
         renderChatMessages();
     }
 
+    // 🌟 [사용자 요청] 실시간 인기베스트글 (한줄로 진하게, 방장 선택, 하트=방문수, 서버비 절약)
+    const STORAGE_KEY_PRAY_BEST_ID = "yetalk_pray_best_post_id";
+    const DEFAULT_PRAY_BEST_POST = {
+        id: "pray_default_best",
+        title: "쉬지 말고 기도하라! 기도로 세상을 이깁니다",
+        author: "최남수 담임목사",
+        tag: "성전기도",
+        views: 142
+    };
+
+    function renderPrayBestPost() {
+        const storedBestId = localStorage.getItem(STORAGE_KEY_PRAY_BEST_ID);
+        let best = DEFAULT_PRAY_BEST_POST;
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+        if (storedBestId && msgs.length > 0) {
+            const found = msgs.find(m => String(m.id) === String(storedBestId));
+            if (found) {
+                best = {
+                    id: found.id,
+                    title: found.body || "은혜의 중보기도문",
+                    author: found.name,
+                    tag: currentRoom ? currentRoom.name : "성전기도",
+                    views: 88
+                };
+            }
+        }
+        const bestHtml = `
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:12px; cursor:pointer;" onclick="showToast('📌 방장이 지정한 실시간 베스트 기도글입니다.')">
+                <div style="display:flex; align-items:center; gap:5px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; flex:1;">
+                    <span style="color:#ef4444; font-weight:950; font-size:12px; flex-shrink:0;">🔥 실시간 베스트:</span>
+                    <strong style="color:#0f172a; font-weight:950; font-size:12.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">[${escapePrayHtml(best.tag)}] “${escapePrayHtml(best.title)}”</strong>
+                </div>
+                <div style="font-size:11px; font-weight:900; color:#475569; flex-shrink:0;">
+                    <span style="color:#e11d48;">❤️ ${best.views}</span> · <span>${escapePrayHtml(best.author)}</span>
+                </div>
+            </div>
+        `;
+        const c = document.getElementById("prayBestPostContainer");
+        if (c) c.innerHTML = bestHtml;
+    }
+
+    // 🌟 [사용자 요청] 방언기도, 찬양기도 두가지로 통일 + 뒤에 중지/재생 버튼
     let currentBgmTrack = 'tongue';
 
     function switchPrayerBgmTrack(track) {
         currentBgmTrack = track;
-        document.querySelectorAll('.bgm-chip-btn').forEach(btn => btn.classList.remove('active'));
-        if (track === 'tongue') document.getElementById('btnBgmTongue')?.classList.add('active');
-        if (track === 'praise') document.getElementById('btnBgmPraise')?.classList.add('active');
-        if (track === 'meditate') document.getElementById('btnBgmMeditate')?.classList.add('active');
+        document.querySelectorAll('.btn-prayer-thin').forEach(b => {
+            if (!b.id.includes('Stop')) b.classList.remove('active');
+        });
+        if (track === 'tongue') document.getElementById('btnPrayBgmTongue')?.classList.add('active');
+        if (track === 'praise') document.getElementById('btnPrayBgmPraise')?.classList.add('active');
+
+        const stopBtn = document.getElementById("btnPrayBgmStop");
+        if (stopBtn) {
+            stopBtn.innerText = "⏹️ 중지";
+            stopBtn.classList.add("active");
+        }
 
         let url = "";
         if (track === 'tongue') {
             url = localStorage.getItem("yetalk_church_bg_music_tongue") || "https://www.youtube.com/watch?v=M7lc1UVf-VE";
-            showToast("🗣️ 방언 기도소리가 재생됩니다.");
-        } else if (track === 'praise') {
-            url = localStorage.getItem("yetalk_church_bg_music_praise") || localStorage.getItem("yetalk_church_bg_prayer_music") || "https://www.youtube.com/watch?v=jfKfPfyJRdk";
-            showToast("🎶 은혜 찬양이 재생됩니다.");
+            showToast("🗣️ 방언기도 소리가 재생됩니다.");
         } else {
-            url = localStorage.getItem("yetalk_church_bg_music_meditate") || "https://www.youtube.com/watch?v=DWcJFNfaw9c";
-            showToast("🕊️ 묵상 / 자유 기도가 재생됩니다.");
+            url = localStorage.getItem("yetalk_church_bg_music_praise") || localStorage.getItem("yetalk_church_bg_prayer_music") || "https://www.youtube.com/watch?v=jfKfPfyJRdk";
+            showToast("🎶 찬양기도 소리가 재생됩니다.");
         }
         playBgmStream(url);
     }
 
-    function initBgmAudio() {
-        if (!currentRoom) return;
-        if (currentRoom.youtube && currentRoom.youtube.trim() !== "") {
-            playBgmStream(currentRoom.youtube);
-        } else {
-            switchPrayerBgmTrack(currentBgmTrack || 'tongue');
-        }
-    }
-
-    function extractYtId(url) {
-        if (!url) return "M7lc1UVf-VE";
-        let str = url.trim();
-        if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return str;
-
-        let m = str.match(/live\/([a-zA-Z0-9_-]{11})/i);
-        if (m && m[1]) return m[1];
-
-        m = str.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
-        if (m && m[1]) return m[1];
-
-        m = str.match(/[?&]v=([a-zA-Z0-9_-]{11})/i);
-        if (m && m[1]) return m[1];
-
-        m = str.match(/(?:shorts|embed)\/([a-zA-Z0-9_-]{11})/i);
-        if (m && m[1]) return m[1];
-
-        return "M7lc1UVf-VE";
-    }
-
-    function playBgmStream(url) {
-        const vid = extractYtId(url);
+    function togglePrayerBgmStop() {
         const host = document.getElementById("bgmIframeHost");
-        host.innerHTML = `<iframe id="bgmIframe" src="https://www.youtube.com/embed/${vid}?autoplay=1&controls=0&playsinline=1" allow="autoplay"></iframe>`;
-        isBgmPlaying = true;
-        document.getElementById("btnBgmToggle").innerText = "중지 ⏹️";
-        document.getElementById("dispBgmTitle").innerText = "은혜의 기도 찬양 BGM 재생 중";
-    }
-
-    function toggleBgmSound() {
-        const host = document.getElementById("bgmIframeHost");
-        const btn = document.getElementById("btnBgmToggle");
-        const title = document.getElementById("dispBgmTitle");
-
+        const stopBtn = document.getElementById("btnPrayBgmStop");
         isBgmPlaying = !isBgmPlaying;
         if (isBgmPlaying) {
-            initBgmAudio();
-            showToast("▶ 찬양 BGM이 재생됩니다.");
+            switchPrayerBgmTrack(currentBgmTrack || 'tongue');
+            if (stopBtn) {
+                stopBtn.innerText = "⏹️ 중지";
+                stopBtn.classList.add("active");
+            }
+            showToast("▶️ 기도가 재생됩니다.");
         } else {
-            host.innerHTML = "";
-            btn.innerText = "재생 ▶";
-            title.innerText = "BGM 정지됨";
-            showToast("⏹️ BGM이 멈췄습니다.");
+            if (host) host.innerHTML = "";
+            if (stopBtn) {
+                stopBtn.innerText = "▶️ 재생";
+                stopBtn.classList.remove("active");
+            }
+            showToast("⏹️ 기도가 일시 중지되었습니다.");
         }
     }
 
-    function stopBgm() {
-        const host = document.getElementById("bgmIframeHost");
-        if (host) host.innerHTML = "";
-        isBgmPlaying = false;
+    // 🌟 [사용자 요청] 3-in-1 방장 통합 모달 (방이름 변경, 베스트글 지정, 라이브 유튜브 음성 설정 및 실행)
+    function openLeaderUnifiedModal() {
+        const titleInp = document.getElementById("inpLeaderRoomTitle");
+        const userInp = document.getElementById("inpLeaderUserTitle");
+        if (titleInp) titleInp.value = currentRoom ? currentRoom.name : "성전 기도모임";
+        if (userInp) userInp.value = currentRoom ? (currentRoom.leader || getMyName()) : "최남수 담임목사";
+
+        const picker = document.getElementById("selBestPostPicker");
+        if (picker) {
+            picker.innerHTML = "";
+            const defaultOpt = document.createElement("option");
+            defaultOpt.value = "pray_default_best";
+            defaultOpt.innerText = `[기본 추천] 쉬지 말고 기도하라! 기도로 세상을 이깁니다 (최남수 담임목사)`;
+            picker.appendChild(defaultOpt);
+
+            let msgs = [];
+            try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+            msgs.forEach(m => {
+                if (m.body) {
+                    const opt = document.createElement("option");
+                    opt.value = m.id;
+                    opt.innerText = `[${m.name}] ${(m.body||'').slice(0, 28)}...`;
+                    picker.appendChild(opt);
+                }
+            });
+        }
+
+        const ytInp = document.getElementById("inpLeaderLiveYtUrl");
+        if (ytInp) {
+            ytInp.value = localStorage.getItem("yetalk_pray_live_url") || "https://www.youtube.com/watch?v=M7lc1UVf-VE";
+        }
+
+        const isClosed = currentRoom ? (currentRoom.status === "CLOSED") : false;
+        const radPub = document.getElementById("radLockPublic");
+        const radSec = document.getElementById("radLockSecret");
+        if (radPub) radPub.checked = !isClosed;
+        if (radSec) radSec.checked = isClosed;
+        toggleModalPinGroup(isClosed);
+
+        document.getElementById("modalLeaderUnified").style.display = "flex";
     }
 
-    function toggleRoomLock() {
-        if (!currentRoom) return;
-        if (currentRoom.status === "CLOSED") {
-            currentRoom.status = "ACTIVE";
-            showToast("🔓 문을 열었습니다. (누구나 입장 가능)");
-        } else {
-            currentRoom.status = "CLOSED";
-            showToast("🔒 문을 닫았습니다. (비밀 기도방 전환)");
+    function closeLeaderUnifiedModal() {
+        document.getElementById("modalLeaderUnified").style.display = "none";
+    }
+
+    function saveLeaderRoomNameAndUser() {
+        const newTitle = document.getElementById("inpLeaderRoomTitle")?.value.trim();
+        const newUser = document.getElementById("inpLeaderUserTitle")?.value.trim();
+        if (newTitle && currentRoom) {
+            currentRoom.name = newTitle;
+            document.getElementById("dispHeaderTitleText").innerText = newTitle;
+        }
+        if (newUser && currentRoom) {
+            currentRoom.leader = newUser;
         }
         localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
-        updateLockBtnUI();
+        renderLobby();
+        showToast("💾 방 이름과 방장 명칭이 변경 저장되었습니다!");
     }
 
-    function updateLockBtnUI() {
-        const btn = document.getElementById("btnLockToggle");
-        if (!currentRoom || !btn) return;
-        if (currentRoom.status === "CLOSED") {
-            btn.classList.add("locked");
-            btn.innerText = "🔒 골방(잠김)";
-        } else {
-            btn.classList.remove("locked");
-            btn.innerText = "🔓 공개";
+    function applyLeaderBestPostSelection() {
+        const picker = document.getElementById("selBestPostPicker");
+        if (!picker) return;
+        localStorage.setItem(STORAGE_KEY_PRAY_BEST_ID, picker.value);
+        renderPrayBestPost();
+        showToast("📌 선택하신 글이 상단 실시간 베스트글로 고정되었습니다!");
+    }
+
+    let isPrayLivePlaying = false;
+    function startLeaderLiveAudioDirect() {
+        const url = document.getElementById("inpLeaderLiveYtUrl")?.value.trim();
+        if (!url) {
+            alert("유튜브 주소를 입력해주세요.");
+            return;
         }
+        localStorage.setItem("yetalk_pray_live_url", url);
+        closeLeaderUnifiedModal();
+        startPrayLiveAudio(url);
     }
 
-    function openLeaderAdminModal() {
-        if (!currentRoom) return;
-        document.getElementById("inpLeaderRoomName").value = currentRoom.name;
-        document.getElementById("inpLeaderUserName").value = currentRoom.leader || getMyName();
-        document.getElementById("inpLeaderYtUrl").value = currentRoom.youtube || "";
+    function startPrayLiveAudio(url) {
+        let videoId = extractYtId(url) || "M7lc1UVf-VE";
+        isPrayLivePlaying = true;
+        document.getElementById("prayLiveAudioBar").style.display = "flex";
+        document.getElementById("txtPrayLiveStatus").innerText = `성전 기도회 실시간 라이브 음성 청취 중... 🔊`;
 
-        // 대기자 목록
-        const pendingContainer = document.getElementById("prayPendingList");
-        const pendingList = currentRoom.pending || [];
-        document.getElementById("txtPrayPendingCount").innerText = `${pendingList.length}명`;
-        if (pendingList.length === 0) {
-            pendingContainer.innerHTML = `<div style="font-size:11.5px; color:#94a3b8; text-align:center; padding:4px 0;">대기 신청이 없습니다.</div>`;
-        } else {
-            pendingContainer.innerHTML = pendingList.map(name => `
-                <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 8px; border-radius:6px;">
-                    <span style="font-size:12px; color:#facc15;">📩 ${name}</span>
-                    <button type="button" style="background:#0284c7; color:white; border:none; padding:3px 8px; border-radius:4px; font-size:10.5px; font-weight:900; cursor:pointer;" onclick="approvePendingInPrayRoom('${name}')">승인</button>
-                </div>
-            `).join("");
+        const container = document.getElementById("hiddenPrayLiveYtContainer");
+        container.innerHTML = `
+            <iframe id="prayLiveAudioIframe" width="1" height="1"
+                src="https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1&playsinline=1"
+                frameborder="0" allow="autoplay; encrypted-media">
+            </iframe>
+        `;
+        showToast("🔴 성전 기도회 라이브 음성 방송이 시작되었습니다.");
+    }
+
+    function stopPrayLiveAudio() {
+        isPrayLivePlaying = false;
+        document.getElementById("prayLiveAudioBar").style.display = "none";
+        document.getElementById("hiddenPrayLiveYtContainer").innerHTML = "";
+        showToast("⏹️ 라이브 방송이 정지되었습니다.");
+    }
+
+    function toggleModalPinGroup(isSecret) {
+        const box = document.getElementById("unifiedPinInputBox");
+        if (box) box.style.display = isSecret ? "block" : "none";
+    }
+
+    function saveUnifiedLockState() {
+        const isSecret = document.getElementById("radLockSecret")?.checked;
+        if (currentRoom) {
+            currentRoom.status = isSecret ? "CLOSED" : "ACTIVE";
+            localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+            updatePrayLockUI();
         }
-
-        // 반원 명단
-        const memberContainer = document.getElementById("prayMemberList");
-        const memberList = currentRoom.members || [currentRoom.leader || getMyName()];
-        document.getElementById("txtPrayMemberCount").innerText = `${memberList.length}명`;
-        memberContainer.innerHTML = memberList.map(name => `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#0f172a; padding:6px 8px; border-radius:6px;">
-                <span style="font-size:12px; color:#e2e8f0;">👤 ${name} ${name === currentRoom.leader ? '👑(인도자)' : ''}</span>
-                ${name !== currentRoom.leader ? `
-                    <button type="button" style="background:#fee2e2; color:#dc2626; border:none; padding:3px 8px; border-radius:4px; font-size:10.5px; font-weight:900; cursor:pointer;" onclick="kickMemberInPrayRoom('${name}')">내보내기</button>
-                ` : '<span style="font-size:10.5px; color:#38bdf8;">방장</span>'}
-            </div>
-        `).join("");
-
-        document.getElementById("leaderAdminModal").classList.add("open");
+        showToast(isSecret ? "🔒 비공개(비밀 기도방)으로 설정되었습니다." : "🔓 누구나 입장 가능한 공개 기도방으로 설정되었습니다.");
+        closeLeaderUnifiedModal();
     }
 
-    function approvePendingInPrayRoom(name) {
-        if (!currentRoom) return;
-        if (!currentRoom.members) currentRoom.members = [];
-        if (!currentRoom.members.includes(name)) currentRoom.members.push(name);
-        currentRoom.pending = (currentRoom.pending || []).filter(n => n !== name);
+    function toggleRoomLockState() {
+        if (!currentRoom) {
+            showToast("기도방에 입장한 후 공개/비공개를 변경하실 수 있습니다.");
+            return;
+        }
+        currentRoom.status = (currentRoom.status === "CLOSED") ? "ACTIVE" : "CLOSED";
         localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+        updatePrayLockUI();
+        showToast(currentRoom.status === "CLOSED" ? "🔒 비공개(골방)으로 전환되었습니다." : "🔓 공개 기도방으로 전환되었습니다.");
+    }
 
-        let msgs = [];
-        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
-        const now = new Date();
-        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        msgs.push({
-            id: Date.now(), order: msgs.length + 1, name: "시스템",
-            body: `🎉 ${name} 성도님의 입장이 인도자에 의해 승인되었습니다. 환영합니다!`,
-            time: timeStr, hearts: 0, hands: 0
-        });
+    function updatePrayLockUI() {
+        const isClosed = currentRoom ? (currentRoom.status === "CLOSED") : false;
+        const btn = document.getElementById("btnPrayRoomLockState");
+        if (btn) {
+            btn.innerText = isClosed ? "입장(비공개)" : "입장(공개)";
+            btn.style.background = isClosed ? "#fee2e2" : "#eff6ff";
+            btn.style.color = isClosed ? "#dc2626" : "#2563eb";
+            btn.style.borderColor = isClosed ? "#f87171" : "#bfdbfe";
+        }
+    }
         localStorage.setItem(getRoomChatKey(), JSON.stringify(msgs));
         renderChatMessages();
 

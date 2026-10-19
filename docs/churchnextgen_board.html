@@ -252,18 +252,16 @@
 </head>
 <body>
 <div class="medigate-app" id="appRoot">
-    <!-- 헤더 -->
-    <header class="med-header">
-        <div class="med-logo" style="cursor:default;">
-            <span onclick="location.href='churchnextgen.html'" style="cursor:pointer; font-size:22px; line-height:1; padding-right:4px;" title="부서선택으로">‹</span>
-            ✝ <span id="headerDeptTitle">청년대화방</span>
-            <button type="button" onclick="openRoomConfigModal()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:12px; font-size:11px; font-weight:800; color:#475569; padding:2px 8px; margin-left:4px; cursor:pointer;" title="방이름, 방장, 공개/닫힘 설정">✏️ 이름변경</button>
+    <!-- 1. 헤더: 한 줄 단일행 (<-, 방이름, 방장, 입장(비공개), 예톡TV) -->
+    <header class="med-header" style="height:52px; background:#BACEE0; border-bottom:1.2px solid rgba(0,0,0,0.08); display:flex; justify-content:space-between; align-items:center; padding:calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px 12px; position:sticky; top:0; z-index:100; gap:6px;">
+        <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
+            <button type="button" onclick="location.href='churchnextgen.html'" style="background:none; border:none; font-size:24px; font-weight:900; color:#191919; cursor:pointer; line-height:1; padding:2px 4px;" title="뒤로가기">‹</button>
+            <strong id="headerDeptTitle" style="font-size:15.5px; font-weight:950; color:#191919; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">청년대화방</strong>
         </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-            <button type="button" id="btnLiveAudioToggle" class="btn-live-audio" onclick="toggleLiveAudioStream()" style="background:#dc2626; color:#ffffff; border:1px solid #ef4444; border-radius:14px; font-size:11.5px; font-weight:950; padding:4px 9px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(220,38,38,0.4);">
-                <span class="live-dot-blink" style="color:#fff; font-size:9px;">●</span>
-                <span id="txtLiveAudioBtn">LIVE ON</span>
-            </button>
+        <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+            <button type="button" onclick="openLeaderUnifiedModal()" style="background:#ffffff; border:1.2px solid #94a3b8; border-radius:12px; font-size:11.5px; font-weight:900; color:#0f172a; padding:4px 9px; cursor:pointer;">👑 방장</button>
+            <button type="button" id="btnRoomLockState" onclick="toggleRoomLockState()" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; font-size:11px; font-weight:850; color:#2563eb; padding:4px 8px; cursor:pointer;">입장(공개)</button>
+            <button type="button" onclick="location.href='churchmain.html'" style="background:#dc2626; color:#ffffff; border:none; border-radius:12px; font-size:11px; font-weight:950; padding:4px 8px; cursor:pointer;">📺 예톡TV</button>
         </div>
     </header>
 
@@ -274,29 +272,20 @@
             <span id="txtLiveStatus" style="font-size:11.5px; color:#e2e8f0; text-overflow:ellipsis; overflow:hidden;">실시간 기도회 / 예배 라이브 음성 청취 중... 🔊</span>
         </div>
         <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
-            <button type="button" onclick="openLiveUrlConfigModal()" style="background:#1e3a5f; border:1px solid #38bdf8; color:#38bdf8; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">주소설정</button>
+            <button type="button" onclick="openLeaderUnifiedModal()" style="background:#1e3a5f; border:1px solid #38bdf8; color:#38bdf8; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">주소설정</button>
             <button type="button" onclick="stopLiveAudio()" style="background:#475569; border:none; color:#fff; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">정지</button>
         </div>
     </div>
     <div id="hiddenLiveYtIframeContainer" style="display:none; width:0; height:0;"></div>
 
-    <!-- 🌟 [사용자 요청] 실시간 인기베스트글 옆에 새글쓰기 노랑색 버튼 배치 -->
-    <section class="best-section-compact" style="margin: 8px 12px 6px 12px; padding: 8px 12px; border-radius: 12px; background: #ffffff; border: 1.5px solid #bcd0e2; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-size:13px;">🔥</span>
-                <strong style="font-size:13px; color:#0f172a;">실시간 인기 베스트글</strong>
-            </div>
-            <button type="button" onclick="openCafeWriteScreen()" style="background:#fee500; border:1px solid #ca8a04; color:#191919; font-size:11.5px; font-weight:950; padding:4px 11px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
-                ✏️ 새글쓰기
-            </button>
-        </div>
+    <!-- 🌟 [사용자 요청] 실시간 인기베스트글 (한줄로 진하게, 방장 선택, 하트=방문수, 새글쓰기 버튼 제외) -->
+    <section class="best-section-compact" style="margin: 8px 12px 6px 12px; padding: 7px 12px; border-radius: 10px; background: #ffffff; border: 1.2px solid #bcd0e2; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
         <div id="bestPostsContainer"></div>
     </section>
 
-    <!-- 🌟 [사용자 요청] 방언기도,찬양기도 두가지로 통일 + 뒤에 중지/재생 버튼 -->
-    <div class="prayer-music-thin-box" style="margin: 0 12px 8px 12px; padding: 4px 8px; background: #ffffff; border-radius: 10px; border: 1.5px solid #bcd0e2; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
-        <span style="font-size:11px; font-weight:900; color:#475569; padding-left:4px; white-space:nowrap;">기도</span>
+    <!-- 🌟 [사용자 요청] 방언기도, 찬양기도 두가지로 통일 + 뒤에 중지/재생 버튼 -->
+    <div class="prayer-music-thin-box" style="margin: 0 12px 8px 12px; padding: 4px 10px; background: #ffffff; border-radius: 10px; border: 1.2px solid #bcd0e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+        <span style="font-size:11px; font-weight:900; color:#475569; white-space:nowrap;">기도</span>
         <div style="display:flex; gap:6px; flex:1; justify-content:flex-end;">
             <button type="button" class="btn-prayer-thin" id="btnPrayerMusic_1" onclick="togglePrayerBgm(1)">방언기도</button>
             <button type="button" class="btn-prayer-thin" id="btnPrayerMusic_3" onclick="togglePrayerBgm(3)">찬양기도</button>
@@ -327,13 +316,18 @@
     <!-- 메인 피드 리스트 (메디게이트형 고밀도 피드) -->
     <main class="feed-list" id="feedListContainer"></main>
 
-    <!-- 🌟 [사용자 요청] 맨밑에는 편하게쓰는 댓글창으로 해줘....둘다 있으면 좋겠네 -->
-    <div class="fixed-quick-comment-bar">
-        <div style="flex:1; display:flex; align-items:center; background:#ffffff; border:1px solid #cbd5e1; border-radius:20px; padding:3px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-            <span style="font-size:14px; margin-right:4px;">💬</span>
-            <input type="text" id="quickChatInput" placeholder="편하게 한줄 대화 및 은혜의 글을 남겨주세요..." style="flex:1; border:none; background:transparent; outline:none; font-size:12.5px; color:#0f172a;" onkeypress="if(event.key==='Enter') submitQuickChatPost()">
+    <!-- 🌟 [사용자 요청] 맨밑에 한줄 댓글창 간단하게 안에 희미한 글도 적지말고 + 카톡 답장 연동 -->
+    <div class="fixed-quick-comment-bar" style="position:fixed; bottom:85px; left:50%; transform:translateX(-50%); width:100%; max-width:480px; background:#BACEE0; border-top:1px solid rgba(0,0,0,0.08); padding:6px 12px; display:flex; flex-direction:column; gap:4px; z-index:89;">
+        <!-- 카톡 답장 중 표시 바 -->
+        <div id="replyIndicatorBar" style="display:none; padding:4px 10px; background:rgba(255,255,255,0.95); border-radius:8px; font-size:11.5px; color:#0f172a; justify-content:space-between; align-items:center; border:1px solid #cbd5e1;">
+            <span id="replyIndicatorText" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85%;">↩️ 답장 작성 중...</span>
+            <button type="button" onclick="cancelReplyMode()" style="background:none; border:none; color:#ef4444; font-weight:900; cursor:pointer; font-size:13px; padding:0 4px;">✕</button>
         </div>
-        <button type="button" onclick="submitQuickChatPost()" style="background:#fee500; border:1px solid #ca8a04; color:#191919; font-size:12px; font-weight:950; padding:6px 14px; border-radius:18px; cursor:pointer; flex-shrink:0; box-shadow:0 1px 4px rgba(0,0,0,0.1);">등록</button>
+        <div style="display:flex; align-items:center; gap:6px; width:100%;">
+            <button type="button" onclick="document.getElementById('hiddenInlinePostPhotoInput').click()" style="width:34px; height:34px; border-radius:50%; background:#ffffff; border:1px solid #cbd5e1; font-size:18px; color:#475569; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="사진 첨부">+</button>
+            <input type="text" id="quickChatInput" placeholder="" style="flex:1; height:36px; background:#ffffff; border:1px solid #cbd5e1; border-radius:18px; padding:0 12px; font-size:13.5px; color:#0f172a; outline:none; box-sizing:border-box;" onkeypress="if(event.key==='Enter') submitQuickChatPost()">
+            <button type="button" onclick="submitQuickChatPost()" style="height:36px; padding:0 14px; background:#fee500; color:#191919; border:none; border-radius:18px; font-size:13px; font-weight:950; cursor:pointer; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.1);">전송</button>
+        </div>
     </div>
 
     <!-- 🌟 [사용자 요청] 기본 하단 고정 애드몹만 유지 (목록/본문 내 애드몹은 제거) -->
@@ -465,42 +459,70 @@
     </div>
 </div>
 
-<!-- 🌟 [사용자 요청] 방이름 변경 / 방장 등록 / 오픈·폐쇄(비밀방) 모달 -->
-<div id="roomConfigModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.72); z-index:999999; align-items:center; justify-content:center; padding:16px;">
-    <div style="width:100%; max-width:360px; background:#ffffff; border-radius:16px; padding:20px; box-shadow:0 8px 30px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:14px;" onclick="event.stopPropagation()">
+<!-- 🌟 [사용자 요청] 3-in-1 방장 통합 모달 (방이름 변경, 베스트글 지정, 라이브 유튜브 음성 설정 및 실행) -->
+<div id="modalLeaderUnified" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:999999; align-items:center; justify-content:center; padding:14px;">
+    <div style="width:100%; max-width:380px; background:#ffffff; border-radius:18px; padding:18px 16px; box-shadow:0 10px 35px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:12px; max-height:90vh; overflow-y:auto;" onclick="event.stopPropagation()">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:8px;">
-            <strong style="font-size:16px; color:#0f172a;">⚙️ 대화방 설정 & 방장 등록</strong>
-            <button type="button" onclick="closeRoomConfigModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:#64748b;">✕</button>
+            <strong style="font-size:15.5px; color:#0f172a; display:flex; align-items:center; gap:5px;">👑 방장 관리 및 방송 설정</strong>
+            <button type="button" onclick="closeLeaderUnifiedModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:#64748b;">✕</button>
         </div>
-        <div>
-            <label style="display:block; font-size:12px; font-weight:800; color:#475569; margin-bottom:4px;">1. 대화방 이름</label>
-            <input type="text" id="cfgRoomName" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; font-size:13.5px; font-weight:800; box-sizing:border-box;">
+
+        <!-- 1) 방이름 & 방장 명칭 변경 -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+            <span style="font-size:12px; font-weight:900; color:#0284c7;">1️⃣ 대화방 이름 & 방장 명칭 변경</span>
+            <div>
+                <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">대화방 이름</label>
+                <input type="text" id="inpLeaderRoomTitle" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
+            </div>
+            <div>
+                <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">방장 명칭 (인도자, 담임목사 등)</label>
+                <input type="text" id="inpLeaderUserTitle" placeholder="예: 김청년 회장 / 담당 교역자" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
+            </div>
+            <button type="button" onclick="saveLeaderRoomNameAndUser()" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:7px; font-size:12px; font-weight:900; cursor:pointer;">💾 이름 변경 저장</button>
         </div>
-        <div>
-            <label style="display:block; font-size:12px; font-weight:800; color:#475569; margin-bottom:4px;">2. 방장 등록 (직분/실명)</label>
-            <input type="text" id="cfgLeaderName" placeholder="예: 김청년 회장 / 담당 교역자" style="width:100%; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; font-size:13.5px; font-weight:800; box-sizing:border-box;">
+
+        <!-- 2) 베스트글 지정 ("베스트글은 방장이 선택") -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+            <span style="font-size:12px; font-weight:900; color:#d97706;">2️⃣ 실시간 베스트글 지정 (방장 원클릭 선택)</span>
+            <div style="font-size:11px; color:#64748b;">상단에 노출할 베스트글을 선택하세요:</div>
+            <select id="selBestPostPicker" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12.5px; font-weight:800; box-sizing:border-box; background:#fff;"></select>
+            <button type="button" onclick="applyLeaderBestPostSelection()" style="background:#d97706; color:#fff; border:none; border-radius:6px; padding:7px; font-size:12px; font-weight:900; cursor:pointer;">📌 선택한 글을 베스트로 고정</button>
         </div>
-        <div>
-            <label style="display:block; font-size:12px; font-weight:800; color:#475569; margin-bottom:6px;">3. 오픈 / 폐쇄 선택 (비밀방 설정)</label>
-            <div style="display:flex; gap:14px; align-items:center;">
-                <label style="display:flex; align-items:center; gap:5px; font-size:13px; font-weight:850; cursor:pointer;">
-                    <input type="radio" name="roomAccessMode" value="public" id="modePublic" onchange="togglePinInput(false)">
-                    <span>🟢 오픈 (공개방)</span>
-                </label>
-                <label style="display:flex; align-items:center; gap:5px; font-size:13px; font-weight:850; cursor:pointer;">
-                    <input type="radio" name="roomAccessMode" value="secret" id="modeSecret" onchange="togglePinInput(true)">
-                    <span>🔒 폐쇄 (비밀방)</span>
-                </label>
+
+        <!-- 3) 라이브 유튜브 음성 설정 및 직접 실행 -->
+        <div style="background:#0f172a; border:1px solid #1e3a5f; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; color:#fff;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; font-weight:900; color:#ef4444;">3️⃣ 라이브 유튜브 음성 (기도회/예배)</span>
+                <span id="dispLiveIndicatorInModal" style="font-size:10px; background:#475569; padding:1px 5px; border-radius:4px;">대기중</span>
+            </div>
+            <p style="font-size:10.5px; color:#94a3b8; margin:0;">클릭 시 기존 주소가 자동 초기화되어 편리하게 붙여넣을 수 있습니다.</p>
+            <input type="text" id="inpLeaderLiveYtUrl"
+                   style="width:100%; background:#1e293b; border:1px solid #334155; border-radius:6px; padding:8px 9px; font-size:12.5px; color:#38bdf8; font-weight:800; box-sizing:border-box;"
+                   onclick="this.value='';" onfocus="this.select();"
+                   placeholder="https://www.youtube.com/watch?v=...">
+            <div style="display:flex; gap:6px;">
+                <button type="button" onclick="startLeaderLiveAudioDirect()" style="flex:1; background:#dc2626; color:#fff; border:none; border-radius:6px; padding:8px; font-size:12px; font-weight:950; cursor:pointer;">▶️ 라이브 방송 시작</button>
+                <button type="button" onclick="stopLiveAudio()" style="background:#475569; color:#fff; border:none; border-radius:6px; padding:8px 12px; font-size:12px; font-weight:900; cursor:pointer;">⏹️ 정지</button>
             </div>
         </div>
-        <div id="pinInputGroup" style="display:none; background:#fef2f2; border:1px solid #fecaca; padding:10px; border-radius:8px;">
-            <label style="display:block; font-size:11.5px; font-weight:800; color:#b91c1c; margin-bottom:4px;">비밀방 입장 4자리 PIN 번호</label>
-            <input type="password" id="cfgPinCode" maxlength="4" placeholder="••••" style="width:100%; border:1.5px solid #ef4444; border-radius:6px; padding:8px; font-size:16px; font-weight:900; text-align:center; letter-spacing:6px; box-sizing:border-box;">
+
+        <!-- 4) 공개 / 비공개 (PIN) 설정 -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+            <span style="font-size:12px; font-weight:900; color:#334155;">4️⃣ 입장 공개 / 비공개 설정</span>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <label style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:800; cursor:pointer;">
+                    <input type="radio" name="radUnifiedLock" value="public" id="radLockPublic" onchange="toggleModalPinGroup(false)"> 공개방
+                </label>
+                <label style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:800; cursor:pointer;">
+                    <input type="radio" name="radUnifiedLock" value="secret" id="radLockSecret" onchange="toggleModalPinGroup(true)"> 비공개(비밀방)
+                </label>
+            </div>
+            <div id="unifiedPinInputBox" style="display:none; margin-top:4px;">
+                <input type="password" id="inpUnifiedPinCode" maxlength="4" placeholder="비밀번호 4자리" style="width:120px; border:1.5px solid #ef4444; border-radius:6px; padding:5px 8px; font-size:14px; text-align:center; letter-spacing:3px;">
+            </div>
         </div>
-        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
-            <button type="button" onclick="closeRoomConfigModal()" style="padding:8px 14px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; font-weight:800; cursor:pointer;">취소</button>
-            <button type="button" onclick="saveRoomConfig()" style="padding:8px 18px; background:#0284c7; color:#fff; border:none; border-radius:8px; font-weight:950; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.3);">저장하기</button>
-        </div>
+
+        <button type="button" onclick="closeLeaderUnifiedModal()" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:8px; font-size:12.5px; font-weight:900; color:#475569; cursor:pointer; margin-top:2px;">닫기</button>
     </div>
 </div>
 
@@ -513,25 +535,6 @@
         <input type="password" id="enterPinCode" maxlength="4" placeholder="••••" style="width:100%; border:1.5px solid #0284c7; border-radius:10px; padding:10px; font-size:22px; font-weight:900; text-align:center; letter-spacing:8px; outline:none; box-sizing:border-box;" onkeypress="if(event.key==='Enter') verifyRoomPin()">
         <button type="button" onclick="verifyRoomPin()" style="width:100%; padding:11px; background:#0284c7; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:950; cursor:pointer; box-shadow:0 2px 8px rgba(2,132,199,0.4);">입장하기</button>
         <button type="button" onclick="location.href='churchnextgen.html'" style="background:none; border:none; color:#64748b; font-size:12px; cursor:pointer; font-weight:800;">‹ 부서선택으로 나가기</button>
-    </div>
-</div>
-
-<!-- ⚙️ 라이브 유튜브 음성 주소 설정 모달 (Image 4 스타일) -->
-<div id="liveUrlModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:999999; align-items:center; justify-content:center; padding:16px;">
-    <div style="width:100%; max-width:380px; background:#0b1329; border:1.5px solid #1e3a5f; border-radius:16px; padding:20px; color:#fff; box-shadow:0 8px 30px rgba(0,0,0,0.5); display:flex; flex-direction:column; gap:12px;" onclick="event.stopPropagation()">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding-bottom:8px;">
-            <strong style="font-size:15px; color:#38bdf8;">⚙️ 라이브 유튜브 음성 주소 관리</strong>
-            <button type="button" onclick="closeLiveUrlModal()" style="background:none; border:none; color:#94a3b8; font-size:20px; cursor:pointer;">✕</button>
-        </div>
-        <p style="font-size:11.5px; color:#cbd5e1; line-height:1.4;">성도와 청년들이 대화하면서 들을 <strong>유튜브 라이브/음성 주소</strong>를 입력해주세요.</p>
-        <div>
-            <label style="display:block; font-size:11.5px; color:#94a3b8; margin-bottom:4px;">🎥 유튜브 라이브 주소 (클릭 시 자동 초기화)</label>
-            <input type="text" id="inpLiveYoutubeUrl" placeholder="https://www.youtube.com/watch?v=..." onclick="this.value='';" onfocus="this.select();" style="width:100%; background:#334155; border:1.5px solid #64748b; border-radius:8px; padding:8px 10px; font-size:12.5px; color:#f8fafc; outline:none; box-sizing:border-box;">
-        </div>
-        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
-            <button type="button" onclick="closeLiveUrlModal()" style="padding:7px 14px; background:#334155; color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer;">취소</button>
-            <button type="button" onclick="saveAndStartLiveAudio()" style="padding:7px 18px; background:linear-gradient(135deg, #dc2626, #b91c1c); color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:950; cursor:pointer; box-shadow:0 2px 8px rgba(220,38,38,0.4);">저장 및 재생 ▶</button>
-        </div>
     </div>
 </div>
 
@@ -647,61 +650,138 @@
         }
     }
 
-    function openRoomConfigModal() {
+    let leaderSelectedBestId = null;
+
+    function openLeaderUnifiedModal() {
         const config = DEPT_CONFIG[currentDept] || DEPT_CONFIG["청년교회"];
         const savedName = localStorage.getItem("church_nextgen_room_name_" + currentDept) || config.chatTitle;
         const savedLeader = localStorage.getItem("church_nextgen_leader_name_" + currentDept) || "";
         const isSecret = localStorage.getItem("church_nextgen_is_secret_" + currentDept) === "true";
         const savedPin = localStorage.getItem("church_nextgen_pin_" + currentDept) || "";
+        const savedLiveUrl = localStorage.getItem("church_nextgen_live_url") || "https://www.youtube.com/watch?v=0k2k2Wk0bV8";
 
-        document.getElementById("cfgRoomName").value = savedName;
-        document.getElementById("cfgLeaderName").value = savedLeader;
+        document.getElementById("inpLeaderRoomTitle").value = savedName;
+        document.getElementById("inpLeaderUserTitle").value = savedLeader;
+        document.getElementById("inpLeaderLiveYtUrl").value = savedLiveUrl;
+
+        // Populate best post dropdown
+        const sel = document.getElementById("selBestPostPicker");
+        if (sel) {
+            sel.innerHTML = "";
+            posts.forEach(p => {
+                const opt = document.createElement("option");
+                opt.value = p.id;
+                opt.innerText = `[❤️ ${(p.views || 0)}] ${p.title}`;
+                if (String(p.id) === String(leaderSelectedBestId)) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+
+        // Lock radio
         if (isSecret) {
-            document.getElementById("modeSecret").checked = true;
-            document.getElementById("pinInputGroup").style.display = "block";
-            document.getElementById("cfgPinCode").value = savedPin;
+            document.getElementById("radLockSecret").checked = true;
+            document.getElementById("unifiedPinInputBox").style.display = "block";
+            document.getElementById("inpUnifiedPinCode").value = savedPin;
         } else {
-            document.getElementById("modePublic").checked = true;
-            document.getElementById("pinInputGroup").style.display = "none";
-            document.getElementById("cfgPinCode").value = "";
-        }
-        document.getElementById("roomConfigModal").style.display = "flex";
-    }
-
-    function closeRoomConfigModal() {
-        document.getElementById("roomConfigModal").style.display = "none";
-    }
-
-    function togglePinInput(isSecret) {
-        document.getElementById("pinInputGroup").style.display = isSecret ? "block" : "none";
-    }
-
-    function saveRoomConfig() {
-        const name = document.getElementById("cfgRoomName").value.trim();
-        const leader = document.getElementById("cfgLeaderName").value.trim();
-        const isSecret = document.getElementById("modeSecret").checked;
-        const pin = document.getElementById("cfgPinCode").value.trim();
-
-        if (!name) {
-            showToast("대화방 이름을 입력해주세요.");
-            return;
-        }
-        if (isSecret && pin.length < 4) {
-            showToast("비밀방 PIN 번호는 4자리를 입력해주세요.");
-            return;
+            document.getElementById("radLockPublic").checked = true;
+            document.getElementById("unifiedPinInputBox").style.display = "none";
+            document.getElementById("inpUnifiedPinCode").value = "";
         }
 
-        localStorage.setItem("church_nextgen_room_name_" + currentDept, name);
-        localStorage.setItem("church_nextgen_leader_name_" + currentDept, leader);
+        const ind = document.getElementById("dispLiveIndicatorInModal");
+        if (ind) {
+            ind.innerText = isLiveAudioPlaying ? "🔴 방송중" : "대기중";
+            ind.style.background = isLiveAudioPlaying ? "#dc2626" : "#475569";
+        }
+
+        document.getElementById("modalLeaderUnified").style.display = "flex";
+    }
+
+    function closeLeaderUnifiedModal() {
+        document.getElementById("modalLeaderUnified").style.display = "none";
+    }
+
+    function toggleModalPinGroup(isSecret) {
+        const box = document.getElementById("unifiedPinInputBox");
+        if (box) box.style.display = isSecret ? "block" : "none";
+    }
+
+    function saveLeaderRoomNameAndUser() {
+        const name = document.getElementById("inpLeaderRoomTitle").value.trim();
+        const leader = document.getElementById("inpLeaderUserTitle").value.trim();
+        const isSecret = document.getElementById("radLockSecret").checked;
+        const pin = document.getElementById("inpUnifiedPinCode").value.trim();
+
+        if (name) {
+            localStorage.setItem("church_nextgen_room_name_" + currentDept, name);
+            const titleEl = document.getElementById("headerDeptTitle");
+            if (titleEl) titleEl.innerText = name;
+        }
+        if (leader) {
+            localStorage.setItem("church_nextgen_leader_name_" + currentDept, leader);
+        }
+
         localStorage.setItem("church_nextgen_is_secret_" + currentDept, isSecret ? "true" : "false");
-        if (isSecret) {
+        if (isSecret && pin) {
             localStorage.setItem("church_nextgen_pin_" + currentDept, pin);
             sessionStorage.setItem("church_nextgen_pin_passed_" + currentDept, "true");
         }
+        updateLockStateButton();
+        showToast("💾 방이름 및 설정이 저장되었습니다!");
+    }
 
-        applyDeptSetup();
-        closeRoomConfigModal();
-        showToast("✨ 대화방 설정이 저장되었습니다!");
+    function applyLeaderBestPostSelection() {
+        const sel = document.getElementById("selBestPostPicker");
+        if (!sel || !sel.value) return;
+        leaderSelectedBestId = Number(sel.value);
+        localStorage.setItem("church_nextgen_best_id_" + currentDept, String(leaderSelectedBestId));
+        renderBestPosts();
+        showToast("📌 방장 지정 실시간 베스트글이 설정되었습니다!");
+    }
+
+    function startLeaderLiveAudioDirect() {
+        const inp = document.getElementById("inpLeaderLiveYtUrl");
+        const url = inp ? inp.value.trim() : "";
+        if (url) {
+            localStorage.setItem("church_nextgen_live_url", url);
+            startLiveAudio(url);
+        } else {
+            showToast("유튜브 주소를 입력해주세요.");
+        }
+        closeLeaderUnifiedModal();
+    }
+
+    function toggleRoomLockState() {
+        const isSecret = localStorage.getItem("church_nextgen_is_secret_" + currentDept) === "true";
+        if (isSecret) {
+            localStorage.setItem("church_nextgen_is_secret_" + currentDept, "false");
+            showToast("🔓 공개방으로 전환되었습니다.");
+        } else {
+            localStorage.setItem("church_nextgen_is_secret_" + currentDept, "true");
+            if (!localStorage.getItem("church_nextgen_pin_" + currentDept)) {
+                localStorage.setItem("church_nextgen_pin_" + currentDept, "1234");
+            }
+            sessionStorage.setItem("church_nextgen_pin_passed_" + currentDept, "true");
+            showToast("🔒 비공개(비밀방)로 설정되었습니다. (기본 PIN: 1234)");
+        }
+        updateLockStateButton();
+    }
+
+    function updateLockStateButton() {
+        const btn = document.getElementById("btnRoomLockState");
+        if (!btn) return;
+        const isSecret = localStorage.getItem("church_nextgen_is_secret_" + currentDept) === "true";
+        if (isSecret) {
+            btn.innerText = "입장(비공개)";
+            btn.style.background = "#fef2f2";
+            btn.style.borderColor = "#fecaca";
+            btn.style.color = "#dc2626";
+        } else {
+            btn.innerText = "입장(공개)";
+            btn.style.background = "#eff6ff";
+            btn.style.borderColor = "#bfdbfe";
+            btn.style.color = "#2563eb";
+        }
     }
 
     /* 🌟 라이브 유튜브 음성 한줄 플레이어 */
@@ -710,19 +790,9 @@
         if (isLiveAudioPlaying) {
             stopLiveAudio();
         } else {
-            const savedUrl = localStorage.getItem("church_nextgen_live_url");
-            if (!savedUrl) {
-                openLiveUrlConfigModal();
-            } else {
-                startLiveAudio(savedUrl);
-            }
+            const savedUrl = localStorage.getItem("church_nextgen_live_url") || "https://www.youtube.com/watch?v=0k2k2Wk0bV8";
+            startLiveAudio(savedUrl);
         }
-    }
-
-    function openLiveUrlConfigModal() {
-        const savedUrl = localStorage.getItem("church_nextgen_live_url") || "https://www.youtube.com/watch?v=0k2k2Wk0bV8";
-        document.getElementById("inpLiveYoutubeUrl").value = savedUrl;
-        document.getElementById("liveUrlModal").style.display = "flex";
     }
 
     function closeLiveUrlModal() {
@@ -960,24 +1030,48 @@
             return;
         }
 
-        const title = text.length > 25 ? text.slice(0, 25) + "..." : text;
+        let finalTitle = text.length > 25 ? text.slice(0, 25) + "..." : text;
+        let finalContent = text;
+
+        if (activeReplyTarget) {
+            const targetPost = posts.find(p => p.id === activeReplyTarget.postId);
+            if (targetPost) {
+                if (!targetPost.comments) targetPost.comments = [];
+                targetPost.comments.push({
+                    author: myRealName || "김예톡",
+                    text: `[↩️ @${activeReplyTarget.author}] ${text}`,
+                    time: "방금"
+                });
+                targetPost.views = (targetPost.views || 0) + 1;
+                savePostsToLocal();
+                renderFeed();
+                renderBestPosts();
+                cancelReplyMode();
+                input.value = "";
+                showToast("💬 답글이 등록되었습니다!");
+                return;
+            }
+            finalContent = `[↩️ @${activeReplyTarget.author}: "${activeReplyTarget.snippet}..."]\n${text}`;
+        }
+
         const newPost = {
             id: Date.now(),
-            title: title,
-            content: text,
+            title: finalTitle,
+            content: finalContent,
             author: myRealName || "김예톡",
             time: "방금",
-            views: 5,
+            views: 1,
             comments: []
         };
 
         posts.unshift(newPost);
         savePostsToLocal();
-        syncNextGenPostToDangolAndPersonal(title, text);
+        syncNextGenPostToDangolAndPersonal(finalTitle, finalContent);
         renderFeed();
         renderBestPosts();
 
         input.value = "";
+        cancelReplyMode();
         showToast("💬 대화글이 등록되었습니다!");
     }
 
@@ -1009,11 +1103,34 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
+    let activeReplyTarget = null;
+
+    function prepareReplyTo(author, snippet, postId) {
+        activeReplyTarget = { author, snippet: (snippet || '').slice(0, 30), postId };
+        const bar = document.getElementById("replyIndicatorBar");
+        const txt = document.getElementById("replyIndicatorText");
+        if (bar && txt) {
+            txt.innerText = `↩️ ${author} 님에게 답장 중: "${activeReplyTarget.snippet}..."`;
+            bar.style.display = "flex";
+        }
+        const input = document.getElementById("quickChatInput");
+        if (input) {
+            input.focus();
+            input.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    }
+
+    function cancelReplyMode() {
+        activeReplyTarget = null;
+        const bar = document.getElementById("replyIndicatorBar");
+        if (bar) bar.style.display = "none";
+    }
+
     function calcReactions(views) {
         const v = Number(views) || 0;
         return {
-            hearts: 12 + (v * 3),
-            fightings: 33 + (v * 3)
+            hearts: v,
+            fightings: v
         };
     }
 
@@ -1033,33 +1150,41 @@
 
     function renderBestPosts() {
         const container = document.getElementById("bestPostsContainer");
+        if (!container) return;
         container.innerHTML = "";
 
         const config = DEPT_CONFIG[currentDept] || DEPT_CONFIG["청년교회"];
-        const sorted = [...posts].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 1);
+        let best = null;
+        const savedBestId = localStorage.getItem("church_nextgen_best_id_" + currentDept);
+        if (savedBestId) {
+            best = posts.find(p => String(p.id) === String(savedBestId));
+        }
+        if (!best && posts.length > 0) {
+            best = [...posts].sort((a, b) => (b.views || 0) - (a.views || 0))[0];
+        }
 
-        sorted.forEach(p => {
+        if (best) {
             const item = document.createElement("div");
             item.className = "best-post-item-compact";
-            item.onclick = () => openDetailModal(p.id);
+            item.onclick = () => openDetailModal(best.id);
 
-            const r = calcReactions(p.views);
+            const r = calcReactions(best.views);
 
             item.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; cursor:pointer;">
                     <div style="display:flex; align-items:center; gap:5px; min-width:0; flex:1; overflow:hidden;">
-                        <span style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; font-size:10px; font-weight:950; padding:2px 6px; border-radius:4px; flex-shrink:0;">BEST 1위</span>
+                        <span style="color:#d97706; font-size:12px; font-weight:950; flex-shrink:0;">🔥 실시간 베스트:</span>
                         <span style="background:#fee500; color:#191919; padding:1px 5px; border-radius:4px; font-size:11px; font-weight:950; flex-shrink:0;">[${config.prefix}]</span>
-                        <span style="font-size:13px; font-weight:850; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">“${p.title}”</span>
+                        <strong style="font-size:13px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">“${escapeHtml(best.title)}”</strong>
                     </div>
                     <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:#64748b; font-weight:800; flex-shrink:0;">
-                        <span style="color:#e11d48;">❤️ ${r.hearts.toLocaleString()}</span>
-                        <span>· ${p.author}</span>
+                        <span style="color:#e11d48; font-weight:900;">❤️ ${r.hearts.toLocaleString()}</span>
+                        <span>· ${escapeHtml(best.author)}</span>
                     </div>
                 </div>
             `;
             container.appendChild(item);
-        });
+        }
     }
 
     function renderFeed() {
@@ -1067,7 +1192,6 @@
         container.innerHTML = "";
         const config = DEPT_CONFIG[currentDept] || DEPT_CONFIG["청년교회"];
 
-        // 🌟 [사용자 요청] 박스랑 그 밑에는 모두 큰 제목 한줄과 하트,방문등 지금같이 적어주고 클릭시 전체 펼쳐지고...
         posts.forEach(p => {
             const card = document.createElement("div");
             card.className = "post-card-accordion";
@@ -1087,12 +1211,15 @@
                         </div>
                         <span id="postArrow_${p.id}" style="font-size:12px; color:#64748b; font-weight:900; transition:transform 0.2s;">▼</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px; font-size:11px; color:#64748b; font-weight:750;">
-                        <span style="color:#e11d48; font-weight:800;">❤️ ${r.hearts.toLocaleString()}</span>
-                        <span>👀 ${p.views || 0}</span>
-                        <span>💬 ${commentsCount}</span>
-                        <span>· ${escapeHtml(p.author)}</span>
-                        <span>· ${p.time}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#64748b; font-weight:750;">
+                        <div style="display:flex; align-items:center; gap:7px;">
+                            <span style="color:#e11d48; font-weight:800;">❤️ ${r.hearts.toLocaleString()}</span>
+                            <span>👀 ${p.views || 0}</span>
+                            <span>💬 ${commentsCount}</span>
+                            <span>· ${escapeHtml(p.author)}</span>
+                            <span>· ${p.time}</span>
+                        </div>
+                        <button type="button" onclick="event.stopPropagation(); prepareReplyTo('${escapeHtml(p.author)}', '${escapeHtml(p.title)}', ${p.id})" style="background:#eff6ff; border:1px solid #bfdbfe; color:#2563eb; font-size:10.5px; font-weight:800; padding:2px 7px; border-radius:4px; cursor:pointer;">↩️ 답장</button>
                     </div>
                 </div>
 
@@ -1116,7 +1243,10 @@
                             <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px; font-size:12px;">
                                 <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
                                     <strong style="color:#0f172a; font-size:11.5px;">${escapeHtml(c.author)}</strong>
-                                    <span style="color:#94a3b8; font-size:10px;">${c.time || '방금'}</span>
+                                    <div style="display:flex; align-items:center; gap:6px;">
+                                        <span style="color:#94a3b8; font-size:10px;">${c.time || '방금'}</span>
+                                        <button type="button" onclick="event.stopPropagation(); prepareReplyTo('${escapeHtml(c.author)}', '${escapeHtml(c.text)}', ${p.id})" style="background:none; border:none; color:#2563eb; font-size:11px; font-weight:800; cursor:pointer; padding:0 3px;">↩️ 답글</button>
+                                    </div>
                                 </div>
                                 <div style="color:#334155;">${escapeHtml(c.text)}</div>
                             </div>
