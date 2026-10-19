@@ -2293,6 +2293,9 @@
             <div style="font-size:12px; color:#cbd5e1; line-height:1.4;">
                 쇼츠, 롱폼, 라이브, 모바일 공유링크(?si= 포함) 등 모든 유튜브 영상이 올라갑니다.
             </div>
+            <div style="font-size:11.5px; color:#fde047; font-weight:800; background:rgba(253, 224, 71, 0.1); border:1px solid rgba(253, 224, 71, 0.3); border-radius:8px; padding:6px 10px; line-height:1.4;">
+                💡 <b>전회원 클라우드 송출 안내</b>: 1인(업체)당 최신 대표 영상 2개까지 전회원에게 실시간 자동 전파되며, 서버 유지비는 0원(무료)으로 안전하게 운영됩니다.
+            </div>
 
             <!-- 🌟 [사용자 요청] 스마트폰 자판이 올라와도 즉시 누를 수 있도록 등록 버튼을 두껍고 시원하게 배치 -->
             <button type="button" onclick="submitNewYoutubeVideo()" class="btn-submit-action" style="height:52px; margin:4px 0 10px 0; font-size:16px; font-weight:950; border-radius:12px; background:linear-gradient(135deg, #0284c7, #2563eb); box-shadow:0 4px 18px rgba(2,132,199,0.65);">
@@ -4515,27 +4518,53 @@
         hiddenIds = hiddenIds.filter(id => String(id) !== String(newFeed.id));
         localStorage.setItem("yetalkHiddenFeedIds", JSON.stringify(hiddenIds));
 
-        // 🌟 [파이어베이스 Firestore 클라우드 실시간 동기화]
-        // 모든 회원들의 스마트폰과 컴퓨터에 즉시 자동 반영
+        // 🌟 [사용자 제안 완벽 반영: 업체/회원당 클라우드 슬롯 2개 제한 정책]
+        // 서버 비용 100% 영구 무료 보장 & 도배 방지:
+        // 클라우드(공용 서버)에는 최신 대표 영상 2개만 송출되며, 3번째부터는 오래된 영상을 자동 교체!
+        // 본인 스마트폰(로컬스토리지)에는 모든 과거 영상이 안전하게 그대로 보관됩니다.
         if (window.yetalkDb && window.yetalkFs) {
             try {
-                const { collection, addDoc, serverTimestamp } = window.yetalkFs;
-                addDoc(collection(window.yetalkDb, "yetalk_videos"), {
-                    videoId: videoId,
-                    title: promoText,
-                    bizName: chosenBiz,
-                    shortAd: promoText,
-                    targetUrl: chosenUrl,
-                    format: isShorts ? 'shorts' : '16:9',
-                    views: 101,
-                    likes: 3,
-                    region: myRegion,
-                    author: localStorage.getItem("yetalkUserName") || "예톡회원",
-                    date: dateStr,
-                    timestamp: Date.now(),
-                    createdAt: serverTimestamp()
+                const { doc, deleteDoc, collection, addDoc, getDocs, query, where, orderBy, serverTimestamp } = window.yetalkFs;
+                const authorName = localStorage.getItem("yetalkUserName") || "예톡회원";
+
+                const checkQ = query(
+                    collection(window.yetalkDb, "yetalk_videos"),
+                    where("bizName", "==", chosenBiz),
+                    orderBy("createdAt", "asc")
+                );
+
+                getDocs(checkQ).then(snap => {
+                    if (snap && snap.size >= 2) {
+                        const docsToDelete = [];
+                        let countToDelete = snap.size - 1;
+                        snap.forEach(d => {
+                            if (countToDelete > 0) {
+                                docsToDelete.push(d.id);
+                                countToDelete--;
+                            }
+                        });
+                        docsToDelete.forEach(docId => {
+                            deleteDoc(doc(window.yetalkDb, "yetalk_videos", docId)).catch(() => {});
+                        });
+                    }
+
+                    return addDoc(collection(window.yetalkDb, "yetalk_videos"), {
+                        videoId: videoId,
+                        title: promoText,
+                        bizName: chosenBiz,
+                        shortAd: promoText,
+                        targetUrl: chosenUrl,
+                        format: isShorts ? 'shorts' : '16:9',
+                        views: 101,
+                        likes: 3,
+                        region: myRegion,
+                        author: authorName,
+                        date: dateStr,
+                        timestamp: Date.now(),
+                        createdAt: serverTimestamp()
+                    });
                 }).then(() => {
-                    console.log("Firebase Firestore: Video registered and synced across all devices!");
+                    console.log("Firebase Firestore: 2-slot managed video registered!");
                 }).catch(err => {
                     console.warn("Firestore notice:", err);
                 });
@@ -5788,26 +5817,53 @@ https://yetalk.cc`;
         savedList.unshift(newFeed);
         localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(savedList));
 
-        // 🌟 [Firebase Firestore 클라우드 실시간 등록]
+        // 🌟 [사용자 제안 완벽 반영: 업체/회원당 클라우드 슬롯 2개 제한 정책]
+        // 서버 비용 100% 영구 무료 보장 & 도배 방지:
+        // 클라우드(공용 서버)에는 최신 대표 영상 2개만 송출되며, 3번째부터는 오래된 영상을 자동 교체!
+        // 본인 스마트폰(로컬스토리지)에는 모든 과거 영상이 안전하게 그대로 보관됩니다.
         if (window.yetalkDb && window.yetalkFs) {
             try {
-                const { collection, addDoc, serverTimestamp } = window.yetalkFs;
-                addDoc(collection(window.yetalkDb, "yetalk_videos"), {
-                    videoId: videoId,
-                    title: promoText,
-                    bizName: chosenBiz,
-                    shortAd: promoText,
-                    targetUrl: chosenUrl,
-                    format: isShorts ? 'shorts' : '16:9',
-                    views: 101,
-                    likes: 5,
-                    region: myRegion,
-                    author: localStorage.getItem("yetalkUserName") || "예톡회원",
-                    date: dateStr,
-                    timestamp: Date.now(),
-                    createdAt: serverTimestamp()
+                const { doc, deleteDoc, collection, addDoc, getDocs, query, where, orderBy, serverTimestamp } = window.yetalkFs;
+                const authorName = localStorage.getItem("yetalkUserName") || "예톡회원";
+
+                const checkQ = query(
+                    collection(window.yetalkDb, "yetalk_videos"),
+                    where("bizName", "==", chosenBiz),
+                    orderBy("createdAt", "asc")
+                );
+
+                getDocs(checkQ).then(snap => {
+                    if (snap && snap.size >= 2) {
+                        const docsToDelete = [];
+                        let countToDelete = snap.size - 1;
+                        snap.forEach(d => {
+                            if (countToDelete > 0) {
+                                docsToDelete.push(d.id);
+                                countToDelete--;
+                            }
+                        });
+                        docsToDelete.forEach(docId => {
+                            deleteDoc(doc(window.yetalkDb, "yetalk_videos", docId)).catch(() => {});
+                        });
+                    }
+
+                    return addDoc(collection(window.yetalkDb, "yetalk_videos"), {
+                        videoId: videoId,
+                        title: promoText,
+                        bizName: chosenBiz,
+                        shortAd: promoText,
+                        targetUrl: chosenUrl,
+                        format: isShorts ? 'shorts' : '16:9',
+                        views: 101,
+                        likes: 5,
+                        region: myRegion,
+                        author: authorName,
+                        date: dateStr,
+                        timestamp: Date.now(),
+                        createdAt: serverTimestamp()
+                    });
                 }).then(() => {
-                    console.log("Firebase Firestore: Cloud video uploaded!");
+                    console.log("Firebase Firestore: 2-slot managed cloud video uploaded!");
                 }).catch(err => {
                     console.warn("Firestore notice:", err);
                 });
@@ -5994,9 +6050,9 @@ https://yetalk.cc`;
 </script>
 
 <script type="module">
-    import { db, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from "./firebase.js";
+    import { db, doc, deleteDoc, collection, addDoc, getDocs, query, where, orderBy, limit, serverTimestamp } from "./firebase.js";
     window.yetalkDb = db;
-    window.yetalkFs = { collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp };
+    window.yetalkFs = { doc, deleteDoc, collection, addDoc, getDocs, query, where, orderBy, limit, serverTimestamp };
     console.log("Yetalk Firebase Firestore module initialized.");
     if (typeof window.syncVideosFromCloud === "function") {
         window.syncVideosFromCloud();
