@@ -2274,8 +2274,8 @@
             <!-- JS 동적 생성: 본인 전문앱이 있으면 모델하우스앱은 싹 다 안 보이고 본인 앱만 노출! 없으면 기본 모델하우스앱 노출 -->
         </div>
 
-        <!-- 🌟 관리자(나)의 관리창 바로가기 카드 -->
-        <div style="background:linear-gradient(135deg, #1e293b, #0f172a); border:1.5px solid #f59e0b; border-radius:14px; padding:11px 12px; display:flex; flex-direction:column; gap:7px; box-shadow:0 4px 15px rgba(245,158,11,0.2);">
+        <!-- 🌟 관리자(나)의 관리창 바로가기 카드 (총관리자 로그인 시에만 노출) -->
+        <div id="pcMasterAdminBox" style="display:none; background:linear-gradient(135deg, #1e293b, #0f172a); border:1.5px solid #f59e0b; border-radius:14px; padding:11px 12px; flex-direction:column; gap:7px; box-shadow:0 4px 15px rgba(245,158,11,0.2);">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:16px;">👑</span>
@@ -4707,16 +4707,86 @@
 
     /* 🌟 [사용자 요청 버그해결] PC 좌측 패널 앱 3개 축소 현상 복구:
        내가 만든 전문앱은 상단에 공식 강조 노출하고, 아래에는 6대 전문 업종별 모델하우스(의원, 치과, 한의원, 교회, 식당, 개인홈)를 상시 노출하여 절대 사라지지 않음! */
+    let showAllModelHousesForLoggedInUser = false;
+    function togglePcAllAppsList() {
+        showAllModelHousesForLoggedInUser = !showAllModelHousesForLoggedInUser;
+        renderPcAppNavList();
+    }
+
     function renderPcAppNavList() {
         const container = document.getElementById("pcAppNavGroup");
         if (!container) return;
 
+        const isLoggedIn = localStorage.getItem("yetalkLoggedIn") === "true";
+        const isMaster = isMasterAdminUser();
+        const userName = (localStorage.getItem("yetalkUserName") || "").trim();
         const hasMyApp = checkHasMySpecialApp();
         const myApps = getMyCreatedSpecialApps();
+        const curUrl = activePcApp ? activePcApp.url : 'churchmain.html';
 
         let html = '';
 
-        // 🌟 1. 나의 공식 전문앱 (내가 만든 전문앱이 있으면 상단에 특별 강조 노출)
+        // 🌟 [사용자 요청] 회원가입 후 (로그인 상태)이고 총관리자가 아닌 일반 회원인 경우:
+        // "회원가입후에는 좌측에 본인앱만 보이게 하고"
+        if (isLoggedIn && !isMaster && !showAllModelHousesForLoggedInUser) {
+            html += `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid rgba(56,189,248,0.3);">
+                    <span class="pc-side-group-title" style="color:#38bdf8; margin:0; font-size:12px;">📱 나의 본인 스마트앱</span>
+                    <span style="font-size:10px; background:rgba(56,189,248,0.2); color:#38bdf8; border:1px solid #0284c7; padding:2px 7px; border-radius:10px; font-weight:900;">정회원</span>
+                </div>
+            `;
+
+            // 1) 내가 등록/생성한 전문앱이 있으면 상단 노출
+            if (hasMyApp && myApps.length > 0) {
+                myApps.forEach(app => {
+                    const icon = app.icon || (app.url.includes("church") ? "⛪" : "💼");
+                    const appType = app.url.includes("church") || app.url.includes("mini") ? "church" : (app.url.includes("doctor") ? "doctor" : "shop");
+                    const isCurActive = (activePcApp && activePcApp.url === app.url) ? 'active-pc-app' : '';
+                    html += `
+                        <button type="button" class="btn-pc-nav active-my-app ${isCurActive}" data-app-url="${app.url}" onclick="handlePcAppNavClick('${app.url}', '${app.name}', '${appType}')" style="border:1.5px solid #38bdf8; background:linear-gradient(135deg, rgba(2,132,199,0.22), rgba(15,23,42,0.92)); margin-bottom:6px; box-shadow:0 3px 12px rgba(2,132,199,0.28);">
+                            <span class="pc-nav-icon" style="font-size:22px;">${icon}</span>
+                            <div class="pc-nav-info">
+                                <div style="display:flex; align-items:center; gap:5px;">
+                                    <strong style="color:#ffffff; font-size:13.5px;">${app.name}</strong>
+                                    <span style="font-size:9.5px; background:#0284c7; color:#fff; padding:1px 5px; border-radius:4px; font-weight:900;">내앱</span>
+                                </div>
+                                <span style="color:#93c5fd; font-size:11px;">실시간 앱 화면 & 관리창 ➔</span>
+                            </div>
+                        </button>
+                    `;
+                });
+            }
+
+            // 2) 1인 개인 스마트홈 (회원 본인 모바일 명함 & 스마트 QR 홈)
+            const myPersonalTitle = userName ? `${userName}의 1인 개인홈` : "나의 1인 개인 스마트홈";
+            const isPersonalActive = curUrl.includes('onemain') ? 'active-pc-app' : '';
+            html += `
+                <button type="button" class="btn-pc-nav active-my-app ${isPersonalActive}" data-app-url="onemain.html" onclick="handlePcAppNavClick('onemain.html', '${myPersonalTitle}', 'personal')" style="border:1.5px solid #a855f7; background:linear-gradient(135deg, rgba(168,85,247,0.2), rgba(15,23,42,0.92)); margin-bottom:6px; box-shadow:0 3px 12px rgba(168,85,247,0.25);">
+                    <span class="pc-nav-icon" style="font-size:22px;">👤</span>
+                    <div class="pc-nav-info">
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <strong style="color:#ffffff; font-size:13.5px;">${myPersonalTitle}</strong>
+                            <span style="font-size:9.5px; background:#9333ea; color:#fff; padding:1px 5px; border-radius:4px; font-weight:900;">본인홈</span>
+                        </div>
+                        <span style="color:#d8b4fe; font-size:11px;">모바일 명함, 스마트 QR, 일정</span>
+                    </div>
+                </button>
+            `;
+
+            // 모델하우스 둘러보기 토글 버튼
+            html += `
+                <div style="margin-top:14px; text-align:center;">
+                    <button type="button" onclick="togglePcAllAppsList()" style="width:100%; padding:7px 10px; background:rgba(30,41,59,0.8); border:1px dashed #475569; border-radius:8px; color:#94a3b8; font-size:11px; cursor:pointer; font-weight:700;">
+                        🏛️ 다른 업종 모델하우스 둘러보기 ▾
+                    </button>
+                </div>
+            `;
+
+            container.innerHTML = html;
+            return;
+        }
+
+        // 🌟 비로그인(게스트) 상태이거나 총관리자이거나 둘러보기 토글을 누른 경우:
         if (hasMyApp && myApps.length > 0) {
             html += `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid rgba(56,189,248,0.3);">
@@ -4743,11 +4813,10 @@
             });
         }
 
-        // 🌟 2. 전체 전문 업종별 스마트앱 둘러보기 (움직이는교회/미니교회 포함 7대 전문앱 상시 노출)
-        const curUrl = activePcApp ? activePcApp.url : 'churchmain.html';
         html += `
             <div style="display:flex; justify-content:space-between; align-items:center; margin:${(hasMyApp && myApps.length > 0) ? '10px 0 6px 0' : '0 0 6px 0'}; padding-bottom:4px; border-bottom:1px solid #334155;">
                 <span class="pc-side-group-title" style="margin:0;">🏛️ 전문 업종별 스마트앱 둘러보기</span>
+                ${(isLoggedIn && !isMaster) ? `<button type="button" onclick="togglePcAllAppsList()" style="background:none; border:none; color:#94a3b8; font-size:10px; cursor:pointer;">[본인앱만 보기 ▴]</button>` : ''}
             </div>
             <button type="button" class="btn-pc-nav ${curUrl.includes('churchmain') ? 'active-pc-app' : ''}" data-app-url="churchmain.html" onclick="handlePcAppNavClick('churchmain.html', '우리교회', 'church')">
                 <span class="pc-nav-icon">⛪</span>
@@ -4784,7 +4853,7 @@
                     <span>체질개선, 한방진료, 건강상담</span>
                 </div>
             </button>
-            <button type="button" class="btn-pc-nav ${curUrl.includes('promain') ? 'active-pc-app' : ''}" data-app-url="promain.html?mode=shop" onclick="handlePcAppNavClick('promain.html?mode=shop', '소상공인 식당·상점', 'shop')">
+            <button type="button" class="btn-pc-nav ${curUrl.includes('promain') ? 'active-pc-app' : ''}" data-app-url="promain.html?mode=restaurant" onclick="handlePcAppNavClick('promain.html?mode=restaurant', '소상공인 식당·상점', 'shop')">
                 <span class="pc-nav-icon">🍜</span>
                 <div class="pc-nav-info">
                     <strong>소상공인 식당·상점 모델하우스</strong>
@@ -5027,14 +5096,16 @@
         checkAdminButtonVisibility();
     }
 
-    /* 🌟 [사용자 요청] 관리자 버튼은 일반 회원/방문자에게는 완전히 숨기고, 인가된 총관리자만 노출 */
+    /* 🌟 [사용자 요청] 관리자 버튼 및 총관리자 제어창 카드는 일반 회원/방문자에게는 완전히 숨기고, 인가된 총관리자만 노출 */
     function checkAdminButtonVisibility() {
         const btn = document.getElementById("btnHeaderMasterAdmin");
-        if (!btn) return;
-        if (isMasterAdminUser()) {
-            btn.style.display = "inline-flex";
-        } else {
-            btn.style.display = "none";
+        const adminBox = document.getElementById("pcMasterAdminBox");
+        const isMaster = isMasterAdminUser();
+        if (btn) {
+            btn.style.display = isMaster ? "inline-flex" : "none";
+        }
+        if (adminBox) {
+            adminBox.style.display = isMaster ? "flex" : "none";
         }
     }
 
@@ -5714,8 +5785,8 @@ https://yetalk.cc`;
         let savedPw = localStorage.getItem("yetalkUserPw") || localStorage.getItem("yetalkAdminPw") || localStorage.getItem("yetalk_admin_password") || "";
         const savedRegion = localStorage.getItem("yetalkUserRegion") || "부산진구";
 
-        // 🌟 [사용자 요청] 총관리자가 김예톡 아니고 최웅식으로 정상적으로 보이고 화면에서는 그냥 최예톡으로 아이디가 보이게 설정
-        if (isAdmin || !savedName || savedName === "김예톡") {
+        // 🌟 [사용자 요청] 신규 사용자/새 컴퓨터에서는 빈 입력창으로 시작, 총관리자인 경우에만 최웅식 프로필 표시
+        if (isAdmin) {
             if (!savedName || savedName === "김예톡") savedName = "최웅식";
             if (!savedId || savedId === "yetalk" || savedId === "김예톡") savedId = "최예톡";
             if (!savedPw) savedPw = localStorage.getItem("yetalkAdminPw") || "7777";
@@ -5969,6 +6040,19 @@ https://yetalk.cc`;
             document.querySelectorAll('.bottom-fixed-admob-100, .modal-admob-100-slot, .split-comment-admob-slot, .mobile-admob-100-slot, .admob-250-wrapper, .admob-safety-wrapper').forEach(el => {
                 el.style.setProperty('display', 'none', 'important');
             });
+            const iframe = document.getElementById("pcAppIframe");
+            if (iframe) {
+                try {
+                    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+                    if (doc) {
+                        doc.documentElement.classList.add('is-pc-env');
+                        doc.body?.classList.add('is-pc-frame');
+                        doc.querySelectorAll('.bottom-fixed-admob-footer, .footer-admob-100, .closing-admob-250-slot, .one-fixed-admob-100, .ending-admob-250, .church-fixed-admob-footer, [class*="admob"], [id*="admob"]').forEach(el => {
+                            el.style.setProperty('display', 'none', 'important');
+                        });
+                    }
+                } catch(e){}
+            }
         }
     }
 
@@ -6099,7 +6183,15 @@ https://yetalk.cc`;
 
         // 기본 활성 앱: 저장된 앱이 있으면 해당 앱으로, 없으면 churchmain.html
         const savedUrl = localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html";
-        const savedName = sanitizeAppName(localStorage.getItem("yetalkUserStoreName") || localStorage.getItem("yetalkChurchName") || "우리교회");
+        let savedName = "우리교회";
+        if (savedUrl.includes("church") || savedUrl.includes("mini")) {
+            savedName = sanitizeAppName(localStorage.getItem("yetalkChurchName") || "우리교회");
+        } else if (savedUrl.includes("doctor") || savedUrl.includes("dental") || savedUrl.includes("handoc") || savedUrl.includes("shop") || savedUrl.includes("pro")) {
+            savedName = sanitizeAppName(localStorage.getItem("yetalkUserStoreName") || "전문 스마트앱");
+        } else if (savedUrl.includes("onemain")) {
+            const uName = localStorage.getItem("yetalkUserName");
+            savedName = uName ? `${uName}의 1인 개인홈` : "1인 개인 스마트홈";
+        }
         const type = savedUrl.includes("church") || savedUrl.includes("mini") ? "church" : (savedUrl.includes("doctor") || savedUrl.includes("dental") || savedUrl.includes("handoc") ? "doctor" : (savedUrl.includes("shop") || savedUrl.includes("pro") ? "shop" : "personal"));
 
         selectPcAppPreview(savedUrl, savedName, type);
@@ -6147,6 +6239,12 @@ https://yetalk.cc`;
 
         // 1. Center Phone Frame (PC 모드 쿼리 ?pc=1 자동 주입)
         const iframe = document.getElementById("pcAppIframe");
+        if (iframe && !iframe.dataset.admobListenerAttached) {
+            iframe.dataset.admobListenerAttached = "true";
+            iframe.addEventListener("load", () => {
+                checkPcAdmobHide();
+            });
+        }
         const targetUrl = url.includes('?') ? (url + '&pc=1') : (url + '?pc=1');
         if (iframe && !iframe.src.endsWith(targetUrl) && iframe.src !== targetUrl) {
             iframe.src = targetUrl;
@@ -7170,16 +7268,7 @@ https://yetalk.cc`;
     });
 
     document.addEventListener("DOMContentLoaded", () => {
-        try {
-            if (!localStorage.getItem("yetalkUserName") || localStorage.getItem("yetalkUserName") === "김예톡") {
-                localStorage.setItem("yetalkUserName", "최웅식");
-                localStorage.setItem("yetalkUserId", "최예톡");
-                localStorage.setItem("yetalkUserPw", "7777");
-                localStorage.setItem("yetalkUserRegion", "부산진구");
-                localStorage.setItem("yetalk_admin_auth", "true");
-                localStorage.setItem("yetalkLoggedIn", "true");
-            }
-        } catch(e){}
+        // 🌟 [사용자 요청] 새로운 컴퓨터에서는 누가 가입/로그인할지 모르므로 강제 로그인 제거하고 최초 게스트 상태 유지
 
         // Sanitize broken clinic/doctor name in storage
         try {

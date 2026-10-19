@@ -1335,6 +1335,16 @@
                 display: none !important;
             }
         }
+        body.is-pc-frame .bottom-fixed-admob-footer,
+        html.is-pc-env .bottom-fixed-admob-footer,
+        body.is-pc-frame [class*="admob"],
+        html.is-pc-env [class*="admob"] {
+            display: none !important;
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            visibility: hidden !important;
+        }
 
         /* 🪟 개인 채팅창 (모바일: 고정 하단 애드몹 바로 위까지 확장되어 중복 방지, PC: 이동/크기조절 가능) */
         .movable-chat-window {
@@ -4703,7 +4713,22 @@
         setTimeout(() => t.classList.remove("show"), 2200);
     }
 
-    document.addEventListener("DOMContentLoaded", initPage);
+    function checkPcAdmobHide() {
+        if (window.self !== window.top || window.location.search.includes('pc=1') || window.innerWidth >= 768 || (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.AndroidBridge)) {
+            document.documentElement.classList.add('is-pc-env');
+            document.body?.classList.add('is-pc-frame');
+            document.querySelectorAll('.bottom-fixed-admob-footer, .one-fixed-admob-100, .ending-admob-250, .ftb-card-admob, .today-notice-admob-slot, .chat-win-admob, [class*="admob"], [id*="admob"]').forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+            });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        initPage();
+        checkPcAdmobHide();
+    });
+    window.addEventListener("pageshow", checkPcAdmobHide);
+    window.addEventListener("resize", checkPcAdmobHide);
 </script>
 </body>
 </html>

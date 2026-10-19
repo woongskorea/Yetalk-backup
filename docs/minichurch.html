@@ -1147,6 +1147,30 @@
             font-size: 11px; color: var(--neon-gold); font-weight: 750;
         }
 
+        /* 🌟 [사용자 요청] PC 환경 및 iframe 내부에서는 모든 애드몹 슬롯 완전 비노출 */
+        @media (min-width: 768px) {
+            .footer-admob-100,
+            .closing-admob-250-slot,
+            [class*="admob"],
+            [id*="admob"] {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+        }
+        body.is-pc-frame .footer-admob-100,
+        html.is-pc-env .footer-admob-100,
+        body.is-pc-frame [class*="admob"],
+        html.is-pc-env [class*="admob"] {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
         /* 🌟 [사용자 요청] 메뉴가 끝날 때: 하단 100 애드몹 완전 삭제 & 상단 짧은 좋은글 + 250 애드몹 안전 배치 */
         body.at-closing-screen .footer-admob-100 {
             display: none !important;
@@ -3722,6 +3746,16 @@
             showToast(`✨ ${finalName} 성도님 환영합니다! 가입이 완료되었습니다.`);
         }
 
+        function checkPcAdmobHide() {
+            if (window.self !== window.top || window.location.search.includes('pc=1') || window.innerWidth >= 768 || (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.AndroidBridge)) {
+                document.documentElement.classList.add('is-pc-env');
+                document.body?.classList.add('is-pc-frame');
+                document.querySelectorAll('.footer-admob-100, .closing-admob-250-slot, [class*="admob"], [id*="admob"]').forEach(el => {
+                    el.style.setProperty('display', 'none', 'important');
+                });
+            }
+        }
+
         /* 초기화 */
         document.addEventListener("DOMContentLoaded", () => {
             isAdminMode = localStorage.getItem(STORAGE_KEY_ADMIN) === "true";
@@ -3734,7 +3768,10 @@
             loadOfferingInfo();
             updateAdminUI();
             setupScrollSnapObserver();
+            checkPcAdmobHide();
         });
+        window.addEventListener("pageshow", checkPcAdmobHide);
+        window.addEventListener("resize", checkPcAdmobHide);
     </script>
 
     <!-- 🌟 [사용자 요청] 다른 사람들도 모델하우스로 등록된 5대 사진 및 예배 영상을 볼 수 있도록 초경량 Firestore 동기화 (서버비 0원) -->

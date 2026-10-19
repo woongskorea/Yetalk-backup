@@ -269,7 +269,7 @@
         .yetalk-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
-<body data-mode="clinic">
+<body data-mode="restaurant">
 
 <div class="pro-shell">
 
@@ -277,13 +277,13 @@
     <header class="pro-fixed-header">
         <div class="header-left-box">
             <button type="button" class="btn-header-back" onclick="location.href='index.html'" title="메인으로 복귀">‹</button>
-            <div class="pro-store-name" id="dispHeaderStoreName">예톡의원</div>
+            <div class="pro-store-name" id="dispHeaderStoreName">예톡식당</div>
         </div>
 
         <div class="header-model-chips">
-            <button type="button" class="btn-model-tag active" id="btnModeClinic" onclick="switchModelHouse('clinic')">예톡의원</button>
-            <button type="button" class="btn-model-tag" id="btnModeRest" onclick="switchModelHouse('restaurant')">예톡식당</button>
+            <button type="button" class="btn-model-tag active" id="btnModeRest" onclick="switchModelHouse('restaurant')">예톡식당</button>
             <button type="button" class="btn-model-tag" id="btnModeCafe" onclick="switchModelHouse('cafe')">예톡카페</button>
+            <button type="button" class="btn-model-tag" id="btnModeClinic" onclick="switchModelHouse('clinic')">예톡의원</button>
             <button type="button" class="btn-user-tier" id="btnUserTierStatus" onclick="openMemberTierModal()">준회원</button>
         </div>
     </header>
@@ -480,7 +480,17 @@
     };
 
     function initPage() {
-        activeMode = localStorage.getItem(PRO_ACTIVE_MODE_KEY) || "clinic";
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryMode = (urlParams.get('mode') || '').toLowerCase();
+        if (queryMode === 'shop' || queryMode === 'restaurant' || queryMode === 'store') {
+            activeMode = 'restaurant';
+        } else if (queryMode === 'cafe') {
+            activeMode = 'cafe';
+        } else if (queryMode === 'clinic') {
+            activeMode = 'clinic';
+        } else {
+            activeMode = localStorage.getItem(PRO_ACTIVE_MODE_KEY) || "restaurant";
+        }
         loadOrInitModeCards(activeMode);
         updateUserTierButtonUI();
         setupSnapScrollListener();
@@ -810,7 +820,9 @@
     }
 
     function checkPcAdmobHide() {
-        if (window.innerWidth >= 768 || (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.AndroidBridge)) {
+        if (window.self !== window.top || window.location.search.includes('pc=1') || window.innerWidth >= 768 || (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.AndroidBridge)) {
+            document.documentElement.classList.add('is-pc-env');
+            document.body?.classList.add('is-pc-frame');
             document.querySelectorAll('.bottom-fixed-admob-footer, [class*="admob"], [id*="admob"]').forEach(el => {
                 el.style.setProperty('display', 'none', 'important');
             });

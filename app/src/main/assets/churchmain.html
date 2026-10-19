@@ -1555,13 +1555,14 @@
         const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
         document.body.setAttribute('data-theme', savedTheme);
 
-        const churchName = localStorage.getItem("yetalkChurchName") || localStorage.getItem("yetalkUserStoreName") || "예톡행복한교회";
+        const churchName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
         const titleEl = document.getElementById("churchName");
         if (titleEl) titleEl.innerText = churchName;
 
         initRollingVerses();
         loadPcPopupData();
         checkPcChurchPopup();
+        checkPcAdmobHide();
 
         // 🌟 [사용자 요청] 콘텐츠 끝(하단 스크롤 시): 100 애드몹 삭제, 상단 좋은글 + 250 애드몹 안전 단독 배치
         const churchVp = document.getElementById("churchViewport");
@@ -1570,7 +1571,7 @@
                 const isBottom = churchVp.scrollTop + churchVp.clientHeight >= churchVp.scrollHeight - 180;
                 const footer100 = document.getElementById("churchFixedAdmobFooter");
                 if (footer100) {
-                    if (isBottom) {
+                    if (isBottom || window.self !== window.top || window.location.search.includes('pc=1') || window.innerWidth >= 768) {
                         footer100.style.setProperty("display", "none", "important");
                     } else {
                         footer100.style.removeProperty("display");
@@ -1579,6 +1580,18 @@
             }, { passive: true });
         }
     });
+
+    function checkPcAdmobHide() {
+        if (window.self !== window.top || window.location.search.includes('pc=1') || window.innerWidth >= 768 || (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.AndroidBridge)) {
+            document.documentElement.classList.add('is-pc-env');
+            document.body?.classList.add('is-pc-frame');
+            document.querySelectorAll('.church-fixed-admob-footer, [class*="admob"], [id*="admob"]').forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+            });
+        }
+    }
+    window.addEventListener("pageshow", checkPcAdmobHide);
+    window.addEventListener("resize", checkPcAdmobHide);
 </script>
 <script src="churchmain.js"></script>
 </body>
