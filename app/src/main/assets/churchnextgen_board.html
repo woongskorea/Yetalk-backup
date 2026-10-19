@@ -237,6 +237,17 @@
             align-items: center; justify-content: center;
         }
         .hidden-file-input { display: none; }
+
+        /* 🌟 [사용자 요청] 아주 얇은 기도 버튼 스타일 */
+        .btn-prayer-thin {
+            background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px;
+            padding: 3px 10px; font-size: 11.5px; font-weight: 850; color: #334155;
+            cursor: pointer; transition: all 0.15s; white-space: nowrap; line-height: 1.3;
+        }
+        .btn-prayer-thin.active {
+            background: #0284c7; color: #ffffff; border-color: #0284c7; font-weight: 950;
+            box-shadow: 0 1px 4px rgba(2, 132, 199, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -246,14 +257,13 @@
         <div class="med-logo" style="cursor:default;">
             <span onclick="location.href='churchnextgen.html'" style="cursor:pointer; font-size:22px; line-height:1; padding-right:4px;" title="부서선택으로">‹</span>
             ✝ <span id="headerDeptTitle">청년대화방</span>
-            <button type="button" onclick="openRoomConfigModal()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:12px; font-size:11px; font-weight:800; color:#475569; padding:2px 7px; margin-left:4px; cursor:pointer;" title="대화방 이름/방장/비밀방 설정">✏️ 방설정</button>
+            <button type="button" onclick="openRoomConfigModal()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:12px; font-size:11px; font-weight:800; color:#475569; padding:2px 8px; margin-left:4px; cursor:pointer;" title="방이름, 방장, 공개/닫힘 설정">✏️ 이름변경</button>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
             <button type="button" id="btnLiveAudioToggle" class="btn-live-audio" onclick="toggleLiveAudioStream()" style="background:#dc2626; color:#ffffff; border:1px solid #ef4444; border-radius:14px; font-size:11.5px; font-weight:950; padding:4px 9px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(220,38,38,0.4);">
                 <span class="live-dot-blink" style="color:#fff; font-size:9px;">●</span>
                 <span id="txtLiveAudioBtn">LIVE ON</span>
             </button>
-            <button type="button" class="btn-go-home" onclick="location.href='churchnextgen.html'">‹ 부서선택</button>
         </div>
     </header>
 
@@ -270,32 +280,27 @@
     </div>
     <div id="hiddenLiveYtIframeContainer" style="display:none; width:0; height:0;"></div>
 
-    <!-- 🌟 [사용자 요청] 압축된 실시간 1위 베스트글 (중복 대형제목 제거) -->
-    <section class="best-section-compact" style="margin: 8px 12px 6px 12px; padding: 8px 12px; border-radius: 12px; background: #ffffff; border: 1px solid #bcd0e2; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+    <!-- 🌟 [사용자 요청] 실시간 인기베스트글 옆에 새글쓰기 노랑색 버튼 배치 -->
+    <section class="best-section-compact" style="margin: 8px 12px 6px 12px; padding: 8px 12px; border-radius: 12px; background: #ffffff; border: 1.5px solid #bcd0e2; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:13px;">🔥</span>
+                <strong style="font-size:13px; color:#0f172a;">실시간 인기 베스트글</strong>
+            </div>
+            <button type="button" onclick="openCafeWriteScreen()" style="background:#fee500; border:1px solid #ca8a04; color:#191919; font-size:11.5px; font-weight:950; padding:4px 11px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 1px 3px rgba(0,0,0,0.1);">
+                ✏️ 새글쓰기
+            </button>
+        </div>
         <div id="bestPostsContainer"></div>
     </section>
 
-    <!-- 🌟 [사용자 요청] 그 밑에 기도 음악 3종류 선택 바 -->
-    <div class="prayer-music-container" style="margin: 0 12px 8px 12px; padding: 8px 12px; background: #ffffff; border-radius: 12px; border: 1px solid #bcd0e2; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <span style="font-size:11.5px; font-weight:900; color:#1e293b; display:inline-flex; align-items:center; gap:4px;">
-                <span>🎵</span> <strong>기도 음악 BGM</strong>
-            </span>
-            <span id="prayerMusicStatus" style="font-size:10.5px; font-weight:800; color:#64748b;">원하는 음악을 터치하세요</span>
-        </div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px;">
-            <button type="button" class="btn-prayer-music" id="btnPrayerMusic_1" onclick="togglePrayerBgm(1)">
-                <span class="music-icon">🎹</span>
-                <span class="music-name">잔잔한 기도</span>
-            </button>
-            <button type="button" class="btn-prayer-music" id="btnPrayerMusic_2" onclick="togglePrayerBgm(2)">
-                <span class="music-icon">🌿</span>
-                <span class="music-name">묵상 찬양</span>
-            </button>
-            <button type="button" class="btn-prayer-music" id="btnPrayerMusic_3" onclick="togglePrayerBgm(3)">
-                <span class="music-icon">🔥</span>
-                <span class="music-name">성령 임재</span>
-            </button>
+    <!-- 🌟 [사용자 요청] 방언기도,기도음악,찬양기도 아주 얇게 하얀 박스위에 배치(이모티콘 없이) -->
+    <div class="prayer-music-thin-box" style="margin: 0 12px 8px 12px; padding: 4px 8px; background: #ffffff; border-radius: 10px; border: 1.5px solid #bcd0e2; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+        <span style="font-size:11px; font-weight:900; color:#475569; padding-left:4px; white-space:nowrap;">기도음악</span>
+        <div style="display:flex; gap:6px; flex:1; justify-content:flex-end;">
+            <button type="button" class="btn-prayer-thin" id="btnPrayerMusic_1" onclick="togglePrayerBgm(1)">방언기도</button>
+            <button type="button" class="btn-prayer-thin" id="btnPrayerMusic_2" onclick="togglePrayerBgm(2)">기도음악</button>
+            <button type="button" class="btn-prayer-thin" id="btnPrayerMusic_3" onclick="togglePrayerBgm(3)">찬양기도</button>
         </div>
     </div>
 
@@ -456,6 +461,7 @@
 
         <input type="file" id="hiddenImageFileInput" class="hidden-file-input" accept="image/*" onchange="handleImageOptimization(this)">
         <input type="file" id="hiddenDocFileInput" class="hidden-file-input" onchange="handleDocFileUpload(this)">
+        <input type="file" id="hiddenInlinePostPhotoInput" class="hidden-file-input" accept="image/*" onchange="handleInlinePhotoSelected(this)">
     </div>
 </div>
 
@@ -809,7 +815,7 @@
             try { n.gain.setTargetAtTime(0, prayerBgmCtx.currentTime, 0.4); setTimeout(() => n.osc.stop(), 500); } catch(e){}
         });
         prayerBgmNodes = [];
-        document.querySelectorAll(".btn-prayer-music").forEach(b => b.classList.remove("active"));
+        document.querySelectorAll(".btn-prayer-thin").forEach(b => b.classList.remove("active"));
         const st = document.getElementById("prayerMusicStatus");
         if (st) st.innerText = "원하는 음악을 터치하세요";
     }
@@ -818,7 +824,7 @@
         stopPrayerBgm();
         currentBgmType = type;
         document.getElementById(`btnPrayerMusic_${type}`)?.classList.add("active");
-        const names = { 1: "🎹 잔잔한 기도 연주 중...", 2: "🌿 묵상 찬양 연주 중...", 3: "🔥 성령 임재 연주 중..." };
+        const names = { 1: "방언기도 연주 중...", 2: "기도음악 연주 중...", 3: "찬양기도 연주 중..." };
         const st = document.getElementById("prayerMusicStatus");
         if (st) st.innerText = names[type] || "기도 음악 재생 중...";
 
@@ -921,6 +927,7 @@
 
         posts.unshift(newPost);
         savePostsToLocal();
+        syncNextGenPostToDangolAndPersonal(title, content);
         renderFeed();
         renderBestPosts();
 
@@ -951,6 +958,7 @@
 
         posts.unshift(newPost);
         savePostsToLocal();
+        syncNextGenPostToDangolAndPersonal(title, text);
         renderFeed();
         renderBestPosts();
 
@@ -1042,35 +1050,202 @@
     function renderFeed() {
         const container = document.getElementById("feedListContainer");
         container.innerHTML = "";
+        const config = DEPT_CONFIG[currentDept] || DEPT_CONFIG["청년교회"];
 
-        // 🌟 [사용자 요청] 글 박스는 네개만 보이게 (베스트 1개 + 일반피드 3개 = 총 4개)
-        const displayPosts = posts.slice(0, 3);
-
-        displayPosts.forEach(p => {
+        // 🌟 [사용자 요청] 박스랑 그 밑에는 모두 큰 제목 한줄과 하트,방문등 지금같이 적어주고 클릭시 전체 펼쳐지고...
+        posts.forEach(p => {
             const card = document.createElement("div");
-            card.className = "post-card";
-            card.onclick = () => openDetailModal(p.id);
+            card.className = "post-card-accordion";
+            card.id = `postCard_${p.id}`;
+            card.style.cssText = "background: #ffffff; border: 1.5px solid #bcd0e2; border-radius: 12px; margin: 0 12px 8px 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.05);";
 
-            const imgHtml = p.img ? `<div class="post-card-thumb-inline"><img src="${p.img}" alt="사진"></div>` : "";
-            const fileBadgeHtml = p.fileName ? `<span style="font-size:11px; color:#1e40af; background:#eff6ff; padding:2px 5px; border-radius:4px; font-weight:800; margin-left:4px;">📁 첨부파일</span>` : "";
             const r = calcReactions(p.views);
+            const commentsCount = (p.comments ? p.comments.length : 0);
+            const imgHtml = p.img ? `<div style="margin:8px 0; max-height:220px; border-radius:8px; overflow:hidden; border:1px solid #e2e8f0;"><img src="${p.img}" style="width:100%; max-height:220px; object-fit:cover; display:block;" alt="사진"></div>` : "";
 
             card.innerHTML = `
-                <div class="post-card-title">
-                    <span class="post-card-category">[${config.prefix}]</span> “${p.title}” ${fileBadgeHtml}
+                <!-- 큰 제목 한줄 + 하트/방문 (클릭 시 아코디언 토글) -->
+                <div onclick="togglePostAccordion(${p.id})" style="padding:10px 12px; cursor:pointer; display:flex; flex-direction:column; gap:4px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                        <div style="font-size:14px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">
+                            <span style="color:#0284c7; font-weight:950;">[${config.prefix}]</span> “${escapeHtml(p.title)}”
+                        </div>
+                        <span id="postArrow_${p.id}" style="font-size:12px; color:#64748b; font-weight:900; transition:transform 0.2s;">▼</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; font-size:11px; color:#64748b; font-weight:750;">
+                        <span style="color:#e11d48; font-weight:800;">❤️ ${r.hearts.toLocaleString()}</span>
+                        <span>👀 ${p.views || 0}</span>
+                        <span>💬 ${commentsCount}</span>
+                        <span>· ${escapeHtml(p.author)}</span>
+                        <span>· ${p.time}</span>
+                    </div>
                 </div>
-                ${imgHtml}
-                <div class="post-card-preview-2lines">${p.content}</div>
-                <div class="post-card-meta-line">
-                    <span class="meta-author">${p.author}</span>
-                    <span class="meta-time">${p.time}</span>
-                    <span class="meta-heart">❤️ ${r.hearts.toLocaleString()}</span>
-                    <span class="meta-fighting">💪 ${r.fightings.toLocaleString()}</span>
-                    <span class="meta-comment">💬 ${(p.comments ? p.comments.length : 0)}</span>
+
+                <!-- 클릭 시 전체 펼쳐지는 본문 + 사진 + 글수정/삭제 + 댓글창 -->
+                <div id="postBody_${p.id}" style="display:none; padding:10px 12px 14px 12px; border-top:1px solid #f1f5f9; background:#fffdfc;">
+                    ${imgHtml}
+                    <div style="font-size:13px; color:#334155; line-height:1.65; white-space:pre-line; word-break:break-all; margin-bottom:10px;">
+                        ${escapeHtml(p.content)}
+                    </div>
+
+                    <!-- 🌟 하얀박스안에 글수정,삭제,사진등의 기능 일체 포함 -->
+                    <div style="display:flex; justify-content:flex-end; gap:6px; margin-bottom:10px; border-bottom:1px dashed #e2e8f0; padding-bottom:8px;">
+                        <button type="button" onclick="editPostInline(${p.id})" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:800; color:#334155; cursor:pointer;">✏️ 글수정</button>
+                        <button type="button" onclick="triggerInlinePhotoUpload(${p.id})" style="background:#f1f5f9; border:1px solid #cbd5e1; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:800; color:#0284c7; cursor:pointer;">📷 사진추가</button>
+                        <button type="button" onclick="deletePostInline(${p.id})" style="background:#fee2e2; border:1px solid #fecaca; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:800; color:#dc2626; cursor:pointer;">🗑️ 삭제</button>
+                    </div>
+
+                    <!-- 댓글 목록 -->
+                    <div id="postComments_${p.id}" style="display:flex; flex-direction:column; gap:5px; margin-bottom:8px;">
+                        ${(p.comments || []).map(c => `
+                            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 10px; font-size:12px;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                                    <strong style="color:#0f172a; font-size:11.5px;">${escapeHtml(c.author)}</strong>
+                                    <span style="color:#94a3b8; font-size:10px;">${c.time || '방금'}</span>
+                                </div>
+                                <div style="color:#334155;">${escapeHtml(c.text)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- 인라인 한줄 댓글 입력창 -->
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <input type="text" id="inpInlineComment_${p.id}" placeholder="댓글을 입력하세요..." style="flex:1; border:1px solid #cbd5e1; border-radius:14px; padding:5px 10px; font-size:12px; outline:none;" onkeypress="if(event.key==='Enter') submitInlineComment(${p.id})">
+                        <button type="button" onclick="submitInlineComment(${p.id})" style="background:#fee500; border:1px solid #ca8a04; color:#191919; font-size:11.5px; font-weight:900; padding:5px 12px; border-radius:14px; cursor:pointer;">등록</button>
+                    </div>
                 </div>
             `;
             container.appendChild(card);
         });
+    }
+
+    function togglePostAccordion(postId) {
+        const body = document.getElementById(`postBody_${postId}`);
+        const arrow = document.getElementById(`postArrow_${postId}`);
+        if (!body) return;
+        const isHidden = (body.style.display === "none");
+        body.style.display = isHidden ? "block" : "none";
+        if (arrow) arrow.style.transform = isHidden ? "rotate(180deg)" : "rotate(0deg)";
+        if (isHidden) {
+            const p = posts.find(item => item.id === postId);
+            if (p) {
+                p.views = (p.views || 0) + 1;
+                savePostsToLocal();
+                renderBestPosts();
+            }
+        }
+    }
+
+    let activeInlinePhotoPostId = null;
+    function triggerInlinePhotoUpload(postId) {
+        activeInlinePhotoPostId = postId;
+        document.getElementById("hiddenInlinePostPhotoInput").click();
+    }
+
+    function handleInlinePhotoSelected(input) {
+        const file = input.files[0];
+        if (!file || !activeInlinePhotoPostId) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                let w = img.width, h = img.height;
+                const maxW = 640;
+                if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, w, h);
+                const b64 = canvas.toDataURL("image/jpeg", 0.82);
+
+                const target = posts.find(p => p.id === activeInlinePhotoPostId);
+                if (target) {
+                    target.img = b64;
+                    savePostsToLocal();
+                    renderFeed();
+                    showToast("📷 사진이 반영되었습니다!");
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        input.value = "";
+    }
+
+    function editPostInline(postId) {
+        const target = posts.find(p => p.id === postId);
+        if (!target) return;
+        const newTitle = prompt("글 제목을 수정하세요:", target.title);
+        if (newTitle === null) return;
+        const newContent = prompt("글 내용을 수정하세요:", target.content);
+        if (newContent === null) return;
+
+        target.title = newTitle.trim() || target.title;
+        target.content = newContent.trim() || target.content;
+        savePostsToLocal();
+        syncNextGenPostToDangolAndPersonal(target.title, target.content);
+        renderFeed();
+        renderBestPosts();
+        showToast("✏️ 글이 수정되었습니다!");
+    }
+
+    function deletePostInline(postId) {
+        if (!confirm("이 글을 삭제하시겠습니까?")) return;
+        posts = posts.filter(p => p.id !== postId);
+        savePostsToLocal();
+        renderFeed();
+        renderBestPosts();
+        showToast("🗑️ 글이 삭제되었습니다.");
+    }
+
+    function submitInlineComment(postId) {
+        const inp = document.getElementById(`inpInlineComment_${postId}`);
+        if (!inp) return;
+        const text = inp.value.trim();
+        if (!text) return;
+
+        const target = posts.find(p => p.id === postId);
+        if (!target) return;
+        if (!target.comments) target.comments = [];
+
+        target.comments.push({
+            id: Date.now(),
+            author: myRealName,
+            time: "방금",
+            text: text
+        });
+
+        savePostsToLocal();
+        renderFeed();
+        inp.value = "";
+        showToast("💬 댓글이 등록되었습니다!");
+    }
+
+    function syncNextGenPostToDangolAndPersonal(title, content) {
+        try {
+            const config = DEPT_CONFIG[currentDept] || DEPT_CONFIG["청년교회"];
+            const noticeObj = {
+                source: `[${config.prefix}] ${config.chatTitle}`,
+                title: title,
+                body: content ? content.slice(0, 70) : "",
+                date: "방금",
+                timestamp: Date.now()
+            };
+            localStorage.setItem("yetalk_latest_notice", JSON.stringify(noticeObj));
+            localStorage.setItem("yetalk_dangol_latest_notice", JSON.stringify(noticeObj));
+
+            let archiveList = [];
+            try { archiveList = JSON.parse(localStorage.getItem("yetalk_church_archive_records")) || []; } catch(e){}
+            archiveList.unshift({
+                id: "nextgen_" + Date.now(),
+                category: `다음세대 (${currentDept})`,
+                title: title,
+                content: content,
+                date: new Date().toISOString().slice(0, 10),
+                img: null
+            });
+            localStorage.setItem("yetalk_church_archive_records", JSON.stringify(archiveList.slice(0, 50)));
+        } catch(e) {}
     }
 
     function extractYouTubeId(text) {
@@ -1508,6 +1683,7 @@
         }
 
         savePostsToLocal();
+        syncNextGenPostToDangolAndPersonal(title, content || "");
         renderFeed();
         renderBestPosts();
         closeCafeWriteScreen();

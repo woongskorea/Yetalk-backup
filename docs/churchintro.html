@@ -83,7 +83,7 @@
 
         .snap-page-section {
             width: 100%; min-height: calc(var(--view-h) - 16px);
-            scroll-snap-align: start; scroll-snap-stop: normal;
+            scroll-snap-align: start; scroll-snap-stop: always;
             overflow-y: auto; background: #111a2e; border: 1.5px solid #1e3a5f;
             border-radius: 16px; padding: 18px 16px; display: flex; flex-direction: column;
             gap: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); margin-bottom: 14px;
@@ -127,19 +127,42 @@
         }
         .attached-photo-wrap img { width: 100%; max-height: 220px; object-fit: cover; display: block; }
 
-        /* 섬기는 이 (리더 2열 그리드) */
-        .clean-leader-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px;
+        /* 🌟 [사용자 요청] 담임목사 / 부목사 / 선교사: 1페이지 풀스크린 & 밑에 인사글 레이아웃 */
+        .hero-leader-card {
+            width: 100%; display: flex; flex-direction: column; gap: 12px;
         }
-        .clean-leader-card {
-            background: #0c1322; border: 1px solid #1e293b; border-radius: 12px;
-            overflow: hidden; display: flex; flex-direction: column;
+        .hero-leader-img-box {
+            width: 100%; max-height: 260px; border-radius: 14px; overflow: hidden;
+            border: 1.5px solid #1e3a5f; background: #0c1322; box-shadow: 0 4px 16px rgba(0,0,0,0.35);
         }
-        .clean-leader-img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #1e293b; }
-        .clean-leader-info { padding: 9px; display: flex; flex-direction: column; gap: 2px; }
-        .clean-leader-name { font-size: 15px; font-weight: 950; color: #ffffff; }
-        .clean-leader-role { font-size: 12px; font-weight: 800; color: #38bdf8; }
-        .clean-leader-desc { font-size: 11.5px; color: #94a3b8; line-height: 1.4; margin-top: 2px; }
+        .hero-leader-img-box img {
+            width: 100%; height: 100%; max-height: 260px; object-fit: cover; object-position: top center; display: block;
+        }
+        .hero-leader-name { font-size: 21px; font-weight: 950; color: #ffffff; letter-spacing: -0.4px; }
+        .hero-leader-role { font-size: 13.5px; font-weight: 850; color: #38bdf8; margin-top: 2px; }
+        .hero-greeting-box {
+            background: rgba(15, 23, 42, 0.65); border: 1.2px solid rgba(56, 189, 248, 0.25);
+            border-radius: 12px; padding: 14px; font-size: 15px; line-height: 1.8;
+            color: #e2e8f0; white-space: pre-line; word-break: keep-all; font-weight: 600;
+        }
+
+        /* 🌟 [사용자 요청] 간사는 한페이지에 두명씩 */
+        .secretary-pair-grid {
+            display: flex; flex-direction: column; gap: 12px; margin-top: 6px;
+        }
+        .secretary-card {
+            display: flex; align-items: flex-start; gap: 12px; background: #0c1322;
+            border: 1.2px solid #1e3a5f; border-radius: 14px; padding: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+        }
+        .secretary-avatar {
+            width: 76px; height: 76px; border-radius: 12px; object-fit: cover;
+            object-position: top; border: 1.2px solid #38bdf8; flex-shrink: 0; background: #1e293b;
+        }
+        .secretary-info { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+        .secretary-name { font-size: 16px; font-weight: 950; color: #ffffff; }
+        .secretary-role { font-size: 12px; font-weight: 850; color: #38bdf8; }
+        .secretary-desc { font-size: 12.5px; color: #cbd5e1; line-height: 1.5; white-space: pre-line; font-weight: 600; }
 
         /* 교회역사 타임라인 */
         .clean-timeline-box {
@@ -234,6 +257,12 @@
         body[data-theme="white"] .clean-leader-card { background: #f8fafc !important; border-color: #e2e8f0 !important; }
         body[data-theme="white"] .clean-leader-name { color: #0f172a !important; }
         body[data-theme="white"] .clean-leader-desc { color: #64748b !important; }
+        body[data-theme="white"] .hero-leader-img-box { border-color: #cbd5e1 !important; background: #f1f5f9 !important; }
+        body[data-theme="white"] .hero-leader-name { color: #0f172a !important; }
+        body[data-theme="white"] .hero-greeting-box { background: #f8fafc !important; border-color: #e2e8f0 !important; color: #1e293b !important; }
+        body[data-theme="white"] .secretary-card { background: #f8fafc !important; border-color: #e2e8f0 !important; }
+        body[data-theme="white"] .secretary-name { color: #0f172a !important; }
+        body[data-theme="white"] .secretary-desc { color: #334155 !important; }
         body[data-theme="white"] .clean-timeline-year { color: #0369a1 !important; }
         body[data-theme="white"] .clean-timeline-text { color: #1e293b !important; }
 
@@ -272,15 +301,16 @@
         </div>
     </header>
 
-    <!-- 2층 가로 롤링 칩 메뉴 (요청 순서 100% 매칭) -->
+    <!-- 2층 가로 롤링 칩 메뉴 (담임목사, 부목사, 선교사, 간사 독립 탭 분리 보장) -->
     <nav class="intro-tabs" id="introTabNav">
-        <button type="button" class="intro-tab active" onclick="scrollToSection(0)">환영인사</button>
-        <button type="button" class="intro-tab" onclick="scrollToSection(1)">담임목사</button>
-        <button type="button" class="intro-tab" onclick="scrollToSection(2)">교회비전</button>
-        <button type="button" class="intro-tab" onclick="scrollToSection(3)">섬기는 이</button>
-        <button type="button" class="intro-tab" onclick="scrollToSection(4)">부서사역</button>
-        <button type="button" class="intro-tab" onclick="scrollToSection(5)">파송선교사</button>
-        <button type="button" class="intro-tab" onclick="scrollToSection(6)">교회역사</button>
+        <button type="button" class="intro-tab active" onclick="scrollToTab(0)">환영인사</button>
+        <button type="button" class="intro-tab" onclick="scrollToTab(1)">담임목사</button>
+        <button type="button" class="intro-tab" onclick="scrollToTab(2)">부목사</button>
+        <button type="button" class="intro-tab" onclick="scrollToTab(3)">선교사</button>
+        <button type="button" class="intro-tab" onclick="scrollToTab(4)">간사</button>
+        <button type="button" class="intro-tab" onclick="scrollToTab(5)">교회비전</button>
+        <button type="button" class="intro-tab" onclick="scrollToTab(6)">부서사역</button>
+        <button type="button" class="intro-tab" onclick="scrollToTab(7)">교회역사</button>
     </nav>
 
     <!-- 3층 세로 스냅 뷰포트 (상단 이미지 카드 없이 바로 본문 시작) -->
@@ -397,10 +427,11 @@
 </div>
 
 <script>
-    const STORAGE_KEY = "yetalk_church_intro_custom_sections_v4";
-    const TAB_KEYS = ["welcome", "pastor", "vision", "servants", "ministry", "missionary", "history"];
+    const STORAGE_KEY = "yetalk_church_intro_custom_sections_v5";
 
-    // 7대 메뉴 기본 데이터 (요청 순서 100% 매칭: 환영인사 -> 담임목사 -> 교회비전 -> 섬기는 이 -> 부서사역 -> 파송선교사 -> 교회역사)
+    // 8대 탭 정의 (환영인사, 담임목사, 부목사, 선교사, 간사, 교회비전, 부서사역, 교회역사)
+    const TAB_NAMES = ["환영인사", "담임목사", "부목사", "선교사", "간사", "교회비전", "부서사역", "교회역사"];
+
     const DEFAULT_DATA = {
         welcome: {
             tabName: "환영인사",
@@ -417,10 +448,49 @@
         pastor: {
             tabName: "담임목사",
             badge: "담임목사",
-            title: "최남수 담임목사 목회비전과 인사",
+            title: "최남수 담임목사",
+            role: "담임목회 및 강단 말씀",
             img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&auto=format&fit=crop&q=80",
             body: "“오직 기도와 말씀으로 무장하여 세상을 변화시키는 영적 용사를 세우겠습니다.”\n\n할렐루야! 예톡행복한교회 담임목사 최남수입니다.\n우리 교회는 모든 성도가 성령의 충만함을 입어 삶의 자리에서 예수 그리스도의 살아계심을 증거하는 거룩한 비전 공동체입니다.\n\n날마다 새벽을 깨우며 눈물로 기도하고, 진리의 말씀으로 영혼을 치유하며 열방을 향해 복음의 빛을 비추는 사명에 온 성도가 함께 동역하고 있습니다.\n\n여러분의 귀한 가정이 믿음 위에 굳건히 세워지고, 자녀들이 다음 세대의 다니엘과 요셉으로 성장하도록 늘 기도와 사랑으로 섬기겠습니다.\n\n• 약력: 총신대학교 신학대학원(M.Div) 졸업\n• 목회철학: 오직 성경, 오직 기도, 영혼 구원과 제자 훈련\n• 저서: 「기도가 전부다」, 「말씀으로 일어서는 사람」"
         },
+        assistant_pastors: [
+            {
+                badge: "부목사",
+                name: "최수훈 부목사",
+                role: "1교구 목양 / 목회행정 / 미디어 사역",
+                img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
+                body: "“성도님 한 분 한 분을 주님의 심장으로 섬기며 따뜻한 사랑으로 동행하겠습니다.”\n\n할렐루야! 1교구와 목회행정을 섬기는 최수훈 부목사입니다.\n삶의 고단함과 아픔 속에서도 주님의 위로가 성도님들의 가정과 일터마다 풍성히 임하기를 늘 기도하고 있습니다.\n\n말씀으로 양육하고 기도로 중보하며, 온·오프라인 미디어를 통해 천국 복음의 기쁨이 널리 전파되도록 성심성의껏 동역하겠습니다.\n\n• 담당: 1교구 심방, 목회행정, 미디어 방송 총괄\n• 학력: 총신대학교 신학대학원(M.Div)\n• 사역철학: 겸손한 섬김, 눈물의 중보, 신실한 청지기"
+            },
+            {
+                badge: "부목사",
+                name: "표경열 부목사",
+                role: "2교구 목양 / 찬양집회 / 청년사역",
+                img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&auto=format&fit=crop&q=80",
+                body: "“뜨거운 찬양의 영성과 살아 숨 쉬는 기도로 교회의 미래를 깨우겠습니다.”\n\n할렐루야! 2교구와 청년부, 찬양사역을 섬기는 표경열 부목사입니다.\n예배 가운데 임하시는 성령의 불길로 모든 세대가 회복되고, 다음 세대 청년들이 세상 속에서 담대하게 믿음의 증인으로 일어나기를 소망합니다.\n\n기쁨과 감사가 넘치는 예배, 생명력 넘치는 공동체를 세워가는 일에 온 열정을 다해 섬기겠습니다.\n\n• 담당: 2교구 심방, 청년부 지도, 금요성령집회 찬양\n• 학력: 총신대학교 신학대학원(M.Div)\n• 사역철학: 성령 충만한 예배자, 말씀 중심의 청년 제자화"
+            }
+        ],
+        missionary: {
+            tabName: "선교사",
+            badge: "파송선교사",
+            title: "박바울 선교사 (동남아 필리핀)",
+            role: "필리핀 현지 신학교 및 교회 개척 사역",
+            img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80",
+            body: "“오직 성령이 너희에게 임하시면 너희가 권능을 받고 땅끝까지 이르러 내 증인이 되리라 (행 1:8)”\n\n주님의 귀한 이름으로 문안드립니다. 필리핀 마닐라 및 빈민 지역 복음화 사역에 파송된 박바울 선교사입니다.\n\n현지 신학교 사역을 통해 현지인 목회자를 양성하고, 가난하고 소외된 아이들에게 매주 방과후 학교와 무료 급식을 제공하며 예수 그리스도의 십자가 사랑을 전하고 있습니다.\n\n모교회의 끊임없는 기도와 따뜻한 후원 덕분에 오늘도 수많은 영혼들이 주님 앞으로 돌아오고 있습니다. 열방의 부흥을 위해 함께 손모아 기도해 주시길 부탁드립니다.\n\n• 사역지: 필리핀 마닐라 및 루손섬 산간 원주민 마을\n• 주요사역: 현지 신학생 양성, 어린이 무료 급식 및 성경학교 개설\n• 기도제목: 현지 센터 건축 및 현지인 사역자 영적 각성"
+        },
+        secretaries: [
+            {
+                name: "김은혜 간사",
+                role: "교회학교 / 유초등부 간사",
+                img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80",
+                desc: "“어린 영혼들이 하나님의 말씀 안에서 맑고 건강하게 자라도록 사랑과 기도로 섬기겠습니다.”\n• 유초등부 공과 및 성경캠프 지원\n• 교회학교 주일 출결 및 학부모 소통"
+            },
+            {
+                name: "이은총 간사",
+                role: "교회 행정지원 / 미디어 간사",
+                img: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&auto=format&fit=crop&q=80",
+                desc: "“예배와 미디어 사역의 모든 현장을 온 정성으로 보조하며 하나님 나라 확장에 헌신하겠습니다.”\n• 예배 영상/음향 송출 및 주보 전산 지원\n• 교회 행정 사무 및 교인 등록 관리"
+            }
+        ],
         vision: {
             tabName: "교회비전",
             badge: "교회비전",
@@ -431,39 +501,6 @@
                 "예배의 회복: 온 마음과 정성을 다해 주님을 높이는 예배",
                 "제자 훈련: 삶의 현장에서 그리스도의 향기를 발하는 성도",
                 "선교와 구제: 열방과 이웃을 향해 아낌없이 베푸는 사랑의 실천"
-            ]
-        },
-        servants: {
-            tabName: "섬기는 이",
-            badge: "섬기는 이",
-            title: "교회를 섬기는 사역자 및 직분자",
-            img: "",
-            body: "기도와 말씀으로 교회를 든든히 세워가는 사역팀을 소개합니다. (각 사역자별 [✏️ 개별 수정] 버튼으로 사진과 약력을 한 분씩 직접 편집하실 수 있습니다.)",
-            leaders: [
-                {
-                    name: "최남수 담임목사",
-                    role: "담임목회 및 강단 말씀",
-                    desc: "총신대 신대원 졸, 영혼 구원과 기도 훈련에 헌신",
-                    img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80"
-                },
-                {
-                    name: "최수훈 부목사",
-                    role: "1교구 / 목회행정 / 미디어",
-                    desc: "성도 케어와 온·오프라인 미디어 사역 전담",
-                    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80"
-                },
-                {
-                    name: "표경열 부목사",
-                    role: "2교구 / 방송국 사역",
-                    desc: "방송 선교 및 청년부 찬양 집회 지도",
-                    img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80"
-                },
-                {
-                    name: "김은혜 교육전도사",
-                    role: "교회학교 및 유초등부",
-                    desc: "어린이 말씀 암송 및 성경 캠프 총괄",
-                    img: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80"
-                }
             ]
         },
         ministry: {
@@ -479,18 +516,6 @@
                 "새가족환영팀: 등록 교우들의 안정적인 정착과 따뜻한 심방"
             ]
         },
-        missionary: {
-            tabName: "파송선교사",
-            badge: "파송선교사",
-            title: "땅끝까지 복음을 전하는 파송 선교지",
-            img: "",
-            body: "교회가 기도로 후원하고 함께 동역하는 열방의 파송 선교사님 현황입니다.",
-            bullets: [
-                "동남아 필리핀: 박바울 선교사 (현지 신학교 및 교회 개척 사역)",
-                "중앙아시아 키르기스스탄: 이모세 선교사 (의료 선교 및 기술 훈련)",
-                "아프리카 케냐: 정에스더 선교사 (어린이 고아원 및 무료 급식 사역)"
-            ]
-        },
         history: {
             tabName: "교회역사",
             badge: "교회역사",
@@ -500,46 +525,32 @@
         }
     };
 
-    let currentSectionIdx = 0;
     let churchSections = {};
-    let activeServantIdx = -1;
+    let activeLeaderContext = null; // { type: 'pastor'|'assistant'|'missionary'|'secretary', idx: 0 }
+    let currentActiveTabIdx = 0;
+    let sectionToTabMap = [];
+    let isProgrammaticIntroScroll = false;
 
     function loadSections() {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("yetalk_church_intro_custom_sections_v4");
         if (raw) {
             try { churchSections = JSON.parse(raw); } catch(e) { churchSections = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
         } else {
             churchSections = JSON.parse(JSON.stringify(DEFAULT_DATA));
         }
 
-        // 🌟 담임목사 한 페이지 보장
-        if (!churchSections.pastor) {
-            churchSections.pastor = JSON.parse(JSON.stringify(DEFAULT_DATA.pastor));
+        if (!churchSections.welcome) churchSections.welcome = JSON.parse(JSON.stringify(DEFAULT_DATA.welcome));
+        if (!churchSections.pastor) churchSections.pastor = JSON.parse(JSON.stringify(DEFAULT_DATA.pastor));
+        if (!churchSections.assistant_pastors || !Array.isArray(churchSections.assistant_pastors) || churchSections.assistant_pastors.length === 0) {
+            churchSections.assistant_pastors = JSON.parse(JSON.stringify(DEFAULT_DATA.assistant_pastors));
         }
-
-        // 🌟 섬기는 이 사역자 리스트 보장
-        if (!churchSections.servants || !Array.isArray(churchSections.servants.leaders)) {
-            if (!churchSections.servants) churchSections.servants = { ...DEFAULT_DATA.servants };
-            churchSections.servants.leaders = JSON.parse(JSON.stringify(DEFAULT_DATA.servants.leaders));
+        if (!churchSections.missionary) churchSections.missionary = JSON.parse(JSON.stringify(DEFAULT_DATA.missionary));
+        if (!churchSections.secretaries || !Array.isArray(churchSections.secretaries) || churchSections.secretaries.length === 0) {
+            churchSections.secretaries = JSON.parse(JSON.stringify(DEFAULT_DATA.secretaries));
         }
-
-        // 🌟 [사용자 요청] 교회역사: 화면수정에 없는 글이 밖에는 보이는 버그 원천 해결!
-        // 기존 분리되어 있던 historyList 항목들을 본문(body)에 일원화하여, 화면수정에 적힌 내용이 100% 그대로 밖에도 표시되도록 동기화!
-        if (churchSections.history) {
-            if (churchSections.history.historyList && Array.isArray(churchSections.history.historyList) && churchSections.history.historyList.length > 0) {
-                const historyLines = churchSections.history.historyList.map(h => `• ${h.year}: ${h.text}`);
-                let curBody = churchSections.history.body || "";
-                historyLines.forEach(hl => {
-                    const yearPart = hl.split(":")[0];
-                    if (!curBody.includes(yearPart)) {
-                        curBody += (curBody ? "\n" : "") + hl;
-                    }
-                });
-                churchSections.history.body = curBody;
-                delete churchSections.history.historyList;
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
-            }
-        }
+        if (!churchSections.vision) churchSections.vision = JSON.parse(JSON.stringify(DEFAULT_DATA.vision));
+        if (!churchSections.ministry) churchSections.ministry = JSON.parse(JSON.stringify(DEFAULT_DATA.ministry));
+        if (!churchSections.history) churchSections.history = JSON.parse(JSON.stringify(DEFAULT_DATA.history));
 
         renderViewport();
     }
@@ -547,99 +558,266 @@
     function renderViewport() {
         const vp = document.getElementById("introViewport");
         vp.innerHTML = "";
+        sectionToTabMap = [];
+        let secCounter = 0;
 
-        TAB_KEYS.forEach((key, idx) => {
-            const item = churchSections[key] || DEFAULT_DATA[key];
+        function appendSnapSection(secId, tabIdx, innerHtml, editCallback) {
             const sec = document.createElement("section");
             sec.className = "snap-page-section";
-            sec.id = `sec_card_${idx}`;
-            sec.dataset.index = idx;
+            sec.id = secId;
+            sec.dataset.secIndex = secCounter;
+            sec.dataset.tabIndex = tabIdx;
+            sec.innerHTML = innerHtml;
+            if (editCallback) sec.dataset.editKey = secId;
+            vp.appendChild(sec);
+            sectionToTabMap[secCounter] = tabIdx;
+            secCounter++;
+        }
 
+        // 1. 환영인사 (Tab 0)
+        {
+            const w = churchSections.welcome;
+            let bodyHtml = renderFormattedBody(w.body, false);
             let html = `
                 <div class="section-header-row">
                     <div>
-                        <span class="badge-pill">${item.badge}</span>
-                        <h2 class="article-main-title">${item.title}</h2>
+                        <span class="badge-pill">${w.badge || '환영인사'}</span>
+                        <h2 class="article-main-title">${w.title}</h2>
                     </div>
+                    <button type="button" class="btn-admin-edit" onclick="triggerGeneralEdit('welcome')" title="수정">수정 ✏️</button>
                 </div>
             `;
+            if (w.img) {
+                html += `<div class="attached-photo-wrap"><img src="${w.img}" alt="${w.title}"></div>`;
+            }
+            html += bodyHtml;
+            appendSnapSection("sec_welcome", 0, html);
+        }
 
-            if (item.img && item.img.trim() !== "") {
-                html += `
-                    <div class="attached-photo-wrap">
-                        <img src="${item.img}" alt="${item.title}">
+        // 2. 담임목사 (Tab 1) - 1페이지 풀스크린과 밑에 인사글
+        {
+            const p = churchSections.pastor;
+            let html = `
+                <div class="section-header-row">
+                    <div>
+                        <span class="badge-pill">${p.badge || '담임목사'}</span>
+                        <h2 class="article-main-title">${p.title || '최남수 담임목사'}</h2>
+                        <div class="hero-leader-role">${p.role || '담임목회 및 강단 말씀'}</div>
+                    </div>
+                    <button type="button" class="btn-admin-edit" onclick="openLeaderEdit('pastor', 0)" title="수정">수정 ✏️</button>
+                </div>
+                <div class="hero-leader-card">
+                    <div class="hero-leader-img-box">
+                        <img src="${p.img || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800'}" alt="${p.title}">
+                    </div>
+                    <div class="hero-greeting-box">
+                        ${renderFormattedBody(p.body, false)}
+                    </div>
+                    <button type="button" class="btn-leader-edit-item" onclick="openLeaderEdit('pastor', 0)">
+                        ✏️ 담임목사 인사글 및 사진 수정
+                    </button>
+                </div>
+            `;
+            appendSnapSection("sec_pastor", 1, html);
+        }
+
+        // 3. 부목사 (Tab 2) - 부목사도 한페이지씩 똑같이!
+        {
+            const asList = churchSections.assistant_pastors || [];
+            asList.forEach((ap, idx) => {
+                let html = `
+                    <div class="section-header-row">
+                        <div>
+                            <span class="badge-pill">${ap.badge || '부목사'} (${idx + 1}/${asList.length})</span>
+                            <h2 class="article-main-title">${ap.name}</h2>
+                            <div class="hero-leader-role">${ap.role || '교구 목양 및 목회행정'}</div>
+                        </div>
+                        <button type="button" class="btn-admin-edit" onclick="openLeaderEdit('assistant', ${idx})" title="수정">수정 ✏️</button>
+                    </div>
+                    <div class="hero-leader-card">
+                        <div class="hero-leader-img-box">
+                            <img src="${ap.img || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800'}" alt="${ap.name}">
+                        </div>
+                        <div class="hero-greeting-box">
+                            ${renderFormattedBody(ap.body || ap.desc, false)}
+                        </div>
+                        <div style="display:flex; gap:6px;">
+                            <button type="button" class="btn-leader-edit-item" style="flex:1;" onclick="openLeaderEdit('assistant', ${idx})">
+                                ✏️ ${ap.name} 정보 수정
+                            </button>
+                            <button type="button" class="btn-leader-edit-item" style="flex:1; background:#1e293b; border-color:#38bdf8;" onclick="openLeaderAdd('assistant')">
+                                ➕ 부목사 추가
+                            </button>
+                        </div>
                     </div>
                 `;
-            }
-
-            // 🌟 관리자 모드에 작성된 본문 내용만 정확하게 출력 (• 또는 - 기호는 파란 불릿 줄로 자동 서식 적용)
-            let formattedBody = "";
-            const lines = (item.body || "").split("\n");
-            let hasTimeline = false;
-            let timelineHtml = `<div class="clean-timeline-box" style="margin-top:10px;">`;
-
-            lines.forEach(line => {
-                const tr = line.trim();
-                if (!tr) return;
-
-                // 타임라인 형식 (연도: 내용 또는 • 연도: 내용)
-                const timelineMatch = tr.match(/^(?:[•\-\*]\s*)?((?:19|20)\d{2}년?)\s*[:：\-]\s*(.+)$/);
-                if (key === "history" && timelineMatch) {
-                    hasTimeline = true;
-                    timelineHtml += `
-                        <div class="clean-timeline-row">
-                            <span class="clean-timeline-year">${timelineMatch[1]}</span>
-                            <span class="clean-timeline-text">${timelineMatch[2]}</span>
-                        </div>
-                    `;
-                } else if (tr.startsWith("•") || tr.startsWith("-") || tr.startsWith("*")) {
-                    formattedBody += `<div class="bullet-point-line">${tr.replace(/^[•\-\*]\s*/, '')}</div>`;
-                } else {
-                    formattedBody += `<p class="article-text-body" style="margin-bottom:8px;">${tr}</p>`;
-                }
+                appendSnapSection(`sec_assistant_${idx}`, 2, html);
             });
-            timelineHtml += `</div>`;
+        }
 
-            html += formattedBody;
-            if (key === "history" && hasTimeline) {
-                html += timelineHtml;
-            }
+        // 4. 선교사 (Tab 3) - 선교사도 한페이지
+        {
+            const m = churchSections.missionary;
+            let html = `
+                <div class="section-header-row">
+                    <div>
+                        <span class="badge-pill">${m.badge || '파송선교사'}</span>
+                        <h2 class="article-main-title">${m.title || '박바울 선교사'}</h2>
+                        <div class="hero-leader-role">${m.role || '열방 파송 선교 사역'}</div>
+                    </div>
+                    <button type="button" class="btn-admin-edit" onclick="openLeaderEdit('missionary', 0)" title="수정">수정 ✏️</button>
+                </div>
+                <div class="hero-leader-card">
+                    <div class="hero-leader-img-box">
+                        <img src="${m.img || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800'}" alt="${m.title}">
+                    </div>
+                    <div class="hero-greeting-box">
+                        ${renderFormattedBody(m.body, false)}
+                    </div>
+                    <button type="button" class="btn-leader-edit-item" onclick="openLeaderEdit('missionary', 0)">
+                        ✏️ 선교사 선교보고 및 사진 수정
+                    </button>
+                </div>
+            `;
+            appendSnapSection("sec_missionary", 3, html);
+        }
 
-            // 🌟 [사용자 요청] 섬기는 이: 한사람씩 개별 수정 지원
-            if (key === "servants") {
-                const leaders = item.leaders || DEFAULT_DATA.servants.leaders;
-                html += `<div class="clean-leader-grid" style="margin-top:10px;">`;
-                leaders.forEach((l, lIdx) => {
-                    html += `
-                        <div class="clean-leader-card">
-                            <img class="clean-leader-img" src="${l.img || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400'}" alt="${l.name}">
-                            <div class="clean-leader-info">
-                                <span class="clean-leader-name">${l.name}</span>
-                                <span class="clean-leader-role">${l.role}</span>
-                                <span class="clean-leader-desc">${l.desc}</span>
-                                <button type="button" class="btn-leader-edit-item" onclick="event.stopPropagation(); openServantEdit(${lIdx})">✏️ 개별 수정</button>
+        // 5. 간사 (Tab 4) - 간사는 한페이지에 두명씩!
+        {
+            const secs = churchSections.secretaries || [];
+            // 2명씩 묶어서 페이지 생성
+            const pagesCount = Math.max(1, Math.ceil(secs.length / 2));
+            for (let p = 0; p < pagesCount; p++) {
+                const pair = secs.slice(p * 2, p * 2 + 2);
+                let pairHtml = `<div class="secretary-pair-grid">`;
+                pair.forEach((secItem, pairIdx) => {
+                    const globalIdx = p * 2 + pairIdx;
+                    pairHtml += `
+                        <div class="secretary-card">
+                            <img class="secretary-avatar" src="${secItem.img || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400'}" alt="${secItem.name}">
+                            <div class="secretary-info">
+                                <div class="secretary-name">${secItem.name}</div>
+                                <div class="secretary-role">${secItem.role}</div>
+                                <div class="secretary-desc">${secItem.desc || ''}</div>
+                                <button type="button" class="btn-leader-edit-item" style="padding:3px 6px; font-size:10.5px; margin-top:4px;" onclick="openLeaderEdit('secretary', ${globalIdx})">
+                                    ✏️ 수정
+                                </button>
                             </div>
                         </div>
                     `;
                 });
-                html += `</div>`;
-                html += `
-                    <button type="button" style="margin-top:12px; width:100%; padding:11px; background:#1e3a5f; border:1.5px dashed #38bdf8; border-radius:10px; color:#38bdf8; font-weight:900; font-size:13.5px; cursor:pointer;" onclick="openServantAdd()">
-                        ➕ 새 사역자(섬기는 이) 추가
+                pairHtml += `</div>`;
+
+                let html = `
+                    <div class="section-header-row">
+                        <div>
+                            <span class="badge-pill">사역간사 (${p + 1}/${pagesCount})</span>
+                            <h2 class="article-main-title">교회를 섬기는 사역 간사</h2>
+                        </div>
+                        <button type="button" class="btn-admin-edit" onclick="openLeaderAdd('secretary')" title="추가">➕ 간사추가</button>
+                    </div>
+                    <p style="font-size:12.5px; color:#94a3b8; font-weight:700;">묵묵히 헌신하며 예배와 공동체를 돌보는 신실한 사역자들입니다.</p>
+                    ${pairHtml}
+                    <button type="button" style="margin-top:10px; width:100%; padding:10px; background:#1e3a5f; border:1.5px dashed #38bdf8; border-radius:10px; color:#38bdf8; font-weight:900; font-size:12.5px; cursor:pointer;" onclick="openLeaderAdd('secretary')">
+                        ➕ 새 사역 간사 추가
                     </button>
                 `;
+                appendSnapSection(`sec_secretary_page_${p}`, 4, html);
             }
+        }
 
-            sec.innerHTML = html;
-            vp.appendChild(sec);
-        });
+        // 6. 교회비전 (Tab 5)
+        {
+            const v = churchSections.vision;
+            let bodyHtml = renderFormattedBody(v.body, false);
+            let html = `
+                <div class="section-header-row">
+                    <div>
+                        <span class="badge-pill">${v.badge || '교회비전'}</span>
+                        <h2 class="article-main-title">${v.title}</h2>
+                    </div>
+                    <button type="button" class="btn-admin-edit" onclick="triggerGeneralEdit('vision')" title="수정">수정 ✏️</button>
+                </div>
+            `;
+            if (v.img) html += `<div class="attached-photo-wrap"><img src="${v.img}" alt="${v.title}"></div>`;
+            html += bodyHtml;
+            appendSnapSection("sec_vision", 5, html);
+        }
+
+        // 7. 부서사역 (Tab 6)
+        {
+            const min = churchSections.ministry;
+            let bodyHtml = renderFormattedBody(min.body, false);
+            let html = `
+                <div class="section-header-row">
+                    <div>
+                        <span class="badge-pill">${min.badge || '부서사역'}</span>
+                        <h2 class="article-main-title">${min.title}</h2>
+                    </div>
+                    <button type="button" class="btn-admin-edit" onclick="triggerGeneralEdit('ministry')" title="수정">수정 ✏️</button>
+                </div>
+            `;
+            if (min.img) html += `<div class="attached-photo-wrap"><img src="${min.img}" alt="${min.title}"></div>`;
+            html += bodyHtml;
+            appendSnapSection("sec_ministry", 6, html);
+        }
+
+        // 8. 교회역사 (Tab 7)
+        {
+            const h = churchSections.history;
+            let bodyHtml = renderFormattedBody(h.body, true);
+            let html = `
+                <div class="section-header-row">
+                    <div>
+                        <span class="badge-pill">${h.badge || '교회역사'}</span>
+                        <h2 class="article-main-title">${h.title}</h2>
+                    </div>
+                    <button type="button" class="btn-admin-edit" onclick="triggerGeneralEdit('history')" title="수정">수정 ✏️</button>
+                </div>
+            `;
+            if (h.img) html += `<div class="attached-photo-wrap"><img src="${h.img}" alt="${h.title}"></div>`;
+            html += bodyHtml;
+            appendSnapSection("sec_history", 7, html);
+        }
 
         setupScrollObserver();
     }
 
-    let isProgrammaticIntroScroll = false;
+    function renderFormattedBody(rawText, isHistory) {
+        if (!rawText) return "";
+        const lines = rawText.split("\n");
+        let formatted = "";
+        let timelineRows = "";
+        let hasTimeline = false;
 
-    // 🌟 화면 중앙과 카드 중앙 거리를 정밀 계산하여 가로 탭과 1:1 오차 없이 동기화!
+        lines.forEach(line => {
+            const tr = line.trim();
+            if (!tr) return;
+
+            const timelineMatch = tr.match(/^(?:[•\-\*]\s*)?((?:19|20)\d{2}년?)\s*[:：\-]\s*(.+)$/);
+            if (isHistory && timelineMatch) {
+                hasTimeline = true;
+                timelineRows += `
+                    <div class="clean-timeline-row">
+                        <span class="clean-timeline-year">${timelineMatch[1]}</span>
+                        <span class="clean-timeline-text">${timelineMatch[2]}</span>
+                    </div>
+                `;
+            } else if (tr.startsWith("•") || tr.startsWith("-") || tr.startsWith("*")) {
+                formatted += `<div class="bullet-point-line">${tr.replace(/^[•\-\*]\s*/, '')}</div>`;
+            } else {
+                formatted += `<p class="article-text-body" style="margin-bottom:8px;">${tr}</p>`;
+            }
+        });
+
+        if (isHistory && hasTimeline) {
+            formatted += `<div class="clean-timeline-box" style="margin-top:10px;">${timelineRows}</div>`;
+        }
+        return formatted;
+    }
+
+    // 🌟 화면 중앙과 가장 가까운 카드를 정밀 감지하여 8대 가로 칩 메뉴와 1:1 오차 없이 동기화!
+    // (충돌을 일으키던 touchend scrollToSection 수동 개입을 배제하여 안정적인 정지 보장!)
     function setupScrollObserver() {
         const vp = document.getElementById("introViewport");
         if (!vp) return;
@@ -653,79 +831,68 @@
                 const sections = vp.querySelectorAll(".snap-page-section");
                 const vpRect = vp.getBoundingClientRect();
                 const vpCenter = vpRect.top + vpRect.height / 2;
-                let closestIdx = currentSectionIdx;
+                let closestSec = null;
                 let minDiff = Infinity;
 
-                sections.forEach((sec, idx) => {
+                sections.forEach(sec => {
                     const rect = sec.getBoundingClientRect();
                     const secCenter = rect.top + rect.height / 2;
                     const diff = Math.abs(secCenter - vpCenter);
                     if (diff < minDiff) {
                         minDiff = diff;
-                        closestIdx = idx;
+                        closestSec = sec;
                     }
                 });
 
-                if (closestIdx !== currentSectionIdx && closestIdx >= 0 && closestIdx < TAB_KEYS.length) {
-                    currentSectionIdx = closestIdx;
-                    updateTabNavUI(closestIdx);
+                if (closestSec) {
+                    const tabIdx = parseInt(closestSec.dataset.tabIndex, 10);
+                    if (!isNaN(tabIdx) && tabIdx !== currentActiveTabIdx) {
+                        currentActiveTabIdx = tabIdx;
+                        updateTabNavUI(tabIdx);
+                    }
                 }
             }, 60);
         }, { passive: true });
-
-        // 🌟 살짝 밀어도 가볍게 전환되는 스와이프 제스처
-        let touchStartY = 0, touchStartX = 0, isTouching = false, touchStartTime = 0;
-        vp.addEventListener("touchstart", (e) => {
-            if (e.touches.length === 1) {
-                touchStartY = e.touches[0].clientY;
-                touchStartX = e.touches[0].clientX;
-                touchStartTime = Date.now();
-                isTouching = true;
-            }
-        }, { passive: true });
-
-        vp.addEventListener("touchend", (e) => {
-            if (!isTouching) return;
-            isTouching = false;
-            const diffY = e.changedTouches[0].clientY - touchStartY;
-            const diffX = e.changedTouches[0].clientX - touchStartX;
-            const duration = Date.now() - touchStartTime;
-
-            if (Math.abs(diffY) > 40 && Math.abs(diffY) > Math.abs(diffX) * 1.3 && duration < 600) {
-                if (diffY < 0 && currentSectionIdx < TAB_KEYS.length - 1) {
-                    scrollToSection(currentSectionIdx + 1);
-                } else if (diffY > 0 && currentSectionIdx > 0) {
-                    scrollToSection(currentSectionIdx - 1);
-                }
-            }
-        }, { passive: true });
     }
 
-    function updateTabNavUI(idx) {
+    function updateTabNavUI(tabIdx) {
         document.querySelectorAll(".intro-tab").forEach((tab, i) => {
-            const match = (i === idx);
+            const match = (i === tabIdx);
             tab.classList.toggle("active", match);
             if (match) tab.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
         });
     }
 
-    function scrollToSection(idx) {
-        currentSectionIdx = idx;
-        const target = document.getElementById(`sec_card_${idx}`);
+    function scrollToTab(tabIdx) {
+        currentActiveTabIdx = tabIdx;
+        updateTabNavUI(tabIdx);
         const vp = document.getElementById("introViewport");
-        if (target && vp) {
+        if (!vp) return;
+        const target = vp.querySelector(`.snap-page-section[data-tab-index="${tabIdx}"]`);
+        if (target) {
             isProgrammaticIntroScroll = true;
-            updateTabNavUI(idx);
             vp.scrollTo({ top: target.offsetTop, behavior: "smooth" });
-            setTimeout(() => { isProgrammaticIntroScroll = false; }, 400);
+            setTimeout(() => { isProgrammaticIntroScroll = false; }, 420);
         }
     }
 
-    // 🌟 화면수정 모달 오픈 (기존 불릿 항목들을 본문 안에 통합하여 불러오기)
+    // 🌟 상단 "화면수정 ▶" 버튼 클릭 시 현재 활성화된 탭의 내용 수정
     function triggerCurrentTabEdit() {
-        const key = TAB_KEYS[currentSectionIdx];
+        if (currentActiveTabIdx === 0) triggerGeneralEdit("welcome");
+        else if (currentActiveTabIdx === 1) openLeaderEdit("pastor", 0);
+        else if (currentActiveTabIdx === 2) openLeaderEdit("assistant", 0);
+        else if (currentActiveTabIdx === 3) openLeaderEdit("missionary", 0);
+        else if (currentActiveTabIdx === 4) openLeaderEdit("secretary", 0);
+        else if (currentActiveTabIdx === 5) triggerGeneralEdit("vision");
+        else if (currentActiveTabIdx === 6) triggerGeneralEdit("ministry");
+        else if (currentActiveTabIdx === 7) triggerGeneralEdit("history");
+    }
+
+    let currentGeneralEditKey = "welcome";
+    function triggerGeneralEdit(key) {
+        currentGeneralEditKey = key;
         const item = churchSections[key] || DEFAULT_DATA[key];
-        document.getElementById("lblGeneralModalTitle").innerText = `✏️ [${item.badge}] 내용 및 사진 수정`;
+        document.getElementById("lblGeneralModalTitle").innerText = `✏️ [${item.badge || item.tabName}] 내용 및 사진 수정`;
         document.getElementById("inpGeneralTitle").value = item.title || "";
         document.getElementById("inpGeneralImg").value = item.img || "";
 
@@ -786,7 +953,7 @@
     }
 
     function saveGeneralPageData() {
-        const key = TAB_KEYS[currentSectionIdx];
+        const key = currentGeneralEditKey;
         if (!churchSections[key]) churchSections[key] = { ...DEFAULT_DATA[key] };
 
         const title = document.getElementById("inpGeneralTitle").value.trim();
@@ -801,25 +968,42 @@
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
         renderViewport();
-        scrollToSection(currentSectionIdx);
+        scrollToTab(currentActiveTabIdx);
         closeModal("generalPageEditModal");
         showToast("✨ 수정 내용이 안전하게 저장되었습니다.");
     }
 
-    // 🌟 [사용자 요청] 사역자 개별 수정 로직
-    function openServantEdit(leaderIdx) {
-        activeServantIdx = leaderIdx;
-        const leader = churchSections.servants.leaders[leaderIdx];
-        document.getElementById("lblServantModalTitle").innerText = `✏️ [${leader.name}] 정보 수정`;
-        document.getElementById("inpServantName").value = leader.name || "";
-        document.getElementById("inpServantRole").value = leader.role || "";
-        document.getElementById("inpServantDesc").value = leader.desc || "";
-        document.getElementById("inpServantImg").value = leader.img || "";
+    // 🌟 사역자 (담임목사, 부목사, 선교사, 간사) 개별 수정 / 추가 로직
+    function openLeaderEdit(type, idx) {
+        activeLeaderContext = { type, idx };
+        let item = null;
+        if (type === 'pastor') {
+            item = churchSections.pastor;
+            document.getElementById("lblServantModalTitle").innerText = `✏️ 담임목사 정보 수정`;
+            document.getElementById("btnDeleteServant").style.display = "none";
+        } else if (type === 'assistant') {
+            item = churchSections.assistant_pastors[idx];
+            document.getElementById("lblServantModalTitle").innerText = `✏️ [${item.name}] 부목사 수정`;
+            document.getElementById("btnDeleteServant").style.display = "block";
+        } else if (type === 'missionary') {
+            item = churchSections.missionary;
+            document.getElementById("lblServantModalTitle").innerText = `✏️ 선교사 정보 수정`;
+            document.getElementById("btnDeleteServant").style.display = "none";
+        } else if (type === 'secretary') {
+            item = churchSections.secretaries[idx];
+            document.getElementById("lblServantModalTitle").innerText = `✏️ [${item.name}] 간사 수정`;
+            document.getElementById("btnDeleteServant").style.display = "block";
+        }
+
+        document.getElementById("inpServantName").value = item.name || item.title || "";
+        document.getElementById("inpServantRole").value = item.role || "";
+        document.getElementById("inpServantDesc").value = item.body || item.desc || "";
+        document.getElementById("inpServantImg").value = item.img || "";
 
         const thumb = document.getElementById("prevServantImgThumb");
         const btnDel = document.getElementById("btnRemoveServantImg");
-        if (leader.img && leader.img.trim()) {
-            thumb.src = leader.img;
+        if (item.img && item.img.trim()) {
+            thumb.src = item.img;
             thumb.style.display = "block";
             btnDel.style.display = "block";
         } else {
@@ -827,13 +1011,12 @@
             btnDel.style.display = "none";
         }
 
-        document.getElementById("btnDeleteServant").style.display = "block";
         openModal("servantEditModal");
     }
 
-    function openServantAdd() {
-        activeServantIdx = -1;
-        document.getElementById("lblServantModalTitle").innerText = "➕ 새 사역자 추가";
+    function openLeaderAdd(type) {
+        activeLeaderContext = { type, idx: -1 };
+        document.getElementById("lblServantModalTitle").innerText = type === 'assistant' ? "➕ 새 부목사 추가" : "➕ 새 간사 추가";
         document.getElementById("inpServantName").value = "";
         document.getElementById("inpServantRole").value = "";
         document.getElementById("inpServantDesc").value = "";
@@ -853,7 +1036,7 @@
             img.onload = function() {
                 const canvas = document.createElement("canvas");
                 let w = img.width, h = img.height;
-                if (w > 800) { h = Math.round((h * 800) / w); w = 800; }
+                if (w > 900) { h = Math.round((h * 900) / w); w = 900; }
                 canvas.width = w; canvas.height = h;
                 canvas.getContext("2d").drawImage(img, 0, 0, w, h);
                 const base64 = canvas.toDataURL("image/jpeg", 0.9);
@@ -879,6 +1062,7 @@
     }
 
     function saveServantData() {
+        if (!activeLeaderContext) return;
         const name = document.getElementById("inpServantName").value.trim();
         const role = document.getElementById("inpServantRole").value.trim();
         const desc = document.getElementById("inpServantDesc").value.trim();
@@ -886,32 +1070,56 @@
 
         if (!name) { alert("사역자 성명 및 직분을 입력해 주세요."); return; }
 
-        if (!churchSections.servants) churchSections.servants = { ...DEFAULT_DATA.servants };
-        if (!Array.isArray(churchSections.servants.leaders)) churchSections.servants.leaders = [];
+        const { type, idx } = activeLeaderContext;
 
-        const servantItem = { name, role, desc, img };
-
-        if (activeServantIdx >= 0 && activeServantIdx < churchSections.servants.leaders.length) {
-            churchSections.servants.leaders[activeServantIdx] = servantItem;
-        } else {
-            churchSections.servants.leaders.push(servantItem);
+        if (type === 'pastor') {
+            churchSections.pastor.title = name;
+            churchSections.pastor.role = role;
+            churchSections.pastor.body = desc;
+            churchSections.pastor.img = img;
+        } else if (type === 'assistant') {
+            const item = { badge: "부목사", name, role, body: desc, desc, img };
+            if (idx >= 0 && idx < churchSections.assistant_pastors.length) {
+                churchSections.assistant_pastors[idx] = item;
+            } else {
+                churchSections.assistant_pastors.push(item);
+            }
+        } else if (type === 'missionary') {
+            churchSections.missionary.title = name;
+            churchSections.missionary.role = role;
+            churchSections.missionary.body = desc;
+            churchSections.missionary.img = img;
+        } else if (type === 'secretary') {
+            const item = { name, role, desc, img };
+            if (idx >= 0 && idx < churchSections.secretaries.length) {
+                churchSections.secretaries[idx] = item;
+            } else {
+                churchSections.secretaries.push(item);
+            }
         }
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
         renderViewport();
-        scrollToSection(3); // '섬기는 이' 섹션으로 이동
+        scrollToTab(currentActiveTabIdx);
         closeModal("servantEditModal");
         showToast("✨ 사역자 정보가 안전하게 저장되었습니다.");
     }
 
     function deleteCurrentServant() {
-        if (activeServantIdx < 0) return;
+        if (!activeLeaderContext) return;
+        const { type, idx } = activeLeaderContext;
+        if (idx < 0) return;
         if (!confirm("이 사역자를 목록에서 삭제하시겠습니까?")) return;
 
-        churchSections.servants.leaders.splice(activeServantIdx, 1);
+        if (type === 'assistant') {
+            churchSections.assistant_pastors.splice(idx, 1);
+        } else if (type === 'secretary') {
+            churchSections.secretaries.splice(idx, 1);
+        }
+
         localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
         renderViewport();
-        scrollToSection(3);
+        scrollToTab(currentActiveTabIdx);
         closeModal("servantEditModal");
         showToast("🗑️ 사역자가 삭제되었습니다.");
     }

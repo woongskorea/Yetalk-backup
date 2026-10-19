@@ -52,7 +52,15 @@ function createDefaultSlides(catName, isWorship = false) {
         return [
             { title: "보배성도", verse: "“우리가 서로 사랑하면 하나님이 우리 안에 거하시고 (요일 4:12)”", body: "주 안에서 하나 되어 기쁨과 감사를 나누는 은혜의 행복셀 모임입니다.", yt: "", img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1600&q=90" },
             { title: "보배성도", verse: "“서로 돌아보아 사랑과 선행을 격려하며 (히 10:24)”", body: "말씀으로 세워지고 기도로 중보하며 함께 자라가는 나눔셀 모임입니다.", yt: "", img: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=1600&q=90" },
-            { title: "보배성도", verse: "“너희는 택하신 족속이요 왕 같은 제사장들이요 (벧전 2:9)”", body: "세상의 빛과 소금으로 부르심 받은 존귀한 성도들의 믿음의 교제입니다.", yt: "", img: "https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=1600&q=90" }
+            { title: "보배성도", verse: "“너희는 택하신 족속이요 왕 같은 제사장들이요 (벧전 2:9)”", body: "세상의 빛과 소금으로 부르심 받은 존귀한 성도들의 믿음의 교제입니다.", yt: "", img: "https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&w=1600&q=90" },
+            { title: "보배성도", verse: "“오직 여호와를 앙망하는 자는 새 힘을 얻으리니 (사 40:31)”", body: "주님의 평안과 풍성한 은혜가 사랑하는 성도님의 가정과 삶에 충만하시길 기도합니다.", yt: "", img: "", isAdmob250: true }
+        ];
+    }
+    if (catName === "공지알림") {
+        return [
+            { title: "공지알림", verse: "“너희는 세상의 소금이니 소금이 만일 그 맛을 잃으면 (마 5:13)”", body: "하나님의 거룩한 사랑과 교회의 은혜로운 주요 소식을 함께 나눕니다.", yt: "", img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90" },
+            { title: "공지알림", verse: "“주의 말씀은 내 발의 등이요 내 길에 빛이니이다 (시 119:105)”", body: "성도 여러분의 영적 성장과 동역을 위한 안내 말씀입니다.", yt: "", img: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90" },
+            { title: "공지알림", verse: "“평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라 (요 14:27)”", body: "선교 사역과 복음 전파를 후원하는 공식 스폰서 슬롯과 함께합니다.", yt: "", img: "", isAdmob250: true }
         ];
     }
     if (catName === "예수동행") {
@@ -158,10 +166,15 @@ function initChurchData() {
             }
         } else if (m.id === 1) {
             churchSlideData[1] = createDefaultSlides("예배", false);
+        } else if (m.id === 3) {
+            const list3 = churchSlideData[3];
+            if (!list3 || !Array.isArray(list3) || list3.length < 3 || !list3[list3.length - 1].isAdmob250 || list3.some(isDoctorDirtySlide)) {
+                churchSlideData[3] = createDefaultSlides("공지알림", false);
+            }
         } else if (m.id === 7) {
-            // 🌟 보배성도 (성도 교제 및 셀 모임)는 이전 성형외과 케이스 데이터 완전 박멸!
+            // 🌟 보배성도 (성도 교제 및 셀 모임): 마지막 슬라이드에 250 애드몹 보장!
             const list7 = churchSlideData[7];
-            if (!list7 || !Array.isArray(list7) || list7.length < 3 || list7.some(isDoctorDirtySlide)) {
+            if (!list7 || !Array.isArray(list7) || list7.length < 3 || !list7[list7.length - 1].isAdmob250 || list7.some(isDoctorDirtySlide)) {
                 churchSlideData[7] = createDefaultSlides("보배성도", false);
             }
         } else if (m.id === 6) {
@@ -503,6 +516,14 @@ function renderChurchView() {
                 <img class="card-bg-img" id="slide_img_${sec.id}" src="${cur.img}" alt="${sec.cat}">
                 <div class="card-gradient-overlay"></div>
 
+                <!-- 🌟 250 애드몹 (300 × 250) 슬롯 (보배성도/공지알림 마지막 슬라이드 전용) -->
+                <div class="card-embedded-admob-250" id="cardEmbeddedAdmob_${sec.id}" style="display:none; width:300px; height:250px; background:#0b1120; border:1.5px solid #1e3a5f; border-radius:16px; box-shadow:0 4px 18px rgba(0,0,0,0.6); flex-direction:column; align-items:center; justify-content:center; text-align:center; position:absolute; top:42%; left:50%; transform:translate(-50%, -50%); z-index:15;">
+                    <div style="font-size:10px; color:#64748b; font-weight:900; letter-spacing:0.8px; margin-bottom:6px;">AD • Google AdMob 공식 스폰서 (300 × 250)</div>
+                    <div style="font-size:16px; font-weight:900; color:#38bdf8; margin-bottom:4px;">Google AdMob Medium Rectangle</div>
+                    <div style="font-size:11px; color:#94a3b8; padding:0 20px; line-height:1.4;">선교 사역 및 미디어 영상 방송 공식 후원 슬롯</div>
+                    <div style="margin-top:10px; padding:4px 12px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); border-radius:18px; font-size:10px; font-weight:800; color:#38bdf8;">미디어 선교 후원 배너</div>
+                </div>
+
                 <button type="button" class="slide-arrow-btn slide-arrow-left" ontouchstart="event.stopPropagation();" ontouchend="event.stopPropagation(); changeCardSlide(${sec.id}, -1);" onclick="event.stopPropagation(); changeCardSlide(${sec.id}, -1);">‹</button>
                 <button type="button" class="slide-arrow-btn slide-arrow-right" ontouchstart="event.stopPropagation();" ontouchend="event.stopPropagation(); changeCardSlide(${sec.id}, 1);" onclick="event.stopPropagation(); changeCardSlide(${sec.id}, 1);">›</button>
 
@@ -587,24 +608,50 @@ function updateSlideContent(secId, idx) {
     if (!slides || !slides[idx]) return;
     const cur = slides[idx];
     const imgEl = document.getElementById(`slide_img_${secId}`);
+    const admobEl = document.getElementById(`cardEmbeddedAdmob_${secId}`);
     const titleEl = document.getElementById(`slide_title_${secId}`);
     const verseEl = document.getElementById(`slide_verse_${secId}`);
     const bodyEl = document.getElementById(`slide_body_${secId}`);
     const dotsEl = document.getElementById(`dots_${secId}`);
-    const ytContainer = document.getElementById(`ytContainer_${secId}`);
 
-    if (imgEl && cur.img) {
-        imgEl.style.opacity = "0.5";
-        imgEl.src = cur.img;
-        imgEl.onload = () => { imgEl.style.opacity = "1"; };
-        setTimeout(() => { imgEl.style.opacity = "1"; }, 300);
+    if (cur.isAdmob250) {
+        if (imgEl) imgEl.style.display = "none";
+        if (admobEl) admobEl.style.display = "flex";
+    } else {
+        if (imgEl) {
+            imgEl.style.display = "block";
+            if (cur.img) {
+                imgEl.style.opacity = "0.5";
+                imgEl.src = cur.img;
+                imgEl.onload = () => { imgEl.style.opacity = "1"; };
+                setTimeout(() => { imgEl.style.opacity = "1"; }, 300);
+            }
+        }
+        if (admobEl) admobEl.style.display = "none";
     }
+
     if (titleEl) titleEl.innerText = cur.title || MENU_DEFINITIONS[secId].cat;
     if (verseEl) verseEl.innerText = cur.verse || "";
     if (bodyEl) bodyEl.innerText = cur.body || "";
 
     if (dotsEl) {
         dotsEl.querySelectorAll(".dot").forEach((d, i) => d.classList.toggle("active", i === idx));
+    }
+
+    checkAdmobFooterExclusion();
+}
+
+// 🌟 [구글 애드몹 정책 준수] 250 애드몹(보배성도/공지알림 마지막장 or 11번 엔딩카드)이 노출될 때는 100 고정 애드몹 완전 숨김
+function checkAdmobFooterExclusion() {
+    const footer100 = document.getElementById("churchFixedAdmobFooter");
+    if (!footer100) return;
+    const slides = churchSlideData[activeSecId];
+    const curSlide = slides ? slides[currentSlideIndices[activeSecId] || 0] : null;
+    const is250Active = (activeSecId === 11) || (curSlide && curSlide.isAdmob250);
+    if (is250Active) {
+        footer100.style.setProperty("display", "none", "important");
+    } else {
+        footer100.style.removeProperty("display");
     }
 }
 
@@ -643,38 +690,13 @@ function setupSectionObserver() {
                 activeSecId = closestIdx;
                 try { sessionStorage.setItem("church_last_active_card_idx", closestIdx.toString()); } catch(e){}
                 updateChipsBar(closestIdx);
+                checkAdmobFooterExclusion();
             }
         });
     }, { passive: true });
 
-    // 🌟 2. 살짝만 쓸어올려도/내려도 가볍게 전환되는 부드러운 스와이프 제스처
-    let touchStartY = 0, touchStartX = 0, isTouching = false, touchStartTime = 0;
-    vp.addEventListener("touchstart", (e) => {
-        if (isScreenLocked) return;
-        if (e.touches.length === 1) {
-            touchStartY = e.touches[0].clientY;
-            touchStartX = e.touches[0].clientX;
-            touchStartTime = Date.now();
-            isTouching = true;
-        }
-    }, { passive: true });
-
-    vp.addEventListener("touchend", (e) => {
-        if (!isTouching || isScreenLocked) return;
-        isTouching = false;
-        const diffY = e.changedTouches[0].clientY - touchStartY;
-        const diffX = e.changedTouches[0].clientX - touchStartX;
-        const duration = Date.now() - touchStartTime;
-
-        // 40px 이상 가볍게 위/아래로 밀었을 때 전환
-        if (Math.abs(diffY) > 40 && Math.abs(diffY) > Math.abs(diffX) * 1.3 && duration < 600) {
-            if (diffY < 0 && activeSecId < MENU_DEFINITIONS.length - 1) {
-                scrollToCard(activeSecId + 1);
-            } else if (diffY > 0 && activeSecId > 0) {
-                scrollToCard(activeSecId - 1);
-            }
-        }
-    }, { passive: true });
+    // 🌟 네이티브 CSS scroll-snap-type: y mandatory; 및 scroll-snap-stop: always; 를 온전히 적용하여
+    // 충돌과 흔들림(앞뒤 덜컹거림) 없는 완벽한 원-카드 스냅 보장!
 }
 
 function updateChipsBar(idx) {
@@ -688,6 +710,7 @@ function updateChipsBar(idx) {
     if (curMenu && subTitle) {
         subTitle.innerText = `${curMenu.cat}`;
     }
+    checkAdmobFooterExclusion();
 }
 
 let programmaticTimer = null;

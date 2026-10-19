@@ -700,6 +700,25 @@
             `;
             container.appendChild(card);
         });
+
+        // 🌟 [사용자 요청] 공지알림 마지막장: 좋은 말씀과 250 애드몹 (250 노출 시 하단 100 애드몹 완전 삭제)
+        const endingSection = document.createElement("div");
+        endingSection.id = "noticeEnding250Section";
+        endingSection.style.cssText = "margin:24px auto 30px auto; width:100%; max-width:340px; display:flex; flex-direction:column; align-items:center; gap:12px; text-align:center;";
+        endingSection.innerHTML = `
+            <div style="width:100%; padding:14px 16px; background:#0f172a; border:1.5px solid #1e3a5f; border-radius:14px; box-shadow:0 3px 12px rgba(0,0,0,0.3);">
+                <div style="font-size:12.5px; font-weight:900; color:#38bdf8; margin-bottom:4px;">🕊️ 주님의 축복과 평안의 말씀</div>
+                <div style="font-size:14px; font-weight:800; color:#f1f5f9; line-height:1.65; word-break:keep-all;">“평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라 (요 14:27)”</div>
+            </div>
+            <div class="mrec-ad-slot-250" style="width:300px; height:250px; background:#0b1120; border:1.5px solid #1e3a5f; border-radius:16px; box-shadow:0 4px 18px rgba(0,0,0,0.4); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:#ffffff;">
+                <div style="font-size:10px; color:#64748b; font-weight:900; letter-spacing:0.8px; margin-bottom:6px;">AD • Google AdMob 공식 스폰서 (300 × 250)</div>
+                <div style="font-size:16px; font-weight:900; color:#38bdf8; margin-bottom:4px;">Google AdMob (300 × 250)</div>
+                <div style="font-size:11px; color:#94a3b8; padding:0 20px; line-height:1.4;">선교 사역 및 미디어 영상 방송 공식 후원 슬롯</div>
+                <div style="margin-top:12px; padding:4px 12px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); border-radius:18px; font-size:10px; font-weight:800; color:#38bdf8;">선교 사역 후원 배너</div>
+            </div>
+        `;
+        container.appendChild(endingSection);
+        checkNoticeAdmobExclusion();
     }
 
     // 🌟 상세 글 열기
@@ -746,12 +765,33 @@
         const modal = document.getElementById("detailModal");
         modal.scrollTop = 0;
         modal.classList.add("open");
+        checkNoticeAdmobExclusion();
     }
 
     function closeDetailModal() {
         document.getElementById("detailModal").classList.remove("open");
         renderNoticeFeed();
+        checkNoticeAdmobExclusion();
     }
+
+    // 🌟 [구글 애드몹 정책 준수] 250 애드몹(상세보기 화면 or 하단 250 카드) 노출 시 100 고정 애드몹 완전 숨김
+    function checkNoticeAdmobExclusion() {
+        const footer100 = document.querySelector(".global-fixed-bottom-admob");
+        if (!footer100) return;
+        const isDetailOpen = document.getElementById("detailModal")?.classList.contains("open");
+        const sec250 = document.getElementById("noticeEnding250Section");
+        let is250Visible = isDetailOpen;
+        if (!is250Visible && sec250) {
+            const rect = sec250.getBoundingClientRect();
+            is250Visible = rect.top < window.innerHeight && rect.bottom > 0;
+        }
+        if (is250Visible) {
+            footer100.style.setProperty("display", "none", "important");
+        } else {
+            footer100.style.removeProperty("display");
+        }
+    }
+    window.addEventListener("scroll", checkNoticeAdmobExclusion, { passive: true });
 
     // 🌟 상세 화면에서 [✏️ 바로 수정]
     function openEditCurrentNotice() {
