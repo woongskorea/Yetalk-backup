@@ -4446,6 +4446,9 @@
     }
 
     function getCloudVideoSlotLimit(bizName, targetUrl) {
+        if (typeof isMasterAdminUser === "function" && isMasterAdminUser()) {
+            return 99999; // 👑 총관리자(최웅식 대표님): 100% 무제한 클라우드 영구 보존! (삭제 절대 없음)
+        }
         const str = ((bizName || '') + ' ' + (targetUrl || '')).toLowerCase();
         if (str.includes('church') || str.includes('교회') || str.includes('mini')) {
             return 30; // ⛪ 교회/미니교회: 주일 1·2부, 수요예배, 금요철야, 새벽기도 등 30개 예배 영상 영구 보존!
@@ -4533,54 +4536,61 @@
         hiddenIds = hiddenIds.filter(id => String(id) !== String(newFeed.id));
         localStorage.setItem("yetalkHiddenFeedIds", JSON.stringify(hiddenIds));
 
-        // 🌟 [사용자 요청 완벽 반영: 교회·의원 30개 대용량 클라우드 아카이브 보존 정책]
-        // - 교회(우리교회, 미니교회): 주일 1·2부, 수요예배, 금요철야, 새벽예배 등 30개 예배 영상 영구 보존!
-        // - 의원(메디컬, 치과, 한의원): 질환별 시술 및 치료 케이스 30개 영상 영구 보존!
-        // ※ 30개 링크도 고작 6KB에 불과하여 Firebase 평생 무료(1GB) 안에서 서버비는 0원(완전 무료) 유지!
+        // 🌟 [사용자 요청 완벽 반영: 총관리자 100% 무제한 보존 & 교회·의원 30개 대용량 보존 정책]
+        // - 총관리자(최웅식 대표님): 100% 전량 무제한 클라우드 영구 보존! (삭제 절대 없음)
+        // - 교회(우리교회, 미니교회): 30개 예배 영상 영구 보존!
+        // - 의원(메디컬, 치과, 한의원): 질환별 시술 30개 영상 영구 보존!
+        // ※ 텍스트 링크 기반이므로 Firebase 평생 무료(1GB) 안에서 서버비는 0원(적자 0%) 유지!
         if (window.yetalkDb && window.yetalkFs) {
             try {
                 const { doc, deleteDoc, collection, addDoc, getDocs, query, where, orderBy, serverTimestamp } = window.yetalkFs;
-                const authorName = localStorage.getItem("yetalkUserName") || "예톡회원";
-                const maxSlots = getCloudVideoSlotLimit(chosenBiz, chosenUrl);
+                const isMaster = isMasterAdminUser();
+                const authorName = localStorage.getItem("yetalkUserName") || (isMaster ? "최웅식" : "예톡회원");
+                const maxSlots = isMaster ? 99999 : getCloudVideoSlotLimit(chosenBiz, chosenUrl);
 
-                const checkQ = query(
-                    collection(window.yetalkDb, "yetalk_videos"),
-                    where("bizName", "==", chosenBiz),
-                    orderBy("createdAt", "asc")
-                );
+                if (!isMaster) {
+                    const checkQ = query(
+                        collection(window.yetalkDb, "yetalk_videos"),
+                        where("bizName", "==", chosenBiz),
+                        orderBy("createdAt", "asc")
+                    );
 
-                getDocs(checkQ).then(snap => {
-                    if (snap && snap.size >= maxSlots) {
-                        const docsToDelete = [];
-                        let countToDelete = snap.size - (maxSlots - 1);
-                        snap.forEach(d => {
-                            if (countToDelete > 0) {
-                                docsToDelete.push(d.id);
-                                countToDelete--;
-                            }
-                        });
-                        docsToDelete.forEach(docId => {
-                            deleteDoc(doc(window.yetalkDb, "yetalk_videos", docId)).catch(() => {});
-                        });
-                    }
+                    getDocs(checkQ).then(snap => {
+                        if (snap && snap.size >= maxSlots) {
+                            const docsToDelete = [];
+                            let countToDelete = snap.size - (maxSlots - 1);
+                            snap.forEach(d => {
+                                const dData = d.data();
+                                const isProtectedMaster = dData && (dData.isMasterAdmin === true || dData.author === '최웅식' || (dData.author && dData.author.includes('관리자')));
+                                if (countToDelete > 0 && !isProtectedMaster) {
+                                    docsToDelete.push(d.id);
+                                    countToDelete--;
+                                }
+                            });
+                            docsToDelete.forEach(docId => {
+                                deleteDoc(doc(window.yetalkDb, "yetalk_videos", docId)).catch(() => {});
+                            });
+                        }
+                    }).catch(e => {});
+                }
 
-                    return addDoc(collection(window.yetalkDb, "yetalk_videos"), {
-                        videoId: videoId,
-                        title: promoText,
-                        bizName: chosenBiz,
-                        shortAd: promoText,
-                        targetUrl: chosenUrl,
-                        format: isShorts ? 'shorts' : '16:9',
-                        views: 101,
-                        likes: 3,
-                        region: myRegion,
-                        author: authorName,
-                        date: dateStr,
-                        timestamp: Date.now(),
-                        createdAt: serverTimestamp()
-                    });
+                addDoc(collection(window.yetalkDb, "yetalk_videos"), {
+                    videoId: videoId,
+                    title: promoText,
+                    bizName: chosenBiz,
+                    shortAd: promoText,
+                    targetUrl: chosenUrl,
+                    format: isShorts ? 'shorts' : '16:9',
+                    views: 101,
+                    likes: 3,
+                    region: myRegion,
+                    author: authorName,
+                    isMasterAdmin: isMaster,
+                    date: dateStr,
+                    timestamp: Date.now(),
+                    createdAt: serverTimestamp()
                 }).then(() => {
-                    console.log(`Firebase Firestore: [${chosenBiz}] video registered (Capacity: ${maxSlots} slots)!`);
+                    console.log(`Firebase Firestore: [${chosenBiz}] video registered (Master: ${isMaster}, Slots: ${maxSlots})!`);
                 }).catch(err => {
                     console.warn("Firestore notice:", err);
                 });
@@ -5833,54 +5843,30 @@ https://yetalk.cc`;
         savedList.unshift(newFeed);
         localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(savedList));
 
-        // 🌟 [사용자 요청 완벽 반영: 교회·의원 30개 대용량 클라우드 아카이브 보존 정책]
-        // - 교회: 30개 (주일 1·2부, 수요예배, 금요철야, 새벽예배 등 한달치 예배 전체 영구 보존)
-        // - 의원: 30개 (시술/치료 케이스 및 건강 안내 영상 영구 보존)
-        // - 식당/상점: 10개, 일반 회원: 3개 (도배 방지)
+        // 🌟 [총관리자 PC CMS 전용 데스크: 100% 무제한 클라우드 영구 보존]
+        // 대표님이 올리시는 모든 영상은 100% 파이어베이스 서버에 영구 보존되며 삭제되지 않습니다.
         if (window.yetalkDb && window.yetalkFs) {
             try {
-                const { doc, deleteDoc, collection, addDoc, getDocs, query, where, orderBy, serverTimestamp } = window.yetalkFs;
-                const authorName = localStorage.getItem("yetalkUserName") || "예톡회원";
-                const maxSlots = getCloudVideoSlotLimit(chosenBiz, chosenUrl);
+                const { collection, addDoc, serverTimestamp } = window.yetalkFs;
+                const authorName = localStorage.getItem("yetalkUserName") || "최웅식";
 
-                const checkQ = query(
-                    collection(window.yetalkDb, "yetalk_videos"),
-                    where("bizName", "==", chosenBiz),
-                    orderBy("createdAt", "asc")
-                );
-
-                getDocs(checkQ).then(snap => {
-                    if (snap && snap.size >= maxSlots) {
-                        const docsToDelete = [];
-                        let countToDelete = snap.size - (maxSlots - 1);
-                        snap.forEach(d => {
-                            if (countToDelete > 0) {
-                                docsToDelete.push(d.id);
-                                countToDelete--;
-                            }
-                        });
-                        docsToDelete.forEach(docId => {
-                            deleteDoc(doc(window.yetalkDb, "yetalk_videos", docId)).catch(() => {});
-                        });
-                    }
-
-                    return addDoc(collection(window.yetalkDb, "yetalk_videos"), {
-                        videoId: videoId,
-                        title: promoText,
-                        bizName: chosenBiz,
-                        shortAd: promoText,
-                        targetUrl: chosenUrl,
-                        format: isShorts ? 'shorts' : '16:9',
-                        views: 101,
-                        likes: 5,
-                        region: myRegion,
-                        author: authorName,
-                        date: dateStr,
-                        timestamp: Date.now(),
-                        createdAt: serverTimestamp()
-                    });
+                addDoc(collection(window.yetalkDb, "yetalk_videos"), {
+                    videoId: videoId,
+                    title: promoText,
+                    bizName: chosenBiz,
+                    shortAd: promoText,
+                    targetUrl: chosenUrl,
+                    format: isShorts ? 'shorts' : '16:9',
+                    views: 101,
+                    likes: 5,
+                    region: myRegion,
+                    author: authorName,
+                    isMasterAdmin: true,
+                    date: dateStr,
+                    timestamp: Date.now(),
+                    createdAt: serverTimestamp()
                 }).then(() => {
-                    console.log("Firebase Firestore: 2-slot managed cloud video uploaded!");
+                    console.log("Firebase Firestore: Master admin cloud video 100% permanently uploaded!");
                 }).catch(err => {
                     console.warn("Firestore notice:", err);
                 });
@@ -5958,7 +5944,7 @@ https://yetalk.cc`;
                 return;
             }
             const { collection, getDocs, query, orderBy, limit } = window.yetalkFs;
-            const q = query(collection(window.yetalkDb, "yetalk_videos"), orderBy("createdAt", "desc"), limit(100));
+            const q = query(collection(window.yetalkDb, "yetalk_videos"), orderBy("createdAt", "desc"), limit(300));
             const snap = await getDocs(q);
             if (!snap.empty) {
                 let localFeeds = [];
