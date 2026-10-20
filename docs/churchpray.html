@@ -198,7 +198,7 @@
 
         .chat-viewport {
             flex: 1; overflow-y: auto; overflow-x: hidden;
-            padding: 10px 12px calc(75px + env(safe-area-inset-bottom, 0px)) 12px;
+            padding: 10px 12px 10px 12px;
             display: flex; flex-direction: column; gap: 12px;
             -webkit-overflow-scrolling: touch;
         }
@@ -353,15 +353,15 @@
 <div class="pray-shell">
 
     <!-- 1. 헤더: 한 줄 단일행 (<-, 방이름, 방장, 입장(비공개), 예톡TV) -->
-    <header class="med-header" style="height:56px; background:#BACEE0; border-bottom:1.2px solid rgba(0,0,0,0.08); display:flex; justify-content:space-between; align-items:center; padding:calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px 12px; position:sticky; top:0; z-index:100; gap:6px;">
+    <header class="med-header" style="height:auto; min-height:54px; background:#BACEE0; border-bottom:1.2px solid rgba(0,0,0,0.08); display:flex; justify-content:space-between; align-items:center; padding:calc(env(safe-area-inset-top, 0px) + 8px) 8px 8px 8px; position:sticky; top:0; z-index:100; gap:4px; box-sizing:border-box;">
         <div style="display:flex; align-items:center; gap:4px; min-width:0; flex:1;">
-            <button type="button" class="btn-back" onclick="handleHeaderBackClick()" style="background:none; border:none; font-size:26px; font-weight:900; color:#191919; cursor:pointer; line-height:1; padding:2px 4px;" title="뒤로가기">‹</button>
-            <strong id="dispHeaderTitleText" style="font-size:16.5px; font-weight:950; color:#191919; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">성전 기도모임</strong>
+            <button type="button" class="btn-back" onclick="handleHeaderBackClick()" style="background:none; border:none; font-size:26px; font-weight:900; color:#191919; cursor:pointer; line-height:1; padding:2px 2px; flex-shrink:0;" title="뒤로가기">‹</button>
+            <strong id="dispHeaderTitleText" style="font-size:15.5px; font-weight:950; color:#191919; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">성전 기도모임</strong>
         </div>
         <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
-            <button type="button" onclick="openLeaderUnifiedModal()" style="background:#ffffff; border:1.2px solid #94a3b8; border-radius:14px; font-size:11.5px; font-weight:900; color:#0f172a; padding:4px 9px; cursor:pointer;">👑 방장</button>
-            <button type="button" id="btnPrayRoomLockState" onclick="toggleRoomLockState()" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:14px; font-size:11px; font-weight:850; color:#2563eb; padding:4px 8px; cursor:pointer;">입장(공개)</button>
-            <button type="button" onclick="location.href='index.html'" style="background:#dc2626; color:#ffffff; border:none; border-radius:14px; font-size:11px; font-weight:950; padding:4px 8px; cursor:pointer;">📺 예톡TV</button>
+            <button type="button" onclick="openLeaderUnifiedModal()" style="background:#ffffff; border:1.2px solid #94a3b8; border-radius:14px; font-size:11px; font-weight:950; color:#0f172a; padding:4px 7px; cursor:pointer; white-space:nowrap;">👑 방장</button>
+            <button type="button" id="btnPrayRoomLockState" onclick="toggleRoomLockState()" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:14px; font-size:10.5px; font-weight:850; color:#2563eb; padding:4px 7px; cursor:pointer; white-space:nowrap;">입장(공개)</button>
+            <button type="button" onclick="location.href='index.html'" style="background:#dc2626; color:#ffffff; border:none; border-radius:14px; font-size:10.5px; font-weight:950; padding:4px 7px; cursor:pointer; white-space:nowrap;">📺 예톡TV</button>
         </div>
     </header>
 
@@ -434,7 +434,7 @@
         <div class="chat-viewport" id="chatViewport"></div>
 
         <!-- 🌟 [사용자 요청] 맨밑에 한줄 댓글창 간단하게 안에 희미한 글도 적지말고 + 카톡 답장 연동 -->
-        <footer class="fixed-quick-comment-bar" style="position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; background:#BACEE0; border-top:1px solid rgba(0,0,0,0.08); padding:6px 12px calc(8px + env(safe-area-inset-bottom, 0px)) 12px; display:flex; flex-direction:column; gap:4px; z-index:9999; box-sizing:border-box;">
+        <footer class="fixed-quick-comment-bar" style="background:#BACEE0; border-top:1px solid rgba(0,0,0,0.08); padding:6px 12px calc(8px + env(safe-area-inset-bottom, 0px)) 12px; display:flex; flex-direction:column; gap:4px; flex-shrink:0; z-index:89; box-sizing:border-box;">
             <!-- 카톡 답장 중 표시 바 -->
             <div id="replyIndicatorBar" style="display:none; padding:4px 10px; background:rgba(255,255,255,0.95); border-radius:8px; font-size:11.5px; color:#0f172a; justify-content:space-between; align-items:center; border:1px solid #cbd5e1;">
                 <span id="replyIndicatorText" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85%;">↩️ 답장 작성 중...</span>
@@ -893,7 +893,13 @@
     }
 
     function editPrayMessage(msgId) {
-        if (!currentRoom) return;
+        if (!currentRoom) {
+            if (prayerRooms.length > 0) {
+                enterRoom(prayerRooms[0].id);
+            } else {
+                return;
+            }
+        }
         let msgs = [];
         try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
         const msg = msgs.find(m => m.id === msgId);
@@ -1001,7 +1007,13 @@
     }
 
     function submitSinglePrayer() {
-        if (!currentRoom) return;
+        if (!currentRoom) {
+            if (prayerRooms.length > 0) {
+                enterRoom(prayerRooms[0].id);
+            } else {
+                return;
+            }
+        }
         const input = document.getElementById("inpDirectPrayerText");
         let contentVal = input.value.trim();
 
@@ -1045,7 +1057,13 @@
     }
 
     function addReaction(msgId, type) {
-        if (!currentRoom) return;
+        if (!currentRoom) {
+            if (prayerRooms.length > 0) {
+                enterRoom(prayerRooms[0].id);
+            } else {
+                return;
+            }
+        }
         let msgs = [];
         try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
 
@@ -1128,7 +1146,13 @@
             showToast("기도제목을 입력해주세요.");
             return;
         }
-        if (!currentRoom) return;
+        if (!currentRoom) {
+            if (prayerRooms.length > 0) {
+                enterRoom(prayerRooms[0].id);
+            } else {
+                return;
+            }
+        }
         let msgs = [];
         try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
         const now = new Date();
@@ -1206,6 +1230,7 @@
     }
 
     // 🌟 [사용자 요청] 3-in-1 방장 통합 모달 (방이름 변경, 베스트글 지정, 라이브 유튜브 음성 설정 및 실행)
+    function openLeaderAdminModal() { openLeaderUnifiedModal(); }
     function openLeaderUnifiedModal() {
         const titleInp = document.getElementById("inpLeaderRoomTitle");
         const userInp = document.getElementById("inpLeaderUserTitle");
@@ -1346,6 +1371,23 @@
             btn.style.borderColor = isClosed ? "#f87171" : "#bfdbfe";
         }
     }
+
+    function approvePendingInPrayRoom(name) {
+        if (!currentRoom) return;
+        if (!currentRoom.members) currentRoom.members = [];
+        if (!currentRoom.members.includes(name)) currentRoom.members.push(name);
+        currentRoom.pending = (currentRoom.pending || []).filter(n => n !== name);
+        localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
+
+        let msgs = [];
+        try { msgs = JSON.parse(localStorage.getItem(getRoomChatKey())) || []; } catch(e){}
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        msgs.push({
+            id: Date.now(), order: msgs.length + 1, name: "\uC2DC\uC2A4\uD15C",
+            body: `\uD83C\uDF89 ${name} \uC131\uB3C4\uB2D8\uC758 \uC785\uC7A5\uC774 \uC778\uB3C4\uC790\uC5D0 \uC758\uD574 \uC2B9\uC778\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uD658\uC601\uD569\uB2C8\uB2E4!`,
+            time: timeStr, hearts: 0, hands: 0
+        });
         localStorage.setItem(getRoomChatKey(), JSON.stringify(msgs));
         renderChatMessages();
 
