@@ -28,10 +28,10 @@
         /* ================= 1. 로비 뷰 스타일 (한 줄 심플 헤더) ================= */
         .lobby-shell {
             display: flex; flex-direction: column; width: 100%; min-height: 100vh;
-            padding-bottom: 120px;
+            padding-bottom: 160px;
         }
 
-        /* 🌟 [사용자 요청] 최상단 한 줄 헤더: < [상시 중보기도] [특별 작정기도] [◀ 관리실] */
+        /* 🌟 [사용자 요청] 최상단 한 줄 헤더: < [상시 중보기도] [특별 작정기도] */
         .lobby-header-singleline {
             height: var(--header-h); background: #0f172a; border-bottom: 1.5px solid #1e293b;
             display: flex; align-items: center; justify-content: space-between;
@@ -62,23 +62,55 @@
             border: 1px solid rgba(255, 255, 255, 0.15) !important; font-weight: 700 !important;
         }
 
-        .btn-admin-pill {
-            background: rgba(220, 38, 38, 0.9); color: #ffffff; border: 1px solid #ef4444;
-            font-size: 11px; font-weight: 900; padding: 6px 9px; border-radius: 14px;
-            cursor: pointer; flex-shrink: 0; white-space: nowrap; line-height: 1;
-        }
-
         .main-scroll-content {
             flex: 1; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px;
         }
 
-        /* 하단 고정 100 애드몹 (다크 테마, 흰색 여백 없음) */
+        /* 방 카드 리스트 */
+        .room-grid-list { display: flex; flex-direction: column; gap: 8px; }
+        .room-card {
+            background: #111a2f; border: 1.5px solid #1e293b; border-radius: 12px;
+            padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; transition: all 0.15s ease;
+        }
+        .room-card:active { transform: scale(0.99); }
+        .room-card.leader-active {
+            background: linear-gradient(135deg, #102447, #132f5e);
+            border: 2px solid #38bdf8;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+        }
+        .room-info-col { display: flex; flex-direction: column; gap: 3px; }
+        .room-name-title { font-size: 14.5px; font-weight: 950; color: #ffffff; }
+        .room-leader-tag { font-size: 11.5px; font-weight: 800; color: #94a3b8; }
+        .room-card.leader-active .room-name-title { color: #facc15; }
+        .room-card.leader-active .room-leader-tag { color: #38bdf8; }
+
+        .room-action-wrap { display: flex; align-items: center; gap: 8px; }
+        .btn-room-edit-gear {
+            background: rgba(255, 255, 255, 0.08); border: 1px solid #475569; color: #cbd5e1;
+            padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; cursor: pointer;
+        }
+
+        .btn-add-room {
+            width: 100%; height: 42px; background: #16233b; border: 1.5px dashed #38bdf8;
+            border-radius: 10px; color: #38bdf8; font-size: 13px; font-weight: 950;
+            display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
+            margin-bottom: 35px;
+        }
+        .btn-add-room:active { background: #1f3154; }
+
+        /* 하단 고정 100 애드몹 (정규 100 대형 배너 규격) */
         .bottom-fixed-admob-footer {
             position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: 100%; max-width: 480px; height: 100px; background: #0b1326;
+            width: 100%; max-width: 480px; height: 130px; background: #0b1326;
             border-top: 1.5px solid #1e3a5f; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; gap: 3px; z-index: 150;
+            align-items: center; justify-content: center; gap: 4px; z-index: 150;
             padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px); box-sizing: border-box;
+        }
+        .admob-banner-100-slot {
+            width: 320px; max-width: calc(100% - 24px); height: 100px;
+            background: #0f172a; border: 1.2px solid #1e3a5f; border-radius: 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
         }
 
         /* 방 카드 리스트 */
@@ -130,9 +162,9 @@
             position: relative;
         }
         .chat-room-header {
-            height: 56px; background: #BACEE0; border-bottom: 1.2px solid rgba(0,0,0,0.08);
+            height: var(--header-h); background: #BACEE0; border-bottom: 1.2px solid rgba(0,0,0,0.08);
             display: flex; justify-content: space-between; align-items: center;
-            padding: max(env(safe-area-inset-top, 0px) + 8px, 12px) 12px 8px 12px;
+            padding: var(--safe-top) 12px 8px 12px;
             position: sticky; top: 0; z-index: 100; gap: 6px;
         }
         .btn-chat-back {
@@ -253,7 +285,6 @@
                 <button type="button" class="tab-btn active" id="tab_intercess" onclick="switchCategory('intercess')">🙏 상시 중보기도</button>
                 <button type="button" class="tab-btn" id="tab_special" onclick="switchCategory('special')">🔥 특별 작정기도</button>
             </div>
-            <button type="button" class="btn-admin-pill" onclick="location.href='churchadmin.html'" title="관리실 전체설정">◀ 관리실</button>
         </header>
 
         <main class="main-scroll-content">
@@ -264,23 +295,15 @@
             <button type="button" class="btn-add-room" onclick="openAddRoomModal()">
                 <span>➕</span> <span id="btnAddRoomText">새 중보기도방 추가하기</span>
             </button>
-
-            <!-- 4번 바뀌는 말씀 카드 (5초 간격으로 회전) -->
-            <section class="verse-cycle-card">
-                <div class="verse-cycle-badge" id="verseCycleCount">✝ 기도의 말씀 (1/4)</div>
-                <div class="verse-cycle-text" id="verseCycleText">
-                    “너는 내게 부르짖으라 내가 네게 응답하겠고 네가 알지 못하는 크고 은밀한 일을 네게 보이리라 (렘 33:3)”
-                </div>
-            </section>
         </main>
 
-        <!-- 🌟 [사용자 요청] 하단 고정 100 애드몹 (순수 다크 테마, 흰색 여백 없음) -->
+        <!-- 🌟 [사용자 요청] 하단 고정 100 애드몹 (정규 100 대형 배너 규격 300 × 100) -->
         <aside class="bottom-fixed-admob-footer">
             <div style="font-size:9.5px; color:#64748b; font-weight:850; letter-spacing:0.5px;">
                 <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
             </div>
-            <div style="width:calc(100% - 20px); max-width:380px; height:68px; background:#0f172a; border:1.2px solid #1e3a5f; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;">
-                <strong style="color:#38bdf8; font-size:13.5px; font-weight:950;">Google AdMob (300 × 100 / Large Banner)</strong>
+            <div class="admob-banner-100-slot">
+                <strong style="color:#38bdf8; font-size:14px; font-weight:950;">Google AdMob (300 × 100 / Large Banner)</strong>
                 <span style="color:#facc15; font-size:11px; font-weight:800;">성전 기도모임 및 중보기도 사역 공식 후원 슬롯</span>
             </div>
         </aside>
@@ -421,16 +444,9 @@
             <button type="button" onclick="saveLeaderRoomNameAndUser()" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:7px; font-size:12px; font-weight:900; cursor:pointer;">💾 변경 저장</button>
         </div>
 
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
-            <span style="font-size:12px; font-weight:900; color:#d97706;">2️⃣ 실시간 베스트글 지정 (상단 고정)</span>
-            <div style="font-size:11px; color:#64748b;">상단에 노출할 기도제목을 선택하세요:</div>
-            <select id="selBestPostPicker" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12.5px; font-weight:800; box-sizing:border-box; background:#fff;"></select>
-            <button type="button" onclick="applyLeaderBestPostSelection()" style="background:#d97706; color:#fff; border:none; border-radius:6px; padding:7px; font-size:12px; font-weight:900; cursor:pointer;">📌 선택한 글을 베스트로 고정</button>
-        </div>
-
         <div style="background:#0f172a; border:1px solid #1e3a5f; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; color:#fff;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span style="font-size:12px; font-weight:900; color:#ef4444;">3️⃣ 실시간 기도회 라이브 음성</span>
+                <span style="font-size:12px; font-weight:900; color:#ef4444;">2️⃣ 실시간 기도회 라이브 음성</span>
                 <span id="dispLiveIndicatorInModal" style="font-size:10px; background:#475569; padding:1px 5px; border-radius:4px;">대기중</span>
             </div>
             <input type="text" id="inpLeaderLiveYtUrl" style="width:100%; background:#1e293b; border:1px solid #334155; border-radius:6px; padding:8px 9px; font-size:12.5px; color:#38bdf8; font-weight:800; box-sizing:border-box;" onclick="this.value='';" onfocus="this.select();" placeholder="https://www.youtube.com/watch?v=...">
@@ -441,7 +457,7 @@
         </div>
 
         <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
-            <span style="font-size:12px; font-weight:900; color:#334155;">4️⃣ 입장 공개 / 비공개 설정</span>
+            <span style="font-size:12px; font-weight:900; color:#334155;">3️⃣ 입장 공개 / 비공개 설정</span>
             <div style="display:flex; gap:12px; align-items:center;">
                 <label style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:800; cursor:pointer;">
                     <input type="radio" name="radUnifiedLock" value="public" id="radLockPublic" onchange="toggleModalPinGroup(false)"> 공개방
@@ -500,14 +516,16 @@
         { id: "pr_1", name: "다니엘 중보기도방", leader: "중보기도팀장" },
         { id: "pr_2", name: "24시간 연속기도방", leader: "에스더권사" },
         { id: "pr_3", name: "환우치유 기도방", leader: "사랑치유팀" },
-        { id: "pr_4", name: "새신자 축복기도방", leader: "" }
+        { id: "pr_4", name: "새신자 축복기도방", leader: "바나바사역자" },
+        { id: "pr_5", name: "가정과 자녀를 위한 기도방", leader: "" }
     ];
 
     const DEFAULT_SPECIAL_ROOMS = [
-        { id: "pr_5", name: "나라와 민족 구국기도방", leader: "구국기도팀" },
-        { id: "pr_6", name: "수험생·자녀 축복기도방", leader: "어머니기도회" },
-        { id: "pr_7", name: "선교지 연합기도방", leader: "" },
-        { id: "pr_8", name: "교회부흥 작정기도방", leader: "" }
+        { id: "pr_6", name: "나라와 민족 구국기도방", leader: "구국기도팀" },
+        { id: "pr_7", name: "수험생·자녀 축복기도방", leader: "어머니기도회" },
+        { id: "pr_8", name: "선교지 연합기도방", leader: "선교사역팀" },
+        { id: "pr_9", name: "교회부흥 작정기도방", leader: "부흥사역팀" },
+        { id: "pr_10", name: "성령충만 심야작정기도방", leader: "" }
     ];
 
     let activeRoom = null;
@@ -528,14 +546,13 @@
         const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
         document.body.setAttribute('data-theme', savedTheme);
 
-        const savedI = localStorage.getItem("yetalk_pray_rooms_intercess");
+        const savedI = localStorage.getItem("yetalk_pray_rooms_intercess_v3");
         intercessRooms = savedI ? JSON.parse(savedI) : DEFAULT_INTERCESS_ROOMS;
 
-        const savedS = localStorage.getItem("yetalk_pray_rooms_special");
+        const savedS = localStorage.getItem("yetalk_pray_rooms_special_v3");
         specialRooms = savedS ? JSON.parse(savedS) : DEFAULT_SPECIAL_ROOMS;
 
         switchCategory("intercess");
-        startVerseCycle();
     }
 
     function switchCategory(cat) {
@@ -839,22 +856,11 @@
         showToast("📌 베스트글 고정이 해제되었습니다.");
     }
 
-    // 방장 3-in-1 모달
+    // 방장 모달 열기
     function openLeaderUnifiedModal() {
         if (!activeRoom) return;
         document.getElementById("inpLeaderRoomTitle").value = activeRoom.name;
         document.getElementById("inpLeaderUserTitle").value = activeRoom.leader || "";
-
-        const sel = document.getElementById("selBestPostPicker");
-        sel.innerHTML = "";
-        prayPosts.forEach(p => {
-            const opt = document.createElement("option");
-            opt.value = p.id;
-            opt.innerText = `[${p.author}] ${(p.text || '(사진)').substring(0, 26)}`;
-            if (p.id === pinnedBestPostId) opt.selected = true;
-            sel.appendChild(opt);
-        });
-
         document.getElementById("modalLeaderUnified").style.display = "flex";
     }
 

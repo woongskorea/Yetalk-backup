@@ -226,47 +226,38 @@ function initChurchData() {
 function restoreLastActiveCard(instant) {
     let targetCard = 0;
     try {
+        const lastCard = sessionStorage.getItem("church_last_active_card_idx");
         const urlParams = new URLSearchParams(window.location.search);
         const cardParam = urlParams.get("card");
-        const lastCard = sessionStorage.getItem("church_last_active_card_idx");
-        if (cardParam !== null && !isNaN(parseInt(cardParam, 10))) {
-            targetCard = parseInt(cardParam, 10);
-        } else if (lastCard !== null && !isNaN(parseInt(lastCard, 10))) {
+        if (lastCard !== null && !isNaN(parseInt(lastCard, 10))) {
             targetCard = parseInt(lastCard, 10);
+        } else if (cardParam !== null && !isNaN(parseInt(cardParam, 10))) {
+            targetCard = parseInt(cardParam, 10);
         }
     } catch(e) {}
 
-    if (targetCard > 0 && targetCard < MENU_DEFINITIONS.length) {
+    if (targetCard >= 0 && targetCard < MENU_DEFINITIONS.length) {
         activeSecId = targetCard;
         updateChipsBar(targetCard);
+        if (targetCard === 0) {
+            startCard0AutoSlide();
+            return;
+        }
         const target = document.getElementById(`section_card_${targetCard}`);
         const vp = document.getElementById("churchViewport");
         if (target && vp) {
             isProgrammaticChurchScroll = true;
             vp.style.scrollSnapType = "none";
+            vp.scrollTop = target.offsetTop;
 
-            const applyTargetScroll = () => {
-                const el = document.getElementById(`section_card_${targetCard}`);
-                if (el) {
-                    vp.scrollTop = el.offsetTop;
-                }
-                activeSecId = targetCard;
-                updateChipsBar(targetCard);
+            requestAnimationFrame(() => {
+                vp.scrollTop = target.offsetTop;
                 checkAdmobFooterExclusion();
-            };
-
-            applyTargetScroll();
-            setTimeout(applyTargetScroll, 60);
-            setTimeout(applyTargetScroll, 180);
-
-            setTimeout(() => {
-                applyTargetScroll();
-                vp.style.scrollSnapType = "y mandatory";
-            }, 450);
-
-            setTimeout(() => {
-                isProgrammaticChurchScroll = false;
-            }, 750);
+                setTimeout(() => {
+                    vp.style.scrollSnapType = "y mandatory";
+                    isProgrammaticChurchScroll = false;
+                }, 80);
+            });
         }
     } else {
         // 4초 간격 첫 메뉴(교회 카드 0) 자동 슬라이드 시작
@@ -769,6 +760,12 @@ function updateChipsBar(idx) {
     if (curMenu && subTitle) {
         subTitle.innerText = `${curMenu.cat}`;
     }
+    try {
+        sessionStorage.setItem("church_last_active_card_idx", idx.toString());
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set("card", idx.toString());
+        history.replaceState(null, "", newUrl.toString());
+    } catch(e) {}
     checkAdmobFooterExclusion();
 }
 
