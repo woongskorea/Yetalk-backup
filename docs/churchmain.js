@@ -181,6 +181,10 @@ function initChurchData() {
             const list7 = churchSlideData[7];
             if (!list7 || !Array.isArray(list7) || list7.length < 3 || !list7[list7.length - 1].isAdmob250 || list7.some(isDoctorDirtySlide) || needVerseMigration) {
                 churchSlideData[7] = createDefaultSlides("소모임방", false);
+            } else {
+                churchSlideData[7].forEach(s => {
+                    if (s.title === "보배성도" || !s.title) s.title = "소모임방";
+                });
             }
         } else if (m.id === 6) {
             const list6 = churchSlideData[6];
@@ -522,7 +526,7 @@ function renderChurchView() {
                 <img class="card-bg-img" id="slide_img_${sec.id}" src="${cur.img}" alt="${sec.cat}">
                 <div class="card-gradient-overlay"></div>
 
-                <!-- 🌟 250 애드몹 (300 × 250) 슬롯 (보배성도/공지알림 마지막 슬라이드 전용) -->
+                <!-- 🌟 250 애드몹 (300 × 250) 슬롯 (소모임방/공지알림 마지막 슬라이드 전용) -->
                 <div class="card-embedded-admob-250" id="cardEmbeddedAdmob_${sec.id}" style="display:none; width:300px; height:250px; background:#0b1120; border:1.5px solid #1e3a5f; border-radius:16px; box-shadow:0 4px 18px rgba(0,0,0,0.6); flex-direction:column; align-items:center; justify-content:center; text-align:center; position:absolute; top:42%; left:50%; transform:translate(-50%, -50%); z-index:15;">
                     <div style="font-size:10px; color:#64748b; font-weight:900; letter-spacing:0.8px; margin-bottom:6px;">AD • Google AdMob 공식 스폰서 (300 × 250)</div>
                     <div style="font-size:16px; font-weight:900; color:#38bdf8; margin-bottom:4px;">Google AdMob Medium Rectangle</div>
@@ -536,7 +540,7 @@ function renderChurchView() {
                 <!-- 🌟 카드 상단: 좌측 메뉴 타이틀 + 우측 관리/화면수정 버튼 (관리자 전용) -->
                 <div class="card-top-content">
                     <div class="card-top-bar">
-                        <h2 class="card-title-main" id="slide_title_${sec.id}">${cur.title || sec.cat}</h2>
+                        <h2 class="card-title-main" id="slide_title_${sec.id}">${sec.id === 7 ? '소모임방' : (cur.title || sec.cat)}</h2>
                         ${checkIsSubAdminOrAbove() ? `
                             <div class="card-top-admin-group">
                                 <button type="button" class="btn-card-admin-room" onclick="event.stopPropagation(); location.href='churchadmin.html';" title="교회 관리실 이동">🏛️ 관리</button>
@@ -656,7 +660,9 @@ function updateSlideContent(secId, idx) {
         if (admobEl) admobEl.style.display = "none";
     }
 
-    if (titleEl) titleEl.innerText = cur.title || MENU_DEFINITIONS[secId].cat;
+    let displayTitle = cur.title || MENU_DEFINITIONS[secId].cat;
+    if (secId === 7 && (displayTitle === "보배성도" || !displayTitle)) displayTitle = "소모임방";
+    if (titleEl) titleEl.innerText = displayTitle;
     if (verseEl) verseEl.innerText = cur.verse || "";
     if (bodyEl) bodyEl.innerText = cur.body || "";
 

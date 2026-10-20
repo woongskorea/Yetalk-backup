@@ -342,20 +342,20 @@
         .chat-msg-row.me { align-self: flex-end; flex-direction: row-reverse; }
 
         .chat-avatar {
-            width: 34px; height: 34px; border-radius: 12px; background: #ffffff;
+            width: 28px; height: 28px; border-radius: 10px; background: #ffffff;
             display: flex; align-items: center; justify-content: center;
-            font-size: 17px; flex-shrink: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            font-size: 14px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .chat-msg-content { display: flex; flex-direction: column; gap: 2px; }
-        .chat-sender-name { font-size: 11.5px; color: #475569; font-weight: 800; }
+        .chat-sender-name { font-size: 11px; color: #475569; font-weight: 800; }
         .chat-bubble-wrap { display: flex; align-items: flex-end; gap: 4px; }
         .chat-msg-row.me .chat-bubble-wrap { flex-direction: row-reverse; }
 
         .chat-bubble {
-            padding: 8px 12px; border-radius: 14px; font-size: 14px;
-            line-height: 1.45; word-break: break-word; white-space: pre-wrap;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); font-weight: 550;
+            padding: 5px 10px; border-radius: 12px; font-size: 13px;
+            line-height: 1.38; word-break: break-word; white-space: pre-wrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); font-weight: 550;
         }
         .chat-msg-row.other .chat-bubble {
             background: #ffffff; color: #0f172a; border-top-left-radius: 2px;
@@ -363,14 +363,14 @@
         .chat-msg-row.me .chat-bubble {
             background: var(--kakao-yellow); color: #0f172a; border-top-right-radius: 2px;
         }
-        .chat-time { font-size: 10px; color: #64748b; font-weight: 600; white-space: nowrap; }
+        .chat-time { font-size: 9.5px; color: #64748b; font-weight: 600; white-space: nowrap; }
 
         /* 하단 카톡 전송 바 */
         .kakao-chat-input-bar {
-            background: #ffffff;
-            padding: 8px 12px calc(10px + env(safe-area-inset-bottom, 0px)) 12px;
-            display: flex; align-items: center; gap: 8px; flex-shrink: 0;
-            border-top: 1px solid #cbd5e1;
+            background: #BACEE0;
+            padding: 5px 10px calc(6px + env(safe-area-inset-bottom, 0px)) 10px;
+            display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+            border-top: 1px solid rgba(0,0,0,0.08);
         }
         .btn-chat-plus {
             width: 34px; height: 34px; border-radius: 50%; background: #f1f5f9;
@@ -485,8 +485,8 @@
     <div class="prayer-music-thin-box" style="margin: 0 12px 8px 12px; padding: 4px 10px; background: #ffffff; border-radius: 10px; border: 1.2px solid #bcd0e2; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; gap: 6px;">
         <span style="font-size:11px; font-weight:900; color:#475569; padding-left:4px; white-space:nowrap;">기도</span>
         <div style="display:flex; gap:6px; flex:1; justify-content:flex-end;">
-            <button type="button" class="btn-prayer-thin" id="btnMemberOuterBgmTongue" onclick="switchMemberBgmTrack('tongue')">방언기도</button>
-            <button type="button" class="btn-prayer-thin active" id="btnMemberOuterBgmPraise" onclick="switchMemberBgmTrack('praise')">찬양기도</button>
+            <button type="button" class="btn-prayer-thin" id="btnMemberOuterBgmTongue" onclick="switchMemberBgmTrack('tongue')">🕊️ 방언기도</button>
+            <button type="button" class="btn-prayer-thin" id="btnMemberOuterBgmPraise" onclick="switchMemberBgmTrack('praise')">🎵 찬양기도</button>
             <button type="button" class="btn-prayer-thin" id="btnMemberOuterBgmStop" onclick="toggleMemberBgmStop()">⏹️ 중지</button>
         </div>
     </div>
@@ -578,7 +578,7 @@
             </div>
             <div class="prayer-pill-btn-group">
                 <button type="button" class="btn-prayer-pill" id="btnMemberBgmTongue" onclick="switchMemberBgmTrack('tongue')">🕊️ 방언기도</button>
-                <button type="button" class="btn-prayer-pill active-praise" id="btnMemberBgmPraise" onclick="switchMemberBgmTrack('praise')">🎶 찬양기도</button>
+                <button type="button" class="btn-prayer-pill" id="btnMemberBgmPraise" onclick="switchMemberBgmTrack('praise')">🎵 찬양기도</button>
                 <button type="button" class="btn-prayer-pill btn-stop" id="btnMemberBgmStop" onclick="toggleMemberBgmStop()">⏹️ 중지</button>
             </div>
         </div>
@@ -1479,79 +1479,165 @@
         showToast("🎉 새로운 셀(목장) 소모임방이 개설되었습니다!");
     }
 
-    // 🌟 유튜브 기도음악 백그라운드 재생 ON/OFF 토글
-    let currentMemberBgmTrack = 'praise';
+    // 🌟 고성능 Web Audio API 기반 기도음악 (방언기도 / 찬양기도 무중단 신시사이저)
+    let memberAudioCtx = null;
+    let memberAudioNodes = [];
+    let memberAudioTimer = null;
+    let currentMemberAudioType = null; // 'tongue' | 'praise' | null
 
-    function switchMemberBgmTrack(track) {
-        currentMemberBgmTrack = track;
+    function stopMemberAudioSynth() {
+        currentMemberAudioType = null;
+        if (memberAudioTimer) clearInterval(memberAudioTimer);
+        memberAudioTimer = null;
+        if (memberAudioNodes) {
+            memberAudioNodes.forEach(n => {
+                try {
+                    n.gain.setTargetAtTime(0, memberAudioCtx.currentTime, 0.4);
+                    setTimeout(() => n.osc.stop(), 500);
+                } catch(e){}
+            });
+        }
+        memberAudioNodes = [];
+
         const bTongue = document.getElementById('btnMemberBgmTongue');
         const bPraise = document.getElementById('btnMemberBgmPraise');
         const bStop = document.getElementById('btnMemberBgmStop');
-
-        if (bTongue) {
-            bTongue.classList.remove('active-tongue', 'active-praise');
-            if (track === 'tongue') bTongue.classList.add('active-tongue');
+        if (bTongue) bTongue.classList.remove('active-tongue', 'active-praise');
+        if (bPraise) bPraise.classList.remove('active-tongue', 'active-praise');
+        if (bStop) {
+            bStop.innerText = "▶️ 재생";
+            bStop.classList.remove('active');
         }
-        if (bPraise) {
-            bPraise.classList.remove('active-tongue', 'active-praise');
-            if (track === 'praise') bPraise.classList.add('active-praise');
+
+        const bOutTongue = document.getElementById('btnMemberOuterBgmTongue');
+        const bOutPraise = document.getElementById('btnMemberOuterBgmPraise');
+        const bOutStop = document.getElementById('btnMemberOuterBgmStop');
+        if (bOutTongue) bOutTongue.classList.remove('active');
+        if (bOutPraise) bOutPraise.classList.remove('active');
+        if (bOutStop) bOutStop.innerText = "▶️ 재생";
+
+        const btn = document.getElementById("btnPrayerMusic");
+        const chip = document.getElementById("chipMusicState");
+        const label = document.getElementById("txtMusicLabel");
+        if (btn) btn.classList.remove("playing");
+        if (label) label.innerText = "기도음악";
+        if (chip) chip.innerText = "🎵 찬양 OFF";
+    }
+
+    async function startMemberAudioSynth(type) {
+        stopMemberAudioSynth();
+        currentMemberAudioType = type;
+
+        const bTongue = document.getElementById('btnMemberBgmTongue');
+        const bPraise = document.getElementById('btnMemberBgmPraise');
+        const bStop = document.getElementById('btnMemberBgmStop');
+        if (type === 'tongue') {
+            if (bTongue) bTongue.classList.add('active-tongue');
+            showToast("🕊️ 방언기도 소리가 재생됩니다.");
+        } else {
+            if (bPraise) bPraise.classList.add('active-praise');
+            showToast("🎶 찬양기도 소리가 재생됩니다.");
         }
         if (bStop) {
             bStop.innerText = "⏹️ 중지";
+            bStop.classList.add('active');
         }
 
-        let url = "";
-        if (track === 'tongue') {
-            url = localStorage.getItem("yetalk_church_bg_music_tongue") || "https://www.youtube.com/watch?v=M7lc1UVf-VE";
-            showToast("🕊️ 방언기도 소리가 재생됩니다.");
-        } else {
-            url = localStorage.getItem("yetalk_church_bg_music_praise") || localStorage.getItem(MUSIC_STORAGE_KEY) || "https://www.youtube.com/watch?v=jfKfPfyJRdk";
-            showToast("🎶 찬양기도 소리가 재생됩니다.");
-        }
-
-        const iframe = document.getElementById("bgMusicIframe");
-        if (iframe) {
-            const embedSrc = `https://www.youtube.com/embed/${detectYtId(url) || 'jfKfPfyJRdk'}`;
-            iframe.src = `${embedSrc}?autoplay=1&loop=1`;
-        }
-        isMusicPlaying = true;
+        const bOutTongue = document.getElementById('btnMemberOuterBgmTongue');
+        const bOutPraise = document.getElementById('btnMemberOuterBgmPraise');
+        const bOutStop = document.getElementById('btnMemberOuterBgmStop');
+        if (type === 'tongue' && bOutTongue) bOutTongue.classList.add('active');
+        if (type === 'praise' && bOutPraise) bOutPraise.classList.add('active');
+        if (bOutStop) bOutStop.innerText = "⏹️ 중지";
 
         const btn = document.getElementById("btnPrayerMusic");
         const chip = document.getElementById("chipMusicState");
         const label = document.getElementById("txtMusicLabel");
         if (btn) btn.classList.add("playing");
-        if (label) label.innerText = "찬양 중";
-        if (chip) chip.innerText = "🎶 찬양 ON";
+        if (label) label.innerText = "기도 중";
+        if (chip) chip.innerText = "🎶 기도 ON";
+
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!memberAudioCtx) memberAudioCtx = new AudioContext();
+            if (memberAudioCtx.state === "suspended") {
+                await memberAudioCtx.resume();
+            }
+        } catch(e) {
+            return;
+        }
+
+        const chords = (type === 'tongue') ? [
+            [261.63, 329.63, 392.00, 523.25], // C major
+            [246.94, 293.66, 392.00, 493.88], // G major
+            [220.00, 261.63, 329.63, 440.00], // Am
+            [174.61, 261.63, 349.23, 440.00]  // F major
+        ] : [
+            [146.83, 220.00, 293.66, 369.99], // D major
+            [220.00, 277.18, 329.63, 440.00], // A major
+            [123.47, 185.00, 220.00, 293.66], // Bm
+            [196.00, 246.94, 293.66, 392.00]  // G major
+        ];
+
+        let chordIdx = 0;
+        function playChord() {
+            if (!currentMemberAudioType || !memberAudioCtx) return;
+            const freqs = chords[chordIdx % chords.length];
+            chordIdx++;
+
+            const filter = memberAudioCtx.createBiquadFilter();
+            filter.type = "lowpass";
+            filter.frequency.setValueAtTime(type === 'tongue' ? 700 : 950, memberAudioCtx.currentTime);
+
+            const now = memberAudioCtx.currentTime;
+            const duration = 3.8;
+
+            freqs.forEach((f, i) => {
+                const osc = memberAudioCtx.createOscillator();
+                const gain = memberAudioCtx.createGain();
+
+                osc.type = (type === 'tongue') ? (i % 2 === 0 ? "triangle" : "sine") : (i % 2 === 0 ? "sine" : "triangle");
+                osc.frequency.setValueAtTime(f, now);
+
+                const targetGain = 0.16 / freqs.length;
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(targetGain, now + 1.2);
+                gain.gain.setValueAtTime(targetGain, now + duration - 1.0);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+                osc.connect(gain);
+                gain.connect(filter);
+                filter.connect(memberAudioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + duration + 0.1);
+                memberAudioNodes.push({ osc, gain });
+            });
+        }
+
+        playChord();
+        memberAudioTimer = setInterval(playChord, 3600);
     }
 
-    function togglePrayerMusic() {
-        const iframe = document.getElementById("bgMusicIframe");
-        const btn = document.getElementById("btnPrayerMusic");
-        const chip = document.getElementById("chipMusicState");
-        const label = document.getElementById("txtMusicLabel");
-
-        if (isMusicPlaying) {
-            if (iframe) iframe.src = "";
-            isMusicPlaying = false;
-            if (btn) btn.classList.remove("playing");
-            if (label) label.innerText = "기도음악";
-            if (chip) chip.innerText = "🎵 찬양 OFF";
-
-            const bTongue = document.getElementById('btnMemberBgmTongue');
-            const bPraise = document.getElementById('btnMemberBgmPraise');
-            const bStop = document.getElementById('btnMemberBgmStop');
-            if (bTongue) bTongue.classList.remove('active-tongue', 'active-praise');
-            if (bPraise) bPraise.classList.remove('active-tongue', 'active-praise');
-            if (bStop) bStop.innerText = "▶️ 재생";
-
-            showToast("⏹️ 기도가 일시 중지되었습니다.");
+    function switchMemberBgmTrack(track) {
+        if (currentMemberAudioType === track) {
+            stopMemberAudioSynth();
         } else {
-            switchMemberBgmTrack(currentMemberBgmTrack || 'praise');
+            startMemberAudioSynth(track);
         }
     }
 
+    function togglePrayerMusic() {
+        toggleMemberBgmStop();
+    }
+
     function toggleMemberBgmStop() {
-        togglePrayerMusic();
+        if (currentMemberAudioType) {
+            stopMemberAudioSynth();
+            showToast("⏹️ 기도가 일시 중지되었습니다.");
+        } else {
+            startMemberAudioSynth('praise');
+        }
     }
 
     function toggleMemberLongWrite() {

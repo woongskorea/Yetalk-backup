@@ -393,7 +393,7 @@
         </div>
         <div class="prayer-pill-btn-group">
             <button type="button" class="btn-prayer-pill" id="btnPrayerMusic_1" onclick="togglePrayerBgm(1)">🕊️ 방언기도</button>
-            <button type="button" class="btn-prayer-pill active-praise" id="btnPrayerMusic_3" onclick="togglePrayerBgm(3)">🎶 찬양기도</button>
+            <button type="button" class="btn-prayer-pill" id="btnPrayerMusic_3" onclick="togglePrayerBgm(3)">🎵 찬양기도</button>
             <button type="button" class="btn-prayer-pill btn-stop" id="btnPrayerMusic_stop" onclick="togglePrayerBgmStop()">⏹️ 중지</button>
         </div>
     </div>
@@ -976,6 +976,7 @@
     function togglePrayerBgmStop() {
         if (currentBgmType) {
             stopPrayerBgm();
+            showToast("⏹️ 기도가 일시 중지되었습니다.");
         } else {
             startPrayerBgm(lastPrayerType || 1);
         }
@@ -1001,14 +1002,20 @@
         if (st) st.innerText = "기도를 선택하세요";
     }
 
-    function startPrayerBgm(type) {
+    async function startPrayerBgm(type) {
         stopPrayerBgm();
         currentBgmType = type;
         lastPrayerType = type;
         const b1 = document.getElementById("btnPrayerMusic_1");
         const b3 = document.getElementById("btnPrayerMusic_3");
-        if (type === 1 && b1) b1.classList.add("active-tongue");
-        if (type === 3 && b3) b3.classList.add("active-praise");
+        if (type === 1 && b1) {
+            b1.classList.add("active-tongue");
+            showToast("🕊️ 방언기도 소리가 재생됩니다.");
+        }
+        if (type === 3 && b3) {
+            b3.classList.add("active-praise");
+            showToast("🎶 찬양기도 소리가 재생됩니다.");
+        }
         const stopBtn = document.getElementById("btnPrayerMusic_stop");
         if (stopBtn) {
             stopBtn.innerText = "⏹️ 중지";
@@ -1021,7 +1028,9 @@
         try {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (!prayerBgmCtx) prayerBgmCtx = new AudioContext();
-            if (prayerBgmCtx.state === "suspended") prayerBgmCtx.resume();
+            if (prayerBgmCtx.state === "suspended") {
+                await prayerBgmCtx.resume();
+            }
         } catch(e) {
             return;
         }
@@ -1048,16 +1057,16 @@
         };
 
         let chordIdx = 0;
-        const chords = chordsMap[type];
+        const chords = chordsMap[type] || chordsMap[1];
 
         function playChord() {
-            if (!currentBgmType) return;
+            if (!currentBgmType || !prayerBgmCtx) return;
             const freqs = chords[chordIdx % chords.length];
             chordIdx++;
 
             const filter = prayerBgmCtx.createBiquadFilter();
             filter.type = "lowpass";
-            filter.frequency.setValueAtTime(type === 3 ? 550 : 850, prayerBgmCtx.currentTime);
+            filter.frequency.setValueAtTime(type === 3 ? 650 : 850, prayerBgmCtx.currentTime);
 
             const now = prayerBgmCtx.currentTime;
             const duration = 3.8;
@@ -1069,9 +1078,10 @@
                 osc.type = (type === 1) ? (i % 2 === 0 ? "triangle" : "sine") : (type === 2 ? "sine" : "triangle");
                 osc.frequency.setValueAtTime(f, now);
 
+                const targetGain = 0.16 / freqs.length;
                 gain.gain.setValueAtTime(0.001, now);
-                gain.gain.linearRampToValueAtTime(0.038 / freqs.length, now + 1.2);
-                gain.gain.setValueAtTime(0.038 / freqs.length, now + duration - 1.0);
+                gain.gain.linearRampToValueAtTime(targetGain, now + 1.2);
+                gain.gain.setValueAtTime(targetGain, now + duration - 1.0);
                 gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
                 osc.connect(gain);
