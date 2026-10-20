@@ -923,6 +923,7 @@
     // 🌟 보물창고 자동 아카이브 등록 함수 (지난 설교 자동 보관)
     function autoArchiveSermon(category, title, bible, preacher, yt) {
         try {
+            if (!title || title.trim() === "" || title.trim() === "가") return;
             const key = "yetalk_church_archive_records";
             let archives = [];
             try {
@@ -1122,7 +1123,7 @@
             try {
                 worshipData = JSON.parse(saved);
                 WORSHIP_KEYS.forEach(k => {
-                    if (!worshipData[k]) worshipData[k] = DEFAULT_DATA[k];
+                    if (!worshipData[k] || worshipData[k].title === "가" || !worshipData[k].title) worshipData[k] = DEFAULT_DATA[k];
                     if (worshipData[k].broadcastToTv === undefined) {
                         worshipData[k].broadcastToTv = true;
                     }
@@ -1136,14 +1137,6 @@
         activeWorshipIndex = parseInitialTab();
         syncTabMenuUI(activeWorshipIndex);
         renderWorshipSection(activeWorshipIndex);
-
-        // 기본 설교 보물창고 자동 동기화
-        WORSHIP_KEYS.forEach(k => {
-            const it = worshipData[k];
-            if (it && it.title) {
-                autoArchiveSermon(it.tabName, it.title, it.bible, it.preacher, it.yt);
-            }
-        });
     }
 
     function checkPcAdmobHide() {
