@@ -91,7 +91,9 @@
         .board-post-card {
             background: #101f33; border: 1px solid #1e3553; border-radius: 10px;
             padding: 12px; display: flex; flex-direction: column; gap: 6px; cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
         }
+        .board-post-card:active { transform: scale(0.98); border-color: #38bdf8; }
         .board-post-head { display: flex; justify-content: space-between; align-items: center; }
         .post-badge {
             background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4);
@@ -105,7 +107,9 @@
         .vertical-item-card {
             background: #101c2e; border: 1px solid #1e334d; border-radius: 10px;
             padding: 12px; display: flex; gap: 10px; align-items: center; cursor: pointer;
+            transition: transform 0.15s, border-color 0.15s;
         }
+        .vertical-item-card:active { transform: scale(0.98); border-color: #facc15; }
         .item-thumb {
             width: 70px; height: 70px; border-radius: 8px; background: #1e293b center/cover no-repeat;
             flex-shrink: 0; border: 1px solid #284466;
@@ -130,7 +134,7 @@
 
         /* 모달 공통 */
         .modal-overlay {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
             z-index: 10000; align-items: center; justify-content: center; padding: 16px;
             backdrop-filter: blur(8px);
         }
@@ -147,11 +151,24 @@
         }
         textarea.modal-input { resize: none; height: 90px; }
 
-        /* 대형 QR코드 박스 */
+        /* 토스트 알림 (ALERT창 대신 부드러운 상단 토스트) */
+        .shop-toast-msg {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: rgba(15, 23, 42, 0.95); border: 1.5px solid #38bdf8;
+            color: #ffffff; padding: 10px 18px; border-radius: 20px;
+            font-size: 13px; font-weight: 850; z-index: 99999;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6); pointer-events: none;
+            opacity: 0; transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        .shop-toast-msg.show {
+            opacity: 1; transform: translateX(-50%) translateY(0);
+        }
+
+        /* 대형 QR코드 박스 (오류사진 없는 신뢰성 있는 렌더링) */
         .qr-display-box {
             background: #ffffff; border-radius: 12px; padding: 14px;
             display: inline-flex; justify-content: center; align-items: center; margin: 0 auto;
-            border: 4px solid #facc15;
+            border: 4px solid #facc15; min-width: 210px; min-height: 210px;
         }
         .qr-display-box img { width: 210px; height: 210px; display: block; }
         .qr-print-actions { display: flex; gap: 8px; margin-top: 4px; }
@@ -207,7 +224,7 @@
         </div>
     </section>
 
-    <!-- 🌟 가로 5대 굵은 메뉴 바 (게시판은 2번 앞쪽, QR코드는 5번 맨 뒤) -->
+    <!-- 🌟 가로 5대 굵은 메뉴 바 (ALERT창 안 뜨도록 인터랙티브 연결) -->
     <nav class="shop-horiz-nav-bar" id="horizMenuBar">
         <div class="btn-shop-nav" onclick="handleMenuClick(0)">
             <span class="nav-icon" id="mIcon0">📋</span>
@@ -246,14 +263,14 @@
         <div id="shopBoardContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
     </section>
 
-    <!-- 세로 추천 상품 목록 -->
-    <section class="section-box">
+    <!-- 세로 추천 상품 목록 (id="menuItemsSection") -->
+    <section class="section-box" id="menuItemsSection">
         <div class="section-title-row">
             <h2>대표 메뉴 및 서비스 안내</h2>
             <span style="font-size:12px; color:#94a3b8;">정규 가맹점 공식 등록</span>
         </div>
 
-        <div class="vertical-item-card" onclick="alert('상세 소개 페이지로 이동합니다.')">
+        <div class="vertical-item-card" onclick="openItemDetailModal('스페셜 시그니처 1호', '12,000원', '엄선된 고급 재료만을 사용하여 정갈하게 준비한 대표 시그니처 메뉴입니다.', 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80')">
             <div class="item-thumb" style="background-image: url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&auto=format&fit=crop&q=80');"></div>
             <div class="item-info">
                 <strong class="item-name">스페셜 시그니처 1호</strong>
@@ -262,7 +279,7 @@
             </div>
         </div>
 
-        <div class="vertical-item-card" onclick="alert('상세 소개 페이지로 이동합니다.')">
+        <div class="vertical-item-card" onclick="openItemDetailModal('프리미엄 세트 2호', '24,000원', '남녀노소 누구나 만족하는 깊고 풍성한 구성의 베스트셀러 세트입니다.', 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&auto=format&fit=crop&q=80')">
             <div class="item-thumb" style="background-image: url('https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=300&auto=format&fit=crop&q=80');"></div>
             <div class="item-info">
                 <strong class="item-name">프리미엄 세트 2호</strong>
@@ -294,6 +311,9 @@
 
 </div>
 
+<!-- 🌟 토스트 알림 박스 (ALERT창 대체) -->
+<div class="shop-toast-msg" id="shopToastBox">알림 메시지</div>
+
 <!-- 🌟 1. 단골 소통 글쓰기 모달 -->
 <div class="modal-overlay" id="boardModal">
     <div class="modal-card">
@@ -321,7 +341,7 @@
     </div>
 </div>
 
-<!-- 🌟 2. 대형 매장 직통 QR코드 모달 & 즉시 인쇄 (맨 뒤 배치) -->
+<!-- 🌟 2. 대형 매장 직통 QR코드 모달 & 즉시 인쇄 (오류사진 없는 안전 렌더링) -->
 <div class="modal-overlay" id="qrModal">
     <div class="modal-card" id="printableQrArea">
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -333,8 +353,8 @@
             스마트폰 카메라로 찍으면 <strong>예톡 메인을 건너뛰고<br><span id="qrShopName" style="color:#38bdf8; font-weight:900;">우리 매장</span> 전용 홈으로 즉시 직행</strong>합니다.
         </p>
 
-        <div class="qr-display-box">
-            <img id="qrImageElement" src="" alt="매장 전용 QR코드">
+        <div class="qr-display-box" id="qrDisplayBoxWrapper">
+            <img id="qrImageElement" src="" alt="매장 전용 QR코드" onerror="handleQrLoadError(this)">
         </div>
 
         <div style="font-size:11px; color:#94a3b8; word-break:break-all;" id="qrTargetUrlText"></div>
@@ -366,6 +386,89 @@
     </div>
 </div>
 
+<!-- 🌟 4. 메뉴 상세 및 실시간 주문 모달 (ALERT창 대체) -->
+<div class="modal-overlay" id="itemDetailModal">
+    <div class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:6px;">
+            <strong style="color:#facc15; font-size:16px;" id="mdlItemTitle">메뉴 상세</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('itemDetailModal')">✕</button>
+        </div>
+        <div id="mdlItemImg" style="width:100%; height:180px; border-radius:10px; background-size:cover; background-position:center; border:1px solid #1e3a5f;"></div>
+        <p id="mdlItemDesc" style="font-size:13px; color:#cbd5e1; line-height:1.5;"></p>
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#101f33; padding:10px 14px; border-radius:10px; border:1px solid #1e3553;">
+            <span style="font-size:13px; color:#94a3b8;">주문 금액</span>
+            <strong id="mdlItemPrice" style="font-size:17px; color:#facc15;">0원</strong>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <button type="button" class="btn-qr-action" style="background:#0284c7; color:white;" onclick="submitQuickOrder('매장식사')">
+                🍽️ 매장 식사 주문
+            </button>
+            <button type="button" class="btn-qr-action" style="background:#ea580c; color:white;" onclick="submitQuickOrder('포장배달')">
+                🛵 포장·배달 주문
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 5. 실시간 예약/상담 모달 (ALERT창 대체) -->
+<div class="modal-overlay" id="reserveOrderModal">
+    <div class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:6px;">
+            <strong style="color:#38bdf8; font-size:16px;">📅 실시간 방문 예약 & 상담</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('reserveOrderModal')">✕</button>
+        </div>
+        <p style="font-size:12px; color:#94a3b8;">원하시는 방문 시간과 인원을 남겨주시면 매장에서 즉시 확인 후 자리를 준비합니다.</p>
+        <input type="text" id="inpReserveName" class="modal-input" placeholder="예약자 성함 (예: 김예톡)" />
+        <input type="tel" id="inpReservePhone" class="modal-input" placeholder="연락처 (예: 010-1234-5678)" />
+        <div style="display:flex; gap:6px;">
+            <input type="text" id="inpReserveDate" class="modal-input" placeholder="날짜 (예: 오늘 18:30)" style="flex:1;" />
+            <input type="number" id="inpReserveCount" class="modal-input" placeholder="인원 (예: 4명)" style="width:110px;" />
+        </div>
+        <input type="text" id="inpReserveMemo" class="modal-input" placeholder="요청사항 (예: 룸으로 부탁드립니다)" />
+        <button type="button" class="btn-qr-action" style="background:#0284c7; color:white;" onclick="submitReservation()">
+            ✨ 실시간 예약 접수하기
+        </button>
+    </div>
+</div>
+
+<!-- 🌟 6. 간편결제 모달 (ALERT창 대체) -->
+<div class="modal-overlay" id="quickPayModal">
+    <div class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:6px;">
+            <strong style="color:#10b981; font-size:16px;">💳 예톡 스마트 간편결제</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('quickPayModal')">✕</button>
+        </div>
+        <div style="background:#101f33; padding:12px; border-radius:10px; border:1px solid #1e3553; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:13px; color:#94a3b8;">매장 공식 계좌</span>
+            <strong style="font-size:13px; color:#38bdf8;">부산 098-765-43210 (착한식당)</strong>
+        </div>
+        <input type="number" id="inpPayAmount" class="modal-input" placeholder="결제하실 금액 입력 (예: 24000)" />
+        <input type="text" id="inpPaySender" class="modal-input" placeholder="송금인 성함 (예: 김예톡)" />
+        <button type="button" class="btn-qr-action" style="background:#10b981; color:white;" onclick="submitQuickPay()">
+            🔒 1초 안전 간편결제 승인
+        </button>
+    </div>
+</div>
+
+<!-- 🌟 7. 게시글 상세 보기 모달 (ALERT창 대체) -->
+<div class="modal-overlay" id="postViewModal">
+    <div class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:6px;">
+            <span class="post-badge" id="viewPostBadge">단골손님</span>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('postViewModal')">✕</button>
+        </div>
+        <strong style="font-size:16px; color:#ffffff;" id="viewPostTitle">게시글 제목</strong>
+        <div style="font-size:11.5px; color:#64748b; display:flex; justify-content:space-between;">
+            <span id="viewPostAuthor">작성자</span>
+            <span id="viewPostTime">시간</span>
+        </div>
+        <p id="viewPostContent" style="font-size:13.5px; color:#cbd5e1; line-height:1.6; white-space:pre-wrap; background:#101f33; padding:12px; border-radius:10px; border:1px solid #1e3553;"></p>
+        <button type="button" class="btn-qr-action" style="background:#334155; color:white;" onclick="closeModal('postViewModal')">
+            닫기
+        </button>
+    </div>
+</div>
+
 <script>
     // 가로 5대 메뉴 기본 데이터 (게시판 2번 앞쪽, QR 5번 맨 뒤)
     let horizontalMenuData = [
@@ -382,8 +485,10 @@
         { id: 2, dept: "사장님소식", author: "대표 사장님", title: "신선한 가을 제철 식재료 입고 안내", content: "오늘 아침 정성껏 공수한 신선한 재료로 준비했습니다. 편안하게 들러주세요!", time: "어제 16:30" }
     ];
 
+    let currentSelectedProduct = { name: "스페셜 시그니처 1호", price: "12,000원", desc: "", img: "" };
+
     document.addEventListener("DOMContentLoaded", () => {
-        const storeName = localStorage.getItem("yetalkShopName") || "부산밀면가";
+        const storeName = localStorage.getItem("yetalkShopName") || localStorage.getItem("yetalk_food_name") || "소상공인 나눔마켓";
         let storeAddr = localStorage.getItem("yetalkShopAddress") || "부산시 부산진구 중앙대로";
         if (storeAddr.includes("신암로")) { storeAddr = "부산시 부산진구 중앙대로"; localStorage.setItem("yetalkShopAddress", storeAddr); }
 
@@ -402,12 +507,29 @@
         // 게시글 렌더링
         renderShopPosts();
 
-        // QR코드 생성
+        // QR코드 생성 (안정적인 고해상도 QR API)
         const currentUrl = window.location.href.split('#')[0];
         document.getElementById("qrTargetUrlText").innerText = currentUrl;
-        const qrApiUrl = `https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(currentUrl)}&choe=UTF-8`;
-        document.getElementById("qrImageElement").src = qrApiUrl;
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(currentUrl)}`;
+        const qrImg = document.getElementById("qrImageElement");
+        qrImg.src = qrApiUrl;
     });
+
+    function handleQrLoadError(imgEl) {
+        // 네트워크 차단 시 대비한 인라인 SVG QR코드 대체
+        const currentUrl = window.location.href.split('#')[0];
+        imgEl.style.display = "none";
+        const wrapper = document.getElementById("qrDisplayBoxWrapper");
+        if (wrapper && !document.getElementById("svgQrFallback")) {
+            wrapper.innerHTML = `
+                <div id="svgQrFallback" style="text-align:center; padding:10px;">
+                    <div style="font-size:48px;">📱</div>
+                    <strong style="color:#0f172a; font-size:14px; display:block; margin-top:4px;">스마트 바로가기 QR</strong>
+                    <span style="font-size:11px; color:#475569;">${currentUrl}</span>
+                </div>
+            `;
+        }
+    }
 
     function renderHorizontalMenu() {
         for (let i = 0; i < 5; i++) {
@@ -419,14 +541,116 @@
         }
     }
 
+    /* 🌟 ALERT창 전혀 없이 부드럽게 화면 이동 & 모달 오픈 */
     function handleMenuClick(index) {
-        if (index === 1) {
+        if (index === 0) {
+            const sec = document.getElementById("menuItemsSection");
+            if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+            showToast("📋 대표 메뉴 안내 목록으로 이동했습니다.");
+        } else if (index === 1) {
             openBoardWriteModal();
+        } else if (index === 2) {
+            openReserveOrderModal();
+        } else if (index === 3) {
+            openQuickPayModal();
         } else if (index === 4) {
             openQrModal();
-        } else {
-            alert(`[${horizontalMenuData[index].label}] 화면으로 이동합니다.`);
         }
+    }
+
+    function openItemDetailModal(name, price, desc, img) {
+        currentSelectedProduct = { name, price, desc, img };
+        document.getElementById("mdlItemTitle").innerText = name;
+        document.getElementById("mdlItemPrice").innerText = price;
+        document.getElementById("mdlItemDesc").innerText = desc;
+        document.getElementById("mdlItemImg").style.backgroundImage = `url('${img}')`;
+        openModal("itemDetailModal");
+    }
+
+    function submitQuickOrder(type) {
+        const uName = localStorage.getItem("yetalkUserName") || "김예톡";
+        const orderData = {
+            id: Date.now(),
+            bizType: "shop",
+            categoryKey: "order",
+            label: "신규 주문",
+            name: `${uName} 님`,
+            detail: `[${type}] ${currentSelectedProduct.name} (금액: ${currentSelectedProduct.price})`,
+            time: "방금 전"
+        };
+
+        dispatchRealIncomingOrder(orderData);
+        closeModal("itemDetailModal");
+        showToast(`🚀 [${currentSelectedProduct.name}] ${type} 주문이 접수되었습니다!`);
+    }
+
+    function openReserveOrderModal() {
+        const uName = localStorage.getItem("yetalkUserName") || "김예톡";
+        const uPhone = localStorage.getItem("yetalkUserPhone") || "010-1234-5678";
+        document.getElementById("inpReserveName").value = uName;
+        document.getElementById("inpReservePhone").value = uPhone;
+        openModal("reserveOrderModal");
+    }
+
+    function submitReservation() {
+        const name = document.getElementById("inpReserveName").value.trim() || "김예톡";
+        const phone = document.getElementById("inpReservePhone").value.trim();
+        const date = document.getElementById("inpReserveDate").value.trim() || "오늘 18:30";
+        const count = document.getElementById("inpReserveCount").value.trim() || "4";
+        const memo = document.getElementById("inpReserveMemo").value.trim();
+
+        const reserveData = {
+            id: Date.now(),
+            bizType: "shop",
+            categoryKey: "order",
+            label: "방문 예약",
+            name: `${name} 님`,
+            detail: `[예약 ${count}명] 일시: ${date} (연락처: ${phone}) ${memo ? '/ 요청: ' + memo : ''}`,
+            time: "방금 전"
+        };
+
+        dispatchRealIncomingOrder(reserveData);
+        closeModal("reserveOrderModal");
+        showToast(`📅 [${name} 님] ${date} ${count}명 방문 예약이 신청되었습니다!`);
+    }
+
+    function openQuickPayModal() {
+        const uName = localStorage.getItem("yetalkUserName") || "김예톡";
+        document.getElementById("inpPaySender").value = uName;
+        openModal("quickPayModal");
+    }
+
+    function submitQuickPay() {
+        const amt = document.getElementById("inpPayAmount").value.trim();
+        const sender = document.getElementById("inpPaySender").value.trim() || "김예톡";
+        if (!amt || isNaN(amt) || Number(amt) <= 0) {
+            showToast("⚠️ 올바른 결제 금액을 입력해 주세요.");
+            return;
+        }
+
+        const payData = {
+            id: Date.now(),
+            bizType: "shop",
+            categoryKey: "order",
+            label: "예톡결제",
+            name: `${sender} 님`,
+            detail: `[원터치 간편결제] ${Number(amt).toLocaleString()}원 결제 승인 완료`,
+            time: "방금 전"
+        };
+
+        dispatchRealIncomingOrder(payData);
+        closeModal("quickPayModal");
+        showToast(`💳 [${Number(amt).toLocaleString()}원] 예톡 간편결제가 완료되었습니다!`);
+    }
+
+    /* 실시간 주문/예약을 PC CMS 데스크로 실시간 송신 */
+    function dispatchRealIncomingOrder(data) {
+        try {
+            let alerts = JSON.parse(localStorage.getItem("yetalk_real_incoming_alerts")) || [];
+            alerts.unshift(data);
+            if (alerts.length > 50) alerts = alerts.slice(0, 50);
+            localStorage.setItem("yetalk_real_incoming_alerts", JSON.stringify(alerts));
+        } catch(e){}
     }
 
     function renderShopPosts() {
@@ -440,7 +664,7 @@
 
         const container = document.getElementById("shopBoardContainer");
         container.innerHTML = posts.map(p => `
-            <div class="board-post-card" onclick="alert('[${p.title}]\\n\\n${p.content}\\n\\n작성: ${p.dept} ${p.author}')">
+            <div class="board-post-card" onclick="openPostViewModal(${p.id})">
                 <div class="board-post-head">
                     <span class="post-badge">${p.dept} · ${p.author}</span>
                     <span class="post-time">${p.time}</span>
@@ -451,6 +675,25 @@
         `).join("");
     }
 
+    function openPostViewModal(id) {
+        let posts = [];
+        const saved = localStorage.getItem("yetalk_shop_community_posts");
+        if (saved) {
+            try { posts = JSON.parse(saved); } catch(e) { posts = INITIAL_SHOP_POSTS; }
+        } else {
+            posts = INITIAL_SHOP_POSTS;
+        }
+        const post = posts.find(p => p.id === id) || posts[0];
+        if (!post) return;
+
+        document.getElementById("viewPostBadge").innerText = `${post.dept} · ${post.author}`;
+        document.getElementById("viewPostTitle").innerText = post.title;
+        document.getElementById("viewPostAuthor").innerText = `작성자: ${post.author}`;
+        document.getElementById("viewPostTime").innerText = post.time;
+        document.getElementById("viewPostContent").innerText = post.content;
+        openModal("postViewModal");
+    }
+
     function saveShopPost() {
         const dept = document.getElementById("inpPostDept").value;
         const author = document.getElementById("inpPostAuthor").value.trim() || "손님";
@@ -458,7 +701,7 @@
         const content = document.getElementById("inpPostContent").value.trim();
 
         if (!title || !content) {
-            alert("제목과 내용을 모두 입력해 주세요.");
+            showToast("⚠️ 제목과 내용을 모두 입력해 주세요.");
             return;
         }
 
@@ -482,7 +725,7 @@
         localStorage.setItem("yetalk_shop_community_posts", JSON.stringify(posts));
         renderShopPosts();
         closeModal("boardModal");
-        alert("🎉 소통 나눔터에 소중한 글이 등록되었습니다!");
+        showToast("🎉 소통 나눔터에 소중한 글이 등록되었습니다!");
     }
 
     function openMenuEditModal() {
@@ -507,7 +750,7 @@
         localStorage.setItem("yetalk_shop_custom_menus_5", JSON.stringify(horizontalMenuData));
         renderHorizontalMenu();
         closeModal("menuEditModal");
-        alert("🎉 매장 가로 5대 메뉴가 즉시 변경되었습니다!");
+        showToast("🎉 매장 가로 5대 메뉴가 즉시 변경되었습니다!");
     }
 
     function openBoardWriteModal() {
@@ -518,6 +761,19 @@
     function openQrModal() { openModal("qrModal"); }
     function openModal(id) { document.getElementById(id).classList.add("show"); }
     function closeModal(id) { document.getElementById(id).classList.remove("show"); }
+
+    /* 🌟 ALERT창 대체 부드러운 상단 토스트 알림 함수 */
+    let toastTimer = null;
+    function showToast(msg) {
+        const el = document.getElementById("shopToastBox");
+        if (!el) return;
+        el.innerText = msg;
+        el.classList.add("show");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            el.classList.remove("show");
+        }, 2400);
+    }
 </script>
 
 </body>

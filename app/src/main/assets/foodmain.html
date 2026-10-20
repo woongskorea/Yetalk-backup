@@ -843,7 +843,21 @@
             line-height: 1.45;
         }
 
-        /* PC 화면: 구글 정책에 따라 애드몹 숨김 */
+        /* 토스트 알림 (ALERT 대체) */
+        .food-toast-box {
+            position: fixed; top: 16px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: rgba(15, 23, 42, 0.96); border: 1.5px solid var(--primary);
+            color: #ffffff; padding: 11px 20px; border-radius: 24px;
+            font-size: 13.5px; font-weight: 850; z-index: 99999;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4); pointer-events: none;
+            opacity: 0; transition: opacity 0.25s ease, transform 0.25s ease;
+            white-space: nowrap; max-width: 90vw; text-overflow: ellipsis; overflow: hidden;
+        }
+        .food-toast-box.show {
+            opacity: 1; transform: translateX(-50%) translateY(0);
+        }
+
+        /* PC 화면: 구글 정책에 따라 애드몹 숨김 및 시원한 와이드 확장 */
         @media (min-width: 768px) {
             body.is-pc-mode .bottom-fixed-admob-footer,
             .bottom-fixed-admob-footer.pc-hidden {
@@ -852,11 +866,15 @@
             body.is-pc-mode .food-app-wrapper,
             .food-app-wrapper.pc-no-padding {
                 padding-bottom: 24px !important;
+                max-width: 680px;
             }
         }
     </style>
 </head>
 <body>
+
+<!-- 부드러운 상단 토스트 알림 (ALERT 대체) -->
+<div class="food-toast-box" id="foodToastBox">알림 메시지</div>
 
 <div class="food-app-wrapper" id="foodAppWrapper">
 
@@ -974,7 +992,7 @@
                 <span style="font-size:14px; color:#334155;">보유 예톡머니 / 포인트</span>
                 <strong style="font-size:18px; color:var(--primary);">48,500 P</strong>
             </div>
-            <button type="button" class="btn-submit-order" onclick="alert('예톡 간편결제 비밀번호 인증 창으로 연결됩니다.')">
+            <button type="button" class="btn-submit-order" onclick="showToast('🔒 예톡 간편결제 비밀번호 인증 창으로 안전하게 연결됩니다.')">
                 🔒 예톡 간편결제 계좌/카드 관리
             </button>
         </div>
@@ -1736,12 +1754,28 @@
         orders.unshift(orderObj);
         localStorage.setItem("yetalk_food_orders", JSON.stringify(orders.slice(0, 100)));
 
+        const modeStr = (currentOrderType === 'dinein') ? '매장 식사' : '배달/배송';
+
+        // 🌟 실시간 PC CMS 데스크로 주문 즉시 전송
+        try {
+            let alerts = JSON.parse(localStorage.getItem("yetalk_real_incoming_alerts")) || [];
+            alerts.unshift({
+                id: orderObj.id,
+                bizType: "shop",
+                categoryKey: "order",
+                label: "신규 주문",
+                name: `${orderObj.customerName} 님`,
+                detail: `[${modeStr}] ${orderObj.dishName} ${orderObj.qty}개 (${orderObj.totalPrice.toLocaleString()}원) · ${orderObj.location}`,
+                time: "방금 전"
+            });
+            localStorage.setItem("yetalk_real_incoming_alerts", JSON.stringify(alerts.slice(0, 50)));
+        } catch(e){}
+
         updateReceptionCounterBar();
         renderOrderHistory();
         closeModal("dishOrderModal");
 
-        const modeStr = (currentOrderType === 'dinein') ? '매장 식사' : '배달/배송';
-        alert(`🎉 [${currentSelectedDish.name} ${currentOrderQty}개] ${modeStr} 주문이 상단 접수대에 성공적으로 접수되었습니다!\n총 결제금액: ${total.toLocaleString()}원`);
+        showToast(`🚀 [${currentSelectedDish.name} ${currentOrderQty}개] ${modeStr} 주문이 접수되었습니다! (${total.toLocaleString()}원)`);
     }
 
     function updateReceptionCounterBar() {
@@ -1927,7 +1961,7 @@
         // 🌟 닉네임 수동 입력 없이 로그인된 회원 닉네임/아이디로 자동 등록
         const author = localStorage.getItem("yetalkUserName") || localStorage.getItem("yetalkUserNickname") || "예톡단골";
 
-        if (!text) { alert("한 줄 리뷰 내용을 입력해 주세요."); return; }
+        if (!text) { showToast("⚠️ 한 줄 리뷰 내용을 입력해 주세요."); return; }
 
         let reviews = [];
         try { reviews = JSON.parse(localStorage.getItem(`yetalk_food_reviews_${currentSelectedDish.id}`) || "null"); } catch(e) {}
@@ -1937,7 +1971,7 @@
         localStorage.setItem(`yetalk_food_reviews_${currentSelectedDish.id}`, JSON.stringify(reviews.slice(0, 30)));
         document.getElementById("inpReviewText").value = "";
         renderDishReviews(currentSelectedDish.id);
-        alert(`🎉 [${author}] 님의 소중한 후기가 성공적으로 등록되었습니다!`);
+        showToast(`🎉 [${author}] 님의 소중한 후기가 등록되었습니다!`);
     }
 
     // 관리실 모달
@@ -2010,7 +2044,7 @@
         const finalImg = tempAdminPhotoBase64 || photoUrl || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=900";
 
         if (!name || isNaN(price) || price <= 0) {
-            alert("요리명과 가격(원)을 올바르게 입력해 주세요.");
+            showToast("⚠️ 요리명과 가격(원)을 올바르게 입력해 주세요.");
             return;
         }
 
@@ -2037,7 +2071,7 @@
         renderAdminDishList();
         document.getElementById("adminTotalDishCount").innerText = foodItems.length;
 
-        alert(`🎉 [${category} > ${name}] 메뉴가 추가되었습니다!`);
+        showToast(`🎉 [${category} > ${name}] 메뉴가 추가되었습니다!`);
     }
 
     function renderAdminDishList() {
@@ -2070,7 +2104,7 @@
         const photoUrl = document.getElementById("admInpIntroPhotoUrl").value.trim();
         const finalImg = tempIntroPhotoBase64 || photoUrl || "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=900";
 
-        if (!text) { alert("밑에 들어갈 진한 글자 내용을 입력해 주세요."); return; }
+        if (!text) { showToast("⚠️ 밑에 들어갈 진한 글자 내용을 입력해 주세요."); return; }
 
         introStories.push({
             id: "intro_" + Date.now(),
@@ -2089,13 +2123,13 @@
         renderIntroStories();
         closeModal("adminModal");
         switchMainTab("intro");
-        alert("🎉 소개 페이지에 새로운 풀스크린 스토리가 추가되었습니다!");
+        showToast("🎉 소개 페이지에 새로운 풀스크린 스토리가 추가되었습니다!");
     }
 
     function publishNoticeFromAdmin() {
         const title = document.getElementById("admInpNoticeTitle").value.trim();
         const content = document.getElementById("admInpNoticeContent").value.trim();
-        if (!title || !content) { alert("제목과 내용을 입력해 주세요."); return; }
+        if (!title || !content) { showToast("⚠️ 제목과 내용을 입력해 주세요."); return; }
 
         const savedShopName = localStorage.getItem("yetalk_food_name") || localStorage.getItem("yetalkShopName") || "명품 푸드 & 비스트로";
 
@@ -2143,7 +2177,7 @@
         document.getElementById("admInpNoticeContent").value = "";
         renderNoticeList();
         closeModal("adminModal");
-        alert("🎉 공지가 등록되었으며 개인앱과 단골앱으로 동시 전송되었습니다!");
+        showToast("🎉 공지가 등록되었으며 개인앱과 단골앱으로 동시 전송되었습니다!");
     }
 
     function renderNoticeList() {
@@ -2153,7 +2187,7 @@
 
         const container = document.getElementById("noticeListContainer");
         container.innerHTML = notices.map(n => `
-            <div class="white-card-box" onclick="alert('[${n.title}]\\n\\n${n.content}\\n\\n작성: ${n.author} (${n.date})')">
+            <div class="white-card-box" onclick="showToast('[공지] ${n.title}')">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="font-size:11.5px; color:var(--primary); font-weight:850; background:#fff7ed; padding:2px 8px; border-radius:4px;">매장소식</span>
                     <span style="font-size:11.5px; color:var(--text-muted);">${n.date}</span>
@@ -2178,11 +2212,11 @@
 
         initStoreInfo();
         closeModal("adminModal");
-        alert("🎉 매장 기본 정보가 성공적으로 변경되었습니다!");
+        showToast("🎉 매장 기본 정보가 성공적으로 변경되었습니다!");
     }
 
     function openYetalkTvModal() { openModal("yetalkTvModal"); }
-    function handleAdmobClick(type) { alert(`Google AdMob 공식 대형 배너 (${type==='250'?'300x250':'320x100'}) 스폰서 연결 중...`); }
+    function handleAdmobClick(type) { showToast(`Google AdMob 공식 대형 배너 (${type==='250'?'300x250':'320x100'}) 스폰서 연결 중...`); }
 
     function checkPcAdmobPolicy() {
         const isPcMode = (window.innerWidth >= 768) || (localStorage.getItem("yetalk_pc_admob_off") === "true") || (localStorage.getItem("yetalkNoAdsMode") === "true");
@@ -2205,6 +2239,19 @@
     function formatTimeNow() {
         const now = new Date();
         return `${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    }
+
+    /* 🌟 ALERT창 대체 상단 토스트 알림 함수 */
+    let toastTimer = null;
+    function showToast(msg) {
+        const el = document.getElementById("foodToastBox");
+        if (!el) return;
+        el.innerText = msg;
+        el.classList.add("show");
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            el.classList.remove("show");
+        }, 2600);
     }
 </script>
 
