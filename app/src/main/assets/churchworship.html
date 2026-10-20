@@ -209,11 +209,27 @@
         body.is-playing-mode .worship-header,
         body.is-playing-mode .worship-tabs-bar,
         body.is-playing-mode .worship-kind-header-row,
-        body.is-playing-mode .sermon-info-card,
         body.is-playing-mode .past-worship-header-btn,
         body.is-playing-mode .past-worship-text-list,
         body.is-playing-mode .bottom-fixed-admob-footer {
             display: none !important;
+        }
+        body.is-playing-mode .sermon-info-card {
+            display: flex !important;
+            position: fixed !important;
+            bottom: max(env(safe-area-inset-bottom, 0px) + 52px, 58px) !important;
+            left: 14px !important;
+            right: 14px !important;
+            z-index: 99990 !important;
+            background: rgba(14, 22, 40, 0.82) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+            border: 1.2px solid rgba(56, 189, 248, 0.45) !important;
+            border-radius: 12px !important;
+            padding: 10px 14px !important;
+            margin: 0 !important;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
+            pointer-events: none !important;
         }
         body.is-playing-mode .worship-shell {
             background: #000000 !important;
@@ -524,10 +540,10 @@
             <button type="button" style="background:#1e293b; border:1px solid #334155; color:#94a3b8; font-size:18px; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;" onclick="closeAdminModal()">✕</button>
         </div>
 
-        <!-- 1. 주일 예배/설교 제목 -->
+        <!-- 1. 설교 제목 -->
         <div>
-            <label style="font-size:12.5px; color:#facc15; font-weight:850; display:block; margin-bottom:4px;">1. 주일 예배 / 설교 제목 (필수)</label>
-            <input type="text" class="modal-input" id="inpTitle" placeholder="예: 주일 대예배 실황">
+            <label style="font-size:12.5px; color:#facc15; font-weight:850; display:block; margin-bottom:4px;">1. 설교 제목 (필수)</label>
+            <input type="text" class="modal-input" id="inpTitle" placeholder="예: 하나님의 언약을 굳게 붙들라">
         </div>
 
         <!-- 2. 성경 본문 -->
@@ -583,12 +599,12 @@
     const WORSHIP_KEYS = ["sunday", "wednesday", "friday", "dawn", "special", "praise"];
 
     const DEFAULT_DATA = {
-        sunday: { tabName: "주일예배", title: "주일 대예배 실황", bible: "요한복음 3장 16절 ~ 18절", preacher: "담임목사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", broadcastToTv: true },
-        wednesday: { tabName: "수요예배", title: "수요 성경강해", bible: "창세기 12장 1절 ~ 4절", preacher: "담임목사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", broadcastToTv: true },
-        friday: { tabName: "금요기도회", title: "금요 성령기도회", bible: "사도행전 1장 8절", preacher: "담임목사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", broadcastToTv: true },
-        dawn: { tabName: "새벽기도회", title: "오늘 새벽기도회", bible: "시편 23편 1절 ~ 6절", preacher: "교구목사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", broadcastToTv: true },
-        special: { tabName: "특별예배", title: "부흥 및 헌신예배", bible: "에베소서 4장 11절 ~ 16절", preacher: "초청강사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", broadcastToTv: true },
-        praise: { tabName: "찬양모음", title: "은혜로운 찬양과 경배", bible: "시편 150편 1절 ~ 6절", preacher: "할렐루야 찬양대", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", broadcastToTv: true }
+        sunday: { tabName: "주일예배", title: "하나님의 언약을 굳게 붙들라", bible: "요한복음 3장 16절 ~ 18절", preacher: "담임목사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", broadcastToTv: true },
+        wednesday: { tabName: "수요예배", title: "믿음으로 순종하는 삶", bible: "창세기 12장 1절 ~ 4절", preacher: "담임목사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", broadcastToTv: true },
+        friday: { tabName: "금요기도회", title: "성령의 임재와 회복의 은혜", bible: "사도행전 1장 8절", preacher: "담임목사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", broadcastToTv: true },
+        dawn: { tabName: "새벽기도회", title: "주의 인도하심을 따라", bible: "시편 23편 1절 ~ 6절", preacher: "교구목사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", broadcastToTv: true },
+        special: { tabName: "특별예배", title: "복음의 능력으로 부흥하는 교회", bible: "에베소서 4장 11절 ~ 16절", preacher: "초청강사", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", broadcastToTv: true },
+        praise: { tabName: "찬양모음", title: "온 맘 다해 주 찬양하라", bible: "시편 150편 1절 ~ 6절", preacher: "할렐루야 찬양대", yt: "https://www.youtube.com/watch?v=M7lc1UVf-VE", broadcastToTv: true }
     };
 
     let activeWorshipIndex = 0;
@@ -598,14 +614,14 @@
     let isPlayingMode = false;
     let ytPlayerInstance = null;
 
-    // 🌟 화면 확대: 100% -> 크게 120% -> 축소 80% 순환
-    const ZOOM_FACTORS = [1.0, 1.2, 0.8];
-    const ZOOM_NAMES = ["확대 100%", "크게 120%", "축소 80%"];
+    // 🌟 화면 확대: [🔍 확대 100%] -> 크게 135% -> 확대 풀스크린 -> 축소 80% 순환
+    const ZOOM_FACTORS = [1.0, 1.35, 1.0, 0.8];
+    const ZOOM_NAMES = ["확대 100%", "크게 135%", "확대 풀스크린", "축소 80%"];
     let currentZoomIndex = 0;
 
-    // 🌟 재생 속도: 100% -> 125% -> 150% -> 80% 순환
-    const SPEED_RATES = [1.0, 1.25, 1.5, 0.8];
-    const SPEED_NAMES = ["속도 100%", "속도 125%", "속도 150%", "속도 80%"];
+    // 🌟 재생 속도: [⚡ 속도 100%] -> 속도 135% -> 속도 150% -> 속도 170% -> 속도 80% 순환
+    const SPEED_RATES = [1.0, 1.35, 1.5, 1.7, 0.8];
+    const SPEED_NAMES = ["속도 100%", "속도 135%", "속도 150%", "속도 170%", "속도 80%"];
     let currentSpeedIndex = 0;
 
     function goBackToMain() {
@@ -636,6 +652,11 @@
 
     function cycleWorshipZoom(idx = activeWorshipIndex) {
         currentZoomIndex = (currentZoomIndex + 1) % ZOOM_FACTORS.length;
+        if (currentZoomIndex === 2) {
+            setPlaybackMode(true);
+        } else if (isPlayingMode) {
+            setPlaybackMode(false);
+        }
         applyWorshipZoom(idx);
         const text = document.getElementById(`zoomText_${idx}`);
         const btn = document.getElementById(`btnZoom_${idx}`);
@@ -671,6 +692,11 @@
                 }), '*');
             } catch(e){}
         }
+        if (ytPlayerInstance && typeof ytPlayerInstance.setPlaybackRate === "function") {
+            try {
+                ytPlayerInstance.setPlaybackRate(rate);
+            } catch(e) {}
+        }
         showToast(`⚡ 음성: ${SPEED_NAMES[currentSpeedIndex]}`);
     }
 
@@ -683,7 +709,7 @@
 
         if (btn) {
             btn.classList.toggle("locked", isScreenLocked);
-            if (text) text.innerText = isScreenLocked ? "🔒 고정ON" : "🔒 화면고정";
+            if (text) text.innerText = isScreenLocked ? "🔒 고정ON" : "🔒 고정OFF";
         }
 
         if (isScreenLocked) {
@@ -708,6 +734,14 @@
         const exitBtn = document.getElementById("btnExitFullscreen");
         if (exitBtn) {
             exitBtn.style.display = isPlaying ? "inline-flex" : "none";
+        }
+        if (!isPlaying && currentZoomIndex === 2) {
+            currentZoomIndex = 0;
+            const text = document.getElementById(`zoomText_${activeWorshipIndex}`);
+            const btn = document.getElementById(`btnZoom_${activeWorshipIndex}`);
+            if (text) text.innerText = `🔍 ${ZOOM_NAMES[0]}`;
+            if (btn) btn.classList.remove("zoomed");
+            applyWorshipZoom(activeWorshipIndex);
         }
     }
 
@@ -771,6 +805,10 @@
         const liveKey = getLiveTabKey();
         const isLive = (key === liveKey);
 
+        let displayTitle = item.title;
+        if (!displayTitle || displayTitle === "주일 대예배 실황") {
+            displayTitle = DEFAULT_DATA[key]?.title || "하나님의 언약을 굳게 붙들라";
+        }
         const displayBible = item.bible || (item.meta ? item.meta.split('·')[0].trim() : "요한복음 3장 16절 ~ 18절");
         const displayPreacher = item.preacher || (item.meta ? item.meta.split('·')[1]?.trim() : "담임목사") || "담임목사";
 
@@ -800,23 +838,26 @@
                     <span id="speedText_${idx}">⚡ ${SPEED_NAMES[currentSpeedIndex]}</span>
                 </button>
                 <button type="button" class="btn-worship-ctrl ${isScreenLocked ? 'locked' : ''}" id="btnLock_${idx}" onclick="toggleScreenLock(${idx})" title="화면고정">
-                    <span id="lockText_${idx}">${isScreenLocked ? '🔒 고정ON' : '🔒 화면고정'}</span>
+                    <span id="lockText_${idx}">${isScreenLocked ? '🔒 고정ON' : '🔒 고정OFF'}</span>
                 </button>
                 <button type="button" class="btn-worship-ctrl" id="btnAdmin_${idx}" onclick="openAdminModal(${idx})" title="예배 관리실">
                     <span>⚙️ 관리 ON/OFF</span>
                 </button>
             </div>
 
-            <!-- 설교 핵심 카드 (오직 예배/설교 제목, 본문, 설교자 3가지만 간결 배치) -->
+            <!-- 설교 핵심 카드 (오직 설교제목, 본문, 설교자 3가지만 간결 배치) -->
             <div class="sermon-info-card">
-                <h2 class="sermon-title-main" id="worshipTitleText_${idx}">${item.title}</h2>
+                <div class="detail-line" style="font-size:15px; font-weight:900; color:#38bdf8; margin-bottom:2px;">
+                    <span class="detail-tag" style="color:#7dd3fc; min-width:68px;">🎙️ 설교제목</span>
+                    <span class="detail-val sermon-title-main" id="worshipTitleText_${idx}" style="font-size:15px; font-weight:900; color:#f8fafc;">${displayTitle}</span>
+                </div>
                 <div class="sermon-detail-row">
                     <div class="detail-line">
-                        <span class="detail-tag">📖 본 문</span>
+                        <span class="detail-tag" style="min-width:68px;">📖 본 문</span>
                         <span class="detail-val" id="worshipBibleText_${idx}">${displayBible}</span>
                     </div>
                     <div class="detail-line">
-                        <span class="detail-tag">✝️ 설교자</span>
+                        <span class="detail-tag" style="min-width:68px;">✝️ 설 교 자</span>
                         <span class="detail-val" id="worshipPreacherText_${idx}">${displayPreacher}</span>
                     </div>
                 </div>

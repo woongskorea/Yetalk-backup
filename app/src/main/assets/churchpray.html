@@ -323,7 +323,7 @@
         /* 모달 스타일 */
         .modal-overlay {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-            z-index: 20000; align-items: center; justify-content: center; padding: 14px;
+            z-index: 20000100 !important; align-items: center; justify-content: center; padding: 14px;
             backdrop-filter: blur(5px);
         }
         .modal-overlay.open { display: flex; }
@@ -361,7 +361,7 @@
         <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
             <button type="button" onclick="openLeaderUnifiedModal()" style="background:#ffffff; border:1.2px solid #94a3b8; border-radius:14px; font-size:11.5px; font-weight:900; color:#0f172a; padding:4px 9px; cursor:pointer;">👑 방장</button>
             <button type="button" id="btnPrayRoomLockState" onclick="toggleRoomLockState()" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:14px; font-size:11px; font-weight:850; color:#2563eb; padding:4px 8px; cursor:pointer;">입장(공개)</button>
-            <button type="button" onclick="location.href='churchmain.html'" style="background:#dc2626; color:#ffffff; border:none; border-radius:14px; font-size:11px; font-weight:950; padding:4px 8px; cursor:pointer;">📺 예톡TV</button>
+            <button type="button" onclick="location.href='index.html'" style="background:#dc2626; color:#ffffff; border:none; border-radius:14px; font-size:11px; font-weight:950; padding:4px 8px; cursor:pointer;">📺 예톡TV</button>
         </div>
     </header>
 
@@ -495,7 +495,7 @@
 </div>
 
 <!-- 🌟 [사용자 요청] 3-in-1 방장 통합 모달 (방이름 변경, 베스트글 지정, 라이브 유튜브 음성 설정 및 실행) -->
-<div id="modalLeaderUnified" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:999999; align-items:center; justify-content:center; padding:14px;">
+<div id="modalLeaderUnified" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:20000100 !important; align-items:center; justify-content:center; padding:14px;">
     <div style="width:100%; max-width:380px; background:#ffffff; border-radius:18px; padding:18px 16px; box-shadow:0 10px 35px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:12px; max-height:90vh; overflow-y:auto;" onclick="event.stopPropagation()">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:8px;">
             <strong style="font-size:15.5px; color:#0f172a; display:flex; align-items:center; gap:5px;">👑 방장 관리 및 방송 설정</strong>
@@ -561,16 +561,16 @@
 </div>
 
 <script>
-    const ROOMS_STORAGE_KEY = "yetalk_prayer_rooms_list_master_v6";
+    const ROOMS_STORAGE_KEY = "yetalk_prayer_rooms_list_master_v7";
     const GLOBAL_DEFAULT_BGM = "https://www.youtube.com/watch?v=M7lc1UVf-VE";
     const THEMES = ['sky', 'yellow', 'pink', 'dark'];
 
     // 🌟 [사용자 요청] 기본 4대 성전 기도방 (추가는 + 개설하기 지원)
     const DEFAULT_ROOMS = [
-        { id: "room_1", name: "예수님 사랑방", status: "ACTIVE", leader: "최남수 담임목사", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] },
-        { id: "room_2", name: "예수님 소망방", status: "ACTIVE", leader: "중보기도 사역팀", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] },
-        { id: "room_3", name: "예수님 은혜방", status: "EMPTY", leader: "비어있음 (자유 개설)", youtube: "", members: [] },
-        { id: "room_4", name: "할렐루야 찬양방", status: "ACTIVE", leader: "찬양 사역팀", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] }
+        { id: "room_1", name: "성전 중보기도방", status: "ACTIVE", leader: "중보기도 사역자", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] },
+        { id: "room_2", name: "새벽기도회 나눔방", status: "ACTIVE", leader: "새벽기도 담당목사", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] },
+        { id: "room_3", name: "릴레이 합심기도방", status: "ACTIVE", leader: "교구장 (자유 개설)", youtube: "", members: [] },
+        { id: "room_4", name: "치유와 회복 기도방", status: "ACTIVE", leader: "치유 사역팀", youtube: "https://www.youtube.com/watch?v=M7lc1UVf-VE", members: [] }
     ];
 
     const PRAY_WORDS = {
@@ -620,11 +620,7 @@
             localStorage.setItem(ROOMS_STORAGE_KEY, JSON.stringify(prayerRooms));
         }
 
-        if (prayerRooms && prayerRooms.length > 0) {
-            enterRoom(prayerRooms[0].id);
-        } else {
-            renderLobby();
-        }
+        renderLobby();
     }
 
     function renderLobby() {
@@ -746,9 +742,33 @@
     }
 
     function handleHeaderBackClick() {
+        if (currentRoom) {
+            renderLobby();
+            return;
+        }
         sessionStorage.setItem("church_last_active_card_idx", "4");
         location.href = "churchmain.html?card=4";
     }
+
+    window.handleAppBackPress = function() {
+        if (currentRoom) {
+            renderLobby();
+            return true;
+        }
+        handleHeaderBackClick();
+        return true;
+    };
+
+    try {
+        history.pushState({ page: "churchpray" }, "", location.href);
+        window.addEventListener("popstate", function() {
+            if (currentRoom) {
+                renderLobby();
+            } else {
+                handleHeaderBackClick();
+            }
+        });
+    } catch(e) {}
 
     function openCreateRoomModal() {
         const defaultIndex = prayerRooms.length + 1;
