@@ -332,6 +332,9 @@ YETALK CHURCH COMMON BOTTOM NAV BAR (church_bottom_bar.js)
 
     // 2. DOM 초기화 (하단 바 및 헌금 모달, 쿠팡 모달 자동 주입)
     function initChurchNav() {
+        const isChatPage = location.pathname.includes('churchpray') || location.pathname.includes('churchmember') || location.pathname.includes('churchjesuswalking');
+        if (isChatPage) return;
+
         // 상단 헤더 예톡TV 텍스트 버튼 정리
         document.querySelectorAll('header button, header a, .header button, .header a').forEach(el => {
             if (el.textContent.includes('예톡TV')) {

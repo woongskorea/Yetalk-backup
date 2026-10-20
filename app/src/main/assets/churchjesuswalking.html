@@ -170,9 +170,9 @@
         .chat-msg-row.me .chat-bubble-wrap { flex-direction: row-reverse; }
 
         .chat-bubble {
-            padding: 5px 9px; border-radius: 12px; font-size: 13px;
-            line-height: 1.35; word-break: break-word; white-space: pre-wrap;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.08); font-weight: 550;
+            padding: 7px 11px; border-radius: 12px; font-size: 15px;
+            line-height: 1.5; word-break: break-word; white-space: pre-wrap;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08); font-weight: 700;
         }
         .chat-msg-row.other .chat-bubble {
             background: #ffffff; color: #0f172a; border-top-left-radius: 2px; border: 1px solid #e2e8f0;
@@ -618,34 +618,17 @@
         </div>
     </header>
 
-    <!-- 🌟 라이브 유튜브 음성 한줄 플레이어 바 -->
-    <div id="pastorLiveAudioBar" class="live-audio-bar" style="display:none; background:#0f172a; border-bottom:1.5px solid #1e3a5f; padding:7px 12px; color:#f8fafc; font-size:11.5px; font-weight:850; justify-content:space-between; align-items:center; position:sticky; top:56px; z-index:95;">
-        <div style="display:flex; align-items:center; gap:6px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
-            <span style="color:#ef4444; font-weight:950; font-size:12px;" class="live-dot-blink">🔴 LIVE</span>
-            <span id="txtPastorLiveStatus" style="font-size:11.5px; color:#e2e8f0; text-overflow:ellipsis; overflow:hidden;">목사님 라이브 음성 / 기도회 방송 청취 중... 🔊</span>
+    <!-- 🌟 방장 1클릭 고정 실시간 베스트 한줄 배너 (고정 시 노출) -->
+    <div id="jesusPinnedBestBanner" style="display:none; margin:6px 12px 2px 12px; padding:7px 12px; background:#ffffff; border:1.2px solid #bcd0e2; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.06); justify-content:space-between; align-items:center; gap:8px;">
+        <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1; overflow:hidden;">
+            <span style="color:#d97706; font-size:12px; font-weight:950; flex-shrink:0;">📌 [베스트]</span>
+            <strong id="jesusPinnedBestText" style="font-size:13.5px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></strong>
         </div>
-        <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
-            <button type="button" onclick="openLeaderUnifiedModal()" style="background:#1e3a5f; border:1px solid #38bdf8; color:#38bdf8; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">주소설정</button>
-            <button type="button" onclick="stopPastorLiveAudio()" style="background:#475569; border:none; color:#fff; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">정지</button>
-        </div>
-    </div>
-    <div id="hiddenPastorLiveYtContainer" style="display:none; width:0; height:0;"></div>
-
-    <!-- 🌟 [사용자 요청] 초현대적이고 수려한 프리미엄 기도 BGM 필 바 -->
-    <div class="prayer-audio-pill-bar">
-        <div class="prayer-badge-left">
-            <span style="font-size:12px;">🎵</span>
-            <span>기도 BGM</span>
-        </div>
-        <div class="prayer-pill-btn-group">
-            <button type="button" class="btn-prayer-pill" id="btnPastorBgm_1" onclick="togglePastorBgm(1)">🕊️ 방언기도</button>
-            <button type="button" class="btn-prayer-pill" id="btnPastorBgm_3" onclick="togglePastorBgm(3)">🎵 찬양기도</button>
-            <button type="button" class="btn-prayer-pill btn-stop" id="btnPastorBgm_stop" onclick="togglePastorBgmStop()">⏹️ 중지</button>
-        </div>
+        <button type="button" onclick="unpinJesusBestPost()" style="background:none; border:none; color:#94a3b8; font-size:14px; font-weight:900; cursor:pointer; padding:0 4px;" title="고정 해제">✕</button>
     </div>
 
-    <!-- 🌟 [사용자 요청] 박스랑 그 밑에는 모두 큰 제목 한줄과 하트,방문등 지금같이 적어주고 클릭시 전체 펼치지고... -->
-    <main class="feed-list" id="pastorFeedListContainer" style="padding-bottom:100px;"></main>
+    <!-- 🌟 [사용자 요청] 담임목사 예수동행 피드 & 카톡 대화 목록 -->
+    <main class="feed-list" id="pastorFeedListContainer" style="padding-bottom:170px;"></main>
 
     <!-- 숨은 파일 인풋들 -->
     <input type="file" id="pastorInlinePhotoInput" class="hidden-file-input" accept="image/*" onchange="handlePastorInlinePhotoSelected(this)">
@@ -778,22 +761,33 @@
     <input type="file" id="fileCommentDoc" class="hidden-file-input" onchange="handleCommentDocUpload(this)">
     <input type="file" id="pastorModalFileInput" class="hidden-file-input" accept="image/*" onchange="handleModalPhotoUpload(this)">
 
-    <!-- 🌟 [사용자 요청] 심플 슬림 한줄 댓글창 (가볍고 좁게) -->
-    <div class="fixed-quick-comment-bar" style="position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:520px; background:#BACEE0; border-top:1px solid rgba(0,0,0,0.08); padding:5px 10px calc(5px + env(safe-area-inset-bottom, 0px)) 10px; display:flex; flex-direction:column; gap:4px; z-index:9999;">
-        <!-- 카톡 답장 중 표시 바 -->
-        <div id="replyIndicatorBar" style="display:none; padding:3px 8px; background:rgba(255,255,255,0.95); border-radius:6px; font-size:11px; color:#0f172a; justify-content:space-between; align-items:center; border:1px solid #cbd5e1;">
-            <span id="replyIndicatorText" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85%;">↩️ 답장 작성 중...</span>
-            <button type="button" onclick="cancelReplyMode()" style="background:none; border:none; color:#ef4444; font-weight:900; cursor:pointer; font-size:12px; padding:0 3px;">✕</button>
+    <!-- 🌟 하단 독 (댓글창 + 100 애드몹) -->
+    <div id="jesusBottomDock" style="position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:520px; z-index:99999; display:flex; flex-direction:column; box-shadow:0 -2px 10px rgba(0,0,0,0.08);">
+        <!-- 한줄 댓글창 -->
+        <div class="fixed-quick-comment-bar" style="position:relative; width:100%; background:#BACEE0; border-top:1px solid rgba(0,0,0,0.08); padding:6px 10px; display:flex; flex-direction:column; gap:4px; box-sizing:border-box;">
+            <!-- 카톡 답장 중 표시 바 -->
+            <div id="replyIndicatorBar" style="display:none; padding:4px 10px; background:rgba(255,255,255,0.95); border-radius:8px; font-size:11.5px; color:#0f172a; justify-content:space-between; align-items:center; border:1px solid #cbd5e1;">
+                <span id="replyIndicatorText" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85%;">↩️ 답장 작성 중...</span>
+                <button type="button" onclick="cancelReplyMode()" style="background:none; border:none; color:#ef4444; font-weight:900; cursor:pointer; font-size:13px; padding:0 4px;">✕</button>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; width:100%;">
+                <button type="button" onclick="document.getElementById('pastorInlinePhotoInput').click()" style="width:36px; height:36px; border-radius:50%; background:#ffffff; border:1px solid #cbd5e1; font-size:18px; color:#475569; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="사진 첨부">+</button>
+                <input type="text" id="quickPastorCommentInput" placeholder="" style="flex:1; height:38px; background:#ffffff; border:1px solid #cbd5e1; border-radius:19px; padding:0 14px; font-size:14.5px; font-weight:700; color:#0f172a; outline:none; box-sizing:border-box;" onkeypress="if(event.key==='Enter') submitQuickPastorComment()">
+                <button type="button" onclick="submitQuickPastorComment()" style="height:38px; padding:0 16px; background:#fee500; color:#191919; border:none; border-radius:19px; font-size:13.5px; font-weight:950; cursor:pointer; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.1);">전송</button>
+            </div>
         </div>
-        <div style="display:flex; align-items:center; gap:6px; width:100%;">
-            <button type="button" onclick="document.getElementById('pastorInlinePhotoInput').click()" style="width:32px; height:32px; border-radius:50%; background:#ffffff; border:1px solid #cbd5e1; font-size:16px; color:#475569; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="사진 첨부">+</button>
-            <input type="text" id="quickPastorCommentInput" placeholder="댓글을 입력하세요..." style="flex:1; height:32px; background:#ffffff; border:1px solid #cbd5e1; border-radius:16px; padding:0 10px; font-size:12.5px; color:#0f172a; outline:none; box-sizing:border-box;" onkeypress="if(event.key==='Enter') submitQuickPastorComment()">
-            <button type="button" onclick="submitQuickPastorComment()" style="height:32px; padding:0 12px; background:#fee500; color:#191919; border:none; border-radius:16px; font-size:12px; font-weight:950; cursor:pointer; flex-shrink:0;">전송</button>
-        </div>
-    </div>
 
-    <!-- 🌟 하단 고정 100 애드몹 (채팅 입력창 가림 방지를 위해 숨김 처리) -->
-    <div class="fixed-bottom-admob" style="display:none !important;"></div>
+        <!-- 하단 고정 100 애드몹 -->
+        <aside class="bottom-fixed-admob-footer" style="height:100px; background:#0b1326; border-top:1.5px solid #1e3a5f; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; position:relative; box-sizing:border-box;">
+            <div class="admob-safety-bar" style="font-size:9.5px; color:#64748b; font-weight:850; letter-spacing:0.5px;">
+                <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
+            </div>
+            <div class="admob-display-slot" style="width:calc(100% - 20px); max-width:380px; height:68px; background:#0f172a; border:1.2px solid #1e3a5f; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;">
+                <strong style="color:#38bdf8; font-size:13.5px; font-weight:950;">Google AdMob (300 × 100 / Large Banner)</strong>
+                <span style="color:#facc15; font-size:11px; font-weight:800;">담임목사 예수동행 선교 사역 공식 후원 슬롯</span>
+            </div>
+        </aside>
+    </div>
 
     <!-- 토스트 알림 -->
     <div class="yetalk-toast" id="yetalkToast"></div>
@@ -1061,6 +1055,52 @@
         }
     }
 
+    const STORAGE_KEY_JESUS_BEST_ID = "yetalk_pastor_best_id";
+
+    function pinJesusCommentAsBest(cId) {
+        localStorage.setItem(STORAGE_KEY_JESUS_BEST_ID, String(cId));
+        renderJesusPinnedBest();
+        showToast("📌 방장이 선택한 글을 상단 베스트로 고정했습니다!");
+    }
+
+    function unpinJesusBestPost() {
+        localStorage.removeItem(STORAGE_KEY_JESUS_BEST_ID);
+        renderJesusPinnedBest();
+        showToast("📌 베스트 고정이 해제되었습니다.");
+    }
+
+    function renderJesusPinnedBest() {
+        const banner = document.getElementById("jesusPinnedBestBanner");
+        const textEl = document.getElementById("jesusPinnedBestText");
+        if (!banner || !textEl) return;
+        const bestId = localStorage.getItem(STORAGE_KEY_JESUS_BEST_ID);
+        if (!bestId) {
+            banner.style.display = "none";
+            return;
+        }
+        if (bestId === "main" && currentWordData) {
+            textEl.innerText = `[예수동행] ${(currentWordData.scripture || '오늘의 묵상 말씀').slice(0, 36)}`;
+            banner.style.display = "flex";
+            return;
+        }
+        const found = commentList.find(c => String(c.id) === String(bestId));
+        if (found) {
+            textEl.innerText = `${found.author}: ${(found.text || '사진/파일 나눔').slice(0, 36)}`;
+            banner.style.display = "flex";
+        } else {
+            banner.style.display = "none";
+        }
+    }
+
+    function togglePastorAccordion(id) {
+        const body = document.getElementById("pastorBody_" + id);
+        const arrow = document.getElementById("pastorArrow_" + id);
+        if (!body) return;
+        const isHidden = (body.style.display === "none" || !body.style.display);
+        body.style.display = isHidden ? "block" : "none";
+        if (arrow) arrow.innerText = isHidden ? "▲" : "▼";
+    }
+
     function renderPastorFeed() {
         const savedLeader = localStorage.getItem("yetalk_pastor_leader_name") || "담임목사 최남수";
         const savedRoomTitle = localStorage.getItem("yetalk_pastor_room_title") || "담임목사 예수동행";
@@ -1068,55 +1108,13 @@
         const titleEl = document.getElementById("headerJesusTitle");
         if (titleEl) titleEl.innerText = savedRoomTitle;
 
-        // 🌟 실시간 베스트글 (1줄 진하게, 방장 선택, 없으면 완전히 숨김)
-        const bestContainer = document.getElementById("pastorBestPostContainer");
-        const bestSectionWrap = document.getElementById("pastorBestPostSectionWrap");
-        const bestId = localStorage.getItem("yetalk_pastor_best_id");
-
-        if (bestSectionWrap && bestContainer) {
-            let bestTitleText = "";
-            let bestViewsCount = 0;
-            let bestAuthorText = savedLeader;
-
-            if (bestId === "main" && currentWordData) {
-                bestTitleText = currentWordData.scripture || "오늘의 묵상 말씀";
-                bestViewsCount = currentWordData.views || 28;
-                bestAuthorText = savedLeader;
-            } else if (bestId) {
-                const found = commentList.find(c => String(c.id) === String(bestId));
-                if (found) {
-                    bestTitleText = found.text;
-                    bestViewsCount = found.likes || 1;
-                    bestAuthorText = found.author || savedLeader;
-                }
-            }
-
-            if (bestTitleText) {
-                bestSectionWrap.style.display = "block";
-                bestContainer.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; cursor:pointer;" onclick="openLeaderUnifiedModal()">
-                        <div style="display:flex; align-items:center; gap:5px; min-width:0; flex:1; overflow:hidden;">
-                            <span style="color:#d97706; font-size:12px; font-weight:950; flex-shrink:0;">🔥 실시간 베스트:</span>
-                            <span style="background:#fee500; color:#191919; padding:1px 5px; border-radius:4px; font-size:11px; font-weight:950; flex-shrink:0;">[예수동행]</span>
-                            <strong style="font-size:13px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">“${escapeHtml(bestTitleText.slice(0, 36))}”</strong>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:#64748b; font-weight:800; flex-shrink:0;">
-                            <span style="color:#e11d48; font-weight:900;">❤️ ${bestViewsCount.toLocaleString()}</span>
-                            <span>· ${escapeHtml(bestAuthorText)}</span>
-                        </div>
-                    </div>
-                `;
-            } else {
-                bestSectionWrap.style.display = "none";
-                bestContainer.innerHTML = "";
-            }
-        }
+        renderJesusPinnedBest();
 
         const container = document.getElementById("pastorFeedListContainer");
         if (!container) return;
         container.innerHTML = "";
 
-        // 🌟 1번: 상단 고정 담임목사님의 오늘의 예수동행 묵상 (공지 카드)
+        // 🌟 1번: 상단 고정 담임목사님의 오늘의 예수동행 묵상 (기본 접힘 형태: 아코디언)
         if (currentWordData) {
             const dateStr = currentWordData.date || new Date().toISOString().slice(0, 10);
             const imgHtml = currentWordData.img ? `<div style="margin:8px 0; max-height:220px; border-radius:8px; overflow:hidden; border:1px solid #e2e8f0;"><img src="${currentWordData.img}" style="width:100%; max-height:220px; object-fit:cover; display:block;" alt="묵상 사진"></div>` : "";
@@ -1132,7 +1130,7 @@
                 <div onclick="togglePastorAccordion('main')" style="padding:10px 12px; cursor:pointer; display:flex; flex-direction:column; gap:4px; background:#f8fafc;">
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
                         <div style="font-size:14px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">
-                            <span style="color:#d97706; font-weight:950;">[예수동행]</span> “${escapeHtml(currentWordData.scripture ? currentWordData.scripture.slice(0, 36) : '오늘의 묵상 말씀')}”
+                            <span style="color:#d97706; font-weight:950;">[예수동행]</span> “${escapeHtml(currentWordData.scripture ? currentWordData.scripture.slice(0, 36) : '오늘의 말씀 & 묵상 보기')}”
                         </div>
                         <span id="pastorArrow_main" style="font-size:12px; color:#64748b; font-weight:900; transition:transform 0.2s;">▼</span>
                     </div>
@@ -1144,7 +1142,7 @@
                     </div>
                 </div>
 
-                <div id="pastorBody_main" style="display:block; padding:10px 12px 14px 12px; border-top:1px solid #f1f5f9; background:#fffdfc;">
+                <div id="pastorBody_main" style="display:none; padding:10px 12px 14px 12px; border-top:1px solid #f1f5f9; background:#fffdfc;">
                     <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:10px; margin-bottom:8px;">
                         <div style="font-size:11px; font-weight:900; color:#b45309; margin-bottom:4px;">✨ 오늘의 말씀</div>
                         <div style="font-family:'Nanum Myeongjo', serif; font-size:13.5px; font-weight:800; color:#1e293b; line-height:1.6;">${escapeHtml(currentWordData.scripture)}</div>
@@ -1172,13 +1170,15 @@
             const imgHtml = c.img ? `<div style="margin-bottom:4px;"><img src="${c.img}" style="max-width:100%; max-height:180px; border-radius:8px; display:block; cursor:pointer;" onclick="viewMemberChatImg('${c.img}')"></div>` : '';
             const fileHtml = c.file ? `<div style="margin-bottom:4px; background:rgba(0,0,0,0.06); padding:4px 8px; border-radius:6px; display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:11.5px;"><span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">📁 ${escapeHtml(c.file.name)}</span><a href="${c.file.data}" download="${escapeHtml(c.file.name)}" style="background:#16a34a; color:#fff; text-decoration:none; padding:2px 6px; border-radius:4px; font-size:10.5px; font-weight:800; white-space:nowrap;">다운로드</a></div>` : '';
 
-            const editDelBtns = (isMyMsg || checkIsSubAdminOrAbove()) ? `
-                <div style="display:inline-flex; gap:4px; margin-top:2px; font-size:9.5px; opacity:0.8; justify-content:${isMyMsg ? 'flex-end' : 'flex-start'};">
+            const editDelBtns = `
+                <div style="display:inline-flex; gap:4px; margin-top:2px; font-size:10px; opacity:0.9; justify-content:${isMyMsg ? 'flex-end' : 'flex-start'};">
+                    <span style="color:#d97706; font-weight:800; cursor:pointer;" onclick="pinJesusCommentAsBest(${c.id})">📌 베스트</span>
+                    <span style="color:#cbd5e1;">·</span>
                     <span style="color:#64748b; cursor:pointer;" onclick="editComment(${c.id})">수정</span>
                     <span style="color:#cbd5e1;">·</span>
                     <span style="color:#ef4444; cursor:pointer;" onclick="deleteComment(${c.id})">삭제</span>
                 </div>
-            ` : '';
+            `;
 
             const avatarIcon = (c.author.includes("목사") || c.author.includes("인도자")) ? "👑" : "🌱";
 
@@ -1240,7 +1240,7 @@
             commentList.forEach(c => {
                 const opt = document.createElement("option");
                 opt.value = c.id;
-                opt.innerText = `[❤️ ${(c.likes || 1)}] ${c.author}: ${c.text.slice(0, 25)}`;
+                opt.innerText = `[❤️ ${(c.likes || 1)}] ${c.author}: ${(c.text || '사진/파일 나눔').slice(0, 25)}`;
                 sel.appendChild(opt);
             });
             const curBest = localStorage.getItem("yetalk_pastor_best_id") || "main";
@@ -1894,6 +1894,17 @@
         sessionStorage.setItem("church_last_active_card_idx", "6");
         location.href = "churchmain.html?card=6";
     }
+
+    window.handleAppBackPress = function() {
+        goToChurchHome();
+        return true;
+    };
+    try {
+        history.pushState({ page: "churchjesuswalking" }, "", location.href);
+        window.addEventListener("popstate", function() {
+            goToChurchHome();
+        });
+    } catch(e) {}
 
     /* 🌟 목사님 라이브 유튜브 음성 한줄 플레이어 */
     let isPastorLivePlaying = false;
