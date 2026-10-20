@@ -244,19 +244,29 @@ function restoreLastActiveCard(instant) {
         if (target && vp) {
             isProgrammaticChurchScroll = true;
             vp.style.scrollSnapType = "none";
-            vp.scrollTop = target.offsetTop;
-            setTimeout(() => {
-                const refreshedTarget = document.getElementById(`section_card_${targetCard}`);
-                if (refreshedTarget) vp.scrollTop = refreshedTarget.offsetTop;
-                vp.style.scrollSnapType = "y mandatory";
-                isProgrammaticChurchScroll = false;
+
+            const applyTargetScroll = () => {
+                const el = document.getElementById(`section_card_${targetCard}`);
+                if (el) {
+                    vp.scrollTop = el.offsetTop;
+                }
+                activeSecId = targetCard;
                 updateChipsBar(targetCard);
                 checkAdmobFooterExclusion();
-            }, 80);
+            };
+
+            applyTargetScroll();
+            setTimeout(applyTargetScroll, 60);
+            setTimeout(applyTargetScroll, 180);
+
             setTimeout(() => {
-                const refreshedTarget = document.getElementById(`section_card_${targetCard}`);
-                if (refreshedTarget) vp.scrollTop = refreshedTarget.offsetTop;
-            }, 250);
+                applyTargetScroll();
+                vp.style.scrollSnapType = "y mandatory";
+            }, 450);
+
+            setTimeout(() => {
+                isProgrammaticChurchScroll = false;
+            }, 750);
         }
     } else {
         // 4초 간격 첫 메뉴(교회 카드 0) 자동 슬라이드 시작
