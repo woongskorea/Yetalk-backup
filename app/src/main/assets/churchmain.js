@@ -242,13 +242,21 @@ function restoreLastActiveCard(instant) {
         const target = document.getElementById(`section_card_${targetCard}`);
         const vp = document.getElementById("churchViewport");
         if (target && vp) {
-            if (instant) {
-                vp.scrollTop = target.offsetTop;
-            } else {
-                setTimeout(() => {
-                    scrollToCard(targetCard);
-                }, 100);
-            }
+            isProgrammaticChurchScroll = true;
+            vp.style.scrollSnapType = "none";
+            vp.scrollTop = target.offsetTop;
+            setTimeout(() => {
+                const refreshedTarget = document.getElementById(`section_card_${targetCard}`);
+                if (refreshedTarget) vp.scrollTop = refreshedTarget.offsetTop;
+                vp.style.scrollSnapType = "y mandatory";
+                isProgrammaticChurchScroll = false;
+                updateChipsBar(targetCard);
+                checkAdmobFooterExclusion();
+            }, 80);
+            setTimeout(() => {
+                const refreshedTarget = document.getElementById(`section_card_${targetCard}`);
+                if (refreshedTarget) vp.scrollTop = refreshedTarget.offsetTop;
+            }, 250);
         }
     } else {
         // 4초 간격 첫 메뉴(교회 카드 0) 자동 슬라이드 시작

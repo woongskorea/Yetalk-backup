@@ -3,717 +3,779 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>선교전도 대화방</title>
+    <title>선교전도 대화방 | 예톡행복한교회</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="church_theme.css">
     <style>
+        :root {
+            --safe-top: max(env(safe-area-inset-top, 0px) + 8px, 12px);
+            --header-h: 56px;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body {
-            background: #BACEE0; font-family: -apple-system, BlinkMacSystemFont, "Pretendard", sans-serif;
-            color: #1e293b; display: flex; justify-content: center; min-height: 100vh;
+        html, body {
+            min-height: 100%; height: auto;
+            background: #BACEE0 !important; font-family: "Pretendard", -apple-system, sans-serif;
+            color: #0f172a; overflow-x: hidden; overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
+
         .medigate-app {
-            width: 100%; max-width: 480px; min-height: 100vh; background: #BACEE0;
-            display: flex; flex-direction: column; position: relative; border-left: 1px solid #a3b8cc; border-right: 1px solid #a3b8cc;
-            padding-bottom: 95px;
+            width: 100%; max-width: 480px; min-height: 100vh; margin: 0 auto;
+            background: #BACEE0 !important; display: flex; flex-direction: column;
+            position: relative; box-shadow: 0 0 24px rgba(0,0,0,0.06);
+            padding-bottom: 215px;
         }
+
+        @media (min-width: 1024px) {
+            .medigate-app { max-width: 1240px !important; }
+        }
+
+        /* 1. 상단 헤더: 세이프에리어 완벽 적용 */
         .med-header {
-            height: auto; min-height: 50px; display: flex; justify-content: space-between; align-items: center;
-            padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 10px 16px; background: #BACEE0; border-bottom: 1px solid rgba(0,0,0,0.06);
-            position: sticky; top: 0; z-index: 100;
+            height: var(--header-h); background: #BACEE0;
+            border-bottom: 1.2px solid rgba(0,0,0,0.08);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: var(--safe-top) 12px 8px 12px; position: sticky; top: 0; z-index: 100; gap: 6px;
         }
-        .med-logo {
-            font-size: 17px; font-weight: 950; color: #191919; letter-spacing: -0.5px;
-            cursor: default; display: flex; align-items: center; gap: 4px;
+        .btn-header-back {
+            background: none; border: none; font-size: 26px; font-weight: 900;
+            color: #191919; cursor: pointer; line-height: 1; padding: 2px 4px;
         }
-        .med-logo span { color: #191919; font-size: 15px; font-weight: 900; }
-        .btn-go-home {
-            background: #ffffff; color: #1e293b; border: 1px solid #cbd5e1;
-            padding: 5px 12px; border-radius: 14px; font-size: 11.5px; font-weight: 850;
-            cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-
-        /* 🌟 [사용자 요청] 상단 여백 확보(한칸 내려주고) + 1위 베스트글 카드 */
-        .best-section {
-            margin: 14px 12px 8px 12px; padding: 12px 14px; border-radius: 14px;
-            background: #ffffff; border: 1px solid #bcd0e2; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-        }
-        .best-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .best-title { font-size: 14px; font-weight: 900; color: #0f172a; display: flex; align-items: center; gap: 4px; }
-        .best-post-item { padding: 6px 0; border-bottom: none; cursor: pointer; }
-        .best-post-title { font-size: 14.5px; font-weight: 850; color: #0f172a; line-height: 1.35; margin-bottom: 3px; }
-        .best-post-meta { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #64748b; font-weight: 700; }
-
-        /* 피드 리스트 (카톡 카드 스타일 + 글자 약간 크게) */
-        .feed-list { display: flex; flex-direction: column; background: transparent; padding: 4px 12px 20px 12px; gap: 8px; }
-        .post-card {
-            padding: 14px 16px; border-radius: 14px; cursor: pointer; background: #ffffff;
-            border: 1px solid #bcd0e2; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-            transition: transform 0.1s;
-        }
-        .post-card:active { transform: scale(0.99); }
-        .post-card-title { font-size: 15.5px; font-weight: 850; color: #0f172a; margin-bottom: 5px; line-height: 1.4; }
-        .post-card-preview-2lines {
-            font-size: 14px; color: #475569; line-height: 1.5; margin-bottom: 7px;
-            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-        }
-        .post-card-thumb-inline {
-            width: 100%; max-height: 160px; border-radius: 8px; overflow: hidden; margin: 4px 0 7px 0; border: 1px solid #e2e8f0;
-        }
-        .post-card-thumb-inline img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .post-card-meta-line {
-            display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: #64748b; font-weight: 700;
+        .header-mission-title {
+            font-size: 16.5px; font-weight: 950; color: #191919;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
-        .infeed-admob-box {
-            padding: 14px 16px; background: #f8fafc; border-top: 1px solid #e2e8f0; border-bottom: 8px solid #f1f5f9;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+        /* 프리미엄 기도/찬양 BGM 필 바 */
+        .prayer-audio-pill-bar {
+            margin: 4px 12px 6px 12px;
+            padding: 5px 8px 5px 12px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(240, 247, 255, 0.95));
+            border: 1.5px solid #bfdbfe;
+            border-radius: 24px;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 6px; flex-shrink: 0; backdrop-filter: blur(8px);
+        }
+        .prayer-badge-left {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: #eff6ff; border: 1px solid #dbeafe; border-radius: 14px;
+            padding: 3px 8px; font-size: 11px; font-weight: 950; color: #1d4ed8;
+            white-space: nowrap; user-select: none;
+        }
+        .prayer-pill-btn-group { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+        .btn-prayer-pill {
+            background: #ffffff; border: 1.2px solid #cbd5e1; border-radius: 18px;
+            padding: 4px 10px; font-size: 11px; font-weight: 850; color: #334155;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
+            transition: all 0.18s ease; white-space: nowrap;
+        }
+        .btn-prayer-pill:active { transform: scale(0.95); }
+        .btn-prayer-pill.active-tongue {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8); border-color: #1d4ed8; color: #ffffff; font-weight: 950;
+        }
+        .btn-prayer-pill.active-praise {
+            background: linear-gradient(135deg, #10b981, #059669); border-color: #059669; color: #ffffff; font-weight: 950;
+        }
+        .btn-prayer-pill.btn-stop { background: #f8fafc; border-color: #e2e8f0; color: #64748b; font-size: 10.5px; }
+
+        /* 라이브 음성 상단 바 */
+        .live-dot-blink { animation: blinkMissionLive 1s infinite alternate; }
+        @keyframes blinkMissionLive { from { opacity: 1; transform: scale(1); } to { opacity: 0.2; transform: scale(0.85); } }
+        .live-audio-bar {
+            background: #0f172a; border-bottom: 1.5px solid #1e3a5f;
+            padding: 8px 14px; color: #f8fafc; font-size: 12px; font-weight: 850;
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            position: sticky; top: var(--header-h); z-index: 95;
         }
 
-        /* 플로팅 버튼 */
-        .floating-group {
-            position: fixed; bottom: 20px; right: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 90;
+        /* 피드 리스트 (카톡 말풍선) */
+        .feed-list {
+            display: flex; flex-direction: column; gap: 6px;
+            padding: 8px 10px 215px 10px; box-sizing: border-box;
         }
-        .float-btn {
-            width: 42px; height: 42px; border-radius: 50%; display: flex;
-            align-items: center; justify-content: center; cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.18); border: none;
+        .chat-msg-row {
+            display: flex; gap: 6px; max-width: 88%; align-items: flex-start;
         }
-        .float-top { background: #ffffff; color: #475569; border: 1px solid #cbd5e1; font-size: 16px; font-weight: 900; }
-        .float-write { background: #0284c7; color: #ffffff; font-size: 18px; }
+        .chat-msg-row.other { align-self: flex-start; }
+        .chat-msg-row.me { align-self: flex-end; flex-direction: row-reverse; }
 
-        /* 상세 모달 */
-        .detail-modal {
-            display: none; position: fixed; inset: 0; background: #ffffff; z-index: 2000000;
-            flex-direction: column; overflow: hidden; max-width: 480px; margin: 0 auto; height: 100dvh;
+        .chat-avatar {
+            width: 28px; height: 28px; border-radius: 10px; background: #ffffff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-top: 2px;
         }
-        .detail-modal.open { display: flex; }
-        .detail-header {
-            height: 48px; background: #0f172a; color: white; display: flex;
-            align-items: center; justify-content: space-between; padding: 0 16px;
-            position: sticky; top: 0; z-index: 210; font-weight: 800; flex-shrink: 0;
-        }
-        .detail-body { padding: 16px 16px 100px 16px; flex: 1; display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-        body.detail-modal-open .church-common-fixed-wrapper {
-            display: none !important;
-        }
-        .detail-title { font-size: 16.5px; font-weight: 900; color: #0f172a; line-height: 1.35; margin-bottom: 6px; }
-        .detail-meta { font-size: 11.5px; color: #94a3b8; margin-bottom: 14px; }
-        .detail-img-box { width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 12px; border: 1px solid #e2e8f0; display: none; }
-        .detail-img { width: 100%; max-height: 350px; object-fit: contain; display: block; }
+        .chat-msg-content { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .chat-msg-row.other .chat-msg-content { align-items: flex-start; }
+        .chat-msg-row.me .chat-msg-content { align-items: flex-end; }
+        .chat-sender-name { font-size: 11px; color: #475569; font-weight: 800; padding-left: 2px; }
+        .chat-bubble-wrap { display: flex; align-items: flex-end; gap: 4px; max-width: 100%; }
+        .chat-msg-row.me .chat-bubble-wrap { flex-direction: row-reverse; }
 
-        .detail-link-box {
-            display: none; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;
-            padding: 10px 12px; margin-bottom: 14px; font-size: 12.5px; font-weight: 800; color: #1d4ed8; word-break: break-all;
+        .chat-bubble {
+            padding: 7px 11px; border-radius: 14px; font-size: 15px; line-height: 1.4;
+            word-break: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            cursor: pointer; user-select: text; -webkit-user-select: text;
+            max-width: fit-content; transition: transform 0.1s;
         }
-        .detail-file-box {
-            display: none; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px;
-            padding: 10px 12px; margin-bottom: 14px; align-items: center; justify-content: space-between;
+        .chat-bubble:active { transform: scale(0.985); }
+        .chat-bubble.chat-bubble-media {
+            background: transparent !important; padding: 0 !important;
+            border: none !important; box-shadow: none !important; border-radius: 12px !important;
         }
+        .chat-msg-row.other .chat-bubble:not(.chat-bubble-media) {
+            background: #ffffff; color: #0f172a; border-top-left-radius: 2px; border: 1px solid #dbeafe;
+        }
+        .chat-msg-row.me .chat-bubble:not(.chat-bubble-media) {
+            background: #fee500; color: #0f172a; border-top-right-radius: 2px;
+        }
+        .chat-bubble-text {
+            white-space: pre-wrap; line-height: 1.42; font-weight: 650;
+            color: inherit; margin: 0; padding: 0; font-size: 15px;
+        }
+        .chat-time { font-size: 9.5px; color: #64748b; font-weight: 600; white-space: nowrap; margin-bottom: 2px; }
 
-        .detail-content { font-size: 14px; line-height: 1.65; color: #1e293b; white-space: pre-line; margin-bottom: 20px; }
-        .detail-reaction-row {
-            display: flex; justify-content: flex-end; gap: 14px; font-size: 12.5px; color: #64748b; font-weight: 800;
-            padding-bottom: 12px; border-bottom: 1px solid #f1f5f9; margin-bottom: 14px;
-        }
-        .detail-admob-banner {
-            width: 100%; height: 95px; background: #0f172a; border-radius: 8px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; margin-bottom: 16px; border: 1px solid #334155; color: white;
-        }
+        @keyframes sheetSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
-        .comment-box {
-            border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px 12px;
-            background: #ffffff; display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px;
+        .yetalk-toast {
+            position: fixed; bottom: 180px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.94); color: white; padding: 9px 18px; border-radius: 20px;
+            font-size: 12.5px; font-weight: 800; z-index: 10000; opacity: 0; visibility: hidden;
+            transition: all 0.25s ease; white-space: nowrap; pointer-events: none;
         }
-        .comment-textarea {
-            flex: 1; border: none; font-size: 13.5px; outline: none; resize: none; min-height: 42px; font-family: inherit;
-        }
-        .btn-submit-comment {
-            background: #0284c7; color: white; border: none; padding: 5px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 900; cursor: pointer;
-        }
-
-        /* 글쓰기 모달 */
-        .cafe-write-screen {
-            display: none; position: fixed; inset: 0; background: #ffffff;
-            z-index: 500; flex-direction: column; max-width: 480px; margin: 0 auto; height: 100dvh;
-        }
-        .cafe-write-screen.open { display: flex; }
-        .cafe-top-bar {
-            height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .cafe-editor-body { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-        .cafe-title-input { width: 100%; border: none; border-bottom: 1px solid #e2e8f0; padding: 8px 0; font-size: 15px; font-weight: 900; outline: none; }
-        .cafe-content-textarea { width: 100%; flex: 1; min-height: 200px; border: none; font-size: 14px; line-height: 1.6; outline: none; resize: none; font-family: inherit; }
-        .cafe-link-input { width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; font-size: 13px; outline: none; }
-
-        .toolbar { height: 52px; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
-        .btn-tool { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 14px; padding: 5px 12px; font-size: 12px; font-weight: 850; cursor: pointer; }
+        .yetalk-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
-<body>
-<div class="medigate-app">
+<body style="background:#BACEE0 !important;">
+
+<div class="medigate-app" id="appRoot">
+    <!-- 1. 헤더: 한 줄 단일행 (<-, 방이름, 방장, 입장(공개/비공개), 예톡TV) -->
     <header class="med-header">
-        <div class="med-logo">
-            <span onclick="location.href='churchmission.html'" style="cursor:pointer; font-size:22px; line-height:1; padding-right:4px;" title="선교·전도 메인으로">‹</span>
-            ✝ <span id="headerRoomTitle">선교대화방</span>
-            <button type="button" onclick="editMissionRoomName()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:12px; font-size:11px; font-weight:800; color:#475569; padding:2px 7px; margin-left:4px; cursor:pointer;" title="대화방 이름 변경">✏️ 이름변경</button>
+        <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
+            <button type="button" class="btn-header-back" onclick="location.href='churchmission.html'" title="선교전도 목록으로">‹</button>
+            <strong class="header-mission-title" id="headerMissionTitle">선교대화방</strong>
         </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-            <button type="button" onclick="openWriteModal()" style="background:#0284c7; color:#ffffff; border:1px solid #38bdf8; border-radius:14px; font-size:11.5px; font-weight:950; padding:4px 10px; cursor:pointer;">✏️ 새글쓰기</button>
-            <button type="button" class="btn-go-home" onclick="location.href='churchmission.html'">방목록</button>
+        <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+            <button type="button" onclick="openLeaderUnifiedModal()" style="background:#ffffff; border:1.2px solid #94a3b8; border-radius:14px; font-size:11.5px; font-weight:900; color:#0f172a; padding:4px 9px; cursor:pointer;">👑 방장</button>
+            <button type="button" id="btnMissionLockState" onclick="toggleMissionLockState()" style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:14px; font-size:11px; font-weight:850; color:#2563eb; padding:4px 8px; cursor:pointer;">입장(공개)</button>
+            <button type="button" onclick="location.href='index.html'" style="background:#dc2626; color:#ffffff; border:none; border-radius:14px; font-size:11px; font-weight:950; padding:4px 8px; cursor:pointer;">📺 예톡TV</button>
         </div>
     </header>
 
-    <!-- 방장/팀장 최신순 베스트글 (1개 단독 노출) -->
-    <section class="best-section" id="bestSection">
-        <div class="best-header">
-            <span class="best-title" id="bestSectionTitle">🔥 방장 최신 나눔글</span>
-            <span style="font-size:11px; color:#0284c7; font-weight:800;">1위</span>
+    <!-- 🌟 라이브 음성 상단 바 -->
+    <div id="liveAudioBar" class="live-audio-bar" style="display:none;">
+        <div style="display:flex; align-items:center; gap:6px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">
+            <span style="color:#ef4444; font-weight:950; font-size:12px;" class="live-dot-blink">🔴 LIVE</span>
+            <span id="txtLiveStatus" style="font-size:11.5px; color:#e2e8f0; text-overflow:ellipsis; overflow:hidden;">실시간 선교 보고 / 예배 라이브 음성 청취 중... 🔊</span>
         </div>
-        <div id="bestPostsContainer"></div>
-    </section>
+        <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
+            <button type="button" onclick="openLeaderUnifiedModal()" style="background:#1e3a5f; border:1px solid #38bdf8; color:#38bdf8; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">주소설정</button>
+            <button type="button" onclick="stopMissionLiveAudio()" style="background:#475569; border:none; color:#fff; font-size:11px; font-weight:800; padding:2px 6px; border-radius:6px; cursor:pointer;">정지</button>
+        </div>
+    </div>
+    <div id="hiddenLiveYtIframeContainer" style="display:none; width:0; height:0;"></div>
 
-    <!-- 🌟 [사용자 요청] 새글쓰기 상단 배치 (애드몹 위 겹침 완전 제거) -->
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 12px 2px 12px;">
-        <span style="font-size:12.5px; font-weight:900; color:#475569;">선교·전도 나눔 (최신 4개)</span>
-        <button type="button" onclick="openWriteModal()" style="background:#0284c7; color:#ffffff; border:1.5px solid #38bdf8; border-radius:20px; padding:6px 16px; font-size:13px; font-weight:950; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(2,132,199,0.3); cursor:pointer;">
-            ✏️ 새글쓰기
-        </button>
+    <!-- 🌟 초현대적 프리미엄 기도/찬양 BGM 필 바 -->
+    <div class="prayer-audio-pill-bar">
+        <div class="prayer-badge-left">
+            <span style="font-size:12px;">🎵</span>
+            <span>선교·전도 BGM</span>
+        </div>
+        <div class="prayer-pill-btn-group">
+            <button type="button" class="btn-prayer-pill" id="btnMissionMusic_1" onclick="togglePrayerBgm(1)">🕊️ 방언기도</button>
+            <button type="button" class="btn-prayer-pill" id="btnMissionMusic_3" onclick="togglePrayerBgm(3)">🎵 찬양기도</button>
+            <button type="button" class="btn-prayer-pill btn-stop" id="btnMissionMusic_stop" onclick="togglePrayerBgmStop()">⏹️ 중지</button>
+        </div>
     </div>
 
-    <!-- 피드 목록 -->
-    <main class="feed-list" id="feedListContainer"></main>
-
-    <!-- 상세 모달 -->
-    <div class="detail-modal" id="detailModal">
-        <div class="detail-header">
-            <span onclick="closeDetailModal()" style="cursor:pointer; font-size:18px;">←</span>
-            <span id="detailCatTitle">나눔터</span>
-            <span onclick="closeDetailModal()" style="cursor:pointer; font-size:12px;">닫기</span>
+    <!-- 🌟 [사용자 요청] 방장 1클릭 고정 실시간 베스트 한줄 배너 (고정 시에만 박스로 노출) -->
+    <div id="missionPinnedBestBanner" style="display:none; margin:6px 12px 2px 12px; padding:7px 12px; background:#ffffff; border:1.2px solid #bcd0e2; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.06); justify-content:space-between; align-items:center; gap:8px;">
+        <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1; overflow:hidden;">
+            <span style="color:#d97706; font-size:12px; font-weight:950; flex-shrink:0;">📌 [베스트]</span>
+            <strong id="missionPinnedBestText" style="font-size:13.5px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></strong>
         </div>
-        <div class="detail-body">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;">
-                <div class="detail-title" id="detailTitleText" style="flex:1;"></div>
-                <div style="display:flex; gap:5px; flex-shrink:0;">
-                    <button type="button" onclick="editActivePost()" style="background:#eff6ff; border:1px solid #3b82f6; color:#2563eb; font-size:11px; font-weight:800; padding:3px 7px; border-radius:4px; cursor:pointer;">✏️ 수정</button>
-                    <button type="button" onclick="deleteActivePost()" style="background:#fee2e2; border:1px solid #f87171; color:#dc2626; font-size:11px; font-weight:800; padding:3px 7px; border-radius:4px; cursor:pointer;">🗑️ 삭제</button>
+        <button type="button" onclick="unpinMissionBestPost()" style="background:none; border:none; color:#94a3b8; font-size:14px; font-weight:900; cursor:pointer; padding:0 4px;" title="고정 해제">✕</button>
+    </div>
+
+    <!-- 메인 카톡 대화 피드 리스트 -->
+    <main class="feed-list" id="missionFeedListContainer"></main>
+
+    <!-- 숨은 파일 인풋 -->
+    <input type="file" id="missionInlinePhotoInput" style="display:none;" accept="image/*" onchange="handleMissionPhotoSelected(this)">
+
+    <!-- 🌟 하단 독 (한줄 댓글창 + 100 애드몹 안정적 고정 배치) -->
+    <div id="missionBottomDock" style="position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; z-index:99999; display:flex; flex-direction:column; box-shadow:0 -2px 10px rgba(0,0,0,0.08); background:#0b1326; padding-bottom:max(env(safe-area-inset-bottom, 0px) + 12px, 16px);">
+        <!-- 한줄 댓글창 -->
+        <div style="position:relative; width:100%; background:#BACEE0; border-top:1px solid rgba(0,0,0,0.08); padding:6px 10px; display:flex; flex-direction:column; gap:4px; box-sizing:border-box;">
+            <div id="replyIndicatorBar" style="display:none; padding:4px 10px; background:rgba(255,255,255,0.95); border-radius:8px; font-size:11.5px; color:#0f172a; justify-content:space-between; align-items:center; border:1px solid #cbd5e1;">
+                <span id="replyIndicatorText" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:85%;">↩️ 답장 작성 중...</span>
+                <button type="button" onclick="cancelReplyMode()" style="background:none; border:none; color:#ef4444; font-weight:900; cursor:pointer; font-size:13px; padding:0 4px;">✕</button>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; width:100%;">
+                <button type="button" onclick="document.getElementById('missionInlinePhotoInput').click()" style="width:36px; height:36px; border-radius:50%; background:#ffffff; border:1px solid #cbd5e1; font-size:18px; color:#475569; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="사진 첨부">+</button>
+                <input type="text" id="quickMissionInput" placeholder="선교와 전도의 은혜 나눔을 남겨주세요..." style="flex:1; height:38px; background:#ffffff; border:1px solid #cbd5e1; border-radius:19px; padding:0 14px; font-size:14.5px; font-weight:700; color:#0f172a; outline:none; box-sizing:border-box;" onkeypress="if(event.key==='Enter') submitQuickMissionComment()">
+                <button type="button" onclick="submitQuickMissionComment()" style="height:38px; padding:0 16px; background:#fee500; color:#191919; border:none; border-radius:19px; font-size:13.5px; font-weight:950; cursor:pointer; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.1);">전송</button>
+            </div>
+        </div>
+
+        <!-- 하단 고정 100 애드몹 -->
+        <aside style="height:100px; background:#0b1326; border-top:1.5px solid #1e3a5f; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; position:relative; box-sizing:border-box;">
+            <div style="font-size:9.5px; color:#64748b; font-weight:850; letter-spacing:0.5px;">
+                <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
+            </div>
+            <div style="width:calc(100% - 20px); max-width:380px; height:68px; background:#0f172a; border:1.2px solid #1e3a5f; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;">
+                <strong style="color:#38bdf8; font-size:13.5px; font-weight:950;">Google AdMob (300 × 100 / Large Banner)</strong>
+                <span style="color:#facc15; font-size:11px; font-weight:800;" id="missionAdmobSubText">열방 선교 & 전도 사역 공식 후원 슬롯</span>
+            </div>
+        </aside>
+    </div>
+
+    <!-- 🌟 댓글 길게 누르기(롱프레스) 액션 시트 모달 -->
+    <div id="modalCommentActionSheet" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:20000200 !important; align-items:flex-end; justify-content:center; backdrop-filter:blur(2px);" onclick="closeCommentActionSheet()">
+        <div style="width:100%; max-width:480px; background:#ffffff; border-top-left-radius:20px; border-top-right-radius:20px; padding:18px 16px max(env(safe-area-inset-bottom, 0px) + 16px, 20px) 16px; box-shadow:0 -4px 25px rgba(0,0,0,0.2); display:flex; flex-direction:column; gap:10px; animation:sheetSlideUp 0.2s ease;" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">
+                <div style="font-size:12.5px; font-weight:900; color:#475569;">
+                    💬 <span id="actionSheetAuthor">성도</span> 님의 나눔
                 </div>
+                <button type="button" onclick="closeCommentActionSheet()" style="background:none; border:none; font-size:18px; color:#94a3b8; cursor:pointer; font-weight:900;">✕</button>
             </div>
-            <div class="detail-meta" id="detailMetaText"></div>
+            <div id="actionSheetPreviewText" style="font-size:13px; color:#334155; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:8px 12px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis; word-break:break-word; font-weight:600;"></div>
 
-            <div class="detail-img-box" id="detailImgBox"><img id="detailImg" class="detail-img" alt="사진"></div>
-            <div class="detail-link-box" id="detailLinkBox"></div>
-            <div class="detail-file-box" id="detailFileBox">
-                <span id="detailFileName" style="font-size:12px; font-weight:800; color:#1e40af;">📄 문서.pdf</span>
-                <button type="button" id="btnFileDown" style="background:#0284c7; color:white; border:none; padding:4px 10px; border-radius:6px; font-size:11.5px; font-weight:900; cursor:pointer;">다운로드</button>
-            </div>
-
-            <div class="detail-content" id="detailContentText"></div>
-            <div style="display:flex; justify-content:flex-end; margin-bottom:14px;">
-                <button type="button" onclick="openWriteModalFromDetail()" style="padding:6px 14px; border-radius:20px; background:#0284c7; color:#ffffff; border:1px solid #38bdf8; font-size:12.5px; font-weight:900; display:inline-flex; align-items:center; gap:5px; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.3);">
-                    ✏️ + 새글쓰기
+            <div style="display:flex; flex-direction:column; gap:6px; margin-top:4px;">
+                <button type="button" onclick="actionSheetCopyText()" style="width:100%; display:flex; align-items:center; gap:10px; padding:12px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; font-size:14px; font-weight:850; color:#0f172a; cursor:pointer;">
+                    <span style="font-size:16px;">📋</span> <span>글 복사</span>
+                </button>
+                <button type="button" onclick="actionSheetPinBest()" style="width:100%; display:flex; align-items:center; gap:10px; padding:12px 14px; background:#fffbeb; border:1px solid #fde68a; border-radius:12px; font-size:14px; font-weight:950; color:#b45309; cursor:pointer;">
+                    <span style="font-size:16px;">📌</span> <span>실시간 베스트로 지정 (방장)</span>
+                </button>
+                <button type="button" onclick="actionSheetEdit()" style="width:100%; display:flex; align-items:center; gap:10px; padding:12px 14px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:12px; font-size:14px; font-weight:850; color:#1d4ed8; cursor:pointer;">
+                    <span style="font-size:16px;">✏️</span> <span>글 수정</span>
+                </button>
+                <button type="button" onclick="actionSheetDelete()" style="width:100%; display:flex; align-items:center; gap:10px; padding:12px 14px; background:#fef2f2; border:1px solid #fecaca; border-radius:12px; font-size:14px; font-weight:850; color:#dc2626; cursor:pointer;">
+                    <span style="font-size:16px;">🗑️</span> <span>글 삭제</span>
                 </button>
             </div>
-
-            <div class="detail-reaction-row">
-                <span>♡ <strong id="detailViewsCount" style="color:#e11d48;">0</strong></span>
-                <span>💬 <strong id="detailCommentsCount">0</strong></span>
-            </div>
-
-            <div class="detail-admob-banner">
-                <div style="color:#38bdf8; font-weight:900; font-size:12px;">Google AdMob (320x100)</div>
-                <div style="font-size:10.5px; color:#94a3b8; margin-top:2px;">사역 후원 공식 스폰서 슬롯</div>
-            </div>
-
-            <div class="comment-box">
-                <textarea id="commentInput" class="comment-textarea" placeholder="은혜로운 댓글을 남겨주세요."></textarea>
-                <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #f1f5f9; padding-top:6px;">
-                    <span style="font-size:11.5px; color:#64748b; font-weight:800;">작성자: <strong id="commentAuthorDisplay" style="color:#0284c7;">-</strong></span>
-                    <button type="button" class="btn-submit-comment" onclick="submitComment()">등록</button>
-                </div>
-            </div>
-            <div id="commentListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+            <button type="button" onclick="closeCommentActionSheet()" style="width:100%; padding:11px; background:#f1f5f9; border:none; border-radius:12px; font-size:13.5px; font-weight:900; color:#475569; cursor:pointer; margin-top:2px;">취소</button>
         </div>
     </div>
 
-    <!-- 글쓰기 모달 -->
-    <div class="cafe-write-screen" id="writeModal">
-        <header class="cafe-top-bar">
-            <button type="button" style="background:none; border:none; font-size:22px; cursor:pointer;" onclick="closeWriteModal()">✕</button>
-            <strong style="font-size:15px;">새글 작성</strong>
-            <button type="button" style="background:#0284c7; color:white; border:none; padding:5px 14px; border-radius:14px; font-weight:900; font-size:12px; cursor:pointer;" onclick="submitPost()">등록</button>
-        </header>
-        <div class="cafe-editor-body">
-            <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-size:12px; color:#64748b; font-weight:800;">작성자:</span>
-                <input type="text" id="inpAuthor" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-size:12.5px; font-weight:900; color:#0284c7; outline:none;" readonly>
+    <!-- 🌟 방장 3-in-1 통합 관리 모달 -->
+    <div id="modalLeaderUnified" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:20000100 !important; align-items:center; justify-content:center; padding:14px;">
+        <div style="width:100%; max-width:380px; background:#ffffff; border-radius:18px; padding:18px 16px; box-shadow:0 10px 35px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:12px; max-height:90vh; overflow-y:auto;" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:8px;">
+                <strong style="font-size:15.5px; color:#0f172a; display:flex; align-items:center; gap:5px;">👑 방장 관리 및 방송 설정</strong>
+                <button type="button" onclick="closeLeaderUnifiedModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:#64748b;">✕</button>
             </div>
-            <input type="text" id="inpTitle" class="cafe-title-input" placeholder="제목을 입력하세요">
-            <textarea id="inpContent" class="cafe-content-textarea" placeholder="선교/전도 소식, 기도제목, 감사를 나눠주세요."></textarea>
-            <input type="text" id="inpWebLink" class="cafe-link-input" placeholder="🔗 외부 웹링크 주소 (선택)">
 
-            <div id="attachedPreviewBox" style="display:none; position:relative; width:100%; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden;">
-                <img id="attachedPreviewImg" style="width:100%; max-height:220px; object-fit:contain; display:block;">
+            <!-- 1) 대화방 이름 & 방장 명칭 -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+                <span style="font-size:12px; font-weight:900; color:#0284c7;">1️⃣ 대화방 이름 & 방장 명칭 변경</span>
+                <div>
+                    <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">대화방 이름</label>
+                    <input type="text" id="inpLeaderRoomTitle" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">방장 명칭 (선교사, 팀장 등)</label>
+                    <input type="text" id="inpLeaderUserTitle" placeholder="예: 선교사, 팀장" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
+                </div>
+                <button type="button" onclick="saveLeaderRoomNameAndUser()" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:7px; font-size:12px; font-weight:900; cursor:pointer;">💾 변경 저장</button>
             </div>
-            <div id="attachedFileBadge" style="display:none; background:#eff6ff; border:1px solid #3b82f6; border-radius:6px; padding:6px 10px; font-size:12px; color:#1e40af; font-weight:800;"></div>
+
+            <!-- 2) 베스트글 지정 -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+                <span style="font-size:12px; font-weight:900; color:#d97706;">2️⃣ 실시간 베스트글 지정 (상단 고정)</span>
+                <div style="font-size:11px; color:#64748b;">상단에 노출할 나눔 글을 선택하세요:</div>
+                <select id="selBestPostPicker" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12.5px; font-weight:800; box-sizing:border-box; background:#fff;"></select>
+                <button type="button" onclick="applyLeaderBestPostSelection()" style="background:#d97706; color:#fff; border:none; border-radius:6px; padding:7px; font-size:12px; font-weight:900; cursor:pointer;">📌 선택한 글을 베스트로 고정</button>
+            </div>
+
+            <!-- 3) 라이브 유튜브 음성 설정 -->
+            <div style="background:#0f172a; border:1px solid #1e3a5f; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; color:#fff;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:900; color:#ef4444;">3️⃣ 실시간 선교 보고 / 예배 라이브 음성</span>
+                    <span id="dispLiveIndicatorInModal" style="font-size:10px; background:#475569; padding:1px 5px; border-radius:4px;">대기중</span>
+                </div>
+                <input type="text" id="inpLeaderLiveYtUrl" style="width:100%; background:#1e293b; border:1px solid #334155; border-radius:6px; padding:8px 9px; font-size:12.5px; color:#38bdf8; font-weight:800; box-sizing:border-box;" onclick="this.value='';" onfocus="this.select();" placeholder="https://www.youtube.com/watch?v=...">
+                <div style="display:flex; gap:6px;">
+                    <button type="button" onclick="startMissionLiveAudioDirect()" style="flex:1; background:#dc2626; color:#fff; border:none; border-radius:6px; padding:8px; font-size:12px; font-weight:950; cursor:pointer;">▶️ 라이브 방송 시작</button>
+                    <button type="button" onclick="stopMissionLiveAudio()" style="background:#475569; color:#fff; border:none; border-radius:6px; padding:8px 12px; font-size:12px; font-weight:900; cursor:pointer;">⏹️ 정지</button>
+                </div>
+            </div>
+
+            <!-- 4) 공개 / 비공개 설정 -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+                <span style="font-size:12px; font-weight:900; color:#334155;">4️⃣ 입장 공개 / 비공개 설정</span>
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <label style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:800; cursor:pointer;">
+                        <input type="radio" name="radUnifiedLock" value="public" id="radLockPublic" onchange="toggleModalPinGroup(false)"> 공개방
+                    </label>
+                    <label style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:800; cursor:pointer;">
+                        <input type="radio" name="radUnifiedLock" value="secret" id="radLockSecret" onchange="toggleModalPinGroup(true)"> 비공개(비밀방)
+                    </label>
+                </div>
+                <div id="unifiedPinInputBox" style="display:none; margin-top:4px;">
+                    <input type="password" id="inpUnifiedPinCode" maxlength="4" placeholder="비밀번호 4자리" style="width:120px; border:1.5px solid #ef4444; border-radius:6px; padding:5px 8px; font-size:14px; text-align:center; letter-spacing:3px;">
+                </div>
+            </div>
+
+            <button type="button" onclick="closeLeaderUnifiedModal()" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:8px; font-size:12.5px; font-weight:900; color:#475569; cursor:pointer; margin-top:2px;">닫기</button>
         </div>
-        <footer class="toolbar">
-            <div style="display:flex; gap:8px;">
-                <button type="button" class="btn-tool" onclick="document.getElementById('fileImg').click()">📷 사진</button>
-                <button type="button" class="btn-tool" onclick="document.getElementById('fileDoc').click()">📁 파일</button>
-            </div>
-        </footer>
-        <input type="file" id="fileImg" style="display:none;" accept="image/*" onchange="handleImage(this)">
-        <input type="file" id="fileDoc" style="display:none;" onchange="handleDoc(this)">
     </div>
 </div>
 
-<script>
-    let roomId = "";
-    let roomName = "";
-    let roomLeader = "";
-    let category = "mission"; // mission (아이디) or evangel (실명)
-    let posts = [];
-    let activePostId = null;
+<!-- 토스트 -->
+<div class="yetalk-toast" id="toastBox"></div>
 
-    let attachedImgData = null;
-    let attachedFileName = null;
-    let attachedFileData = null;
+<script>
+    let currentMissionRoomId = "m1";
+    let currentMissionRoomName = "인도선교방";
+    let currentMissionLeader = "바울선교사";
+    let currentMissionCategory = "mission";
+    let missionPosts = [];
+    let pinnedBestPostId = null;
+
+    let selectedActionPostId = null;
+    let pressTimer = null;
+    let replyTargetPost = null;
+
+    // 기도 BGM 오디오
+    let currentAudioTrack = 0;
+    const PRAYER_AUDIO_URLS = {
+        1: "https://actions.google.com/sounds/v1/water/gentle_stream_water.ogg",
+        3: "https://actions.google.com/sounds/v1/ambiences/peaceful_gathering.ogg"
+    };
+    let prayerAudioObj = null;
 
     function initBoard() {
-        roomId = sessionStorage.getItem("mission_board_room_id") || "m1";
-        roomName = sessionStorage.getItem("mission_board_room_name") || "인도선교방";
-        roomLeader = sessionStorage.getItem("mission_board_leader") || "";
-        category = sessionStorage.getItem("mission_board_category") || "mission";
+        const savedRoomId = sessionStorage.getItem("mission_board_room_id") || "m1";
+        const savedRoomName = sessionStorage.getItem("mission_board_room_name") || "인도선교방";
+        const savedLeader = sessionStorage.getItem("mission_board_leader") || "바울선교사";
+        const savedCategory = sessionStorage.getItem("mission_board_category") || "mission";
 
-        const savedCustomRoomName = localStorage.getItem(`church_mission_room_name_${roomId}`);
-        if (savedCustomRoomName) {
-            roomName = savedCustomRoomName;
-        }
-        document.getElementById("headerRoomTitle").innerText = roomName;
+        currentMissionRoomId = savedRoomId;
+        currentMissionRoomName = savedRoomName;
+        currentMissionLeader = savedLeader;
+        currentMissionCategory = savedCategory;
 
-        // 작성자 설정: 선교는 아이디(자유), 전도는 실명(김예톡)
-        const authorEl = document.getElementById("inpAuthor");
-        const defaultRealName = localStorage.getItem("yetalkUserName") || "김예톡";
-        if (category === "mission") {
-            authorEl.readOnly = false;
-            authorEl.style.background = "#ffffff";
-            authorEl.value = localStorage.getItem("yetalk_mission_custom_id") || "선교동역자";
-            document.getElementById("commentAuthorDisplay").innerText = authorEl.value;
-        } else {
-            authorEl.readOnly = true;
-            authorEl.style.background = "#f1f5f9";
-            authorEl.value = defaultRealName;
-            document.getElementById("commentAuthorDisplay").innerText = defaultRealName;
-        }
+        document.getElementById("headerMissionTitle").innerText = currentMissionRoomName;
+        document.getElementById("missionAdmobSubText").innerText = `${currentMissionRoomName} 사역 공식 후원 슬롯`;
 
         loadPosts();
-        renderBestPosts();
-        renderFeed();
+        loadPinnedBest();
     }
 
-    function editMissionRoomName() {
-        const curName = document.getElementById("headerRoomTitle").innerText;
-        const newName = prompt("변경할 대화방 이름을 입력하세요:", curName);
-        if (newName && newName.trim()) {
-            localStorage.setItem(`church_mission_room_name_${roomId}`, newName.trim());
-            roomName = newName.trim();
-            document.getElementById("headerRoomTitle").innerText = roomName;
-            renderBestPosts();
-            alert(`대화방 이름이 '${roomName}'(으)로 변경되었습니다.`);
-        }
+    function getStorageKey() {
+        return `yetalk_mission_posts_${currentMissionRoomId}`;
     }
 
     function loadPosts() {
-        const storageKey = `mission_posts_${roomId}`;
-        const saved = localStorage.getItem(storageKey);
-        if (saved) {
-            try { posts = JSON.parse(saved); } catch(e) { posts = []; }
+        const raw = localStorage.getItem(getStorageKey());
+        if (raw) {
+            try { missionPosts = JSON.parse(raw); } catch(e) { missionPosts = getDefaultPosts(); }
         } else {
-            // 초기 샘플 글
-            posts = [
-                {
-                    id: 1,
-                    title: `[${roomName}] 사역 소식 및 중보 기도제목`,
-                    content: "현지 영혼들을 위한 예배당 건축과 청년 제자 훈련이 은혜 가운데 진행 중입니다.\n지치지 않고 복음 들고 나아갈 수 있도록 함께 기도해 주세요.",
-                    author: roomLeader || (category === "mission" ? "현지선교사" : "전도팀장"),
-                    time: "10분 전",
-                    views: 347,
-                    link: "",
-                    img: null,
-                    comments: []
-                },
-                {
-                    id: 2,
-                    title: `동역자 여러분의 기도와 후원에 깊이 감사드립니다`,
-                    content: "보내주신 사랑으로 현지 아이들에게 성경책과 학용품을 전달했습니다.\n눈물로 주님을 영접하는 기적이 매일 일어납니다.",
-                    author: roomLeader || (category === "mission" ? "동역자" : "김예톡"),
-                    time: "1시간 전",
-                    views: 120,
-                    link: "",
-                    img: null,
-                    comments: []
-                }
-            ];
-            localStorage.setItem(storageKey, JSON.stringify(posts));
+            missionPosts = getDefaultPosts();
+            savePosts();
         }
+        renderFeed();
     }
 
     function savePosts() {
-        localStorage.setItem(`mission_posts_${roomId}`, JSON.stringify(posts));
+        localStorage.setItem(getStorageKey(), JSON.stringify(missionPosts));
     }
 
-    /* 🌟 방장(팀장)이 등록된 경우, 방장의 최신글 1개를 최상단 베스트에 랭크 */
-    function renderBestPosts() {
-        const container = document.getElementById("bestPostsContainer");
-        const sec = document.getElementById("bestSection");
-        container.innerHTML = "";
-
-        if (!roomLeader || roomLeader.trim() === "") {
-            sec.style.display = "none";
-            return;
-        }
-
-        sec.style.display = "block";
-        document.getElementById("bestSectionTitle").innerText = `🔥 [${roomLeader}] 방장 최신 나눔`;
-
-        // 방장이 작성한 글을 최신순으로 1개 추출
-        const leaderPosts = posts.filter(p => p.author === roomLeader).slice(0, 1);
-
-        if (leaderPosts.length === 0) {
-            // 방장 글이 없을 경우 일반 최신글 1개 노출
-            posts.slice(0, 1).forEach(p => appendBestItem(p, container));
-        } else {
-            leaderPosts.forEach(p => appendBestItem(p, container));
-        }
-    }
-
-    function appendBestItem(p, container) {
-        const item = document.createElement("div");
-        item.className = "best-post-item";
-        item.onclick = () => openDetailModal(p.id);
-        item.innerHTML = `
-            <div class="best-post-title"><strong style="color:#0284c7;">[${roomName}]</strong> “${p.title}”</div>
-            <div class="best-post-meta">
-                <span style="color:#e11d48; font-weight:800;">♡ ${(p.views || 0).toLocaleString()}</span>
-                <span>· ${p.author}</span>
-                <span>· 💬 ${(p.comments ? p.comments.length : 0)}</span>
-            </div>
-        `;
-        container.appendChild(item);
+    function getDefaultPosts() {
+        return [
+            {
+                id: "p_" + (Date.now() - 3600000),
+                author: currentMissionLeader || "선교사",
+                isMe: false,
+                text: `샬롬! ${currentMissionRoomName} 나눔방입니다. 열방과 지역 복음화를 위해 기도와 소식을 전합니다.`,
+                time: "오전 08:30",
+                mediaUrl: ""
+            },
+            {
+                id: "p_" + (Date.now() - 1800000),
+                author: "선교동역자",
+                isMe: false,
+                text: "현지 영혼 구원 사역과 사역자분들의 영육의 강건함을 위해 늘 중보하고 응원합니다!",
+                time: "오전 09:10",
+                mediaUrl: ""
+            },
+            {
+                id: "p_" + Date.now(),
+                author: "나",
+                isMe: true,
+                text: "아멘! 땅끝까지 이르러 주의 증인 되는 거룩한 선교 여정에 함께 동역하겠습니다.",
+                time: "방금",
+                mediaUrl: ""
+            }
+        ];
     }
 
     function renderFeed() {
-        const container = document.getElementById("feedListContainer");
+        const container = document.getElementById("missionFeedListContainer");
         container.innerHTML = "";
 
-        // 🌟 [사용자 요청] 글 박스는 네개만 보이게 (베스트 1개 + 일반피드 3개 = 총 4개)
-        const displayPosts = posts.slice(0, 3);
+        missionPosts.forEach(post => {
+            const isMe = !!post.isMe;
+            const row = document.createElement("div");
+            row.className = `chat-msg-row ${isMe ? 'me' : 'other'}`;
+            row.dataset.postId = post.id;
 
-        displayPosts.forEach(p => {
-            const card = document.createElement("div");
-            card.className = "post-card";
-            card.onclick = () => openDetailModal(p.id);
+            let bubbleContent = "";
+            const isPureMedia = (!post.text || post.text.trim() === "") && post.mediaUrl;
 
-            const imgHtml = p.img ? `<div class="post-card-thumb-inline"><img src="${p.img}"></div>` : "";
-            const badgeHtml = (p.author === roomLeader && roomLeader !== "") ? `<span style="background:#0284c7; color:white; font-size:10px; padding:1px 5px; border-radius:4px; font-weight:900; margin-left:4px;">방장</span>` : "";
-
-            card.innerHTML = `
-                <div class="post-card-title">
-                    <span style="color:#0284c7; font-weight:900;">[${roomName}]</span> “${p.title}” ${badgeHtml}
-                </div>
-                ${imgHtml}
-                <div class="post-card-preview-2lines">${p.content}</div>
-                <div class="post-card-meta-line">
-                    <span style="color:#475569; font-weight:800;">${p.author}</span>
-                    <span>${p.time}</span>
-                    <span style="color:#e11d48;">♡ ${(p.views || 0).toLocaleString()}</span>
-                    <span style="color:#64748b;">💬 ${(p.comments ? p.comments.length : 0)}</span>
-                </div>
-            `;
-            container.appendChild(card);
-        });
-    }
-
-    function openDetailModal(id) {
-        activePostId = id;
-        const p = posts.find(item => item.id === id);
-        if (!p) return;
-
-        p.views = (p.views || 0) + 1;
-        savePosts();
-        renderBestPosts();
-
-        document.getElementById("detailCatTitle").innerText = `[${roomName}]`;
-        document.getElementById("detailTitleText").innerText = p.title;
-        document.getElementById("detailMetaText").innerText = `${p.author} · ${p.time}`;
-        document.getElementById("detailContentText").innerText = p.content;
-        document.getElementById("detailViewsCount").innerText = (p.views || 0).toLocaleString();
-        document.getElementById("detailCommentsCount").innerText = (p.comments ? p.comments.length : 0);
-
-        // 사진
-        const imgBox = document.getElementById("detailImgBox");
-        if (p.img) {
-            document.getElementById("detailImg").src = p.img;
-            imgBox.style.display = "block";
-        } else {
-            imgBox.style.display = "none";
-        }
-
-        // 웹링크
-        const linkBox = document.getElementById("detailLinkBox");
-        if (p.link) {
-            linkBox.innerHTML = `🔗 관련 링크: <a href="${p.link}" target="_blank" style="color:#2563eb;">${p.link}</a>`;
-            linkBox.style.display = "block";
-        } else {
-            linkBox.style.display = "none";
-        }
-
-        // 파일 다운로드
-        const fileBox = document.getElementById("detailFileBox");
-        if (p.fileName && p.fileData) {
-            document.getElementById("detailFileName").innerText = `📄 ${p.fileName}`;
-            document.getElementById("btnFileDown").onclick = () => {
-                const a = document.createElement("a");
-                a.href = p.fileData; a.download = p.fileName;
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            };
-            fileBox.style.display = "flex";
-        } else {
-            fileBox.style.display = "none";
-        }
-
-        renderComments(p);
-
-        // 🌟 [사용자 요청] 바닥 고정 애드몹 바 완전히 숨기기 (스크롤 걸림 100% 해소)
-        const bottomBar = document.getElementById("churchCommonFixedWrapper");
-        if (bottomBar) bottomBar.style.setProperty("display", "none", "important");
-
-        document.body.classList.add("detail-modal-open");
-        const modal = document.getElementById("detailModal");
-        modal.scrollTop = 0;
-        modal.classList.add("open");
-    }
-
-    function closeDetailModal() {
-        const bottomBar = document.getElementById("churchCommonFixedWrapper");
-        if (bottomBar) bottomBar.style.removeProperty("display");
-
-        document.body.classList.remove("detail-modal-open");
-        document.getElementById("detailModal").classList.remove("open");
-        renderFeed();
-    }
-
-    function openWriteModalFromDetail() {
-        closeDetailModal();
-        openWriteModal();
-    }
-
-    function editActivePost() {
-        const p = posts.find(item => item.id === activePostId);
-        if (!p) return;
-        closeDetailModal();
-        openWriteModal(p);
-    }
-
-    function deleteActivePost() {
-        if (!confirm("이 게시글을 삭제하시겠습니까?")) return;
-        posts = posts.filter(item => item.id !== activePostId);
-        savePosts();
-        closeDetailModal();
-        renderBestPosts();
-        renderFeed();
-    }
-
-    function renderComments(p) {
-        const container = document.getElementById("commentListContainer");
-        container.innerHTML = "";
-        const list = p.comments || [];
-        document.getElementById("detailCommentsCount").innerText = list.length;
-
-        list.forEach((c, idx) => {
-            const div = document.createElement("div");
-            div.style.padding = "8px 0";
-            div.style.borderBottom = "1px solid #f1f5f9";
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-                    <div>
-                        <strong style="font-size:12.5px; color:#0f172a;">${c.author}</strong>
-                        <span style="font-size:11px; color:#94a3b8; margin-left:4px;">${c.time}</span>
+            if (post.mediaUrl) {
+                bubbleContent += `
+                    <div style="max-width:240px; border-radius:12px; overflow:hidden; margin-bottom:${post.text ? '4px' : '0'};">
+                        <img src="${post.mediaUrl}" alt="첨부 사진" style="width:100%; display:block; border-radius:12px;">
                     </div>
-                    <div style="display:flex; gap:4px;">
-                        <button type="button" style="background:#eff6ff; border:none; color:#2563eb; font-size:11px; font-weight:800; padding:1px 6px; border-radius:3px; cursor:pointer;" onclick="editMissionComment(${c.id || idx})">수정</button>
-                        <button type="button" style="background:#fee2e2; border:none; color:#ef4444; font-size:11px; font-weight:800; padding:1px 6px; border-radius:3px; cursor:pointer;" onclick="deleteMissionComment(${c.id || idx})">삭제</button>
+                `;
+            }
+            if (post.text && post.text.trim() !== "") {
+                bubbleContent += `<p class="chat-bubble-text">${escapeHtml(post.text).trim()}</p>`;
+            }
+
+            row.innerHTML = `
+                ${!isMe ? `<div class="chat-avatar">👤</div>` : ''}
+                <div class="chat-msg-content">
+                    ${!isMe ? `<span class="chat-sender-name">${escapeHtml(post.author || '성도')}</span>` : ''}
+                    <div class="chat-bubble-wrap">
+                        <div class="chat-bubble ${isPureMedia ? 'chat-bubble-media' : ''}"
+                             oncontextmenu="event.preventDefault(); openCommentActionSheet('${post.id}')"
+                             ontouchstart="handleTouchStart('${post.id}')"
+                             ontouchend="handleTouchEnd()"
+                             ontouchcancel="handleTouchEnd()">
+                            ${bubbleContent}
+                        </div>
+                        <span class="chat-time">${post.time || ''}</span>
                     </div>
                 </div>
-                <div style="font-size:13px; color:#334155; line-height:1.45;">${c.text}</div>
             `;
-            container.appendChild(div);
+            container.appendChild(row);
         });
+
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
     }
 
-    function editMissionComment(commentId) {
-        const p = posts.find(item => item.id === activePostId);
-        if (!p || !p.comments) return;
-        const c = p.comments.find((cm, idx) => (cm.id === commentId || idx === commentId));
-        if (!c) return;
-        const newText = prompt("댓글 내용을 수정하세요:", c.text);
-        if (newText !== null && newText.trim()) {
-            c.text = newText.trim();
-            savePosts();
-            renderComments(p);
-        }
-    }
-
-    function deleteMissionComment(commentId) {
-        if (!confirm("댓글을 삭제하시겠습니까?")) return;
-        const p = posts.find(item => item.id === activePostId);
-        if (!p || !p.comments) return;
-        p.comments = p.comments.filter((cm, idx) => (cm.id !== commentId && idx !== commentId));
-        savePosts();
-        renderComments(p);
-    }
-
-    function submitComment() {
-        const text = document.getElementById("commentInput").value.trim();
+    function submitQuickMissionComment() {
+        const input = document.getElementById("quickMissionInput");
+        const text = input.value.trim();
         if (!text) return;
-        const p = posts.find(item => item.id === activePostId);
-        if (!p) return;
 
-        let authorName = "김예톡";
-        if (category === "mission") {
-            authorName = document.getElementById("inpAuthor").value.trim() || "선교동역자";
-            localStorage.setItem("yetalk_mission_custom_id", authorName);
+        let finalText = text;
+        if (replyTargetPost) {
+            finalText = `[답장: ${replyTargetPost.author}] ${text}`;
+            cancelReplyMode();
         }
 
-        if (!p.comments) p.comments = [];
-        p.comments.push({ id: Date.now(), author: authorName, text: text, time: "방금" });
-
-        savePosts();
-        renderComments(p);
-        document.getElementById("commentInput").value = "";
-    }
-
-    let editingPostId = null;
-
-    function openWriteModal(editPost = null) {
-        if (editPost) {
-            editingPostId = editPost.id;
-            document.getElementById("inpTitle").value = editPost.title || "";
-            document.getElementById("inpContent").value = editPost.content || "";
-            document.getElementById("inpWebLink").value = editPost.link || "";
-            attachedImgData = editPost.img || null;
-            if (attachedImgData) {
-                document.getElementById("attachedPreviewImg").src = attachedImgData;
-                document.getElementById("attachedPreviewBox").style.display = "block";
-            } else {
-                document.getElementById("attachedPreviewBox").style.display = "none";
-            }
-            attachedFileName = editPost.fileName || null;
-            attachedFileData = editPost.fileData || null;
-            if (attachedFileName) {
-                const badge = document.getElementById("attachedFileBadge");
-                badge.innerText = `📄 ${attachedFileName} 첨부됨`;
-                badge.style.display = "block";
-            } else {
-                document.getElementById("attachedFileBadge").style.display = "none";
-            }
-        } else {
-            editingPostId = null;
-            document.getElementById("inpTitle").value = "";
-            document.getElementById("inpContent").value = "";
-            document.getElementById("inpWebLink").value = "";
-            attachedImgData = null;
-            attachedFileName = null;
-            attachedFileData = null;
-            document.getElementById("attachedPreviewBox").style.display = "none";
-            document.getElementById("attachedFileBadge").style.display = "none";
-        }
-        document.getElementById("writeModal").classList.add("open");
-    }
-
-    function closeWriteModal() {
-        document.getElementById("writeModal").classList.remove("open");
-    }
-
-    function handleImage(input) {
-        const file = input.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            attachedImgData = e.target.result;
-            document.getElementById("attachedPreviewImg").src = attachedImgData;
-            document.getElementById("attachedPreviewBox").style.display = "block";
+        const newPost = {
+            id: "p_" + Date.now(),
+            author: "나",
+            isMe: true,
+            text: finalText,
+            time: getCurTime(),
+            mediaUrl: ""
         };
-        reader.readAsDataURL(file);
-    }
 
-    function handleDoc(input) {
-        const file = input.files[0];
-        if (!file) return;
-        attachedFileName = file.name;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            attachedFileData = e.target.result;
-            const badge = document.getElementById("attachedFileBadge");
-            badge.innerText = `📄 ${attachedFileName} 첨부됨`;
-            badge.style.display = "block";
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function submitPost() {
-        const title = document.getElementById("inpTitle").value.trim();
-        const content = document.getElementById("inpContent").value.trim();
-        const link = document.getElementById("inpWebLink").value.trim();
-        let author = document.getElementById("inpAuthor").value.trim();
-
-        if (!title) { alert("제목을 입력해주세요."); return; }
-        if (category === "mission") {
-            if (!author) author = "선교동역자";
-            localStorage.setItem("yetalk_mission_custom_id", author);
-        } else {
-            author = "김예톡";
-        }
-
-        if (editingPostId) {
-            const p = posts.find(item => item.id === editingPostId);
-            if (p) {
-                p.title = title;
-                p.content = content || "내용이 없습니다.";
-                p.link = link;
-                if (attachedImgData !== null) p.img = attachedImgData;
-                if (attachedFileName !== null) {
-                    p.fileName = attachedFileName;
-                    p.fileData = attachedFileData;
-                }
-            }
-            editingPostId = null;
-        } else {
-            const newPost = {
-                id: Date.now(),
-                title: title,
-                content: content || "내용이 없습니다.",
-                author: author,
-                time: "방금",
-                views: 1,
-                link: link,
-                img: attachedImgData,
-                fileName: attachedFileName,
-                fileData: attachedFileData,
-                comments: []
-            };
-            posts.unshift(newPost);
-        }
-
+        missionPosts.push(newPost);
         savePosts();
+        input.value = "";
         renderFeed();
-        renderBestPosts();
-        closeWriteModal();
+    }
+
+    function handleMissionPhotoSelected(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const dataUrl = e.target.result;
+            const newPost = {
+                id: "p_" + Date.now(),
+                author: "나",
+                isMe: true,
+                text: "",
+                time: getCurTime(),
+                mediaUrl: dataUrl
+            };
+            missionPosts.push(newPost);
+            savePosts();
+            renderFeed();
+            showToast("📷 사진이 전송되었습니다.");
+        };
+        reader.readAsDataURL(file);
+        input.value = "";
+    }
+
+    function handleTouchStart(postId) {
+        pressTimer = setTimeout(() => {
+            openCommentActionSheet(postId);
+        }, 480);
+    }
+    function handleTouchEnd() {
+        if (pressTimer) clearTimeout(pressTimer);
+    }
+
+    function openCommentActionSheet(postId) {
+        selectedActionPostId = postId;
+        const post = missionPosts.find(p => p.id === postId);
+        if (!post) return;
+
+        document.getElementById("actionSheetAuthor").innerText = post.author || "성도";
+        document.getElementById("actionSheetPreviewText").innerText = post.text || "(사진 첨부)";
+        document.getElementById("modalCommentActionSheet").style.display = "flex";
+    }
+
+    function closeCommentActionSheet() {
+        document.getElementById("modalCommentActionSheet").style.display = "none";
+        selectedActionPostId = null;
+    }
+
+    function actionSheetCopyText() {
+        const post = missionPosts.find(p => p.id === selectedActionPostId);
+        if (!post) return;
+        const t = post.text || "";
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(t);
+        }
+        closeCommentActionSheet();
+        showToast("📋 글이 클립보드에 복사되었습니다.");
+    }
+
+    function actionSheetPinBest() {
+        const post = missionPosts.find(p => p.id === selectedActionPostId);
+        if (!post) return;
+
+        pinnedBestPostId = post.id;
+        localStorage.setItem(`yetalk_mission_pinned_best_${currentMissionRoomId}`, JSON.stringify(post));
+        applyPinnedBanner(post);
+        closeCommentActionSheet();
+        showToast("📌 실시간 베스트글로 상단에 고정되었습니다.");
+    }
+
+    function actionSheetEdit() {
+        const post = missionPosts.find(p => p.id === selectedActionPostId);
+        if (!post) return;
+        closeCommentActionSheet();
+
+        const edited = prompt("선교 나눔 글을 수정해주세요:", post.text || "");
+        if (edited !== null && edited.trim() !== "") {
+            post.text = edited.trim();
+            savePosts();
+            renderFeed();
+            showToast("✏️ 글이 수정되었습니다.");
+        }
+    }
+
+    function actionSheetDelete() {
+        if (!confirm("이 선교 나눔 글을 삭제하시겠습니까?")) return;
+        missionPosts = missionPosts.filter(p => p.id !== selectedActionPostId);
+        savePosts();
+        if (pinnedBestPostId === selectedActionPostId) {
+            unpinMissionBestPost();
+        }
+        closeCommentActionSheet();
+        renderFeed();
+        showToast("🗑️ 글이 삭제되었습니다.");
+    }
+
+    function loadPinnedBest() {
+        const raw = localStorage.getItem(`yetalk_mission_pinned_best_${currentMissionRoomId}`);
+        if (raw) {
+            try {
+                const post = JSON.parse(raw);
+                pinnedBestPostId = post.id;
+                applyPinnedBanner(post);
+            } catch(e){}
+        }
+    }
+
+    function applyPinnedBanner(post) {
+        const banner = document.getElementById("missionPinnedBestBanner");
+        const title = document.getElementById("missionPinnedBestText");
+        title.innerText = post.text ? post.text.trim() : `[사진] ${post.author} 님의 선교소식`;
+        banner.style.display = "flex";
+    }
+
+    function unpinMissionBestPost() {
+        pinnedBestPostId = null;
+        localStorage.removeItem(`yetalk_mission_pinned_best_${currentMissionRoomId}`);
+        document.getElementById("missionPinnedBestBanner").style.display = "none";
+        showToast("📌 베스트글 고정이 해제되었습니다.");
+    }
+
+    // 방장 3-in-1 모달
+    function openLeaderUnifiedModal() {
+        document.getElementById("inpLeaderRoomTitle").value = currentMissionRoomName;
+        document.getElementById("inpLeaderUserTitle").value = currentMissionLeader;
+
+        const sel = document.getElementById("selBestPostPicker");
+        sel.innerHTML = "";
+        missionPosts.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.id;
+            opt.innerText = `[${p.author}] ${(p.text || '(사진)').substring(0, 26)}`;
+            if (p.id === pinnedBestPostId) opt.selected = true;
+            sel.appendChild(opt);
+        });
+
+        document.getElementById("modalLeaderUnified").style.display = "flex";
+    }
+
+    function closeLeaderUnifiedModal() {
+        document.getElementById("modalLeaderUnified").style.display = "none";
+    }
+
+    function saveLeaderRoomNameAndUser() {
+        const name = document.getElementById("inpLeaderRoomTitle").value.trim();
+        const leader = document.getElementById("inpLeaderUserTitle").value.trim();
+        if (!name) { alert("대화방 이름을 입력해주세요."); return; }
+
+        currentMissionRoomName = name;
+        currentMissionLeader = leader;
+        document.getElementById("headerMissionTitle").innerText = name;
+        sessionStorage.setItem("mission_board_room_name", name);
+        sessionStorage.setItem("mission_board_leader", leader);
+
+        // 방 목록에도 반영
+        const listKey = (currentMissionCategory === "mission") ? "yetalk_mission_rooms_list" : "yetalk_evangel_rooms_list";
+        const savedList = localStorage.getItem(listKey);
+        if (savedList) {
+            try {
+                let list = JSON.parse(savedList);
+                const r = list.find(item => item.id === currentMissionRoomId);
+                if (r) { r.name = name; r.leader = leader; localStorage.setItem(listKey, JSON.stringify(list)); }
+            } catch(e){}
+        }
+
+        closeLeaderUnifiedModal();
+        showToast("💾 대화방 정보가 변경되었습니다.");
+    }
+
+    function applyLeaderBestPostSelection() {
+        const sel = document.getElementById("selBestPostPicker");
+        const pid = sel.value;
+        const post = missionPosts.find(p => p.id === pid);
+        if (!post) return;
+
+        pinnedBestPostId = post.id;
+        localStorage.setItem(`yetalk_mission_pinned_best_${currentMissionRoomId}`, JSON.stringify(post));
+        applyPinnedBanner(post);
+        closeLeaderUnifiedModal();
+        showToast("📌 선택한 글이 베스트글로 상단에 고정되었습니다.");
+    }
+
+    function startMissionLiveAudioDirect() {
+        const inp = document.getElementById("inpLeaderLiveYtUrl");
+        const url = inp.value.trim();
+        if (!url) { alert("유튜브 라이브 방송 주소를 입력해주세요."); return; }
+
+        const ytId = extractYouTubeId(url);
+        if (!ytId) { alert("올바른 유튜브 주소가 아닙니다."); return; }
+
+        const box = document.getElementById("hiddenLiveYtIframeContainer");
+        box.innerHTML = `<iframe width="1" height="1" src="https://www.youtube.com/embed/${ytId}?autoplay=1&playsinline=1" allow="autoplay" style="border:none;"></iframe>`;
+        document.getElementById("liveAudioBar").style.display = "flex";
+        document.getElementById("dispLiveIndicatorInModal").innerText = "🔴 방송 중";
+        document.getElementById("dispLiveIndicatorInModal").style.background = "#dc2626";
+        closeLeaderUnifiedModal();
+        showToast("🔴 라이브 음성 방송이 시작되었습니다.");
+    }
+
+    function stopMissionLiveAudio() {
+        document.getElementById("hiddenLiveYtIframeContainer").innerHTML = "";
+        document.getElementById("liveAudioBar").style.display = "none";
+        document.getElementById("dispLiveIndicatorInModal").innerText = "대기중";
+        document.getElementById("dispLiveIndicatorInModal").style.background = "#475569";
+        showToast("⏹️ 라이브 음성이 종료되었습니다.");
+    }
+
+    function toggleMissionLockState() {
+        const btn = document.getElementById("btnMissionLockState");
+        const isSecret = btn.innerText.includes("비공개");
+        if (isSecret) {
+            btn.innerText = "입장(공개)";
+            btn.style.background = "#eff6ff";
+            btn.style.borderColor = "#bfdbfe";
+            btn.style.color = "#2563eb";
+            showToast("🔓 공개 대화방으로 변경되었습니다.");
+        } else {
+            btn.innerText = "입장(비공개)";
+            btn.style.background = "#fee2e2";
+            btn.style.borderColor = "#f87171";
+            btn.style.color = "#dc2626";
+            showToast("🔒 비공개 비밀 대화방으로 변경되었습니다.");
+        }
+    }
+
+    function toggleModalPinGroup(show) {
+        document.getElementById("unifiedPinInputBox").style.display = show ? "block" : "none";
+    }
+
+    // BGM
+    function togglePrayerBgm(track) {
+        if (currentAudioTrack === track && prayerAudioObj && !prayerAudioObj.paused) {
+            togglePrayerBgmStop();
+            return;
+        }
+        if (prayerAudioObj) { prayerAudioObj.pause(); }
+
+        currentAudioTrack = track;
+        prayerAudioObj = new Audio(PRAYER_AUDIO_URLS[track]);
+        prayerAudioObj.loop = true;
+        prayerAudioObj.play().catch(e => console.log(e));
+
+        document.getElementById("btnMissionMusic_1").classList.toggle("active-tongue", track === 1);
+        document.getElementById("btnMissionMusic_3").classList.toggle("active-praise", track === 3);
+        showToast(track === 1 ? "🕊️ 방언기도 음악이 재생됩니다." : "🎵 찬양기도 음악이 재생됩니다.");
+    }
+
+    function togglePrayerBgmStop() {
+        if (prayerAudioObj) { prayerAudioObj.pause(); prayerAudioObj = null; }
+        currentAudioTrack = 0;
+        document.getElementById("btnMissionMusic_1").classList.remove("active-tongue");
+        document.getElementById("btnMissionMusic_3").classList.remove("active-praise");
+        showToast("⏹️ BGM이 중지되었습니다.");
+    }
+
+    function cancelReplyMode() {
+        replyTargetPost = null;
+        document.getElementById("replyIndicatorBar").style.display = "none";
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById("toastBox");
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    function extractYouTubeId(url) {
+        const reg = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+        const match = url.match(reg);
+        return match ? match[1] : null;
+    }
+
+    function getCurTime() {
+        const d = new Date();
+        let h = d.getHours();
+        const m = String(d.getMinutes()).padStart(2, "0");
+        const ap = h >= 12 ? "오후" : "오전";
+        h = h % 12 || 12;
+        return `${ap} ${h}:${m}`;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
     document.addEventListener("DOMContentLoaded", initBoard);
 </script>
-<script src="church_bottom_bar.js"></script>
+
 </body>
 </html>
