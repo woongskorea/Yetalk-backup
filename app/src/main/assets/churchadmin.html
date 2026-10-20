@@ -166,7 +166,9 @@
         .m-input {
             width: 100%; background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px;
             padding: 8px 10px; color: #0f172a; font-size: 13.5px; font-weight: 700; outline: none;
+            box-sizing: border-box;
         }
+        .m-input::placeholder { color: #94a3b8; font-weight: 500; opacity: 0.65; }
         .m-input:focus { border-color: #0284c7; background: #ffffff; }
 
         .admin-toast-box {
@@ -223,16 +225,23 @@
             <span style="font-size:11px; color:#b45309; font-weight:900;">예톡TV 공통 연동</span>
         </div>
         <p style="font-size:11.5px; color:#64748b; line-height:1.45;">
-            기도방 및 소모임방에서 재생되는 2대 유튜브 기도 배경음악을 등록합니다. (미등록 시 예톡TV 기본 찬양 자동 재생)
+            기도방 및 소모임방에서 재생되는 2대 유튜브 기도 배경음악을 등록합니다.<br>
+            <span style="color:#0284c7; font-weight:750;">★ 총관리자실 기본 주소가 희미한 글자로 안내됩니다. 지우거나 새로 붙여넣을 수 있습니다.</span>
         </p>
-        <div style="display:flex; flex-direction:column; gap:6px; margin-top:2px;">
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:2px;">
             <div>
-                <span class="m-lbl">🗣️ 1. 방언기도 유튜브 주소</span>
-                <input type="text" id="inpAdminMusicTongue" class="m-input" placeholder="예: https://www.youtube.com/watch?v=M7lc1UVf-VE">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                    <span class="m-lbl" style="margin-bottom:0;">🗣️ 1. 방언기도 유튜브 주소</span>
+                    <button type="button" onclick="clearMusicField('inpAdminMusicTongue')" style="background:none; border:none; color:#dc2626; font-size:11px; font-weight:800; cursor:pointer;">✕ 지우기</button>
+                </div>
+                <input type="text" id="inpAdminMusicTongue" class="m-input" placeholder="기본: https://www.youtube.com/watch?v=M7lc1UVf-VE" onfocus="this.select()" onclick="this.select()">
             </div>
             <div>
-                <span class="m-lbl">🎶 2. 찬양기도 유튜브 주소</span>
-                <input type="text" id="inpAdminMusicPraise" class="m-input" placeholder="예: https://www.youtube.com/watch?v=jfKfPfyJRdk">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                    <span class="m-lbl" style="margin-bottom:0;">🎶 2. 찬양기도 유튜브 주소</span>
+                    <button type="button" onclick="clearMusicField('inpAdminMusicPraise')" style="background:none; border:none; color:#dc2626; font-size:11px; font-weight:800; cursor:pointer;">✕ 지우기</button>
+                </div>
+                <input type="text" id="inpAdminMusicPraise" class="m-input" placeholder="기본: https://www.youtube.com/watch?v=jfKfPfyJRdk" onfocus="this.select()" onclick="this.select()">
             </div>
             <button type="button" class="btn-save-music" onclick="saveAdminPrayerMusic2()">
                 💾 2대 기도음악 일괄 저장
@@ -324,26 +333,53 @@
     });
 
     function loadPrayerMusicConfig() {
-        const tongue = localStorage.getItem(PRAYER_MUSIC_TONGUE_KEY) || "https://www.youtube.com/watch?v=M7lc1UVf-VE";
-        const praise = localStorage.getItem(PRAYER_MUSIC_PRAISE_KEY) || localStorage.getItem(PRAYER_MUSIC_KEY) || "https://www.youtube.com/watch?v=jfKfPfyJRdk";
+        const masterTongue = localStorage.getItem("yetalk_master_bg_music_tongue") || "https://www.youtube.com/watch?v=M7lc1UVf-VE";
+        const masterPraise = localStorage.getItem("yetalk_master_bg_music_praise") || "https://www.youtube.com/watch?v=jfKfPfyJRdk";
+
+        const customTongue = localStorage.getItem(PRAYER_MUSIC_TONGUE_KEY);
+        const customPraise = localStorage.getItem(PRAYER_MUSIC_PRAISE_KEY) || localStorage.getItem(PRAYER_MUSIC_KEY);
 
         const inp1 = document.getElementById("inpAdminMusicTongue");
         const inp2 = document.getElementById("inpAdminMusicPraise");
-        if (inp1) inp1.value = tongue;
-        if (inp2) inp2.value = praise;
+
+        if (inp1) {
+            inp1.placeholder = masterTongue;
+            inp1.value = customTongue ? customTongue : "";
+        }
+        if (inp2) {
+            inp2.placeholder = masterPraise;
+            inp2.value = customPraise ? customPraise : "";
+        }
+    }
+
+    function clearMusicField(fieldId) {
+        const inp = document.getElementById(fieldId);
+        if (inp) {
+            inp.value = "";
+            inp.focus();
+            showToastMsg("기본값 복원: 주소를 비워두시면 총관리자 기본음악으로 자동 재생됩니다.");
+        }
     }
 
     function saveAdminPrayerMusic2() {
         const tongue = (document.getElementById("inpAdminMusicTongue")?.value || "").trim();
         const praise = (document.getElementById("inpAdminMusicPraise")?.value || "").trim();
 
-        if (tongue) localStorage.setItem(PRAYER_MUSIC_TONGUE_KEY, tongue);
+        if (tongue) {
+            localStorage.setItem(PRAYER_MUSIC_TONGUE_KEY, tongue);
+        } else {
+            localStorage.removeItem(PRAYER_MUSIC_TONGUE_KEY);
+        }
+
         if (praise) {
             localStorage.setItem(PRAYER_MUSIC_PRAISE_KEY, praise);
             localStorage.setItem(PRAYER_MUSIC_KEY, praise);
+        } else {
+            localStorage.removeItem(PRAYER_MUSIC_PRAISE_KEY);
+            localStorage.removeItem(PRAYER_MUSIC_KEY);
         }
 
-        showToastMsg("💾 2대 기도음악(방언/찬양)이 모두 성공적으로 저장되었습니다!");
+        showToastMsg("💾 2대 기도음악 설정 완료! (비워둔 항목은 총관리자 기본값으로 자동 재생)");
     }
 
     // 🌟 대시보드 성도수 / 방문수 클릭 시 전체 성도 명단으로 스크롤 이동
