@@ -3,6 +3,10 @@ YETALK CHURCHMAIN.JS
 예톡 교회홈 (숏폼 스냅 & 애드몹 안전 규격 연동)
 ==================================================*/
 
+if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+}
+
 const MENU_DEFINITIONS = [
     { id: 0, cat: "교회", link: "churchintro.html" },
     { id: 1, cat: "예배", link: "churchworship.html" },
@@ -226,28 +230,38 @@ function initChurchData() {
 function restoreLastActiveCard(instant) {
     let targetCard = 0;
     try {
-        const lastCard = sessionStorage.getItem("church_last_active_card_idx");
         const urlParams = new URLSearchParams(window.location.search);
         const cardParam = urlParams.get("card");
-        if (lastCard !== null && !isNaN(parseInt(lastCard, 10))) {
-            targetCard = parseInt(lastCard, 10);
-        } else if (cardParam !== null && !isNaN(parseInt(cardParam, 10))) {
+
+        // 🌟 [사용자 요청] 서브페이지에서 복귀 시 (?card=X 파라미터가 명시된 경우만) 해당 카드로 복귀
+        // 교회앱을 나갔다가 다시 들어오거나 외부에서 첫 진입 시 (card 파라미터 없음) 무조건 첫 메뉴 '교회'(0)에서 시작!
+        if (cardParam !== null && !isNaN(parseInt(cardParam, 10))) {
             targetCard = parseInt(cardParam, 10);
+            sessionStorage.setItem("church_last_active_card_idx", targetCard.toString());
+        } else {
+            targetCard = 0;
+            sessionStorage.removeItem("church_last_active_card_idx");
         }
     } catch(e) {}
 
     if (targetCard >= 0 && targetCard < MENU_DEFINITIONS.length) {
         activeSecId = targetCard;
-        updateChipsBar(targetCard);
+        // 🌟 중간 5~7개 메뉴 깜빡임(검은 바탕 이동) 없이 대상 칩만 즉시 활성화
+        updateChipsBar(targetCard, true);
+
         if (targetCard === 0) {
             startCard0AutoSlide();
+            const vp = document.getElementById("churchViewport");
+            if (vp) vp.scrollTop = 0;
             return;
         }
+
         const target = document.getElementById(`section_card_${targetCard}`);
         const vp = document.getElementById("churchViewport");
         if (target && vp) {
             isProgrammaticChurchScroll = true;
             vp.style.scrollSnapType = "none";
+            vp.style.scrollBehavior = "auto";
             vp.scrollTop = target.offsetTop;
 
             requestAnimationFrame(() => {
@@ -256,12 +270,16 @@ function restoreLastActiveCard(instant) {
                 setTimeout(() => {
                     vp.style.scrollSnapType = "y mandatory";
                     isProgrammaticChurchScroll = false;
-                }, 80);
+                }, 350);
             });
         }
     } else {
-        // 4초 간격 첫 메뉴(교회 카드 0) 자동 슬라이드 시작
+        // 첫 메뉴(교회 카드 0)로 시작
+        activeSecId = 0;
+        updateChipsBar(0, true);
         startCard0AutoSlide();
+        const vp = document.getElementById("churchViewport");
+        if (vp) vp.scrollTop = 0;
     }
 }
 
@@ -749,11 +767,11 @@ function setupSectionObserver() {
     // 충돌과 흔들림(앞뒤 덜컹거림) 없는 완벽한 원-카드 스냅 보장!
 }
 
-function updateChipsBar(idx) {
+function updateChipsBar(idx, instant = false) {
     document.querySelectorAll(".c-nav-chip").forEach((chip, i) => {
         const match = (i === idx);
         chip.classList.toggle("active", match);
-        if (match) chip.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        if (match) chip.scrollIntoView({ behavior: instant ? "auto" : "smooth", inline: "center", block: "nearest" });
     });
     const curMenu = MENU_DEFINITIONS[idx];
     const subTitle = document.getElementById("fixedChurchSubbarTitle");
