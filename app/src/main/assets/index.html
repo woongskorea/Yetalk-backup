@@ -4759,6 +4759,45 @@
             .replace(/'/g, "&#039;");
     }
 
+    // 🌟 [핵심] 전문앱 상호명에 따른 목적지 URL 지능형 자동 매핑 (이름-URL 불일치 완벽 방지)
+    function getBizAppUrlForName(name, fallbackUrl) {
+        if (!name) return fallbackUrl || "churchmain.html";
+        const b = name.replace(/^@/, '').trim();
+        // 1. 움직이는교회 / 미니교회 / 작은교회
+        if (b.includes("움직이는교회") || b.includes("미니교회") || b.includes("작은교회") || b.includes("움직이는")) {
+            return "minichurch.html";
+        }
+        // 2. 예톡행복한교회 및 모든 일반 교회
+        if (b.includes("교회")) {
+            return "churchmain.html";
+        }
+        // 3. 의원 / 병원 / 클리닉
+        if (b.includes("의원") || b.includes("병원") || b.includes("클리닉")) {
+            return "doctormain.html";
+        }
+        // 4. 치과
+        if (b.includes("치과")) {
+            return "dentalmain.html";
+        }
+        // 5. 한의원
+        if (b.includes("한의원") || b.includes("한의")) {
+            return "orientalmain.html";
+        }
+        // 6. 음식점 / 식당 / 밀면
+        if (b.includes("밀면") || b.includes("식당") || b.includes("카페") || b.includes("푸드")) {
+            return "foodmain.html";
+        }
+        // 7. 마켓 / 나눔
+        if (b.includes("마켓") || b.includes("상점")) {
+            return "marketmain.html";
+        }
+        // 8. 1인 홈
+        if (b.includes("스마트홈") || b.includes("개인")) {
+            return "onemain.html";
+        }
+        return fallbackUrl || "churchmain.html";
+    }
+
     function updateBottomInfo(feed) {
         if (!feed) return;
         const linkEl = document.getElementById("whiteBizLinkText");
@@ -4788,7 +4827,23 @@
             shortAd = shortAd.substring(0, 15);
         }
 
-        if (linkEl) linkEl.innerText = `@${bizName}`;
+        // 🌟 [핵심 버그 수정] 표시된 이름과 연결 URL 강제 동기화:
+        // '예톡행복한교회'인데 이전 캐시(yetalkMyBizAppUrl)에 'minichurch.html(움직이는교회)'가 남아있다면 즉시 churchmain.html로 자동 보정!
+        const targetUrl = getBizAppUrlForName(bizName, (feed && feed.targetUrl) ? feed.targetUrl : "churchmain.html");
+        if (bizName === "예톡행복한교회" || (bizName.includes("교회") && !bizName.includes("움직이는") && !bizName.includes("미니") && !bizName.includes("작은"))) {
+            if ((localStorage.getItem("yetalkMyBizAppUrl") || "").includes("minichurch")) {
+                localStorage.setItem("yetalkMyBizAppUrl", "churchmain.html");
+            }
+        }
+
+        if (linkEl) {
+            linkEl.innerText = `@${bizName}`;
+            linkEl.dataset.targetUrl = targetUrl;
+        }
+        const cardEl = document.querySelector(".author-unified-card");
+        if (cardEl) {
+            cardEl.dataset.targetUrl = targetUrl;
+        }
         if (adEl) adEl.innerText = shortAd;
         if (document.getElementById("feedViewCount")) document.getElementById("feedViewCount").innerText = Number(feed ? feed.views || 838 : 838).toLocaleString();
         if (document.getElementById("feedLikeCount")) document.getElementById("feedLikeCount").innerText = getFeedHearts(feed ? feed.id : 'home');
@@ -5060,14 +5115,35 @@
     function goToCurrentBizApp() {
         const feeds = loadSavedFeeds();
         const curFeed = feeds[currentFeedIndex] || feeds[0];
-        const activeUrl = localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html";
-        if (checkHasMySpecialApp() && activeUrl) {
-            window.location.href = activeUrl;
-        } else if (curFeed && curFeed.targetUrl) {
-            window.location.href = curFeed.targetUrl;
-        } else {
-            window.location.href = activeUrl || "churchmain.html";
+        const cardEl = document.querySelector(".author-unified-card");
+        const linkEl = document.getElementById("whiteBizLinkText");
+        const displayedBizName = linkEl ? linkEl.innerText.replace(/^@/, '').trim() : '';
+
+        // 🌟 [핵심] 1. 현재 화면에 표시된 전문앱 상호명을 최우선으로 목적지 URL 결정
+        let targetUrl = getBizAppUrlForName(displayedBizName);
+
+        // 2. 화면 명칭으로 구체적 URL이 나오지 않은 경우, 카드 데이터셋 / 저장된 URL / 피드 URL 참조
+        if (!targetUrl || targetUrl === "churchmain.html") {
+            if (displayedBizName === "예톡행복한교회" || (displayedBizName.includes("교회") && !displayedBizName.includes("움직이는") && !displayedBizName.includes("미니") && !displayedBizName.includes("작은"))) {
+                targetUrl = "churchmain.html";
+            } else if (cardEl && cardEl.dataset.targetUrl) {
+                targetUrl = cardEl.dataset.targetUrl;
+            } else if (localStorage.getItem("yetalkMyBizAppUrl")) {
+                targetUrl = localStorage.getItem("yetalkMyBizAppUrl");
+            } else if (curFeed && curFeed.targetUrl) {
+                targetUrl = curFeed.targetUrl;
+            } else {
+                targetUrl = "churchmain.html";
+            }
         }
+
+        // 🌟 [핵심 방어] '예톡행복한교회'인데 이전 캐시로 인해 'minichurch.html(움직이는교회)'로 잘못 이동하는 문제 원천 차단
+        if (displayedBizName === "예톡행복한교회" || (displayedBizName.includes("교회") && !displayedBizName.includes("움직이는") && !displayedBizName.includes("미니") && !displayedBizName.includes("작은"))) {
+            targetUrl = "churchmain.html";
+        }
+
+        localStorage.setItem("yetalkMyBizAppUrl", targetUrl);
+        window.location.href = targetUrl;
     }
 
     function openMyAppChoiceModal() {
