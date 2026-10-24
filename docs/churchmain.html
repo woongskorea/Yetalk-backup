@@ -1089,7 +1089,8 @@
         const phone = (inpPhone?.value || "010-1234-5678").trim() || "010-1234-5678";
         let myId = (inpAutoId?.value || "").trim();
         if (!myId) myId = (name === "최웅식") ? "최예톡" : `ye_${name}`;
-        const currentChurch = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        let currentChurch = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        if (!currentChurch || currentChurch.includes("움직이는교회")) currentChurch = "예톡행복한교회";
 
         // 🌟 1. 예톡 홈 정회원 자동 동시 가입 및 로그인 유지
         localStorage.setItem("yetalkLoggedIn", "true");
@@ -1224,7 +1225,8 @@
         const region = document.getElementById("myInpRegion").value.trim();
         const phone = document.getElementById("myInpPhone").value.trim();
         const store = document.getElementById("myInpStore").value.trim();
-        const currentChurch = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        let currentChurch = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        if (!currentChurch || currentChurch.includes("움직이는교회")) currentChurch = "예톡행복한교회";
 
         if (!name) { alert("성함을 입력해 주세요."); return; }
         if (!id) { alert("아이디를 입력해 주세요."); return; }
@@ -1260,7 +1262,13 @@
         let targetUrl = "onemain.html";
 
         if (myWantsProApp) {
-            if (mySelectedJob === '담임목사' || mySelectedJob === '기독교사역자' || finalStore.includes("교회")) {
+            if (mySelectedJob === '담임목사') {
+                targetUrl = "churchmain.html";
+                localStorage.setItem("yetalkChurchName", finalStore);
+            } else if (finalStore.includes("움직이는교회") || mySelectedJob === '기독교사역자' || mySelectedJob === '기독교인') {
+                targetUrl = "minichurch.html";
+                localStorage.setItem("yetalkMiniChurchName", finalStore);
+            } else if (finalStore.includes("교회")) {
                 targetUrl = "churchmain.html";
                 localStorage.setItem("yetalkChurchName", finalStore);
             } else if (mySelectedJob === '개인의원 원장' || finalStore.includes("의원") || finalStore.includes("병원")) {
@@ -1555,7 +1563,11 @@
         const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
         document.body.setAttribute('data-theme', savedTheme);
 
-        const churchName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        let churchName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        if (!churchName || churchName.includes("움직이는교회")) {
+            churchName = "예톡행복한교회";
+            localStorage.setItem("yetalkChurchName", "예톡행복한교회");
+        }
         const titleEl = document.getElementById("churchName");
         if (titleEl) titleEl.innerText = churchName;
 
