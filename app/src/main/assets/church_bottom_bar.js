@@ -548,11 +548,16 @@ YETALK CHURCH COMMON BOTTOM NAV BAR (church_bottom_bar.js)
         const rAcc = document.getElementById("cgbReceiverAcc");
         const rHolder = document.getElementById("cgbReceiverHolder");
 
-        if (gName) gName.value = localStorage.getItem("yetalkUserName") || "김예톡";
+        if (gName) gName.value = localStorage.getItem("yetalkUserId") || localStorage.getItem("yetalkUserName") || "최예톡";
         if (gBank) gBank.value = localStorage.getItem("yetalkGiverBank") || "국민은행";
         if (gAcc) gAcc.value = localStorage.getItem("yetalkGiverAcc") || "";
 
-        if (rName) rName.value = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        let curChurch = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        if (!curChurch || curChurch.includes("움직이는") || curChurch.includes("김예톡") || curChurch.includes("최예톡")) {
+            curChurch = "예톡행복한교회";
+            localStorage.setItem("yetalkChurchName", "예톡행복한교회");
+        }
+        if (rName) rName.value = curChurch;
         if (rBank) rBank.value = localStorage.getItem("yetalkChurchBank") || "농협";
         if (rAcc) rAcc.value = localStorage.getItem("yetalkChurchAcc") || "302-1234-5678-91";
         if (rHolder) rHolder.value = localStorage.getItem("yetalkChurchHolder") || "예톡행복한교회";

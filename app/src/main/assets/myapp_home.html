@@ -290,7 +290,7 @@
                 <button type="button" style="background:#0284c7; color:#fff; border:none; border-radius:5px; padding:3px 8px; font-size:11px; font-weight:900; cursor:pointer;" onclick="saveSenderPayInfoHere()">내정보 저장</button>
             </div>
             <div style="display:flex; gap:6px;">
-                <input type="text" id="paySenderName" class="modal-input" style="flex:1;" placeholder="보내는 분 성함 (예: 김예톡)">
+                <input type="text" id="paySenderName" class="modal-input" style="flex:1;" placeholder="보내는 분 성함 (예: 최예톡)">
                 <select id="paySenderBank" class="modal-input" style="flex:1.2; font-weight:850; color:#facc15;">
                     <option value="국민은행">국민은행</option>
                     <option value="농협은행">농협은행</option>
@@ -586,7 +586,7 @@
             localStorage.setItem("yetalkUserStoreName", activeStoreName);
         }
         if ((localStorage.getItem("yetalkUserName") || "").includes("최웅식")) {
-            localStorage.setItem("yetalkUserName", "김예톡");
+            localStorage.setItem("yetalkUserName", "최예톡");
         }
         if ((localStorage.getItem("yetalkUserId") || "").includes("woongsik") || (localStorage.getItem("yetalkUserId") || "").includes("choi")) {
             localStorage.setItem("yetalkUserId", "user_yetalk");
@@ -625,7 +625,7 @@
             if (!activeAppUrl) activeAppUrl = "doctormain.html";
         }
 
-        const userName = localStorage.getItem("yetalkUserName") || "김예톡";
+        const userName = localStorage.getItem("yetalkUserId") || localStorage.getItem("yetalkUserName") || "최예톡";
 
         // 🌟 1) 교회 정회원 앱 (사용자 요청: 교회앱 정회원은 빨강 겉라인으로 1순위 최우선 배치!)
         const isChurchMember = localStorage.getItem("yetalk_church_member") !== "false";
@@ -733,7 +733,7 @@
 
         // 🌟 [사용자 요청] 기본에 '움직이는교회 / 작은교회' (minichurch.html) 추가 및 공지 카운트 배지 연동
         const miniChurchNoticeCount = parseInt(localStorage.getItem("yetalk_minichurch_sent_count") || "0", 10);
-        const miniChurchName = localStorage.getItem("yetalkMiniChurchName") || '김예톡의 움직이는교회';
+        const miniChurchName = localStorage.getItem("yetalkMiniChurchName") || `${userName}의 움직이는교회`;
         const miniChurchApp = {
             id: 'm_minichurch_default',
             name: miniChurchName,
@@ -868,7 +868,7 @@
        🌟 예톡결제 송금 서비스 (내단골 즉시 실행)
     ================================================== */
     function openPaymentModalHere() {
-        document.getElementById("paySenderName").value = localStorage.getItem("yetalkUserName") || "김예톡";
+        document.getElementById("paySenderName").value = localStorage.getItem("yetalkUserId") || localStorage.getItem("yetalkUserName") || "최예톡";
         document.getElementById("paySenderBank").value = localStorage.getItem("yetalkSenderBank") || "국민은행";
         document.getElementById("paySenderAccount").value = localStorage.getItem("yetalkSenderAccount") || "";
 
@@ -1133,7 +1133,13 @@
         let tagText = "의원";
         let tagClass = "tag-clinic";
 
-        if (selectedJob === '목사' || selectedJob === '기독교 사역자' || selectedJob === '기독교사역자' || finalStore.includes("교회")) {
+        if (finalStore.includes("움직이는교회") || selectedJob === '기독교인' || selectedJob === '성도' || selectedJob === '기독교사역자') {
+            targetAppUrl = "minichurch.html";
+            cat = "church";
+            tagText = "움직이는교회";
+            tagClass = "tag-church";
+            localStorage.setItem("yetalkMiniChurchName", finalStore);
+        } else if (selectedJob === '목사' || selectedJob === '담임목사' || finalStore.includes("교회")) {
             targetAppUrl = "churchmain.html";
             cat = "church";
             tagText = "교회";

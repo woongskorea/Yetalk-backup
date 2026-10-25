@@ -865,11 +865,11 @@ function handleBottomNav(type) {
 }
 
 function openChurchOfferingModal() {
-    document.getElementById("churchGiverName").value = localStorage.getItem("yetalkUserName") || "김예톡";
+    document.getElementById("churchGiverName").value = localStorage.getItem("yetalkUserId") || localStorage.getItem("yetalkUserName") || "최예톡";
     document.getElementById("churchGiverBank").value = localStorage.getItem("yetalkGiverBank") || "국민은행";
     document.getElementById("churchGiverAcc").value = localStorage.getItem("yetalkGiverAcc") || "";
 
-    document.getElementById("churchReceiverName").value = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+    document.getElementById("churchReceiverName").value = getCleanChurchName();
     document.getElementById("churchReceiverBank").value = localStorage.getItem("yetalkChurchBank") || "농협";
     document.getElementById("churchReceiverAcc").value = localStorage.getItem("yetalkChurchAcc") || "302-1234-5678-91";
     document.getElementById("churchReceiverHolder").value = localStorage.getItem("yetalkChurchHolder") || "예톡행복한교회";
@@ -889,7 +889,11 @@ function saveGiverInfo() {
 }
 
 function saveChurchReceiverInfo() {
-    localStorage.setItem("yetalkChurchName", document.getElementById("churchReceiverName").value.trim());
+    let rName = document.getElementById("churchReceiverName").value.trim();
+    if (!rName || rName.includes("움직이는") || rName.includes("김예톡") || rName.includes("최예톡")) {
+        rName = "예톡행복한교회";
+    }
+    localStorage.setItem("yetalkChurchName", rName);
     localStorage.setItem("yetalkChurchBank", document.getElementById("churchReceiverBank").value.trim());
     localStorage.setItem("yetalkChurchAcc", document.getElementById("churchReceiverAcc").value.trim());
     localStorage.setItem("yetalkChurchHolder", document.getElementById("churchReceiverHolder").value.trim());
@@ -1127,11 +1131,19 @@ function showToast(msg) {
     setTimeout(() => t.classList.remove("show"), 2200);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    const customChurch = localStorage.getItem("yetalkUserStoreName") || localStorage.getItem("yetalkChurchName");
-    if (customChurch) {
-        const el = document.getElementById("churchName");
-        if (el) el.innerText = customChurch;
+// 🌟 [사용자 요청] 교회 홈과 움직이는 교회는 완전 별도 분리!
+// 교회 홈의 공식 교회명은 오직 담임목사님의 교회명(기본: 예톡행복한교회)만 표출되며, 개인의 '움직이는교회'로 오염되지 않음
+function getCleanChurchName() {
+    let name = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+    if (!name || name.includes("움직이는") || name.includes("김예톡") || name.includes("최예톡")) {
+        name = "예톡행복한교회";
+        localStorage.setItem("yetalkChurchName", "예톡행복한교회");
     }
+    return name;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const el = document.getElementById("churchName");
+    if (el) el.innerText = getCleanChurchName();
     initChurchData();
 });
