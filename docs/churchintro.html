@@ -38,22 +38,21 @@
             display: flex; justify-content: space-between; align-items: center;
             padding: var(--safe-top) 14px 8px 14px; flex-shrink: 0; z-index: 100;
         }
-        .header-left-box { display: flex; align-items: center; gap: 8px; }
+        .header-left-box { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
         .btn-back {
-            background: none; border: none; font-size: 22px; font-weight: 900;
-            color: #38bdf8; cursor: pointer; padding: 2px 4px; line-height: 1;
+            background: none; border: none; font-size: 24px; font-weight: 900;
+            color: #38bdf8; cursor: pointer; padding: 0 4px; line-height: 1; flex-shrink: 0;
         }
-        .header-title-text { font-size: 18px; font-weight: 950; color: #ffffff; letter-spacing: -0.3px; }
+        .header-title-text {
+            font-size: 18.5px; font-weight: 950; color: #ffffff; letter-spacing: -0.3px;
+            white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;
+        }
 
-        .dual-admin-btn-group { display: flex; align-items: center; gap: 6px; }
-        .btn-admin-room {
-            background: #1e3a5f; border: 1.2px solid #0284c7; color: #38bdf8;
-            border-radius: 8px; font-size: 11.5px; font-weight: 900; padding: 5px 9px; cursor: pointer;
-        }
+        .dual-admin-btn-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
         .btn-admin-edit {
             background: linear-gradient(135deg, #dc2626, #b91c1c); border: 1.2px solid #ef4444; color: #ffffff;
-            border-radius: 8px; font-size: 11.5px; font-weight: 900; padding: 5px 9px; cursor: pointer;
-            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
+            border-radius: 8px; font-size: 11.5px; font-weight: 900; padding: 5px 10px; cursor: pointer;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35); white-space: nowrap;
         }
 
         /* 2층 가로 롤링 칩 메뉴 */
@@ -207,15 +206,20 @@
             font-size: 12px; font-weight: 850; color: #38bdf8; line-height: 1.3;
         }
         .compact-greeting-scrollbox {
-            flex: 1; min-height: 0; max-height: calc(var(--view-h) - 195px); overflow-y: auto;
+            flex: 1; min-height: 0; overflow-y: auto;
             background: rgba(15, 23, 42, 0.65); border: 1.2px solid rgba(56, 189, 248, 0.25);
-            border-radius: 12px; padding: 10px 12px; font-size: 13px; line-height: 1.6;
+            border-radius: 12px; padding: 12px 14px; font-size: 13.5px; line-height: 1.65;
             color: #e2e8f0; font-weight: 600; word-break: keep-all;
         }
         .compact-greeting-scrollbox::-webkit-scrollbar { width: 3px; }
         .compact-greeting-scrollbox::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 3px; }
 
-        /* 🌟 카드 상단 헤더 우측 및 하단 액션 버튼 그룹 (수정, 추가, 삭제를 한눈에 즉시 클릭) */
+        /* 🌟 사진 우측 정보 영역 내 액션 버튼 전용 행 (수정, 추가, 삭제가 짤림 없이 넉넉하게 배치) */
+        .compact-action-row {
+            display: flex; align-items: center; gap: 5px; margin-top: 4px; flex-wrap: nowrap;
+        }
+
+        /* 🌟 카드 상단 헤더 우측 및 액션 버튼 (수정, 추가, 삭제를 한눈에 즉시 클릭) */
         .leader-top-btn-group {
             display: flex; align-items: center; gap: 4px; flex-shrink: 0;
         }
@@ -401,10 +405,9 @@
     <header class="intro-header">
         <div class="header-left-box">
             <button type="button" class="btn-back" onclick="goBackToChurchHome()" title="교회 메인으로 복귀">‹</button>
-            <span class="header-title-text" id="introHeaderTitle">예톡행복한교회 소개</span>
+            <span class="header-title-text" id="introHeaderTitle">예톡행복한교회</span>
         </div>
         <div class="dual-admin-btn-group">
-            <button type="button" class="btn-admin-room" onclick="location.href='churchadmin.html'" title="관리실 전체설정">◀ 관리실</button>
             <button type="button" class="btn-admin-edit" onclick="triggerCurrentTabEdit()" title="현재 화면 직접 수정">화면수정 ▶</button>
         </div>
     </header>
@@ -743,7 +746,7 @@
             let photoPageHtml = `
                 <div class="section-header-row">
                     <div style="flex:1; min-width:0;">
-                        <span class="badge-pill">${p.badge || '담임목사'} (1/2)</span>
+                        <span class="badge-pill">${p.badge || '담임목사'}</span>
                         <h2 class="article-main-title" style="white-space:nowrap !important;">${p.title || '최남수 담임목사'}</h2>
                         <div class="hero-leader-role">${p.role || '담임목회 및 강단 말씀'}</div>
                     </div>
@@ -755,14 +758,6 @@
                     <div class="pastor-hero-img-box">
                         <img src="${p.img || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800'}" alt="${p.title}">
                     </div>
-                    <div class="pastor-page-flow-hint">
-                        <span>↓ 아래로 스크롤하시면 담임목사 인사말 & 비전이 이어집니다 (2/2) ↓</span>
-                    </div>
-                    <div class="leader-bottom-btn-group">
-                        <button type="button" class="btn-leader-action edit" onclick="openLeaderEdit('pastor', 0)">
-                            ✏️ 담임목사 사진 및 정보 수정
-                        </button>
-                    </div>
                 </div>
             `;
             appendSnapSection("sec_pastor_photo", 1, photoPageHtml);
@@ -771,7 +766,7 @@
             let introPageHtml = `
                 <div class="section-header-row">
                     <div style="flex:1; min-width:0;">
-                        <span class="badge-pill">${p.badge || '담임목사'} (2/2)</span>
+                        <span class="badge-pill">${p.badge || '담임목사'}</span>
                         <h2 class="article-main-title" style="white-space:nowrap !important;">목회 인사말 & 비전</h2>
                         <div class="hero-leader-role">${p.title || '최남수 담임목사'} • ${p.role || '담임목회 및 강단 말씀'}</div>
                     </div>
@@ -782,11 +777,6 @@
                 <div class="pastor-intro-fullpage-card">
                     <div class="pastor-greeting-scrollbox">
                         ${renderFormattedBody(p.body, false)}
-                    </div>
-                    <div class="leader-bottom-btn-group">
-                        <button type="button" class="btn-leader-action edit" onclick="openLeaderEdit('pastor', 0)">
-                            ✏️ 담임목사 인사글 및 사진 수정
-                        </button>
                     </div>
                 </div>
             `;
@@ -804,31 +794,18 @@
                                 <img src="${ap.img || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800'}" alt="${ap.name}">
                             </div>
                             <div class="compact-profile-meta">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <span class="badge-pill" style="margin-bottom:0;">${ap.badge || '부목사'} (${idx + 1}/${asList.length})</span>
-                                    <div class="leader-top-btn-group">
-                                        <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('assistant', ${idx})" title="수정">✏️ 수정</button>
-                                        <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('assistant')" title="부목사 추가">➕ 추가</button>
-                                        <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('assistant', ${idx})" title="부목사 삭제">🗑️</button>
-                                    </div>
-                                </div>
+                                <span class="badge-pill" style="margin-bottom:0; width:fit-content;">${ap.badge || '부목사'}</span>
                                 <h2 class="compact-leader-name">${ap.name}</h2>
                                 <div class="compact-leader-role">${ap.role || '교구 목양 및 목회행정'}</div>
+                                <div class="compact-action-row">
+                                    <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('assistant', ${idx})" title="수정">✏️ 수정</button>
+                                    <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('assistant')" title="부목사 추가">➕ 추가</button>
+                                    <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('assistant', ${idx})" title="부목사 삭제">🗑️ 삭제</button>
+                                </div>
                             </div>
                         </div>
                         <div class="compact-greeting-scrollbox">
                             ${renderFormattedBody(ap.body || ap.desc, false)}
-                        </div>
-                        <div class="leader-bottom-btn-group">
-                            <button type="button" class="btn-leader-action edit" onclick="openLeaderEdit('assistant', ${idx})">
-                                ✏️ ${ap.name} 수정
-                            </button>
-                            <button type="button" class="btn-leader-action add" onclick="openLeaderAdd('assistant')">
-                                ➕ 부목사 추가
-                            </button>
-                            <button type="button" class="btn-leader-action delete" onclick="deleteLeaderDirect('assistant', ${idx})">
-                                🗑️ 삭제
-                            </button>
                         </div>
                     </div>
                 `;
@@ -847,31 +824,18 @@
                                 <img src="${ev.img || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800'}" alt="${ev.name}">
                             </div>
                             <div class="compact-profile-meta">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <span class="badge-pill" style="margin-bottom:0;">${ev.badge || '전도사'} (${idx + 1}/${evList.length})</span>
-                                    <div class="leader-top-btn-group">
-                                        <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('evangelist', ${idx})" title="수정">✏️ 수정</button>
-                                        <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('evangelist')" title="전도사 추가">➕ 추가</button>
-                                        <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('evangelist', ${idx})" title="전도사 삭제">🗑️</button>
-                                    </div>
-                                </div>
+                                <span class="badge-pill" style="margin-bottom:0; width:fit-content;">${ev.badge || '전도사'}</span>
                                 <h2 class="compact-leader-name">${ev.name}</h2>
                                 <div class="compact-leader-role">${ev.role || '교회학교 및 다음세대 사역'}</div>
+                                <div class="compact-action-row">
+                                    <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('evangelist', ${idx})" title="수정">✏️ 수정</button>
+                                    <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('evangelist')" title="전도사 추가">➕ 추가</button>
+                                    <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('evangelist', ${idx})" title="전도사 삭제">🗑️ 삭제</button>
+                                </div>
                             </div>
                         </div>
                         <div class="compact-greeting-scrollbox">
                             ${renderFormattedBody(ev.body || ev.desc, false)}
-                        </div>
-                        <div class="leader-bottom-btn-group">
-                            <button type="button" class="btn-leader-action edit" onclick="openLeaderEdit('evangelist', ${idx})">
-                                ✏️ ${ev.name} 수정
-                            </button>
-                            <button type="button" class="btn-leader-action add" onclick="openLeaderAdd('evangelist')">
-                                ➕ 전도사 추가
-                            </button>
-                            <button type="button" class="btn-leader-action delete" onclick="deleteLeaderDirect('evangelist', ${idx})">
-                                🗑️ 삭제
-                            </button>
                         </div>
                     </div>
                 `;
@@ -891,31 +855,18 @@
                                 <img src="${m.img || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800'}" alt="${sName}">
                             </div>
                             <div class="compact-profile-meta">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <span class="badge-pill" style="margin-bottom:0;">${m.badge || '파송선교사'} (${idx + 1}/${misList.length})</span>
-                                    <div class="leader-top-btn-group">
-                                        <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('missionary', ${idx})" title="수정">✏️ 수정</button>
-                                        <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('missionary')" title="선교사 추가">➕ 추가</button>
-                                        <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('missionary', ${idx})" title="선교사 삭제">🗑️</button>
-                                    </div>
-                                </div>
+                                <span class="badge-pill" style="margin-bottom:0; width:fit-content;">${m.badge || '파송선교사'}</span>
                                 <h2 class="compact-leader-name">${sName}</h2>
                                 <div class="compact-leader-role">${m.role || '열방 파송 선교 사역'}</div>
+                                <div class="compact-action-row">
+                                    <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('missionary', ${idx})" title="수정">✏️ 수정</button>
+                                    <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('missionary')" title="선교사 추가">➕ 추가</button>
+                                    <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('missionary', ${idx})" title="선교사 삭제">🗑️ 삭제</button>
+                                </div>
                             </div>
                         </div>
                         <div class="compact-greeting-scrollbox">
                             ${renderFormattedBody(m.body || m.desc, false)}
-                        </div>
-                        <div class="leader-bottom-btn-group">
-                            <button type="button" class="btn-leader-action edit" onclick="openLeaderEdit('missionary', ${idx})">
-                                ✏️ ${sName} 수정
-                            </button>
-                            <button type="button" class="btn-leader-action add" onclick="openLeaderAdd('missionary')">
-                                ➕ 선교사 추가
-                            </button>
-                            <button type="button" class="btn-leader-action delete" onclick="deleteLeaderDirect('missionary', ${idx})">
-                                🗑️ 삭제
-                            </button>
                         </div>
                     </div>
                 `;
@@ -954,7 +905,7 @@
                 let html = `
                     <div class="section-header-row">
                         <div style="flex:1; min-width:0;">
-                            <span class="badge-pill">사역간사 (${p + 1}/${pagesCount})</span>
+                            <span class="badge-pill">사역간사</span>
                             <h2 class="article-main-title" style="white-space:nowrap !important;">교회를 섬기는 사역 간사</h2>
                         </div>
                         <div class="leader-top-btn-group">
@@ -963,11 +914,6 @@
                     </div>
                     <p style="font-size:12.5px; color:#94a3b8; font-weight:700;">묵묵히 헌신하며 예배와 공동체를 돌보는 신실한 사역자들입니다.</p>
                     ${pairHtml}
-                    <div class="leader-bottom-btn-group">
-                        <button type="button" class="btn-leader-action add" style="width:100%;" onclick="openLeaderAdd('secretary')">
-                            ➕ 새 사역 간사 추가
-                        </button>
-                    </div>
                 `;
                 appendSnapSection(`sec_secretary_page_${p}`, 5, html);
             }
@@ -1495,7 +1441,7 @@
             localStorage.setItem("yetalkChurchName", "예톡행복한교회");
         }
         const titleEl = document.getElementById("introHeaderTitle");
-        if (titleEl) titleEl.innerText = `${churchName} 소개`;
+        if (titleEl) titleEl.innerText = churchName;
 
         loadSections();
     });
