@@ -91,31 +91,31 @@ function isDoctorDirtySlide(s) {
 }
 
 function checkIsSubAdminOrAbove() {
-    // 🌟 [사용자 요청] 일반 성도 및 비로그인 회원은 관리/수정 버튼 절대 노출 금지 (관리자/부관리자 전용)
-    const isAuth = sessionStorage.getItem("yetalk_admin_auth") === "true" ||
-                   sessionStorage.getItem("yetalk_church_admin_auth") === "true" ||
-                   localStorage.getItem("yetalk_admin_auth") === "true" ||
-                   localStorage.getItem("yetalk_church_admin_auth") === "true" ||
-                   localStorage.getItem("yetalkIsAdmin") === "true" ||
-                   localStorage.getItem("yetalkIsSubAdmin") === "true";
-    if (isAuth) return true;
+    // 🌟 [사용자 요청] 담임목사(관리자)와 부관리자만 수정 가능!
+    // 준회원, 성도, 집사, 안수집사, 권사, 장로, 사역자는 일반 열람만 가능 (수정 버튼 감춤)
+    const isMaster = sessionStorage.getItem("yetalk_admin_auth") === "true" ||
+                     localStorage.getItem("yetalk_admin_auth") === "true";
+    const isChurchAuth = sessionStorage.getItem("yetalk_church_admin_auth") === "true" ||
+                         localStorage.getItem("yetalk_church_admin_auth") === "true";
+    if (isMaster || isChurchAuth) return true;
 
-    const job = (localStorage.getItem("yetalkUserJobType") || "").trim();
-    const role = (localStorage.getItem("yetalkUserRole") || "").trim();
     const grade = (localStorage.getItem("yetalkUserGrade") || "").trim();
+    const role = (localStorage.getItem("yetalkUserRole") || "").trim();
+    const job = (localStorage.getItem("yetalkUserJobType") || "").trim();
     const name = (localStorage.getItem("yetalkUserName") || "").trim();
 
-    if (job === "일반성도" || role === "일반성도" || grade === "일반성도" || (!name && !job && !role)) {
-        return false;
-    }
-    const adminJobs = ["담임목사", "목사", "부목사", "전도사", "간사", "사무간사", "기독교사역자", "사역자", "관리자", "부관리자", "총관리자"];
-    if (adminJobs.some(k => job.includes(k) || role.includes(k) || grade.includes(k) || name.includes(k))) {
+    // 1. 담임목사(관리자) 및 부관리자(사무간사) 여부 확인
+    const allowedGrades = ["담임목사", "부관리자", "총관리자", "사무간사"];
+    if (allowedGrades.some(g => grade === g || role.includes(g) || job.includes(g) || name.includes(g))) {
         return true;
     }
+
     if (name === "최웅식" || name === "최예톡" || name === "김예톡") {
         return true;
     }
-    return false; // 🌟 일반 성도/방문자는 관리/수정 버튼 기본 숨김
+
+    // 2. 그 외 준회원, 성도, 집사, 안수집사, 권사, 장로, 사역자는 수정 권한 없음
+    return false;
 }
 
 function openCardSlideEdit(secId) {

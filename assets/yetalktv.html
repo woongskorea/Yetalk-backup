@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -1707,6 +1707,54 @@
                 gap: 12px;
                 flex-shrink: 0;
             }
+            /* 🌟 [사용자 요청] 기본 창은 좌우 광고 + 중앙 단독 화면 / 부관리자 이상 관리자 모드 시 중앙 2단 분할 */
+            .pc-center-split-wrapper {
+                display: flex !important;
+                flex-direction: row !important;
+                flex: 1 1 auto !important;
+                width: 100% !important;
+                height: calc(100% - 44px) !important;
+                overflow: hidden !important;
+                position: relative !important;
+            }
+            .main-container .pc-phone-mockup-frame {
+                flex: 1 1 auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                height: 100% !important;
+                margin: 0 auto !important;
+                border: none !important;
+                border-radius: 0 !important;
+                background: #020617 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                overflow: hidden !important;
+                transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            }
+            /* 관리자 모드 활성화 시: 중앙 영역 2개 분리 (좌: 스마트폰 420px, 우: 수정 데스크 남은 영역 전체) */
+            .main-container.admin-split-active {
+                max-width: 1380px !important;
+            }
+            .main-container.admin-split-active .pc-phone-mockup-frame {
+                flex: 0 0 420px !important;
+                width: 420px !important;
+                max-width: 420px !important;
+                border-right: 2px solid rgba(56, 189, 248, 0.35) !important;
+                background: #000000 !important;
+            }
+            .pc-cms-split-desk {
+                display: none;
+                flex: 1 1 auto;
+                height: 100%;
+                flex-direction: column;
+                background: #0b1120;
+                overflow: hidden;
+                min-width: 420px;
+            }
+            .main-container.admin-split-active .pc-cms-split-desk {
+                display: flex !important;
+            }
+
             /* 중앙 화면: 양쪽 광고 날개 사이에서 시원하고 품격 있는 교회 공식 홈페이지 (주인공) */
             .main-container {
                 display: flex !important;
@@ -1714,7 +1762,7 @@
                 flex: 1 1 auto !important;
                 width: auto !important;
                 max-width: 900px !important;
-                min-width: 500px !important;
+                min-width: 480px !important;
                 height: 100% !important;
                 max-height: none !important;
                 border-radius: 26px !important;
@@ -1724,6 +1772,7 @@
                 background: #020617 !important;
                 position: relative !important;
                 margin: 0 auto !important;
+                transition: max-width 0.3s ease !important;
             }
             /* 우측 날개 (좌측과 정확히 똑같은 260px 대칭 균형 크기: 차후 스폰서 광고 및 교회 안내 슬롯) */
             .pc-desktop-right-panel {
@@ -3098,6 +3147,10 @@
                 📱 스마트폰 뷰
             </button>
             <button type="button" class="btn-pc-mode-pill" id="btnModeWideView" onclick="setPcCenterMode('wide')">
+            <!-- ?뙚 [?ъ슜???붿껌] 遺愿由ъ옄 ?댁긽 愿由ъ옄 紐⑤뱶: 以묒븰 2???붾㈃ 遺꾨━ ?좉? 踰꾪듉 -->
+            <button type="button" class="btn-pc-mode-pill" id="btnToggleAdminSplit" onclick="togglePcAdminSplitMode()" style="background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; font-weight:900; border-color:#38bdf8; display:flex; align-items:center; gap:5px;">
+                <span>?숋툘 愿由ъ옄 紐⑤뱶 (?붾㈃遺꾪븷)</span>
+            </button>
                 🖥️ 와이드 보기
             </button>
             <button type="button" class="btn-pc-mode-pill" id="btnModeShortsView" onclick="setPcCenterMode('shorts')">
@@ -3109,6 +3162,8 @@
         </div>
     </div>
 
+    <!-- ?뙚 [?ъ슜???붿껌] 以묒븰 遺꾪븷 ?섑띁 (湲곕낯: ?⑤룆 1媛??붾㈃ / 遺愿由ъ옄 ?댁긽 愿由ъ옄 紐⑤뱶: ?ㅻ쭏?명룿 + ?섏젙李?2媛?遺꾨━) -->
+    <div class="pc-center-split-wrapper" id="pcCenterSplitWrapper">
     <!-- 🌟 PC 스마트폰 목업 프레임 (PC 모드 기본 활성) -->
     <div class="pc-phone-mockup-frame" id="pcPhonePreviewWrap">
         <div class="pc-phone-notch">
@@ -3117,6 +3172,531 @@
         </div>
         <iframe id="pcAppIframe" src="churchmain.html" allow="autoplay; fullscreen; clipboard-write; encrypted-media"></iframe>
     </div>
+        <!-- ?뙚 [?ъ슜???붿껌] 遺愿由ъ옄 ?댁긽 愿由ъ옄 紐⑤뱶 ??以묒븰 ?곗륫??遺꾨━?섏뼱 ?쇱퀜吏???ㅼ떆媛??섏젙 ?곗뒪??-->
+        <div class="pc-cms-split-desk" id="pcCmsSplitDesk">
+        <div class="pc-admin-modal-content">
+            <!-- 1. 패널 헤더: 현재 열린 메뉴 타이틀 & 전체 관리실 버튼 & 원클릭 즉시 반영 버튼 & 닫기 버튼 -->
+            <div class="pc-cms-header" style="border-radius:18px 18px 0 0; padding:12px 18px; background:#0f172a; border-bottom:1.5px solid #1e293b;">
+                <div class="pc-cms-header-left" style="display:flex; align-items:center; gap:10px;">
+                    <span class="pc-cms-icon" id="pcCurrentMenuIcon" style="font-size:24px;">🏢</span>
+                    <div>
+                        <h3 class="pc-cms-title" id="pcCurrentMenuTitle" style="margin:0; font-size:16px; font-weight:900; color:#ffffff;">교회 대표 관리실</h3>
+                        <div class="pc-cms-subtitle" style="display:flex; align-items:center; gap:6px; font-size:11.5px; color:#94a3b8; margin-top:2px;">
+                            <span class="pc-cms-pulse" style="width:7px; height:7px; background:#38bdf8; border-radius:50%; display:inline-block;"></span>
+                            <span id="pcRightActiveAppName">우리교회</span> <span id="pcCurrentMenuSub">· 기본정보 및 메인 설정</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="pc-cms-header-right" style="display:flex; align-items:center; gap:8px;">
+                    <button type="button" class="btn-sound-test" id="btnBackToMainOffice" onclick="switchCmsTab('info')" title="교회 기본정보 및 관리실 전체보기" style="background:#1e293b; border-color:#38bdf8; color:#38bdf8;">
+                        <span>🏢</span> 대표 관리실
+                    </button>
+                    <button type="button" class="btn-cms-apply-top" onclick="applyPcCmsChanges()" title="입력한 수정 내용을 스마트폰 화면과 클라우드 서버에 즉시 반영합니다">
+                        <span>✨ 즉시 반영 ➔</span>
+                    </button>
+                    <button type="button" onclick="closePcAdminModal()" style="background:#1e293b; border:1px solid #475569; color:#f8fafc; border-radius:8px; font-size:14px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer;" title="닫기">
+                        ✕
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. 슬림 1줄 메뉴 퀵바 (클릭 시 우측 전체가 그 메뉴 100% 수정창으로 통으로 펼쳐짐) -->
+            <div class="pc-cms-tabs-bar" id="pcCmsTabsBar" style="padding:8px 14px; background:#0b1120; border-bottom:1px solid #1e293b; display:flex; gap:6px; overflow-x:auto;">
+                <button type="button" class="btn-cms-tab active" id="btnCmsTabInfo" onclick="switchCmsTab('info')" title="교회 기본정보 및 대표사진">
+                    <span>🏢 대표 관리실</span>
+                </button>
+                <button type="button" class="btn-cms-tab" id="btnCmsTabWorship" onclick="switchCmsTab('worship')" title="예배 영상 및 라이브 방송 관리">
+                    <span>🎥 예배·영상</span>
+                </button>
+                <button type="button" class="btn-cms-tab" id="btnCmsTabJubo" onclick="switchCmsTab('jubo')" title="이번주 주보 내용 및 주보 사진">
+                    <span>📜 주보 수정</span>
+                </button>
+                <button type="button" class="btn-cms-tab" id="btnCmsTabNotice" onclick="switchCmsTab('notice')" title="새 공지알림 작성 및 소식">
+                    <span>📢 새 공지</span>
+                </button>
+                <button type="button" class="btn-cms-tab" id="btnCmsTabPray" onclick="switchCmsTab('pray')" title="중보기도 및 기도제목 관리">
+                    <span>🙏 기도모임</span>
+                </button>
+                <button type="button" class="btn-cms-tab" id="btnCmsTabInvite" onclick="switchCmsTab('invite')" title="오시는 길, 교회 초청, 온라인 헌금">
+                    <span>🚗 오시는길·초청</span>
+                </button>
+                <button type="button" class="btn-cms-tab" id="btnCmsTabRequests" onclick="switchCmsTab('requests')" title="성도 접수/상담 목록">
+                    <span>📋 접수목록</span>
+                    <span class="pc-tab-badge" id="pcCmsReqBadge">3</span>
+                </button>
+            </div>
+
+            <!-- 4. 탭 콘텐츠 영역 (스크롤 가능) -->
+            <div class="pc-cms-content-scroll" id="pcCmsContentScroll" style="flex:1; overflow-y:auto; padding:16px;">
+                <!-- 탭 1: 교회 기본정보 및 대표 사진 -->
+            <div class="pc-cms-tab-pane active" id="paneCmsInfo">
+                <div class="cms-form-group">
+                    <label class="cms-label">⛪ 앱 / 교회 / 상호 명칭</label>
+                    <input type="text" id="pcCmsAppName" class="cms-input" placeholder="예: 예톡행복한교회" />
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">🖼️ 대표 사진 (스마트폰 최상단 히어로 이미지)</label>
+                    <div class="cms-photo-upload-box">
+                        <div class="cms-photo-preview-wrap">
+                            <img id="pcCmsPhotoPreview" src="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=600&q=80" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=600&q=80'" alt="대표 사진 미리보기" />
+                            <span class="cms-photo-badge">실시간 미리보기</span>
+                        </div>
+                        <div class="cms-photo-action-col">
+                            <label class="btn-cms-file-upload">
+                                📁 컴퓨터 사진 올리기
+                                <input type="file" id="pcFileInput" accept="image/*" style="display:none;" onchange="handlePcCmsFileUpload(event)">
+                            </label>
+                            <input type="text" id="pcCmsPhotoUrl" class="cms-input-sm" placeholder="또는 웹 이미지 주소(URL) 입력" onclick="this.value=''; handlePcCmsUrlInput('');" onfocus="this.select();" oninput="handlePcCmsUrlInput(this.value)">
+                            <span class="cms-input-hint">컴퓨터에 저장된 사진을 선택하거나 이미지 주소를 입력하세요.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">💬 교회 표어 / 한 줄 소개 (홈 화면 상단 강조 문구)</label>
+                    <input type="text" id="pcCmsAppDesc" class="cms-input" placeholder="말씀과 기도로 영혼을 살리는 은혜의 공동체" />
+                </div>
+
+                <div class="cms-form-row">
+                    <div class="cms-form-group flex-1">
+                        <label class="cms-label">📞 대표 연락처 / 담임목사 직통</label>
+                        <input type="text" id="pcCmsAppPhone" class="cms-input" placeholder="010-1234-5678" />
+                    </div>
+                    <div class="cms-form-group flex-1">
+                        <label class="cms-label">🌾 헌금 / 입금 계좌 정보</label>
+                        <input type="text" id="pcCmsAppBank" class="cms-input" placeholder="농협 302-1234-5678-91 (예톡행복한교회)" />
+                    </div>
+                </div>
+
+                <div class="cms-form-group" style="margin-top:4px; padding-top:8px; border-top:1px dashed #334155;">
+                    <label class="cms-label">🏷️ 교회 첫화면 1번 슬라이드 행사/소제목</label>
+                    <input type="text" id="pcCmsSlide0Verse" class="cms-input" placeholder="2026 온 성도 사랑과 감사의 축제" />
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">📖 교회 첫화면 1번 슬라이드 소개 본문</label>
+                    <textarea id="pcCmsSlide0Body" class="cms-textarea" rows="3" placeholder="하나님의 거룩한 임재와 은혜가 머무는 따뜻한 사랑의 공동체입니다."></textarea>
+                </div>
+
+                <!-- 🌟 [메뉴 미선택 시 기본 표출] 빠른 메뉴별 통 수정창 바로가기 카드들 -->
+                <div style="margin-top:14px; padding:12px; background:#080d1a; border:1.5px solid #1e3a5f; border-radius:12px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <strong style="color:#38bdf8; font-size:12.5px;">⚡ 메뉴별 100% 전용 수정창 바로가기</strong>
+                        <span style="font-size:10.5px; color:#94a3b8;">원하는 메뉴를 누르면 우측에 통으로 펼쳐집니다</span>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+                        <button type="button" onclick="switchCmsTab('worship')" style="background:#0f172a; border:1px solid #0284c7; color:#f8fafc; padding:10px 6px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                            <span style="font-size:18px;">🎥</span>
+                            <span>예배·영상</span>
+                        </button>
+                        <button type="button" onclick="switchCmsTab('jubo')" style="background:#0f172a; border:1px solid #f59e0b; color:#f8fafc; padding:10px 6px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                            <span style="font-size:18px;">📜</span>
+                            <span>주보 수정</span>
+                        </button>
+                        <button type="button" onclick="switchCmsTab('notice')" style="background:#0f172a; border:1px solid #38bdf8; color:#f8fafc; padding:10px 6px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                            <span style="font-size:18px;">📢</span>
+                            <span>새 공지</span>
+                        </button>
+                        <button type="button" onclick="switchCmsTab('pray')" style="background:#0f172a; border:1px solid #10b981; color:#f8fafc; padding:10px 6px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                            <span style="font-size:18px;">🙏</span>
+                            <span>기도모임</span>
+                        </button>
+                        <button type="button" onclick="switchCmsTab('invite')" style="background:#0f172a; border:1px solid #ec4899; color:#f8fafc; padding:10px 6px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                            <span style="font-size:18px;">🚗</span>
+                            <span>오시는길</span>
+                        </button>
+                        <button type="button" onclick="switchCmsTab('requests')" style="background:#0f172a; border:1px solid #a855f7; color:#f8fafc; padding:10px 6px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
+                            <span style="font-size:18px;">📋</span>
+                            <span>접수목록</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 탭 2: 예배 및 영상 수정창 -->
+            <div class="pc-cms-tab-pane" id="paneCmsWorship" style="display:none;">
+                <div style="background:rgba(2,132,199,0.12); border:1px solid #0284c7; border-radius:8px; padding:10px; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                        <span style="font-size:16px;">🎥</span>
+                        <strong style="color:#38bdf8; font-size:12.5px;">예배 및 실시간 라이브 영상 관리</strong>
+                    </div>
+                    <p style="color:#94a3b8; font-size:11px; margin:0; line-height:1.4;">
+                        좌측 스마트폰의 [예배] 화면과 100% 실시간 연동됩니다. 수정 후 하단 저장 버튼을 누르면 스마트폰과 PC에 즉시 반영됩니다.
+                    </p>
+                </div>
+
+                <!-- 예배 서브 선택 칩 -->
+                <div style="display:flex; gap:5px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;">
+                    <button type="button" class="btn-worship-sub-chip active" id="chipWorship_sunday" onclick="selectCmsWorshipSub('sunday')">주일예배</button>
+                    <button type="button" class="btn-worship-sub-chip" id="chipWorship_wednesday" onclick="selectCmsWorshipSub('wednesday')">수요예배</button>
+                    <button type="button" class="btn-worship-sub-chip" id="chipWorship_friday" onclick="selectCmsWorshipSub('friday')">금요기도회</button>
+                    <button type="button" class="btn-worship-sub-chip" id="chipWorship_dawn" onclick="selectCmsWorshipSub('dawn')">새벽기도회</button>
+                    <button type="button" class="btn-worship-sub-chip" id="chipWorship_special" onclick="selectCmsWorshipSub('special')">특별예배</button>
+                    <button type="button" class="btn-worship-sub-chip" id="chipWorship_praise" onclick="selectCmsWorshipSub('praise')">찬양모음</button>
+                </div>
+
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; background:rgba(239,68,68,0.12); border:1px solid #ef4444; border-radius:8px; padding:8px 10px;">
+                    <input type="checkbox" id="pcCmsWorshipLive" style="width:18px; height:18px; cursor:pointer;" onchange="handlePcCmsLiveToggle(this.checked)" />
+                    <label for="pcCmsWorshipLive" style="color:#fca5a5; font-size:12px; font-weight:900; cursor:pointer;">
+                        🔴 실시간 주일예배 라이브 생중계 즉시 켜기 (예배 화면에 LIVE 뱃지 표시)
+                    </label>
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">🔗 유튜브 영상 링크 (URL)</label>
+                    <input type="text" id="pcCmsWorshipYt" class="cms-input" placeholder="https://www.youtube.com/watch?v=... 또는 shorts 링크" onclick="this.value='';" onfocus="this.select();" />
+                    <span class="cms-input-hint">유튜브 일반 영상 링크나 shorts 링크를 붙여넣으시면 자동 변환됩니다.</span>
+                </div>
+
+                <div class="cms-form-row">
+                    <div class="cms-form-group flex-1">
+                        <label class="cms-label">🎬 예배 / 설교 제목</label>
+                        <input type="text" id="pcCmsWorshipTitle" class="cms-input" placeholder="주일 대예배 실황" />
+                    </div>
+                    <div class="cms-form-group flex-1">
+                        <label class="cms-label">⏰ 예배 시간 안내 배지</label>
+                        <input type="text" id="pcCmsWorshipTime" class="cms-input" placeholder="주일 11:00" />
+                    </div>
+                </div>
+
+                <div class="cms-form-row">
+                    <div class="cms-form-group flex-1">
+                        <label class="cms-label">📖 본문 성경 말씀 구절</label>
+                        <input type="text" id="pcCmsWorshipVerse" class="cms-input" placeholder="요한복음 3장 16절 ~ 18절" />
+                    </div>
+                    <div class="cms-form-group flex-1">
+                        <label class="cms-label">👤 설교자 / 찬양대 안내</label>
+                        <input type="text" id="pcCmsWorshipMeta" class="cms-input" placeholder="담임목사" />
+                    </div>
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">📄 예배 안내 및 설교 요약</label>
+                    <textarea id="pcCmsWorshipBody" class="cms-textarea" rows="3" placeholder="주일 오전 11시 본당 생중계 및 담임목사님의 은혜의 말씀"></textarea>
+                </div>
+            </div>
+
+            <!-- 탭 3: 주보 내용 및 사진 수정창 -->
+            <div class="pc-cms-tab-pane" id="paneCmsJubo" style="display:none;">
+                <div style="background:rgba(234,179,8,0.12); border:1px solid #eab308; border-radius:8px; padding:10px; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                        <span style="font-size:16px;">📜</span>
+                        <strong style="color:#fde047; font-size:12.5px;">이번 주 주보 실시간 수정</strong>
+                    </div>
+                    <p style="color:#94a3b8; font-size:11px; margin:0; line-height:1.4;">
+                        좌측 스마트폰의 [주보] 카드와 100% 실시간 연동됩니다. 주보 제목, 말씀, 주보 사진을 자유롭게 변경하세요.
+                    </p>
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">📅 주보 날짜 및 제목</label>
+                    <input type="text" id="pcCmsJuboTitle" class="cms-input" placeholder="주보" />
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">📖 이번 주 주제 성경 말씀</label>
+                    <input type="text" id="pcCmsJuboVerse" class="cms-input" placeholder="2026년 11월 첫째 주일 주보 - 너희는 세상의 빛이라 (마 5:14)" />
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">🖼️ 주보 인쇄 사진 / 이미지 올리기</label>
+                    <div class="cms-photo-upload-box">
+                        <div class="cms-photo-preview-wrap" id="pcCmsJuboPreviewWrap">
+                            <img id="pcCmsJuboPreview" src="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=600&q=80" alt="주보 사진 미리보기" style="max-height:100px; border-radius:8px; border:1px solid #334155;" />
+                            <span class="cms-photo-badge">주보 미리보기</span>
+                        </div>
+                        <div class="cms-photo-action-col">
+                            <label class="btn-cms-file-upload">
+                                📁 주보 사진 올리기
+                                <input type="file" id="pcCmsJuboFile" accept="image/*" style="display:none;" onchange="handleJuboFileUpload(event)">
+                            </label>
+                            <input type="text" id="pcCmsJuboImgUrl" class="cms-input-sm" placeholder="또는 웹 이미지 주소(URL) 입력" onclick="this.value='';" onfocus="this.select();">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">📄 목회 서신 및 이번 주 예배 순서</label>
+                    <textarea id="pcCmsJuboBody" class="cms-textarea" rows="4" placeholder="하나님의 사랑과 은혜가 성도 여러분의 삶과 가정에 충만하시길 기도합니다. 예배를 통해 참된 평안과 회복을 누리시길 바랍니다."></textarea>
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">📢 교회 주요 소식 및 행사 안내</label>
+                    <textarea id="pcCmsJuboNews" class="cms-textarea" rows="3" placeholder="1. 11월 총동원 전도주일 안내\n2. 전교인 사랑의 김장 나눔 봉사\n3. 하반기 구역장 성경공부 개강"></textarea>
+                </div>
+            </div>
+
+            <!-- 탭 4: 새 공지·소식 작성 -->
+            <div class="pc-cms-tab-pane" id="paneCmsNotice" style="display:none;">
+                <div class="cms-form-group">
+                    <label class="cms-label">📌 공지 분류</label>
+                    <select id="pcCmsNoticeCategory" class="cms-select">
+                        <option value="교회소식">⛪ 교회소식 (예배/모임/행사)</option>
+                        <option value="오늘의특선">🍜 오늘의 특선메뉴 / 신메뉴</option>
+                        <option value="진료안내">🏥 진료시간 및 휴진 안내</option>
+                        <option value="일반공지">📢 일반 긴급 안내</option>
+                    </select>
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">📝 공지 제목</label>
+                    <input type="text" id="pcCmsNoticeTitle" class="cms-input" placeholder="새로운 소식 제목을 입력하세요" />
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">📄 공지 본문 내용 (글 적기 편한 넓은 작성 공간)</label>
+                    <textarea id="pcCmsNoticeBody" class="cms-textarea" rows="7" placeholder="공지할 내용을 자유롭고 상세하게 작성하세요. 줄바꿈이 그대로 유지됩니다."></textarea>
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">🖼️ 공지 첨부 사진 (선택)</label>
+                    <div style="display:flex; gap:8px;">
+                        <label class="btn-cms-file-upload-sm">
+                            📁 사진 첨부
+                            <input type="file" id="pcCmsNoticeFile" accept="image/*" style="display:none;" onchange="handleNoticeFileUpload(event)">
+                        </label>
+                        <input type="text" id="pcCmsNoticePhotoUrl" class="cms-input flex-1" placeholder="또는 이미지 주소(URL) 입력" onclick="this.value='';" onfocus="this.select();" />
+                    </div>
+                    <div id="pcNoticeThumbWrap" style="display:none; margin-top:6px;">
+                        <img id="pcNoticeThumb" style="max-height:80px; border-radius:8px; border:1px solid #334155;" />
+                    </div>
+                </div>
+                <button type="button" class="btn-cms-submit-notice" onclick="submitPcCmsNotice()">
+                    📢 최상단 새 공지로 즉시 등록 ➔
+                </button>
+            </div>
+
+            <!-- 탭 5: 기도모임 및 중보기도 수정창 -->
+            <div class="pc-cms-tab-pane" id="paneCmsPray" style="display:none;">
+                <div style="background:rgba(16,185,129,0.12); border:1px solid #10b981; border-radius:8px; padding:10px; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                        <span style="font-size:16px;">🙏</span>
+                        <strong style="color:#6ee7b7; font-size:12.5px;">중보기도 및 기도제목 관리</strong>
+                    </div>
+                    <p style="color:#94a3b8; font-size:11px; margin:0; line-height:1.4;">
+                        좌측 스마트폰의 [기도모임] 화면과 100% 실시간 연동됩니다. 합심 기도제목과 성경 구절을 업데이트하세요.
+                    </p>
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">🏷️ 이번 주 기도모임 대제목</label>
+                    <input type="text" id="pcCmsPrayTitle" class="cms-input" placeholder="기도모임" />
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">📖 기도 성경 구절</label>
+                    <input type="text" id="pcCmsPrayVerse" class="cms-input" placeholder="너는 내게 부르짖으라 내가 네게 응답하겠고 (렘 33:3)" />
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">📄 이번 주 합심 중보기도 제목</label>
+                    <textarea id="pcCmsPrayBody" class="cms-textarea" rows="5" placeholder="1. 나라와 한국 교회의 영적 부흥을 위해\n2. 질병으로 고통받는 환우들의 빠른 쾌유와 회복을 위해\n3. 선교사님들의 사역지와 믿음의 다음세대를 위해"></textarea>
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">⏰ 기도모임 일정 및 장소 안내</label>
+                    <input type="text" id="pcCmsPrayTime" class="cms-input" placeholder="매주 수요일 저녁 8시 본당 소예배실" />
+                </div>
+            </div>
+
+            <!-- 탭 6: 오시는길·교회초청 수정창 -->
+            <div class="pc-cms-tab-pane" id="paneCmsInvite" style="display:none;">
+                <div style="background:rgba(168,85,247,0.12); border:1px solid #a855f7; border-radius:8px; padding:10px; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                        <span style="font-size:16px;">🚗</span>
+                        <strong style="color:#d8b4fe; font-size:12.5px;">오시는 길, 교회 초청 및 헌금 안내</strong>
+                    </div>
+                    <p style="color:#94a3b8; font-size:11px; margin:0; line-height:1.4;">
+                        좌측 스마트폰의 [교회초청] 및 [오시는길/헌금] 메뉴와 연동됩니다. 교회 위치와 헌금 계좌 정보를 관리하세요.
+                    </p>
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">📍 교회 도로명 공식 주소</label>
+                    <input type="text" id="pcCmsInviteAddress" class="cms-input" placeholder="서울특별시 강남구 테헤란로 123 예톡빌딩 4층" />
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">🚌 대중교통 및 주차 안내</label>
+                    <input type="text" id="pcCmsInviteDirections" class="cms-input" placeholder="지하철 2호선 역삼역 4번 출구 도보 3분 / 건물 지하 1,2층 무료 주차 가능" />
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">💌 새가족 환영 및 초청의 말씀</label>
+                    <textarea id="pcCmsInviteWelcome" class="cms-textarea" rows="3" placeholder="예수 그리스도의 사랑으로 여러분을 진심으로 축복하고 환영합니다. 주님의 따뜻한 은혜 안에서 함께 믿음의 가정을 이루어가길 소망합니다."></textarea>
+                </div>
+
+                <div class="cms-form-group">
+                    <label class="cms-label">💳 온라인 헌금 및 후원 계좌 상세</label>
+                    <textarea id="pcCmsInviteBankDetail" class="cms-textarea" rows="3" placeholder="십일조/감사헌금: 농협 302-1234-5678-91 (예톡행복한교회)\n선교/구제헌금: 국민 123-456-78901 (예톡행복한교회)"></textarea>
+                </div>
+            </div>
+
+            <!-- 🏥 [의원 전용 우측 CMS 패널들] -->
+            <!-- 의원 탭 1: 의원 기본정보 및 대표 사진 -->
+            <div class="pc-cms-tab-pane" id="paneCmsDocInfo" style="display:none;">
+                <div style="background:rgba(14,165,233,0.12); border:1px solid #0ea5e9; border-radius:8px; padding:10px; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                        <span style="font-size:16px;">🏥</span>
+                        <strong style="color:#38bdf8; font-size:12.5px;">스마트 의원·클리닉 관리 데스크</strong>
+                    </div>
+                    <p style="color:#94a3b8; font-size:11px; margin:0; line-height:1.4;">
+                        의원 상호명, 대표 원장 소개, 대표 사진 및 수납 계좌를 실시간으로 관리합니다.
+                    </p>
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">🏥 병원 / 의원 공식 명칭</label>
+                    <input type="text" id="pcCmsDocName" class="cms-input" placeholder="예: 예톡 아름다운의원" />
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">🖼️ 의원 대표 사진 (히어로 배경)</label>
+                    <div class="cms-photo-upload-box">
+                        <div class="cms-photo-preview-wrap">
+                            <img id="pcCmsDocPhotoPreview" src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=600&q=80" alt="의원 대표 사진" style="max-height:90px; border-radius:8px; border:1px solid #334155;" />
+                            <span class="cms-photo-badge">의원 미리보기</span>
+                        </div>
+                        <div class="cms-photo-action-col">
+                            <label class="btn-cms-file-upload">
+                                📁 컴퓨터 사진 올리기
+                                <input type="file" id="pcDocFileInput" accept="image/*" style="display:none;" onchange="handleDocFileUpload(event)">
+                            </label>
+                            <input type="text" id="pcCmsDocPhotoUrl" class="cms-input-sm" placeholder="또는 웹 이미지 주소(URL) 입력" onclick="this.value='';" onfocus="this.select();">
+                        </div>
+                    </div>
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">💬 원훈 / 대표 슬로건</label>
+                    <input type="text" id="pcCmsDocDesc" class="cms-input" placeholder="정직한 진료, 환자 중심의 따뜻한 의료 상담" />
+                </div>
+                <div class="cms-form-row">
+                    <div class="cms-form-group flex-1">
+                        <label class="cms-label">📞 대표 전화 / 진료예약 직통</label>
+                        <input type="text" id="pcCmsDocPhone" class="cms-input" placeholder="02-1234-5678" />
+                    </div>
+                    <div class="cms-form-group flex-1">
+                        <label class="cms-label">💳 진료비 수납 계좌</label>
+                        <input type="text" id="pcCmsDocBank" class="cms-input" placeholder="신한 110-222-33333 (메디컬의원)" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- 의원 탭 2: 진료과목 및 의료진 소개 -->
+            <div class="pc-cms-tab-pane" id="paneCmsDocTreat" style="display:none;">
+                <div class="cms-form-group">
+                    <label class="cms-label">💉 주요 진료 과목</label>
+                    <input type="text" id="pcCmsDocSubjects" class="cms-input" placeholder="내과, 이비인후과, 피부과, 정형외과, 건강검진" />
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">👨‍⚕️ 대표 원장 프로필 및 약력</label>
+                    <textarea id="pcCmsDocDoctorIntro" class="cms-textarea" rows="4" placeholder="대표원장 의학박사 김예톡\n- 서울대학교 의과대학 졸업\n- 대한내과학회 정회원\n- 전 대학병원 임상교수"></textarea>
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">🔬 주요 검사 장비 및 특화 시술 안내</label>
+                    <textarea id="pcCmsDocTreatDesc" class="cms-textarea" rows="4" placeholder="불필요한 과잉진료를 철저히 지양하고, 최신 검사 장비와 1:1 맞춤 진료를 통해 환자분들의 빠른 건강 회복을 돕습니다."></textarea>
+                </div>
+            </div>
+
+            <!-- 의원 탭 3: 진료시간 및 위치 -->
+            <div class="pc-cms-tab-pane" id="paneCmsDocTime" style="display:none;">
+                <div class="cms-form-group">
+                    <label class="cms-label">⏰ 평일 진료시간</label>
+                    <input type="text" id="pcCmsDocWeekdayHours" class="cms-input" placeholder="월~금 09:00 ~ 19:00 (점심시간 13:00~14:00)" />
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">📅 토요일 / 공휴일 진료</label>
+                    <input type="text" id="pcCmsDocWeekendHours" class="cms-input" placeholder="토요일 09:00 ~ 14:00 (점심시간 없이 진료 / 일요일·공휴일 휴진)" />
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">🌙 야간진료 안내</label>
+                    <input type="text" id="pcCmsDocNightHours" class="cms-input" placeholder="매주 수요일 저녁 8시까지 야간진료" />
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">📍 의원 공식 주소</label>
+                    <input type="text" id="pcCmsDocAddress" class="cms-input" placeholder="서울특별시 서초구 서초대로 301 메디컬타워 3층" />
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">🚌 대중교통 및 주차 안내</label>
+                    <input type="text" id="pcCmsDocDirections" class="cms-input" placeholder="지하철 2호선 서초역 2번 출구 도보 2분 / 건물 타워 주차장 2시간 무료" />
+                </div>
+            </div>
+
+            <!-- 👤 [1인 개인 스마트홈 전용 우측 CMS 패널들] -->
+            <!-- 개인 탭 1: 프로필 -->
+            <div class="pc-cms-tab-pane" id="paneCmsPersonalInfo" style="display:none;">
+                <div style="background:rgba(168,85,247,0.12); border:1px solid #a855f7; border-radius:8px; padding:10px; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                        <span style="font-size:16px;">👤</span>
+                        <strong style="color:#d8b4fe; font-size:12.5px;">사무 간사 1인 스마트홈 관리 데스크</strong>
+                    </div>
+                    <p style="color:#94a3b8; font-size:11px; margin:0; line-height:1.4;">
+                        모바일 명함, 직함, 스마트 QR 및 개인 연락처를 관리합니다.
+                    </p>
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">👤 성명 / 닉네임</label>
+                    <input type="text" id="pcCmsPersonName" class="cms-input" placeholder="예: 최예톡 사무간사" />
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">💼 직함 / 담당 사역</label>
+                    <input type="text" id="pcCmsPersonRole" class="cms-input" placeholder="교회 행정 및 사무 간사" />
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">💬 한 줄 자기소개</label>
+                    <input type="text" id="pcCmsPersonDesc" class="cms-input" placeholder="언제나 기쁨과 감사의 마음으로 섬깁니다." />
+                </div>
+                <div class="cms-form-row">
+                    <div class="cms-form-group flex-1">
+                        <label class="cms-label">📞 대표 연락처</label>
+                        <input type="text" id="pcCmsPersonPhone" class="cms-input" placeholder="010-1234-5678" />
+                    </div>
+                    <div class="cms-form-group flex-1">
+                        <label class="cms-label">🌾 계좌 정보</label>
+                        <input type="text" id="pcCmsPersonBank" class="cms-input" placeholder="카카오 3333-01-2345678" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- 개인 탭 2: 모바일 명함 -->
+            <div class="pc-cms-tab-pane" id="paneCmsPersonalCard" style="display:none;">
+                <div class="cms-form-group">
+                    <label class="cms-label">📇 모바일 명함 타이틀</label>
+                    <input type="text" id="pcCmsPersonCardTitle" class="cms-input" placeholder="예톡행복한교회 행정사무국" />
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">📄 주요 담당 업무 및 사역 소개</label>
+                    <textarea id="pcCmsPersonCardWork" class="cms-textarea" rows="5" placeholder="교회 행정 총괄 및 성도 등록 관리\n주보 발행 및 행사 일정 기획\n주일예배 방송 및 미디어 사역 지원"></textarea>
+                </div>
+            </div>
+
+            <!-- 개인 탭 3: 스마트 QR -->
+            <div class="pc-cms-tab-pane" id="paneCmsPersonalQr" style="display:none;">
+                <div class="cms-form-group">
+                    <label class="cms-label">📱 스마트 QR 연동 웹 주소 (URL)</label>
+                    <input type="text" id="pcCmsPersonQrLink" class="cms-input" placeholder="https://yetalk.com/onemain.html" />
+                </div>
+                <div class="cms-form-group">
+                    <label class="cms-label">🔗 SNS / 블로그 링크</label>
+                    <input type="text" id="pcCmsPersonSns" class="cms-input" placeholder="인스타그램 @yetalk_official" />
+                </div>
+            </div>
+
+            <!-- 탭 7: 실시간 접수 목록 -->
+            <div class="pc-cms-tab-pane" id="paneCmsRequests" style="display:none;">
+                <div class="cms-requests-list" id="pcCmsRequestsList" style="display:flex; flex-direction:column; gap:8px;">
+                    <!-- Dynamic request cards -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 모달 하단 원클릭 저장 및 실시간 스마트폰 반영 버튼 & 닫기 버튼 -->
+        <div class="pc-cms-footer-bar" style="padding:14px 18px; background:#0f172a; border-top:1.5px solid #1e293b; display:flex; gap:10px; align-items:center;">
+            <button type="button" onclick="closePcAdminModal()" style="padding:10px 18px; background:#1e293b; border:1px solid #475569; color:#94a3b8; border-radius:12px; font-size:12.5px; font-weight:800; cursor:pointer;">
+                닫기
+            </button>
+            <button type="button" class="btn-cms-apply-all" onclick="applyPcCmsChanges()" style="flex:1; margin:0; padding:11px 16px; border-radius:12px; background:linear-gradient(135deg, #10b981, #059669); border:none; color:#ffffff; font-weight:900; font-size:13px; cursor:pointer;">
+                <span>✨ 저장 및 스마트폰 즉시 반영 ➔</span>
+            </button>
+        </div>
+    </div> <!-- /pc-admin-modal-content -->
+        </div> <!-- /pc-cms-split-desk -->
+    </div> <!-- /pc-center-split-wrapper -->
 
     <!-- 🌟 [사용자 요청] 상단 메뉴 삭제 후 포털 홈으로 바로 돌아가는 심플 플로팅 홈 버튼 -->
     <button type="button" class="btn-yetalktv-home-float" onclick="location.href='index.html'" title="포털 홈으로 이동" style="position:fixed; top:calc(env(safe-area-inset-top, 0px) + 12px); left:14px; z-index:10020; background:rgba(15,23,42,0.85); border:1.5px solid rgba(255,255,255,0.4); color:#ffffff; border-radius:20px; padding:6px 14px; font-size:12px; font-weight:900; backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:0 4px 12px rgba(0,0,0,0.5);">
@@ -3777,530 +4357,6 @@
         </div>
     </aside>
 
-    <!-- 🌟 [사용자 요청] 교회 관리실 팝업 모달창 (평소엔 닫혀있고 관리실 버튼 클릭 시에만 오픈) -->
-    <div class="pc-admin-modal-wrap" id="pcAdminModalWrap" onclick="if(event.target===this) closePcAdminModal();">
-        <div class="pc-admin-modal-content">
-            <!-- 1. 패널 헤더: 현재 열린 메뉴 타이틀 & 전체 관리실 버튼 & 원클릭 즉시 반영 버튼 & 닫기 버튼 -->
-            <div class="pc-cms-header" style="border-radius:18px 18px 0 0; padding:12px 18px; background:#0f172a; border-bottom:1.5px solid #1e293b;">
-                <div class="pc-cms-header-left" style="display:flex; align-items:center; gap:10px;">
-                    <span class="pc-cms-icon" id="pcCurrentMenuIcon" style="font-size:24px;">🏢</span>
-                    <div>
-                        <h3 class="pc-cms-title" id="pcCurrentMenuTitle" style="margin:0; font-size:16px; font-weight:900; color:#ffffff;">교회 대표 관리실</h3>
-                        <div class="pc-cms-subtitle" style="display:flex; align-items:center; gap:6px; font-size:11.5px; color:#94a3b8; margin-top:2px;">
-                            <span class="pc-cms-pulse" style="width:7px; height:7px; background:#38bdf8; border-radius:50%; display:inline-block;"></span>
-                            <span id="pcRightActiveAppName">우리교회</span> <span id="pcCurrentMenuSub">· 기본정보 및 메인 설정</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="pc-cms-header-right" style="display:flex; align-items:center; gap:8px;">
-                    <button type="button" class="btn-sound-test" id="btnBackToMainOffice" onclick="switchCmsTab('info')" title="교회 기본정보 및 관리실 전체보기" style="background:#1e293b; border-color:#38bdf8; color:#38bdf8;">
-                        <span>🏢</span> 대표 관리실
-                    </button>
-                    <button type="button" class="btn-cms-apply-top" onclick="applyPcCmsChanges()" title="입력한 수정 내용을 스마트폰 화면과 클라우드 서버에 즉시 반영합니다">
-                        <span>✨ 즉시 반영 ➔</span>
-                    </button>
-                    <button type="button" onclick="closePcAdminModal()" style="background:#1e293b; border:1px solid #475569; color:#f8fafc; border-radius:8px; font-size:14px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer;" title="닫기">
-                        ✕
-                    </button>
-                </div>
-            </div>
-
-            <!-- 2. 슬림 1줄 메뉴 퀵바 (클릭 시 우측 전체가 그 메뉴 100% 수정창으로 통으로 펼쳐짐) -->
-            <div class="pc-cms-tabs-bar" id="pcCmsTabsBar" style="padding:8px 14px; background:#0b1120; border-bottom:1px solid #1e293b; display:flex; gap:6px; overflow-x:auto;">
-                <button type="button" class="btn-cms-tab active" id="btnCmsTabInfo" onclick="switchCmsTab('info')" title="교회 기본정보 및 대표사진">
-                    <span>🏢 대표 관리실</span>
-                </button>
-                <button type="button" class="btn-cms-tab" id="btnCmsTabWorship" onclick="switchCmsTab('worship')" title="예배 영상 및 라이브 방송 관리">
-                    <span>🎥 예배·영상</span>
-                </button>
-                <button type="button" class="btn-cms-tab" id="btnCmsTabJubo" onclick="switchCmsTab('jubo')" title="이번주 주보 내용 및 주보 사진">
-                    <span>📜 주보 수정</span>
-                </button>
-                <button type="button" class="btn-cms-tab" id="btnCmsTabNotice" onclick="switchCmsTab('notice')" title="새 공지알림 작성 및 소식">
-                    <span>📢 새 공지</span>
-                </button>
-                <button type="button" class="btn-cms-tab" id="btnCmsTabPray" onclick="switchCmsTab('pray')" title="중보기도 및 기도제목 관리">
-                    <span>🙏 기도모임</span>
-                </button>
-                <button type="button" class="btn-cms-tab" id="btnCmsTabInvite" onclick="switchCmsTab('invite')" title="오시는 길, 교회 초청, 온라인 헌금">
-                    <span>🚗 오시는길·초청</span>
-                </button>
-                <button type="button" class="btn-cms-tab" id="btnCmsTabRequests" onclick="switchCmsTab('requests')" title="성도 접수/상담 목록">
-                    <span>📋 접수목록</span>
-                    <span class="pc-tab-badge" id="pcCmsReqBadge">3</span>
-                </button>
-            </div>
-
-            <!-- 4. 탭 콘텐츠 영역 (스크롤 가능) -->
-            <div class="pc-cms-content-scroll" id="pcCmsContentScroll" style="flex:1; overflow-y:auto; padding:16px;">
-                <!-- 탭 1: 교회 기본정보 및 대표 사진 -->
-            <div class="pc-cms-tab-pane active" id="paneCmsInfo">
-                <div class="cms-form-group">
-                    <label class="cms-label">⛪ 앱 / 교회 / 상호 명칭</label>
-                    <input type="text" id="pcCmsAppName" class="cms-input" placeholder="예: 예톡행복한교회" />
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">🖼️ 대표 사진 (스마트폰 최상단 히어로 이미지)</label>
-                    <div class="cms-photo-upload-box">
-                        <div class="cms-photo-preview-wrap">
-                            <img id="pcCmsPhotoPreview" src="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=600&q=80" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=600&q=80'" alt="대표 사진 미리보기" />
-                            <span class="cms-photo-badge">실시간 미리보기</span>
-                        </div>
-                        <div class="cms-photo-action-col">
-                            <label class="btn-cms-file-upload">
-                                📁 컴퓨터 사진 올리기
-                                <input type="file" id="pcFileInput" accept="image/*" style="display:none;" onchange="handlePcCmsFileUpload(event)">
-                            </label>
-                            <input type="text" id="pcCmsPhotoUrl" class="cms-input-sm" placeholder="또는 웹 이미지 주소(URL) 입력" onclick="this.value=''; handlePcCmsUrlInput('');" onfocus="this.select();" oninput="handlePcCmsUrlInput(this.value)">
-                            <span class="cms-input-hint">컴퓨터에 저장된 사진을 선택하거나 이미지 주소를 입력하세요.</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">💬 교회 표어 / 한 줄 소개 (홈 화면 상단 강조 문구)</label>
-                    <input type="text" id="pcCmsAppDesc" class="cms-input" placeholder="말씀과 기도로 영혼을 살리는 은혜의 공동체" />
-                </div>
-
-                <div class="cms-form-row">
-                    <div class="cms-form-group flex-1">
-                        <label class="cms-label">📞 대표 연락처 / 담임목사 직통</label>
-                        <input type="text" id="pcCmsAppPhone" class="cms-input" placeholder="010-1234-5678" />
-                    </div>
-                    <div class="cms-form-group flex-1">
-                        <label class="cms-label">🌾 헌금 / 입금 계좌 정보</label>
-                        <input type="text" id="pcCmsAppBank" class="cms-input" placeholder="농협 302-1234-5678-91 (예톡행복한교회)" />
-                    </div>
-                </div>
-
-                <div class="cms-form-group" style="margin-top:4px; padding-top:8px; border-top:1px dashed #334155;">
-                    <label class="cms-label">🏷️ 교회 첫화면 1번 슬라이드 행사/소제목</label>
-                    <input type="text" id="pcCmsSlide0Verse" class="cms-input" placeholder="2026 온 성도 사랑과 감사의 축제" />
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">📖 교회 첫화면 1번 슬라이드 소개 본문</label>
-                    <textarea id="pcCmsSlide0Body" class="cms-textarea" rows="3" placeholder="하나님의 거룩한 임재와 은혜가 머무는 따뜻한 사랑의 공동체입니다."></textarea>
-                </div>
-
-                <!-- 🌟 [메뉴 미선택 시 기본 표출] 빠른 메뉴별 통 수정창 바로가기 카드들 -->
-                <div style="margin-top:14px; padding:12px; background:#080d1a; border:1.5px solid #1e3a5f; border-radius:12px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                        <strong style="color:#38bdf8; font-size:12.5px;">⚡ 메뉴별 100% 전용 수정창 바로가기</strong>
-                        <span style="font-size:10.5px; color:#94a3b8;">원하는 메뉴를 누르면 우측에 통으로 펼쳐집니다</span>
-                    </div>
-                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
-                        <button type="button" onclick="switchCmsTab('worship')" style="background:#0f172a; border:1px solid #0284c7; color:#f8fafc; padding:10px 6px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                            <span style="font-size:18px;">🎥</span>
-                            <span>예배·영상</span>
-                        </button>
-                        <button type="button" onclick="switchCmsTab('jubo')" style="background:#0f172a; border:1px solid #f59e0b; color:#f8fafc; padding:10px 6px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                            <span style="font-size:18px;">📜</span>
-                            <span>주보 수정</span>
-                        </button>
-                        <button type="button" onclick="switchCmsTab('notice')" style="background:#0f172a; border:1px solid #38bdf8; color:#f8fafc; padding:10px 6px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                            <span style="font-size:18px;">📢</span>
-                            <span>새 공지</span>
-                        </button>
-                        <button type="button" onclick="switchCmsTab('pray')" style="background:#0f172a; border:1px solid #10b981; color:#f8fafc; padding:10px 6px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                            <span style="font-size:18px;">🙏</span>
-                            <span>기도모임</span>
-                        </button>
-                        <button type="button" onclick="switchCmsTab('invite')" style="background:#0f172a; border:1px solid #ec4899; color:#f8fafc; padding:10px 6px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                            <span style="font-size:18px;">🚗</span>
-                            <span>오시는길</span>
-                        </button>
-                        <button type="button" onclick="switchCmsTab('requests')" style="background:#0f172a; border:1px solid #a855f7; color:#f8fafc; padding:10px 6px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                            <span style="font-size:18px;">📋</span>
-                            <span>접수목록</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 탭 2: 예배 및 영상 수정창 -->
-            <div class="pc-cms-tab-pane" id="paneCmsWorship" style="display:none;">
-                <div style="background:rgba(2,132,199,0.12); border:1px solid #0284c7; border-radius:8px; padding:10px; margin-bottom:10px;">
-                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-                        <span style="font-size:16px;">🎥</span>
-                        <strong style="color:#38bdf8; font-size:12.5px;">예배 및 실시간 라이브 영상 관리</strong>
-                    </div>
-                    <p style="color:#94a3b8; font-size:11px; margin:0; line-height:1.4;">
-                        좌측 스마트폰의 [예배] 화면과 100% 실시간 연동됩니다. 수정 후 하단 저장 버튼을 누르면 스마트폰과 PC에 즉시 반영됩니다.
-                    </p>
-                </div>
-
-                <!-- 예배 서브 선택 칩 -->
-                <div style="display:flex; gap:5px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;">
-                    <button type="button" class="btn-worship-sub-chip active" id="chipWorship_sunday" onclick="selectCmsWorshipSub('sunday')">주일예배</button>
-                    <button type="button" class="btn-worship-sub-chip" id="chipWorship_wednesday" onclick="selectCmsWorshipSub('wednesday')">수요예배</button>
-                    <button type="button" class="btn-worship-sub-chip" id="chipWorship_friday" onclick="selectCmsWorshipSub('friday')">금요기도회</button>
-                    <button type="button" class="btn-worship-sub-chip" id="chipWorship_dawn" onclick="selectCmsWorshipSub('dawn')">새벽기도회</button>
-                    <button type="button" class="btn-worship-sub-chip" id="chipWorship_special" onclick="selectCmsWorshipSub('special')">특별예배</button>
-                    <button type="button" class="btn-worship-sub-chip" id="chipWorship_praise" onclick="selectCmsWorshipSub('praise')">찬양모음</button>
-                </div>
-
-                <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; background:rgba(239,68,68,0.12); border:1px solid #ef4444; border-radius:8px; padding:8px 10px;">
-                    <input type="checkbox" id="pcCmsWorshipLive" style="width:18px; height:18px; cursor:pointer;" onchange="handlePcCmsLiveToggle(this.checked)" />
-                    <label for="pcCmsWorshipLive" style="color:#fca5a5; font-size:12px; font-weight:900; cursor:pointer;">
-                        🔴 실시간 주일예배 라이브 생중계 즉시 켜기 (예배 화면에 LIVE 뱃지 표시)
-                    </label>
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">🔗 유튜브 영상 링크 (URL)</label>
-                    <input type="text" id="pcCmsWorshipYt" class="cms-input" placeholder="https://www.youtube.com/watch?v=... 또는 shorts 링크" onclick="this.value='';" onfocus="this.select();" />
-                    <span class="cms-input-hint">유튜브 일반 영상 링크나 shorts 링크를 붙여넣으시면 자동 변환됩니다.</span>
-                </div>
-
-                <div class="cms-form-row">
-                    <div class="cms-form-group flex-1">
-                        <label class="cms-label">🎬 예배 / 설교 제목</label>
-                        <input type="text" id="pcCmsWorshipTitle" class="cms-input" placeholder="주일 대예배 실황" />
-                    </div>
-                    <div class="cms-form-group flex-1">
-                        <label class="cms-label">⏰ 예배 시간 안내 배지</label>
-                        <input type="text" id="pcCmsWorshipTime" class="cms-input" placeholder="주일 11:00" />
-                    </div>
-                </div>
-
-                <div class="cms-form-row">
-                    <div class="cms-form-group flex-1">
-                        <label class="cms-label">📖 본문 성경 말씀 구절</label>
-                        <input type="text" id="pcCmsWorshipVerse" class="cms-input" placeholder="요한복음 3장 16절 ~ 18절" />
-                    </div>
-                    <div class="cms-form-group flex-1">
-                        <label class="cms-label">👤 설교자 / 찬양대 안내</label>
-                        <input type="text" id="pcCmsWorshipMeta" class="cms-input" placeholder="담임목사" />
-                    </div>
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">📄 예배 안내 및 설교 요약</label>
-                    <textarea id="pcCmsWorshipBody" class="cms-textarea" rows="3" placeholder="주일 오전 11시 본당 생중계 및 담임목사님의 은혜의 말씀"></textarea>
-                </div>
-            </div>
-
-            <!-- 탭 3: 주보 내용 및 사진 수정창 -->
-            <div class="pc-cms-tab-pane" id="paneCmsJubo" style="display:none;">
-                <div style="background:rgba(234,179,8,0.12); border:1px solid #eab308; border-radius:8px; padding:10px; margin-bottom:10px;">
-                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-                        <span style="font-size:16px;">📜</span>
-                        <strong style="color:#fde047; font-size:12.5px;">이번 주 주보 실시간 수정</strong>
-                    </div>
-                    <p style="color:#94a3b8; font-size:11px; margin:0; line-height:1.4;">
-                        좌측 스마트폰의 [주보] 카드와 100% 실시간 연동됩니다. 주보 제목, 말씀, 주보 사진을 자유롭게 변경하세요.
-                    </p>
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">📅 주보 날짜 및 제목</label>
-                    <input type="text" id="pcCmsJuboTitle" class="cms-input" placeholder="주보" />
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">📖 이번 주 주제 성경 말씀</label>
-                    <input type="text" id="pcCmsJuboVerse" class="cms-input" placeholder="2026년 11월 첫째 주일 주보 - 너희는 세상의 빛이라 (마 5:14)" />
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">🖼️ 주보 인쇄 사진 / 이미지 올리기</label>
-                    <div class="cms-photo-upload-box">
-                        <div class="cms-photo-preview-wrap" id="pcCmsJuboPreviewWrap">
-                            <img id="pcCmsJuboPreview" src="https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=600&q=80" alt="주보 사진 미리보기" style="max-height:100px; border-radius:8px; border:1px solid #334155;" />
-                            <span class="cms-photo-badge">주보 미리보기</span>
-                        </div>
-                        <div class="cms-photo-action-col">
-                            <label class="btn-cms-file-upload">
-                                📁 주보 사진 올리기
-                                <input type="file" id="pcCmsJuboFile" accept="image/*" style="display:none;" onchange="handleJuboFileUpload(event)">
-                            </label>
-                            <input type="text" id="pcCmsJuboImgUrl" class="cms-input-sm" placeholder="또는 웹 이미지 주소(URL) 입력" onclick="this.value='';" onfocus="this.select();">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">📄 목회 서신 및 이번 주 예배 순서</label>
-                    <textarea id="pcCmsJuboBody" class="cms-textarea" rows="4" placeholder="하나님의 사랑과 은혜가 성도 여러분의 삶과 가정에 충만하시길 기도합니다. 예배를 통해 참된 평안과 회복을 누리시길 바랍니다."></textarea>
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">📢 교회 주요 소식 및 행사 안내</label>
-                    <textarea id="pcCmsJuboNews" class="cms-textarea" rows="3" placeholder="1. 11월 총동원 전도주일 안내\n2. 전교인 사랑의 김장 나눔 봉사\n3. 하반기 구역장 성경공부 개강"></textarea>
-                </div>
-            </div>
-
-            <!-- 탭 4: 새 공지·소식 작성 -->
-            <div class="pc-cms-tab-pane" id="paneCmsNotice" style="display:none;">
-                <div class="cms-form-group">
-                    <label class="cms-label">📌 공지 분류</label>
-                    <select id="pcCmsNoticeCategory" class="cms-select">
-                        <option value="교회소식">⛪ 교회소식 (예배/모임/행사)</option>
-                        <option value="오늘의특선">🍜 오늘의 특선메뉴 / 신메뉴</option>
-                        <option value="진료안내">🏥 진료시간 및 휴진 안내</option>
-                        <option value="일반공지">📢 일반 긴급 안내</option>
-                    </select>
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">📝 공지 제목</label>
-                    <input type="text" id="pcCmsNoticeTitle" class="cms-input" placeholder="새로운 소식 제목을 입력하세요" />
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">📄 공지 본문 내용 (글 적기 편한 넓은 작성 공간)</label>
-                    <textarea id="pcCmsNoticeBody" class="cms-textarea" rows="7" placeholder="공지할 내용을 자유롭고 상세하게 작성하세요. 줄바꿈이 그대로 유지됩니다."></textarea>
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">🖼️ 공지 첨부 사진 (선택)</label>
-                    <div style="display:flex; gap:8px;">
-                        <label class="btn-cms-file-upload-sm">
-                            📁 사진 첨부
-                            <input type="file" id="pcCmsNoticeFile" accept="image/*" style="display:none;" onchange="handleNoticeFileUpload(event)">
-                        </label>
-                        <input type="text" id="pcCmsNoticePhotoUrl" class="cms-input flex-1" placeholder="또는 이미지 주소(URL) 입력" onclick="this.value='';" onfocus="this.select();" />
-                    </div>
-                    <div id="pcNoticeThumbWrap" style="display:none; margin-top:6px;">
-                        <img id="pcNoticeThumb" style="max-height:80px; border-radius:8px; border:1px solid #334155;" />
-                    </div>
-                </div>
-                <button type="button" class="btn-cms-submit-notice" onclick="submitPcCmsNotice()">
-                    📢 최상단 새 공지로 즉시 등록 ➔
-                </button>
-            </div>
-
-            <!-- 탭 5: 기도모임 및 중보기도 수정창 -->
-            <div class="pc-cms-tab-pane" id="paneCmsPray" style="display:none;">
-                <div style="background:rgba(16,185,129,0.12); border:1px solid #10b981; border-radius:8px; padding:10px; margin-bottom:10px;">
-                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-                        <span style="font-size:16px;">🙏</span>
-                        <strong style="color:#6ee7b7; font-size:12.5px;">중보기도 및 기도제목 관리</strong>
-                    </div>
-                    <p style="color:#94a3b8; font-size:11px; margin:0; line-height:1.4;">
-                        좌측 스마트폰의 [기도모임] 화면과 100% 실시간 연동됩니다. 합심 기도제목과 성경 구절을 업데이트하세요.
-                    </p>
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">🏷️ 이번 주 기도모임 대제목</label>
-                    <input type="text" id="pcCmsPrayTitle" class="cms-input" placeholder="기도모임" />
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">📖 기도 성경 구절</label>
-                    <input type="text" id="pcCmsPrayVerse" class="cms-input" placeholder="너는 내게 부르짖으라 내가 네게 응답하겠고 (렘 33:3)" />
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">📄 이번 주 합심 중보기도 제목</label>
-                    <textarea id="pcCmsPrayBody" class="cms-textarea" rows="5" placeholder="1. 나라와 한국 교회의 영적 부흥을 위해\n2. 질병으로 고통받는 환우들의 빠른 쾌유와 회복을 위해\n3. 선교사님들의 사역지와 믿음의 다음세대를 위해"></textarea>
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">⏰ 기도모임 일정 및 장소 안내</label>
-                    <input type="text" id="pcCmsPrayTime" class="cms-input" placeholder="매주 수요일 저녁 8시 본당 소예배실" />
-                </div>
-            </div>
-
-            <!-- 탭 6: 오시는길·교회초청 수정창 -->
-            <div class="pc-cms-tab-pane" id="paneCmsInvite" style="display:none;">
-                <div style="background:rgba(168,85,247,0.12); border:1px solid #a855f7; border-radius:8px; padding:10px; margin-bottom:10px;">
-                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-                        <span style="font-size:16px;">🚗</span>
-                        <strong style="color:#d8b4fe; font-size:12.5px;">오시는 길, 교회 초청 및 헌금 안내</strong>
-                    </div>
-                    <p style="color:#94a3b8; font-size:11px; margin:0; line-height:1.4;">
-                        좌측 스마트폰의 [교회초청] 및 [오시는길/헌금] 메뉴와 연동됩니다. 교회 위치와 헌금 계좌 정보를 관리하세요.
-                    </p>
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">📍 교회 도로명 공식 주소</label>
-                    <input type="text" id="pcCmsInviteAddress" class="cms-input" placeholder="서울특별시 강남구 테헤란로 123 예톡빌딩 4층" />
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">🚌 대중교통 및 주차 안내</label>
-                    <input type="text" id="pcCmsInviteDirections" class="cms-input" placeholder="지하철 2호선 역삼역 4번 출구 도보 3분 / 건물 지하 1,2층 무료 주차 가능" />
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">💌 새가족 환영 및 초청의 말씀</label>
-                    <textarea id="pcCmsInviteWelcome" class="cms-textarea" rows="3" placeholder="예수 그리스도의 사랑으로 여러분을 진심으로 축복하고 환영합니다. 주님의 따뜻한 은혜 안에서 함께 믿음의 가정을 이루어가길 소망합니다."></textarea>
-                </div>
-
-                <div class="cms-form-group">
-                    <label class="cms-label">💳 온라인 헌금 및 후원 계좌 상세</label>
-                    <textarea id="pcCmsInviteBankDetail" class="cms-textarea" rows="3" placeholder="십일조/감사헌금: 농협 302-1234-5678-91 (예톡행복한교회)\n선교/구제헌금: 국민 123-456-78901 (예톡행복한교회)"></textarea>
-                </div>
-            </div>
-
-            <!-- 🏥 [의원 전용 우측 CMS 패널들] -->
-            <!-- 의원 탭 1: 의원 기본정보 및 대표 사진 -->
-            <div class="pc-cms-tab-pane" id="paneCmsDocInfo" style="display:none;">
-                <div style="background:rgba(14,165,233,0.12); border:1px solid #0ea5e9; border-radius:8px; padding:10px; margin-bottom:10px;">
-                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-                        <span style="font-size:16px;">🏥</span>
-                        <strong style="color:#38bdf8; font-size:12.5px;">스마트 의원·클리닉 관리 데스크</strong>
-                    </div>
-                    <p style="color:#94a3b8; font-size:11px; margin:0; line-height:1.4;">
-                        의원 상호명, 대표 원장 소개, 대표 사진 및 수납 계좌를 실시간으로 관리합니다.
-                    </p>
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">🏥 병원 / 의원 공식 명칭</label>
-                    <input type="text" id="pcCmsDocName" class="cms-input" placeholder="예: 예톡 아름다운의원" />
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">🖼️ 의원 대표 사진 (히어로 배경)</label>
-                    <div class="cms-photo-upload-box">
-                        <div class="cms-photo-preview-wrap">
-                            <img id="pcCmsDocPhotoPreview" src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=600&q=80" alt="의원 대표 사진" style="max-height:90px; border-radius:8px; border:1px solid #334155;" />
-                            <span class="cms-photo-badge">의원 미리보기</span>
-                        </div>
-                        <div class="cms-photo-action-col">
-                            <label class="btn-cms-file-upload">
-                                📁 컴퓨터 사진 올리기
-                                <input type="file" id="pcDocFileInput" accept="image/*" style="display:none;" onchange="handleDocFileUpload(event)">
-                            </label>
-                            <input type="text" id="pcCmsDocPhotoUrl" class="cms-input-sm" placeholder="또는 웹 이미지 주소(URL) 입력" onclick="this.value='';" onfocus="this.select();">
-                        </div>
-                    </div>
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">💬 원훈 / 대표 슬로건</label>
-                    <input type="text" id="pcCmsDocDesc" class="cms-input" placeholder="정직한 진료, 환자 중심의 따뜻한 의료 상담" />
-                </div>
-                <div class="cms-form-row">
-                    <div class="cms-form-group flex-1">
-                        <label class="cms-label">📞 대표 전화 / 진료예약 직통</label>
-                        <input type="text" id="pcCmsDocPhone" class="cms-input" placeholder="02-1234-5678" />
-                    </div>
-                    <div class="cms-form-group flex-1">
-                        <label class="cms-label">💳 진료비 수납 계좌</label>
-                        <input type="text" id="pcCmsDocBank" class="cms-input" placeholder="신한 110-222-33333 (메디컬의원)" />
-                    </div>
-                </div>
-            </div>
-
-            <!-- 의원 탭 2: 진료과목 및 의료진 소개 -->
-            <div class="pc-cms-tab-pane" id="paneCmsDocTreat" style="display:none;">
-                <div class="cms-form-group">
-                    <label class="cms-label">💉 주요 진료 과목</label>
-                    <input type="text" id="pcCmsDocSubjects" class="cms-input" placeholder="내과, 이비인후과, 피부과, 정형외과, 건강검진" />
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">👨‍⚕️ 대표 원장 프로필 및 약력</label>
-                    <textarea id="pcCmsDocDoctorIntro" class="cms-textarea" rows="4" placeholder="대표원장 의학박사 김예톡\n- 서울대학교 의과대학 졸업\n- 대한내과학회 정회원\n- 전 대학병원 임상교수"></textarea>
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">🔬 주요 검사 장비 및 특화 시술 안내</label>
-                    <textarea id="pcCmsDocTreatDesc" class="cms-textarea" rows="4" placeholder="불필요한 과잉진료를 철저히 지양하고, 최신 검사 장비와 1:1 맞춤 진료를 통해 환자분들의 빠른 건강 회복을 돕습니다."></textarea>
-                </div>
-            </div>
-
-            <!-- 의원 탭 3: 진료시간 및 위치 -->
-            <div class="pc-cms-tab-pane" id="paneCmsDocTime" style="display:none;">
-                <div class="cms-form-group">
-                    <label class="cms-label">⏰ 평일 진료시간</label>
-                    <input type="text" id="pcCmsDocWeekdayHours" class="cms-input" placeholder="월~금 09:00 ~ 19:00 (점심시간 13:00~14:00)" />
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">📅 토요일 / 공휴일 진료</label>
-                    <input type="text" id="pcCmsDocWeekendHours" class="cms-input" placeholder="토요일 09:00 ~ 14:00 (점심시간 없이 진료 / 일요일·공휴일 휴진)" />
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">🌙 야간진료 안내</label>
-                    <input type="text" id="pcCmsDocNightHours" class="cms-input" placeholder="매주 수요일 저녁 8시까지 야간진료" />
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">📍 의원 공식 주소</label>
-                    <input type="text" id="pcCmsDocAddress" class="cms-input" placeholder="서울특별시 서초구 서초대로 301 메디컬타워 3층" />
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">🚌 대중교통 및 주차 안내</label>
-                    <input type="text" id="pcCmsDocDirections" class="cms-input" placeholder="지하철 2호선 서초역 2번 출구 도보 2분 / 건물 타워 주차장 2시간 무료" />
-                </div>
-            </div>
-
-            <!-- 👤 [1인 개인 스마트홈 전용 우측 CMS 패널들] -->
-            <!-- 개인 탭 1: 프로필 -->
-            <div class="pc-cms-tab-pane" id="paneCmsPersonalInfo" style="display:none;">
-                <div style="background:rgba(168,85,247,0.12); border:1px solid #a855f7; border-radius:8px; padding:10px; margin-bottom:10px;">
-                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-                        <span style="font-size:16px;">👤</span>
-                        <strong style="color:#d8b4fe; font-size:12.5px;">사무 간사 1인 스마트홈 관리 데스크</strong>
-                    </div>
-                    <p style="color:#94a3b8; font-size:11px; margin:0; line-height:1.4;">
-                        모바일 명함, 직함, 스마트 QR 및 개인 연락처를 관리합니다.
-                    </p>
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">👤 성명 / 닉네임</label>
-                    <input type="text" id="pcCmsPersonName" class="cms-input" placeholder="예: 최예톡 사무간사" />
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">💼 직함 / 담당 사역</label>
-                    <input type="text" id="pcCmsPersonRole" class="cms-input" placeholder="교회 행정 및 사무 간사" />
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">💬 한 줄 자기소개</label>
-                    <input type="text" id="pcCmsPersonDesc" class="cms-input" placeholder="언제나 기쁨과 감사의 마음으로 섬깁니다." />
-                </div>
-                <div class="cms-form-row">
-                    <div class="cms-form-group flex-1">
-                        <label class="cms-label">📞 대표 연락처</label>
-                        <input type="text" id="pcCmsPersonPhone" class="cms-input" placeholder="010-1234-5678" />
-                    </div>
-                    <div class="cms-form-group flex-1">
-                        <label class="cms-label">🌾 계좌 정보</label>
-                        <input type="text" id="pcCmsPersonBank" class="cms-input" placeholder="카카오 3333-01-2345678" />
-                    </div>
-                </div>
-            </div>
-
-            <!-- 개인 탭 2: 모바일 명함 -->
-            <div class="pc-cms-tab-pane" id="paneCmsPersonalCard" style="display:none;">
-                <div class="cms-form-group">
-                    <label class="cms-label">📇 모바일 명함 타이틀</label>
-                    <input type="text" id="pcCmsPersonCardTitle" class="cms-input" placeholder="예톡행복한교회 행정사무국" />
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">📄 주요 담당 업무 및 사역 소개</label>
-                    <textarea id="pcCmsPersonCardWork" class="cms-textarea" rows="5" placeholder="교회 행정 총괄 및 성도 등록 관리\n주보 발행 및 행사 일정 기획\n주일예배 방송 및 미디어 사역 지원"></textarea>
-                </div>
-            </div>
-
-            <!-- 개인 탭 3: 스마트 QR -->
-            <div class="pc-cms-tab-pane" id="paneCmsPersonalQr" style="display:none;">
-                <div class="cms-form-group">
-                    <label class="cms-label">📱 스마트 QR 연동 웹 주소 (URL)</label>
-                    <input type="text" id="pcCmsPersonQrLink" class="cms-input" placeholder="https://yetalk.com/onemain.html" />
-                </div>
-                <div class="cms-form-group">
-                    <label class="cms-label">🔗 SNS / 블로그 링크</label>
-                    <input type="text" id="pcCmsPersonSns" class="cms-input" placeholder="인스타그램 @yetalk_official" />
-                </div>
-            </div>
-
-            <!-- 탭 7: 실시간 접수 목록 -->
-            <div class="pc-cms-tab-pane" id="paneCmsRequests" style="display:none;">
-                <div class="cms-requests-list" id="pcCmsRequestsList" style="display:flex; flex-direction:column; gap:8px;">
-                    <!-- Dynamic request cards -->
-                </div>
-            </div>
-        </div>
-
-        <!-- 4. 모달 하단 원클릭 저장 및 실시간 스마트폰 반영 버튼 & 닫기 버튼 -->
-        <div class="pc-cms-footer-bar" style="padding:14px 18px; background:#0f172a; border-top:1.5px solid #1e293b; display:flex; gap:10px; align-items:center;">
-            <button type="button" onclick="closePcAdminModal()" style="padding:10px 18px; background:#1e293b; border:1px solid #475569; color:#94a3b8; border-radius:12px; font-size:12.5px; font-weight:800; cursor:pointer;">
-                닫기
-            </button>
-            <button type="button" class="btn-cms-apply-all" onclick="applyPcCmsChanges()" style="flex:1; margin:0; padding:11px 16px; border-radius:12px; background:linear-gradient(135deg, #10b981, #059669); border:none; color:#ffffff; font-weight:900; font-size:13px; cursor:pointer;">
-                <span>✨ 저장 및 스마트폰 즉시 반영 ➔</span>
-            </button>
-        </div>
-    </div> <!-- /pc-admin-modal-content -->
-</div> <!-- /pc-admin-modal-wrap -->
 </div> <!-- /pc-theater-wrapper -->
 
 <!-- 🌟 [사용자 요청] 우측 상단/자유 이동 플로팅 채팅창 (드래그 이동, 화면 최상위, 작성글 보존) -->
@@ -8556,14 +8612,84 @@ https://yetalk.cc`;
     }
 
     function isChurchAdminOrSubAdmin() {
-        return isMasterAdminUser() ||
-               sessionStorage.getItem("yetalk_church_admin_auth") === "true" ||
-               localStorage.getItem("yetalk_church_admin_auth") === "true" ||
-               sessionStorage.getItem("yetalk_admin_auth") === "true" ||
-               localStorage.getItem("yetalk_admin_auth") === "true" ||
-               localStorage.getItem("yetalkIsAdmin") === "true" ||
-               localStorage.getItem("yetalkIsSubAdmin") === "true";
+        if (isMasterAdminUser()) return true;
+        if (sessionStorage.getItem("yetalk_church_admin_auth") === "true" ||
+            localStorage.getItem("yetalk_church_admin_auth") === "true") return true;
+
+        const grade = (localStorage.getItem("yetalkUserGrade") || "").trim();
+        const role = (localStorage.getItem("yetalkUserRole") || "").trim();
+        const job = (localStorage.getItem("yetalkUserJobType") || "").trim();
+        const name = (localStorage.getItem("yetalkUserName") || "").trim();
+
+        // ?뙚 ?댁엫紐⑹궗(愿由ъ옄) 諛?遺愿由ъ옄(?щТ媛꾩궗)留??섏젙 媛??        const allowed = ["?댁엫紐⑹궗", "遺愿由ъ옄", "珥앷?由ъ옄", "?щТ媛꾩궗"];
+        return allowed.some(g => grade === g || role.includes(g) || job.includes(g) || name.includes(g));
     }
+
+    // ?뙚 [?ъ슜???붿껌] 湲곕낯 李쎌? 醫뚯슦 愿묎퀬 + 以묒븰 ?⑤룆 ?붾㈃ / 遺愿由ъ옄 ?댁긽 愿由ъ옄 紐⑤뱶 ??以묒븰 2??遺꾪븷
+    function togglePcAdminSplitMode(tabName) {
+        const container = document.querySelector(".main-container");
+        const isSplit = container && container.classList.contains("admin-split-active");
+        if (!isSplit) {
+            if (!isChurchAdminOrSubAdmin()) {
+                window._pendingAdminTargetTab = tabName || 'info';
+                openModal('adminLoginModal');
+                const title = document.querySelector("#adminLoginModal h3") || document.querySelector("#adminLoginModal .modal-title");
+                if (title) title.innerText = "?뵍 遺愿由ъ옄 쨌 ?댁엫紐⑹궗 ?몄쬆";
+                const desc = document.querySelector("#adminLoginModal p") || document.querySelector("#adminLoginModal .modal-desc");
+                if (desc) desc.innerText = "?붾㈃ 遺꾪븷 ?섏젙? ?댁엫紐⑹궗??愿由ъ옄) 諛?遺愿由ъ옄 ?꾩슜 湲곕뒫?낅땲?? 鍮꾨?踰덊샇瑜??낅젰?댁＜?몄슂.";
+                setTimeout(() => {
+                    const inp = document.getElementById("inpAdminPassword");
+                    if (inp) { inp.value = ""; inp.focus(); }
+                }, 100);
+                return;
+            }
+            enablePcAdminSplitMode(tabName || 'info');
+        } else {
+            disablePcAdminSplitMode();
+        }
+    }
+
+    function enablePcAdminSplitMode(tabName) {
+        const container = document.querySelector(".main-container");
+        if (container) {
+            container.classList.add("admin-split-active");
+            container.classList.remove("mode-wide-active");
+        }
+        const btnToggle = document.getElementById("btnToggleAdminSplit");
+        if (btnToggle) {
+            btnToggle.innerHTML = "<span>???⑤룆?붾㈃ ?リ린</span>";
+            btnToggle.style.background = "#dc2626";
+            btnToggle.style.borderColor = "#ef4444";
+        }
+        if (tabName && typeof switchCmsTab === "function") {
+            switchCmsTab(tabName, true);
+        }
+        showToast("?썱截?愿由ъ옄 紐⑤뱶: 以묒븰 ?붾㈃???ㅻ쭏?명룿怨??섏젙李?2媛쒕줈 遺꾨━?섏뿀?듬땲??");
+    }
+
+    function disablePcAdminSplitMode() {
+        const container = document.querySelector(".main-container");
+        if (container) {
+            container.classList.remove("admin-split-active");
+        }
+        const btnToggle = document.getElementById("btnToggleAdminSplit");
+        if (btnToggle) {
+            btnToggle.innerHTML = "<span>?숋툘 愿由ъ옄 紐⑤뱶 (?붾㈃遺꾪븷)</span>";
+            btnToggle.style.background = "linear-gradient(135deg, #0284c7, #2563eb)";
+            btnToggle.style.borderColor = "#38bdf8";
+        }
+        showToast("?뙼 湲곕낯 紐⑤뱶 蹂듦?: 以묒븰 ?⑤룆 ?붾㈃?쇰줈 ?꾪솚?섏뿀?듬땲??");
+    }
+    window.isChurchAdminOrSubAdmin = isChurchAdminOrSubAdmin;
+    window.togglePcAdminSplitMode = togglePcAdminSplitMode;
+    window.enablePcAdminSplitMode = enablePcAdminSplitMode;
+    window.disablePcAdminSplitMode = disablePcAdminSplitMode;
+    window.openPcAdminModal = function(tabName) {
+        togglePcAdminSplitMode(tabName);
+    };
+    window.closePcAdminModal = function() {
+        disablePcAdminSplitMode();
+    };
 
     // 🌟 [사용자 요청] 컴퓨터 관리실 팝업 모달창 열기/닫기 (관리자, 부관리자 전용! 일반 회원은 모달 열람 불가)
     function openPcAdminModal(tabName) {
