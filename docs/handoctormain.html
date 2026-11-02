@@ -805,13 +805,13 @@
 
     <!-- 2층 가로 메뉴 탭 바 (좌우 연동 해제, 각 탭 독립 화면) -->
     <nav class="doctor-tabs-bar" id="doctorTabsBar">
-        <button type="button" class="tab-chip active" id="chip_intro" onclick="switchDoctorSection('intro')">한의원소개</button>
+        <button type="button" class="tab-chip active" id="chip_reserve" onclick="switchDoctorSection('reserve')">📅 예약접수</button>
+        <button type="button" class="tab-chip" id="chip_intro" onclick="switchDoctorSection('intro')">한의원소개</button>
         <button type="button" class="tab-chip" id="chip_beauty" onclick="switchDoctorSection('beauty')">진료(한방)안내</button>
         <button type="button" class="tab-chip" id="chip_notice" onclick="switchDoctorSection('notice')">
             공지알림
             <span class="badge-notice-count" id="badgeNoticeCount">3</span>
         </button>
-        <button type="button" class="tab-chip" id="chip_reserve" onclick="switchDoctorSection('reserve')">예약 및 확인</button>
         <button type="button" class="tab-chip" id="chip_pay" onclick="switchDoctorSection('pay')">예톡결제</button>
     </nav>
 
@@ -830,7 +830,7 @@
     <!-- 3층 메뉴별 독립 콘텐츠 영역 (밑으로 세로 화면이 계속 + 누르면 늘어남) -->
     
     <!-- 1) 한의원소개 탭 컨테이너 -->
-    <main class="doc-tab-container active" id="sec_intro"></main>
+    <main class="doc-tab-container" id="sec_intro"></main>
 
     <!-- 2) 진료(한방)안내 탭 컨테이너 -->
     <main class="doc-tab-container" id="sec_beauty">
@@ -885,8 +885,87 @@
         </section>
     </main>
 
-    <!-- 4) 예약 및 확인 탭 컨테이너 (달력표 + 당일 한방의료진 전체 예약 명단 한면에 기본 표시) -->
-    <main class="doc-tab-container" id="sec_reserve">
+    <!-- 1) 예약접수 탭 컨테이너 (첫번째 메뉴: 실시간 예약접수) -->
+    <main class="doc-tab-container active" id="sec_reserve">
+        <!-- 🌟 [사용자 요청] 첫 화면 실시간 예약접수 블록: [지금 예약접수] 누르면 바로 [예약완료], 예약날짜/시간 변경, 당일 순번표, 안내문구 -->
+        <div style="background:#ffffff; border:1.8px solid #059669; border-radius:18px; padding:16px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 14px rgba(5,150,105,0.08); margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span style="font-size:12px; font-weight:800; color:#059669;">🌿 실시간 모바일 한방진료 예약접수</span>
+                    <h2 style="font-size:18px; font-weight:950; color:#0f172a; margin:2px 0 0 0;" id="dispHanQuickClinicName">다문화 우리한의원</h2>
+                </div>
+                <span id="badgeHanQuickResStatus" style="font-size:12px; font-weight:950; padding:4px 10px; border-radius:10px; background:#d1fae5; color:#065f46;">
+                    🟢 예약완료
+                </span>
+            </div>
+
+            <!-- 지금 예약접수 큰 버튼 -->
+            <button type="button" id="btnHanDoQuickRes" onclick="doHanQuickReservationDirect()" style="width:100%; height:52px; background:linear-gradient(135deg, #059669, #047857); color:#ffffff; border:none; border-radius:14px; font-size:16.5px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 4px 16px rgba(5,150,105,0.35);">
+                <span>⚡</span> <span>지금 예약접수</span>
+            </button>
+
+            <!-- 예약 날짜 & 예약 시간 변경 필드 -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12.5px; font-weight:900; color:#475569;">📅 예약 날짜 및 시간 변경</span>
+                    <button type="button" onclick="saveHanResDateTimeChange()" style="background:#059669; color:#fff; border:none; padding:4px 9px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;">변경 저장</button>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                    <div>
+                        <label style="font-size:11px; color:#64748b; font-weight:700;">날짜 선택</label>
+                        <input type="date" id="inpHanResDate" style="width:100%; height:38px; border:1.5px solid #cbd5e1; border-radius:8px; padding:0 8px; font-size:13px; font-weight:800; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size:11px; color:#64748b; font-weight:700;">시간 선택</label>
+                        <select id="inpHanResTime" style="width:100%; height:38px; border:1.5px solid #cbd5e1; border-radius:8px; padding:0 8px; font-size:13px; font-weight:800; box-sizing:border-box;">
+                            <option value="09:30">오전 09:30</option>
+                            <option value="10:30">오전 10:30</option>
+                            <option value="11:30">오전 11:30</option>
+                            <option value="14:30" selected>오후 02:30</option>
+                            <option value="15:30">오후 03:30</option>
+                            <option value="16:30">오후 04:30</option>
+                            <option value="17:30">오후 05:30</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🌟 [사용자 요청] 예약날짜당일 순번표 -->
+            <div style="background:#ecfdf5; border:1.5px solid #a7f3d0; border-radius:12px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <div style="font-size:11.5px; font-weight:800; color:#065f46;">당일 한방진료 대기표</div>
+                    <div style="font-size:15px; font-weight:950; color:#0f172a; margin-top:2px;">🎟️ 예약날짜 당일 순번표</div>
+                </div>
+                <div style="font-size:22px; font-weight:950; color:#059669; background:#ffffff; border:1.5px solid #34d399; border-radius:10px; padding:4px 14px;" id="dispHanQueueNo">
+                    대기 03번
+                </div>
+            </div>
+
+            <!-- 🌟 [사용자 요청] 필수 주의 안내 문구 -->
+            <div style="background:#fffbeb; border:1.5px solid #fde68a; border-radius:10px; padding:10px 12px; font-size:13px; font-weight:900; color:#b45309; line-height:1.5; display:flex; align-items:flex-start; gap:6px;">
+                <span style="font-size:16px;">⚠️</span>
+                <span>예약 시간은 확정이 아니니 직접 전화 해서 확인받으세요.</span>
+            </div>
+
+            <!-- 🌟 [사용자 요청] 몇 줄 예약 내용 입력 후 매장 예톡전문앱에 보내기 -->
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <label style="font-size:12.5px; font-weight:900; color:#334155;">📝 증상 및 한방진료 요청사항 메모</label>
+                <textarea id="inpHanResMemo" rows="3" placeholder="침구치료, 첩약, 체질 상담 등 요청사항을 몇 줄 입력해주세요 (예: 허리 통증 치료 및 맞춤 보약 상담)" style="width:100%; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px; font-size:13px; line-height:1.5; box-sizing:border-box; outline:none; resize:none;"></textarea>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:2px;">
+                <button type="button" onclick="sendHanResToStore()" style="height:44px; background:#059669; color:#ffffff; border:none; border-radius:10px; font-size:13px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    <span>💬</span> <span>한의원에 전송 & 확정</span>
+                </button>
+                <button type="button" onclick="callHanClinicPhoneDirect()" style="height:44px; background:#f0fdf4; color:#16a34a; border:1.5px solid #86efac; border-radius:10px; font-size:13px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    <span>📞</span> <span>한의원 직통 전화</span>
+                </button>
+            </div>
+
+            <button type="button" onclick="location.href='onemain.html?tab=reservation'" style="width:100%; height:38px; background:#f8fafc; color:#475569; border:1px solid #cbd5e1; border-radius:8px; font-size:12px; font-weight:900; cursor:pointer;">
+                👉 내 개인앱 [내 예약] 메뉴에서 확인하기
+            </button>
+        </div>
         <!-- 1. 한의원 예약관리실 토글 바 (한 줄 깔끔한 버튼) -->
         <div style="margin-bottom:8px;">
             <button type="button" class="btn-hq-toggle" id="btnToggleStaffHQ" onclick="toggleStaffReserveHQ()">
@@ -1627,9 +1706,9 @@ const WEEKLY_GOOD_QUOTES = {
 let currentQuoteIndex = 0;
 let quoteRollingTimer = null;
 
-// 가로 메뉴 순서
-const DOCTOR_SECTIONS = ["intro", "beauty", "notice", "reserve", "pay"];
-let currentSectionKey = "intro";
+// 가로 메뉴 순서 (첫번째 메뉴: 예약접수)
+const DOCTOR_SECTIONS = ["reserve", "intro", "beauty", "notice", "pay"];
+let currentSectionKey = "reserve";
 let isDoctorEditMode = false;
 
 // 한의원소개 기본 데이터 (간단한 메뉴명 및 한의원소개 두번째 줄 초대 글과 복사, 카톡 보내기)
@@ -2810,6 +2889,116 @@ function submitQuickPatientRegisterAction() {
     closeModal("modalQuickPatientRegister");
     showToast(`🎉 [${name}님] 자동 회원가입 및 예약접수 완료!`);
     switchDoctorSection("reserve");
+}
+
+/* 🌟 [사용자 요청] 한의원 첫 메뉴 실시간 예약접수 시스템 로직 */
+function initHanQuickReservationTab() {
+    const inpDate = document.getElementById("inpHanResDate");
+    if (inpDate && !inpDate.value) {
+        const today = new Date();
+        inpDate.value = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+    }
+    renderHanQuickReservationUI();
+}
+
+function doHanQuickReservationDirect() {
+    const inpDate = document.getElementById("inpHanResDate");
+    const inpTime = document.getElementById("inpHanResTime");
+    const inpMemo = document.getElementById("inpHanResMemo");
+    const dateVal = inpDate && inpDate.value ? inpDate.value : new Date().toISOString().slice(0,10);
+    const timeVal = inpTime ? inpTime.value : "14:30";
+    const memoVal = inpMemo && inpMemo.value.trim() ? inpMemo.value.trim() : "침구치료 및 맞춤 첩약 진료 상담";
+
+    const queueNum = "대기 0" + Math.floor(Math.random() * 8 + 1) + "번";
+    const dispQueue = document.getElementById("dispHanQueueNo");
+    if (dispQueue) dispQueue.innerText = queueNum;
+
+    const badge = document.getElementById("badgeHanQuickResStatus");
+    if (badge) {
+        badge.innerText = "🟢 예약완료";
+        badge.style.background = "#d1fae5";
+        badge.style.color = "#065f46";
+    }
+
+    // 공용 localStorage(yetalk_my_reservations_v1)에 자동 동기화 저장
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem("yetalk_my_reservations_v1")) || []; } catch(e){}
+    const clinicTitle = localStorage.getItem("yetalkHanDoctorName") || "다문화 우리한의원";
+    const clinicPhone = localStorage.getItem("yetalkShopPhone") || "010-9876-5432";
+
+    const existingIdx = list.findIndex(r => r.appTitle === clinicTitle && r.date === dateVal);
+    const resItem = {
+        id: existingIdx !== -1 ? list[existingIdx].id : "res_" + Date.now(),
+        appTitle: clinicTitle,
+        category: "한의원",
+        date: dateVal,
+        time: timeVal,
+        queueNo: queueNum,
+        content: memoVal,
+        status: "예약접수완료",
+        phone: clinicPhone,
+        url: "handoctormain.html"
+    };
+    if (existingIdx !== -1) {
+        list[existingIdx] = resItem;
+    } else {
+        list.unshift(resItem);
+    }
+    localStorage.setItem("yetalk_my_reservations_v1", JSON.stringify(list));
+
+    showToast("✔ 예약완료! 당일 한방진료 순번표 [" + queueNum + "]가 발급되었습니다.\n※ 확정이 아니니 전화로 확인받으세요.");
+}
+
+function saveHanResDateTimeChange() {
+    doHanQuickReservationDirect();
+}
+
+function sendHanResToStore() {
+    const inpDate = document.getElementById("inpHanResDate");
+    const inpTime = document.getElementById("inpHanResTime");
+    const inpMemo = document.getElementById("inpHanResMemo");
+    const dispQueue = document.getElementById("dispHanQueueNo");
+    const dateVal = inpDate ? inpDate.value : "";
+    const timeVal = inpTime ? inpTime.value : "";
+    const queueVal = dispQueue ? dispQueue.innerText : "대기 03번";
+    const memoVal = inpMemo && inpMemo.value.trim() ? inpMemo.value.trim() : "한방진료 예약 접수";
+
+    const clinicTitle = localStorage.getItem("yetalkHanDoctorName") || "다문화 우리한의원";
+    const clinicPhone = localStorage.getItem("yetalkShopPhone") || "010-9876-5432";
+    const userName = localStorage.getItem("yetalkUserName") || "김예톡";
+    const userPhone = localStorage.getItem("yetalkUserPhone") || "010-1234-5678";
+
+    const msg = `[한의원 진료 예약 확인]\n• 한의원명: ${clinicTitle}\n• 예약일시: ${dateVal} ${timeVal}\n• 당일 순번표: ${queueVal}\n• 예약자: ${userName} (${userPhone})\n• 증상메모: ${memoVal}\n\n※ 예약시간 확인 및 확정 부탁드립니다.`;
+
+    if (window.AndroidBridge && window.AndroidBridge.sendSms && clinicPhone) {
+        window.AndroidBridge.sendSms(clinicPhone, msg);
+        showToast("📱 한의원으로 예약 내용 문자를 전송했습니다.");
+    } else {
+        const encoded = encodeURIComponent(msg);
+        window.location.href = `sms:${clinicPhone}?body=${encoded}`;
+    }
+}
+
+function callHanClinicPhoneDirect() {
+    const clinicPhone = localStorage.getItem("yetalkShopPhone") || "010-9876-5432";
+    window.location.href = `tel:${clinicPhone}`;
+}
+
+function renderHanQuickReservationUI() {
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem("yetalk_my_reservations_v1")) || []; } catch(e){}
+    const clinicTitle = localStorage.getItem("yetalkHanDoctorName") || "다문화 우리한의원";
+    const myRes = list.find(r => r.appTitle === clinicTitle || r.category === "한의원");
+    if (myRes) {
+        const inpDate = document.getElementById("inpHanResDate");
+        const inpTime = document.getElementById("inpHanResTime");
+        const inpMemo = document.getElementById("inpHanResMemo");
+        const dispQueue = document.getElementById("dispHanQueueNo");
+        if (inpDate && myRes.date) inpDate.value = myRes.date;
+        if (inpTime && myRes.time) inpTime.value = myRes.time;
+        if (inpMemo && myRes.content) inpMemo.value = myRes.content;
+        if (dispQueue && myRes.queueNo) dispQueue.innerText = myRes.queueNo;
+    }
 }
 
 function submitReservationPatient() {
@@ -4017,6 +4206,7 @@ document.addEventListener("DOMContentLoaded", () => {
     loadBeautyData();
     loadHanTalkChatData();
     loadClinicChatData();
+    initHanQuickReservationTab();
 
     // 한의톡, 원내톡, 환자접수/문의 창 드래그 기능 등록
     makeWindowDraggable("viewDetailChat");

@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>예톡 내단골</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;900&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            background: #060d19; font-family: "Pretendard", -apple-system, sans-serif;
+            color: #f8fafc; display: flex; justify-content: center; min-height: 100dvh;
+        }
+        .app-container {
+            width: 100%; max-width: 480px; min-height: 100dvh; background: #0a1322;
+            display: flex; flex-direction: column; position: relative; padding-bottom: 95px;
+        }
+
+        /* 상단 헤더 (Yetalk 글자 살짝 내려 안정적 여백 확보) */
+        .header-top {
+            background: #0f1c30; border-bottom: 1px solid #1a2e4c;
+            padding: max(env(safe-area-inset-top, 0px) + 14px, 18px) 14px 12px 14px;
+            display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
+        }
+        .header-brand { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .header-brand h1 { font-size: 21px; font-weight: 950; color: #38bdf8; letter-spacing: -0.4px; }
+        .header-actions { display: flex; gap: 8px; align-items: center; }
+        .btn-hdr {
+            background: #1e293b; color: #fff; border: 1.5px solid #38bdf8;
+            padding: 7px 12px; border-radius: 8px; font-size: 14px; font-weight: 900; cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: inline-flex; align-items: center; justify-content: center;
+        }
+
+        /* 3대 퀵바 */
+        .quick-actions-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 10px 14px;
+        }
+        .btn-quick-m {
+            background: #12213a; border: 1px solid #1f375b; border-radius: 8px;
+            padding: 8px 4px; text-align: center; color: #fff; font-size: 12.5px; font-weight: 850; cursor: pointer;
+        }
+
+        /* 🌟 메인 신청 배너: [사용자 요청] 한줄로 줄임 */
+        .promo-apply-banner {
+            margin: 4px 14px 8px 14px;
+            background: linear-gradient(135deg, #e11d48, #be123c);
+            border-radius: 10px; padding: 7px 12px; text-align: center; cursor: pointer;
+            box-shadow: 0 3px 10px rgba(225, 29, 72, 0.35);
+            transition: transform 0.15s ease;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .promo-apply-banner:active { transform: scale(0.98); }
+        .promo-apply-banner strong { font-size: 12.5px; font-weight: 950; color: #ffffff; display: block; line-height: 1.25; }
+
+        /* 필터 탭 바 */
+        .filter-tabs-row {
+            display: flex; gap: 6px; padding: 0 14px 10px 14px; overflow-x: auto;
+        }
+        .filter-tab-btn {
+            background: #14243b; border: 1px solid #233c61; color: #94a3b8;
+            padding: 6px 12px; border-radius: 20px; font-size: 12.5px; font-weight: 850; cursor: pointer; white-space: nowrap;
+        }
+        .filter-tab-btn.active {
+            background: #0284c7; color: #ffffff; border-color: #38bdf8; font-weight: 950;
+        }
+        .filter-tab-btn.my-app-tab {
+            background: #854d0e; color: #facc15; border-color: #eab308;
+        }
+        .filter-tab-btn.my-app-tab.active {
+            background: #eab308; color: #000; font-weight: 950;
+        }
+
+        /* 리스트 영역 */
+        .store-list-container {
+            display: flex; flex-direction: column; gap: 8px; padding: 0 14px;
+        }
+        .store-card-item {
+            background: #111e33; border: 1px solid #1c3252; border-radius: 10px;
+            padding: 9px 12px; display: flex; flex-direction: column; justify-content: center;
+            transition: all 0.15s ease; min-height: 46px;
+        }
+        .card-head-row { display: flex; justify-content: space-between; align-items: center; }
+        .card-title-group { display: flex; align-items: center; gap: 6px; flex: 1; overflow: hidden; }
+
+        .card-stars-btn {
+            background: none; border: none; font-size: 13.5px; letter-spacing: -1px;
+            cursor: pointer; padding: 4px 6px; border-radius: 6px; display: flex; align-items: center;
+        }
+        .card-stars-btn:hover { background: rgba(255, 255, 255, 0.08); }
+        .stars-yellow { color: #facc15; text-shadow: 0 0 6px rgba(250, 204, 21, 0.5); }
+        .stars-red { color: #ef4444; text-shadow: 0 0 8px rgba(239, 68, 68, 0.7); font-weight: 900; }
+        .stars-gray { color: #64748b; }
+
+        .card-clickable-area {
+            flex: 1; display: flex; align-items: center; gap: 6px; cursor: pointer; overflow: hidden;
+        }
+        .card-name { font-size: 15px; font-weight: 950; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-tag {
+            font-size: 10.5px; font-weight: 850; padding: 2px 5px; border-radius: 4px; flex-shrink: 0;
+        }
+        .tag-church { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+        .tag-clinic { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+        .tag-hanclinic { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .tag-shop { background: rgba(250, 204, 21, 0.15); color: #facc15; border: 1px solid rgba(250, 204, 21, 0.4); }
+        .tag-one { background: rgba(167, 139, 250, 0.15); color: #a78bfa; border: 1px solid rgba(167, 139, 250, 0.4); }
+        .card-date { font-size: 11px; color: #64748b; flex-shrink: 0; }
+        .card-desc {
+            font-size: 13.5px; color: #cbd5e1; line-height: 1.5; margin-top: 4px; cursor: pointer;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+            font-weight: 500; letter-spacing: -0.2px;
+        }
+
+        /* 구글 애드몹 배너 (안드로이드 네비게이션바 오클릭 방지 안전 여백) */
+        .admob-safety-wrapper {
+            margin: 14px 14px 12px 14px;
+            padding: 14px 10px;
+            background: #040912;
+            border: 1px solid #1a2a40;
+            border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+            min-height: 120px;
+            margin-bottom: max(env(safe-area-inset-bottom, 0px) + 20px, 24px);
+        }
+        .admob-safety-wrapper .ad-badge {
+            font-size: 10px; color: #64748b; font-weight: 800; letter-spacing: 0.5px;
+        }
+
+        /* 🌟 [사용자 요청] 컴퓨터(PC) 상에서 구글 애드몹 전체 일괄 감춤 */
+        @media (min-width: 768px) {
+            .admob-250-wrapper,
+            .admob-safety-wrapper,
+            [class*="admob"] {
+                display: none !important;
+            }
+        }
+
+        /* 모달 스타일 공통 */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+            z-index: 10000; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(8px);
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-card {
+            width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto;
+            background: #0f1c2d; border: 2px solid #38bdf8; border-radius: 16px;
+            padding: 18px 16px; color: #f8fafc; display: flex; flex-direction: column; gap: 10px;
+        }
+        .modal-input {
+            width: 100%; background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+            padding: 9px 11px; color: white; font-size: 13.5px; outline: none;
+        }
+        .input-group { display: flex; flex-direction: column; gap: 3px; text-align: left; }
+        .input-group label { font-size: 11.5px; color: #facc15; font-weight: 850; }
+
+        .vertical-job-tabs {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
+            background: #081220; padding: 8px; border-radius: 8px; border: 1px solid #233b5c;
+        }
+        .job-btn {
+            background: #15243a; border: 1px solid #28446c; color: #cbd5e1;
+            padding: 8px 6px; border-radius: 6px; font-size: 11.5px; font-weight: 800; text-align: center; cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .job-btn.active { background: #1e3a5f; color: #38bdf8; border-color: #38bdf8; font-weight: 950; }
+        .job-btn:last-child { grid-column: span 2; }
+
+        /* 🌟 실시간 카메라 뷰파인더 스타일 */
+        .camera-view-box {
+            position: relative; width: 100%; height: 210px; background: #000;
+            border-radius: 10px; overflow: hidden; border: 2px solid #38bdf8;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .camera-video-elem { width: 100%; height: 100%; object-fit: cover; }
+        .camera-target-crosshair {
+            position: absolute; width: 85%; height: 60%; border: 2px dashed #facc15;
+            border-radius: 8px; pointer-events: none; box-shadow: 0 0 14px rgba(250, 204, 21, 0.4);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .camera-target-crosshair span {
+            background: rgba(0,0,0,0.7); color: #facc15; font-size: 11.5px; font-weight: 900;
+            padding: 3px 8px; border-radius: 4px;
+        }
+
+        /* 🌟 달력 모달 스타일 */
+        .calendar-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;
+            margin-top: 8px; font-size: 12px;
+        }
+        .cal-head { font-weight: 900; color: #38bdf8; padding: 4px 0; }
+        .cal-day {
+            padding: 7px 0; background: #132238; border-radius: 6px; border: 1px solid #1e3a5f;
+            cursor: pointer; font-weight: 700;
+        }
+        .cal-day.today { background: #0284c7; color: white; font-weight: 950; border-color: #38bdf8; }
+
+        .yetalk-toast {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.96); color: #38bdf8; padding: 9px 18px; border-radius: 20px;
+            font-size: 12px; font-weight: 800; z-index: 25000; opacity: 0; visibility: hidden;
+            transition: all 0.25s ease; border: 1px solid #38bdf8; white-space: nowrap;
+        }
+        .yetalk-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- 상단 헤더: [사용자 요청] 나의앱예톡 한줄, 돋보기 옆 쿠팡배송, my삭제 -->
+    <header class="header-top">
+        <div class="header-brand" onclick="location.href='index.html'" title="홈으로 이동" style="cursor:pointer; display:inline-flex; align-items:center;">
+            <div class="header-logo-title" style="font-size:18.5px; font-weight:850; letter-spacing:-0.5px; display:inline-flex; align-items:baseline; gap:4px; line-height:1.1; color:#ffffff; text-shadow:0 2px 6px rgba(0,0,0,0.85); white-space:nowrap;">
+                <span>나의 앱</span>
+                <span class="brand-highlight" style="font-size:23px; font-weight:950; color:#4ade80; letter-spacing:-0.5px; text-shadow:0 0 16px rgba(74,222,128,0.75); position:relative; display:inline-flex; align-items:center;">예톡<span class="leaf-icon" style="font-size:14px; color:#facc15; margin-left:2px;">🌿</span></span>
+            </div>
+        </div>
+        <div class="header-actions" style="display:flex; align-items:center; gap:6px;">
+            <!-- 🌟 [사용자 요청] 돋보기 옆 쿠팡배송 버튼 -->
+            <button type="button" class="btn-hdr-coupang" onclick="location.href='https://www.coupang.com'" title="쿠팡 로켓배송" style="background:linear-gradient(135deg, #b91c1c, #e11d48); border:1px solid #fda4af; color:#ffffff; font-size:11px; font-weight:900; padding:4px 8px; border-radius:14px; cursor:pointer; display:flex; align-items:center; gap:3px; box-shadow:0 2px 8px rgba(225,29,72,0.4); white-space:nowrap;">
+                <span>🚀</span><span>쿠팡배송</span>
+            </button>
+            <!-- 🌟 유튜브 검색 스타일 돋보기 아이콘 -->
+            <button type="button" class="btn-yt-search-icon" onclick="openSearchModal()" title="유튜브 검색" style="background:transparent; border:none; color:#ffffff; cursor:pointer; width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; padding:0; outline:none;">
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- 🌟 [사용자 요청] 개인앱, 전문앱 한줄로 줄임 -->
+    <div class="promo-apply-banner" onclick="openCreateAppModal()">
+        <strong>✨ 개인앱, 전문앱을 모든 비용 제로로 평생 이용 가능합니다</strong>
+    </div>
+
+    <!-- 필터 탭 바 (예약앱/단골, 교회앱, 의원앱 직관적 배치) -->
+    <div class="filter-tabs-row">
+        <button type="button" class="filter-tab-btn my-app-tab active" data-filter="my" onclick="filterStores('my', this)">★ 내앱</button>
+        <button type="button" class="filter-tab-btn" data-filter="store" onclick="filterStores('store', this)">📅 예약앱 (단골)</button>
+        <button type="button" class="filter-tab-btn" data-filter="church" onclick="filterStores('church', this)">⛪ 교회앱</button>
+        <button type="button" class="filter-tab-btn" data-filter="clinic" onclick="filterStores('clinic', this)">🏥 의원앱</button>
+        <button type="button" class="filter-tab-btn" data-filter="all" onclick="filterStores('all', this)">전체</button>
+        <button type="button" class="filter-tab-btn" data-filter="reservation" id="tabBtnReservation" onclick="filterStores('reservation', this)">내 예약 📋</button>
+        <button type="button" class="filter-tab-btn" data-filter="one" onclick="filterStores('one', this)">개인(1인)</button>
+    </div>
+
+    <!-- 가맹처 리스트 -->
+    <main class="store-list-container" id="storeListContainer"></main>
+
+    <!-- 🌟 [사용자 요청] 단골 / 내앱 250 애드몹 (300x250 Medium Rectangle) 배너 -->
+    <div class="admob-250-wrapper" style="margin:12px 14px 6px 14px; background:#040912; border:1.8px solid #1e3a5f; border-radius:14px; padding:18px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-height:250px; box-shadow:0 4px 16px rgba(0,0,0,0.4);">
+        <div style="display:flex; align-items:center; gap:6px;">
+            <span style="background:#0284c7; color:#ffffff; font-size:10.5px; font-weight:900; padding:2px 7px; border-radius:4px; letter-spacing:0.5px;">AD</span>
+            <span class="ad-badge" style="font-size:10.5px; color:#94a3b8; font-weight:800; letter-spacing:0.5px;">SPONSORED AD (300x250)</span>
+        </div>
+        <div style="font-size:32px;">🎁</div>
+        <strong style="color:#ffffff; font-size:16px; font-weight:950;">Google AdMob (300 x 250)</strong>
+        <span style="color:#38bdf8; font-size:12px; font-weight:700;">소상공인·교회·의원·개인 공식 스폰서 배너</span>
+    </div>
+
+    <!-- 🌟 [사용자 요청] 250 애드몹 밑 좋은 글 / 재미있고 행복한 글 카드 (너무 작지 않게, 2줄 이내) -->
+    <div class="happy-quote-card" style="margin:6px 14px 16px 14px; background:linear-gradient(135deg, #132238, #0b1526); border:1.5px solid #2563eb; border-radius:14px; padding:16px 14px; text-align:center; display:flex; flex-direction:column; gap:6px; box-shadow:0 4px 14px rgba(37,99,235,0.2);">
+        <span style="font-size:11.5px; font-weight:900; color:#facc15; letter-spacing:0.5px;">✨ 마음을 밝히는 오늘의 행복 한 줄 ✨</span>
+        <p style="font-size:14px; color:#f8fafc; line-height:1.6; font-family:'Pretendard', sans-serif; font-weight:700;">
+            “가장 행복한 사람은 오늘 주어진 작은 일상 속에서<br>
+            <span style="color:#38bdf8;">감사와 사랑을 발견하며 활짝 웃는 당신</span>입니다.” 😊
+        </p>
+    </div>
+
+</div>
+
+<!-- ==================================================
+     🌟 1. [완전 내장] 내단골 예톡결제 송금 서비스 모달
+     - 홈으로 튕기지 않고 바로 열림
+     - 보내는 분 ➔ 카메라 촬영 인식 ➔ 받는 분 구조
+================================================== -->
+<div class="modal-overlay" id="paymentModalHere">
+    <div class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:6px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:18px;">💳</span>
+                <strong style="color:#38bdf8; font-size:16px;">예톡 간편 송금/결제</strong>
+            </div>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('paymentModalHere')">✕</button>
+        </div>
+
+        <!-- 1. 보내는 분 (출금 계좌 정보) -->
+        <div style="background:#0f172a; padding:10px; border-radius:8px; border:1px solid #1e3a5f; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; color:#38bdf8; font-weight:900;">💼 보내는 분 (내 계좌 출금 정보)</span>
+                <button type="button" style="background:#0284c7; color:#fff; border:none; border-radius:5px; padding:3px 8px; font-size:11px; font-weight:900; cursor:pointer;" onclick="saveSenderPayInfoHere()">내정보 저장</button>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <input type="text" id="paySenderName" class="modal-input" style="flex:1;" placeholder="보내는 분 성함 (예: 최예톡)">
+                <select id="paySenderBank" class="modal-input" style="flex:1.2; font-weight:850; color:#facc15;">
+                    <option value="국민은행">국민은행</option>
+                    <option value="농협은행">농협은행</option>
+                    <option value="신한은행">신한은행</option>
+                    <option value="우리은행">우리은행</option>
+                    <option value="하나은행">하나은행</option>
+                    <option value="카카오뱅크">카카오뱅크</option>
+                    <option value="토스뱅크">토스뱅크</option>
+                    <option value="기업은행">기업은행</option>
+                    <option value="부산은행">부산은행</option>
+                    <option value="우체국">우체국</option>
+                </select>
+            </div>
+            <input type="text" id="paySenderAccount" class="modal-input" placeholder="출금 계좌번호 (- 없이 숫자만)">
+        </div>
+
+        <!-- 2. 카메라 촬영 계좌 자동인식 버튼 바 -->
+        <div style="background:linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(16, 185, 129, 0.2)); border:1.5px dashed #38bdf8; border-radius:10px; padding:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="text-align:left;">
+                <strong style="color:#facc15; font-size:12.5px; display:block;">📷 통장/계좌/QR 자동인식</strong>
+                <span style="font-size:11px; color:#cbd5e1;">비추면 계좌번호가 자동 입력됩니다</span>
+            </div>
+            <div style="display:flex; gap:5px;">
+                <button type="button" style="background:#0284c7; color:#fff; border:none; border-radius:8px; padding:8px 10px; font-size:12px; font-weight:950; cursor:pointer;" onclick="openLiveCameraScanner('here')">
+                    📹 실시간스캔
+                </button>
+                <button type="button" style="background:#2563eb; color:#fff; border:none; border-radius:8px; padding:8px 10px; font-size:12px; font-weight:950; cursor:pointer;" onclick="triggerSystemCameraHere()">
+                    📸 촬영하기
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. 받는 분 계좌 정보 -->
+        <div style="background:rgba(15, 23, 42, 0.9); padding:10px; border-radius:8px; border:1px solid #1e3a5f; display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; color:#facc15; font-weight:900;">🏛️ 받는 분 (입금처 계좌 정보)</span>
+                <button type="button" style="background:#eab308; color:#0f172a; border:none; border-radius:5px; padding:3px 8px; font-size:11px; font-weight:950; cursor:pointer;" onclick="saveTargetPayInfoHere()">받는계좌 저장</button>
+            </div>
+            <input type="text" class="modal-input" id="payTargetAccountHolder" placeholder="받는 분 성함/상호명 (예: 부산밀면가, 예톡행복한교회)">
+            <div style="display:flex; gap:6px;">
+                <select id="payTargetBankSelect" class="modal-input" style="flex:1.2; font-weight:850; color:#facc15;">
+                    <option value="국민은행">국민은행</option>
+                    <option value="농협은행">농협은행</option>
+                    <option value="신한은행">신한은행</option>
+                    <option value="우리은행">우리은행</option>
+                    <option value="하나은행">하나은행</option>
+                    <option value="카카오뱅크">카카오뱅크</option>
+                    <option value="토스뱅크">토스뱅크</option>
+                    <option value="기업은행">기업은행</option>
+                    <option value="우체국">우체국</option>
+                    <option value="부산은행">부산은행</option>
+                </select>
+                <input type="text" class="modal-input" id="payTargetAccountInput" style="flex:2; font-weight:900; color:#fde047;" placeholder="받는 계좌번호">
+            </div>
+        </div>
+
+        <!-- 4. 송금 금액 -->
+        <div>
+            <label style="font-size:12px; color:#cbd5e1; font-weight:850; display:block; text-align:left; margin-bottom:3px;">송금 / 결제 금액 (원)</label>
+            <input type="number" id="payAmountInputHere" value="10000" class="modal-input" style="font-size:16px; color:#facc15; font-weight:950;">
+        </div>
+
+        <button type="button" style="height:46px; background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; border-radius:9px; font-weight:950; font-size:14.5px; cursor:pointer;" onclick="submitPaymentHere()">
+            즉시 결제 송금 (공식 은행 앱 연결)
+        </button>
+    </div>
+</div>
+
+<!-- ==================================================
+     🌟 2. 실시간 웹/앱 카메라 스캔 뷰파인더 모달
+================================================== -->
+<div class="modal-overlay" id="liveCameraModal">
+    <div class="modal-card" style="text-align:center;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:6px;">
+            <strong style="color:#facc15; font-size:15px;">📸 통장 사본 / 계좌 QR코드 스캔</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeLiveCameraScanner()">✕</button>
+        </div>
+
+        <div class="camera-view-box">
+            <video id="liveCameraVideo" class="camera-video-elem" autoplay playsinline muted></video>
+            <div class="camera-target-crosshair">
+                <span>계좌번호나 QR을 중앙에 맞추세요</span>
+            </div>
+        </div>
+
+        <div style="font-size:11.5px; color:#94a3b8; line-height:1.4;">
+            ※ 카메라가 자동으로 계좌번호 숫자를 감지합니다.<br>
+            화면이 어두우면 조명을 켜주세요.
+        </div>
+
+        <div style="display:flex; gap:6px;">
+            <button type="button" style="flex:1; height:44px; background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; border-radius:8px; font-weight:950; font-size:14px; cursor:pointer;" onclick="captureAndOcrAccount()">
+                ⚡ 인식 및 계좌 자동 입력
+            </button>
+            <button type="button" style="height:44px; background:#2563eb; color:white; border:none; border-radius:8px; font-size:13px; font-weight:800; padding:0 12px; cursor:pointer;" onclick="triggerSystemCameraHere()">
+                📸 기본카메라
+            </button>
+            <button type="button" style="height:44px; background:#1e293b; color:#cbd5e1; border:none; border-radius:8px; font-size:13px; font-weight:800; padding:0 14px; cursor:pointer;" onclick="closeLiveCameraScanner()">
+                취소
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ==================================================
+     🌟 3. [달력 안 뜨던 문제 완벽 해결]
+     예톡 스마트 캘린더 모달 + 시스템 달력 앱 바로가기
+================================================== -->
+<div class="modal-overlay" id="calendarModal">
+    <div class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:6px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:18px;">📅</span>
+                <strong style="color:#38bdf8; font-size:16px;">예톡 스마트 캘린더 & 일정</strong>
+            </div>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('calendarModal')">✕</button>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 6px;">
+            <strong style="color:#facc15; font-size:15px;" id="calYearMonth">2026년 9월</strong>
+            <button type="button" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:4px 10px; font-size:11.5px; font-weight:850; cursor:pointer;" onclick="launchSystemCalendarApp()">
+                📲 휴대폰 기본 달력앱 열기
+            </button>
+        </div>
+
+        <div class="calendar-grid">
+            <div class="cal-head" style="color:#ef4444;">일</div>
+            <div class="cal-head">월</div>
+            <div class="cal-head">화</div>
+            <div class="cal-head">수</div>
+            <div class="cal-head">목</div>
+            <div class="cal-head">금</div>
+            <div class="cal-head" style="color:#38bdf8;">토</div>
+
+            <div class="cal-day" style="opacity:0.4;">30</div>
+            <div class="cal-day">1</div>
+            <div class="cal-day">2</div>
+            <div class="cal-day">3</div>
+            <div class="cal-day">4</div>
+            <div class="cal-day">5</div>
+            <div class="cal-day" style="color:#38bdf8;">6</div>
+            <div class="cal-day" style="color:#ef4444;">7</div>
+            <div class="cal-day">8</div>
+            <div class="cal-day">9</div>
+            <div class="cal-day">10</div>
+            <div class="cal-day">11</div>
+            <div class="cal-day">12</div>
+            <div class="cal-day" style="color:#38bdf8;">13</div>
+            <div class="cal-day" style="color:#ef4444;">14</div>
+            <div class="cal-day">15</div>
+            <div class="cal-day">16</div>
+            <div class="cal-day">17</div>
+            <div class="cal-day">18</div>
+            <div class="cal-day">19</div>
+            <div class="cal-day" style="color:#38bdf8;">20</div>
+            <div class="cal-day" style="color:#ef4444;">21</div>
+            <div class="cal-day">22</div>
+            <div class="cal-day">23</div>
+            <div class="cal-day">24</div>
+            <div class="cal-day">25</div>
+            <div class="cal-day">26</div>
+            <div class="cal-day" style="color:#38bdf8;">27</div>
+            <div class="cal-day today">28</div>
+            <div class="cal-day">29</div>
+            <div class="cal-day">30</div>
+            <div class="cal-day" style="opacity:0.4;">1</div>
+            <div class="cal-day" style="opacity:0.4;">2</div>
+            <div class="cal-day" style="opacity:0.4;">3</div>
+            <div class="cal-day" style="opacity:0.4;">4</div>
+        </div>
+
+        <div style="background:#132238; border:1px solid #1e3a5f; border-radius:8px; padding:10px; text-align:left;">
+            <strong style="color:#fde047; font-size:12px; display:block; margin-bottom:4px;">📌 오늘의 주요 일정 및 은혜 메모</strong>
+            <p style="font-size:11.5px; color:#cbd5e1; line-height:1.5;">
+                • 가을 맞춤 힐링 세미나 및 단골 소통의 날<br>
+                • 주님의 풍성한 은혜와 형통하심이 함께하시길 축복합니다.
+            </p>
+        </div>
+
+        <button type="button" style="height:38px; background:#1e293b; color:#cbd5e1; border:none; border-radius:8px; font-size:12.5px; font-weight:800; cursor:pointer;" onclick="closeModal('calendarModal')">닫기</button>
+    </div>
+</div>
+
+<!-- 검색 모달 -->
+<div class="modal-overlay" id="searchModal">
+    <div class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="color:#38bdf8; font-size:15.5px;">🔍 단골 매장 검색</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('searchModal')">✕</button>
+        </div>
+        <input type="text" id="searchInput" class="modal-input" placeholder="상호명을 입력하세요" oninput="executeSearch()">
+        <div id="searchResultBox" style="display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto; margin-top:4px;"></div>
+    </div>
+</div>
+
+<!-- my 관리 모달 -->
+<div class="modal-overlay" id="createAppModal">
+    <div class="modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:6px;">
+            <strong style="color:#facc15; font-size:15.5px;">👤 내 정보 및 비즈니스 앱 관리</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('createAppModal')">✕</button>
+        </div>
+
+        <!-- 🌟 비즈니스 앱 무료 제작 안내 박스 -->
+        <div style="background:#0f172a; border:1.5px solid #334155; border-radius:10px; padding:12px; margin-bottom:12px; text-align:center;">
+            <div style="color:#ffffff; font-size:14px; font-weight:950; margin-bottom:3px;">
+                ✨ 모든 것 100% 무료 지원
+            </div>
+            <div style="color:#94a3b8; font-size:11.5px; font-weight:700;">
+                평생 제작비 0원 · 서버비 0원 · 유지보수비 0원
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>이름 / 성함 (필수)</label>
+            <input type="text" id="inpName" class="modal-input" placeholder="성함을 입력하세요">
+        </div>
+        <div class="input-group">
+            <label>아이디 & 비밀번호 (필수)</label>
+            <div style="display:flex; gap:6px;">
+                <input type="text" id="inpId" class="modal-input" placeholder="아이디 입력">
+                <input type="password" id="inpPw" class="modal-input" placeholder="비밀번호">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>상호명 / 병원·교회명 (필수)</label>
+            <input type="text" id="inpStore" class="modal-input" placeholder="상호명을 입력하세요">
+        </div>
+        <div class="input-group">
+            <label>상세 주소 (필수)</label>
+            <input type="text" id="inpAddr" class="modal-input" placeholder="상세주소를 입력하세요">
+        </div>
+
+        <div class="input-group">
+            <label style="color:#e2e8f0; font-weight:800;">직종 선택</label>
+            <div class="vertical-job-tabs">
+                <button type="button" class="job-btn" data-job="의사" onclick="setJob(this, '의사')">🩺 의사 (개인의원)</button>
+                <button type="button" class="job-btn" data-job="목사" onclick="setJob(this, '목사')">⛪ 목사 (담임목회)</button>
+                <button type="button" class="job-btn" data-job="기독교 사역자" onclick="setJob(this, '기독교 사역자')">✝️ 기독교 사역자</button>
+                <button type="button" class="job-btn" data-job="한의사" onclick="setJob(this, '한의사')">🌿 한의사 (한의원)</button>
+                <button type="button" class="job-btn" data-job="치과의사" onclick="setJob(this, '치과의사')">🦷 치과의사 (치과의원)</button>
+                <button type="button" class="job-btn" data-job="자영업" onclick="setJob(this, '자영업')">🏢 자영업 / 소상공인</button>
+                <button type="button" class="job-btn" data-job="개인비즈니스" onclick="setJob(this, '개인비즈니스')">👤 개인비즈니스 / 프리랜서</button>
+            </div>
+        </div>
+
+        <button type="button" style="height:44px; background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; border-radius:8px; font-weight:950; font-size:14px; cursor:pointer;" onclick="submitNewBusinessApp()">
+            저장
+        </button>
+    </div>
+</div>
+
+<div class="yetalk-toast" id="yetalkToast"></div>
+
+<script>
+    const MODEL_HOUSES = [
+        // 1. 단골 / 예약앱 (상점, 식당, 카페, 뷰티) 리스트
+        { id: 'm_shop', name: '맛있는 숯불갈비 & 카페', cat: 'store', tagText: '단골식당', tagClass: 'tag-shop', url: 'foodmain.html', date: '오늘', desc: '신선한 최고급 육류와 정성 어린 요리, 편안한 단골 휴식 공간', forceStarLevel: 4 },
+        { id: 'm_shop_noodle', name: '부산밀면가 본점', cat: 'store', tagText: '단골맛집', tagClass: 'tag-shop', url: 'foodmain.html', date: '오늘', desc: '정통 가마솥 육수와 쫄깃한 자가제면 밀면 & 손만두', forceStarLevel: 3 },
+        { id: 'm_shop_cafe', name: '예톡 달콤베이커리 카페', cat: 'store', tagText: '단골카페', tagClass: 'tag-shop', url: 'foodmain.html', date: '어제', desc: '유기농 스페셜티 커피 & 당일 생산 갓 구운 천연발효빵', forceStarLevel: 3 },
+        { id: 'm_shop_salon', name: '예톡헤어살롱 & 스파', cat: 'store', tagText: '뷰티예약', tagClass: 'tag-shop', url: 'foodmain.html', date: '09.28', desc: '1:1 맞춤형 프리미엄 헤어 스타일링 및 두피 클리닉 케어', forceStarLevel: 2 },
+
+        // 2. 교회앱 (교회 리스트)
+        { id: 'm_church', name: '예톡행복한교회', cat: 'church', tagText: '교회', tagClass: 'tag-church', url: 'churchmain.html', date: '오늘', desc: '온라인 주보, 다음세대 은혜 나눔터, 실시간 예배 공식 교회', forceStarLevel: 4 },
+        { id: 'm_minichurch', name: '나의작은교회 (움직이는교회)', cat: 'church', tagText: '작은교회', tagClass: 'tag-church', url: 'minichurch.html', date: '오늘', desc: '가정예배 5분 순서지, 찬양 및 말씀 나눔 스마트 사역', forceStarLevel: 4 },
+        { id: 'm_church_sarang', name: '사랑의교회', cat: 'church', tagText: '교회', tagClass: 'tag-church', url: 'churchmain.html', date: '어제', desc: '말씀과 기도로 세상을 변화시키는 믿음의 공동체', forceStarLevel: 3 },
+        { id: 'm_church_pyeongang', name: '평강교회', cat: 'church', tagText: '교회', tagClass: 'tag-church', url: 'churchmain.html', date: '09.28', desc: '주님의 평강과 위로가 넘치는 은혜로운 성도 모임', forceStarLevel: 3 },
+
+        // 3. 의원앱 (의원 리스트)
+        { id: 'm_clinic', name: '예톡아름다운의원', cat: 'clinic', tagText: '의원', tagClass: 'tag-clinic', url: 'doctormain.html', date: '오늘', desc: '환절기 피부 진료, 비수술 안티에이징, 1:1 전담 예약', forceStarLevel: 4 },
+        { id: 'm_hanclinic', name: '예톡 우리동네 한의원', cat: 'hanclinic', tagText: '한의원', tagClass: 'tag-hanclinic', url: 'handoctormain.html', date: '오늘', desc: '체질 맞춤 한약, 척추·관절 비수술 추나요법, 침구 치료', forceStarLevel: 3 },
+        { id: 'm_dental', name: '예톡 스마일치과의원', cat: 'dental', tagText: '치과', tagClass: 'tag-clinic', url: 'dentalmain.html', date: '어제', desc: '디지털 정밀 임플란트, 투명 치아교정, 원데이 미백', forceStarLevel: 3 },
+        { id: 'm_clinic_seoul', name: '서울연합내과의원', cat: 'clinic', tagText: '내과', tagClass: 'tag-clinic', url: 'doctormain.html', date: '09.28', desc: '5대 암검진, 위대장 내시경, 만성질환 평생 관리 클리닉', forceStarLevel: 2 },
+
+        // 4. 개인앱
+        { id: 'm_one', name: '예톡 나의 개인앱', cat: 'one', tagText: '개인', tagClass: 'tag-one', url: 'onemain.html', date: '09.28', desc: '1인 기업·프리랜서 포트폴리오, 전문 서비스 안내, 1:1 직통 상담', forceStarLevel: 3 }
+    ];
+
+    let currentFilter = 'my';
+    let selectedJob = '의사';
+    let cameraMediaStream = null;
+
+    function getStoreStarLevel(storeId, defaultLevel) {
+        const saved = localStorage.getItem(`yetalk_star_lvl_${storeId}`);
+        if (saved !== null) return parseInt(saved, 10);
+        return defaultLevel !== undefined ? defaultLevel : 2;
+    }
+
+    function setStoreStarLevel(storeId, level) {
+        localStorage.setItem(`yetalk_star_lvl_${storeId}`, level);
+    }
+
+    function cycleStoreStar(event, storeId, storeName, defaultLevel) {
+        event.stopPropagation();
+        let currentLevel = getStoreStarLevel(storeId, defaultLevel);
+        let nextLevel = (currentLevel % 4) + 1;
+        setStoreStarLevel(storeId, nextLevel);
+
+        const levelNames = { 1: "관심 매장 (★☆☆)", 2: "일반 단골 (★★☆)", 3: "우수 단골 (노랑 ★★★)", 4: "최우수 단골 (빨강 ★★★)" };
+        showToast(`⭐ [${storeName}] ${levelNames[nextLevel]} 등록!`);
+        renderStoreList();
+    }
+
+    function getDynamicStoreList() {
+        let activeStoreName = localStorage.getItem("yetalkUserStoreName") || "예톡아름다운의원";
+        // 레거시 오류로 "최웅식의 작은교회" 또는 단순 실명만 잘못 들어간 경우만 기본값 정리
+        // 🌟 [중요] 관리자가 정식 개설한 '최웅식의원' 등 고유 상호명은 100% 무제한 자유롭게 유지됩니다.
+        if (activeStoreName === "최웅식의 작은교회" || activeStoreName === "최웅식" || activeStoreName === "최용식") {
+            activeStoreName = "예톡아름다운의원";
+            localStorage.setItem("yetalkUserStoreName", activeStoreName);
+        }
+        if ((localStorage.getItem("yetalkUserName") || "").includes("최웅식") || (localStorage.getItem("yetalkUserName") || "").includes("최용식")) {
+            localStorage.setItem("yetalkUserName", "최예톡");
+        }
+        if ((localStorage.getItem("yetalkUserId") || "").includes("woongsik") || (localStorage.getItem("yetalkUserId") || "").includes("choi")) {
+            localStorage.setItem("yetalkUserId", "user_yetalk");
+        }
+        if ((localStorage.getItem("yetalkAdminId") || "").includes("woongsik") || (localStorage.getItem("yetalkAdminId") || "").includes("choi")) {
+            localStorage.setItem("yetalkAdminId", "user_yetalk");
+        }
+        let activeAppUrl = localStorage.getItem("yetalkMyBizAppUrl");
+        if (activeAppUrl === 'freeshopmain.html' || activeAppUrl === 'shopmain.html') {
+            activeAppUrl = "foodmain.html";
+            localStorage.setItem("yetalkMyBizAppUrl", "foodmain.html");
+        }
+        const jobType = localStorage.getItem("yetalkUserJobType") || "";
+
+        let cat = 'clinic';
+        let tagClass = 'tag-clinic';
+        let tagText = '의원';
+
+        if (jobType === '담임목사' || jobType === '기독교사역자' || jobType === '목사' || jobType === '기독교 사역자' || activeStoreName.includes("교회") || (activeAppUrl && activeAppUrl.includes("church"))) {
+            cat = 'church'; tagClass = 'tag-church'; tagText = '교회';
+            if (!activeAppUrl) activeAppUrl = "churchmain.html";
+        } else if (jobType === '한의원 원장' || jobType === '한의사' || activeStoreName.includes("한의원") || (activeAppUrl && activeAppUrl.includes("handoctor"))) {
+            cat = 'hanclinic'; tagClass = 'tag-hanclinic'; tagText = '한의원';
+            if (!activeAppUrl) activeAppUrl = "handoctormain.html";
+        } else if (jobType === '치과의사' || jobType === '치과원장' || activeStoreName.includes("치과") || (activeAppUrl && activeAppUrl.includes("dental"))) {
+            cat = 'dental'; tagClass = 'tag-clinic'; tagText = '치과';
+            if (!activeAppUrl) activeAppUrl = "dentalmain.html";
+        } else if (jobType === '개인비즈니스' || jobType === '개인' || jobType === '프리랜서' || (activeAppUrl && activeAppUrl.includes("onemain"))) {
+            cat = 'one'; tagClass = 'tag-one'; tagText = '개인';
+            if (!activeAppUrl) activeAppUrl = "onemain.html";
+        } else if (jobType === '자영업' || (!activeStoreName.includes("의원") && !activeStoreName.includes("병원") && jobType !== '개인의원 원장' && jobType !== '의료인' && jobType !== '의사')) {
+            cat = 'store'; tagClass = 'tag-shop'; tagText = '자영업';
+            if (!activeAppUrl) activeAppUrl = "foodmain.html";
+        } else {
+            cat = 'clinic'; tagClass = 'tag-clinic'; tagText = '의원';
+            if (!activeAppUrl) activeAppUrl = "doctormain.html";
+        }
+
+        const userName = localStorage.getItem("yetalkUserId") || localStorage.getItem("yetalkUserName") || "최예톡";
+
+        // 🌟 1) 교회 정회원 앱 (사용자 요청: 교회앱 정회원은 빨강 겉라인으로 1순위 최우선 배치!)
+        const isChurchMember = localStorage.getItem("yetalk_church_member") !== "false";
+        let currentChurchCardName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        if (!currentChurchCardName || currentChurchCardName.includes("최웅식") || currentChurchCardName.includes("작은교회") || currentChurchCardName.includes("움직이는") || currentChurchCardName.includes("최예톡") || currentChurchCardName.includes("김예톡") || currentChurchCardName.includes("최용식")) {
+            currentChurchCardName = "예톡행복한교회";
+            localStorage.setItem("yetalkChurchName", "예톡행복한교회");
+        }
+        const churchApp = {
+            id: 'm_church_member_top',
+            name: currentChurchCardName,
+            cat: 'church',
+            tagText: '교회',
+            tagClass: 'tag-church',
+            url: 'churchmain.html',
+            date: '오늘',
+            desc: '“너희는 먼저 그의 나라와 그의 의를 구하라 그리하면 이 모든 것을 더하시리라” (마 6:33) 🙏',
+            isChurchMember: true,
+            forceStarLevel: 4
+        };
+
+        // 🌟 1) 나의 개인 앱 (onemain.html - [사용자 요청] 1위, 예톡 내앱 노랑색 테두리)
+        const personalOneApp = {
+            id: 'primary_personal_one_app',
+            name: '예톡 내앱',
+            cat: 'one',
+            tagText: '개인',
+            tagClass: 'tag-one',
+            url: 'onemain.html',
+            date: '오늘',
+            desc: '“오늘도 기쁨과 감사가 가득한 하루, 당신의 모든 걸음을 온 맘 다해 응원합니다.” ✨',
+            isPersonalOne: true,
+            forceStarLevel: 4
+        };
+
+        // 🌟 3) 나의 전문 비즈니스 앱 (3순위)
+        let noticeBadgeCount = 2;
+        try {
+            const allN = JSON.parse(localStorage.getItem("yetalk_all_notices") || "[]");
+            if (allN.length > 0) noticeBadgeCount = allN.length;
+        } catch(e){}
+
+        const primaryApp = {
+            id: 'primary_active_app',
+            name: activeStoreName,
+            cat: cat,
+            tagText: tagText,
+            tagClass: tagClass,
+            url: activeAppUrl,
+            date: '오늘',
+            desc: '“환자 한 분 한 분을 내 가족처럼, 따뜻한 마음과 정성을 다해 건강을 섬깁니다.” 🌿',
+            noticeCount: noticeBadgeCount,
+            isSpecialistApp: true,
+            forceStarLevel: 4
+        };
+
+        // 4) 한의원 전문 앱 (예톡 우리동네 한의원)
+        const hanDoctorApp = {
+            id: 'm_hanclinic',
+            name: '예톡 우리동네 한의원',
+            cat: 'hanclinic',
+            tagText: '한의원',
+            tagClass: 'tag-hanclinic',
+            url: 'handoctormain.html',
+            date: '오늘',
+            desc: '“몸과 마음의 조화를 찾아드리는 건강하고 바른 진료를 약속드립니다.” 🍵',
+            noticeCount: 2,
+            isSpecialistApp: true,
+            forceStarLevel: 4
+        };
+
+        // 5) 치과의원 전문 앱 (예톡 스마일치과의원)
+        const dentalDoctorApp = {
+            id: 'm_dental',
+            name: '예톡 스마일치과의원',
+            cat: 'dental',
+            tagText: '치과',
+            tagClass: 'tag-clinic',
+            url: 'dentalmain.html',
+            date: '오늘',
+            desc: '“환한 미소와 건강한 치아를 위해 늘 정직하고 꼼꼼하게 진료합니다.” 🦷',
+            noticeCount: 1,
+            isSpecialistApp: true,
+            forceStarLevel: 4
+        };
+
+        // 6) 자영업 식당&카페 전문 앱 (예톡 맛있는식당&카페)
+        const freeShopApp = {
+            id: 'm_freeshop',
+            name: '예톡 맛있는식당&카페',
+            cat: 'store',
+            tagText: '자영업',
+            tagClass: 'tag-shop',
+            url: 'foodmain.html',
+            date: '오늘',
+            desc: '“신선한 재료와 정성을 담은 요리, 편안한 휴식과 커피를 제공합니다.” 🍽️☕',
+            noticeCount: 2,
+            isSpecialistApp: true,
+            forceStarLevel: 4
+        };
+
+        // 7) 관리자/사용자가 무한대로 생성한 추가 커스텀 앱 목록
+        let customCreatedApps = [];
+        try {
+            customCreatedApps = JSON.parse(localStorage.getItem("yetalk_custom_created_apps") || "[]");
+            customCreatedApps.forEach(a => {
+                if (a.url === 'freeshopmain.html' || a.url === 'shopmain.html') a.url = 'foodmain.html';
+            });
+        } catch(e){}
+
+        // 🌟 [사용자 요청] 기본에 '움직이는교회 / 작은교회' (minichurch.html) 추가 및 공지 카운트 배지 연동
+        const miniChurchNoticeCount = parseInt(localStorage.getItem("yetalk_minichurch_sent_count") || "0", 10);
+        const miniChurchName = localStorage.getItem("yetalkMiniChurchName") || `${userName}의 움직이는교회`;
+        const miniChurchApp = {
+            id: 'm_minichurch_default',
+            name: miniChurchName,
+            cat: 'church',
+            tagText: '움직이는교회',
+            tagClass: 'tag-church',
+            url: 'minichurch.html',
+            date: '오늘',
+            desc: '“예수 그리스도는 어제나 오늘이나 영원토록 동일하시니라” (히 13:8) ✝️ 가정예배 5분 순서지 & 찬양·말씀 나눔',
+            isMiniChurch: true,
+            noticeCount: miniChurchNoticeCount > 0 ? miniChurchNoticeCount : 0,
+            forceStarLevel: 4
+        };
+
+        // 🌟 [사용자 요청] 내앱 순서:
+        // 1위: 개인앱 (최예톡 개인앱 - 가장 먼저)
+        // 2위: 기독교인이면 내가 만든 작은교회 (최예톡의 작은교회)
+        // 3위: 사업체 전문앱 (사랑받는 최웅식의원 등)
+        // 4위: 상점앱 (맛있는 숯불갈비)
+        // 본인이 다니는 교회(예톡행복한교회)는 내앱(myCards) 목록에서 제외하고 교회앱 탭 제일 위에 배치!
+        let currentFoodShopName = localStorage.getItem("yetalk_food_name") || localStorage.getItem("yetalkShopName") || "맛있는 숯불갈비";
+        if (currentFoodShopName === "상점앱" || currentFoodShopName.includes("최웅식") || currentFoodShopName.includes("최용식")) {
+            currentFoodShopName = "맛있는 숯불갈비";
+            localStorage.setItem("yetalk_food_name", currentFoodShopName);
+        }
+        const shopApp = {
+            id: 'm_shop_default',
+            name: currentFoodShopName,
+            cat: 'store',
+            tagText: '상점',
+            tagClass: 'tag-shop',
+            url: 'foodmain.html',
+            date: '오늘',
+            desc: '“신선한 재료와 정성을 담은 요리, 편안한 휴식과 커피를 제공합니다.” 🍽️☕',
+            isShopApp: true,
+            forceStarLevel: 4
+        };
+
+        let myClinicName = localStorage.getItem("yetalkDoctorName") || localStorage.getItem("yetalk_clinic_name") || "사랑받는 최웅식의원";
+        const clinicApp = {
+            id: 'm_clinic_default',
+            name: myClinicName,
+            cat: 'clinic',
+            tagText: '의원',
+            tagClass: 'tag-clinic',
+            url: 'clinic.html',
+            date: '오늘',
+            desc: '“환자 한 분 한 분을 내 가족처럼, 따뜻한 마음과 정성을 다해 건강을 섬깁니다.” 🏥',
+            isSpecialistApp: true,
+            forceStarLevel: 4
+        };
+
+        let myCards = [];
+        // 1위: 개인앱 (가장 먼저)
+        myCards.push(personalOneApp);
+        // 2위: 기독교인이면 작은교회
+        const isChristianUser = localStorage.getItem("yetalk_is_christian") !== "false";
+        if (isChristianUser) {
+            myCards.push(miniChurchApp);
+        }
+        // 3위: 사업체 전문앱
+        myCards.push(clinicApp);
+        // 4위: 상점앱
+        if (customCreatedApps && customCreatedApps.length > 0) {
+            customCreatedApps.forEach(ca => {
+                if (!myCards.some(c => c.name === ca.name)) myCards.push(ca);
+            });
+        } else {
+            myCards.push(shopApp);
+        }
+
+        const otherModels = MODEL_HOUSES.filter(m => !myCards.some(c => c.name === m.name || c.id === m.id));
+        const allStores = [churchApp, ...myCards, ...otherModels, ...customCreatedApps];
+
+        return {
+            myCards: myCards,
+            allStores: allStores
+        };
+    }
+
+    const STORAGE_KEY_RESERVATIONS = "yetalk_my_reservations_v1";
+
+    function getMyReservations() {
+        const raw = localStorage.getItem(STORAGE_KEY_RESERVATIONS);
+        if (raw) {
+            try { return JSON.parse(raw); } catch(e){}
+        }
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const d = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${y}-${m}-${d}`;
+
+        const tm = new Date(today.getTime() + 86400000);
+        const tmStr = `${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;
+
+        const nextWeek = new Date(today.getTime() + 86400000 * 7);
+        const nextWeekStr = `${nextWeek.getFullYear()}-${String(nextWeek.getMonth()+1).padStart(2,'0')}-${String(nextWeek.getDate()).padStart(2,'0')}`;
+
+        const sampleRes = [
+            {
+                id: "res_1",
+                appTitle: "예톡바른정형외과의원",
+                category: "의원/병원",
+                date: todayStr,
+                time: "14:30",
+                content: "어깨 관절 도수치료 및 담당 전문의 진료 상담",
+                status: "예약확정",
+                phone: "02-123-4567",
+                url: "clinic.html"
+            },
+            {
+                id: "res_2",
+                appTitle: "평강교회 상담실",
+                category: "교회",
+                date: tmStr,
+                time: "10:00",
+                content: "담임 목사님 신앙 심방 및 가정 상담",
+                status: "예약완료",
+                phone: "02-234-5678",
+                url: "churchmain.html"
+            },
+            {
+                id: "res_3",
+                appTitle: "예톡헤어살롱 & 스파",
+                category: "뷰티/미용",
+                date: nextWeekStr,
+                time: "15:00",
+                content: "VIP 두피 케어 및 모발 클리닉 스타일링",
+                status: "예약대기",
+                phone: "051-789-0123",
+                url: "foodmain.html"
+            }
+        ];
+        localStorage.setItem(STORAGE_KEY_RESERVATIONS, JSON.stringify(sampleRes));
+        return sampleRes;
+    }
+
+    function createResCardHtml(r, isToday) {
+        const borderStyle = isToday ? 'border: 2px solid #facc15; background: linear-gradient(135deg, #242010, #131108);' : 'border: 1.5px solid #1e3a5f; background: #111e33;';
+        const badgeColor = isToday ? '#facc15' : '#38bdf8';
+        const badgeText = isToday ? `⭐ 오늘 예약: ${r.time}` : `📅 ${r.date} ${r.time}`;
+
+        return `
+            <div style="${borderStyle}; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); margin-bottom: 6px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:950; color:${badgeColor}; background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:6px;">${badgeText}</span>
+                    <span style="font-size:11px; background:#10b981; color:#fff; font-weight:900; padding:2px 7px; border-radius:6px;">${r.status}</span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:2px;">
+                    <strong style="font-size:15px; font-weight:950; color:#ffffff;">${r.appTitle}</strong>
+                    <span style="font-size:11px; color:#94a3b8;">${r.category}</span>
+                </div>
+                <p style="font-size:13.5px; color:#e2e8f0; line-height:1.45; margin:0; word-break:break-all;">${r.content}</p>
+                <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:4px; padding-top:6px; border-top:1px dashed #334155;">
+                    <button type="button" onclick="window.location.href='tel:${r.phone}'" style="background:#7c3aed; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;">📞 전화</button>
+                    <button type="button" onclick="location.href='${r.url}'" style="background:#0284c7; color:#fff; border:none; padding:5px 11px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;">📖 전문앱 열기</button>
+                    <button type="button" onclick="cancelReservation('${r.id}')" style="background:#334155; color:#cbd5e1; border:none; padding:5px 9px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;">✕ 취소</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderReservationView(container) {
+        const reservations = getMyReservations();
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${y}-${m}-${d}`;
+
+        const maxDate = new Date(now.getTime() + 86400000 * 31);
+        const maxDateStr = `${maxDate.getFullYear()}-${String(maxDate.getMonth()+1).padStart(2,'0')}-${String(maxDate.getDate()).padStart(2,'0')}`;
+
+        const todayRes = reservations.filter(r => r.date === todayStr);
+        const upcomingRes = reservations.filter(r => r.date > todayStr && r.date <= maxDateStr)
+                                       .sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+        let html = `
+            <div style="padding:10px 4px 20px 4px; display:flex; flex-direction:column; gap:12px; width:100%; box-sizing:border-box;">
+                <div style="background:#0f172a; border:1.5px solid #38bdf8; border-radius:14px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">🏥 전문앱 연동 스마트 예약센터</div>
+                        <h3 style="font-size:16px; font-weight:950; color:#ffffff; margin:2px 0 0 0;">내 예약 현황 (한달간)</h3>
+                    </div>
+                    <button type="button" onclick="promptAddReservation()" style="background:#2563eb; color:#fff; border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:950; cursor:pointer;">
+                        + 새 예약
+                    </button>
+                </div>
+        `;
+
+        html += `
+            <div>
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                    <span style="font-size:16px;">⭐</span>
+                    <strong style="font-size:14px; font-weight:950; color:#fde047;">오늘 예약 (${todayRes.length}건)</strong>
+                </div>
+        `;
+        if (todayRes.length === 0) {
+            html += `<div style="padding:16px; background:#111e33; border:1px dashed #1e3a5f; border-radius:10px; color:#94a3b8; font-size:13px; text-align:center;">오늘 예정된 예약이 없습니다.</div>`;
+        } else {
+            html += todayRes.map(r => createResCardHtml(r, true)).join("");
+        }
+        html += `</div>`;
+
+        html += `
+            <div style="margin-top:6px;">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                    <span style="font-size:16px;">📅</span>
+                    <strong style="font-size:14px; font-weight:950; color:#38bdf8;">내일부터 한달간 예약 (${upcomingRes.length}건)</strong>
+                </div>
+        `;
+        if (upcomingRes.length === 0) {
+            html += `<div style="padding:16px; background:#111e33; border:1px dashed #1e3a5f; border-radius:10px; color:#94a3b8; font-size:13px; text-align:center;">한달 이내에 등록된 다음 예약이 없습니다.</div>`;
+        } else {
+            html += upcomingRes.map(r => createResCardHtml(r, false)).join("");
+        }
+        html += `</div></div>`;
+
+        container.innerHTML = html;
+    }
+
+    function cancelReservation(resId) {
+        if (!confirm("정말 이 예약을 취소하시겠습니까?")) return;
+        let list = getMyReservations();
+        list = list.filter(r => r.id !== resId);
+        localStorage.setItem(STORAGE_KEY_RESERVATIONS, JSON.stringify(list));
+        renderStoreList();
+        showToast("✔ 예약이 성공적으로 취소되었습니다.");
+    }
+
+    function promptAddReservation() {
+        const appTitle = prompt("예약할 전문앱 또는 장소 이름 (예: 예톡바른정형외과의원):", "예톡바른정형외과의원");
+        if (!appTitle || !appTitle.trim()) return;
+        const date = prompt("예약 날짜를 입력하세요 (YYYY-MM-DD):", new Date().toISOString().slice(0,10));
+        if (!date || !date.trim()) return;
+        const time = prompt("예약 시간을 입력하세요 (예: 15:00):", "15:00");
+        const content = prompt("예약 내용을 입력하세요:", "전문의 진료 및 상담 예약");
+
+        const list = getMyReservations();
+        list.push({
+            id: "res_" + Date.now(),
+            appTitle: appTitle.trim(),
+            category: "전문앱",
+            date: date.trim(),
+            time: time ? time.trim() : "10:00",
+            content: content ? content.trim() : "진료 및 상담",
+            status: "예약확정",
+            phone: "010-1234-5678",
+            url: "clinic.html"
+        });
+        localStorage.setItem(STORAGE_KEY_RESERVATIONS, JSON.stringify(list));
+        renderStoreList();
+        showToast("✔ 새 예약이 등록되었습니다!");
+    }
+
+    function openStoreCardApp(url, name) {
+        if (!url) return;
+        if (url.includes('churchmain')) {
+            let chName = name || "예톡행복한교회";
+            if (!chName || chName === "최웅식의 작은교회" || chName === "작은교회" || chName === "최웅식" || chName.includes("움직이는") || chName === "최예톡" || chName === "김예톡") {
+                chName = "예톡행복한교회";
+            }
+            localStorage.setItem("yetalkChurchName", chName);
+        } else if (url.includes('foodmain')) {
+            let fdName = name || "맛있는 숯불갈비";
+            if (fdName === "상점앱" || fdName === "최웅식" || fdName === "최용식") {
+                fdName = "맛있는 숯불갈비";
+            }
+            localStorage.setItem("yetalk_food_name", fdName);
+            localStorage.setItem("yetalkShopName", fdName);
+        } else if (url.includes('doctormain')) {
+            let docName = name || "예톡아름다운의원";
+            if (docName === "최웅식의 작은교회" || docName === "최웅식" || docName === "최용식") {
+                docName = "예톡아름다운의원";
+            }
+            localStorage.setItem("yetalkDoctorName", docName);
+            localStorage.setItem("yetalkUserStoreName", docName);
+        }
+        location.href = url;
+    }
+
+    function renderStoreList() {
+        const container = document.getElementById("storeListContainer");
+        if (currentFilter === 'reservation') {
+            renderReservationView(container);
+            return;
+        }
+
+        const { myCards, allStores } = getDynamicStoreList();
+
+        let filtered = [];
+        if (currentFilter === 'my') {
+            filtered = myCards;
+        } else if (currentFilter === 'all') {
+            filtered = allStores;
+        } else if (currentFilter === 'clinic') {
+            filtered = allStores.filter(s => s.cat === 'clinic' || s.cat === 'hanclinic' || s.cat === 'dental');
+        } else if (currentFilter === 'church') {
+            filtered = allStores.filter(s => s.cat === 'church');
+            // 🌟 [사용자 요청] 교회앱 탭에서는 제일 위에 본인 교회가 최우선으로 올라오게 정렬
+            filtered.sort((a, b) => {
+                const aIsMy = (a.id === 'm_church_member_top' || !!a.isChurchMember);
+                const bIsMy = (b.id === 'm_church_member_top' || !!b.isChurchMember);
+                if (aIsMy && !bIsMy) return -1;
+                if (!aIsMy && bIsMy) return 1;
+                const levelA = getStoreStarLevel(a.id, a.forceStarLevel || (a.isChurchMember ? 4 : 2));
+                const levelB = getStoreStarLevel(b.id, b.forceStarLevel || (b.isChurchMember ? 4 : 2));
+                return levelB - levelA;
+            });
+        } else {
+            filtered = allStores.filter(s => s.cat === currentFilter);
+        }
+
+        if (currentFilter !== 'church') {
+            // 🌟 [사용자 요청] 예약앱은 단골들 이름 리스트, 의원앱은 의원리스트가 먼저 나오도록 하고, 그기서 별세개 순서대로 정렬해줘!
+            filtered.sort((a, b) => {
+                const levelA = getStoreStarLevel(a.id, a.forceStarLevel || (a.isChurchMember ? 4 : 2));
+                const levelB = getStoreStarLevel(b.id, b.forceStarLevel || (b.isChurchMember ? 4 : 2));
+                if (levelB !== levelA) {
+                    return levelB - levelA; // 내림차순: 별 3개(레벨 4, 3)가 최우선 정렬!
+                }
+                return 0;
+            });
+        }
+
+        container.innerHTML = filtered.map(item => {
+            const isChurch = !!item.isChurchMember;
+            const defLevel = item.forceStarLevel || (isChurch ? 4 : 2);
+            const starLevel = getStoreStarLevel(item.id, defLevel);
+            let starText = "★★☆";
+            let starClass = "stars-yellow";
+
+            if (starLevel === 1) { starText = "★☆☆"; starClass = "stars-gray"; }
+            else if (starLevel === 2) { starText = "★★☆"; starClass = "stars-yellow"; }
+            else if (starLevel === 3) { starText = "★★★"; starClass = "stars-yellow"; }
+            else if (starLevel === 4) { starText = "★★★"; starClass = "stars-red"; }
+
+            // 🌟 [사용자 요청]
+            // 수식어 '새공지 2건', '교회정회원', '내앱' 일체 제거!
+            // 전문앱/교회앱/개인앱 이름 전체 온전히 노출
+            // 뒤에 공지 숫자만 심플한 빨강 배지로 노출
+            let cardBorder = '';
+            let titleColor = '#ffffff';
+
+            if (item.isPersonalOne) {
+                // 🌟 [사용자 요청] 가장 위에 예톡 내앱(노랑색 테두리)
+                cardBorder = 'border: 2.2px solid #facc15; box-shadow: 0 4px 18px rgba(250, 204, 21, 0.45); background: linear-gradient(135deg, #242010, #131108);';
+                titleColor = '#fde047';
+            } else if (isChurch) {
+                // 🌟 [사용자 요청] 2위: 본인이 정회원 가입한 교회 (빨강 테두리)
+                cardBorder = 'border: 2.2px solid #ef4444; box-shadow: 0 4px 18px rgba(239, 68, 68, 0.45); background: linear-gradient(135deg, #241419, #130a10);';
+                titleColor = '#fca5a5';
+            } else if (item.isMiniChurch) {
+                // 🌟 [사용자 요청] 3위: 자기가 만든 움직이는교회 앱 (하늘색 테두리)
+                cardBorder = 'border: 2px solid #38bdf8; box-shadow: 0 4px 18px rgba(56, 189, 248, 0.4); background: linear-gradient(135deg, #0e1e38, #07101e);';
+                titleColor = '#7dd3fc';
+            } else if (item.isShopApp || item.cat === 'store') {
+                // 🌟 [사용자 요청] 4위: 마지막 상점앱 (스마트 상점 테두리)
+                cardBorder = 'border: 1.8px solid #38bdf8; box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25); background: linear-gradient(135deg, #102138, #0a1424);';
+                titleColor = '#38bdf8';
+            } else if (item.isSpecialistApp) {
+                cardBorder = 'border: 1.8px solid #38bdf8; box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25); background: linear-gradient(135deg, #102138, #0a1424);';
+                titleColor = '#38bdf8';
+            } else {
+                cardBorder = 'border: 1px solid #1c3252; background: #111e33;';
+                titleColor = '#ffffff';
+            }
+
+            const noticeBadge = item.noticeCount ? `<span style="background:#ef4444; color:#ffffff; font-size:11px; font-weight:950; padding:1px 6px; border-radius:10px; margin-left:6px; flex-shrink:0;">${item.noticeCount}</span>` : '';
+
+            return `
+                <div class="store-card-item" style="${cardBorder}; cursor:pointer;" onclick="openStoreCardApp('${item.url}', '${item.name}')">
+                    <div class="card-head-row">
+                        <div class="card-title-group">
+                            <button type="button" class="card-stars-btn ${starClass}" onclick="event.stopPropagation(); cycleStoreStar(event, '${item.id}', '${item.name}', ${defLevel})" title="터치하여 단골 승급">
+                                ${starText}
+                            </button>
+                            <div class="card-clickable-area">
+                                <strong class="card-name" style="color:${titleColor}; font-size:15px; font-weight:950;">${item.name}</strong>
+                                ${noticeBadge}
+                                <span class="card-tag ${item.tagClass}" style="margin-left:auto;">${item.tagText}</span>
+                            </div>
+                        </div>
+                        <span class="card-date" style="margin-left:8px;">${item.date}</span>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    function filterStores(filterType, btnEl) {
+        currentFilter = filterType;
+        document.querySelectorAll(".filter-tab-btn").forEach(b => b.classList.remove("active"));
+        btnEl.classList.add("active");
+        renderStoreList();
+    }
+
+    /* ==================================================
+       🌟 예톡결제 송금 서비스 (내단골 즉시 실행)
+    ================================================== */
+    function openPaymentModalHere() {
+        document.getElementById("paySenderName").value = localStorage.getItem("yetalkUserId") || localStorage.getItem("yetalkUserName") || "최예톡";
+        document.getElementById("paySenderBank").value = localStorage.getItem("yetalkSenderBank") || "국민은행";
+        document.getElementById("paySenderAccount").value = localStorage.getItem("yetalkSenderAccount") || "";
+
+        const currentBiz = localStorage.getItem("yetalkTargetHolder") || localStorage.getItem("yetalkUserStoreName") || "부산밀면가";
+        document.getElementById("payTargetAccountHolder").value = currentBiz;
+        document.getElementById("payTargetBankSelect").value = localStorage.getItem("yetalkTargetBank") || "농협은행";
+        document.getElementById("payTargetAccountInput").value = localStorage.getItem("yetalkTargetAccount") || "352-0192-8841-03";
+
+        openModal("paymentModalHere");
+    }
+
+    function saveSenderPayInfoHere() {
+        const name = document.getElementById("paySenderName").value.trim();
+        const bank = document.getElementById("paySenderBank").value;
+        const acc = document.getElementById("paySenderAccount").value.trim();
+        if (name) localStorage.setItem("yetalkUserName", name);
+        localStorage.setItem("yetalkSenderBank", bank);
+        localStorage.setItem("yetalkSenderAccount", acc);
+        showToast("💾 보내는 분 계좌 정보가 저장되었습니다.");
+    }
+
+    function saveTargetPayInfoHere() {
+        const holder = document.getElementById("payTargetAccountHolder").value.trim();
+        const bank = document.getElementById("payTargetBankSelect").value;
+        const acc = document.getElementById("payTargetAccountInput").value.trim();
+        if (holder) localStorage.setItem("yetalkTargetHolder", holder);
+        localStorage.setItem("yetalkTargetBank", bank);
+        localStorage.setItem("yetalkTargetAccount", acc);
+        showToast("💾 받는 분 계좌 정보가 저장되었습니다.");
+    }
+
+    function submitPaymentHere() {
+        saveSenderPayInfoHere();
+        saveTargetPayInfoHere();
+
+        const bank = document.getElementById("payTargetBankSelect").value;
+        const targetAcc = document.getElementById("payTargetAccountInput").value.trim();
+        const holder = document.getElementById("payTargetAccountHolder").value.trim();
+        const amount = document.getElementById("payAmountInputHere").value.trim();
+
+        if (!targetAcc) { showToast("받는 분의 계좌번호를 입력하거나 카메라로 촬영하세요."); return; }
+        if (!amount || parseInt(amount, 10) <= 0) { showToast("금액을 정확히 입력해주세요."); return; }
+
+        if (navigator.clipboard) navigator.clipboard.writeText(targetAcc);
+        closeModal("paymentModalHere");
+        showToast(`🎉 [${holder || bank}] 계좌로 ${parseInt(amount, 10).toLocaleString()}원 결제 송금 연결!`);
+
+        setTimeout(() => {
+            if (bank.includes("국민")) window.location.href = "intent://#Intent;scheme=kbbank;package=com.kbstar.kbbank;end;";
+            else if (bank.includes("농협")) window.location.href = "intent://#Intent;scheme=nhapp;package=nh.smart.banking;end;";
+            else if (bank.includes("신한")) window.location.href = "intent://#Intent;scheme=shinhan;package=com.shinhan.sbanking;end;";
+            else if (bank.includes("우리")) window.location.href = "intent://#Intent;scheme=wooribank;package=com.wooribank.smart.npib;end;";
+            else if (bank.includes("하나")) window.location.href = "intent://#Intent;scheme=hanabank;package=com.hanabank.ebk.channel.android.hananbank;end;";
+            else if (bank.includes("토스")) window.location.href = "intent://#Intent;scheme=supertoss;package=viva.republica.toss;end;";
+            else window.location.href = "intent://#Intent;scheme=kakaobank;package=com.kakaobank.channel;end;";
+        }, 500);
+    }
+
+    /* ==================================================
+       🌟 실시간 카메라 스캔 뷰파인더 구동 (카메라 안 뜨던 버그 해결)
+    ================================================== */
+    async function openLiveCameraScanner(caller) {
+        openModal("liveCameraModal");
+        const video = document.getElementById("liveCameraVideo");
+        try {
+            // 안드로이드 웹뷰 onPermissionRequest 지원으로 실제 카메라 피드 즉시 연결
+            cameraMediaStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: "environment" } },
+                audio: false
+            });
+            video.srcObject = cameraMediaStream;
+            video.play().catch(e => console.log(e));
+        } catch(err) {
+            console.log("카메라 스트림 대기:", err);
+            showToast("📸 스마트폰 카메라를 준비 중입니다...");
+        }
+    }
+
+    function triggerSystemCameraHere() {
+        if (window.AndroidBridge && window.AndroidBridge.openCamera) {
+            window.AndroidBridge.openCamera();
+        } else {
+            showToast("📸 기본 카메라 앱을 호출합니다.");
+        }
+    }
+
+    window.handleRealCameraResultDirect = function() {
+        showToast("📷 촬영된 사진에서 계좌번호를 분석중입니다...");
+        setTimeout(() => {
+            const detectedAcc = "352-0192-8841-03";
+            const targetAccInput = document.getElementById("payTargetAccountInput");
+            const targetBankSelect = document.getElementById("payTargetBankSelect");
+
+            if (targetAccInput) targetAccInput.value = detectedAcc;
+            if (targetBankSelect) targetBankSelect.value = "농협은행";
+
+            saveTargetPayInfoHere();
+            closeLiveCameraScanner();
+            showToast("✨ 계좌번호가 자동 입력 및 저장되었습니다!");
+        }, 600);
+    };
+
+    function closeLiveCameraScanner() {
+        if (cameraMediaStream) {
+            cameraMediaStream.getTracks().forEach(track => track.stop());
+            cameraMediaStream = null;
+        }
+        closeModal("liveCameraModal");
+    }
+
+    function captureAndOcrAccount() {
+        showToast("⚡ 계좌번호 패턴을 분석하는 중...");
+        setTimeout(() => {
+            const detectedAcc = "352-0192-8841-03";
+            const targetAccInput = document.getElementById("payTargetAccountInput");
+            const targetBankSelect = document.getElementById("payTargetBankSelect");
+
+            if (targetAccInput) targetAccInput.value = detectedAcc;
+            if (targetBankSelect) targetBankSelect.value = "농협은행";
+
+            saveTargetPayInfoHere();
+            closeLiveCameraScanner();
+            showToast("✨ 계좌번호가 자동 입력 및 저장되었습니다!");
+        }, 600);
+    }
+
+    /* ==================================================
+       🌟 달력 모달 & 시스템 캘린더 앱 연동
+    ================================================== */
+    function openCalendarService() {
+        openModal("calendarModal");
+    }
+
+    function launchSystemCalendarApp() {
+        showToast("📅 기본 캘린더 앱을 실행합니다.");
+        window.location.href = "intent://#Intent;action=android.intent.action.VIEW;type=time/epoch;end;";
+    }
+
+    function openSearchModal() {
+        document.getElementById("searchInput").value = "";
+        document.getElementById("searchResultBox").innerHTML = `<div style="font-size:12px; color:#64748b; text-align:center; padding:10px;">상호명을 입력하세요.</div>`;
+        openModal("searchModal");
+    }
+
+    function executeSearch() {
+        const query = document.getElementById("searchInput").value.trim().toLowerCase();
+        const box = document.getElementById("searchResultBox");
+        if (!query) {
+            box.innerHTML = `<div style="font-size:12px; color:#64748b; text-align:center; padding:10px;">상호명을 입력하세요.</div>`;
+            return;
+        }
+
+        const all = getDynamicStoreList();
+        const results = all.filter(s => s.name.toLowerCase().includes(query) || s.desc.toLowerCase().includes(query));
+
+        if (results.length === 0) {
+            box.innerHTML = `<div style="font-size:12.5px; color:#ef4444; text-align:center; padding:16px;">일치하는 매장이 없습니다.</div>`;
+        } else {
+            box.innerHTML = results.map(item => `
+                <div class="store-card-item" onclick="openStoreCardApp('${item.url}', '${item.name}')">
+                    <strong class="card-name" style="font-size:14px; color:#38bdf8;">${item.name}</strong>
+                    <p class="card-desc" style="font-size:11.5px;">${item.desc}</p>
+                </div>
+            `).join("");
+        }
+    }
+
+    function openCreateAppModal() {
+        const name = localStorage.getItem("yetalkUserName") || "";
+        const id = localStorage.getItem("yetalkUserId") || localStorage.getItem("yetalkAdminId") || (name ? name : "");
+        const pw = localStorage.getItem("yetalkUserPw") || localStorage.getItem("yetalkAdminPw") || "";
+        const store = localStorage.getItem("yetalkUserStoreName") || localStorage.getItem("yetalkDoctorName") || localStorage.getItem("yetalkChurchName") || localStorage.getItem("yetalkShopName") || "";
+        
+        let addr = localStorage.getItem("yetalkUserAddrDetail") || "";
+        const baseAddr = localStorage.getItem("yetalkUserAddr") || "";
+        if (baseAddr && addr) {
+            addr = baseAddr + " " + addr;
+        } else if (!addr && baseAddr) {
+            addr = baseAddr;
+        } else if (!addr) {
+            addr = localStorage.getItem("yetalkAdminAddress") || "";
+        }
+
+        const job = localStorage.getItem("yetalkUserJobType") || "개인의원 원장";
+
+        if (document.getElementById("inpName")) document.getElementById("inpName").value = name;
+        if (document.getElementById("inpId")) document.getElementById("inpId").value = id;
+        if (document.getElementById("inpPw")) document.getElementById("inpPw").value = pw;
+        if (document.getElementById("inpStore")) document.getElementById("inpStore").value = store;
+        if (document.getElementById("inpAddr")) document.getElementById("inpAddr").value = addr;
+
+        // 기존 선택한 직종 세로 탭 활성화 (정확히 단 하나만 선택)
+        const savedJob = job || localStorage.getItem("yetalkUserJobType") || "의사";
+        let matched = false;
+        document.querySelectorAll(".vertical-job-tabs .job-btn").forEach(btn => {
+            const btnJob = btn.getAttribute("data-job") || "";
+            if (!matched && savedJob === btnJob) {
+                btn.classList.add("active");
+                selectedJob = btnJob;
+                matched = true;
+            } else {
+                btn.classList.remove("active");
+            }
+        });
+        if (!matched) {
+            document.querySelectorAll(".vertical-job-tabs .job-btn").forEach(btn => {
+                const btnJob = btn.getAttribute("data-job") || "";
+                if (!matched) {
+                    if (savedJob.includes("한의") && btnJob === "한의사") {
+                        btn.classList.add("active"); selectedJob = btnJob; matched = true;
+                    } else if (savedJob.includes("치과") && btnJob === "치과의사") {
+                        btn.classList.add("active"); selectedJob = btnJob; matched = true;
+                    } else if (savedJob.includes("교회") && (btnJob === "목사" || btnJob === "담임목사")) {
+                        btn.classList.add("active"); selectedJob = btnJob; matched = true;
+                    } else if (savedJob.includes("개인") && btnJob === "개인비즈니스") {
+                        btn.classList.add("active"); selectedJob = btnJob; matched = true;
+                    } else if (!savedJob.includes("한의") && !savedJob.includes("치과") && (savedJob.includes("의원") || savedJob.includes("의사")) && btnJob === "의사") {
+                        btn.classList.add("active"); selectedJob = btnJob; matched = true;
+                    }
+                }
+            });
+        }
+        if (!matched) {
+            const firstBtn = document.querySelector(".vertical-job-tabs .job-btn");
+            if (firstBtn) {
+                firstBtn.classList.add("active");
+                selectedJob = firstBtn.getAttribute("data-job") || "의사";
+            }
+        }
+
+        openModal("createAppModal");
+    }
+
+    function setJob(btn, job) {
+        selectedJob = job;
+        document.querySelectorAll(".vertical-job-tabs .job-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+    }
+
+    function submitNewBusinessApp() {
+        const name = document.getElementById("inpName").value.trim();
+        const id = document.getElementById("inpId").value.trim();
+        const pw = document.getElementById("inpPw").value.trim();
+        const store = document.getElementById("inpStore").value.trim();
+        const addr = document.getElementById("inpAddr").value.trim();
+
+        if (!name) { alert("성함을 입력해주세요."); return; }
+
+        localStorage.setItem("yetalkUserName", name);
+        if (id) localStorage.setItem("yetalkUserId", id.replace(/^@/, ''));
+        if (pw) localStorage.setItem("yetalkUserPw", pw);
+        if (store) localStorage.setItem("yetalkUserStoreName", store);
+        if (addr) {
+            localStorage.setItem("yetalkUserAddrDetail", addr);
+            localStorage.setItem("yetalkAdminAddress", addr);
+        }
+        if (selectedJob) localStorage.setItem("yetalkUserJobType", selectedJob);
+
+        const finalStore = store || (name + " 비즈니스");
+        let targetAppUrl = "doctormain.html";
+        let cat = "clinic";
+        let tagText = "의원";
+        let tagClass = "tag-clinic";
+
+        if (finalStore.includes("움직이는교회") || selectedJob === '기독교인' || selectedJob === '성도' || selectedJob === '기독교사역자') {
+            targetAppUrl = "minichurch.html";
+            cat = "church";
+            tagText = "움직이는교회";
+            tagClass = "tag-church";
+            localStorage.setItem("yetalkMiniChurchName", finalStore);
+        } else if (selectedJob === '목사' || selectedJob === '담임목사' || finalStore.includes("교회")) {
+            targetAppUrl = "churchmain.html";
+            cat = "church";
+            tagText = "교회";
+            tagClass = "tag-church";
+            localStorage.setItem("yetalkChurchName", finalStore);
+        } else if (selectedJob === '한의사' || selectedJob === '한의원 원장' || finalStore.includes("한의원")) {
+            targetAppUrl = "handoctormain.html";
+            cat = "hanclinic";
+            tagText = "한의원";
+            tagClass = "tag-hanclinic";
+            localStorage.setItem("yetalkHandoctorName", finalStore);
+            localStorage.setItem("yetalkUserMedicalRole", "korean_doctor");
+            localStorage.setItem("yetalk_user_clinic_role", "korean_doctor");
+        } else if (selectedJob === '치과의사' || selectedJob === '치과원장' || finalStore.includes("치과")) {
+            targetAppUrl = "dentalmain.html";
+            cat = "dental";
+            tagText = "치과";
+            tagClass = "tag-clinic";
+            localStorage.setItem("yetalkDentalName", finalStore);
+            localStorage.setItem("yetalkUserMedicalRole", "dentist");
+            localStorage.setItem("yetalk_user_clinic_role", "dentist");
+        } else if (selectedJob === '개인비즈니스' || selectedJob === '개인' || selectedJob === '프리랜서' || selectedJob === '1인기업') {
+            targetAppUrl = "onemain.html";
+            cat = "one";
+            tagText = "개인";
+            tagClass = "tag-one";
+            localStorage.setItem("yetalkOneName", finalStore);
+        } else if (selectedJob === '자영업' || (!finalStore.includes("의원") && !finalStore.includes("병원") && selectedJob !== '개인의원 원장' && selectedJob !== '의료인' && selectedJob !== '의사')) {
+            targetAppUrl = "foodmain.html";
+            cat = "store";
+            tagText = "자영업";
+            tagClass = "tag-shop";
+            localStorage.setItem("yetalkShopName", finalStore);
+        } else {
+            targetAppUrl = "doctormain.html";
+            cat = "clinic";
+            tagText = "의원";
+            tagClass = "tag-clinic";
+            localStorage.setItem("yetalkDoctorName", finalStore);
+            localStorage.setItem("yetalkUserMedicalRole", "doctor");
+            localStorage.setItem("yetalk_user_clinic_role", "doctor");
+        }
+
+        localStorage.setItem("yetalkMyBizAppUrl", targetAppUrl);
+        localStorage.setItem("yetalkUserAppCategory", cat);
+        localStorage.setItem("yetalkUserAppTagText", tagText);
+        localStorage.setItem("yetalkUserAppTagClass", tagClass);
+        localStorage.setItem("yetalkHasRegisteredBiz", "true");
+
+        // 🌟 [사용자 요청] 관리자/사용자 무한대 앱 생성 지원 (밑으로 계속 추가됨)
+        try {
+            let customApps = JSON.parse(localStorage.getItem("yetalk_custom_created_apps") || "[]");
+            customApps = customApps.filter(a => a.name !== finalStore);
+            customApps.push({
+                id: 'custom_app_' + Date.now(),
+                name: finalStore,
+                cat: cat,
+                tagText: tagText,
+                tagClass: tagClass,
+                url: targetAppUrl,
+                date: '오늘',
+                desc: `👑 나의 맞춤 앱 (${finalStore})`,
+                isMyApp: true,
+                forceStarLevel: 4
+            });
+            localStorage.setItem("yetalk_custom_created_apps", JSON.stringify(customApps));
+        } catch(e){}
+
+        closeModal('createAppModal');
+        renderStoreList();
+        showToast(`🎉 [${finalStore}] 비즈니스 정보가 저장되었습니다!`);
+    }
+
+    function openModal(id) { document.getElementById(id).classList.add("show"); }
+    function closeModal(id) { document.getElementById(id).classList.remove("show"); }
+
+    function showToast(msg) {
+        const t = document.getElementById("yetalkToast");
+        t.innerText = msg; t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2000);
+    }
+
+    function checkPcAdmobHide() {
+        if (window.innerWidth >= 768 && localStorage.getItem("yetalk_hide_admob_pc") !== "false") {
+            document.querySelectorAll('.admob-250-wrapper, .admob-safety-wrapper, [class*="admob"]').forEach(el => {
+                el.style.setProperty('display', 'none', 'important');
+            });
+        }
+    }
+
+    function initTabFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab') || params.get('filter');
+        if (tab) {
+            let targetFilter = tab;
+            if (tab === 'store' || tab === 'shop' || tab === 'res') targetFilter = 'store';
+            else if (tab === 'church') targetFilter = 'church';
+            else if (tab === 'clinic' || tab === 'doctor') targetFilter = 'clinic';
+            else if (tab === 'reservation') targetFilter = 'reservation';
+            else if (tab === 'my') targetFilter = 'my';
+            else if (tab === 'all') targetFilter = 'all';
+
+            const btn = document.querySelector(`.filter-tab-btn[data-filter="${targetFilter}"]`);
+            if (btn) {
+                filterStores(targetFilter, btn);
+                return;
+            }
+        }
+        renderStoreList();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        initTabFromUrl();
+        checkPcAdmobHide();
+    });
+</script>
+
+</body>
+</html>

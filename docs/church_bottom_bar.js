@@ -752,6 +752,13 @@ YETALK CHURCH COMMON BOTTOM NAV BAR (church_bottom_bar.js)
                     window.location.href = "church_gospel.html";
                 }
                 break;
+            case 'salvation':
+                if (location.pathname.includes('salvation')) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    window.location.href = "church_salvation.html";
+                }
+                break;
             case 'map':
                 if (location.pathname.includes('map')) {
                     window.scrollTo({ top: 0, behavior: 'smooth' });

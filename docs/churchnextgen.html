@@ -10,39 +10,43 @@
     <link rel="stylesheet" href="church_theme.css">
     <style>
         :root {
-            --safe-top: max(env(safe-area-inset-top, 0px) + 38px, 42px);
-            --header-h: calc(48px + var(--safe-top));
+            --safe-top: max(env(safe-area-inset-top, 0px), 32px);
+            --header-h: calc(46px + var(--safe-top));
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body {
+        html, body {
+            width: 100%; height: 100%; margin: 0; padding: 0;
             background: #090e1a; font-family: "Pretendard", -apple-system, sans-serif;
-            color: #ffffff; display: flex; justify-content: center; min-height: 100vh;
+            color: #ffffff; overflow: hidden;
         }
 
         .nextgen-shell {
-            width: 100%; max-width: 480px; min-height: 100vh; background: #0b1325;
-            display: flex; flex-direction: column; position: relative; border-left: 1px solid #1e293b; border-right: 1px solid #1e293b;
-            padding-bottom: 160px;
+            width: 100%; max-width: 480px; height: 100%; background: #0b1325;
+            display: flex; flex-direction: column; position: relative; margin: 0 auto;
+            border-left: 1px solid #1e293b; border-right: 1px solid #1e293b; overflow: hidden;
         }
 
-        /* 🌟 [사용자 요청] 최상단 한 줄 심플 헤더: < 다음세대 */
+        /* 🌟 [사용자 요청] 최상단 한 줄 심플 헤더: 기본 시간(상태표시줄) 바로 밑에서 시작 */
         .lobby-header-singleline {
-            height: var(--header-h); background: #0f172a; border-bottom: 1.5px solid #1e293b;
-            display: flex; align-items: center; justify-content: flex-start;
+            height: var(--header-h); min-height: var(--header-h); background: #0f172a; border-bottom: 1.5px solid #1e293b;
+            display: flex; align-items: center; justify-content: space-between;
             padding: var(--safe-top) 12px 6px 12px; position: sticky; top: 0; z-index: 100; gap: 8px;
+            box-sizing: border-box; flex-shrink: 0;
         }
         .btn-header-back {
             background: none; border: none; color: #38bdf8; font-size: 26px; font-weight: 900;
             cursor: pointer; padding: 2px 4px; line-height: 1; flex-shrink: 0;
         }
-        .header-title {
-            font-size: 16.5px; font-weight: 950; color: #ffffff; white-space: nowrap;
+        .header-title,
+        #dispNextgenHeaderTitle {
+            font-size: 16.5px !important; font-weight: 950 !important; color: #ffffff !important; white-space: nowrap;
             overflow: hidden; text-overflow: ellipsis;
         }
 
         .main-scroll-content {
-            flex: 1; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px;
+            flex: 1; padding: 12px 14px 140px 14px; display: flex; flex-direction: column; gap: 10px;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
         }
 
         /* 방 카드 리스트 */
@@ -81,11 +85,11 @@
 
         /* 하단 고정 100 애드몹 (정규 100 대형 배너 규격) */
         .bottom-fixed-admob-footer {
-            position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+            position: fixed; bottom: 0; left: 0; right: 0; margin: 0 auto;
             width: 100%; max-width: 480px; height: 130px; background: #0b1326;
             border-top: 1.5px solid #1e3a5f; display: flex; flex-direction: column;
             align-items: center; justify-content: center; gap: 4px; z-index: 150;
-            padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px); box-sizing: border-box;
+            padding-bottom: max(env(safe-area-inset-bottom, 0px) + 6px, 10px); box-sizing: border-box;
         }
         .admob-banner-100-slot {
             width: 320px; max-width: calc(100% - 24px); height: 100px;
@@ -112,10 +116,13 @@
 <body>
 
 <div class="nextgen-shell">
-    <!-- 🌟 [사용자 요청] 최상단 한 줄 헤더: < 다음세대 -->
+    <!-- 🌟 [사용자 요청] 최상단 한 줄 헤더: < 다음세대 + 예톡TV 버튼 -->
     <header class="lobby-header-singleline">
-        <button type="button" class="btn-header-back" onclick="goToChurchHome()">‹</button>
-        <strong class="header-title" id="dispNextgenHeaderTitle">다음세대 (청년·청소년·어린이)</strong>
+        <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+            <button type="button" class="btn-header-back" onclick="goToChurchHome()">‹</button>
+            <strong class="header-title" id="dispNextgenHeaderTitle" style="color:#ffffff !important; font-size:16.5px; font-weight:950;">🌱 다음세대 (청년·청소년·어린이)</strong>
+        </div>
+        <button type="button" onclick="location.href='index.html'" style="background:#dc2626; color:#ffffff; border:none; border-radius:14px; font-size:11px; font-weight:950; padding:4px 9px; cursor:pointer; flex-shrink:0;">📺 예톡TV</button>
     </header>
 
     <!-- 메인 스크롤 콘텐츠: 복잡한 2층 탭/설명박스 없이 5대 부서 카드 바로 노출 -->
@@ -163,6 +170,33 @@
     </div>
 </div>
 
+<!-- 🌟 참여 신청 팝업 모달 -->
+<div class="modal-overlay" id="modalJoinRequest">
+    <div class="modal-card" style="max-width:360px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #334155; padding-bottom:6px;">
+            <strong style="color:#38bdf8; font-size:15px; display:flex; align-items:center; gap:5px;">✍️ 다음세대 부서 참여 신청</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('modalJoinRequest')">✕</button>
+        </div>
+        <div style="font-size:13px; color:#cbd5e1; line-height:1.5; word-break:keep-all;">
+            <strong id="txtJoinTargetRoomName" style="color:#facc15;">열린청년교회</strong> 부서는 담당 방장의 승인이 필요한 <strong>비공개 부서</strong>입니다.
+        </div>
+        <div>
+            <label style="font-size:11px; color:#facc15; font-weight:800; display:block; margin-bottom:3px;">신청자 성함 / 소속</label>
+            <input type="text" class="modal-input" id="inpJoinApplicantName" placeholder="예: 김청년 성도">
+        </div>
+        <div>
+            <label style="font-size:11px; color:#94a3b8; font-weight:800; display:block; margin-bottom:3px;">담당자에게 전할 인사말 (선택)</label>
+            <input type="text" class="modal-input" id="inpJoinApplicantMessage" placeholder="예: 부서 모임에 함께하고 싶습니다!">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+            <button type="button" style="background:#334155; color:white; border:none; padding:7px 14px; border-radius:6px; font-size:12px; cursor:pointer;" onclick="closeModal('modalJoinRequest')">취소</button>
+            <button type="button" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:white; border:none; padding:7px 18px; border-radius:6px; font-size:12px; font-weight:900; cursor:pointer;" onclick="submitJoinRequest()">신청 전송</button>
+        </div>
+    </div>
+</div>
+
+<div class="yetalk-toast" id="toastBox"></div>
+
 <script>
     const FOUR_VERSES = [
         { c: "1/4", t: "“마땅히 행할 길을 아이에게 가르치라 그리하면 늙어도 그것을 떠나지 아니하리라 (잠 22:6)”" },
@@ -173,29 +207,61 @@
 
     let nextgenRooms = [];
     let editingRoomId = null;
+    let pendingJoinRoomId = null;
 
-    // 🌟 [사용자 요청] 다음세대 (열린청년교회, 청소년교회, 어린이부, 유치부, 유아부) 5대 기본 부서 완벽 등록
+    // 🌟 실전 데이터: 방장이 아직 없는 빈방 상태 (가짜 방장/가짜 회원/가짜 대기자 완전 제거)
     const DEFAULT_NEXTGEN_ROOMS = [
-        { id: "ng_1", name: "열린청년교회", cat: "youth", leader: "청년교회 담당교역자" },
-        { id: "ng_2", name: "청소년교회", cat: "youth", leader: "청소년교회 지도교사" },
-        { id: "ng_3", name: "어린이부", cat: "kids", leader: "어린이부 부장" },
-        { id: "ng_4", name: "유치부", cat: "kids", leader: "유치부 담당교사" },
-        { id: "ng_5", name: "유아부", cat: "kids", leader: "유아부 교사" }
+        { id: "ng_1", name: "+ 열린청년교회 (청년부 빈방)", cat: "youth", leader: "", isPrivate: false, members: [], pendingRequests: [] },
+        { id: "ng_2", name: "+ 청소년교회 (중고등부 빈방)", cat: "youth", leader: "", isPrivate: false, members: [], pendingRequests: [] },
+        { id: "ng_3", name: "+ 어린이부 (초등부 빈방)", cat: "kids", leader: "", isPrivate: false, members: [], pendingRequests: [] },
+        { id: "ng_4", name: "+ 유치부 (유아유치 빈방)", cat: "kids", leader: "", isPrivate: false, members: [], pendingRequests: [] },
+        { id: "ng_5", name: "+ 다음세대 (신설 빈방)", cat: "kids", leader: "", isPrivate: false, members: [], pendingRequests: [] }
     ];
+
+    function sanitizeRoom(r) {
+        if (!r.members || !Array.isArray(r.members)) {
+            r.members = r.leader ? [r.leader] : [];
+        }
+        if (!r.pendingRequests || !Array.isArray(r.pendingRequests)) {
+            r.pendingRequests = [];
+        }
+        r.isPrivate = !!r.isPrivate;
+        return r;
+    }
+
+    function getCurrentUser() {
+        return (localStorage.getItem("yetalkUserName") || localStorage.getItem("yetalkUserId") || "나").trim();
+    }
+
+    function canUserEnterRoom(room) {
+        if (!room.isPrivate) return true;
+        const me = getCurrentUser();
+        if (room.leader && (room.leader === me || me.includes("담당") || me.includes("방장") || me.includes("부장"))) return true;
+        if (room.members && (room.members.includes(me) || room.members.includes("나") || room.members.some(m => me && m.includes(me)))) return true;
+        return false;
+    }
+
+    function isUserPending(room) {
+        const me = getCurrentUser();
+        return room.pendingRequests && (room.pendingRequests.includes(me) || room.pendingRequests.includes("나"));
+    }
 
     function initPage() {
         const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
         document.body.setAttribute('data-theme', savedTheme);
 
-        const saved = localStorage.getItem("yetalk_nextgen_rooms_list_v2");
+        const saved = localStorage.getItem("yetalk_nextgen_rooms_list_v6");
         if (saved) {
-            try { nextgenRooms = JSON.parse(saved); } catch(e) { nextgenRooms = DEFAULT_NEXTGEN_ROOMS; }
+            try { nextgenRooms = JSON.parse(saved).map(sanitizeRoom); } catch(e) { nextgenRooms = DEFAULT_NEXTGEN_ROOMS.map(sanitizeRoom); }
         } else {
-            nextgenRooms = DEFAULT_NEXTGEN_ROOMS;
-            localStorage.setItem("yetalk_nextgen_rooms_list_v2", JSON.stringify(nextgenRooms));
+            nextgenRooms = DEFAULT_NEXTGEN_ROOMS.map(sanitizeRoom);
         }
-
+        saveAllRoomsToStorage();
         renderRooms();
+    }
+
+    function saveAllRoomsToStorage() {
+        localStorage.setItem("yetalk_nextgen_rooms_list_v6", JSON.stringify(nextgenRooms));
     }
 
     function renderRooms() {
@@ -203,21 +269,45 @@
         container.innerHTML = "";
 
         nextgenRooms.forEach(r => {
-            const hasLeader = r.leader && r.leader.trim() !== "";
-            const leaderText = hasLeader ? `👤 담당/방장: ${r.leader}` : `⚠️ 방장 미등록 (등록 시 활성화)`;
+            const isUnopened = !r.leader || r.leader.trim() === "" || r.name.startsWith("+");
+            const leaderText = isUnopened ? `👤 빈방 (입장 후 방장 등록)` : `👤 담당/방장: ${r.leader}`;
+
+            const isPrivate = !!r.isPrivate;
+            const canEnter = canUserEnterRoom(r);
+            const isPending = isUserPending(r);
+
+            // 🌟 [사용자 요청] 밖에서는 설정 버튼 완전 제거!
+            // 상태는 3가지: 참여 / 승인대기 / 참여요청
+            // 모든 경우에 [입장 ▸] 글자는 항상 표시!
+            let statusBadgeHtml = "";
+
+            if (!isPrivate || canEnter) {
+                // 1. 참여 상태 (승인되었거나 공개방이거나 빈방)
+                statusBadgeHtml = `<span style="font-size:11px; font-weight:900; color:#10b981; background:rgba(16,185,129,0.14); border:1px solid rgba(16,185,129,0.35); border-radius:6px; padding:3px 7px; white-space:nowrap;">참여</span>`;
+            } else if (isPending) {
+                // 2. 승인대기 상태
+                statusBadgeHtml = `<button type="button" style="font-size:11px; font-weight:900; color:#f59e0b; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); border-radius:6px; padding:3px 7px; cursor:pointer; white-space:nowrap;" onclick="event.stopPropagation(); showToast('⏳ 담당자의 참여 승인을 기다리고 있습니다.');">승인대기</button>`;
+            } else {
+                // 3. 참여요청 상태 (비공개방 미신청)
+                statusBadgeHtml = `<button type="button" style="font-size:11px; font-weight:950; color:#ffffff; background:linear-gradient(135deg, #ef4444, #dc2626); border:1px solid #f87171; border-radius:6px; padding:3px 8px; cursor:pointer; box-shadow:0 2px 6px rgba(220,38,38,0.35); white-space:nowrap;" onclick="event.stopPropagation(); openJoinRequestModal('${r.id}')">참여요청</button>`;
+            }
+
+            const actionHtml = `
+                ${statusBadgeHtml}
+                <span style="color:#38bdf8; font-size:13.5px; font-weight:950; padding:2px 4px; white-space:nowrap;">입장 ▸</span>
+            `;
 
             const card = document.createElement("div");
-            card.className = `room-card ${hasLeader ? 'leader-active' : ''}`;
+            card.className = `room-card ${(!isUnopened) ? 'leader-active' : ''}`;
             card.onclick = () => enterRoomBoard(r);
 
             card.innerHTML = `
                 <div class="room-info-col">
-                    <span class="room-name-title">${r.name}</span>
+                    <span class="room-name-title">${escapeHtml(r.name)}</span>
                     <span class="room-leader-tag">${leaderText}</span>
                 </div>
                 <div class="room-action-wrap">
-                    <button type="button" class="btn-room-edit-gear" onclick="event.stopPropagation(); openEditRoomModal('${r.id}')">✏️ 설정</button>
-                    <span style="color:#38bdf8; font-size:13px; font-weight:900;">입장 ▸</span>
+                    ${actionHtml}
                 </div>
             `;
             container.appendChild(card);
@@ -225,11 +315,54 @@
     }
 
     function enterRoomBoard(room) {
+        if (room.isPrivate && !canUserEnterRoom(room)) {
+            if (isUserPending(room)) {
+                showToast("⏳ 담당자의 참여 승인을 기다리고 있습니다.");
+            } else {
+                showToast("🔒 비공개 부서입니다. [참여요청]을 진행해주세요.");
+                openJoinRequestModal(room.id);
+            }
+            return;
+        }
+
         sessionStorage.setItem("nextgen_board_room_id", room.id);
         sessionStorage.setItem("nextgen_board_room_name", room.name);
         sessionStorage.setItem("nextgen_board_leader", room.leader || "");
         sessionStorage.setItem("churchnextgen_active_dept", room.name);
         location.href = "churchnextgen_board.html";
+    }
+
+    // 🌟 참여 신청 모달 관련
+    function openJoinRequestModal(roomId) {
+        const room = nextgenRooms.find(r => r.id === roomId);
+        if (!room) return;
+
+        pendingJoinRoomId = roomId;
+        document.getElementById("txtJoinTargetRoomName").innerText = room.name;
+        document.getElementById("inpJoinApplicantName").value = getCurrentUser();
+        document.getElementById("inpJoinApplicantMessage").value = "";
+        openModal("modalJoinRequest");
+    }
+
+    function submitJoinRequest() {
+        if (!pendingJoinRoomId) return;
+        const name = document.getElementById("inpJoinApplicantName").value.trim();
+        if (!name) { alert("성함 또는 직분을 입력해주세요."); return; }
+
+        const room = nextgenRooms.find(r => r.id === pendingJoinRoomId);
+        if (!room) return;
+
+        if (!room.pendingRequests) room.pendingRequests = [];
+        if (!room.pendingRequests.includes(name)) {
+            room.pendingRequests.push(name);
+        }
+        localStorage.setItem("yetalkUserName", name);
+
+        saveAllRoomsToStorage();
+        closeModal("modalJoinRequest");
+        renderRooms();
+        showToast(`📢 [${room.name}] 부서에 참여 신청을 보냈습니다. 담당자의 승인을 기다려주세요.`);
+        pendingJoinRoomId = null;
     }
 
     function openEditRoomModal(roomId) {
@@ -244,29 +377,30 @@
     }
 
     function openAddRoomModal() {
-        editingRoomId = null;
-        document.getElementById("modalRoomEditTitle").innerText = "새 다음세대 부서 개설";
-        document.getElementById("inpRoomName").value = "";
-        document.getElementById("inpLeaderName").value = "";
-        openModal("roomEditModal");
+        const newId = "ng_" + Date.now();
+        const newRoom = sanitizeRoom({ id: newId, name: "+ 다음세대 (새 빈방)", leader: "", cat: "general", isPrivate: false, members: [getCurrentUser()], pendingRequests: [] });
+        nextgenRooms.push(newRoom);
+        saveAllRoomsToStorage();
+        renderRooms();
+        showToast("➕ 새 다음세대 빈방이 개설되었습니다. 입장하여 방장실에서 부서 이름을 설정해주세요.");
+        enterRoomBoard(newRoom);
     }
 
     function saveRoomData() {
-        const name = document.getElementById("inpRoomName").value.trim();
-        const leader = document.getElementById("inpLeaderName").value.trim();
-        if (!name) { alert("부서 이름을 입력해주세요."); return; }
-
-        if (editingRoomId) {
-            const r = nextgenRooms.find(item => item.id === editingRoomId);
-            if (r) { r.name = name; r.leader = leader; }
-        } else {
-            const newId = "ng_" + Date.now();
-            nextgenRooms.push({ id: newId, name: name, leader: leader, cat: "general" });
-        }
-
-        localStorage.setItem("yetalk_nextgen_rooms_list_v2", JSON.stringify(nextgenRooms));
+        // 밖의 수정 모달은 사용하지 않으며, 방장실에서 설정함
         closeModal("roomEditModal");
-        renderRooms();
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById("toastBox");
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
     let verseIdx = 0;

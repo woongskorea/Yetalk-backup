@@ -43,6 +43,43 @@
         body[data-theme="white"] .nav-tab-item.active .nav-tab-label { color: #0284c7 !important; }
         body[data-theme="white"] .admob-policy-safe-separator { background: #ffffff !important; border-top-color: #f1f5f9 !important; }
 
+        /* 🌟 [구글 정책 엄격 준수] 컴퓨터(PC 웹 환경) 및 iframe 임베드 시 애드몹 100% 완전 원천 차단 */
+        @media (min-width: 768px), screen and (min-width: 1024px) {
+            .church-fixed-admob-footer,
+            .grace-admob-250-slot,
+            .coupang-admob-slot,
+            .admob-policy-safe-separator,
+            [class*="admob"],
+            [id*="admob"],
+            [class*="Admob"],
+            [id*="Admob"] {
+                display: none !important;
+                height: 0 !important;
+                min-height: 0 !important;
+                max-height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                visibility: hidden !important;
+                pointer-events: none !important;
+                overflow: hidden !important;
+            }
+        }
+        html.is-pc-env [class*="admob"],
+        html.is-pc-env [id*="admob"],
+        body.is-pc-frame [class*="admob"],
+        body.is-pc-frame [id*="admob"],
+        .is-pc-env .church-fixed-admob-footer,
+        .is-pc-frame .church-fixed-admob-footer {
+            display: none !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
         body[data-theme="black"] { background: #040812 !important; color: #f8fafc !important; }
         body[data-theme="black"] .church-shell { background: #040812 !important; }
         body[data-theme="black"] .church-fixed-header { background: #0b1120 !important; border-bottom: 2px solid #1e293b !important; }
@@ -333,8 +370,8 @@
             <strong class="header-church-title" id="churchName">예톡행복한교회</strong>
         </div>
         <div class="church-header-controls">
-            <!-- 🌟 my 좌측: 네모 형태 색상 순환 버튼 -->
-            <button type="button" class="theme-cycle-button" id="themeCycleButton" onclick="cycleChurchTheme()" title="테마 색상 변경"></button>
+            <!-- 🌟 상단 단색 화이트 기본 고정 (다양한 색상 순환 버튼 숨김) -->
+            <button type="button" class="theme-cycle-button" id="themeCycleButton" style="display:none !important;" onclick="cycleChurchTheme()" title="기본 단색 화이트 모드"></button>
             <!-- 🌟 성도가입 전용 단일 버튼 (my 삭제) -->
             <button type="button" class="btn-header-join-only" onclick="openSimpleMemberJoinModal()" title="교회 성도 간편 가입">
                 <span>⛪</span> 성도가입
@@ -393,7 +430,7 @@
         <div id="worshipSubContentArea" style="display:none; width:100%; flex-direction:column;"></div>
     </main>
 
-    <!-- 4층-상: 하단 4대 고정 메뉴 바 (카드 이미지 맨 하단 일체형으로 통합되어 숨김 처리) -->
+    <!-- 4층-상: 하단 5대 고정 메뉴 바 (카드 이미지 맨 하단 일체형으로 통합되어 숨김 처리) -->
     <nav class="church-fixed-footer-nav" id="churchFixedFooterNav" style="display:none !important;">
         <button type="button" class="nav-tab-item" onclick="handleBottomNav('tv')">
             <span class="nav-tab-icon">📺</span>
@@ -403,9 +440,13 @@
             <span class="nav-tab-icon">📖</span>
             <span class="nav-tab-label">복음</span>
         </button>
+        <button type="button" class="nav-tab-item" onclick="handleBottomNav('salvation')">
+            <span class="nav-tab-icon">✝️</span>
+            <span class="nav-tab-label">구원</span>
+        </button>
         <button type="button" class="nav-tab-item" onclick="handleBottomNav('map')">
             <span class="nav-tab-icon">📍</span>
-            <span class="nav-tab-label">약도</span>
+            <span class="nav-tab-label">오시는길</span>
         </button>
         <button type="button" class="nav-tab-item tab-offering" onclick="handleBottomNav('offering')">
             <span class="nav-tab-icon">💳</span>
@@ -651,7 +692,7 @@
             </p>
             <!-- 이름 인풋 -->
             <div style="width:100%; margin-bottom:10px;">
-                <input type="text" id="inpSimpleJoinName" value="최웅식" placeholder="성도 이름 입력" style="width:100%; height:48px; background:#e8edf3; border:none; border-radius:12px; padding:0 16px; font-size:15px; font-weight:800; color:#0f172a; outline:none; text-align:left; font-family:inherit;">
+                <input type="text" id="inpSimpleJoinName" value="" placeholder="성도 이름 입력 (예: 성도, 김예톡)" style="width:100%; height:48px; background:#e8edf3; border:none; border-radius:12px; padding:0 16px; font-size:15px; font-weight:800; color:#0f172a; outline:none; text-align:left; font-family:inherit;">
             </div>
             <!-- 전화번호 인풋 -->
             <div style="width:100%; margin-bottom:10px;">
@@ -1025,16 +1066,11 @@
         if (viewport) viewport.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    /* 5대 은혜 테마 순환 (화이트 기본 -> 블랙 -> 분홍 -> 노랑 -> 파랑) */
-    const CHURCH_THEMES = ['white', 'black', 'pink', 'yellow', 'blue'];
+    /* 🌟 기본 단색 화이트 테마 고정 */
     function cycleChurchTheme() {
-        const cur = document.body.getAttribute('data-theme') || 'white';
-        let nextIdx = (CHURCH_THEMES.indexOf(cur) + 1) % CHURCH_THEMES.length;
-        const nextTheme = CHURCH_THEMES[nextIdx];
-        document.body.setAttribute('data-theme', nextTheme);
-        localStorage.setItem('yetalk_active_theme', nextTheme);
-        const nameMap = { white: "순백색", black: "다크 블랙", pink: "연한 분홍", yellow: "연한 노랑", blue: "연한 파랑" };
-        showToast(`✨ 테마: ${nameMap[nextTheme] || nextTheme}`);
+        document.body.setAttribute('data-theme', 'white');
+        localStorage.setItem('yetalk_active_theme', 'white');
+        showToast("✨ 기본 단색 화이트 테마가 적용되어 있습니다.");
     }
 
 
@@ -1048,11 +1084,12 @@
         const inpPhone = document.getElementById("inpSimpleJoinPhone");
         const inpAutoId = document.getElementById("inpSimpleJoinAutoId");
 
-        const defaultName = savedName || "최웅식";
+        let defaultName = savedName || "";
+        if (defaultName.includes("최웅식") || defaultName.includes("최용식")) defaultName = "성도";
         const defaultPhone = savedPhone || "010-1234-5678";
         let autoId = savedId;
-        if (!autoId) {
-            autoId = (defaultName === "최웅식" || defaultName.includes("최")) ? "최예톡" : `ye_${defaultName}`;
+        if (!autoId || autoId.includes("woongsik")) {
+            autoId = (defaultName && defaultName !== "성도") ? `ye_${defaultName}` : "최예톡";
         }
 
         if (inpName) inpName.value = defaultName;
@@ -1064,8 +1101,7 @@
             inpName.oninput = () => {
                 const curN = inpName.value.trim();
                 if (inpAutoId) {
-                    if (curN === "최웅식") inpAutoId.value = "최예톡";
-                    else if (curN) inpAutoId.value = `ye_${curN}`;
+                    if (curN) inpAutoId.value = `ye_${curN}`;
                     else inpAutoId.value = "ye_member";
                 }
             };
@@ -1085,12 +1121,16 @@
         const inpPhone = document.getElementById("inpSimpleJoinPhone");
         const inpAutoId = document.getElementById("inpSimpleJoinAutoId");
 
-        const name = (inpName?.value || "최웅식").trim() || "최웅식";
+        let name = (inpName?.value || "").trim() || "성도";
+        if (name.includes("최웅식") || name.includes("최용식")) name = "성도";
         const phone = (inpPhone?.value || "010-1234-5678").trim() || "010-1234-5678";
         let myId = (inpAutoId?.value || "").trim();
-        if (!myId) myId = (name === "최웅식") ? "최예톡" : `ye_${name}`;
+        if (!myId || myId.includes("woongsik")) myId = (name === "성도") ? "최예톡" : `ye_${name}`;
         let currentChurch = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
-        if (!currentChurch || currentChurch.includes("움직이는교회")) currentChurch = "예톡행복한교회";
+        if (!currentChurch || currentChurch.includes("움직이는") || currentChurch.includes("작은교회") || currentChurch.includes("최웅식") || currentChurch.includes("최용식") || currentChurch.includes("김예톡") || currentChurch.includes("최예톡")) {
+            currentChurch = "예톡행복한교회";
+            localStorage.setItem("yetalkChurchName", "예톡행복한교회");
+        }
 
         // 🌟 1. 예톡 홈 정회원 자동 동시 가입 및 로그인 유지
         localStorage.setItem("yetalkLoggedIn", "true");
@@ -1564,11 +1604,12 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
-        document.body.setAttribute('data-theme', savedTheme);
+        // 🌟 [사용자 요청] 기본 단색 하얀색 바탕색으로 고정 (검은 글자 최고 가독성)
+        localStorage.setItem('yetalk_active_theme', 'white');
+        document.body.setAttribute('data-theme', 'white');
 
         let churchName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
-        if (!churchName || churchName.includes("움직이는") || churchName.includes("김예톡") || churchName.includes("최예톡")) {
+        if (!churchName || churchName.includes("움직이는") || churchName.includes("작은교회") || churchName.includes("최웅식") || churchName.includes("최용식") || churchName.includes("김예톡") || churchName.includes("최예톡")) {
             churchName = "예톡행복한교회";
             localStorage.setItem("yetalkChurchName", "예톡행복한교회");
         }
@@ -1608,6 +1649,15 @@
     }
     window.addEventListener("pageshow", checkPcAdmobHide);
     window.addEventListener("resize", checkPcAdmobHide);
+</script>
+<script type="module">
+    import { db, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "./firebase.js";
+    window.yetalkDb = db;
+    window.yetalkFs = { doc, getDoc, setDoc, onSnapshot, serverTimestamp };
+    console.log("Church Firebase Firestore module loaded.");
+    if (typeof window.syncChurchFromCloud === "function") {
+        window.syncChurchFromCloud();
+    }
 </script>
 <script src="churchmain.js"></script>
 </body>

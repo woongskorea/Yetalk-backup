@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>주보 - 예톡행복한교회</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;800;900&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="church_theme.css">
+    <style>
+        :root {
+            --safe-top: max(env(safe-area-inset-top, 0px) + 12px, 14px);
+            --header-base-h: 46px;
+            --header-h: calc(var(--header-base-h) + var(--safe-top));
+            --tab-h: 0px;
+            --admob-h: max(env(safe-area-inset-bottom, 0px) + 85px, 90px);
+            --view-h: calc(100dvh - var(--header-h) - var(--tab-h) - var(--admob-h));
+            --primary: #0284c7;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            width: 100%; height: 100%; background: #060b14;
+            font-family: "Pretendard", -apple-system, sans-serif; color: #0f172a;
+            overflow: hidden;
+        }
+
+        .jubo-shell {
+            width: 100%; max-width: 520px; height: 100dvh; margin: 0 auto;
+            background: #0b1120; display: flex; flex-direction: column; position: relative;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.9); overflow: hidden;
+        }
+
+        /* 1층 헤더 */
+        .jubo-header {
+            height: var(--header-h); background: #0f172a; border-bottom: 1.5px solid #1e3a5f;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: var(--safe-top) 12px 6px 12px; flex-shrink: 0; z-index: 100;
+        }
+        .header-left-box { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
+        .btn-back {
+            background: none; border: none; font-size: 24px; font-weight: 900;
+            color: #38bdf8; cursor: pointer; padding: 0 4px; line-height: 1; flex-shrink: 0;
+        }
+        .header-title-text {
+            font-size: 18px; font-weight: 950; color: #ffffff; letter-spacing: -0.3px;
+            white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        .dual-admin-btn-group { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+        .btn-admin-edit {
+            background: linear-gradient(135deg, #dc2626, #b91c1c); border: 1.2px solid #ef4444; color: #ffffff;
+            border-radius: 8px; font-size: 11.5px; font-weight: 900; padding: 5px 10px; cursor: pointer;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35); white-space: nowrap;
+        }
+
+        /* 2층 가로 롤링 칩 메뉴: 상단 공간 낭비 방지를 위해 숨김 처리 (사용자 요청 반영) */
+        .jubo-tabs {
+            display: none !important;
+            height: 0px !important;
+            overflow: hidden !important;
+        }
+
+        /* 🌟 3층 세로 연속 스냅 뷰포트 (위아래 연속 스크롤 + 정확한 탁! 탁! 스냅) */
+        .jubo-viewport {
+            flex: 1; height: var(--view-h);
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+            padding: 8px 12px calc(var(--admob-h) + 16px) 12px;
+        }
+        .jubo-viewport::-webkit-scrollbar { display: none; }
+
+        /* 🌟 각 면: 내용이 길어지면 무제한 확장되고, 상단 기준 탁! 탁! 스냅 */
+        .snap-page-section {
+            width: 100%;
+            min-height: calc(var(--view-h) - 16px);
+            scroll-snap-align: start;
+            scroll-snap-stop: normal;
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 13px 14px 16px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.45);
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .snap-page-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .page-badge-pill {
+            font-size: 11.5px; font-weight: 950; color: #0284c7;
+            background: #e0f2fe; border: 1px solid #bae6fd;
+            padding: 2px 8px; border-radius: 6px; width: fit-content;
+        }
+
+        .btn-direct-edit-badge {
+            background: #0284c7; border: none; color: #ffffff;
+            font-size: 11.5px; font-weight: 900; padding: 3px 9px; border-radius: 6px;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+        }
+        .btn-direct-edit-badge:active { transform: scale(0.93); }
+
+        .jubo-main-title {
+            font-size: 18.5px; font-weight: 950; color: #0f172a; line-height: 1.35; letter-spacing: -0.4px;
+        }
+
+        /* 사진/이미지 뷰 */
+        .jubo-attached-img-box {
+            width: 100%; border-radius: 12px; overflow: hidden;
+            border: 1px solid #cbd5e1; margin: 3px 0; background: #f8fafc;
+        }
+        .jubo-attached-img-box img {
+            width: 100%; height: auto; max-height: 480px; object-fit: contain; display: block;
+        }
+
+        /* 1면 순서 테이블: 또렷하고 굵은 글자 (희미함 완전 해결 & 11개 순서 컴팩트 배치) */
+        .order-table { width: 100%; border-collapse: collapse; margin-top: 4px; }
+        .order-table tr { border-bottom: 1.2px solid #e2e8f0; }
+        .order-table td { padding: 5px 3px; font-size: 13.5px; font-weight: 850; color: #0f172a; line-height: 1.35; }
+        .order-table td.col-part { font-weight: 950; color: #0369a1; width: 76px; font-size: 14px; white-space: nowrap; }
+        .order-table td.col-who { text-align: right; color: #334155; font-size: 13px; font-weight: 850; width: 85px; white-space: nowrap; }
+
+        .sermon-highlight-box {
+            display: none;
+        }
+
+        /* 2~6면 본문: 진하고 선명한 서체 */
+        .jubo-body-text {
+            font-size: 16px; line-height: 1.85; color: #0f172a; word-break: keep-all; white-space: pre-line;
+            font-weight: 750;
+        }
+
+        @media (min-width: 1024px) {
+            .jubo-shell { max-width: 1240px !important; }
+            .snap-page-section { max-width: 1100px; margin-left: auto; margin-right: auto; padding: 26px 32px; }
+            .jubo-main-title { font-size: 24px; }
+            .jubo-body-text { font-size: 17.5px; line-height: 1.9; }
+            .order-table td { padding: 10px 6px; font-size: 16px; }
+            .order-table td.col-part { font-size: 16.5px; width: 120px; }
+            .order-table td.col-who { font-size: 15.5px; }
+        }
+
+        .inp-table-cell {
+            background: #1e293b; border: 1px solid #334155; border-radius: 6px;
+            color: #ffffff; padding: 6px 8px; font-size: 13px; width: 100%; outline: none; font-family: inherit;
+        }
+        .inp-table-cell:focus { border-color: #38bdf8; }
+        .btn-table-del {
+            background: #dc2626; border: none; color: white; border-radius: 6px;
+            padding: 5px 8px; font-size: 12px; cursor: pointer; line-height: 1; font-weight: 900;
+        }
+
+        /* 🌟 [사용자 요청] 종이 주보 사진 / 디지털 순서표 1-터치 전환 탭 바 */
+        .jubo-view-mode-bar {
+            display: flex; gap: 6px; background: #f1f5f9; border-radius: 10px;
+            padding: 4px; margin-bottom: 8px; flex-shrink: 0;
+        }
+        .btn-mode-tab {
+            flex: 1; border: none; background: transparent; padding: 7px 10px;
+            border-radius: 8px; font-size: 13px; font-weight: 850; color: #64748b;
+            cursor: pointer; transition: all 0.2s ease; display: inline-flex;
+            align-items: center; justify-content: center; gap: 4px;
+        }
+        .btn-mode-tab.active {
+            background: #ffffff; color: #0284c7; box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            font-weight: 950;
+        }
+
+        /* 🌟 종이 주보 세로 사진 래퍼 (A4 세로 비율에 최적화, 표 없이 사진만 전면 표시) */
+        .jubo-paper-photo-wrap {
+            width: 100%; max-width: 580px; margin: 0 auto; display: flex;
+            flex-direction: column; align-items: center; gap: 6px; cursor: pointer;
+            position: relative;
+        }
+        .jubo-paper-img {
+            width: 100%; height: auto; max-height: calc(var(--view-h) - 120px);
+            object-fit: contain; border-radius: 12px; border: 1.5px solid #cbd5e1;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15); background: #ffffff;
+            transition: transform 0.15s ease;
+        }
+        .jubo-paper-img:active { transform: scale(0.98); }
+        .jubo-paper-zoom-hint {
+            display: inline-flex; align-items: center; gap: 4px; background: rgba(15, 23, 42, 0.85);
+            color: #38bdf8; font-size: 11.5px; font-weight: 850; padding: 5px 12px;
+            border-radius: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        }
+
+        .jubo-paper-empty-card {
+            width: 100%; max-width: 580px; margin: 15px auto; padding: 30px 16px;
+            background: #f8fafc; border: 2px dashed #94a3b8; border-radius: 14px;
+            text-align: center; cursor: pointer; transition: background 0.2s;
+        }
+        .jubo-paper-empty-card:active { background: #f1f5f9; }
+
+        /* 🌟 종이 주보 전체화면 고해상도 확대 팝업 모달 */
+        .jubo-zoom-modal {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.94);
+            z-index: 10050; display: none; flex-direction: column; align-items: center;
+            justify-content: flex-start; padding: 14px; overflow-y: auto; -webkit-overflow-scrolling: touch;
+        }
+        .jubo-zoom-modal.open { display: flex; }
+        .jubo-zoom-top-bar {
+            width: 100%; max-width: 800px; display: flex; justify-content: space-between;
+            align-items: center; padding: 6px 0 10px 0; color: #ffffff;
+        }
+        .jubo-zoom-close-btn {
+            background: rgba(255, 255, 255, 0.2); border: none; color: #ffffff;
+            font-size: 22px; font-weight: 900; width: 40px; height: 40px; border-radius: 50%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .jubo-zoom-img {
+            max-width: 100%; width: auto; height: auto; border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8); object-fit: contain;
+        }
+
+        /* 4층 하단 고정 100 애드몹 */
+        .bottom-fixed-admob-footer {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: var(--admob-h); background: #080d1a; border-top: 1.5px solid #1e3a5f;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding-top: 6px; z-index: 100; box-shadow: 0 -4px 20px rgba(0,0,0,0.9);
+        }
+        .admob-safety-bar {
+            font-size: 9.5px; color: #64748b; font-weight: 850; letter-spacing: 0.5px;
+            margin-bottom: 2px; display: flex; align-items: center; gap: 4px;
+        }
+        .admob-display-slot {
+            width: calc(100% - 20px); max-width: 400px; height: 75px;
+            background: #0b1326; border: 1.2px solid #1e293b; border-radius: 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8); gap: 2px;
+        }
+
+        /* 관리자 수정 모달 */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+            z-index: 10000; align-items: center; justify-content: center; padding: 12px;
+            backdrop-filter: blur(6px);
+        }
+        .modal-overlay.open { display: flex; }
+        .edit-modal-card {
+            width: 100%; max-width: 520px; background: #0f172a; border: 2px solid #38bdf8;
+            border-radius: 16px; padding: 20px 18px; color: #f8fafc; display: flex;
+            flex-direction: column; gap: 12px; max-height: 90vh; overflow-y: auto; text-align: left;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+        @media (min-width: 768px) {
+            :root {
+                --admob-h: 0px !important;
+                --view-h: calc(100dvh - var(--header-h) - var(--tab-h)) !important;
+            }
+            .bottom-fixed-admob-footer,
+            .admob-safety-bar,
+            .admob-display-slot,
+            [class*="admob"],
+            [id*="admob"] {
+                display: none !important;
+                height: 0 !important;
+                overflow: hidden !important;
+            }
+            .jubo-scroll-body {
+                padding-bottom: 24px !important;
+            }
+            .edit-modal-card { max-width: 620px; padding: 24px 22px; }
+            .m-textarea { min-height: 240px !important; }
+        }
+
+        .m-lbl-row {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;
+        }
+        .m-lbl { font-size: 12px; font-weight: 900; color: #facc15; }
+        .quick-helper-btns { display: flex; gap: 6px; align-items: center; }
+        .btn-quick-act {
+            background: #1e293b; border: 1px solid #475569; color: #38bdf8;
+            font-size: 11px; font-weight: 900; padding: 3px 8px; border-radius: 6px; cursor: pointer;
+        }
+        .btn-quick-act:active { transform: scale(0.95); background: #0284c7; color: #fff; }
+
+        .m-input {
+            width: 100%; background: #162238; border: 1.5px solid #334155; border-radius: 8px;
+            padding: 10px 12px; font-size: 14.5px; font-weight: 750; color: #ffffff; outline: none; font-family: inherit;
+        }
+        .m-textarea {
+            width: 100%; min-height: 180px; background: #162238; border: 1.5px solid #334155;
+            border-radius: 8px; padding: 12px; font-size: 14.5px; font-weight: 650; color: #ffffff; outline: none;
+            line-height: 1.7; resize: vertical; font-family: inherit;
+        }
+        .m-textarea:focus, .m-input:focus {
+            border-color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+
+        .image-attach-preview-bar {
+            display: flex; align-items: center; gap: 10px; background: #162238;
+            border: 1px dashed #38bdf8; border-radius: 8px; padding: 8px 12px;
+        }
+        .preview-thumb-img {
+            width: 50px; height: 50px; border-radius: 6px; object-fit: cover; border: 1px solid #38bdf8; display: none;
+        }
+
+        .yetalk-toast {
+            position: fixed; bottom: 110px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.95); color: #38bdf8; border: 1px solid #38bdf8;
+            padding: 9px 18px; border-radius: 20px; font-size: 12.5px; font-weight: 900;
+            z-index: 10005; opacity: 0; visibility: hidden; transition: all 0.25s ease; white-space: nowrap;
+        }
+        .yetalk-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="jubo-shell">
+
+    <!-- 1층 헤더 -->
+    <header class="jubo-header">
+        <div class="header-left-box">
+            <button type="button" class="btn-back" onclick="sessionStorage.setItem('church_last_active_card_idx', '2'); location.href='churchmain.html?card=2';" title="교회 메인으로 복귀">‹</button>
+            <span class="header-title-text" id="pageChurchTitle">예톡행복한교회 주보</span>
+        </div>
+        <div class="dual-admin-btn-group">
+            <button type="button" class="btn-admin-edit" onclick="openJuboEditModal()" title="현재 면 내용 직접 수정">화면수정 ▶</button>
+        </div>
+    </header>
+
+    <!-- 2층 가로 롤링 칩 메뉴 (1면~6면) -->
+    <nav class="jubo-tabs" id="juboTabsNav">
+        <button type="button" class="jubo-tab active" id="jtab_0" onclick="scrollToPage(0)">1면 예배순서</button>
+        <button type="button" class="jubo-tab" id="jtab_1" onclick="scrollToPage(1)">2면 성경본문</button>
+        <button type="button" class="jubo-tab" id="jtab_2" onclick="scrollToPage(2)">3면 교회소식</button>
+        <button type="button" class="jubo-tab" id="jtab_3" onclick="scrollToPage(3)">4면 안내봉사</button>
+        <button type="button" class="jubo-tab" id="jtab_4" onclick="scrollToPage(4)">5면 설교요약</button>
+        <button type="button" class="jubo-tab" id="jtab_5" onclick="scrollToPage(5)">6면 평일예배</button>
+    </nav>
+
+    <!-- 3층 세로 연속 스냅 뷰포트 (1~6면 모두 렌더링되며 양방향 탁! 탁! 스냅) -->
+    <main class="jubo-viewport" id="juboViewport">
+        <!-- JS 동적 생성 -->
+    </main>
+
+    <!-- 4층 하단 고정 100 애드몹 -->
+    <footer class="bottom-fixed-admob-footer">
+        <div class="admob-safety-bar">
+            <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
+        </div>
+        <div class="admob-display-slot">
+            <strong style="color:#38bdf8; font-size:14px; font-weight:950;">Google AdMob (300x100 / Large Banner)</strong>
+            <span style="color:#facc15; font-size:11.5px; font-weight:800;">선교 사역 및 미디어 영상 방송 공식 후원 슬롯</span>
+        </div>
+    </footer>
+
+    <div class="yetalk-toast" id="yetalkToast"></div>
+</div>
+
+<!-- 🌟 관리자 글/사진 수정 모달 -->
+<div class="modal-overlay" id="juboEditModal" onclick="closeModal('juboEditModal')">
+    <div class="edit-modal-card" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:8px;">
+            <strong style="font-size:16px; color:#38bdf8;" id="modalEditTitleLabel">✏️ [제 1 면] 내용 수정</strong>
+            <button type="button" style="background:none; border:none; font-size:24px; color:#64748b; cursor:pointer;" onclick="closeModal('juboEditModal')">✕</button>
+        </div>
+
+        <div>
+            <div class="m-lbl-row">
+                <span class="m-lbl">대표 제목</span>
+            </div>
+            <input type="text" class="m-input" id="inpEditTitle" placeholder="제목을 입력하세요">
+        </div>
+
+        <!-- 🌟 1면 전용 보기 모드 선택 바 (디지털 순서표 vs 종이 주보 사진) -->
+        <div id="sectionJuboModeSelector" style="display:none; background:#1e293b; border:1px solid #38bdf8; border-radius:10px; padding:10px 12px;">
+            <span class="m-lbl" style="color:#38bdf8; margin-bottom:6px;">📌 [1면 예배순서] 표시 방식 선택 (택 1)</span>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; font-weight:850; color:#ffffff;">
+                    <input type="radio" name="modalJuboViewModeRadio" value="table" onchange="onModalModeRadioChanged('table')">
+                    <span>📋 디지털 순서표</span>
+                </label>
+                <label style="display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; font-weight:850; color:#38bdf8;">
+                    <input type="radio" name="modalJuboViewModeRadio" value="photo" onchange="onModalModeRadioChanged('photo')">
+                    <span>📸 종이 주보 사진 (표 없이 사진만 전면 표시)</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- 🌟 1면 전용 종이 주보 세로 사진 업로더 (A4 종이 주보 촬영) -->
+        <div id="sectionPaperBulletinUploader" style="display:none;">
+            <div class="m-lbl-row">
+                <span class="m-lbl" style="color:#f59e0b;">📸 종이 주보 세로 사진 등록 (스마트폰 촬영 / 파일)</span>
+                <span style="font-size:11px; color:#94a3b8;">(표 대신 사진만 전면 표시)</span>
+            </div>
+            <div class="image-attach-preview-bar">
+                <img id="prevModalPaperImg" class="preview-thumb-img" style="max-height:100px; width:auto; display:none;" src="" alt="종이 주보">
+                <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                    <div style="display:flex; gap:6px;">
+                        <label for="nativePaperJuboFileInput" style="background:#f59e0b; color:#0f172a; font-size:12px; font-weight:950; padding:6px 12px; border-radius:6px; cursor:pointer;">
+                            📁 종이 주보 사진 선택/촬영
+                        </label>
+                        <button type="button" id="btnRemovePaperImg" style="display:none; background:#dc2626; color:#fff; border:none; font-size:11px; font-weight:800; padding:4px 8px; border-radius:6px; cursor:pointer;" onclick="removePaperJuboImage()">
+                            삭제
+                        </button>
+                    </div>
+                    <span style="font-size:11px; color:#cbd5e1;" id="paperImgNotice">스마트폰으로 세로로 찍은 A4 종이 주보 사진을 올리시면 표 없이 사진 한 장으로 시원하게 표시됩니다.</span>
+                </div>
+                <input type="file" id="nativePaperJuboFileInput" accept="image/*" style="display:none;" onchange="handlePaperJuboFileSelect(event)">
+            </div>
+        </div>
+
+        <!-- 일반 사진/이미지 파일 첨부 (2~6면용) -->
+        <div id="sectionGeneralAttachedImg">
+            <div class="m-lbl-row">
+                <span class="m-lbl" style="color:#38bdf8;">📷 사진 / 이미지 첨부</span>
+                <span style="font-size:11px; color:#94a3b8;">(선택 사항)</span>
+            </div>
+            <div class="image-attach-preview-bar">
+                <img id="prevModalAttachedImg" class="preview-thumb-img" src="" alt="미리보기">
+                <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                    <div style="display:flex; gap:6px;">
+                        <label for="nativeJuboFileInput" style="background:#0284c7; color:#fff; font-size:12px; font-weight:900; padding:6px 12px; border-radius:6px; cursor:pointer;">
+                            📁 사진/파일 선택
+                        </label>
+                        <button type="button" id="btnRemoveAttachedImg" style="display:none; background:#dc2626; color:#fff; border:none; font-size:11px; font-weight:800; padding:4px 8px; border-radius:6px; cursor:pointer;" onclick="removeAttachedImage()">
+                            삭제
+                        </button>
+                    </div>
+                    <span style="font-size:11px; color:#94a3b8;" id="imgFileNameNotice">사진을 올리면 주보 상단에 크게 표시됩니다.</span>
+                </div>
+                <input type="file" id="nativeJuboFileInput" accept="image/*" style="display:none;" onchange="handleJuboFileSelect(event)">
+            </div>
+        </div>
+
+        <!-- 🌟 1면 전용 예배순서표 행 편집기 (칸 추가/삭제/수정 100% 지원) -->
+        <div id="sectionOrderTableEditor" style="display:none; flex-direction:column; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="m-lbl" style="color:#38bdf8;">📋 예배 순서 칸(행) 편집</span>
+                <button type="button" class="btn-quick-act" onclick="addOrderRowModal()" style="background:#0284c7; color:#fff; border:none; padding:4px 9px; border-radius:6px; font-weight:900; cursor:pointer;">
+                    ➕ 칸(순서) 추가
+                </button>
+            </div>
+            <div style="max-height:220px; overflow-y:auto; border:1px solid #334155; border-radius:8px; padding:6px; background:#0b1324;">
+                <table style="width:100%; border-collapse:collapse;" id="tblOrderEditor">
+                    <thead>
+                        <tr style="color:#94a3b8; font-size:11.5px; border-bottom:1px solid #1e293b; text-align:left;">
+                            <th style="padding:4px; width:75px;">구분</th>
+                            <th style="padding:4px;">내용 / 말씀 / 찬송</th>
+                            <th style="padding:4px; width:75px;">인도자</th>
+                            <th style="padding:4px; width:36px; text-align:center;">삭제</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyOrderEditor"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 본문 내용 작성 -->
+        <div>
+            <div class="m-lbl-row">
+                <span class="m-lbl" id="lblEditBodyTitle">주보 본문 내용 (길이에 구애받지 않음)</span>
+                <div class="quick-helper-btns">
+                    <button type="button" class="btn-quick-act" onclick="clearBodyField()">🗑️ 본문 비우기</button>
+                    <button type="button" class="btn-quick-act" onclick="quickPasteClipboardToBody()">📋 바로붙여넣기</button>
+                </div>
+            </div>
+            <textarea class="m-textarea" id="inpEditBody"
+                      placeholder="성도님들께 전할 주보 내용을 입력하세요. 복사한 긴 글도 자유롭게 붙여넣으실 수 있습니다."></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+            <button type="button" style="padding:9px 16px; background:#334155; color:white; border:none; border-radius:8px; font-weight:800; cursor:pointer;" onclick="closeModal('juboEditModal')">취소</button>
+            <button type="button" style="padding:9px 22px; background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; border-radius:8px; font-weight:950; cursor:pointer; box-shadow:0 3px 12px rgba(2,132,199,0.4);" onclick="saveJuboPageData()">저장하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 종이 주보 전체화면 고해상도 확대 팝업 모달 -->
+<div class="jubo-zoom-modal" id="paperPhotoZoomModal" onclick="closePaperPhotoZoomModal()">
+    <div class="jubo-zoom-top-bar" onclick="event.stopPropagation()">
+        <span style="font-size:14px; font-weight:850; color:#38bdf8;">🔍 종이 주보 원본 보기 (터치 또는 스크롤로 확대)</span>
+        <button type="button" class="jubo-zoom-close-btn" onclick="closePaperPhotoZoomModal()">✕</button>
+    </div>
+    <img id="zoomModalImg" class="jubo-zoom-img" src="" alt="종이 주보 확대" onclick="event.stopPropagation()">
+</div>
+
+<script>
+    const STORAGE_KEY = "yetalk_church_jubo_data_v3";
+    let activePageIdx = 0;
+    let juboPagesData = [];
+    let currentAttachedImgB64 = "";
+    let currentPaperImgB64 = "";
+    let currentModalViewMode = "table";
+    let isScrollProgrammatic = false;
+
+    const DEFAULT_ORDER_ROWS = [
+        { part: "묵 도", content: "경배와 찬양 (예배의 부름)", who: "다 함 께" },
+        { part: "신앙고백", content: "사도신경", who: "다 함 께" },
+        { part: "교 독 문", content: "교독문 24번 (시편 46편)", who: "다 함 께" },
+        { part: "찬 송", content: "28장 (복의 근원 강림하사)", who: "다 함 께" },
+        { part: "기 도", content: "주일 대표기도", who: "장로 / 권사" },
+        { part: "성경봉독", content: "요한복음 3장 16절 ~ 18절", who: "인 도 자" },
+        { part: "찬 양", content: "은혜의 강가로", who: "할렐루야 찬양대" },
+        { part: "말 씀", content: "하나님의 사랑과 성도의 사명", who: "담임목사" },
+        { part: "봉 헌", content: "50장 (내게 있는 모든 것을)", who: "다 함 께" },
+        { part: "교회소식", content: "새가족 환영 및 공동체 광고", who: "인 도 자" },
+        { part: "축 도", content: "축도 및 파송 찬양", who: "담임목사" }
+    ];
+
+    const DEFAULT_PAGES = [
+        {
+            badge: "제 1 면 · 주일 예배 순서",
+            title: "주일 예배 순서",
+            img: "",
+            viewMode: "table",
+            paperImg: "",
+            isOrder: true,
+            body: `말씀: 하나님의 사랑과 성도의 사명 (담임목사)`,
+            orderRows: DEFAULT_ORDER_ROWS
+        },
+        {
+            badge: "제 2 면 · 오늘 성경 본문 말씀",
+            title: "요한복음 3장 16절 ~ 18절",
+            img: "",
+            body: `16. 하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니 이는 그를 믿는 자마다 멸망하지 않고 영생을 얻게 하려 하심이라
+
+17. 하나님이 그 아들을 세상에 보내신 것은 세상을 심판하려 하심이 아니요 그로 말미암아 세상이 구원을 받게 하려 하심이라
+
+18. 그를 믿는 자는 심판을 받지 아니하는 것이요 믿지 아니하는 자는 하나님의 독생자의 이름을 믿지 아니하므로 벌써 심판을 받은 것이니라`
+        },
+        {
+            badge: "제 3 면 · 교회 소식 & 목회 동정",
+            title: "주요 행사 및 공동체 알림",
+            img: "",
+            body: `1. 환영: 오늘 예톡행복한교회를 처음 방문하신 새가족 여러분을 진심으로 환영합니다.
+
+2. 가을 부흥성회: 이번 주간 저녁 7시 30분 본당에서 '회복과 치유' 특별 성회가 열립니다.
+
+3. 세례·입교 문답: 다음 주일 세례 대상자 교육이 2층 소예배실에서 진행됩니다.
+
+4. 중보기도 요청: 군 복무 중인 청년들과 환우 성도들을 위해 함께 기도해 주세요.
+
+5. 차량 봉사 안내: 주일 1부, 2부 셔틀버스가 정상 운행됩니다.`
+        },
+        {
+            badge: "제 4 면 · 예배 안내 및 봉사 위원",
+            title: "이번 주 예배 섬김이 명단",
+            img: "",
+            body: `• 1부 예배 대표기도: 김성수 장로
+• 2부 예배 대표기도: 이정애 권사
+• 다음 주 대표기도: 최수훈 장로
+
+• 예배 안내위원:
+  - 1부: 김진동 집사, 박은순 집사
+  - 2부: 안병대 권사, 선병순 권사
+
+• 헌금 위원: 제3여전도회
+• 식당 봉사: 4교구 (은혜구역, 평안구역)
+• 방송 및 음향: 미디어 선교팀`
+        },
+        {
+            badge: "제 5 면 · 설교 요약 & 구역 나눔",
+            title: "말씀의 은혜를 삶으로 실천하기",
+            img: "",
+            body: `[핵심 설교 요약]
+1. 십자가는 우리를 향한 하나님의 가장 확실한 사랑의 증거입니다.
+2. 믿음은 머리로 아는 지식이 아니라 주님과 동행하는 삶입니다.
+3. 구원받은 자의 사명은 이웃에게 생명의 복음을 흘려보내는 것입니다.
+
+[구역 나눔 질문]
+• 이번 한 주간 하나님의 사랑을 깊이 경험한 순간은 언제였습니까?
+• 내 삶의 자리에서 예수님의 사랑을 전할 한 사람은 누구입니까?
+
+[합심 기도제목]
+• 조국 대한민국과 세계 선교지 교회를 위하여
+• 육신의 연약함으로 고통받는 환우들의 전인적 치유를 위하여`
+        },
+        {
+            badge: "제 6 면 · 평일 집회 & 온라인 헌금",
+            title: "평일 주중 예배 안내",
+            img: "",
+            body: `📖 수요 성경 강해 예배 (수 저녁 7:30)
+• 제목: 언약의 길을 걷는 성도 | 본문: 창세기 12:1~4
+
+🔥 금요 성령치유 기도회 (금 밤 9:00)
+• 제목: 부르짖는 자의 성령 회복 | 본문: 예레미야 33:3
+
+🌅 매일 새벽기도회 (월~토 새벽 5:30)
+• 하루를 여는 시편 묵상과 기도
+
+🏛️ 온라인 헌금 계좌 안내
+• 농협은행: 352-0192-8841-03 (예금주: 예톡행복한교회)`
+        }
+    ];
+
+    function loadSavedJuboData() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+            try { 
+                juboPagesData = JSON.parse(raw); 
+                if (juboPagesData && juboPagesData[0]) {
+                    if (!juboPagesData[0].viewMode) {
+                        juboPagesData[0].viewMode = juboPagesData[0].paperImg ? "photo" : "table";
+                    }
+                    // 🌟 사용자 요청: 주보 순서가 최소 10개 이상 되도록 자동 업그레이드
+                    if (!juboPagesData[0].orderRows || juboPagesData[0].orderRows.length < 10) {
+                        juboPagesData[0].orderRows = DEFAULT_ORDER_ROWS;
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(juboPagesData));
+                    }
+                }
+            } catch(e) { juboPagesData = DEFAULT_PAGES; }
+        } else {
+            juboPagesData = DEFAULT_PAGES;
+        }
+        renderAllJuboSections();
+        setupScrollSync();
+    }
+
+    // 🌟 1면~6면 전체 카드를 세로로 연속 렌더링 (탁! 탁! 걸리는 구조)
+    function renderAllJuboSections() {
+        const vp = document.getElementById("juboViewport");
+        vp.innerHTML = "";
+
+        juboPagesData.forEach((item, idx) => {
+            const sec = document.createElement("section");
+            sec.className = "snap-page-section";
+            sec.id = `jsec_${idx}`;
+            sec.dataset.index = idx;
+
+            let html = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                    <div class="page-badge-pill">${item.badge || `제 ${idx + 1} 면`}</div>
+                    <button type="button" class="btn-direct-edit-badge" onclick="openJuboEditModalForIndex(${idx})" title="이 면 내용 바로 수정">✏️ 바로 수정</button>
+                </div>
+            `;
+
+            // 🌟 1면은 공간 확보 및 한 화면 쏙 들어오게 하기 위해 사용자가 X 친 중복 대형 제목('예톡행복한교회 1부/2부') 제거
+            if (idx !== 0 && item.title && item.title.trim()) {
+                html += `<h2 class="jubo-main-title" id="sec_title_${idx}">${item.title}</h2>`;
+            }
+
+            // 첨부된 일반 사진/이미지가 있을 때 (2~6면)
+            if (idx !== 0 && item.img && item.img.trim() !== "") {
+                html += `
+                    <div class="jubo-attached-img-box">
+                        <img src="${item.img}" alt="${item.title}">
+                    </div>
+                `;
+            }
+
+            // 🌟 1면: [📋 디지털 순서표] vs [📸 종이 주보 사진] 상호 배타적 렌더링 ("둘다 포함되지 않게")
+            if (idx === 0) {
+                const currentMode = item.viewMode || (item.paperImg ? "photo" : "table");
+                const isTableMode = (currentMode === "table");
+
+                // 상단 1-터치 보기 모드 전환 탭 바
+                html += `
+                    <div class="jubo-view-mode-bar">
+                        <button type="button" class="btn-mode-tab ${isTableMode ? 'active' : ''}" onclick="switchJuboViewMode('table')">
+                            📋 디지털 순서표 보기
+                        </button>
+                        <button type="button" class="btn-mode-tab ${!isTableMode ? 'active' : ''}" onclick="switchJuboViewMode('photo')">
+                            📸 종이 주보 사진 보기
+                        </button>
+                    </div>
+                `;
+
+                if (isTableMode) {
+                    // [1] 디지털 표 모드: 표만 표시하고 사진은 표시하지 않음 ("둘다 포함되지 않게")
+                    const rows = (item.orderRows && item.orderRows.length >= 10) ? item.orderRows : DEFAULT_ORDER_ROWS;
+                    let tableHtml = `<table class="order-table">`;
+                    rows.forEach(r => {
+                        tableHtml += `<tr><td class="col-part">${r.part}</td><td class="col-content">${r.content}</td><td class="col-who">${r.who}</td></tr>`;
+                    });
+                    tableHtml += `</table>`;
+                    html += tableHtml;
+                } else {
+                    // [2] 종이 주보 사진 모드: 표는 전혀 없이 세로 사진만 전면 표시! ("둘다 포함되지 않게")
+                    if (item.paperImg && item.paperImg.trim() !== "") {
+                        html += `
+                            <div class="jubo-paper-photo-wrap" onclick="openPaperPhotoZoomModal('${item.paperImg}')" title="터치하시면 원본 크기로 크게 확대됩니다">
+                                <img src="${item.paperImg}" alt="종이 주보" class="jubo-paper-img">
+                                <div class="jubo-paper-zoom-hint">
+                                    <span>🔍 터치하시면 원본 크기로 시원하게 확대해서 보실 수 있습니다</span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="jubo-paper-empty-card" onclick="openJuboEditModalForIndex(0)">
+                                <div style="font-size:36px; margin-bottom:8px;">📸</div>
+                                <strong style="font-size:15px; color:#0284c7; display:block; margin-bottom:4px;">등록된 종이 주보 사진이 없습니다</strong>
+                                <span style="font-size:12px; color:#64748b; display:block; margin-bottom:12px;">교회에서 인쇄한 종이 주보 세로 사진을 등록하시면 표 없이 사진만 깨끗하게 표시됩니다.</span>
+                                <button type="button" style="background:#0284c7; color:#fff; border:none; padding:7px 14px; border-radius:8px; font-weight:900; font-size:12.5px; cursor:pointer;">
+                                    📁 종이 주보 사진 등록하기
+                                </button>
+                            </div>
+                        `;
+                    }
+                }
+            } else {
+                html += `<div class="jubo-body-text" id="sec_body_${idx}">${item.body}</div>`;
+            }
+
+            sec.innerHTML = html;
+            vp.appendChild(sec);
+        });
+    }
+
+    // 🌟 위/아래 양방향 정확한 1:1 스크롤 스냅 및 가벼운 스와이프
+    function setupScrollSync() {
+        const vp = document.getElementById("juboViewport");
+        if (!vp) return;
+        let timer = null;
+
+        vp.addEventListener("scroll", () => {
+            if (isScrollProgrammatic) return;
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                if (isScrollProgrammatic) return;
+                const sections = document.querySelectorAll(".snap-page-section");
+                const vpTop = vp.scrollTop;
+                let closestIdx = 0;
+                let minDiff = 999999;
+
+                sections.forEach((sec, idx) => {
+                    const diff = Math.abs(sec.offsetTop - vp.offsetTop - vpTop);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestIdx = idx;
+                    }
+                });
+
+                if (closestIdx !== activePageIdx) {
+                    activePageIdx = closestIdx;
+                    updateTabUI(closestIdx);
+                }
+            }, 60);
+        }, { passive: true });
+
+        // 🌟 살짝 밀어도 가볍게 전환되는 스와이프 제스처
+        let touchStartY = 0, touchStartX = 0, isTouching = false, touchStartTime = 0;
+        vp.addEventListener("touchstart", (e) => {
+            if (e.touches.length === 1) {
+                touchStartY = e.touches[0].clientY;
+                touchStartX = e.touches[0].clientX;
+                touchStartTime = Date.now();
+                isTouching = true;
+            }
+        }, { passive: true });
+
+        vp.addEventListener("touchend", (e) => {
+            if (!isTouching) return;
+            isTouching = false;
+            const diffY = e.changedTouches[0].clientY - touchStartY;
+            const diffX = e.changedTouches[0].clientX - touchStartX;
+            const duration = Date.now() - touchStartTime;
+
+            if (Math.abs(diffY) > 40 && Math.abs(diffY) > Math.abs(diffX) * 1.3 && duration < 600) {
+                if (diffY < 0 && activePageIdx < juboPagesData.length - 1) {
+                    scrollToPage(activePageIdx + 1);
+                } else if (diffY > 0 && activePageIdx > 0) {
+                    scrollToPage(activePageIdx - 1);
+                }
+            }
+        }, { passive: true });
+    }
+
+    function updateTabUI(idx) {
+        document.querySelectorAll(".jubo-tab").forEach((tab, i) => {
+            tab.classList.toggle("active", i === idx);
+            if (i === idx) {
+                tab.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+            }
+        });
+    }
+
+    // 🌟 상단 탭 클릭 시 해당 면 시작 지점으로 정확히 '탁!' 이동
+    function scrollToPage(idx) {
+        activePageIdx = idx;
+        const target = document.getElementById(`jsec_${idx}`);
+        const vp = document.getElementById("juboViewport");
+        if (target && vp) {
+            isScrollProgrammatic = true;
+            vp.scrollTo({ top: target.offsetTop - vp.offsetTop, behavior: "smooth" });
+            updateTabUI(idx);
+            setTimeout(() => { isScrollProgrammatic = false; }, 380);
+        }
+    }
+
+    // 🌟 페이지 내 바로 수정 버튼 클릭 시
+    function openJuboEditModalForIndex(idx) {
+        activePageIdx = idx;
+        scrollToPage(idx);
+        openJuboEditModal();
+    }
+
+    // 🌟 [사용자 요청] 1면 보기 방식 1-터치 실시간 전환 (디지털 표 vs 종이 주보 사진)
+    function switchJuboViewMode(mode) {
+        if (!juboPagesData[0]) juboPagesData[0] = { ...DEFAULT_PAGES[0] };
+        juboPagesData[0].viewMode = mode;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(juboPagesData));
+        renderAllJuboSections();
+        scrollToPage(0);
+        showToast(mode === 'photo' ? '📸 종이 주보 사진 모드로 전환되었습니다.' : '📋 디지털 순서표 모드로 전환되었습니다.');
+    }
+
+    // 🌟 종이 주보 전체화면 확대 팝업 오픈
+    function openPaperPhotoZoomModal(src) {
+        const modal = document.getElementById("paperPhotoZoomModal");
+        const img = document.getElementById("zoomModalImg");
+        if (modal && img) {
+            img.src = src;
+            modal.classList.add("open");
+        }
+    }
+
+    function closePaperPhotoZoomModal() {
+        document.getElementById("paperPhotoZoomModal")?.classList.remove("open");
+    }
+
+    // 🌟 관리자 수정 모달 오픈
+    function openJuboEditModal() {
+        const item = juboPagesData[activePageIdx] || DEFAULT_PAGES[activePageIdx];
+        const secMode = document.getElementById("sectionJuboModeSelector");
+        const secPaper = document.getElementById("sectionPaperBulletinUploader");
+        const secTable = document.getElementById("sectionOrderTableEditor");
+        const secGeneralPhoto = document.getElementById("sectionGeneralAttachedImg");
+        const tbody = document.getElementById("tbodyOrderEditor");
+        const lblBody = document.getElementById("lblEditBodyTitle");
+
+        if (activePageIdx === 0) {
+            document.getElementById("modalEditTitleLabel").innerText = `✏️ [제 1 면 예배순서] 순서표 및 종이주보 설정`;
+            document.getElementById("inpEditTitle").value = item.title || "주일 예배 순서";
+            lblBody.innerText = "설교 및 말씀 안내 (주보 상단 강조 박스)";
+            document.getElementById("inpEditBody").value = item.body || "말씀: 하나님의 사랑과 성도의 사명 (담임목사)";
+
+            // 1면 전용 보기 모드 및 종이 주보 업로더 활성화
+            secMode.style.display = "block";
+            secPaper.style.display = "block";
+            secGeneralPhoto.style.display = "none";
+
+            currentModalViewMode = item.viewMode || (item.paperImg ? "photo" : "table");
+            currentPaperImgB64 = item.paperImg || "";
+            updateModalModeRadioUI(currentModalViewMode);
+            updatePaperImgPreviewUI();
+
+            // 1면 전용 순서표 행 채우기
+            tbody.innerHTML = "";
+            const rows = (item.orderRows && item.orderRows.length > 0) ? item.orderRows : DEFAULT_ORDER_ROWS;
+            rows.forEach(r => {
+                appendOrderRowToEditor(r.part, r.content, r.who);
+            });
+        } else {
+            secMode.style.display = "none";
+            secPaper.style.display = "none";
+            secTable.style.display = "none";
+            secGeneralPhoto.style.display = "block";
+            document.getElementById("modalEditTitleLabel").innerText = `✏️ [제 ${activePageIdx + 1} 면] 내용 및 사진 수정`;
+            lblBody.innerText = "주보 본문 내용 (길이에 구애받지 않음 / 줄바꿈 반영)";
+            document.getElementById("inpEditTitle").value = item.title || "";
+            document.getElementById("inpEditBody").value = item.body || "";
+        }
+
+        currentAttachedImgB64 = item.img || "";
+        updateImgPreviewUI();
+
+        document.getElementById("juboEditModal").classList.add("open");
+    }
+
+    // 🌟 모달 내 보기 방식 라디오 전환 핸들러
+    function onModalModeRadioChanged(mode) {
+        currentModalViewMode = mode;
+        updateModalModeRadioUI(mode);
+    }
+
+    function updateModalModeRadioUI(mode) {
+        const radios = document.getElementsByName("modalJuboViewModeRadio");
+        radios.forEach(r => { r.checked = (r.value === mode); });
+
+        const secTable = document.getElementById("sectionOrderTableEditor");
+        if (mode === "table") {
+            secTable.style.display = "flex";
+        } else {
+            // photo mode: 표 없이 사진만 전면 표시 ("둘다 포함되지 않게")
+            secTable.style.display = "none";
+        }
+    }
+
+    // 🌟 1면 종이 주보 세로 사진 파일 선택 처리 (A4 글씨 가독성을 위해 최대 1600px 고해상도 압축)
+    function handlePaperJuboFileSelect(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                let w = img.width, h = img.height;
+                const maxDim = 1600;
+                if (w > maxDim || h > maxDim) {
+                    if (w > h) {
+                        h = Math.round((h * maxDim) / w);
+                        w = maxDim;
+                    } else {
+                        w = Math.round((w * maxDim) / h);
+                        h = maxDim;
+                    }
+                }
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, w, h);
+                currentPaperImgB64 = canvas.toDataURL("image/jpeg", 0.88);
+                updatePaperImgPreviewUI();
+                // 사진을 올리면 자동으로 "종이 주보 사진" 모드로 전환
+                currentModalViewMode = "photo";
+                updateModalModeRadioUI("photo");
+                showToast("📸 종이 주보 사진이 등록되었습니다.");
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function updatePaperImgPreviewUI() {
+        const prevImg = document.getElementById("prevModalPaperImg");
+        const btnDel = document.getElementById("btnRemovePaperImg");
+        const notice = document.getElementById("paperImgNotice");
+
+        if (currentPaperImgB64 && currentPaperImgB64.trim() !== "") {
+            prevImg.src = currentPaperImgB64;
+            prevImg.style.display = "block";
+            btnDel.style.display = "inline-block";
+            notice.innerText = "종이 주보 사진이 준비되었습니다. 저장하시면 표 없이 사진만 전면 표시됩니다.";
+        } else {
+            prevImg.src = "";
+            prevImg.style.display = "none";
+            btnDel.style.display = "none";
+            notice.innerText = "스마트폰으로 세로로 찍은 A4 종이 주보 사진을 올리시면 성도님들이 한눈에 확대해서 볼 수 있습니다.";
+        }
+    }
+
+    function removePaperJuboImage() {
+        currentPaperImgB64 = "";
+        const fileInp = document.getElementById("nativePaperJuboFileInput");
+        if (fileInp) fileInp.value = "";
+        updatePaperImgPreviewUI();
+        showToast("종이 주보 사진이 제거되었습니다.");
+    }
+
+    // 🌟 1면 순서표 행 추가 헬퍼
+    function appendOrderRowToEditor(part = "", content = "", who = "") {
+        const tbody = document.getElementById("tbodyOrderEditor");
+        const tr = document.createElement("tr");
+        tr.style.borderBottom = "1px solid #1e293b";
+        tr.innerHTML = `
+            <td style="padding:4px;"><input type="text" class="inp-table-cell inp-row-part" value="${part}" placeholder="구분 (예: 기도)"></td>
+            <td style="padding:4px;"><input type="text" class="inp-table-cell inp-row-content" value="${content}" placeholder="내용/말씀/찬송"></td>
+            <td style="padding:4px;"><input type="text" class="inp-table-cell inp-row-who" value="${who}" placeholder="인도자"></td>
+            <td style="padding:4px; text-align:center;"><button type="button" class="btn-table-del" onclick="this.closest('tr').remove()" title="칸 삭제">✕</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function addOrderRowModal() {
+        appendOrderRowToEditor("", "", "다 함 께");
+    }
+
+    function closeModal(id) {
+        document.getElementById(id)?.classList.remove("open");
+    }
+
+    // 사진/이미지 파일 선택 처리 (일반 2~6면)
+    function handleJuboFileSelect(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                let w = img.width, h = img.height;
+                const maxW = 900;
+                if (w > maxW) {
+                    h = Math.round((h * maxW) / w);
+                    w = maxW;
+                }
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, w, h);
+                currentAttachedImgB64 = canvas.toDataURL("image/jpeg", 0.85);
+                updateImgPreviewUI();
+                showToast("📷 사진이 첨부되었습니다.");
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function updateImgPreviewUI() {
+        const prevImg = document.getElementById("prevModalAttachedImg");
+        const btnDel = document.getElementById("btnRemoveAttachedImg");
+        const notice = document.getElementById("imgFileNameNotice");
+
+        if (currentAttachedImgB64 && currentAttachedImgB64.trim() !== "") {
+            prevImg.src = currentAttachedImgB64;
+            prevImg.style.display = "block";
+            btnDel.style.display = "inline-block";
+            notice.innerText = "첨부된 이미지가 저장 대기 중입니다.";
+        } else {
+            prevImg.src = "";
+            prevImg.style.display = "none";
+            btnDel.style.display = "none";
+            notice.innerText = "사진을 올리면 주보 상단에 크게 표시됩니다.";
+        }
+    }
+
+    function removeAttachedImage() {
+        currentAttachedImgB64 = "";
+        document.getElementById("nativeJuboFileInput").value = "";
+        updateImgPreviewUI();
+        showToast("첨부된 사진이 삭제되었습니다.");
+    }
+
+    function clearBodyField() {
+        const bodyEl = document.getElementById("inpEditBody");
+        if (bodyEl) {
+            bodyEl.value = "";
+            bodyEl.focus();
+            showToast("본문이 비워졌습니다.");
+        }
+    }
+
+    async function quickPasteClipboardToBody() {
+        const bodyEl = document.getElementById("inpEditBody");
+        try {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                const text = await navigator.clipboard.readText();
+                if (text && text.trim()) {
+                    bodyEl.value = text;
+                    showToast("📋 클립보드 글이 붙여넣기 되었습니다!");
+                    bodyEl.focus();
+                    return;
+                }
+            }
+        } catch(e) {}
+        bodyEl.focus();
+        showToast("[Ctrl+V] 또는 길게 눌러 붙여넣기 하세요.");
+    }
+
+    function saveJuboPageData() {
+        const newTitle = document.getElementById("inpEditTitle").value.trim();
+        const newBody = document.getElementById("inpEditBody").value.trim();
+
+        if (!newTitle) { alert("제목을 입력해 주세요."); return; }
+
+        if (!juboPagesData[activePageIdx]) {
+            juboPagesData[activePageIdx] = { ...DEFAULT_PAGES[activePageIdx] };
+        }
+
+        if (activePageIdx === 0) {
+            const tableRows = [];
+            document.querySelectorAll("#tbodyOrderEditor tr").forEach(tr => {
+                const part = tr.querySelector(".inp-row-part")?.value.trim() || "";
+                const content = tr.querySelector(".inp-row-content")?.value.trim() || "";
+                const who = tr.querySelector(".inp-row-who")?.value.trim() || "";
+                if (part || content) {
+                    tableRows.push({ part, content, who });
+                }
+            });
+
+            juboPagesData[0].title = newTitle;
+            juboPagesData[0].body = newBody;
+            juboPagesData[0].viewMode = currentModalViewMode;
+            juboPagesData[0].paperImg = currentPaperImgB64;
+            if (tableRows.length > 0) {
+                juboPagesData[0].orderRows = tableRows;
+            }
+        } else {
+            juboPagesData[activePageIdx].title = newTitle;
+            juboPagesData[activePageIdx].body = newBody;
+        }
+
+        juboPagesData[activePageIdx].img = currentAttachedImgB64;
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(juboPagesData));
+
+        renderAllJuboSections();
+        scrollToPage(activePageIdx);
+        closeModal("juboEditModal");
+        showToast(`✨ 제 ${activePageIdx + 1} 면 주보가 저장되었습니다.`);
+    }
+
+    function goBackToChurchJubo() {
+        sessionStorage.setItem('church_last_active_card_idx', '2');
+        location.href = 'churchmain.html?card=2';
+    }
+
+    // 안드로이드 하드웨어 / 제스처 백키 전용 핸들러 (MainActivity.kt 연동)
+    window.handleAppBackPress = function() {
+        if (document.getElementById("paperPhotoZoomModal")?.classList.contains("open")) {
+            closePaperPhotoZoomModal();
+            return true;
+        }
+        if (document.getElementById("juboEditModal")?.classList.contains("open")) {
+            closeModal("juboEditModal");
+            return true;
+        }
+        goBackToChurchJubo();
+        return true;
+    };
+
+    function showToast(msg) {
+        const t = document.getElementById("yetalkToast");
+        if (!t) return;
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2000);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
+        document.body.setAttribute('data-theme', savedTheme);
+
+        let churchName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        if (!churchName || churchName.includes("움직이는") || churchName.includes("김예톡") || churchName.includes("최예톡")) {
+            churchName = "예톡행복한교회";
+            localStorage.setItem("yetalkChurchName", "예톡행복한교회");
+        }
+        const titleEl = document.getElementById("pageChurchTitle");
+        if (titleEl) titleEl.innerText = `${churchName} 주보`;
+
+        loadSavedJuboData();
+    });
+</script>
+</body>
+</html>

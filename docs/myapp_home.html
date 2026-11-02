@@ -236,14 +236,15 @@
         <strong>✨ 개인앱, 전문앱을 모든 비용 제로로 평생 이용 가능합니다</strong>
     </div>
 
-    <!-- 필터 탭 바 -->
+    <!-- 필터 탭 바 (예약앱/단골, 교회앱, 의원앱 직관적 배치) -->
     <div class="filter-tabs-row">
-        <button type="button" class="filter-tab-btn" onclick="filterStores('all', this)">전체</button>
-        <button type="button" class="filter-tab-btn my-app-tab active" onclick="filterStores('my', this)">★ 내앱</button>
-        <button type="button" class="filter-tab-btn" onclick="filterStores('clinic', this)">의원</button>
-        <button type="button" class="filter-tab-btn" onclick="filterStores('church', this)">교회</button>
-        <button type="button" class="filter-tab-btn" onclick="filterStores('store', this)">단골집(상점)</button>
-        <button type="button" class="filter-tab-btn" onclick="filterStores('one', this)">개인(프리랜스)</button>
+        <button type="button" class="filter-tab-btn my-app-tab active" data-filter="my" onclick="filterStores('my', this)">★ 내앱</button>
+        <button type="button" class="filter-tab-btn" data-filter="store" onclick="filterStores('store', this)">📅 예약앱 (단골)</button>
+        <button type="button" class="filter-tab-btn" data-filter="church" onclick="filterStores('church', this)">⛪ 교회앱</button>
+        <button type="button" class="filter-tab-btn" data-filter="clinic" onclick="filterStores('clinic', this)">🏥 의원앱</button>
+        <button type="button" class="filter-tab-btn" data-filter="all" onclick="filterStores('all', this)">전체</button>
+        <button type="button" class="filter-tab-btn" data-filter="reservation" id="tabBtnReservation" onclick="filterStores('reservation', this)">내 예약 📋</button>
+        <button type="button" class="filter-tab-btn" data-filter="one" onclick="filterStores('one', this)">개인(1인)</button>
     </div>
 
     <!-- 가맹처 리스트 -->
@@ -251,7 +252,10 @@
 
     <!-- 🌟 [사용자 요청] 단골 / 내앱 250 애드몹 (300x250 Medium Rectangle) 배너 -->
     <div class="admob-250-wrapper" style="margin:12px 14px 6px 14px; background:#040912; border:1.8px solid #1e3a5f; border-radius:14px; padding:18px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-height:250px; box-shadow:0 4px 16px rgba(0,0,0,0.4);">
-        <span class="ad-badge" style="font-size:10px; color:#64748b; font-weight:800; letter-spacing:0.5px;">SPONSORED AD (300x250)</span>
+        <div style="display:flex; align-items:center; gap:6px;">
+            <span style="background:#0284c7; color:#ffffff; font-size:10.5px; font-weight:900; padding:2px 7px; border-radius:4px; letter-spacing:0.5px;">AD</span>
+            <span class="ad-badge" style="font-size:10.5px; color:#94a3b8; font-weight:800; letter-spacing:0.5px;">SPONSORED AD (300x250)</span>
+        </div>
         <div style="font-size:32px;">🎁</div>
         <strong style="color:#ffffff; font-size:16px; font-weight:950;">Google AdMob (300 x 250)</strong>
         <span style="color:#38bdf8; font-size:12px; font-weight:700;">소상공인·교회·의원·개인 공식 스폰서 배너</span>
@@ -547,45 +551,62 @@
 
 <script>
     const MODEL_HOUSES = [
-        { id: 'm_church', name: '예톡행복한교회', cat: 'church', tagText: '교회', tagClass: 'tag-church', url: 'churchmain.html', date: '09.28', desc: '온라인 주보, 다음세대 은혜 나눔터, 실시간 예배 공식 모델하우스' },
-        { id: 'm_minichurch', name: '나의작은교회', cat: 'church', tagText: '미니교회', tagClass: 'tag-church', url: 'minichurch.html', date: '10.18', desc: '가정예배 5분 순서지, 찬양 및 말씀 나눔 미니교회' },
-        { id: 'm_clinic', name: '예톡아름다운의원', cat: 'clinic', tagText: '의원', tagClass: 'tag-clinic', url: 'doctormain.html', date: '09.28', desc: '환절기 피부 진료, 비수술 리프팅, 1:1 상담 예약 표준 메디컬 모델하우스' },
-        { id: 'm_hanclinic', name: '예톡 우리동네 한의원', cat: 'hanclinic', tagText: '한의원', tagClass: 'tag-hanclinic', url: 'handoctormain.html', date: '09.28', desc: '체질 맞춤 한약, 비수술 척추·관절 추나요법, 침구 치료 전문 모델하우스' },
-        { id: 'm_dental', name: '예톡 스마일치과의원', cat: 'dental', tagText: '치과', tagClass: 'tag-clinic', url: 'dentalmain.html', date: '09.28', desc: '디지털 임플란트, 투명 치아교정, 원데이 미백 치과 전문 모델하우스' },
-        { id: 'm_shop', name: '예톡 맛있는식당&카페', cat: 'store', tagText: '자영업', tagClass: 'tag-shop', url: 'foodmain.html', date: '09.28', desc: '신선한 재료와 정성을 담은 요리, 편안한 휴식과 커피 전문 모델하우스' },
-        { id: 'm_one', name: '예톡 나의 개인앱', cat: 'one', tagText: '개인', tagClass: 'tag-one', url: 'onemain.html', date: '09.28', desc: '1인 기업·프리랜서 포트폴리오, 전문 서비스 안내, 1:1 직통 상담 모델하우스' }
+        // 1. 단골 / 예약앱 (상점, 식당, 카페, 뷰티) 리스트
+        { id: 'm_shop', name: '맛있는 숯불갈비 & 카페', cat: 'store', tagText: '단골식당', tagClass: 'tag-shop', url: 'foodmain.html', date: '오늘', desc: '신선한 최고급 육류와 정성 어린 요리, 편안한 단골 휴식 공간', forceStarLevel: 4 },
+        { id: 'm_shop_noodle', name: '부산밀면가 본점', cat: 'store', tagText: '단골맛집', tagClass: 'tag-shop', url: 'foodmain.html', date: '오늘', desc: '정통 가마솥 육수와 쫄깃한 자가제면 밀면 & 손만두', forceStarLevel: 3 },
+        { id: 'm_shop_cafe', name: '예톡 달콤베이커리 카페', cat: 'store', tagText: '단골카페', tagClass: 'tag-shop', url: 'foodmain.html', date: '어제', desc: '유기농 스페셜티 커피 & 당일 생산 갓 구운 천연발효빵', forceStarLevel: 3 },
+        { id: 'm_shop_salon', name: '예톡헤어살롱 & 스파', cat: 'store', tagText: '뷰티예약', tagClass: 'tag-shop', url: 'foodmain.html', date: '09.28', desc: '1:1 맞춤형 프리미엄 헤어 스타일링 및 두피 클리닉 케어', forceStarLevel: 2 },
+
+        // 2. 교회앱 (교회 리스트)
+        { id: 'm_church', name: '예톡행복한교회', cat: 'church', tagText: '교회', tagClass: 'tag-church', url: 'churchmain.html', date: '오늘', desc: '온라인 주보, 다음세대 은혜 나눔터, 실시간 예배 공식 교회', forceStarLevel: 4 },
+        { id: 'm_minichurch', name: '나의작은교회 (움직이는교회)', cat: 'church', tagText: '작은교회', tagClass: 'tag-church', url: 'minichurch.html', date: '오늘', desc: '가정예배 5분 순서지, 찬양 및 말씀 나눔 스마트 사역', forceStarLevel: 4 },
+        { id: 'm_church_sarang', name: '사랑의교회', cat: 'church', tagText: '교회', tagClass: 'tag-church', url: 'churchmain.html', date: '어제', desc: '말씀과 기도로 세상을 변화시키는 믿음의 공동체', forceStarLevel: 3 },
+        { id: 'm_church_pyeongang', name: '평강교회', cat: 'church', tagText: '교회', tagClass: 'tag-church', url: 'churchmain.html', date: '09.28', desc: '주님의 평강과 위로가 넘치는 은혜로운 성도 모임', forceStarLevel: 3 },
+
+        // 3. 의원앱 (의원 리스트)
+        { id: 'm_clinic', name: '예톡아름다운의원', cat: 'clinic', tagText: '의원', tagClass: 'tag-clinic', url: 'doctormain.html', date: '오늘', desc: '환절기 피부 진료, 비수술 안티에이징, 1:1 전담 예약', forceStarLevel: 4 },
+        { id: 'm_hanclinic', name: '예톡 우리동네 한의원', cat: 'hanclinic', tagText: '한의원', tagClass: 'tag-hanclinic', url: 'handoctormain.html', date: '오늘', desc: '체질 맞춤 한약, 척추·관절 비수술 추나요법, 침구 치료', forceStarLevel: 3 },
+        { id: 'm_dental', name: '예톡 스마일치과의원', cat: 'dental', tagText: '치과', tagClass: 'tag-clinic', url: 'dentalmain.html', date: '어제', desc: '디지털 정밀 임플란트, 투명 치아교정, 원데이 미백', forceStarLevel: 3 },
+        { id: 'm_clinic_seoul', name: '서울연합내과의원', cat: 'clinic', tagText: '내과', tagClass: 'tag-clinic', url: 'doctormain.html', date: '09.28', desc: '5대 암검진, 위대장 내시경, 만성질환 평생 관리 클리닉', forceStarLevel: 2 },
+
+        // 4. 개인앱
+        { id: 'm_one', name: '예톡 나의 개인앱', cat: 'one', tagText: '개인', tagClass: 'tag-one', url: 'onemain.html', date: '09.28', desc: '1인 기업·프리랜서 포트폴리오, 전문 서비스 안내, 1:1 직통 상담', forceStarLevel: 3 }
     ];
 
     let currentFilter = 'my';
     let selectedJob = '의사';
     let cameraMediaStream = null;
 
-    function getStoreStarLevel(storeId) {
-        return parseInt(localStorage.getItem(`yetalk_star_lvl_${storeId}`) || "2", 10);
+    function getStoreStarLevel(storeId, defaultLevel) {
+        const saved = localStorage.getItem(`yetalk_star_lvl_${storeId}`);
+        if (saved !== null) return parseInt(saved, 10);
+        return defaultLevel !== undefined ? defaultLevel : 2;
     }
 
     function setStoreStarLevel(storeId, level) {
         localStorage.setItem(`yetalk_star_lvl_${storeId}`, level);
     }
 
-    function cycleStoreStar(event, storeId, storeName) {
+    function cycleStoreStar(event, storeId, storeName, defaultLevel) {
         event.stopPropagation();
-        let currentLevel = getStoreStarLevel(storeId);
+        let currentLevel = getStoreStarLevel(storeId, defaultLevel);
         let nextLevel = (currentLevel % 4) + 1;
         setStoreStarLevel(storeId, nextLevel);
 
-        const levelNames = { 1: "관심 매장 (별 1개)", 2: "일반 단골 (별 2개)", 3: "단골 우수 (노랑 별 3개)", 4: "완전 단골/본인 교회 (빨강 별 3개)" };
+        const levelNames = { 1: "관심 매장 (★☆☆)", 2: "일반 단골 (★★☆)", 3: "우수 단골 (노랑 ★★★)", 4: "최우수 단골 (빨강 ★★★)" };
         showToast(`⭐ [${storeName}] ${levelNames[nextLevel]} 등록!`);
         renderStoreList();
     }
 
     function getDynamicStoreList() {
         let activeStoreName = localStorage.getItem("yetalkUserStoreName") || "예톡아름다운의원";
-        if (activeStoreName.includes("최웅식")) {
+        // 레거시 오류로 "최웅식의 작은교회" 또는 단순 실명만 잘못 들어간 경우만 기본값 정리
+        // 🌟 [중요] 관리자가 정식 개설한 '최웅식의원' 등 고유 상호명은 100% 무제한 자유롭게 유지됩니다.
+        if (activeStoreName === "최웅식의 작은교회" || activeStoreName === "최웅식" || activeStoreName === "최용식") {
             activeStoreName = "예톡아름다운의원";
             localStorage.setItem("yetalkUserStoreName", activeStoreName);
         }
-        if ((localStorage.getItem("yetalkUserName") || "").includes("최웅식")) {
+        if ((localStorage.getItem("yetalkUserName") || "").includes("최웅식") || (localStorage.getItem("yetalkUserName") || "").includes("최용식")) {
             localStorage.setItem("yetalkUserName", "최예톡");
         }
         if ((localStorage.getItem("yetalkUserId") || "").includes("woongsik") || (localStorage.getItem("yetalkUserId") || "").includes("choi")) {
@@ -629,9 +650,14 @@
 
         // 🌟 1) 교회 정회원 앱 (사용자 요청: 교회앱 정회원은 빨강 겉라인으로 1순위 최우선 배치!)
         const isChurchMember = localStorage.getItem("yetalk_church_member") !== "false";
+        let currentChurchCardName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        if (!currentChurchCardName || currentChurchCardName.includes("최웅식") || currentChurchCardName.includes("작은교회") || currentChurchCardName.includes("움직이는") || currentChurchCardName.includes("최예톡") || currentChurchCardName.includes("김예톡") || currentChurchCardName.includes("최용식")) {
+            currentChurchCardName = "예톡행복한교회";
+            localStorage.setItem("yetalkChurchName", "예톡행복한교회");
+        }
         const churchApp = {
             id: 'm_church_member_top',
-            name: '예톡행복한교회',
+            name: currentChurchCardName,
             cat: 'church',
             tagText: '교회',
             tagClass: 'tag-church',
@@ -642,10 +668,10 @@
             forceStarLevel: 4
         };
 
-        // 🌟 2) 나의 개인 앱 (onemain.html - 2순위)
+        // 🌟 1) 나의 개인 앱 (onemain.html - [사용자 요청] 1위, 예톡 내앱 노랑색 테두리)
         const personalOneApp = {
             id: 'primary_personal_one_app',
-            name: '예톡 나의 개인앱',
+            name: '예톡 내앱',
             cat: 'one',
             tagText: '개인',
             tagClass: 'tag-one',
@@ -748,35 +774,65 @@
             forceStarLevel: 4
         };
 
-        // 🌟 [사용자 요청] 내앱 기본 리스트
+        // 🌟 [사용자 요청] 내앱 순서:
+        // 1위: 개인앱 (최예톡 개인앱 - 가장 먼저)
+        // 2위: 기독교인이면 내가 만든 작은교회 (최예톡의 작은교회)
+        // 3위: 사업체 전문앱 (사랑받는 최웅식의원 등)
+        // 4위: 상점앱 (맛있는 숯불갈비)
+        // 본인이 다니는 교회(예톡행복한교회)는 내앱(myCards) 목록에서 제외하고 교회앱 탭 제일 위에 배치!
+        let currentFoodShopName = localStorage.getItem("yetalk_food_name") || localStorage.getItem("yetalkShopName") || "맛있는 숯불갈비";
+        if (currentFoodShopName === "상점앱" || currentFoodShopName.includes("최웅식") || currentFoodShopName.includes("최용식")) {
+            currentFoodShopName = "맛있는 숯불갈비";
+            localStorage.setItem("yetalk_food_name", currentFoodShopName);
+        }
+        const shopApp = {
+            id: 'm_shop_default',
+            name: currentFoodShopName,
+            cat: 'store',
+            tagText: '상점',
+            tagClass: 'tag-shop',
+            url: 'foodmain.html',
+            date: '오늘',
+            desc: '“신선한 재료와 정성을 담은 요리, 편안한 휴식과 커피를 제공합니다.” 🍽️☕',
+            isShopApp: true,
+            forceStarLevel: 4
+        };
+
+        let myClinicName = localStorage.getItem("yetalkDoctorName") || localStorage.getItem("yetalk_clinic_name") || "사랑받는 최웅식의원";
+        const clinicApp = {
+            id: 'm_clinic_default',
+            name: myClinicName,
+            cat: 'clinic',
+            tagText: '의원',
+            tagClass: 'tag-clinic',
+            url: 'clinic.html',
+            date: '오늘',
+            desc: '“환자 한 분 한 분을 내 가족처럼, 따뜻한 마음과 정성을 다해 건강을 섬깁니다.” 🏥',
+            isSpecialistApp: true,
+            forceStarLevel: 4
+        };
+
         let myCards = [];
-        if (isChurchMember) {
-            myCards.push(churchApp);
-        }
-        myCards.push(miniChurchApp);
+        // 1위: 개인앱 (가장 먼저)
         myCards.push(personalOneApp);
-
-        // 본인 전문앱 (교회앱이나 개인앱과 중복되지 않도록)
-        if (primaryApp.url !== 'churchmain.html' && primaryApp.url !== 'onemain.html' && primaryApp.url !== 'minichurch.html') {
-            myCards.push(primaryApp);
+        // 2위: 기독교인이면 작은교회
+        const isChristianUser = localStorage.getItem("yetalk_is_christian") !== "false";
+        if (isChristianUser) {
+            myCards.push(miniChurchApp);
+        }
+        // 3위: 사업체 전문앱
+        myCards.push(clinicApp);
+        // 4위: 상점앱
+        if (customCreatedApps && customCreatedApps.length > 0) {
+            customCreatedApps.forEach(ca => {
+                if (!myCards.some(c => c.name === ca.name)) myCards.push(ca);
+            });
         } else {
-            myCards.push(freeShopApp);
+            myCards.push(shopApp);
         }
 
-        // 만약 4개가 안되면, 4개를 채우기 위해 후보 전문앱 추가
-        if (myCards.length < 4) {
-            const candidates = [hanDoctorApp, dentalDoctorApp, freeShopApp, churchApp];
-            for (const c of candidates) {
-                if (!myCards.some(a => a.name === c.name || a.url === c.url)) {
-                    myCards.push(c);
-                    if (myCards.length >= 4) break;
-                }
-            }
-        }
-        myCards = myCards.slice(0, 4); // [사용자 요청] 정확히 4개 카드 유지!
-
-        const otherModels = MODEL_HOUSES.filter(m => !myCards.some(c => c.name === m.name || c.url === m.url));
-        const allStores = [...myCards, ...otherModels, ...customCreatedApps];
+        const otherModels = MODEL_HOUSES.filter(m => !myCards.some(c => c.name === m.name || c.id === m.id));
+        const allStores = [churchApp, ...myCards, ...otherModels, ...customCreatedApps];
 
         return {
             myCards: myCards,
@@ -784,8 +840,215 @@
         };
     }
 
+    const STORAGE_KEY_RESERVATIONS = "yetalk_my_reservations_v1";
+
+    function getMyReservations() {
+        const raw = localStorage.getItem(STORAGE_KEY_RESERVATIONS);
+        if (raw) {
+            try { return JSON.parse(raw); } catch(e){}
+        }
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const d = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${y}-${m}-${d}`;
+
+        const tm = new Date(today.getTime() + 86400000);
+        const tmStr = `${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;
+
+        const nextWeek = new Date(today.getTime() + 86400000 * 7);
+        const nextWeekStr = `${nextWeek.getFullYear()}-${String(nextWeek.getMonth()+1).padStart(2,'0')}-${String(nextWeek.getDate()).padStart(2,'0')}`;
+
+        const sampleRes = [
+            {
+                id: "res_1",
+                appTitle: "예톡바른정형외과의원",
+                category: "의원/병원",
+                date: todayStr,
+                time: "14:30",
+                content: "어깨 관절 도수치료 및 담당 전문의 진료 상담",
+                status: "예약확정",
+                phone: "02-123-4567",
+                url: "clinic.html"
+            },
+            {
+                id: "res_2",
+                appTitle: "평강교회 상담실",
+                category: "교회",
+                date: tmStr,
+                time: "10:00",
+                content: "담임 목사님 신앙 심방 및 가정 상담",
+                status: "예약완료",
+                phone: "02-234-5678",
+                url: "churchmain.html"
+            },
+            {
+                id: "res_3",
+                appTitle: "예톡헤어살롱 & 스파",
+                category: "뷰티/미용",
+                date: nextWeekStr,
+                time: "15:00",
+                content: "VIP 두피 케어 및 모발 클리닉 스타일링",
+                status: "예약대기",
+                phone: "051-789-0123",
+                url: "foodmain.html"
+            }
+        ];
+        localStorage.setItem(STORAGE_KEY_RESERVATIONS, JSON.stringify(sampleRes));
+        return sampleRes;
+    }
+
+    function createResCardHtml(r, isToday) {
+        const borderStyle = isToday ? 'border: 2px solid #facc15; background: linear-gradient(135deg, #242010, #131108);' : 'border: 1.5px solid #1e3a5f; background: #111e33;';
+        const badgeColor = isToday ? '#facc15' : '#38bdf8';
+        const badgeText = isToday ? `⭐ 오늘 예약: ${r.time}` : `📅 ${r.date} ${r.time}`;
+
+        return `
+            <div style="${borderStyle}; border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); margin-bottom: 6px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:950; color:${badgeColor}; background:rgba(0,0,0,0.4); padding:2px 8px; border-radius:6px;">${badgeText}</span>
+                    <span style="font-size:11px; background:#10b981; color:#fff; font-weight:900; padding:2px 7px; border-radius:6px;">${r.status}</span>
+                </div>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:2px;">
+                    <strong style="font-size:15px; font-weight:950; color:#ffffff;">${r.appTitle}</strong>
+                    <span style="font-size:11px; color:#94a3b8;">${r.category}</span>
+                </div>
+                <p style="font-size:13.5px; color:#e2e8f0; line-height:1.45; margin:0; word-break:break-all;">${r.content}</p>
+                <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:4px; padding-top:6px; border-top:1px dashed #334155;">
+                    <button type="button" onclick="window.location.href='tel:${r.phone}'" style="background:#7c3aed; color:#fff; border:none; padding:5px 10px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;">📞 전화</button>
+                    <button type="button" onclick="location.href='${r.url}'" style="background:#0284c7; color:#fff; border:none; padding:5px 11px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;">📖 전문앱 열기</button>
+                    <button type="button" onclick="cancelReservation('${r.id}')" style="background:#334155; color:#cbd5e1; border:none; padding:5px 9px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;">✕ 취소</button>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderReservationView(container) {
+        const reservations = getMyReservations();
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${y}-${m}-${d}`;
+
+        const maxDate = new Date(now.getTime() + 86400000 * 31);
+        const maxDateStr = `${maxDate.getFullYear()}-${String(maxDate.getMonth()+1).padStart(2,'0')}-${String(maxDate.getDate()).padStart(2,'0')}`;
+
+        const todayRes = reservations.filter(r => r.date === todayStr);
+        const upcomingRes = reservations.filter(r => r.date > todayStr && r.date <= maxDateStr)
+                                       .sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time));
+
+        let html = `
+            <div style="padding:10px 4px 20px 4px; display:flex; flex-direction:column; gap:12px; width:100%; box-sizing:border-box;">
+                <div style="background:#0f172a; border:1.5px solid #38bdf8; border-radius:14px; padding:12px 14px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;">🏥 전문앱 연동 스마트 예약센터</div>
+                        <h3 style="font-size:16px; font-weight:950; color:#ffffff; margin:2px 0 0 0;">내 예약 현황 (한달간)</h3>
+                    </div>
+                    <button type="button" onclick="promptAddReservation()" style="background:#2563eb; color:#fff; border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:950; cursor:pointer;">
+                        + 새 예약
+                    </button>
+                </div>
+        `;
+
+        html += `
+            <div>
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                    <span style="font-size:16px;">⭐</span>
+                    <strong style="font-size:14px; font-weight:950; color:#fde047;">오늘 예약 (${todayRes.length}건)</strong>
+                </div>
+        `;
+        if (todayRes.length === 0) {
+            html += `<div style="padding:16px; background:#111e33; border:1px dashed #1e3a5f; border-radius:10px; color:#94a3b8; font-size:13px; text-align:center;">오늘 예정된 예약이 없습니다.</div>`;
+        } else {
+            html += todayRes.map(r => createResCardHtml(r, true)).join("");
+        }
+        html += `</div>`;
+
+        html += `
+            <div style="margin-top:6px;">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                    <span style="font-size:16px;">📅</span>
+                    <strong style="font-size:14px; font-weight:950; color:#38bdf8;">내일부터 한달간 예약 (${upcomingRes.length}건)</strong>
+                </div>
+        `;
+        if (upcomingRes.length === 0) {
+            html += `<div style="padding:16px; background:#111e33; border:1px dashed #1e3a5f; border-radius:10px; color:#94a3b8; font-size:13px; text-align:center;">한달 이내에 등록된 다음 예약이 없습니다.</div>`;
+        } else {
+            html += upcomingRes.map(r => createResCardHtml(r, false)).join("");
+        }
+        html += `</div></div>`;
+
+        container.innerHTML = html;
+    }
+
+    function cancelReservation(resId) {
+        if (!confirm("정말 이 예약을 취소하시겠습니까?")) return;
+        let list = getMyReservations();
+        list = list.filter(r => r.id !== resId);
+        localStorage.setItem(STORAGE_KEY_RESERVATIONS, JSON.stringify(list));
+        renderStoreList();
+        showToast("✔ 예약이 성공적으로 취소되었습니다.");
+    }
+
+    function promptAddReservation() {
+        const appTitle = prompt("예약할 전문앱 또는 장소 이름 (예: 예톡바른정형외과의원):", "예톡바른정형외과의원");
+        if (!appTitle || !appTitle.trim()) return;
+        const date = prompt("예약 날짜를 입력하세요 (YYYY-MM-DD):", new Date().toISOString().slice(0,10));
+        if (!date || !date.trim()) return;
+        const time = prompt("예약 시간을 입력하세요 (예: 15:00):", "15:00");
+        const content = prompt("예약 내용을 입력하세요:", "전문의 진료 및 상담 예약");
+
+        const list = getMyReservations();
+        list.push({
+            id: "res_" + Date.now(),
+            appTitle: appTitle.trim(),
+            category: "전문앱",
+            date: date.trim(),
+            time: time ? time.trim() : "10:00",
+            content: content ? content.trim() : "진료 및 상담",
+            status: "예약확정",
+            phone: "010-1234-5678",
+            url: "clinic.html"
+        });
+        localStorage.setItem(STORAGE_KEY_RESERVATIONS, JSON.stringify(list));
+        renderStoreList();
+        showToast("✔ 새 예약이 등록되었습니다!");
+    }
+
+    function openStoreCardApp(url, name) {
+        if (!url) return;
+        if (url.includes('churchmain')) {
+            let chName = name || "예톡행복한교회";
+            if (!chName || chName === "최웅식의 작은교회" || chName === "작은교회" || chName === "최웅식" || chName.includes("움직이는") || chName === "최예톡" || chName === "김예톡") {
+                chName = "예톡행복한교회";
+            }
+            localStorage.setItem("yetalkChurchName", chName);
+        } else if (url.includes('foodmain')) {
+            let fdName = name || "맛있는 숯불갈비";
+            if (fdName === "상점앱" || fdName === "최웅식" || fdName === "최용식") {
+                fdName = "맛있는 숯불갈비";
+            }
+            localStorage.setItem("yetalk_food_name", fdName);
+            localStorage.setItem("yetalkShopName", fdName);
+        } else if (url.includes('doctormain')) {
+            let docName = name || "예톡아름다운의원";
+            if (docName === "최웅식의 작은교회" || docName === "최웅식" || docName === "최용식") {
+                docName = "예톡아름다운의원";
+            }
+            localStorage.setItem("yetalkDoctorName", docName);
+            localStorage.setItem("yetalkUserStoreName", docName);
+        }
+        location.href = url;
+    }
+
     function renderStoreList() {
         const container = document.getElementById("storeListContainer");
+        if (currentFilter === 'reservation') {
+            renderReservationView(container);
+            return;
+        }
+
         const { myCards, allStores } = getDynamicStoreList();
 
         let filtered = [];
@@ -795,13 +1058,38 @@
             filtered = allStores;
         } else if (currentFilter === 'clinic') {
             filtered = allStores.filter(s => s.cat === 'clinic' || s.cat === 'hanclinic' || s.cat === 'dental');
+        } else if (currentFilter === 'church') {
+            filtered = allStores.filter(s => s.cat === 'church');
+            // 🌟 [사용자 요청] 교회앱 탭에서는 제일 위에 본인 교회가 최우선으로 올라오게 정렬
+            filtered.sort((a, b) => {
+                const aIsMy = (a.id === 'm_church_member_top' || !!a.isChurchMember);
+                const bIsMy = (b.id === 'm_church_member_top' || !!b.isChurchMember);
+                if (aIsMy && !bIsMy) return -1;
+                if (!aIsMy && bIsMy) return 1;
+                const levelA = getStoreStarLevel(a.id, a.forceStarLevel || (a.isChurchMember ? 4 : 2));
+                const levelB = getStoreStarLevel(b.id, b.forceStarLevel || (b.isChurchMember ? 4 : 2));
+                return levelB - levelA;
+            });
         } else {
             filtered = allStores.filter(s => s.cat === currentFilter);
         }
 
+        if (currentFilter !== 'church') {
+            // 🌟 [사용자 요청] 예약앱은 단골들 이름 리스트, 의원앱은 의원리스트가 먼저 나오도록 하고, 그기서 별세개 순서대로 정렬해줘!
+            filtered.sort((a, b) => {
+                const levelA = getStoreStarLevel(a.id, a.forceStarLevel || (a.isChurchMember ? 4 : 2));
+                const levelB = getStoreStarLevel(b.id, b.forceStarLevel || (b.isChurchMember ? 4 : 2));
+                if (levelB !== levelA) {
+                    return levelB - levelA; // 내림차순: 별 3개(레벨 4, 3)가 최우선 정렬!
+                }
+                return 0;
+            });
+        }
+
         container.innerHTML = filtered.map(item => {
             const isChurch = !!item.isChurchMember;
-            const starLevel = item.forceStarLevel || (isChurch ? 4 : getStoreStarLevel(item.id));
+            const defLevel = item.forceStarLevel || (isChurch ? 4 : 2);
+            const starLevel = getStoreStarLevel(item.id, defLevel);
             let starText = "★★☆";
             let starClass = "stars-yellow";
 
@@ -817,16 +1105,22 @@
             let cardBorder = '';
             let titleColor = '#ffffff';
 
-            if (isChurch) {
+            if (item.isPersonalOne) {
+                // 🌟 [사용자 요청] 가장 위에 예톡 내앱(노랑색 테두리)
+                cardBorder = 'border: 2.2px solid #facc15; box-shadow: 0 4px 18px rgba(250, 204, 21, 0.45); background: linear-gradient(135deg, #242010, #131108);';
+                titleColor = '#fde047';
+            } else if (isChurch) {
+                // 🌟 [사용자 요청] 2위: 본인이 정회원 가입한 교회 (빨강 테두리)
                 cardBorder = 'border: 2.2px solid #ef4444; box-shadow: 0 4px 18px rgba(239, 68, 68, 0.45); background: linear-gradient(135deg, #241419, #130a10);';
                 titleColor = '#fca5a5';
             } else if (item.isMiniChurch) {
-                // 🌟 [사용자 요청] 작은교회/움직이는교회도 단골내앱에서 또렷하고 화려한 박스 테두리 적용
+                // 🌟 [사용자 요청] 3위: 자기가 만든 움직이는교회 앱 (하늘색 테두리)
                 cardBorder = 'border: 2px solid #38bdf8; box-shadow: 0 4px 18px rgba(56, 189, 248, 0.4); background: linear-gradient(135deg, #0e1e38, #07101e);';
                 titleColor = '#7dd3fc';
-            } else if (item.isPersonalOne) {
-                cardBorder = 'border: 1.8px solid #a855f7; box-shadow: 0 4px 16px rgba(168, 85, 247, 0.25); background: linear-gradient(135deg, #1c142c, #0d0a18);';
-                titleColor = '#d8b4fe';
+            } else if (item.isShopApp || item.cat === 'store') {
+                // 🌟 [사용자 요청] 4위: 마지막 상점앱 (스마트 상점 테두리)
+                cardBorder = 'border: 1.8px solid #38bdf8; box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25); background: linear-gradient(135deg, #102138, #0a1424);';
+                titleColor = '#38bdf8';
             } else if (item.isSpecialistApp) {
                 cardBorder = 'border: 1.8px solid #38bdf8; box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25); background: linear-gradient(135deg, #102138, #0a1424);';
                 titleColor = '#38bdf8';
@@ -838,10 +1132,10 @@
             const noticeBadge = item.noticeCount ? `<span style="background:#ef4444; color:#ffffff; font-size:11px; font-weight:950; padding:1px 6px; border-radius:10px; margin-left:6px; flex-shrink:0;">${item.noticeCount}</span>` : '';
 
             return `
-                <div class="store-card-item" style="${cardBorder}; cursor:pointer;" onclick="location.href='${item.url}'">
+                <div class="store-card-item" style="${cardBorder}; cursor:pointer;" onclick="openStoreCardApp('${item.url}', '${item.name}')">
                     <div class="card-head-row">
                         <div class="card-title-group">
-                            <button type="button" class="card-stars-btn ${starClass}" onclick="event.stopPropagation(); cycleStoreStar(event, '${item.id}', '${item.name}')" title="터치하여 단골 승급">
+                            <button type="button" class="card-stars-btn ${starClass}" onclick="event.stopPropagation(); cycleStoreStar(event, '${item.id}', '${item.name}', ${defLevel})" title="터치하여 단골 승급">
                                 ${starText}
                             </button>
                             <div class="card-clickable-area">
@@ -1028,7 +1322,7 @@
             box.innerHTML = `<div style="font-size:12.5px; color:#ef4444; text-align:center; padding:16px;">일치하는 매장이 없습니다.</div>`;
         } else {
             box.innerHTML = results.map(item => `
-                <div class="store-card-item" onclick="location.href='${item.url}'">
+                <div class="store-card-item" onclick="openStoreCardApp('${item.url}', '${item.name}')">
                     <strong class="card-name" style="font-size:14px; color:#38bdf8;">${item.name}</strong>
                     <p class="card-desc" style="font-size:11.5px;">${item.desc}</p>
                 </div>
@@ -1230,8 +1524,29 @@
         }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
+    function initTabFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab') || params.get('filter');
+        if (tab) {
+            let targetFilter = tab;
+            if (tab === 'store' || tab === 'shop' || tab === 'res') targetFilter = 'store';
+            else if (tab === 'church') targetFilter = 'church';
+            else if (tab === 'clinic' || tab === 'doctor') targetFilter = 'clinic';
+            else if (tab === 'reservation') targetFilter = 'reservation';
+            else if (tab === 'my') targetFilter = 'my';
+            else if (tab === 'all') targetFilter = 'all';
+
+            const btn = document.querySelector(`.filter-tab-btn[data-filter="${targetFilter}"]`);
+            if (btn) {
+                filterStores(targetFilter, btn);
+                return;
+            }
+        }
         renderStoreList();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        initTabFromUrl();
         checkPcAdmobHide();
     });
 </script>

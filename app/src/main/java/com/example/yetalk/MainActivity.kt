@@ -6,6 +6,10 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.provider.ContactsContract
 import android.provider.MediaStore
 import android.view.View
 import android.view.WindowManager
@@ -44,6 +48,75 @@ class MainActivity : AppCompatActivity() {
         ) {
             requestCameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
         }
+    }
+
+    // 🌟 연락처 읽기 권한 런처 (0원 무료 기기 주소록 연동)
+    @Volatile
+    private var cachedContactsJson: String = "[]"
+
+    private val requestContactsPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            readAndSendContactsToWebView()
+        } else {
+            runOnUiThread {
+                android.widget.Toast.makeText(this, "연락처 접근 권한이 허용되지 않았습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                webView.evaluateJavascript("javascript:if(window.onDeviceContactsPermissionDenied) window.onDeviceContactsPermissionDenied();", null)
+            }
+        }
+    }
+
+    private fun readAndSendContactsToWebView() {
+        Thread {
+            try {
+                val contactsList = mutableListOf<Map<String, String>>()
+                val cursor = contentResolver.query(
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                    arrayOf(
+                        ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                        ContactsContract.CommonDataKinds.Phone.NUMBER
+                    ),
+                    null,
+                    null,
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " ASC"
+                )
+                cursor?.use {
+                    val nameIdx = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                    val numIdx = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                    val seenNumbers = mutableSetOf<String>()
+                    while (it.moveToNext()) {
+                        val name = if (nameIdx != -1) it.getString(nameIdx) ?: "이름 없음" else "이름 없음"
+                        var num = if (numIdx != -1) it.getString(numIdx) ?: "" else ""
+                        num = num.replace(" ", "").replace("-", "")
+                        if (num.isNotEmpty() && !seenNumbers.contains(num)) {
+                            seenNumbers.add(num)
+                            val formattedNum = if (num.length == 11 && num.startsWith("010")) {
+                                "${num.substring(0,3)}-${num.substring(3,7)}-${num.substring(7)}"
+                            } else {
+                                num
+                            }
+                            contactsList.add(mapOf("name" to name, "phone" to formattedNum))
+                        }
+                    }
+                }
+                val jsonArr = org.json.JSONArray()
+                for (c in contactsList) {
+                    val obj = org.json.JSONObject()
+                    obj.put("name", c["name"])
+                    obj.put("phone", c["phone"])
+                    jsonArr.put(obj)
+                }
+                val rawJson = jsonArr.toString()
+                cachedContactsJson = rawJson
+                val base64Json = android.util.Base64.encodeToString(rawJson.toByteArray(Charsets.UTF_8), android.util.Base64.NO_WRAP)
+                runOnUiThread {
+                    webView.evaluateJavascript("javascript:(function(){ try { if(window.onDeviceContactsLoaded) { var bin = atob('$base64Json'); var bytes = new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i); var decoded = new TextDecoder('utf-8').decode(bytes); window.onDeviceContactsLoaded(decoded); } } catch(e){ console.error(e); } })();", null)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }.start()
     }
 
     // 🌟 Chromium 중복 호출 크래시 방지 안전 콜백 전송기
@@ -306,6 +379,15 @@ class MainActivity : AppCompatActivity() {
 
                 return false
             }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                if (url != null && url.contains("onemain.html")) {
+                    if (ContextCompat.checkSelfPermission(this@MainActivity, android.Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+                        readAndSendContactsToWebView()
+                    }
+                }
+            }
         }
 
         webView.webChromeClient = object : WebChromeClient() {
@@ -392,6 +474,17 @@ class MainActivity : AppCompatActivity() {
         @JavascriptInterface
         fun launchApp(target: String) {
             runOnUiThread {
+                if (target == "navershop") {
+                    try {
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://msearch.shopping.naver.com")).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(browserIntent)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                    return@runOnUiThread
+                }
                 val packageName = when (target) {
                     "kakaotalk" -> "com.kakao.talk"
                     "instagram" -> "com.instagram.android"
@@ -414,10 +507,31 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // 🌟 [사용자 요청] 외부 웹사이트(네이버쇼핑 등)를 브라우저 인텐트로 즉시 실행
+        @JavascriptInterface
+        fun openBrowser(url: String) {
+            runOnUiThread {
+                try {
+                    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(browserIntent)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
         // 🌟 [핵심 수정] 카카오톡 친구/대화방 선택(피커) 창을 열고, 초대 문구와 yetalk.cc 링크를 온전히 전달
         @JavascriptInterface
         fun shareToKakaoFriends(message: String) {
             shareToKakaoDirect(message)
+        }
+
+        @JavascriptInterface
+        fun openKakaoTalk(phoneNumber: String?, message: String?) {
+            val shareMsg = if (!message.isNullOrBlank()) message else "안녕하세요! 예톡에서 연락드립니다."
+            shareToKakaoDirect(shareMsg)
         }
 
         @JavascriptInterface
@@ -491,6 +605,52 @@ class MainActivity : AppCompatActivity() {
         }
 
         @JavascriptInterface
+        fun copyToClipboard(text: String) {
+            runOnUiThread {
+                try {
+                    val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip = ClipData.newPlainText("예톡 추천", text)
+                    clipboard.setPrimaryClip(clip)
+                    android.widget.Toast.makeText(this@MainActivity, "추천 문구가 클립보드에 복사되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun sendSms(phoneNumber: String, message: String) {
+            runOnUiThread {
+                try {
+                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                        data = Uri.parse("smsto:$phoneNumber")
+                        putExtra("sms_body", message)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun getCachedDeviceContactsJson(): String {
+            return cachedContactsJson
+        }
+
+        @JavascriptInterface
+        fun requestDeviceContacts() {
+            runOnUiThread {
+                if (ContextCompat.checkSelfPermission(this@MainActivity, android.Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+                    readAndSendContactsToWebView()
+                } else {
+                    requestContactsPermissionLauncher.launch(android.Manifest.permission.READ_CONTACTS)
+                }
+            }
+        }
+
+        @JavascriptInterface
         fun setLockKeepAudio(enable: Boolean) {
             runOnUiThread {
                 isLockAudioKept = enable
@@ -557,9 +717,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        if (!isLockAudioKept) {
-            webView.onPause()
-        }
+        // 🌟 [사용자 요청] 화면을 끌 때(전원 버튼/절전)는 음성이 즉시 꺼지도록 항상 webView.onPause() 호출
+        webView.onPause()
     }
 
     override fun onDestroy() {

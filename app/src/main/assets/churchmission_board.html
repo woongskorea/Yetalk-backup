@@ -10,36 +10,35 @@
     <link rel="stylesheet" href="church_theme.css">
     <style>
         :root {
-            --safe-top: max(env(safe-area-inset-top, 0px) + 48px, 52px);
-            --header-h: calc(52px + var(--safe-top));
+            --safe-top: max(env(safe-area-inset-top, 0px), 32px);
+            --header-h: calc(46px + var(--safe-top));
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         html, body {
-            min-height: 100%; height: auto;
+            width: 100%; height: 100%;
             background: #BACEE0 !important; font-family: "Pretendard", -apple-system, sans-serif;
-            color: #0f172a; overflow-x: hidden; overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+            color: #0f172a; overflow: hidden; margin: 0; padding: 0;
         }
 
         .medigate-app {
-            width: 100%; max-width: 480px; min-height: 100vh; margin: 0 auto;
+            position: fixed; top: 0; bottom: 0; left: 0; right: 0; margin: 0 auto;
+            width: 100%; max-width: 480px; height: 100%;
             background: #BACEE0 !important; display: flex; flex-direction: column;
-            position: relative; box-shadow: 0 0 24px rgba(0,0,0,0.06);
-            padding-bottom: 215px;
+            box-shadow: 0 0 24px rgba(0,0,0,0.06);
+            overflow: hidden; z-index: 100;
         }
 
         @media (min-width: 1024px) {
             .medigate-app { max-width: 1240px !important; }
         }
 
-        /* 1. 상단 헤더: 세이프에리어 완벽 적용 */
+        /* 1. 상단 헤더: 기본 시간(상태표시줄) 바로 밑에서 시작 */
         .med-header {
-            height: var(--header-h); background: #BACEE0;
+            height: var(--header-h); min-height: var(--header-h); background: #BACEE0;
             border-bottom: 1.2px solid rgba(0,0,0,0.08);
             display: flex; justify-content: space-between; align-items: center;
-            padding: var(--safe-top) 12px 10px 12px; position: sticky; top: 0; z-index: 100; gap: 6px;
-            box-sizing: border-box;
+            padding: var(--safe-top) 12px 6px 12px; flex-shrink: 0; gap: 6px; box-sizing: border-box;
         }
         .btn-header-back {
             background: none; border: none; font-size: 26px; font-weight: 900;
@@ -95,8 +94,9 @@
 
         /* 피드 리스트 (카톡 말풍선) */
         .feed-list {
-            display: flex; flex-direction: column; gap: 6px;
-            padding: 8px 10px 215px 10px; box-sizing: border-box;
+            flex: 1; display: flex; flex-direction: column; gap: 8px;
+            padding: 8px 12px 14px 12px; box-sizing: border-box;
+            overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch;
         }
         .chat-msg-row {
             display: flex; gap: 6px; max-width: 88%; align-items: flex-start;
@@ -187,8 +187,8 @@
             <span>선교·전도 BGM</span>
         </div>
         <div class="prayer-pill-btn-group">
-            <button type="button" class="btn-prayer-pill" id="btnMissionMusic_1" onclick="togglePrayerBgm(1)">🕊️ 방언기도</button>
-            <button type="button" class="btn-prayer-pill" id="btnMissionMusic_3" onclick="togglePrayerBgm(3)">🎵 찬양기도</button>
+            <button type="button" class="btn-prayer-pill" id="btnMissionMusic_1" onclick="togglePrayerBgm(1)">🕊️ 기본 기도</button>
+            <button type="button" class="btn-prayer-pill" id="btnMissionMusic_3" onclick="togglePrayerBgm(3)">🎵 찬양 기도</button>
             <button type="button" class="btn-prayer-pill btn-stop" id="btnMissionMusic_stop" onclick="togglePrayerBgmStop()">⏹️ 중지</button>
         </div>
     </div>
@@ -208,8 +208,8 @@
     <!-- 숨은 파일 인풋 -->
     <input type="file" id="missionInlinePhotoInput" style="display:none;" accept="image/*" onchange="handleMissionPhotoSelected(this)">
 
-    <!-- 🌟 하단 독 (한줄 댓글창 + 100 애드몹 안정적 고정 배치) -->
-    <div id="missionBottomDock" style="position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; z-index:99999; display:flex; flex-direction:column; box-shadow:0 -2px 10px rgba(0,0,0,0.08); background:#0b1326; padding-bottom:max(env(safe-area-inset-bottom, 0px) + 12px, 16px);">
+    <!-- 🌟 하단 독 (한줄 댓글창 + 100 애드몹 일체형 배치) -->
+    <div id="missionBottomDock" style="flex-shrink:0; width:100%; display:flex; flex-direction:column; background:#0b1326; box-shadow:0 -2px 10px rgba(0,0,0,0.08); z-index:10; padding-bottom:max(env(safe-area-inset-bottom, 0px) + 8px, 12px);">
         <!-- 한줄 댓글창 -->
         <div style="position:relative; width:100%; background:#BACEE0; border-top:1px solid rgba(0,0,0,0.08); padding:6px 10px; display:flex; flex-direction:column; gap:4px; box-sizing:border-box;">
             <div id="replyIndicatorBar" style="display:none; padding:4px 10px; background:rgba(255,255,255,0.95); border-radius:8px; font-size:11.5px; color:#0f172a; justify-content:space-between; align-items:center; border:1px solid #cbd5e1;">
@@ -218,13 +218,13 @@
             </div>
             <div style="display:flex; align-items:center; gap:6px; width:100%;">
                 <button type="button" onclick="document.getElementById('missionInlinePhotoInput').click()" style="width:36px; height:36px; border-radius:50%; background:#ffffff; border:1px solid #cbd5e1; font-size:18px; color:#475569; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" title="사진 첨부">+</button>
-                <input type="text" id="quickMissionInput" placeholder="선교와 전도의 은혜 나눔을 남겨주세요..." style="flex:1; height:38px; background:#ffffff; border:1px solid #cbd5e1; border-radius:19px; padding:0 14px; font-size:14.5px; font-weight:700; color:#0f172a; outline:none; box-sizing:border-box;" onkeypress="if(event.key==='Enter') submitQuickMissionComment()">
-                <button type="button" onclick="submitQuickMissionComment()" style="height:38px; padding:0 16px; background:#fee500; color:#191919; border:none; border-radius:19px; font-size:13.5px; font-weight:950; cursor:pointer; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.1);">전송</button>
+                <input type="text" id="quickMissionInput" placeholder="" style="flex:1; height:38px; background:#ffffff; border:1px solid #cbd5e1; border-radius:19px; padding:0 14px; font-size:14.5px; font-weight:700; color:#0f172a; outline:none; box-sizing:border-box;" onkeydown="if(event.key==='Enter' && !event.isComposing){ event.preventDefault(); submitQuickMissionComment(); }">
+                <button type="button" onmousedown="event.preventDefault()" onclick="submitQuickMissionComment()" style="height:38px; padding:0 16px; background:#fee500; color:#191919; border:none; border-radius:19px; font-size:13.5px; font-weight:950; cursor:pointer; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.1);">전송</button>
             </div>
         </div>
 
         <!-- 하단 고정 100 애드몹 -->
-        <aside style="height:100px; background:#0b1326; border-top:1.5px solid #1e3a5f; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; position:relative; box-sizing:border-box;">
+        <aside id="missionAdmobAside" style="height:100px; background:#0b1326; border-top:1.5px solid #1e3a5f; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; position:relative; box-sizing:border-box;">
             <div style="font-size:9.5px; color:#64748b; font-weight:850; letter-spacing:0.5px;">
                 <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
             </div>
@@ -264,54 +264,102 @@
         </div>
     </div>
 
-    <!-- 🌟 방장 3-in-1 통합 관리 모달 -->
+    <!-- 🌟 방장 3-in-1 모달 (가로 2대 탭: 방송/방설정 & 회원 및 승인 관리) -->
     <div id="modalLeaderUnified" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:20000100 !important; align-items:center; justify-content:center; padding:14px;">
-        <div style="width:100%; max-width:380px; background:#ffffff; border-radius:18px; padding:18px 16px; box-shadow:0 10px 35px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:12px; max-height:90vh; overflow-y:auto;" onclick="event.stopPropagation()">
+        <div style="width:100%; max-width:400px; background:#ffffff; border-radius:18px; padding:16px; box-shadow:0 10px 35px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:10px; max-height:92vh; overflow-y:auto;" onclick="event.stopPropagation()">
+            
+            <!-- 헤더 -->
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:8px;">
-                <strong style="font-size:15.5px; color:#0f172a; display:flex; align-items:center; gap:5px;">👑 방장 관리 및 방송 설정</strong>
+                <strong style="font-size:15.5px; color:#0f172a; display:flex; align-items:center; gap:5px;">👑 선교·전도 방장 관리 모드</strong>
                 <button type="button" onclick="closeLeaderUnifiedModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:#64748b;">✕</button>
             </div>
 
-            <!-- 1) 대화방 이름 & 방장 명칭 -->
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
-                <span style="font-size:12px; font-weight:900; color:#0284c7;">1️⃣ 대화방 이름 & 방장 명칭 변경</span>
-                <div>
-                    <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">대화방 이름</label>
-                    <input type="text" id="inpLeaderRoomTitle" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
-                </div>
-                <div>
-                    <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">방장 명칭 (선교사, 팀장 등)</label>
-                    <input type="text" id="inpLeaderUserTitle" placeholder="예: 선교사, 팀장" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
-                </div>
-                <button type="button" onclick="saveLeaderRoomNameAndUser()" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:7px; font-size:12px; font-weight:900; cursor:pointer;">💾 변경 저장</button>
+            <!-- 🌟 [사용자 요청] 가로 메뉴 탭: [⚙️ 방 설정 / 방송] [👥 회원 및 승인 관리] -->
+            <div style="display:flex; gap:6px; background:#f1f5f9; padding:3px; border-radius:10px;">
+                <button type="button" id="tabLeaderSettings" onclick="switchLeaderModalTab('settings')" style="flex:1; padding:7px 4px; border:none; border-radius:8px; font-size:12px; font-weight:900; background:#ffffff; color:#0284c7; box-shadow:0 1px 3px rgba(0,0,0,0.1); cursor:pointer;">
+                    ⚙️ 사역방 설정 / 방송
+                </button>
+                <button type="button" id="tabLeaderMembers" onclick="switchLeaderModalTab('members')" style="flex:1; padding:7px 4px; border:none; border-radius:8px; font-size:12px; font-weight:800; background:transparent; color:#64748b; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
+                    👥 회원 및 승인 관리 <span id="badgePendingCount" style="display:none; background:#ef4444; color:#fff; font-size:10px; padding:1px 5px; border-radius:10px; font-weight:900;">0</span>
+                </button>
             </div>
 
-            <!-- 2) 라이브 유튜브 음성 설정 -->
-            <div style="background:#0f172a; border:1px solid #1e3a5f; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; color:#fff;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:12px; font-weight:900; color:#ef4444;">2️⃣ 실시간 선교 보고 / 예배 라이브 음성</span>
-                    <span id="dispLiveIndicatorInModal" style="font-size:10px; background:#475569; padding:1px 5px; border-radius:4px;">대기중</span>
+            <!-- 탭 1 패널: 사역방 설정 및 방송 -->
+            <div id="panelLeaderSettings" style="display:flex; flex-direction:column; gap:10px;">
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+                    <span style="font-size:12px; font-weight:900; color:#0284c7;">1️⃣ 사역방 이름 & 방장 명칭 변경</span>
+                    <div>
+                        <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">사역방 이름</label>
+                        <input type="text" id="inpLeaderRoomTitle" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">방장 명칭 (선교사, 팀장 등)</label>
+                        <input type="text" id="inpLeaderUserTitle" placeholder="예: 선교사, 팀장" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
+                    </div>
+                    <button type="button" onclick="saveLeaderRoomNameAndUser()" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:7px; font-size:12px; font-weight:900; cursor:pointer;">💾 변경 저장</button>
                 </div>
-                <input type="text" id="inpLeaderLiveYtUrl" style="width:100%; background:#1e293b; border:1px solid #334155; border-radius:6px; padding:8px 9px; font-size:12.5px; color:#38bdf8; font-weight:800; box-sizing:border-box;" onclick="this.value='';" onfocus="this.select();" placeholder="https://www.youtube.com/watch?v=...">
-                <div style="display:flex; gap:6px;">
-                    <button type="button" onclick="startMissionLiveAudioDirect()" style="flex:1; background:#dc2626; color:#fff; border:none; border-radius:6px; padding:8px; font-size:12px; font-weight:950; cursor:pointer;">▶️ 라이브 방송 시작</button>
-                    <button type="button" onclick="stopMissionLiveAudio()" style="background:#475569; color:#fff; border:none; border-radius:6px; padding:8px 12px; font-size:12px; font-weight:900; cursor:pointer;">⏹️ 정지</button>
+
+                <div style="background:#0f172a; border:1px solid #1e3a5f; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; color:#fff;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:12px; font-weight:900; color:#ef4444;">2️⃣ 실시간 선교 보고 / 예배 라이브 음성</span>
+                        <span id="dispLiveIndicatorInModal" style="font-size:10px; background:#475569; padding:1px 5px; border-radius:4px;">대기중</span>
+                    </div>
+                    <input type="text" id="inpLeaderLiveYtUrl" style="width:100%; background:#1e293b; border:1px solid #334155; border-radius:6px; padding:8px 9px; font-size:12.5px; color:#38bdf8; font-weight:800; box-sizing:border-box;" onclick="this.value='';" onfocus="this.select();" placeholder="https://www.youtube.com/watch?v=...">
+                    <div style="display:flex; gap:6px;">
+                        <button type="button" onclick="startMissionLiveAudioDirect()" style="flex:1; background:#dc2626; color:#fff; border:none; border-radius:6px; padding:8px; font-size:12px; font-weight:950; cursor:pointer;">▶️ 라이브 방송 시작</button>
+                        <button type="button" onclick="stopMissionLiveAudio()" style="background:#475569; color:#fff; border:none; border-radius:6px; padding:8px 12px; font-size:12px; font-weight:900; cursor:pointer;">⏹️ 정지</button>
+                    </div>
+                </div>
+
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:12px; font-weight:900; color:#334155;">3️⃣ 입장 공개 / 비공개 설정</span>
+                        <span id="txtModalLockNotice" style="font-size:11px; font-weight:850; color:#2563eb;">공개 중</span>
+                    </div>
+                    <div style="display:flex; gap:16px; align-items:center; margin-top:2px;">
+                        <label style="display:flex; align-items:center; gap:5px; font-size:12.5px; font-weight:850; cursor:pointer; color:#0f172a;">
+                            <input type="radio" name="radUnifiedLock" value="public" id="radLockPublic" onchange="changeRoomPrivacyFromRadio(false)"> 🔓 공개방
+                        </label>
+                        <label style="display:flex; align-items:center; gap:5px; font-size:12.5px; font-weight:850; cursor:pointer; color:#dc2626;">
+                            <input type="radio" name="radUnifiedLock" value="secret" id="radLockSecret" onchange="changeRoomPrivacyFromRadio(true)"> 🔒 비공개(참여신청 승인제)
+                        </label>
+                    </div>
+                    <div style="font-size:11px; color:#64748b; line-height:1.4; margin-top:4px; background:#ffffff; border:1px dashed #cbd5e1; border-radius:6px; padding:6px 8px;">
+                        💡 <strong>비공개방 설정 안내:</strong> 비공개 시 성도가 [참여신청]을 하고, 방장이 상단 <strong>[👥 회원 및 승인 관리]</strong> 탭에서 승인해야 입장할 수 있습니다.
+                    </div>
                 </div>
             </div>
 
-            <!-- 3) 공개 / 비공개 설정 -->
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
-                <span style="font-size:12px; font-weight:900; color:#334155;">3️⃣ 입장 공개 / 비공개 설정</span>
-                <div style="display:flex; gap:12px; align-items:center;">
-                    <label style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:800; cursor:pointer;">
-                        <input type="radio" name="radUnifiedLock" value="public" id="radLockPublic" onchange="toggleModalPinGroup(false)"> 공개방
-                    </label>
-                    <label style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:800; cursor:pointer;">
-                        <input type="radio" name="radUnifiedLock" value="secret" id="radLockSecret" onchange="toggleModalPinGroup(true)"> 비공개(비밀방)
-                    </label>
+            <!-- 탭 2 패널: 회원 및 승인 관리 (신규) -->
+            <div id="panelLeaderMembers" style="display:none; flex-direction:column; gap:10px;">
+                <!-- 1) 참여 신청 대기자 명단 -->
+                <div style="background:#fef2f2; border:1.2px solid #fecaca; border-radius:10px; padding:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <strong style="font-size:12.5px; color:#dc2626; display:flex; align-items:center; gap:4px;">
+                            📥 참여 신청 대기자 <span id="txtPendingHeaderCount">(0명)</span>
+                        </strong>
+                        <button type="button" onclick="approveAllPendingRequests()" style="background:#dc2626; color:#fff; border:none; border-radius:6px; font-size:11px; font-weight:900; padding:3px 8px; cursor:pointer;">전체 허용</button>
+                    </div>
+                    <div id="pendingRequestsListContainer" style="display:flex; flex-direction:column; gap:5px; max-height:130px; overflow-y:auto;">
+                        <!-- 대기자 목록 -->
+                    </div>
                 </div>
-                <div id="unifiedPinInputBox" style="display:none; margin-top:4px;">
-                    <input type="password" id="inpUnifiedPinCode" maxlength="4" placeholder="비밀번호 4자리" style="width:120px; border:1.5px solid #ef4444; border-radius:6px; padding:5px 8px; font-size:14px; text-align:center; letter-spacing:3px;">
+
+                <!-- 2) 현재 참여 회원 명단 & 퇴장 처리 -->
+                <div style="background:#f8fafc; border:1.2px solid #e2e8f0; border-radius:10px; padding:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <strong style="font-size:12.5px; color:#1e293b; display:flex; align-items:center; gap:4px;">
+                            👥 현재 참여 회원 명단 <span id="txtActiveMembersCount">(0명)</span>
+                        </strong>
+                    </div>
+                    <!-- 회원 직접 추가 인풋 -->
+                    <div style="display:flex; gap:4px; margin-bottom:8px;">
+                        <input type="text" id="inpDirectAddMember" placeholder="성도 이름 직접 입력 (예: 김선교)" style="flex:1; border:1px solid #cbd5e1; border-radius:6px; padding:6px 8px; font-size:12px; outline:none; box-sizing:border-box;">
+                        <button type="button" onclick="submitDirectAddMember()" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:6px 10px; font-size:11.5px; font-weight:900; cursor:pointer; flex-shrink:0;">+ 추가</button>
+                    </div>
+                    <div id="activeMembersListContainer" style="display:flex; flex-direction:column; gap:5px; max-height:160px; overflow-y:auto;">
+                        <!-- 참여 회원 목록 및 퇴장 버튼 -->
+                    </div>
                 </div>
             </div>
 
@@ -343,11 +391,12 @@
     };
     let prayerAudioObj = null;
 
+    let currentMissionRoom = null;
+
     function initBoard() {
-        window.scrollTo(0, 0);
-        const savedRoomId = sessionStorage.getItem("mission_board_room_id") || "m1";
-        const savedRoomName = sessionStorage.getItem("mission_board_room_name") || "인도선교방";
-        const savedLeader = sessionStorage.getItem("mission_board_leader") || "바울선교사";
+        const savedRoomId = sessionStorage.getItem("mission_board_room_id") || "m_1";
+        const savedRoomName = sessionStorage.getItem("mission_board_room_name") || "선교방";
+        const savedLeader = sessionStorage.getItem("mission_board_leader") || "";
         const savedCategory = sessionStorage.getItem("mission_board_category") || "mission";
 
         currentMissionRoomId = savedRoomId;
@@ -355,11 +404,64 @@
         currentMissionLeader = savedLeader;
         currentMissionCategory = savedCategory;
 
+        loadCurrentRoomFromStorage();
+
         document.getElementById("headerMissionTitle").innerText = currentMissionRoomName;
         document.getElementById("missionAdmobSubText").innerText = `${currentMissionRoomName} 사역 공식 후원 슬롯`;
 
+        updateRoomLockHeaderUI();
         loadPosts();
         loadPinnedBest();
+        setupMissionChatKeyboard();
+
+        const aside = document.getElementById("missionAdmobAside");
+        const dock = document.getElementById("missionBottomDock");
+        if (aside) aside.style.display = "flex";
+        if (dock) dock.style.paddingBottom = "max(env(safe-area-inset-bottom, 0px) + 8px, 12px)";
+        window.scrollTo(0, 0);
+
+        // 방 입장 시 상단 헤더 및 본문 상단이 바로 보이도록 정렬
+        const feed = document.getElementById("missionFeedListContainer");
+        if (feed) feed.scrollTop = 0;
+    }
+
+    function getRoomsListKey() {
+        return (currentMissionCategory === "mission") ? "yetalk_mission_rooms_list_v6" : "yetalk_evangel_rooms_list_v6";
+    }
+
+    function loadCurrentRoomFromStorage() {
+        const raw = localStorage.getItem(getRoomsListKey());
+        let list = [];
+        if (raw) {
+            try { list = JSON.parse(raw); } catch(e){}
+        }
+        let r = list.find(item => item.id === currentMissionRoomId);
+        if (!r) {
+            r = { id: currentMissionRoomId, name: currentMissionRoomName, leader: currentMissionLeader, isPrivate: false, members: currentMissionLeader ? [currentMissionLeader] : [], pendingRequests: [] };
+            list.push(r);
+            localStorage.setItem(getRoomsListKey(), JSON.stringify(list));
+        }
+        if (!r.members) r.members = r.leader ? [r.leader] : [];
+        if (!r.pendingRequests) r.pendingRequests = [];
+        r.isPrivate = !!r.isPrivate;
+        currentMissionRoom = r;
+    }
+
+    function saveCurrentRoomToStorage() {
+        if (!currentMissionRoom) return;
+        const key = getRoomsListKey();
+        const raw = localStorage.getItem(key);
+        let list = [];
+        if (raw) {
+            try { list = JSON.parse(raw); } catch(e){}
+        }
+        const idx = list.findIndex(item => item.id === currentMissionRoom.id);
+        if (idx !== -1) {
+            list[idx] = currentMissionRoom;
+        } else {
+            list.push(currentMissionRoom);
+        }
+        localStorage.setItem(key, JSON.stringify(list));
     }
 
     function getStorageKey() {
@@ -478,9 +580,15 @@
         savePosts();
         input.value = "";
         renderFeed();
-        setTimeout(() => {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-        }, 60);
+
+        // 🌟 feed 내부 즉시 최하단 스크롤
+        const feed = document.getElementById("missionFeedListContainer");
+        if (feed) {
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        // 계속 연속 입력할 수 있도록 포커스 유지
+        input.focus();
     }
 
     function handleMissionPhotoSelected(input) {
@@ -500,9 +608,10 @@
             missionPosts.push(newPost);
             savePosts();
             renderFeed();
-            setTimeout(() => {
-                window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-            }, 60);
+            const feed = document.getElementById("missionFeedListContainer");
+            if (feed) {
+                feed.scrollTop = feed.scrollHeight;
+            }
             showToast("📷 사진이 전송되었습니다.");
         };
         reader.readAsDataURL(file);
@@ -606,10 +715,23 @@
         showToast("📌 베스트글 고정이 해제되었습니다.");
     }
 
-    // 방장 3-in-1 모달
+    // 🌟 방장 모달 열기 및 가로 탭 관리
     function openLeaderUnifiedModal() {
+        loadCurrentRoomFromStorage();
+        const myName = getCurrentUser();
         document.getElementById("inpLeaderRoomTitle").value = currentMissionRoomName;
-        document.getElementById("inpLeaderUserTitle").value = currentMissionLeader;
+        document.getElementById("inpLeaderUserTitle").value = currentMissionLeader || myName;
+
+        // 공개 / 비공개 라디오 버튼 세팅
+        const isSecret = !!(currentMissionRoom && currentMissionRoom.isPrivate);
+        document.getElementById("radLockPublic").checked = !isSecret;
+        document.getElementById("radLockSecret").checked = isSecret;
+        updateModalLockNotice(isSecret);
+
+        updateLeaderModalBadge();
+        renderLeaderMemberList();
+        switchLeaderModalTab('settings');
+
         document.getElementById("modalLeaderUnified").style.display = "flex";
     }
 
@@ -617,10 +739,222 @@
         document.getElementById("modalLeaderUnified").style.display = "none";
     }
 
+    function switchLeaderModalTab(tab) {
+        const tabSet = document.getElementById("tabLeaderSettings");
+        const tabMem = document.getElementById("tabLeaderMembers");
+        const pnlSet = document.getElementById("panelLeaderSettings");
+        const pnlMem = document.getElementById("panelLeaderMembers");
+
+        if (tab === 'settings') {
+            tabSet.style.background = "#ffffff";
+            tabSet.style.color = "#0284c7";
+            tabSet.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+            tabSet.style.fontWeight = "900";
+
+            tabMem.style.background = "transparent";
+            tabMem.style.color = "#64748b";
+            tabMem.style.boxShadow = "none";
+            tabMem.style.fontWeight = "800";
+
+            pnlSet.style.display = "flex";
+            pnlMem.style.display = "none";
+        } else {
+            tabMem.style.background = "#ffffff";
+            tabMem.style.color = "#0284c7";
+            tabMem.style.boxShadow = "0 1px 3px rgba(0,0,0,0.1)";
+            tabMem.style.fontWeight = "900";
+
+            tabSet.style.background = "transparent";
+            tabSet.style.color = "#64748b";
+            tabSet.style.boxShadow = "none";
+            tabSet.style.fontWeight = "800";
+
+            pnlSet.style.display = "none";
+            pnlMem.style.display = "flex";
+            renderLeaderMemberList();
+        }
+    }
+
+    function updateLeaderModalBadge() {
+        if (!currentMissionRoom) return;
+        const pendingCount = (currentMissionRoom.pendingRequests || []).length;
+        const badge = document.getElementById("badgePendingCount");
+        const headerCount = document.getElementById("txtPendingHeaderCount");
+        if (badge) {
+            badge.innerText = pendingCount;
+            badge.style.display = pendingCount > 0 ? "inline-block" : "none";
+        }
+        if (headerCount) {
+            headerCount.innerText = `(${pendingCount}명)`;
+        }
+    }
+
+    function renderLeaderMemberList() {
+        if (!currentMissionRoom) return;
+
+        // 1) 대기자 렌더링
+        const pendingContainer = document.getElementById("pendingRequestsListContainer");
+        pendingContainer.innerHTML = "";
+        const pending = currentMissionRoom.pendingRequests || [];
+
+        if (pending.length === 0) {
+            pendingContainer.innerHTML = `<div style="font-size:12px; color:#94a3b8; text-align:center; padding:10px 0;">현재 대기 중인 참여 신청이 없습니다.</div>`;
+        } else {
+            pending.forEach(name => {
+                const item = document.createElement("div");
+                item.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:1px solid #fecaca; border-radius:6px; padding:6px 8px;";
+                item.innerHTML = `
+                    <div style="font-size:12.5px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:5px;">
+                        <span>👤</span> <span>${escapeHtml(name)}</span>
+                    </div>
+                    <div style="display:flex; gap:4px;">
+                        <button type="button" onclick="approvePendingRequest('${escapeHtml(name)}')" style="background:#16a34a; color:#fff; border:none; border-radius:4px; font-size:11px; font-weight:900; padding:3px 7px; cursor:pointer;">✅ 허용</button>
+                        <button type="button" onclick="rejectPendingRequest('${escapeHtml(name)}')" style="background:#64748b; color:#fff; border:none; border-radius:4px; font-size:11px; font-weight:900; padding:3px 7px; cursor:pointer;">거절</button>
+                    </div>
+                `;
+                pendingContainer.appendChild(item);
+            });
+        }
+
+        // 2) 참여 회원 렌더링
+        const membersContainer = document.getElementById("activeMembersListContainer");
+        membersContainer.innerHTML = "";
+        const members = currentMissionRoom.members || [];
+        const txtActiveCount = document.getElementById("txtActiveMembersCount");
+        if (txtActiveCount) txtActiveCount.innerText = `(${members.length}명)`;
+
+        members.forEach(name => {
+            const isLeader = (currentMissionRoom.leader && currentMissionRoom.leader === name) || name.includes("선교사") || name.includes("팀장") || name.includes("방장");
+            const item = document.createElement("div");
+            item.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:1px solid #e2e8f0; border-radius:6px; padding:6px 8px;";
+            
+            let badgeOrAction = isLeader 
+                ? `<span style="font-size:11px; font-weight:900; color:#d97706; background:#fef3c7; border:1px solid #fde68a; border-radius:4px; padding:2px 6px;">👑 방장</span>`
+                : `<button type="button" onclick="kickMember('${escapeHtml(name)}')" style="background:#fee2e2; border:1px solid #fca5a5; color:#dc2626; border-radius:4px; font-size:11px; font-weight:900; padding:3px 7px; cursor:pointer;">⛔ 퇴장</button>`;
+
+            item.innerHTML = `
+                <div style="font-size:12.5px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:5px;">
+                    <span>${isLeader ? '👑' : '👤'}</span> <span>${escapeHtml(name)}</span>
+                </div>
+                <div>${badgeOrAction}</div>
+            `;
+            membersContainer.appendChild(item);
+        });
+
+        updateLeaderModalBadge();
+    }
+
+    function approvePendingRequest(name) {
+        if (!currentMissionRoom) return;
+        currentMissionRoom.pendingRequests = (currentMissionRoom.pendingRequests || []).filter(n => n !== name);
+        if (!currentMissionRoom.members) currentMissionRoom.members = [];
+        if (!currentMissionRoom.members.includes(name)) {
+            currentMissionRoom.members.push(name);
+        }
+        saveCurrentRoomToStorage();
+        renderLeaderMemberList();
+        showToast(`✅ [${name}] 성도님의 참여 신청을 허용(승인)하였습니다.`);
+    }
+
+    function approveAllPendingRequests() {
+        if (!currentMissionRoom) return;
+        const pending = currentMissionRoom.pendingRequests || [];
+        if (pending.length === 0) {
+            showToast("대기 중인 참여 신청이 없습니다.");
+            return;
+        }
+        if (!currentMissionRoom.members) currentMissionRoom.members = [];
+        pending.forEach(name => {
+            if (!currentMissionRoom.members.includes(name)) currentMissionRoom.members.push(name);
+        });
+        currentMissionRoom.pendingRequests = [];
+        saveCurrentRoomToStorage();
+        renderLeaderMemberList();
+        showToast("✅ 모든 참여 신청을 허용(승인)하였습니다.");
+    }
+
+    function rejectPendingRequest(name) {
+        if (!currentMissionRoom) return;
+        currentMissionRoom.pendingRequests = (currentMissionRoom.pendingRequests || []).filter(n => n !== name);
+        saveCurrentRoomToStorage();
+        renderLeaderMemberList();
+        showToast(`[${name}] 참여 신청을 거절하였습니다.`);
+    }
+
+    function kickMember(name) {
+        if (!currentMissionRoom) return;
+        if (!confirm(`[${name}] 성도를 이 사역 대화방에서 퇴장(내보내기) 처리하시겠습니까?`)) return;
+
+        currentMissionRoom.members = (currentMissionRoom.members || []).filter(n => n !== name);
+        saveCurrentRoomToStorage();
+        renderLeaderMemberList();
+        showToast(`⛔ [${name}] 성도를 퇴장 처리하였습니다.`);
+    }
+
+    function submitDirectAddMember() {
+        const inp = document.getElementById("inpDirectAddMember");
+        const name = inp.value.trim();
+        if (!name) { alert("추가할 성도 이름을 입력해주세요."); return; }
+        if (!currentMissionRoom) return;
+
+        if (!currentMissionRoom.members) currentMissionRoom.members = [];
+        if (currentMissionRoom.members.includes(name)) {
+            alert("이미 참여 중인 성도입니다.");
+            return;
+        }
+        currentMissionRoom.members.push(name);
+        inp.value = "";
+        saveCurrentRoomToStorage();
+        renderLeaderMemberList();
+        showToast(`👤 [${name}] 성도님이 사역방에 추가되었습니다.`);
+    }
+
+    function updateModalLockNotice(isSecret) {
+        const noticeEl = document.getElementById("txtModalLockNotice");
+        if (noticeEl) {
+            noticeEl.innerText = isSecret ? "비공개(승인제) 운용 중" : "공개 중";
+            noticeEl.style.color = isSecret ? "#dc2626" : "#2563eb";
+        }
+    }
+
+    function changeRoomPrivacyFromRadio(isSecret) {
+        if (!currentMissionRoom) return;
+        currentMissionRoom.isPrivate = isSecret;
+        updateModalLockNotice(isSecret);
+        updateRoomLockHeaderUI();
+        saveCurrentRoomToStorage();
+        showToast(isSecret ? "🔒 비공개(참여신청 승인제)로 변경되었습니다." : "🔓 누구나 입장 가능한 공개방으로 변경되었습니다.");
+    }
+
+    function updateRoomLockHeaderUI() {
+        const btn = document.getElementById("btnMissionLockState");
+        if (!btn || !currentMissionRoom) return;
+        if (currentMissionRoom.isPrivate) {
+            btn.innerText = "입장(비공개)";
+            btn.style.background = "#fee2e2";
+            btn.style.borderColor = "#f87171";
+            btn.style.color = "#dc2626";
+        } else {
+            btn.innerText = "입장(공개)";
+            btn.style.background = "#eff6ff";
+            btn.style.borderColor = "#bfdbfe";
+            btn.style.color = "#2563eb";
+        }
+    }
+
+    function toggleMissionLockState() {
+        if (!currentMissionRoom) return;
+        currentMissionRoom.isPrivate = !currentMissionRoom.isPrivate;
+        updateRoomLockHeaderUI();
+        saveCurrentRoomToStorage();
+        showToast(currentMissionRoom.isPrivate ? "🔒 비공개(참여신청 승인제)로 변경되었습니다." : "🔓 누구나 입장 가능한 공개방으로 변경되었습니다.");
+    }
+
     function saveLeaderRoomNameAndUser() {
         const name = document.getElementById("inpLeaderRoomTitle").value.trim();
-        const leader = document.getElementById("inpLeaderUserTitle").value.trim();
+        let leader = document.getElementById("inpLeaderUserTitle").value.trim();
         if (!name) { alert("대화방 이름을 입력해주세요."); return; }
+        if (!leader) leader = getCurrentUser();
 
         currentMissionRoomName = name;
         currentMissionLeader = leader;
@@ -628,75 +962,78 @@
         sessionStorage.setItem("mission_board_room_name", name);
         sessionStorage.setItem("mission_board_leader", leader);
 
-        // 방 목록에도 반영
-        const listKey = (currentMissionCategory === "mission") ? "yetalk_mission_rooms_list" : "yetalk_evangel_rooms_list";
-        const savedList = localStorage.getItem(listKey);
-        if (savedList) {
-            try {
-                let list = JSON.parse(savedList);
-                const r = list.find(item => item.id === currentMissionRoomId);
-                if (r) { r.name = name; r.leader = leader; localStorage.setItem(listKey, JSON.stringify(list)); }
-            } catch(e){}
+        if (currentMissionRoom) {
+            currentMissionRoom.name = name;
+            currentMissionRoom.leader = leader;
+            if (!currentMissionRoom.members) currentMissionRoom.members = [];
+            if (!currentMissionRoom.members.includes(leader)) currentMissionRoom.members.push(leader);
+            saveCurrentRoomToStorage();
         }
 
         closeLeaderUnifiedModal();
         showToast("💾 대화방 정보가 변경되었습니다.");
     }
 
-    function applyLeaderBestPostSelection() {
-        const sel = document.getElementById("selBestPostPicker");
-        const pid = sel.value;
-        const post = missionPosts.find(p => p.id === pid);
-        if (!post) return;
+    // 🌟 [사용자 요청] 카톡 스타일 키보드 및 실시간 한글 타이핑/전송 최적화 핸들러
+    function setupMissionChatKeyboard() {
+        const input = document.getElementById("quickMissionInput");
+        const dock = document.getElementById("missionBottomDock");
+        const aside = document.getElementById("missionAdmobAside");
+        const feed = document.getElementById("missionFeedListContainer");
+        if (!input || !dock) return;
 
-        pinnedBestPostId = post.id;
-        localStorage.setItem(`yetalk_mission_pinned_best_${currentMissionRoomId}`, JSON.stringify(post));
-        applyPinnedBanner(post);
-        closeLeaderUnifiedModal();
-        showToast("📌 선택한 글이 베스트글로 상단에 고정되었습니다.");
-    }
+        let baseHeight = window.innerHeight;
 
-    function startMissionLiveAudioDirect() {
-        const inp = document.getElementById("inpLeaderLiveYtUrl");
-        const url = inp.value.trim();
-        if (!url) { alert("유튜브 라이브 방송 주소를 입력해주세요."); return; }
-
-        const ytId = extractYouTubeId(url);
-        if (!ytId) { alert("올바른 유튜브 주소가 아닙니다."); return; }
-
-        const box = document.getElementById("hiddenLiveYtIframeContainer");
-        box.innerHTML = `<iframe width="1" height="1" src="https://www.youtube.com/embed/${ytId}?autoplay=1&playsinline=1" allow="autoplay" style="border:none;"></iframe>`;
-        document.getElementById("liveAudioBar").style.display = "flex";
-        document.getElementById("dispLiveIndicatorInModal").innerText = "🔴 방송 중";
-        document.getElementById("dispLiveIndicatorInModal").style.background = "#dc2626";
-        closeLeaderUnifiedModal();
-        showToast("🔴 라이브 음성 방송이 시작되었습니다.");
-    }
-
-    function stopMissionLiveAudio() {
-        document.getElementById("hiddenLiveYtIframeContainer").innerHTML = "";
-        document.getElementById("liveAudioBar").style.display = "none";
-        document.getElementById("dispLiveIndicatorInModal").innerText = "대기중";
-        document.getElementById("dispLiveIndicatorInModal").style.background = "#475569";
-        showToast("⏹️ 라이브 음성이 종료되었습니다.");
-    }
-
-    function toggleMissionLockState() {
-        const btn = document.getElementById("btnMissionLockState");
-        const isSecret = btn.innerText.includes("비공개");
-        if (isSecret) {
-            btn.innerText = "입장(공개)";
-            btn.style.background = "#eff6ff";
-            btn.style.borderColor = "#bfdbfe";
-            btn.style.color = "#2563eb";
-            showToast("🔓 공개 대화방으로 변경되었습니다.");
-        } else {
-            btn.innerText = "입장(비공개)";
-            btn.style.background = "#fee2e2";
-            btn.style.borderColor = "#f87171";
-            btn.style.color = "#dc2626";
-            showToast("🔒 비공개 비밀 대화방으로 변경되었습니다.");
+        function scrollFeedToBottom() {
+            if (feed) {
+                feed.scrollTop = feed.scrollHeight;
+            }
         }
+
+        function handleViewportResize() {
+            window.scrollTo(0, 0);
+            const isKeyboardUp = window.innerHeight < (baseHeight - 120);
+            if (isKeyboardUp) {
+                if (aside) aside.style.display = "none";
+                dock.style.paddingBottom = "4px";
+            } else {
+                if (aside) aside.style.display = "flex";
+                dock.style.paddingBottom = "max(env(safe-area-inset-bottom, 0px) + 8px, 12px)";
+            }
+        }
+
+        window.addEventListener("resize", handleViewportResize);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener("resize", handleViewportResize);
+        }
+
+        input.addEventListener("focus", () => {
+            handleViewportResize();
+            setTimeout(scrollFeedToBottom, 150);
+            setTimeout(scrollFeedToBottom, 350);
+        });
+
+        input.addEventListener("blur", () => {
+            setTimeout(() => {
+                if (aside) aside.style.display = "flex";
+                dock.style.paddingBottom = "max(env(safe-area-inset-bottom, 0px) + 8px, 12px)";
+                window.scrollTo(0, 0);
+            }, 120);
+        });
+
+        if (feed) {
+            feed.addEventListener("touchstart", () => {
+                if (document.activeElement === input) {
+                    input.blur();
+                }
+            }, { passive: true });
+        }
+
+        window.addEventListener("scroll", () => {
+            if (window.scrollY !== 0 || window.scrollX !== 0) {
+                window.scrollTo(0, 0);
+            }
+        }, { passive: true });
     }
 
     function toggleModalPinGroup(show) {
@@ -718,7 +1055,7 @@
 
         document.getElementById("btnMissionMusic_1").classList.toggle("active-tongue", track === 1);
         document.getElementById("btnMissionMusic_3").classList.toggle("active-praise", track === 3);
-        showToast(track === 1 ? "🕊️ 방언기도 음악이 재생됩니다." : "🎵 찬양기도 음악이 재생됩니다.");
+        showToast(track === 1 ? "🕊️ 기본 기도 음악이 재생됩니다." : "🎵 찬양 기도 음악이 재생됩니다.");
     }
 
     function togglePrayerBgmStop() {

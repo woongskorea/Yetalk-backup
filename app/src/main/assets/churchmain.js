@@ -91,27 +91,38 @@ function isDoctorDirtySlide(s) {
 }
 
 function checkIsSubAdminOrAbove() {
+    // 🌟 [사용자 요청] 일반 성도 및 비로그인 회원은 관리/수정 버튼 절대 노출 금지 (관리자/부관리자 전용)
+    const isAuth = sessionStorage.getItem("yetalk_admin_auth") === "true" ||
+                   sessionStorage.getItem("yetalk_church_admin_auth") === "true" ||
+                   localStorage.getItem("yetalk_admin_auth") === "true" ||
+                   localStorage.getItem("yetalk_church_admin_auth") === "true" ||
+                   localStorage.getItem("yetalkIsAdmin") === "true" ||
+                   localStorage.getItem("yetalkIsSubAdmin") === "true";
+    if (isAuth) return true;
+
     const job = (localStorage.getItem("yetalkUserJobType") || "").trim();
     const role = (localStorage.getItem("yetalkUserRole") || "").trim();
     const grade = (localStorage.getItem("yetalkUserGrade") || "").trim();
-    const isAdmin = localStorage.getItem("yetalkIsAdmin") === "true";
-    const isSubAdmin = localStorage.getItem("yetalkIsSubAdmin") === "true";
+    const name = (localStorage.getItem("yetalkUserName") || "").trim();
 
-    if (job === "일반성도" || role === "일반성도" || grade === "일반성도") {
+    if (job === "일반성도" || role === "일반성도" || grade === "일반성도" || (!name && !job && !role)) {
         return false;
     }
-    const adminJobs = ["담임목사", "목사", "부목사", "전도사", "기독교사역자", "사역자", "관리자", "부관리자", "총관리자"];
-    if (adminJobs.some(k => job.includes(k) || role.includes(k) || grade.includes(k))) {
+    const adminJobs = ["담임목사", "목사", "부목사", "전도사", "간사", "사무간사", "기독교사역자", "사역자", "관리자", "부관리자", "총관리자"];
+    if (adminJobs.some(k => job.includes(k) || role.includes(k) || grade.includes(k) || name.includes(k))) {
         return true;
     }
-    if (isAdmin || isSubAdmin) {
+    if (name === "최웅식" || name === "최예톡" || name === "김예톡") {
         return true;
     }
-    return true; // 기본값: 부관리자 이상 권한 제공
+    return false; // 🌟 일반 성도/방문자는 관리/수정 버튼 기본 숨김
 }
 
 function openCardSlideEdit(secId) {
     activeSecId = secId;
+    if (typeof notifyParentMenuChange === "function") {
+        notifyParentMenuChange(secId, "focus_edit");
+    }
     openCurrentSlideEdit();
 }
 
@@ -595,7 +606,7 @@ function renderChurchView() {
                         </div>
                     ` : ''}
 
-                    <!-- 🌟 [사용자 요청] 이미지 바탕 맨 아래에 포함된 한줄 4대 메뉴 (예톡TV, 복음, 오시는길, 헌금) -->
+                    <!-- 🌟 [사용자 요청] 이미지 바탕 맨 아래에 포함된 한줄 5대 메뉴 (예톡TV, 복음, 구원, 오시는길, 헌금) -->
                     <div class="card-embedded-quick-nav">
                         <button type="button" class="c-quick-nav-btn" onclick="event.stopPropagation(); handleBottomNav('tv');" title="예톡TV 숏폼 보기">
                             <span class="c-quick-icon">📺</span>
@@ -604,6 +615,10 @@ function renderChurchView() {
                         <button type="button" class="c-quick-nav-btn" onclick="event.stopPropagation(); handleBottomNav('gospel');" title="복음 말씀">
                             <span class="c-quick-icon">📖</span>
                             <span class="c-quick-label">복음</span>
+                        </button>
+                        <button type="button" class="c-quick-nav-btn" onclick="event.stopPropagation(); handleBottomNav('salvation');" title="구원의 영접 기도문">
+                            <span class="c-quick-icon">✝️</span>
+                            <span class="c-quick-label">구원</span>
                         </button>
                         <button type="button" class="c-quick-nav-btn" onclick="event.stopPropagation(); handleBottomNav('map');" title="오시는길 약도">
                             <span class="c-quick-icon">📍</span>
@@ -773,6 +788,21 @@ function setupSectionObserver() {
     // 충돌과 흔들림(앞뒤 덜컹거림) 없는 완벽한 원-카드 스냅 보장!
 }
 
+function notifyParentMenuChange(idx, action = "view") {
+    if (window.parent && window.parent !== window) {
+        try {
+            const menuKeys = ['info', 'worship', 'jubo', 'notice', 'pray', 'invite', 'jesus', 'member', 'nextgen', 'mission', 'archive'];
+            const targetKey = menuKeys[idx] || 'info';
+            window.parent.postMessage({
+                type: 'YETALK_CHURCH_MENU_CHANGE',
+                menu: targetKey,
+                index: idx,
+                action: action
+            }, '*');
+        } catch(e) {}
+    }
+}
+
 function updateChipsBar(idx, instant = false) {
     document.querySelectorAll(".c-nav-chip").forEach((chip, i) => {
         const match = (i === idx);
@@ -791,6 +821,9 @@ function updateChipsBar(idx, instant = false) {
         history.replaceState(null, "", newUrl.toString());
     } catch(e) {}
     checkAdmobFooterExclusion();
+    if (typeof notifyParentMenuChange === "function") {
+        notifyParentMenuChange(idx, "view");
+    }
 }
 
 let programmaticTimer = null;
@@ -857,6 +890,7 @@ function showLockedAlert() {
 function handleBottomNav(type) {
     switch(type) {
         case 'gospel': location.href = "church_gospel.html"; break;
+        case 'salvation': location.href = "church_salvation.html"; break;
         case 'map': location.href = "church_map.html"; break;
         case 'offering': openChurchOfferingModal(); break;
         case 'tv': location.href = "index.html"; break;
@@ -1013,6 +1047,9 @@ function submitChurchOffering() {
 }
 
 function openCurrentSlideEdit() {
+    if (typeof notifyParentMenuChange === "function") {
+        notifyParentMenuChange(activeSecId, "focus_edit");
+    }
     const slideIdx = currentSlideIndices[activeSecId] || 0;
     const cur = churchSlideData[activeSecId][slideIdx];
     const menu = MENU_DEFINITIONS[activeSecId] || MENU_DEFINITIONS[0];
@@ -1142,8 +1179,103 @@ function getCleanChurchName() {
     return name;
 }
 
+// 🌟 [Firebase Firestore 클라우드 양방향 실시간 동기화: 컴퓨터 ↔ 핸드폰 100% 연계]
+async function syncChurchFromCloud() {
+    if (!window.yetalkDb || !window.yetalkFs) {
+        setTimeout(syncChurchFromCloud, 600);
+        return;
+    }
+    try {
+        const { doc, getDoc, onSnapshot } = window.yetalkFs;
+        const churchDocRef = doc(window.yetalkDb, "yetalk_church_config", "main");
+
+        // 1) 초기 클라우드 데이터 즉시 읽기
+        const docSnap = await getDoc(churchDocRef);
+        if (docSnap.exists()) {
+            applyCloudChurchData(docSnap.data());
+        }
+
+        // 2) 실시간 리스너 구독 (컴퓨터에서 수정 시 핸드폰 화면에 1초 만에 자동 반영!)
+        onSnapshot(churchDocRef, (snap) => {
+            if (snap.exists()) {
+                applyCloudChurchData(snap.data());
+            }
+        });
+    } catch(err) {
+        console.warn("Firestore sync notice:", err);
+    }
+}
+window.syncChurchFromCloud = syncChurchFromCloud;
+
+function applyCloudChurchData(data) {
+    if (!data) return;
+    let changed = false;
+    if (data.churchName) {
+        localStorage.setItem("yetalkChurchName", data.churchName);
+        localStorage.setItem("yetalkUserStoreName", data.churchName);
+        const nameEl = document.getElementById("churchName");
+        if (nameEl) nameEl.innerText = data.churchName;
+        changed = true;
+    }
+    if (data.promoText) {
+        localStorage.setItem("yetalkUserPromoText", data.promoText);
+        changed = true;
+    }
+    if (data.churchPhone) localStorage.setItem("yetalkChurchPhone", data.churchPhone);
+    if (data.churchBank) localStorage.setItem("yetalkChurchBank", data.churchBank);
+    if (data.churchHeroBg) localStorage.setItem("yetalkChurchHeroBg", data.churchHeroBg);
+    if (data.churchAddress) localStorage.setItem("yetalkChurchAddress", data.churchAddress);
+    if (data.churchDirections) localStorage.setItem("yetalkChurchDirections", data.churchDirections);
+    if (data.churchWelcome) localStorage.setItem("yetalkChurchWelcome", data.churchWelcome);
+    if (data.churchBankDetail) localStorage.setItem("yetalkChurchBankDetail", data.churchBankDetail);
+
+    if (data.worshipData) {
+        localStorage.setItem(SHARED_WORSHIP_KEY, JSON.stringify(data.worshipData));
+        changed = true;
+    }
+    if (data.slideData) {
+        const slideJson = JSON.stringify(data.slideData);
+        localStorage.setItem("yetalk_church_main_slides_v41", slideJson);
+        localStorage.setItem("yetalk_church_main_slides_v40", slideJson);
+        try {
+            churchSlideData = data.slideData;
+        } catch(e){}
+        changed = true;
+    }
+
+    if (changed) {
+        try {
+            initChurchData();
+            if (typeof renderAllCards === "function") renderAllCards();
+            updateHeaderUI();
+        } catch(e){}
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const el = document.getElementById("churchName");
     if (el) el.innerText = getCleanChurchName();
     initChurchData();
+    if (typeof syncChurchFromCloud === "function") {
+        syncChurchFromCloud();
+    }
+});
+
+// 🌟 [PC 100% 호환 연동] 부모 창(yetalktv.html)으로부터 메뉴 이동 및 데이터 새로고침 수신
+window.addEventListener("message", (event) => {
+    if (!event.data) return;
+    if (event.data.type === "YETALK_NAVIGATE_CARD") {
+        const idx = typeof event.data.index === "number" ? event.data.index : 0;
+        if (typeof scrollToCard === "function") {
+            scrollToCard(idx);
+        } else if (typeof handleChurchNavTab === "function") {
+            handleChurchNavTab(idx);
+        }
+    } else if (event.data.type === "YETALK_REFRESH_DATA") {
+        try {
+            initChurchData();
+            if (typeof renderAllCards === "function") renderAllCards();
+            window.location.reload();
+        } catch(e) {}
+    }
 });

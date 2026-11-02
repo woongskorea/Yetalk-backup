@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>교회 초청 | 예톡행복한교회</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="church_theme.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: #000000;
+            font-family: "Pretendard", sans-serif;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            height: 100dvh;
+            overflow: hidden;
+            padding-bottom: 0 !important;
+        }
+
+        .church-shell {
+            width: 100%;
+            max-width: 480px;
+            height: 100dvh;
+            background: #090d16;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 1. 상단 헤더: 관리자 버튼 배치 */
+        .church-header {
+            min-height: 52px;
+            padding-top: max(env(safe-area-inset-top, 0px) + 38px, 42px);
+            padding-left: 14px;
+            padding-right: 14px;
+            padding-bottom: 8px;
+            background: #0f172a;
+            border-bottom: 1.5px solid #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-header-back {
+            background: none;
+            border: none;
+            font-size: 24px;
+            font-weight: 900;
+            color: #38bdf8;
+            cursor: pointer;
+            padding: 2px 4px;
+        }
+        .header-title {
+            font-size: 17px;
+            font-weight: 950;
+            color: #ffffff;
+            letter-spacing: -0.3px;
+        }
+        .dual-admin-btn-group {
+            display: inline-flex; align-items: center; background: #dc2626; border-radius: 9999px;
+            padding: 3px 8px; box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4); flex-shrink: 0;
+        }
+        .btn-admin-edit {
+            background: transparent; color: #fef08a; border: none;
+            font-size: 11px; font-weight: 900; padding: 2px 4px; cursor: pointer; white-space: nowrap;
+        }
+
+        /* 2. 4대 메뉴 탭 바 (ScrollSpy 연동) */
+        .invite-tab-bar {
+            height: 52px;
+            background: #0d1527;
+            border-bottom: 1.5px solid #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0 12px;
+            overflow-x: auto;
+            white-space: nowrap;
+            flex-shrink: 0;
+            z-index: 90;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .invite-tab-bar::-webkit-scrollbar { display: none; }
+
+        .btn-invite-tab {
+            background: #16243d;
+            border: 1.5px solid #223656;
+            border-radius: 20px;
+            color: #cbd5e1;
+            font-size: 13.5px;
+            font-weight: 850;
+            padding: 7px 16px;
+            cursor: pointer;
+            transition: all 0.15s;
+            flex-shrink: 0;
+        }
+        .btn-invite-tab:active { transform: scale(0.95); }
+        .btn-invite-tab.active {
+            background: #0284c7;
+            color: #ffffff;
+            font-weight: 950;
+            border-color: #38bdf8;
+            box-shadow: 0 3px 10px rgba(2, 132, 199, 0.45);
+        }
+
+        /* 3. 본문 스크롤 영역 (세로 스크롤 시 상단 가로 탭 바 자동 전환) */
+        .invite-content-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 14px 160px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
+            scroll-behavior: smooth;
+        }
+
+        /* 초청 섹션 카드 */
+        .invite-section-card {
+            background: #111a2e;
+            border: 1.5px solid #1e293b;
+            border-radius: 18px;
+            padding: 22px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+            scroll-margin-top: 10px;
+        }
+        .invite-badge-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .invite-badge {
+            font-size: 12px;
+            font-weight: 950;
+            padding: 3px 10px;
+            border-radius: 8px;
+            background: rgba(2, 132, 199, 0.2);
+            color: #38bdf8;
+            border: 1px solid #0284c7;
+        }
+        .btn-quick-edit-icon {
+            background: none; border: none; color: #94a3b8; font-size: 13px; font-weight: 800;
+            cursor: pointer; padding: 2px 6px;
+        }
+        .invite-title {
+            font-size: 18px;
+            font-weight: 950;
+            color: #ffffff;
+            line-height: 1.45;
+            word-break: keep-all;
+            letter-spacing: -0.3px;
+        }
+        .invite-verse-box {
+            background: rgba(0,0,0,0.25);
+            border-left: 3px solid #facc15;
+            padding: 10px 12px;
+            border-radius: 4px 8px 8px 4px;
+        }
+        .invite-verse {
+            font-size: 14px;
+            font-weight: 900;
+            color: #fde047;
+            font-family: "Nanum Myeongjo", serif;
+            line-height: 1.55;
+            word-break: keep-all;
+        }
+        .invite-desc {
+            font-size: 13.5px;
+            color: #cbd5e1;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: keep-all;
+        }
+
+        /* 공유 액션 버튼 그룹 (글 복사 / 문자 전송 / 카카오톡 전송) */
+        .invite-btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .invite-btn-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .btn-invite-action {
+            border-radius: 12px;
+            padding: 12px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 1.5px solid transparent;
+            text-decoration: none;
+            user-select: none;
+        }
+        .btn-invite-action:active { transform: scale(0.97); }
+        .btn-copy {
+            background: #1e293b;
+            border-color: #38bdf8;
+            color: #ffffff;
+        }
+        .btn-sms {
+            background: #132e27;
+            border-color: #10b981;
+            color: #ecfdf5;
+        }
+        .btn-kakao {
+            background: #fee500;
+            border-color: #eab308;
+            color: #191919;
+            font-weight: 950;
+            font-size: 14px;
+            padding: 13px 10px;
+            box-shadow: 0 3px 12px rgba(254, 229, 0, 0.25);
+        }
+
+        /* 관리자 글 수정 모달 스타일 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.88);
+            z-index: 20000;
+            align-items: center;
+            justify-content: center;
+            padding: 14px;
+            backdrop-filter: blur(4px);
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-card-edit {
+            width: 100%;
+            max-width: 440px;
+            background: #0f172a;
+            border: 2px solid #38bdf8;
+            border-radius: 18px;
+            padding: 18px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 88vh;
+            overflow-y: auto;
+        }
+        .m-lbl {
+            font-size: 11.5px;
+            font-weight: 900;
+            color: #facc15;
+            display: block;
+            margin-bottom: 3px;
+        }
+        .m-input {
+            width: 100%;
+            background: #162238;
+            border: 1.5px solid #334155;
+            border-radius: 8px;
+            padding: 9px 10px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
+            outline: none;
+        }
+        .m-input:focus { border-color: #38bdf8; }
+        .m-textarea {
+            width: 100%;
+            background: #162238;
+            border: 1.5px solid #334155;
+            border-radius: 8px;
+            padding: 9px 10px;
+            color: #ffffff;
+            font-size: 13px;
+            line-height: 1.5;
+            outline: none;
+            resize: vertical;
+        }
+        .m-textarea:focus { border-color: #38bdf8; }
+
+        .yetalk-toast {
+            position: fixed;
+            bottom: 85px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.96);
+            border: 1.5px solid #38bdf8;
+            color: white;
+            padding: 9px 18px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 850;
+            z-index: 25000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+        .yetalk-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+<div class="church-shell">
+
+    <!-- 1. 헤더: 좌측 관리실 버튼 ➔ churchadmin.html 로 정확히 이동 -->
+    <header class="church-header">
+        <div class="header-left">
+            <button type="button" class="btn-header-back" onclick="handleBackAction()">‹</button>
+            <strong class="header-title" id="pageHeaderTitle">교회 초청</strong>
+        </div>
+        <div class="dual-admin-btn-group">
+            <button type="button" class="btn-admin-edit" onclick="openAdminEditModal()" title="초청장 문구 직접 수정">화면수정 ▶</button>
+        </div>
+    </header>
+
+    <!-- 2. 3대 메뉴 탭 바 (ScrollSpy 연동) -->
+    <nav class="invite-tab-bar" id="inviteTabBar">
+        <button type="button" class="btn-invite-tab active" id="tab_target" onclick="scrollToSection('target')">전도대상자 초청</button>
+        <button type="button" class="btn-invite-tab" id="tab_festival" onclick="scrollToSection('festival')">전도축제 초청</button>
+        <button type="button" class="btn-invite-tab" id="tab_yetalk" onclick="scrollToSection('yetalk')">예톡 초청</button>
+    </nav>
+
+    <!-- 3. 메인 콘텐츠 스크롤 영역 (3대 섹션 연속 렌더링 & ScrollSpy 감지) -->
+    <main class="invite-content-scroll" id="inviteScrollBox">
+
+        <!-- 섹션 1: 전도대상자 초청 -->
+        <article class="invite-section-card" id="sec_target">
+            <div class="invite-badge-row">
+                <span class="invite-badge" id="badge_target">전도대상자 초청</span>
+                <button type="button" class="btn-quick-edit-icon" onclick="openAdminEditModal('target')">✏️ 편집</button>
+            </div>
+            <h2 class="invite-title" id="title_target">“사랑과 위로가 있는 예톡행복한교회로 당신을 초대합니다”</h2>
+            <div class="invite-verse-box">
+                <div class="invite-verse" id="verse_target">“수고하고 무거운 짐 진 자들아 다 내게로 오라 내가 너희를 쉬게 하리라 (마 11:28)”</div>
+            </div>
+            <p class="invite-desc" id="desc_target">지치고 분주한 삶 속에서 참된 평안과 쉼을 찾으시나요?
+하나님의 따뜻한 위로와 성령의 거룩한 임재가 머무는 성전입니다. 소중한 당신의 걸음을 온 성도가 기도로 기다립니다.</p>
+            <div class="invite-btn-group">
+                <div class="invite-btn-row">
+                    <button type="button" class="btn-invite-action btn-copy" onclick="copyInviteTextByTab('target')">
+                        <span>📋</span> 글 복사하기
+                    </button>
+                    <button type="button" class="btn-invite-action btn-sms" onclick="sendSmsInviteByTab('target')">
+                        <span>✉️</span> 문자로 보내기
+                    </button>
+                </div>
+                <button type="button" class="btn-invite-action btn-kakao" onclick="sendKakaoInviteByTab('target')">
+                    <span>💬</span> 카카오톡으로 바로 보내기
+                </button>
+            </div>
+        </article>
+
+        <!-- 섹션 2: 전도축제 초청 -->
+        <article class="invite-section-card" id="sec_festival">
+            <div class="invite-badge-row">
+                <span class="invite-badge" id="badge_festival">전도축제 초청</span>
+                <button type="button" class="btn-quick-edit-icon" onclick="openAdminEditModal('festival')">✏️ 편집</button>
+            </div>
+            <h2 class="invite-title" id="title_festival">“가장 귀한 분을 위한 천국 잔치, 전도축제에 초대합니다”</h2>
+            <div class="invite-verse-box">
+                <div class="invite-verse" id="verse_festival">“주 예수를 믿으라 그리하면 너와 네 집이 구원을 받으리라 (행 16:31)”</div>
+            </div>
+            <p class="invite-desc" id="desc_festival">인생의 가장 큰 축복이 시작되는 영혼 구원의 축제가 열립니다.
+따뜻한 만찬과 특별한 은혜의 찬양, 생명의 복음 말씀이 준비되어 있습니다. 부담 없이 편안한 걸음으로 함께해 주세요.</p>
+            <div class="invite-btn-group">
+                <div class="invite-btn-row">
+                    <button type="button" class="btn-invite-action btn-copy" onclick="copyInviteTextByTab('festival')">
+                        <span>📋</span> 글 복사하기
+                    </button>
+                    <button type="button" class="btn-invite-action btn-sms" onclick="sendSmsInviteByTab('festival')">
+                        <span>✉️</span> 문자로 보내기
+                    </button>
+                </div>
+                <button type="button" class="btn-invite-action btn-kakao" onclick="sendKakaoInviteByTab('festival')">
+                    <span>💬</span> 카카오톡으로 바로 보내기
+                </button>
+            </div>
+        </article>
+
+        <!-- 섹션 3: 예톡 초청 (기존 목사님 예톡 소개 + 우리교회 홈페이지 가입 통합) -->
+        <article class="invite-section-card" id="sec_yetalk">
+            <div class="invite-badge-row">
+                <span class="invite-badge" id="badge_yetalk">예톡 초청</span>
+                <button type="button" class="btn-quick-edit-icon" onclick="openAdminEditModal('yetalk')">✏️ 편집</button>
+            </div>
+            <h2 class="invite-title" id="title_yetalk">“교회와 성도의 연결망, 예톡으로 초대합니다”</h2>
+            <div class="invite-verse-box">
+                <div class="invite-verse" id="verse_yetalk">“무료로 교회 홈페이지와 모든 성도들에게 개인앱을 제공합니다”</div>
+            </div>
+            <p class="invite-desc" id="desc_yetalk">교회와 성도의 연결망, 예톡!
+무료로 교회 홈페이지와 모든 성도들에게 개인앱을 제공합니다.
+예톡으로 초대합니다.
+플레이스토어에서 예톡에 가입하세요.
+
+• 제작비 · 서버비 · 유지비 평생 전액 무료 (비용 제로)
+• 스마트 주보, 실시간 설교영상, 모바일 헌금, 중보기도실
+• 교회 성도와 목회자가 언제 어디서나 하나 되는 모바일 플랫폼</p>
+            <div class="invite-btn-group">
+                <div class="invite-btn-row">
+                    <button type="button" class="btn-invite-action btn-copy" onclick="copyInviteTextByTab('yetalk')">
+                        <span>📋</span> 글 복사하기
+                    </button>
+                    <button type="button" class="btn-invite-action btn-sms" onclick="sendSmsInviteByTab('yetalk')">
+                        <span>✉️</span> 문자로 보내기
+                    </button>
+                </div>
+                <button type="button" class="btn-invite-action btn-kakao" onclick="sendKakaoInviteByTab('yetalk')">
+                    <span>💬</span> 카카오톡으로 바로 보내기
+                </button>
+            </div>
+        </article>
+
+    </main>
+
+    <!-- 🌟 4. 관리자 글 수정 모달 -->
+    <div class="modal-overlay" id="adminEditModal">
+        <div class="modal-card-edit">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:8px;">
+                <strong style="color:#38bdf8; font-size:15.5px;" id="modalEditTitleLabel">⚙️ 초청 내용 수정</strong>
+                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('adminEditModal')">✕</button>
+            </div>
+
+            <div>
+                <span class="m-lbl">📌 메인 제목 (화면 강조 제목)</span>
+                <input type="text" class="m-input" id="inpEditTitle">
+            </div>
+
+            <div>
+                <span class="m-lbl">📖 성경 구절 / 핵심 표어</span>
+                <input type="text" class="m-input" id="inpEditVerse">
+            </div>
+
+            <div>
+                <span class="m-lbl">📝 상세 소개 본문 (화면 표시용)</span>
+                <textarea class="m-textarea" id="inpEditDesc" style="min-height:90px;"></textarea>
+            </div>
+
+            <div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                    <span class="m-lbl" style="margin-bottom:0;">💬 카카오톡 / 문자 전송 문구</span>
+                    <span style="font-size:10px; color:#38bdf8;">카톡 · 문자로 자동 작성됨</span>
+                </div>
+                <textarea class="m-textarea" id="inpEditKakaoShort" style="min-height:75px;" placeholder="카카오톡 및 문자로 보낼 때 자동으로 쓰여질 초대 문구"></textarea>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+                <button type="button" style="background:#334155; color:white; border:none; padding:8px 14px; border-radius:8px; font-size:12px; cursor:pointer;" onclick="closeModal('adminEditModal')">취소</button>
+                <button type="button" style="background:#0284c7; color:white; border:none; padding:8px 18px; border-radius:8px; font-size:12px; font-weight:950; cursor:pointer;" onclick="saveAdminEditData()">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="yetalk-toast" id="yetalkToast"></div>
+
+</div>
+
+<!-- 하단 5대 고정 메뉴 바 모듈 연결 -->
+<script src="church_bottom_bar.js"></script>
+
+<script>
+    const TAB_KEYS = ["target", "festival", "yetalk"];
+
+    const DEFAULT_INVITE_TEMPLATES = {
+        target: {
+            badge: "전도대상자 초청",
+            title: "“사랑과 위로가 있는 예톡행복한교회로 당신을 초대합니다”",
+            verse: "“수고하고 무거운 짐 진 자들아 다 내게로 오라 내가 너희를 쉬게 하리라 (마 11:28)”",
+            desc: "지치고 분주한 삶 속에서 참된 평안과 쉼을 찾으시나요?\n하나님의 따뜻한 위로와 성령의 거룩한 임재가 머무는 성전입니다. 소중한 당신의 걸음을 온 성도가 기도로 기다립니다.",
+            kakaoShort: "“수고하고 무거운 짐 진 자들아 다 내게로 오라 내가 너희를 쉬게 하리라 (마 11:28)”\n\n사랑과 위로가 있는 우리 교회로 당신을 초대합니다."
+        },
+        festival: {
+            badge: "전도축제 초청",
+            title: "“가장 귀한 분을 위한 천국 잔치, 전도축제에 초대합니다”",
+            verse: "“주 예수를 믿으라 그리하면 너와 네 집이 구원을 받으리라 (행 16:31)”",
+            desc: "인생의 가장 큰 축복이 시작되는 영혼 구원의 축제가 열립니다.\n따뜻한 만찬과 특별한 은혜의 찬양, 생명의 복음 말씀이 준비되어 있습니다. 부담 없이 편안한 걸음으로 함께해 주세요.",
+            kakaoShort: "“주 예수를 믿으라 그리하면 너와 네 집이 구원을 받으리라 (행 16:31)”\n\n가장 귀한 분을 위한 천국 잔치, 전도축제에 초대합니다."
+        },
+        yetalk: {
+            badge: "예톡 초청",
+            title: "“교회와 성도의 연결망, 예톡으로 초대합니다”",
+            verse: "“무료로 교회 홈페이지와 모든 성도들에게 개인앱을 제공합니다”",
+            desc: "교회와 성도의 연결망, 예톡!\n무료로 교회 홈페이지와 모든 성도들에게 개인앱을 제공합니다.\n예톡으로 초대합니다.\n플레이스토어에서 예톡에 가입하세요.\n\n• 제작비 · 서버비 · 유지비 평생 전액 무료 (비용 제로)\n• 스마트 주보, 실시간 설교영상, 모바일 헌금, 중보기도실\n• 교회 성도와 목회자가 언제 어디서나 하나 되는 모바일 플랫폼",
+            kakaoShort: "교회와 성도의 연결망, 예톡!\n무료로 교회 홈페이지와 모든 성도들에게 개인앱을 제공합니다.\n예톡으로 초대합니다.\n플레이스토어에서 예톡에 가입하세요."
+        }
+    };
+
+    let inviteTemplates = {};
+    let activeTabKey = "target";
+    let isUserClickScrolling = false;
+
+    function loadInviteData() {
+        const saved = localStorage.getItem("yetalk_church_invite_data_v4");
+        if (saved) {
+            try { inviteTemplates = JSON.parse(saved); } catch(e) { inviteTemplates = JSON.parse(JSON.stringify(DEFAULT_INVITE_TEMPLATES)); }
+        } else {
+            const savedV3 = localStorage.getItem("yetalk_church_invite_data_v3");
+            if (savedV3) {
+                try { inviteTemplates = JSON.parse(savedV3); } catch(e) { inviteTemplates = JSON.parse(JSON.stringify(DEFAULT_INVITE_TEMPLATES)); }
+            } else {
+                inviteTemplates = JSON.parse(JSON.stringify(DEFAULT_INVITE_TEMPLATES));
+            }
+        }
+
+        // 🌟 [핵심] 기존 pastor 또는 tv 템플릿이 남아있거나 yetalk가 없으면 즉시 통합 및 영구 저장
+        if (!inviteTemplates.yetalk || inviteTemplates.pastor || inviteTemplates.tv) {
+            inviteTemplates.yetalk = JSON.parse(JSON.stringify(DEFAULT_INVITE_TEMPLATES.yetalk));
+            delete inviteTemplates.pastor;
+            delete inviteTemplates.tv;
+            saveAllInviteData();
+        }
+
+        if (!inviteTemplates.target) inviteTemplates.target = JSON.parse(JSON.stringify(DEFAULT_INVITE_TEMPLATES.target));
+        if (!inviteTemplates.festival) inviteTemplates.festival = JSON.parse(JSON.stringify(DEFAULT_INVITE_TEMPLATES.festival));
+
+        renderAllSections();
+    }
+
+    function saveAllInviteData() {
+        localStorage.setItem("yetalk_church_invite_data_v4", JSON.stringify(inviteTemplates));
+    }
+
+    function renderAllSections() {
+        TAB_KEYS.forEach(key => {
+            const data = inviteTemplates[key];
+            if (!data) return;
+            const badgeEl = document.getElementById(`badge_${key}`);
+            const titleEl = document.getElementById(`title_${key}`);
+            const verseEl = document.getElementById(`verse_${key}`);
+            const descEl = document.getElementById(`desc_${key}`);
+
+            if (badgeEl) badgeEl.innerText = data.badge;
+            if (titleEl) titleEl.innerText = data.title;
+            if (verseEl) {
+                verseEl.innerText = data.verse || "";
+                const box = verseEl.closest(".invite-verse-box");
+                if (box) box.style.display = (data.verse && data.verse.trim()) ? "block" : "none";
+            }
+            if (descEl) descEl.innerText = data.desc;
+        });
+    }
+
+    // 🌟 탭 클릭 시 해당 섹션으로 부드럽게 스크롤
+    function scrollToSection(tabKey) {
+        activeTabKey = tabKey;
+        isUserClickScrolling = true;
+        updateTabActiveUI(tabKey);
+
+        const secEl = document.getElementById(`sec_${tabKey}`);
+        if (secEl) {
+            secEl.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        setTimeout(() => {
+            isUserClickScrolling = false;
+        }, 600);
+    }
+
+    // 🌟 탭 UI 갱신 & 가로 스크롤 센터 정렬
+    function updateTabActiveUI(tabKey) {
+        document.querySelectorAll(".btn-invite-tab").forEach(btn => btn.classList.remove("active"));
+        const targetBtn = document.getElementById(`tab_${tabKey}`);
+        if (targetBtn) {
+            targetBtn.classList.add("active");
+            targetBtn.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        }
+    }
+
+    // 🌟 ScrollSpy: 세로 스크롤 시 상단 가로 탭 바 자동 전환
+    function initScrollSpy() {
+        const scrollBox = document.getElementById("inviteScrollBox");
+        if (!scrollBox) return;
+
+        scrollBox.addEventListener("scroll", () => {
+            if (isUserClickScrolling) return;
+
+            const boxRect = scrollBox.getBoundingClientRect();
+            let bestKey = activeTabKey;
+            let minDistance = Infinity;
+
+            TAB_KEYS.forEach(key => {
+                const secEl = document.getElementById(`sec_${key}`);
+                if (!secEl) return;
+                const secRect = secEl.getBoundingClientRect();
+                const dist = Math.abs(secRect.top - boxRect.top);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    bestKey = key;
+                }
+            });
+
+            if (bestKey !== activeTabKey) {
+                activeTabKey = bestKey;
+                updateTabActiveUI(bestKey);
+            }
+        }, { passive: true });
+    }
+
+    function openAdminEditModal(targetKey) {
+        const key = targetKey || activeTabKey;
+        activeTabKey = key;
+        const data = inviteTemplates[key];
+        if (!data) return;
+
+        document.getElementById("modalEditTitleLabel").innerText = `⚙️ [${data.badge}] 내용 수정`;
+        document.getElementById("inpEditTitle").value = data.title || "";
+        document.getElementById("inpEditVerse").value = data.verse || "";
+        document.getElementById("inpEditDesc").value = data.desc || "";
+        document.getElementById("inpEditKakaoShort").value = data.kakaoShort || "";
+
+        openModal("adminEditModal");
+    }
+
+    function saveAdminEditData() {
+        const data = inviteTemplates[activeTabKey];
+        if (!data) return;
+
+        const titleVal = document.getElementById("inpEditTitle").value.trim();
+        const verseVal = document.getElementById("inpEditVerse").value.trim();
+        const descVal = document.getElementById("inpEditDesc").value.trim();
+        const kakaoVal = document.getElementById("inpEditKakaoShort").value.trim();
+
+        if (titleVal) data.title = titleVal;
+        data.verse = verseVal;
+        data.desc = descVal;
+        data.kakaoShort = kakaoVal;
+
+        saveAllInviteData();
+        renderAllSections();
+
+        closeModal("adminEditModal");
+        showToast("🎉 수정하신 초청 내용이 저장되었습니다!");
+    }
+
+    function getValidInviteUrl(tabKey) {
+        const k = tabKey || activeTabKey;
+        if (window.location.protocol === 'file:') {
+            return `https://yetalk.cc/churchinvite.html?from=invite&tab=${k}&churchId=yetalk-church`;
+        }
+        return window.location.origin + window.location.pathname.replace(/[^/]*$/, "churchinvite.html") + `?from=invite&tab=${k}&churchId=yetalk-church`;
+    }
+
+    function getInviteLinks(tabKey) {
+        let baseOrigin = "https://yetalk.cc";
+        if (window.location.protocol !== 'file:' && window.location.origin && !window.location.origin.includes("null")) {
+            baseOrigin = window.location.origin;
+        }
+        const churchUrl = `${baseOrigin}/churchmain.html`;
+        const yetalkUrl = "https://yetalk.cc";
+        return { churchUrl, yetalkUrl };
+    }
+
+    // 🌟 글 복사하기 (클립보드 복사)
+    function copyInviteTextByTab(tabKey) {
+        const data = inviteTemplates[tabKey];
+        if (!data) return;
+        let churchName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        if (!churchName || churchName.includes("움직이는") || churchName.includes("김예톡") || churchName.includes("최예톡")) {
+            churchName = "예톡행복한교회";
+        }
+        const links = getInviteLinks(tabKey);
+
+        let fullCopy = "";
+        if (tabKey === 'yetalk') {
+            fullCopy = `[${churchName}] 예톡 초청\n\n${data.title}\n\n${data.desc}\n\n👉 예톡 홈 & 앱 설치:\n${links.yetalkUrl}\n\n👉 우리교회 바로가기:\n${links.churchUrl}`;
+        } else {
+            const inviteUrl = getValidInviteUrl(tabKey);
+            fullCopy = `[${churchName} 초청장]\n\n${data.title}\n\n${data.verse ? data.verse + '\n\n' : ''}${data.desc}\n\n👉 교회 둘러보기:\n${inviteUrl}\n\n👉 예톡 홈:\n${links.yetalkUrl}`;
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(fullCopy).then(() => {
+                showToast("📋 초청글 전문과 링크가 복사되었습니다!");
+            }).catch(() => {
+                fallbackCopy(fullCopy);
+            });
+        } else {
+            fallbackCopy(fullCopy);
+        }
+    }
+
+    function fallbackCopy(text) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        try {
+            document.execCommand('copy');
+            showToast("📋 초청글 전문과 링크가 복사되었습니다!");
+        } catch(err) {
+            showToast("복사에 실패했습니다.");
+        }
+        document.body.removeChild(ta);
+    }
+
+    // 🌟 문자로 보내기 (시스템 SMS 창 직통 호출 & 문구 자동 프리필)
+    function sendSmsInviteByTab(tabKey) {
+        const data = inviteTemplates[tabKey];
+        if (!data) return;
+        let churchName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        if (!churchName || churchName.includes("움직이는") || churchName.includes("김예톡") || churchName.includes("최예톡")) {
+            churchName = "예톡행복한교회";
+        }
+        const links = getInviteLinks(tabKey);
+
+        let smsMsg = "";
+        if (tabKey === 'yetalk') {
+            smsMsg = `[${churchName}]\n교회와 성도의 연결망, 예톡!\n무료로 교회 홈페이지와 모든 성도들에게 개인앱을 제공합니다.\n예톡으로 초대합니다.\n플레이스토어에서 예톡에 가입하세요.\n\n👉 예톡 홈 & 앱 설치:\n${links.yetalkUrl}\n\n👉 우리교회 바로가기:\n${links.churchUrl}`;
+        } else {
+            const inviteUrl = getValidInviteUrl(tabKey);
+            smsMsg = `[${churchName}] 초청장\n\n${data.kakaoShort || data.title}\n\n👉 우리교회 둘러보기:\n${inviteUrl}\n\n👉 예톡 홈:\n${links.yetalkUrl}`;
+        }
+
+        // 1. AndroidBridge 시스템 SMS 창 직통 호출
+        if (window.AndroidBridge && window.AndroidBridge.sendSms) {
+            window.AndroidBridge.sendSms("", smsMsg);
+            showToast("✉️ 문자 작성창이 열립니다.");
+            return;
+        }
+
+        // 2. 모바일 브라우저 SMS Scheme 호출 (문자 앱 작성창 열리며 본문 자동 채움)
+        try {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const smsUrl = isIOS ? `sms:&body=${encodeURIComponent(smsMsg)}` : `sms:?body=${encodeURIComponent(smsMsg)}`;
+            window.location.href = smsUrl;
+            showToast("✉️ 문자 작성창으로 이동합니다.");
+        } catch(e) {
+            fallbackCopy(smsMsg);
+        }
+    }
+
+    // 🌟 카카오톡 친구 선택창 바로 호출 (친구 피커 연동 & 문구 자동 전달)
+    function sendKakaoInviteByTab(tabKey) {
+        const data = inviteTemplates[tabKey];
+        if (!data) return;
+        let churchName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        if (!churchName || churchName.includes("움직이는") || churchName.includes("김예톡") || churchName.includes("최예톡")) {
+            churchName = "예톡행복한교회";
+        }
+        const links = getInviteLinks(tabKey);
+
+        let fullMessage = "";
+        if (tabKey === 'yetalk') {
+            fullMessage = `[${churchName}]\n교회와 성도의 연결망, 예톡!\n무료로 교회 홈페이지와 모든 성도들에게 개인앱을 제공합니다.\n예톡으로 초대합니다.\n플레이스토어에서 예톡에 가입하세요.\n\n👉 예톡 홈 & 앱 설치:\n${links.yetalkUrl}\n\n👉 우리교회 바로가기:\n${links.churchUrl}`;
+        } else {
+            const inviteUrl = getValidInviteUrl(tabKey);
+            fullMessage = `[${churchName}] 초청장\n\n${data.kakaoShort || data.title}\n\n👇 아래 링크를 눌러 둘러보세요\n${inviteUrl}\n\n👉 예톡 홈:\n${links.yetalkUrl}`;
+        }
+
+        // 1. 안드로이드 브릿지 (MainActivity.shareToKakaoFriends: 카카오톡 친구 피커 직접 호출)
+        if (window.AndroidBridge && window.AndroidBridge.shareToKakaoFriends) {
+            window.AndroidBridge.shareToKakaoFriends(fullMessage);
+            showToast("💬 카카오톡 친구 선택창이 열립니다.");
+            return;
+        }
+
+        // 2. 모바일 Web Share API
+        if (navigator.share) {
+            navigator.share({
+                title: `[${churchName}] 초청장`,
+                text: fullMessage
+            }).catch(() => {
+                fallbackKakaoIntent(fullMessage);
+            });
+            return;
+        }
+
+        fallbackKakaoIntent(fullMessage);
+    }
+
+    function fallbackKakaoIntent(fullMessage) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(fullMessage).then(() => {
+                showToast("📋 초대 문구가 복사되었습니다. 카톡 친구에게 전송하세요.");
+            });
+        }
+        window.location.href = "intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=" + encodeURIComponent(fullMessage) + ";package=com.kakao.talk;end";
+    }
+
+    function handleBackAction() {
+        sessionStorage.setItem("church_last_active_card_idx", "5");
+        window.location.href = "churchmain.html?card=5";
+    }
+
+    // 안드로이드 하드웨어 / 제스처 백키 전용 핸들러 (MainActivity.kt 연동)
+    window.handleAppBackPress = function() {
+        if (document.getElementById("adminEditModal")?.classList.contains("show")) {
+            closeModal("adminEditModal");
+            return true;
+        }
+        handleBackAction();
+        return true;
+    };
+
+    function openModal(id) { document.getElementById(id).classList.add("show"); }
+    function closeModal(id) { document.getElementById(id).classList.remove("show"); }
+
+    function showToast(msg) {
+        const t = document.getElementById("yetalkToast");
+        t.innerText = msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2200);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
+        document.body.setAttribute('data-theme', savedTheme);
+
+        loadInviteData();
+        initScrollSpy();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const reqTab = urlParams.get('tab');
+        if (reqTab && TAB_KEYS.includes(reqTab)) {
+            setTimeout(() => scrollToSection(reqTab), 150);
+        }
+    });
+</script>
+</body>
+</html>
