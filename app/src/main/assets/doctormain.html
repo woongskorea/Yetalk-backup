@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -1216,7 +1216,75 @@
         .clamp-1-line {
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-    </style>
+    
+        /* 🌟 [사용자 요청] 접수실 심플 1인 1박스 카드 & 아코디언 토글 스타일 */
+        .patient-card-simple-main {
+            display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;
+        }
+        .patient-title-group {
+            display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+        }
+        .patient-quick-subject {
+            background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4);
+            color: #38bdf8; font-size: 11.5px; font-weight: 900; padding: 2px 7px; border-radius: 7px;
+        }
+        .btn-card-detail-toggle {
+            background: #1e293b; border: 1px solid #475569; color: #cbd5e1;
+            font-size: 11px; font-weight: 900; padding: 3px 8px; border-radius: 6px;
+            cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
+            transition: all 0.15s;
+        }
+        .btn-card-detail-toggle:hover { background: #334155; color: #ffffff; }
+        .patient-card-accordion-body {
+            background: rgba(15, 23, 42, 0.7); border: 1px dashed rgba(56, 189, 248, 0.25);
+            border-radius: 8px; padding: 10px; margin-top: 4px; display: flex; flex-direction: column; gap: 8px;
+            animation: fadeInAccordion 0.18s ease-out;
+        }
+        @keyframes fadeInAccordion {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .btn-status-pill-group {
+            display: flex; gap: 4px; flex-wrap: wrap;
+        }
+        .btn-status-pill {
+            padding: 3px 7px; border-radius: 6px; font-size: 10.5px; font-weight: 900;
+            border: 1px solid #475569; background: #1e293b; color: #cbd5e1; cursor: pointer;
+        }
+        .btn-status-pill.active {
+            background: #0284c7; border-color: #38bdf8; color: #ffffff; font-weight: 950;
+        }
+
+        /* 연락 버튼 4종: 전화, 문자, 닥톡, 예톡공지 (PC 카톡 팝업 대신 닥톡 & 예톡공지 직결) */
+        .btn-contact-action.doctalk {
+            background: #0284c7; color: #ffffff; border-color: #38bdf8;
+        }
+        .btn-contact-action.yetalk-notice {
+            background: #7c2d12; color: #fed7aa; border-color: #ea580c;
+        }
+
+        /* 🌟 [사용자 요청] 요일 옆에 날짜도 명확히 기록하여 안 헷갈리게 */
+        .btn-week-day-chip .chip-day-date-line {
+            font-size: 11px; font-weight: 950; color: #e2e8f0; white-space: nowrap; line-height: 1.1;
+        }
+        .btn-week-day-chip.active .chip-day-date-line { color: #ffffff; }
+
+        /* 🌟 [사용자 요청] 환자 진료·시술 칩 바 스타일 */
+        .treatment-chips-wrapper {
+            display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 6px 0;
+        }
+        .treatment-chip-btn {
+            background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 18px;
+            padding: 6px 12px; font-size: 12.5px; font-weight: 900; color: #334155;
+            cursor: pointer; transition: all 0.15s; user-select: none;
+            display: inline-flex; align-items: center; gap: 4px;
+        }
+        .treatment-chip-btn:hover { background: #e2e8f0; border-color: #94a3b8; }
+        .treatment-chip-btn.active {
+            background: #0284c7; border-color: #0284c7; color: #ffffff;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+        }
+</style>
 </head>
 <body>
 
@@ -1305,6 +1373,7 @@
         <button type="button" class="btn-sub-chip btn-sub-inquiry" onclick="openPatientInquiryWindow()">
             📋 접수·문의 <span class="badge-inquiry-num" id="hdrBadgeInquiryNum">8</span>
         </button>
+        <button type="button" class="btn-sub-chip btn-sub-treatment-manage" onclick="openTreatmentManageModal()" title="원장님 진료·시술과목 관리">💉 과목관리</button>
         <button type="button" class="btn-sub-chip btn-sub-admin" onclick="location.href='doctoradmin.html'">◀ 관리실</button>
         <button type="button" class="btn-sub-chip btn-sub-edit" id="btnAdminEditToggle" onclick="toggleDoctorEditMode()">수정 ⚙️</button>
         <button type="button" class="btn-sub-chip btn-sub-close" onclick="toggleStaffWorkMode(false)" title="직원 모드 닫기">✕</button>
@@ -1431,7 +1500,21 @@
             </div>
 
             <!-- 🌟 [사용자 요청] 몇 줄 예약 내용 입력 후 매장 예톡전문앱에 보내기 -->
+                        <!-- 🌟 [사용자 요청] 원장님이 사전 등록한 진료·시술 제목 칩 선택 바 (환자는 클릭 선택만) -->
             <div style="display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <label style="font-size:12.5px; font-weight:950; color:#0f172a; display:flex; align-items:center; gap:5px;">
+                        <span>💉</span> <span>진료·시술 과목 선택</span>
+                        <span style="font-size:11px; color:#0284c7; font-weight:800;">(원클릭 간편선택)</span>
+                    </label>
+                    <span id="dispSelectedTreatmentBadge" style="font-size:11px; font-weight:900; color:#0284c7; background:#e0f2fe; padding:2px 8px; border-radius:10px;">보톡스 시술 선택됨</span>
+                </div>
+                <div class="treatment-chips-wrapper" id="patientTreatmentChipsHost">
+                    <!-- JS로 원장님 등록 시술 과목 칩 자동 렌더링 -->
+                </div>
+                <input type="hidden" id="inpPatientSelectedTreatment" value="보톡스 시술">
+            </div>
+<div style="display:flex; flex-direction:column; gap:6px;">
                 <label style="font-size:12.5px; font-weight:900; color:#334155;">📝 증상 및 진료 요청사항 메모</label>
                 <textarea id="inpDocResMemo" rows="3" placeholder="증상이나 원하시는 진료 내용을 몇 줄 입력해주세요 (예: 감기 몸살 기운이 있고 두통이 심합니다)" style="width:100%; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px; font-size:13px; line-height:1.5; box-sizing:border-box; outline:none; resize:none;"></textarea>
             </div>
@@ -1825,6 +1908,78 @@
 </div>
 
 <!-- 🌟 간단 접수 및 의원 자동 회원가입 모달 -->
+<!-- 🌟 [사용자 요청] 원장님 진료·시술과목 관리 모달 -->
+<div class="modal-overlay" id="modalManageTreatmentItems">
+    <div class="modal-card-large" style="max-width:440px;">
+        <div class="modal-header-row">
+            <strong style="font-size:16.5px; color:#0284c7; display:flex; align-items:center; gap:6px;">
+                <span>💉</span> 원장님 진료·시술과목 관리
+            </strong>
+            <button type="button" class="btn-nav-close" onclick="closeModal('modalManageTreatmentItems')">✕</button>
+        </div>
+        <p style="font-size:12px; color:#64748b; margin-top:2px; line-height:1.4;">
+            우리 의원에 맞는 시술/진료 과목을 등록해 두시면, 환자가 예약할 때 원클릭으로 선택할 수 있습니다.
+        </p>
+
+        <!-- 새 과목 추가 입력란 -->
+        <div style="display:flex; gap:6px; margin:10px 0 12px 0;">
+            <input type="text" id="inpNewTreatmentName" class="m-large-input" placeholder="새 진료·시술명 (예: 물광주사 / 엑소좀)" style="flex:1; height:42px; font-size:13px;" onkeypress="if(event.key==='Enter')addClinicTreatmentItem()">
+            <button type="button" onclick="addClinicTreatmentItem()" style="background:#0284c7; color:#fff; border:none; padding:0 14px; border-radius:10px; font-weight:900; font-size:13px; cursor:pointer; white-space:nowrap;">
+                + 추가
+            </button>
+        </div>
+
+        <!-- 등록된 과목 리스트 -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:10px; max-height:260px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;" id="treatmentManageItemsList">
+            <!-- JS로 항목 목록 렌더링 -->
+        </div>
+
+        <div style="margin-top:12px; display:flex; justify-content:space-between; align-items:center;">
+            <button type="button" onclick="resetClinicTreatmentItemsDefault()" style="background:none; border:none; color:#64748b; font-size:11.5px; text-decoration:underline; cursor:pointer;">
+                초기 기본과목 복원
+            </button>
+            <button type="button" onclick="closeModal('modalManageTreatmentItems')" style="background:#0f172a; color:#fff; border:none; padding:8px 18px; border-radius:8px; font-size:12.5px; font-weight:900; cursor:pointer;">
+                완료 닫기
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 [사용자 요청] 환자에게 예톡 공지알림 발송 모달 (PC 카톡 팝업 대체) -->
+<div class="modal-overlay" id="modalSendYetalkNotice">
+    <div class="modal-card-large" style="max-width:440px;">
+        <div class="modal-header-row">
+            <strong style="font-size:16px; color:#ea580c; display:flex; align-items:center; gap:6px;">
+                <span>📢</span> 환자 예톡 공지알림 발송
+            </strong>
+            <button type="button" class="btn-nav-close" onclick="closeModal('modalSendYetalkNotice')">✕</button>
+        </div>
+        <p style="font-size:12px; color:#64748b; margin-top:2px; line-height:1.4;">
+            환자의 개인앱(onemain) 및 예톡홈 [공지알림]으로 예약 확정 메시지가 전송되어 본인이 직접 확인할 수 있습니다.
+        </p>
+
+        <input type="hidden" id="inpNoticeTargetResId">
+        <div style="display:flex; flex-direction:column; gap:8px; margin:10px 0;">
+            <div>
+                <label style="font-size:11.5px; font-weight:800; color:#334155;">수신 환자</label>
+                <input type="text" id="inpNoticeTargetPatient" class="m-large-input" style="height:38px; font-size:13px; background:#f1f5f9; font-weight:900;" readonly>
+            </div>
+            <div>
+                <label style="font-size:11.5px; font-weight:800; color:#334155;">공지 안내 내용 (직접 수정 가능)</label>
+                <textarea id="inpNoticeMessageContent" class="m-large-input" style="height:90px; padding:10px; font-size:12.5px; line-height:1.5; resize:none;"></textarea>
+            </div>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+            <button type="button" onclick="closeModal('modalSendYetalkNotice')" style="flex:1; height:42px; background:#e2e8f0; color:#475569; border:none; border-radius:10px; font-weight:800; cursor:pointer;">
+                취소
+            </button>
+            <button type="button" onclick="confirmSendYetalkNotice()" style="flex:2; height:42px; background:linear-gradient(135deg, #ea580c, #c2410c); color:#ffffff; border:none; border-radius:10px; font-size:13.5px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
+                <span>📢</span> <span>예톡공지로 즉시 발송</span>
+            </button>
+        </div>
+    </div>
+</div>
 <div class="modal-overlay" id="modalQuickPatientRegister">
     <div class="modal-card-large">
         <div class="modal-header-row">
@@ -3551,7 +3706,9 @@ function doDoctorQuickReservationDirect() {
     const inpMemo = document.getElementById("inpDocResMemo");
     const dateVal = inpDate && inpDate.value ? inpDate.value : new Date().toISOString().slice(0,10);
     const timeVal = inpTime ? inpTime.value : "14:00";
-    const memoVal = inpMemo && inpMemo.value.trim() ? inpMemo.value.trim() : "일반 진료 및 건강 상담";
+        const inpTreatment = document.getElementById("inpPatientSelectedTreatment");
+    const treatmentVal = inpTreatment ? inpTreatment.value : "보톡스 시술";
+    const memoVal = inpMemo && inpMemo.value.trim() ? `${treatmentVal} - ${inpMemo.value.trim()}` : treatmentVal;
 
     const queueNum = "대기 0" + Math.floor(Math.random() * 8 + 1) + "번";
     const dispQueue = document.getElementById("dispDocQueueNo");
@@ -3589,6 +3746,25 @@ function doDoctorQuickReservationDirect() {
         list.unshift(resItem);
     }
     localStorage.setItem("yetalk_my_reservations_v1", JSON.stringify(list));
+    // 원내 직원 접수실 스케줄에도 즉시 동기화 등록
+    try {
+        const staffList = getStaffReservations();
+        const myName = localStorage.getItem("yetalkMyName") || "환자";
+        const myPhone = localStorage.getItem("yetalkMyPhone") || "010-0000-0000";
+        staffList.unshift({
+            id: Date.now(),
+            name: myName,
+            phone: myPhone,
+            date: dateVal,
+            time: timeVal,
+            doctor: "대표원장",
+            subject: treatmentVal,
+            status: "대기",
+            replyMsg: `[접수요청] ${memoVal}`
+        });
+        saveStaffReservations(staffList);
+        if (typeof renderPatientInquiryList === "function") renderPatientInquiryList();
+    } catch(e) {}
 
     showToast("✔ 예약완료! 당일 진료 순번표 [" + queueNum + "]가 발급되었습니다.\n※ 확정이 아니니 전화로 확인받으세요.");
 }
@@ -4724,7 +4900,7 @@ function sortReservationsByTime(list) {
     });
 }
 
-/* 🌟 [사용자 요청] 우측 1: 이번주 ~ 5주차 요일별 예약수 배지 렌더링 */
+/* 🌟 [사용자 요청] 우측 1: 이번주 ~ 5주차 요일별 예약수 배지 렌더링 (요일 옆에 날짜도 명확히 기록!) */
 function renderWeeksSummary() {
     const host = document.getElementById("weeksSummaryListBox");
     if (!host) return;
@@ -4764,8 +4940,8 @@ function renderWeeksSummary() {
 
             chipsHtml += `
                 <button type="button" class="btn-week-day-chip ${isSelected ? 'active' : ''}" onclick="selectInqDate('${dStr}')" title="${dStr} (${count}건)">
-                    <span class="day-name">${dayNames[dIdx]}</span>
-                    <span class="day-count-badge">${count}</span>
+                    <div class="chip-day-date-line">${dayNames[dIdx]} ${parseInt(dd)}일</div>
+                    <div class="day-count-badge">${count}건</div>
                 </button>
             `;
         }
@@ -4798,35 +4974,30 @@ function renderInqCalendar() {
 
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    const firstDay = new Date(inqCalYear, inqCalMonth, 1).getDay();
-    const totalDays = new Date(inqCalYear, inqCalMonth + 1, 0).getDate();
-    const prevTotalDays = new Date(inqCalYear, inqCalMonth, 0).getDate();
     const staffList = getStaffReservations();
 
-    // 이전 달 잔여 일자
-    for (let i = firstDay - 1; i >= 0; i--) {
-        const cell = document.createElement("div");
-        cell.className = "inq-cal-cell other-month";
-        cell.innerHTML = `<span class="cell-day-num">${prevTotalDays - i}</span>`;
-        grid.appendChild(cell);
+    const firstDay = new Date(inqCalYear, inqCalMonth, 1).getDay(); // 0: 일
+    const lastDate = new Date(inqCalYear, inqCalMonth + 1, 0).getDate();
+
+    // 빈 칸 (첫째 주 시작 요일 전까지)
+    for (let i = 0; i < firstDay; i++) {
+        const emptyCell = document.createElement("div");
+        emptyCell.className = "cal-day-cell disabled";
+        grid.appendChild(emptyCell);
     }
 
-    // 이번 달 일자
-    for (let d = 1; d <= totalDays; d++) {
-        const dStr = `${inqCalYear}-${String(inqCalMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const cell = document.createElement("div");
-        cell.className = "inq-cal-cell";
-
-        const thisDate = new Date(inqCalYear, inqCalMonth, d);
+    // 날짜 칸
+    for (let d = 1; d <= lastDate; d++) {
+        const mm = String(inqCalMonth + 1).padStart(2, '0');
+        const dd = String(d).padStart(2, '0');
+        const dStr = `${inqCalYear}-${mm}-${dd}`;
         const isToday = (dStr === todayStr);
-        const isPast = (thisDate < new Date(today.getFullYear(), today.getMonth(), today.getDate()));
         const isSelected = (selectedCalDate === dStr);
 
-        if (isToday) cell.classList.add("is-today");
-        if (isSelected) cell.classList.add("is-selected");
-        if (isPast && !isToday) cell.classList.add("is-past");
-
         const count = staffList.filter(r => r.date === dStr || (isToday && (r.date === "오늘" || r.date === "2026-10-12"))).length;
+
+        const cell = document.createElement("div");
+        cell.className = `cal-day-cell ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}`;
 
         cell.innerHTML = `
             <span class="cell-day-num">${d}</span>
@@ -4853,7 +5024,7 @@ function selectInqDate(dStr) {
     showToast(`📅 ${dStr} 환자 접수 및 예약 명단입니다.`);
 }
 
-/* 🌟 [사용자 요청] 좌측: 당일 시간대별 환자 카드 (1인 1박스 + 4종 연락 버튼 + 확인완료 토글) */
+/* 🌟 [사용자 요청] 좌측: 당일 시간대별 환자 카드 (1인 1박스 + 심플한 시술 제목 + 원클릭 아코디언 상세보기) */
 function renderPatientInquiryList() {
     const host = document.getElementById("patientInquiryListHost");
     const countBadge = document.getElementById("badgeInquiryCount");
@@ -4896,35 +5067,55 @@ function renderPatientInquiryList() {
         const savedClinic = localStorage.getItem("yetalkDoctorName") || "예톡 아름다운의원";
         host.innerHTML = sorted.map(item => {
             const isDone = (item.status === "확인완료" || item.status === "진료완료" || item.status === "답변완료");
+            const cleanSubject = (item.subject || '일반진료').replace(/시술$/, '').trim();
             return `
-                <div class="time-patient-card ${isDone ? 'done' : 'waiting'}">
-                    <div class="patient-card-header">
-                        <div style="display:flex; align-items:center; gap:8px;">
+                <div class="time-patient-card ${isDone ? 'done' : 'waiting'}" id="cardRes_${item.id}">
+                    <!-- 1. 기본 심플 행 (시간, 환자명, 전화, 간단 시술 제목, 확인완료 배지) -->
+                    <div class="patient-card-simple-main">
+                        <div class="patient-title-group">
                             <span class="time-slot-badge">⏰ ${item.time}</span>
                             <strong class="patient-name">${item.name}</strong>
                             <span class="patient-phone">${item.phone || ''}</span>
+                            <span class="patient-quick-subject">💉 ${cleanSubject}</span>
                         </div>
                         <button type="button" class="btn-card-status-toggle ${isDone ? 'confirmed' : 'pending'}" onclick="toggleResStatus(${item.id})" title="클릭하여 확인완료 / 대기 상태 변경">
                             ${isDone ? '✅ 확인완료' : '⏳ 미확인 (대기)'}
                         </button>
                     </div>
-                    <div class="patient-card-body">
-                        <div class="patient-subject-row">
-                            <span class="subject-tag">🏥 ${item.subject || '일반진료'}</span>
-                            <span class="doctor-tag">담당: ${item.doctor || '대표원장'}</span>
-                        </div>
-                        <div class="patient-memo-box">
-                            💬 ${item.replyMsg || '환자 접수 확인 대기 중'}
-                        </div>
-                    </div>
-                    <!-- 4종 연락 버튼: 전화, 문자, 예톡, 카톡 다 달고! -->
+
+                    <!-- 2. 빠른 연락 버튼 행 (전화, 문자, 닥톡, 예톡공지 + 원클릭 상세보기 아코디언 토글) -->
                     <div class="patient-card-actions">
                         <a href="tel:${item.phone}" class="btn-contact-action tel" title="전화 바로걸기">📞 전화</a>
                         <a href="sms:${item.phone}?body=${encodeURIComponent('[' + savedClinic + '] ' + item.name + '님 예약 안내드립니다.')}" class="btn-contact-action sms" title="SMS 문자 보내기">💬 문자</a>
-                        <button type="button" class="btn-contact-action yetalk" onclick="openDocTalkWithPatient('${item.name}')" title="예톡 닥톡/메신저 상담">💬 예톡</button>
-                        <button type="button" class="btn-contact-action kakao" onclick="sendKakaoResNotice('${item.name}', '${item.phone}', '${item.time}', '${item.subject}')" title="카카오톡 알림">🟡 카톡</button>
-                        <button type="button" class="btn-card-edit-action" onclick="openCustomInquiryReplyModal(${item.id})" title="예약시간 및 알림 변경">✏️</button>
-                        <button type="button" class="btn-card-del-action" onclick="deleteInquiryReservation(${item.id})" title="접수 취소">🗑️</button>
+                        <button type="button" class="btn-contact-action doctalk" onclick="openDocTalkWithPatient('${item.name}', '${item.phone}')" title="원내 닥톡 메신저 상담">👨‍⚕️ 닥톡</button>
+                        <button type="button" class="btn-contact-action yetalk-notice" onclick="openSendYetalkNoticeModal(${item.id})" title="환자 개인앱/예톡홈 공지알림으로 예약안내 발송">📢 예톡공지</button>
+                        <button type="button" class="btn-card-detail-toggle" onclick="togglePatientCardDetail(${item.id})" id="btnDetailToggle_${item.id}" title="상세내용 펼치기/접기">
+                            <span>🔍 상세보기</span> <span id="arrowDetail_${item.id}">▼</span>
+                        </button>
+                    </div>
+
+                    <!-- 3. 아코디언 상세 정보 (클릭 시 펼쳐짐) -->
+                    <div class="patient-card-accordion-body" id="patientDetailBox_${item.id}" style="display:none;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:#cbd5e1; border-bottom:1px dashed #334155; padding-bottom:4px;">
+                            <span>🏥 진료과목: <strong style="color:#38bdf8;">${item.subject || '일반진료'}</strong> (담당: ${item.doctor || '대표원장'})</span>
+                            <span style="font-size:11px; color:#94a3b8;">📅 예약일: ${item.date || '오늘'}</span>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.3); border-radius:6px; padding:6px 8px; font-size:12px; color:#e2e8f0; line-height:1.5;">
+                            📝 <strong>상세증상/메모:</strong> ${item.replyMsg || '환자 접수 대기 중'}
+                        </div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+                            <div class="btn-status-pill-group">
+                                <span style="font-size:11px; color:#94a3b8; display:flex; align-items:center; margin-right:2px;">상태변경:</span>
+                                <button type="button" class="btn-status-pill ${item.status === '대기' ? 'active' : ''}" onclick="setPatientResStatus(${item.id}, '대기')">⏳ 대기</button>
+                                <button type="button" class="btn-status-pill ${item.status === '확인완료' ? 'active' : ''}" onclick="setPatientResStatus(${item.id}, '확인완료')">✅ 확인완료</button>
+                                <button type="button" class="btn-status-pill ${item.status === '진료중' ? 'active' : ''}" onclick="setPatientResStatus(${item.id}, '진료중')">🩺 진료중</button>
+                                <button type="button" class="btn-status-pill ${item.status === '진료완료' ? 'active' : ''}" onclick="setPatientResStatus(${item.id}, '진료완료')">🏁 진료완료</button>
+                            </div>
+                            <div style="display:flex; gap:4px;">
+                                <button type="button" class="btn-card-edit-action" onclick="openCustomInquiryReplyModal(${item.id})" title="예약시간 및 알림 수정">✏️</button>
+                                <button type="button" class="btn-card-del-action" onclick="deleteInquiryReservation(${item.id})" title="접수 취소/삭제">🗑️</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -4933,6 +5124,230 @@ function renderPatientInquiryList() {
 
     renderWeeksSummary();
     renderInqCalendar();
+}
+
+/* 🌟 [사용자 요청] 환자 카드 아코디언 상세보기 토글 */
+function togglePatientCardDetail(id) {
+    const box = document.getElementById(`patientDetailBox_${id}`);
+    const arrow = document.getElementById(`arrowDetail_${id}`);
+    if (!box) return;
+    const isHidden = (box.style.display === "none");
+    box.style.display = isHidden ? "flex" : "none";
+    if (arrow) arrow.innerText = isHidden ? "▲" : "▼";
+}
+
+/* 🌟 [사용자 요청] 환자 카드 상세 상태 즉시 변경 */
+function setPatientResStatus(id, newStatus) {
+    const list = getStaffReservations();
+    const item = list.find(r => r.id === id);
+    if (!item) return;
+    item.status = newStatus;
+    saveStaffReservations(list);
+    renderPatientInquiryList();
+    showToast(`환자 [${item.name}]님의 상태가 '${newStatus}'(으)로 변경되었습니다.`);
+}
+
+/* 🌟 [사용자 요청] 닥톡 환자 메신저 직결 연결 */
+function openDocTalkWithPatient(patientName, phone) {
+    showToast(`👨‍⚕️ [${patientName}] 환자분과의 닥톡 1:1 상담창을 엽니다.`);
+    openDoctorTalkWindow();
+}
+
+/* 🌟 [사용자 요청] PC 카카오톡 팝업 방지 -> 예톡 공지알림 모달 열기 */
+function openSendYetalkNoticeModal(id) {
+    const list = getStaffReservations();
+    const item = list.find(r => r.id === id);
+    if (!item) return;
+    const savedClinic = localStorage.getItem("yetalkDoctorName") || "예톡 아름다운의원";
+    document.getElementById("inpNoticeTargetResId").value = item.id;
+    document.getElementById("inpNoticeTargetPatient").value = `${item.name} (${item.phone || '연락처 없음'})`;
+    
+    const defaultMsg = `[${savedClinic}] ${item.name}님, ${item.date || '오늘'} ${item.time} 예약이 확정되었습니다. (진료항목: ${item.subject || '일반진료'}) 내원 시 1층 데스크에서 성함을 말씀해 주세요.`;
+    document.getElementById("inpNoticeMessageContent").value = defaultMsg;
+    openModal("modalSendYetalkNotice");
+}
+
+/* 🌟 [사용자 요청] 환자 개인앱/예톡홈 공지알림으로 예약 안내 발송 */
+function confirmSendYetalkNotice() {
+    const resId = parseInt(document.getElementById("inpNoticeTargetResId").value, 10);
+    const msg = document.getElementById("inpNoticeMessageContent").value.trim();
+    if (!msg) {
+        alert("공지 안내 내용을 입력해주세요.");
+        return;
+    }
+
+    const list = getStaffReservations();
+    const item = list.find(r => r.id === resId);
+    const patientName = item ? item.name : "환자";
+    const savedClinic = localStorage.getItem("yetalkDoctorName") || "예톡 아름다운의원";
+
+    // 1. 환자별 알림 저장소에 영구 저장 (개인앱 onemain.html 확인용)
+    const patientNoticeItem = {
+        id: Date.now(),
+        patientName: patientName,
+        phone: item ? item.phone : "",
+        clinic: savedClinic,
+        title: `[예약안내] ${savedClinic} 예약이 확정되었습니다`,
+        content: msg,
+        date: new Date().toLocaleDateString('ko-KR'),
+        time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+        type: "reservation"
+    };
+
+    let pNotices = [];
+    try {
+        const raw = localStorage.getItem("yetalk_patient_notices");
+        if (raw) pNotices = JSON.parse(raw);
+    } catch(e) {}
+    pNotices.unshift(patientNoticeItem);
+    localStorage.setItem("yetalk_patient_notices", JSON.stringify(pNotices));
+
+    // 2. 공지 피드(yetalk_notices_doctor_v3)에도 함께 등록되어 예톡홈과 전체 공지에서 노출
+    let feedNotices = [];
+    try {
+        const rawFeed = localStorage.getItem("yetalk_notices_doctor_v3");
+        if (rawFeed) feedNotices = JSON.parse(rawFeed);
+    } catch(e) {}
+    feedNotices.unshift({
+        id: Date.now(),
+        title: `📢 [${patientName}님] 예약 안내 - ${savedClinic}`,
+        content: msg,
+        clinicName: savedClinic,
+        date: new Date().toLocaleDateString('ko-KR'),
+        likes: 0
+    });
+    localStorage.setItem("yetalk_notices_doctor_v3", JSON.stringify(feedNotices));
+
+    // 3. 해당 예약 상태를 확인완료로 자동 업데이트
+    if (item) {
+        item.status = "확인완료";
+        saveStaffReservations(list);
+    }
+
+    closeModal("modalSendYetalkNotice");
+    renderPatientInquiryList();
+    showToast(`📢 [${patientName}] 환자분의 예톡홈/개인앱 공지알림으로 예약 안내가 발송되었습니다!`);
+}
+
+/* 🌟 [사용자 요청] 원장님 사전 진료·시술과목 관리 로직 */
+const DEFAULT_TREATMENT_ITEMS = [
+    "보톡스 시술 (이마/미간/턱)",
+    "필러 시술 (팔자/입술/볼)",
+    "슈링크 / 울쎄라 리프팅",
+    "레이저 토닝 / 잡티 미백",
+    "피부 재생 / 항산화 수액",
+    "여드름 / 모공 / 흉터 케어",
+    "점 / 사마귀 / 비립종 제거",
+    "일반 피부질환 진료 및 상담"
+];
+
+function getClinicTreatmentItems() {
+    try {
+        const raw = localStorage.getItem("yetalk_clinic_treatment_items");
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+    } catch(e) {}
+    return DEFAULT_TREATMENT_ITEMS;
+}
+
+function saveClinicTreatmentItems(items) {
+    localStorage.setItem("yetalk_clinic_treatment_items", JSON.stringify(items));
+    renderTreatmentManageList();
+    renderPatientTreatmentChips();
+    syncManualSubjectOptions();
+}
+
+function openTreatmentManageModal() {
+    renderTreatmentManageList();
+    openModal("modalManageTreatmentItems");
+}
+
+function renderTreatmentManageList() {
+    const host = document.getElementById("treatmentManageItemsList");
+    if (!host) return;
+    const items = getClinicTreatmentItems();
+    if (items.length === 0) {
+        host.innerHTML = `<div style="text-align:center; padding:16px; color:#94a3b8; font-size:12px;">등록된 진료·시술 과목이 없습니다. 상단에서 추가해주세요.</div>`;
+        return;
+    }
+    host.innerHTML = items.map((item, idx) => `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:1px solid #cbd5e1; border-radius:8px; padding:6px 10px;">
+            <span style="font-size:12.5px; font-weight:900; color:#1e293b; display:flex; align-items:center; gap:5px;">
+                <span style="color:#0284c7;">💉</span> ${item}
+            </span>
+            <button type="button" onclick="deleteClinicTreatmentItem(${idx})" style="background:#fee2e2; color:#ef4444; border:none; border-radius:6px; padding:3px 7px; font-size:11px; font-weight:900; cursor:pointer;" title="과목 삭제">삭제 ✕</button>
+        </div>
+    `).join("");
+}
+
+function addClinicTreatmentItem() {
+    const inp = document.getElementById("inpNewTreatmentName");
+    if (!inp) return;
+    const val = inp.value.trim();
+    if (!val) {
+        alert("추가하실 진료 또는 시술 제목을 입력해주세요.");
+        return;
+    }
+    const items = getClinicTreatmentItems();
+    if (items.includes(val)) {
+        alert("이미 등록되어 있는 시술 과목입니다.");
+        return;
+    }
+    items.push(val);
+    saveClinicTreatmentItems(items);
+    inp.value = "";
+    showToast(`💉 새로운 시술과목 [${val}]이 추가되었습니다!`);
+}
+
+function deleteClinicTreatmentItem(idx) {
+    const items = getClinicTreatmentItems();
+    if (idx >= 0 && idx < items.length) {
+        const removed = items.splice(idx, 1)[0];
+        saveClinicTreatmentItems(items);
+        showToast(`시술과목 [${removed}]이 삭제되었습니다.`);
+    }
+}
+
+function resetClinicTreatmentItemsDefault() {
+    if (!confirm("시술과목 목록을 초기 기본 과목으로 복원하시겠습니까?")) return;
+    saveClinicTreatmentItems(DEFAULT_TREATMENT_ITEMS);
+    showToast("초기 기본 시술과목으로 복원되었습니다.");
+}
+
+/* 🌟 [사용자 요청] 환자 예약화면 시술 과목 칩 자동 렌더링 */
+function renderPatientTreatmentChips() {
+    const host = document.getElementById("patientTreatmentChipsHost");
+    if (!host) return;
+    const items = getClinicTreatmentItems();
+    const hiddenInp = document.getElementById("inpPatientSelectedTreatment");
+    const currentVal = hiddenInp ? hiddenInp.value : (items[0] || "보톡스 시술");
+
+    host.innerHTML = items.map(name => {
+        const isSelected = (name === currentVal);
+        return `
+            <button type="button" class="treatment-chip-btn ${isSelected ? 'active' : ''}" onclick="selectPatientTreatment('${name.replace(/'/g, "\\'")}')">
+                <span>💉</span> <span>${name}</span>
+            </button>
+        `;
+    }).join("");
+}
+
+function selectPatientTreatment(name) {
+    const hiddenInp = document.getElementById("inpPatientSelectedTreatment");
+    const badge = document.getElementById("dispSelectedTreatmentBadge");
+    if (hiddenInp) hiddenInp.value = name;
+    if (badge) badge.innerText = `${name} 선택됨`;
+    renderPatientTreatmentChips();
+}
+
+/* 직원 직접 접수부의 select 항목 동기화 */
+function syncManualSubjectOptions() {
+    const sel = document.getElementById("selManualSubject");
+    if (!sel) return;
+    const items = getClinicTreatmentItems();
+    sel.innerHTML = items.map(item => `<option value="${item}">${item}</option>`).join("");
 }
 
 /* 풍부한 5주치 예약 샘플 데이터 초기화 */
@@ -5209,6 +5624,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderNoticeBoardData();
     renderReservationCalendar();
     renderStaffDailyReservations();
+    renderPatientTreatmentChips();
+    syncManualSubjectOptions();
     renderPatientMyReservation();
     init22Banks();
     loadSavedBankAccounts();
