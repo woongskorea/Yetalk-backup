@@ -2634,12 +2634,12 @@
             line-height: 1;
         }
         .daily-gospel-main-headline {
-            font-size: 17.5px;
+            font-size: 14.5px;
             font-weight: 1000;
             color: #0f172a;
-            line-height: 1.45;
+            line-height: 1.5;
             text-align: center;
-            margin: 12px 0 12px 0;
+            margin: 10px 0 12px 0;
             letter-spacing: -0.5px;
             word-break: keep-all;
         }
@@ -3563,9 +3563,10 @@
                 <button type="button" class="btn-daily-gospel-close" onclick="closeDailyGospelPopup(false)" title="닫기">✕</button>
             </div>
 
-            <!-- 🌟 [사용자 요청] 상단 큰 타이틀: 모든 회원에게 예수님의 구원의 기회와 앱을 무료로 드립니다 -->
+            <!-- 🌟 [사용자 요청] 상단 큰 타이틀: 예수님을 믿을때 영원한 천국에 사는 기쁨을 누릴수 있습니다. 예톡앱을 전하는 것도 매일 좋은 소식을 전하는 것입니다. -->
             <h2 class="daily-gospel-main-headline">
-                모든 회원에게 <span style="color:#dc2626;">예수님의 구원의 기회</span>와 <span style="color:#2563eb;">앱을 무료</span>로 드립니다
+                예수님을 믿을때 <span style="color:#dc2626;">영원한 천국에 사는 기쁨</span>을 누릴수 있습니다.<br>
+                <span style="color:#2563eb;">예톡앱을 전하는 것</span>도 매일 좋은 소식을 전하는 것입니다.
             </h2>
 
             <!-- 오늘 요일 뱃지 -->
@@ -4899,34 +4900,77 @@
         if (modal) modal.classList.add("show");
     }
 
+    // 🌟 [사용자 요청] 당일 팝업 슬롯 정보 계산기
+    // 1차: 최초 한 번 (자정 ~ 오후 6시 전 첫 접속 시 1회)
+    // 2차: 오후 6시(18:00) 이후 첫 접속 시 1회
+    // 요일마다 동일 문구 2번 반복 노출
+    function getGospelPopupSlotInfo() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const date = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${date}`;
+        const hour = now.getHours();
+
+        // 오후 6시(18시) 기준 슬롯 분할
+        const isEveningSlot = (hour >= 18);
+        const currentSlotKey = isEveningSlot ? `${todayStr}_evening` : `${todayStr}_day`;
+
+        return {
+            todayStr: todayStr,
+            hour: hour,
+            isEveningSlot: isEveningSlot,
+            currentSlotKey: currentSlotKey
+        };
+    }
+
     function closeDailyGospelPopup(rememberForToday) {
         const modal = document.getElementById("dailyGospelPopupModal");
         if (modal) modal.classList.remove("show");
-        // 🌟 [사용자 요청] 하루 한 번만 뜨도록 오늘 날짜 항상 저장
+
         try {
-            const todayKey = new Date().toISOString().slice(0, 10);
-            localStorage.setItem("yetalk_daily_gospel_popup_date", todayKey);
+            const slotInfo = getGospelPopupSlotInfo();
+            if (rememberForToday) {
+                // '오늘 하루 보지 않기' 클릭 시 오늘 하루 전체 차단
+                localStorage.setItem("yetalk_daily_gospel_block_full_date", slotInfo.todayStr);
+                localStorage.setItem("yetalk_daily_gospel_last_shown_slot", `${slotInfo.todayStr}_evening`);
+            } else {
+                // 일반 닫기(✕ 버튼, [닫기 ✕], 영접기도문 등): 현재 슬롯 1회 완료 기록
+                // 오후 6시 이전 닫았으면 -> 오후 6시 이후에 2차로 다시 정상 오픈됨!
+                // 오후 6시 이후 닫았으면 -> 오늘 2차 완료로 내일 새로운 요일로 진행됨!
+                localStorage.setItem("yetalk_daily_gospel_last_shown_slot", slotInfo.currentSlotKey);
+            }
         } catch(e) {}
     }
 
     function goToSalvationPrayerFromPopup() {
-        closeDailyGospelPopup(true);
+        closeDailyGospelPopup(false);
         location.href = "church_salvation.html";
     }
 
     function checkDailyGospelPopup() {
         try {
-            const todayKey = new Date().toISOString().slice(0, 10);
-            const lastShown = localStorage.getItem("yetalk_daily_gospel_popup_date");
-            if (lastShown === todayKey) {
-                return; // 오늘 이미 확인했으면 다시 뜨지 않음
+            const slotInfo = getGospelPopupSlotInfo();
+
+            // 만약 '오늘 하루 보지 않기'로 전체 하루가 차단된 경우
+            const fullDayBlocked = localStorage.getItem("yetalk_daily_gospel_block_full_date");
+            if (fullDayBlocked === slotInfo.todayStr) {
+                return;
             }
+
+            // 현재 슬롯(주간 또는 오후 6시 이후)에서 이미 보았는지 확인
+            const lastShownSlot = localStorage.getItem("yetalk_daily_gospel_last_shown_slot");
+            if (lastShownSlot === slotInfo.currentSlotKey) {
+                return; // 현재 슬롯에서는 이미 1회 확인했으므로 다시 뜨지 않음
+            }
+
             // 🌟 만약 이미 매일성경찬송(suite) 등을 바로 열어둔 상태라면 팝업 유보
             const urlParams = new URLSearchParams(window.location.search);
             const viewMode = urlParams.get("view") || (window.location.hash || "").replace("#", "");
             if (viewMode && viewMode.startsWith("suite")) {
                 return;
             }
+
             // 사용자가 화면을 인지한 직후 자연스럽게 팝업 오픈 (600ms)
             setTimeout(() => {
                 showDailyGospelPopup();
@@ -7373,6 +7417,8 @@
             setTimeout(openListModal, 200);
         } else if (viewMode === 'suite_edit') {
             openSuiteEditor();
+        } else if (viewMode === 'gospel') {
+            showDailyGospelPopup();
         } else if (viewMode === 'admin') {
             goToAdminMaster();
         } else if (viewMode === 'bible_edit') {
