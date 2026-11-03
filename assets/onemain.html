@@ -5878,25 +5878,26 @@
         cycleFriendStar(friendId);
     }
 
-    function cycleFriendStar(friendId) {
-        const f = myFriends.find(item => item.id === friendId);
-        if (!f) return;
-        const cur = f.starLevel || (f.isFav ? 1 : 0);
-        const next = (cur + 1) % 4; // 0 -> 1 -> 2 -> 3 -> 0
-        setFriendStarLevel(friendId, next);
-    }
-
-    /* 🌟 [사용자 요청] 별이 조금 찐하게 보이고 별이 세개 보이게:
-       그중 누르면 하나가 황금색으로 되며 누른 수만큼 친구(1개), 사업처(2개), 예톡그룹(3개)으로 이동 */
-    function setFriendStarLevel(friendId, targetLevel, event) {
+    function cycleFriendStar(friendId, event) {
         if (event) {
             event.stopPropagation();
-            event.preventDefault();
         }
         const f = myFriends.find(item => item.id === friendId);
         if (!f) return;
         const cur = f.starLevel || (f.isFav ? 1 : 0);
-        // 이미 해당 레벨이면 해제(0), 아니면 누른 수(1, 2, 3)로 설정
+        const next = (cur + 1) % 4; // 0 -> 1(친구) -> 2(사업처) -> 3(예톡그룹) -> 0(해제)
+        setFriendStarLevel(friendId, next);
+    }
+
+    /* 🌟 [사용자 요청] 별표 터치 시: 1번 누르면 친구(1개), 2번 누르면 사업처(2개), 3번 누르면 예톡그룹(3개)으로 정확히 지정 */
+    function setFriendStarLevel(friendId, targetLevel, event) {
+        if (event) {
+            event.stopPropagation();
+        }
+        const f = myFriends.find(item => item.id === friendId);
+        if (!f) return;
+        const cur = f.starLevel || (f.isFav ? 1 : 0);
+        // 이미 해당 레벨이면 해제(0), 아니면 누른 수(1, 2, 3)로 정확히 설정
         const next = (cur === targetLevel) ? 0 : targetLevel;
         f.starLevel = next;
         f.isFav = next > 0;
@@ -5905,11 +5906,11 @@
         updateDangolBadgeChip();
 
         if (next === 1) {
-            showToast(`⭐ [${f.name}]님이 [친구]로 이동되었습니다. ([친구] 탭 확인)`);
+            showToast(`⭐ [${f.name}]님이 [친구]로 등록되었습니다. ([친구] 탭 확인)`);
         } else if (next === 2) {
-            showToast(`🏢 [${f.name}]님이 [사업처]로 이동되었습니다. ([사업처] 탭 확인)`);
+            showToast(`🏢 [${f.name}]님이 [사업처]로 등록되었습니다. ([사업처] 탭 확인)`);
         } else if (next === 3) {
-            showToast(`💬 [${f.name}]님이 [예톡그룹] 멤버로 이동되었습니다. ([예톡그룹] 탭 확인)`);
+            showToast(`💬 [${f.name}]님이 [예톡그룹] 멤버로 등록되었습니다. ([예톡그룹] 탭 확인)`);
         } else {
             showToast(`☆ [${f.name}] 즐겨찾기 설정이 해제되었습니다.`);
         }
@@ -6662,7 +6663,7 @@
         // 🌟 [사용자 요청] 탭 우측 상단 빨간 숫자로 새글 회원이 몇명인지 표시 (댓글 여러개라도 1명당 1개)
         const badgeContactsUnread = document.getElementById("badgeTabContactsUnread");
         const badgeFriendsUnread = document.getElementById("badgeTabFriendsUnread");
-        const badgeBizUnread = document.getElementById("badgeTabBizUnread");
+        const badgeBizUnread = document.getElementById("badgeTabBusinessUnread");
         const badgeGroupUnread = document.getElementById("badgeTabGroupUnread");
 
         if (badgeContactsUnread) {
@@ -6758,14 +6759,26 @@
                 starBadgeTag = `<span onclick="switchFriendMainTab('group')" style="font-size:10px; font-weight:950; color:#9d174d; background:#fbcfe8; padding:1px 5px; border-radius:4px; margin-left:2px; cursor:pointer;" title="[💬 예톡그룹] 탭으로 이동">그룹</span>`;
             }
 
+            // 🌟 [사용자 요청] 별 배지: 터치 영역을 넉넉하게 확대하고, 박스 터치 시 1(친구) -> 2(사업처) -> 3(그룹) -> 0 순환
             const starBadgeHtml = `
-                <div class="contact-stars-bar" style="display:inline-flex; align-items:center; gap:2px; background:${starBoxBg}; border:1.5px solid ${starBoxBorder}; padding:2px 5px; border-radius:8px; flex-shrink:0; user-select:none;">
-                    <span class="star-slot-btn ${isStar1 ? 'star-active' : 'star-inactive'}" onclick="setFriendStarLevel('${f.id}', 1, event)" style="font-size:16px; line-height:1; cursor:pointer; color:${isStar1 ? '#f59e0b' : '#94a3b8'}; font-weight:950; text-shadow:${isStar1 ? '0 1px 2px rgba(245,158,11,0.5)' : 'none'}; padding:1px 2px;" title="별 1개 터치: 친구로 이동">★</span>
-                    <span class="star-slot-btn ${isStar2 ? 'star-active' : 'star-inactive'}" onclick="setFriendStarLevel('${f.id}', 2, event)" style="font-size:16px; line-height:1; cursor:pointer; color:${isStar2 ? '#f59e0b' : '#94a3b8'}; font-weight:950; text-shadow:${isStar2 ? '0 1px 2px rgba(245,158,11,0.5)' : 'none'}; padding:1px 2px;" title="별 2개 터치: 사업처로 이동">★</span>
-                    <span class="star-slot-btn ${isStar3 ? 'star-active' : 'star-inactive'}" onclick="setFriendStarLevel('${f.id}', 3, event)" style="font-size:16px; line-height:1; cursor:pointer; color:${isStar3 ? '#f59e0b' : '#94a3b8'}; font-weight:950; text-shadow:${isStar3 ? '0 1px 2px rgba(245,158,11,0.5)' : 'none'}; padding:1px 2px;" title="별 3개 터치: 예톡그룹으로 이동">★</span>
+                <div class="contact-stars-bar" onclick="cycleFriendStar('${f.id}', event)" style="display:inline-flex; align-items:center; gap:2px; background:${starBoxBg}; border:1.5px solid ${starBoxBorder}; padding:2px 6px; border-radius:8px; flex-shrink:0; cursor:pointer; user-select:none;" title="터치하여 친구(★1) ➔ 사업처(★2) ➔ 그룹(★3) 순환 변경">
+                    <span class="star-slot-btn ${isStar1 ? 'star-active' : 'star-inactive'}" onclick="setFriendStarLevel('${f.id}', 1, event)" style="font-size:17px; line-height:1; cursor:pointer; color:${isStar1 ? '#f59e0b' : '#cbd5e1'}; font-weight:950; text-shadow:${isStar1 ? '0 1px 2px rgba(245,158,11,0.5)' : 'none'}; padding:2px 4px; display:inline-flex; align-items:center; justify-content:center; min-width:20px; min-height:22px;" title="별 1개: 친구">★</span>
+                    <span class="star-slot-btn ${isStar2 ? 'star-active' : 'star-inactive'}" onclick="setFriendStarLevel('${f.id}', 2, event)" style="font-size:17px; line-height:1; cursor:pointer; color:${isStar2 ? '#f59e0b' : '#cbd5e1'}; font-weight:950; text-shadow:${isStar2 ? '0 1px 2px rgba(245,158,11,0.5)' : 'none'}; padding:2px 4px; display:inline-flex; align-items:center; justify-content:center; min-width:20px; min-height:22px;" title="별 2개: 사업처">★</span>
+                    <span class="star-slot-btn ${isStar3 ? 'star-active' : 'star-inactive'}" onclick="setFriendStarLevel('${f.id}', 3, event)" style="font-size:17px; line-height:1; cursor:pointer; color:${isStar3 ? '#f59e0b' : '#cbd5e1'}; font-weight:950; text-shadow:${isStar3 ? '0 1px 2px rgba(245,158,11,0.5)' : 'none'}; padding:2px 4px; display:inline-flex; align-items:center; justify-content:center; min-width:20px; min-height:22px;" title="별 3개: 예톡그룹">★</span>
                     ${starBadgeTag}
                 </div>
             `;
+
+            // 🌟 [사용자 요청] 예톡에 새로온 글(메시지) 숫자 배지
+            let unreadCount = 0;
+            if (typeof f.unreadCount === 'number' && f.unreadCount > 0) {
+                unreadCount = f.unreadCount;
+            } else {
+                try {
+                    const msgs = JSON.parse(localStorage.getItem(STORAGE_KEY_TALK + f.id)) || [];
+                    unreadCount = msgs.filter(m => m.sender === 'friend' && m.isUnread).length;
+                } catch(e) {}
+            }
 
             card.innerHTML = `
                 <!-- 1라인: [별 배지] 이름  전화번호 -->
@@ -6776,7 +6789,7 @@
                         <span style="font-size:13px; font-weight:700; color:#64748b; font-family:monospace; white-space:nowrap; flex-shrink:0;">${phone}</span>
                     </div>
                 </div>
-                <!-- 2라인: 문자  전화  예톡  카톡 4개 버튼 (예톡을 카톡 바로 앞에 배치) -->
+                <!-- 2라인: 문자  전화  예톡  카톡 4개 버튼 (예톡에 새로온 글 숫자 배지 표시) -->
                 <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:5px;">
                     <button type="button" onclick="sendInviteSms('${phone}')" style="height:31px; font-size:12px; font-weight:900; background:#f8fafc; color:#334155; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:2px;">
                         <span>✉️</span> 문자
@@ -6784,10 +6797,14 @@
                     <button type="button" onclick="window.location.href='tel:${phone}'" style="height:31px; font-size:12px; font-weight:900; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:2px;">
                         <span>📞</span> 전화
                     </button>
-                    <button type="button" onclick="openFloatingChatWindow('${f.id}')" style="height:31px; font-size:12px; font-weight:900; background:#f0f9ff; color:#0284c7; border:1px solid #bae6fd; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:2px;">
-                        <span>💬</span> 예톡
+                    <button type="button" onclick="openFloatingChatWindow('${f.id}')" style="height:31px; font-size:12px; font-weight:900; background:#f0f9ff; color:#0284c7; border:1px solid #bae6fd; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:3px; position:relative;">
+                        <span>💬</span> 예톡 ${unreadCount > 0 ? `<span style="background:#ef4444; color:#ffffff; font-size:10px; font-weight:950; padding:1px 5px; border-radius:9px; line-height:1.2; box-shadow:0 1px 3px rgba(239,68,68,0.4);">${unreadCount}</span>` : ''}
                     </button>
                     <button type="button" onclick="shareInviteKakao('${phone}')" style="height:31px; font-size:12px; font-weight:900; background:#fef9c3; color:#854d0e; border:1px solid #fef08a; border-radius:6px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:2px;">
+                        <span>🟡</span> 카톡
+                    </button>
+                </div>
+            `;
                         <span>🟡</span> 카톡
                     </button>
                 </div>

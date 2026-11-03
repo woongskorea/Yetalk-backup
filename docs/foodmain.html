@@ -5859,5 +5859,249 @@
     }
 </script>
 
+<!-- 🌟 [사용자 요청] 서비스 오픈 준비 중 안내 팝업 (관리자는 닫고 계속 작업 가능) -->
+<style id="styleServicePrepNotice">
+    .service-prep-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 999999;
+        background: rgba(15, 23, 42, 0.78);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
+    .service-prep-overlay.show {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .service-prep-card {
+        background: #ffffff;
+        width: 100%;
+        max-width: 440px;
+        border-radius: 24px;
+        box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0,0,0,0.06);
+        overflow: hidden;
+        animation: prepModalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        text-align: center;
+    }
+    @keyframes prepModalPop {
+        from { transform: scale(0.92) translateY(12px); opacity: 0; }
+        to { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .service-prep-header {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #ffffff;
+        padding: 22px 20px 20px;
+        position: relative;
+    }
+    .service-prep-close-btn {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12);
+        border: none;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    .service-prep-close-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
+    .service-prep-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(16, 185, 129, 0.2);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #34d399;
+        font-size: 11.5px;
+        font-weight: 800;
+        padding: 4px 12px;
+        border-radius: 20px;
+        margin-bottom: 10px;
+        letter-spacing: 0.5px;
+    }
+    .service-prep-title {
+        font-size: 18px;
+        font-weight: 900;
+        margin: 0;
+        letter-spacing: -0.3px;
+        color: #ffffff;
+    }
+    .service-prep-body {
+        padding: 26px 24px 22px;
+    }
+    .service-prep-icon-box {
+        width: 68px;
+        height: 68px;
+        border-radius: 20px;
+        background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        border: 2px solid #a7f3d0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        margin: 0 auto 16px;
+        box-shadow: 0 8px 18px -4px rgba(16, 185, 129, 0.25);
+    }
+    .service-prep-main-msg {
+        font-size: 16.5px;
+        font-weight: 900;
+        color: #0f172a;
+        line-height: 1.5;
+        margin-bottom: 10px;
+        word-break: keep-all;
+    }
+    .service-prep-sub-msg {
+        font-size: 14px;
+        color: #475569;
+        line-height: 1.6;
+        margin-bottom: 22px;
+        word-break: keep-all;
+        background: #f8fafc;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+    .service-prep-btn-home {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        color: #ffffff;
+        font-size: 15.5px;
+        font-weight: 850;
+        padding: 14px 18px;
+        border-radius: 14px;
+        border: none;
+        cursor: pointer;
+        box-shadow: 0 6px 18px -2px rgba(5, 150, 105, 0.4);
+        margin-bottom: 10px;
+        text-decoration: none;
+        transition: transform 0.12s, box-shadow 0.12s;
+    }
+    .service-prep-btn-home:active {
+        transform: scale(0.98);
+    }
+    .service-prep-btn-admin {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: 100%;
+        background: #f1f5f9;
+        color: #475569;
+        font-size: 13.5px;
+        font-weight: 800;
+        padding: 12px 16px;
+        border-radius: 12px;
+        border: 1px solid #cbd5e1;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+    }
+    .service-prep-btn-admin:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+    .service-prep-reopen-pill {
+        position: fixed;
+        bottom: 18px;
+        right: 18px;
+        z-index: 99999;
+        background: #0f172a;
+        color: #f8fafc;
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 30px;
+        padding: 8px 14px;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        display: none;
+        align-items: center;
+        gap: 5px;
+    }
+</style>
+
+<div class="service-prep-overlay" id="servicePrepNoticeModal">
+    <div class="service-prep-card">
+        <div class="service-prep-header">
+            <button type="button" class="service-prep-close-btn" onclick="dismissServicePrepNotice()" title="창 닫기">✕</button>
+            <div class="service-prep-badge">✨ YETALK NOTICE</div>
+            <h3 class="service-prep-title">서비스 오픈 준비 중 안내 🌿</h3>
+        </div>
+        <div class="service-prep-body">
+            <div class="service-prep-icon-box">⏳</div>
+            <div class="service-prep-main-msg">
+                예약앱과 의원앱은 준비중이며<br>차후 단계적으로 오픈하겠습니다.
+            </div>
+            <div class="service-prep-sub-msg">
+                더욱 완성도 높은 예약 서비스와 맞춤 기능을 제공해드리기 위해 정성껏 준비하고 있습니다. 이용에 감사드립니다. 😊
+            </div>
+            <button type="button" class="service-prep-btn-home" onclick="location.href='index.html'">
+                <span>🏠</span>
+                <span>예톡 홈으로 이동</span>
+            </button>
+            <button type="button" class="service-prep-btn-admin" onclick="dismissServicePrepNotice()">
+                <span>🛠️</span>
+                <span>관리자 화면 닫고 계속 작업하기</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<button type="button" class="service-prep-reopen-pill" id="btnReopenServicePrepNotice" onclick="reopenServicePrepNotice()">
+    <span>📢</span>
+    <span>오픈안내 팝업 다시보기</span>
+</button>
+
+<script>
+    function checkServicePrepNotice() {
+        var isDismissed = sessionStorage.getItem("yetalk_service_prep_dismissed");
+        var modal = document.getElementById("servicePrepNoticeModal");
+        var reopenPill = document.getElementById("btnReopenServicePrepNotice");
+        if (isDismissed === "1") {
+            if (modal) modal.classList.remove("show");
+            if (reopenPill) reopenPill.style.display = "flex";
+        } else {
+            if (modal) modal.classList.add("show");
+            if (reopenPill) reopenPill.style.display = "none";
+        }
+    }
+    function dismissServicePrepNotice() {
+        sessionStorage.setItem("yetalk_service_prep_dismissed", "1");
+        var modal = document.getElementById("servicePrepNoticeModal");
+        if (modal) modal.classList.remove("show");
+        var reopenPill = document.getElementById("btnReopenServicePrepNotice");
+        if (reopenPill) reopenPill.style.display = "flex";
+    }
+    function reopenServicePrepNotice() {
+        sessionStorage.removeItem("yetalk_service_prep_dismissed");
+        var modal = document.getElementById("servicePrepNoticeModal");
+        if (modal) modal.classList.add("show");
+        var reopenPill = document.getElementById("btnReopenServicePrepNotice");
+        if (reopenPill) reopenPill.style.display = "none";
+    }
+    window.addEventListener("DOMContentLoaded", function() {
+        setTimeout(checkServicePrepNotice, 150);
+    });
+</script>
+
 </body>
 </html>
