@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -831,8 +831,38 @@
             myCards.push(shopApp);
         }
 
-        const otherModels = MODEL_HOUSES.filter(m => !myCards.some(c => c.name === m.name || c.id === m.id));
-        const allStores = [churchApp, ...myCards, ...otherModels, ...customCreatedApps];
+        // 🌟 [사용자 요청] 교회앱 및 모든 목록 내 중복 노출 원천 차단 (이름 및 작은교회 고유 슬롯 기준)
+        const existingKeys = new Set();
+        const deduplicatedAll = [];
+
+        function pushIfUnique(item) {
+            if (!item || !item.name) return;
+            const normName = item.name.trim();
+            // 작은교회/움직이는교회는 URL이 minichurch.html이거나 이름에 작은교회/움직이는교회가 들어가면 동일 슬롯으로 간주하여 1개만 등록
+            const isMini = (item.url && item.url.includes('minichurch')) || item.isMiniChurch || normName.includes('움직이는교회') || normName.includes('작은교회');
+            const key = isMini ? 'minichurch_unique_slot' : normName;
+
+            if (!existingKeys.has(key)) {
+                existingKeys.add(key);
+                deduplicatedAll.push(item);
+            }
+        }
+
+        // 1) 교회앱 1순위: 교회 정회원 앱 (예톡행복한교회)
+        pushIfUnique(churchApp);
+
+        // 2) 내 앱 목록 (개인앱, 나의 작은교회, 전문앱, 상점)
+        myCards.forEach(c => pushIfUnique(c));
+
+        // 3) 관리자/사용자가 직접 생성한 커스텀 앱 목록
+        if (Array.isArray(customCreatedApps)) {
+            customCreatedApps.forEach(ca => pushIfUnique(ca));
+        }
+
+        // 4) 모델하우스 목록 (이미 등록된 교회/상점과 이름/URL이 겹치지 않는 것만 추가)
+        MODEL_HOUSES.forEach(m => pushIfUnique(m));
+
+        const allStores = deduplicatedAll;
 
         return {
             myCards: myCards,
@@ -1064,6 +1094,16 @@
             filtered = allStores.filter(s => s.cat === 'clinic' || s.cat === 'hanclinic' || s.cat === 'dental');
         } else if (currentFilter === 'church') {
             filtered = allStores.filter(s => s.cat === 'church');
+            // 🌟 [사용자 요청] 교회앱 탭 중복 노출 방지 (동일 교회 및 작은교회 중복 차단)
+            const seenChurchKeys = new Set();
+            filtered = filtered.filter(item => {
+                const norm = (item.name || '').trim();
+                const isMini = (item.url && item.url.includes('minichurch')) || item.isMiniChurch || norm.includes('움직이는교회') || norm.includes('작은교회');
+                const key = isMini ? 'minichurch_unique_slot' : norm;
+                if (seenChurchKeys.has(key)) return false;
+                seenChurchKeys.add(key);
+                return true;
+            });
             // 🌟 [사용자 요청] 교회앱 탭에서는 제일 위에 본인 교회가 최우선으로 올라오게 정렬
             filtered.sort((a, b) => {
                 const aIsMy = (a.id === 'm_church_member_top' || !!a.isChurchMember);
