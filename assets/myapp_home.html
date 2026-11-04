@@ -668,10 +668,14 @@
             forceStarLevel: 4
         };
 
+        const isRegistered = localStorage.getItem("yetalk_is_registered") === "true";
+        const savedUserName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
+        const personalName = (isRegistered && savedUserName && savedUserName !== '최예톡' && savedUserName !== '관리자') ? `${savedUserName} 개인앱` : '예톡 내앱';
+
         // 🌟 1) 나의 개인 앱 (onemain.html - [사용자 요청] 1위, 예톡 내앱 노랑색 테두리)
         const personalOneApp = {
             id: 'primary_personal_one_app',
-            name: '예톡 내앱',
+            name: personalName,
             cat: 'one',
             tagText: '개인',
             tagClass: 'tag-one',
@@ -812,23 +816,62 @@
             forceStarLevel: 4
         };
 
+        const savedUserId = (localStorage.getItem("yetalk_user_id") || localStorage.getItem("yetalkUserId") || "").trim();
+        const isMaster = localStorage.getItem("yetalk_is_admin") === "true" ||
+                         savedUserName === "최웅식" || savedUserName === "최예톡" || savedUserName === "관리자" ||
+                         savedUserId === "admin" || (!isRegistered && !savedUserName);
+
         let myCards = [];
-        // 1위: 개인앱 (가장 먼저)
+        // 1위: 개인앱 (모든 이용자 공통)
         myCards.push(personalOneApp);
-        // 2위: 기독교인이면 작은교회
-        const isChristianUser = localStorage.getItem("yetalk_is_christian") !== "false";
-        if (isChristianUser) {
-            myCards.push(miniChurchApp);
-        }
-        // 3위: 사업체 전문앱
-        myCards.push(clinicApp);
-        // 4위: 상점앱
-        if (customCreatedApps && customCreatedApps.length > 0) {
-            customCreatedApps.forEach(ca => {
-                if (!myCards.some(c => c.name === ca.name)) myCards.push(ca);
-            });
+
+        // 🌟 [사용자 요청] 회원들도 내앱에 있는 것들이 다 보이는 현상 원천 차단:
+        // 관리자/마스터(최웅식/최예톡 등)에게만 기본 상점/의원/작은교회 샘플앱을 내앱에 배치하고,
+        // 일반 등록 회원은 본인이 직접 신청/개설한 앱만 '내앱'에 노출합니다.
+        if (isMaster) {
+            const isChristianUser = localStorage.getItem("yetalk_is_christian") !== "false";
+            if (isChristianUser) {
+                myCards.push(miniChurchApp);
+            }
+            myCards.push(clinicApp);
+            if (customCreatedApps && customCreatedApps.length > 0) {
+                customCreatedApps.forEach(ca => {
+                    if (!myCards.some(c => c.name === ca.name)) myCards.push(ca);
+                });
+            } else {
+                myCards.push(shopApp);
+            }
         } else {
-            myCards.push(shopApp);
+            // 일반 회원: 본인이 직접 신청/개설한 커스텀 앱이나 맞춤앱이 있을 때만 추가
+            const myAppsRaw = localStorage.getItem("yetalk_my_apps");
+            if (myAppsRaw) {
+                try {
+                    const myAppObj = JSON.parse(myAppsRaw);
+                    if (myAppObj && myAppObj.appName) {
+                        myCards.push({
+                            id: 'm_user_custom_applied',
+                            name: myAppObj.appName,
+                            cat: myAppObj.category || 'store',
+                            tagText: myAppObj.jobName || '맞춤앱',
+                            tagClass: 'tag-shop',
+                            url: myAppObj.targetUrl || 'foodmain.html',
+                            date: '오늘',
+                            desc: `“${myAppObj.appName}에 오신 것을 환영합니다.”`,
+                            forceStarLevel: 4
+                        });
+                    }
+                } catch(e) {}
+            }
+            if (customCreatedApps && customCreatedApps.length > 0) {
+                customCreatedApps.forEach(ca => {
+                    if (!myCards.some(c => c.name === ca.name)) myCards.push(ca);
+                });
+            }
+            // 작은교회를 본인이 직접 설정한 경우만 추가
+            const hasMyMiniChurch = localStorage.getItem("yetalk_has_mini_church") === "true" || !!localStorage.getItem("yetalkMiniChurchName");
+            if (hasMyMiniChurch) {
+                myCards.push(miniChurchApp);
+            }
         }
 
         // 🌟 [사용자 요청] 교회앱 및 모든 목록 내 중복 노출 원천 차단 (이름 및 작은교회 고유 슬롯 기준)
@@ -850,11 +893,14 @@
 
         // 1) 교회앱 1순위: 교회 정회원 앱 (예톡행복한교회)
         pushIfUnique(churchApp);
+        // 2) 일반 회원도 단골/의원 탭에서 정상 이용할 수 있도록 기본 등록
+        pushIfUnique(clinicApp);
+        pushIfUnique(shopApp);
 
-        // 2) 내 앱 목록 (개인앱, 나의 작은교회, 전문앱, 상점)
+        // 3) 내 앱 목록
         myCards.forEach(c => pushIfUnique(c));
 
-        // 3) 관리자/사용자가 직접 생성한 커스텀 앱 목록
+        // 4) 관리자/사용자가 직접 생성한 커스텀 앱 목록
         if (Array.isArray(customCreatedApps)) {
             customCreatedApps.forEach(ca => pushIfUnique(ca));
         }
