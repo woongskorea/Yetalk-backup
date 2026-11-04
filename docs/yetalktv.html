@@ -9605,62 +9605,67 @@ https://yetalk.cc`;
         showToast(`✨ [${appName}] 변경사항이 실시간 스마트폰 화면에 즉시 적용되었습니다!`);
     }
 
-    /* 🌟 [Firebase Firestore 클라우드 영상 자동 동기화] */
-    async function syncVideosFromCloud() {
+    /* 🌟 [사용자 요청] Firebase Firestore 클라우드 영상 즉각 실시간 동기화 (누가 올려도 전체에게 즉시 표시) */
+    function syncVideosFromCloud() {
         try {
             if (!window.yetalkDb || !window.yetalkFs) {
                 setTimeout(syncVideosFromCloud, 1200);
                 return;
             }
-            const { collection, getDocs, query, orderBy, limit } = window.yetalkFs;
+            const { collection, query, orderBy, limit, onSnapshot } = window.yetalkFs;
             const q = query(collection(window.yetalkDb, "yetalk_videos"), orderBy("createdAt", "desc"), limit(300));
-            const snap = await getDocs(q);
-            if (!snap.empty) {
-                let localFeeds = [];
-                try {
-                    localFeeds = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]");
-                } catch(e) { localFeeds = []; }
 
-                const existingVideoIds = new Set(localFeeds.map(f => f.videoId));
-                let newCount = 0;
+            // 🌟 실시간 onSnapshot 리스너로 누군가 새 영상을 올리는 즉시 전체 회원에게 자동 반영
+            onSnapshot(q, (snap) => {
+                if (!snap.empty) {
+                    let localFeeds = [];
+                    try {
+                        localFeeds = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]");
+                    } catch(e) { localFeeds = []; }
 
-                const cloudList = [];
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    if (data && data.videoId) {
-                        cloudList.push({
-                            id: doc.id,
-                            videoId: data.videoId,
-                            title: data.title || "새 영상",
-                            bizName: data.bizName || "예톡회원",
-                            shortAd: data.shortAd || data.title || "",
-                            targetUrl: data.targetUrl || "churchmain.html",
-                            format: data.format || "shorts",
-                            views: data.views || 101,
-                            likes: data.likes || 12,
-                            date: data.date || "최신",
-                            timestamp: data.timestamp || Date.now(),
-                            isCloud: true
-                        });
-                    }
-                });
+                    const existingVideoIds = new Set(localFeeds.map(f => f.videoId));
+                    let newCount = 0;
 
-                cloudList.reverse().forEach(cv => {
-                    if (!existingVideoIds.has(cv.videoId)) {
-                        localFeeds.unshift(cv);
-                        existingVideoIds.add(cv.videoId);
-                        newCount++;
-                    }
-                });
+                    const cloudList = [];
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        if (data && data.videoId) {
+                            cloudList.push({
+                                id: doc.id,
+                                videoId: data.videoId,
+                                title: data.title || "새 영상",
+                                bizName: data.bizName || "예톡회원",
+                                shortAd: data.shortAd || data.title || "",
+                                targetUrl: data.targetUrl || "churchmain.html",
+                                format: data.format || "shorts",
+                                views: data.views || 101,
+                                likes: data.likes || 12,
+                                date: data.date || "최신",
+                                timestamp: data.timestamp || Date.now(),
+                                isCloud: true
+                            });
+                        }
+                    });
 
-                if (newCount > 0) {
-                    localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(localFeeds));
-                    console.log(`Firebase Firestore: ${newCount} new cloud videos synced.`);
-                    if (typeof renderFeedCards === "function") {
-                        renderFeedCards();
+                    cloudList.reverse().forEach(cv => {
+                        if (!existingVideoIds.has(cv.videoId)) {
+                            localFeeds.unshift(cv);
+                            existingVideoIds.add(cv.videoId);
+                            newCount++;
+                        }
+                    });
+
+                    if (newCount > 0) {
+                        localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(localFeeds));
+                        console.log(`🔥 [예톡TV 실시간 동기화] ${newCount}개의 새 영상이 전체 회원에게 즉각 반영되었습니다.`);
+                        if (typeof renderFeedCards === "function") {
+                            renderFeedCards();
+                        }
                     }
                 }
-            }
+            }, (err) => {
+                console.warn("Firestore onSnapshot error:", err);
+            });
         } catch(err) {
             console.warn("Firestore syncVideosFromCloud notice:", err);
         }

@@ -28,6 +28,7 @@ import {
     getDoc,
     updateDoc,
     deleteDoc,
+    onSnapshot,
 
     collection,
     addDoc,
@@ -135,6 +136,7 @@ export {
     getDoc,
     updateDoc,
     deleteDoc,
+    onSnapshot,
 
 
     /*==================================================
