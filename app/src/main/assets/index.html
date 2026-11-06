@@ -1,4 +1,4 @@
-﻿﻿﻿<!DOCTYPE html>
+﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -3766,17 +3766,7 @@
             </div>
 
             <!-- 🌟 찬송가 전용 광고 없는 예톡 내장 플레이어 박스 -->
-            <div id="hymnPlayerBox" style="display:none; margin:6px 0; border-radius:12px; overflow:hidden; box-shadow:0 3px 12px rgba(124, 58, 237, 0.15); background:#0f172a; border: 1.5px solid #d8b4fe;">
-                <div style="display:flex; justify-content:space-between; align-items:center; background:#7c3aed; padding:6px 12px; color:#ffffff; font-size:13px; font-weight:800;">
-                    <span id="hymnPlayerTitle">🎵 새찬송가 반주 & 찬양</span>
-                    <button type="button" onclick="closeHymnPlayer()" style="background:none; border:none; color:#ffffff; font-size:16px; cursor:pointer; font-weight:900;">✕ 닫기</button>
-                </div>
-                <div style="position:relative; width:100%; height:0; padding-bottom:56.25%;">
-                    <iframe id="hymnPlayerIframe" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
-                </div>
-            </div>
-
-            <!-- 🌟 [사용자 요청] 글자 크기 18px로 키우고 1절부터 끝까지 빠짐없이 무한 세로 스크롤 -->
+                        <!-- 🌟 [사용자 요청] 글자 크기 18px로 키우고 1절부터 끝까지 빠짐없이 무한 세로 스크롤 -->
             <div class="bible-reading-content-body" id="bbrContentBody">
                 <!-- 선택된 성경 본문 자동 렌더링 -->
             </div>
@@ -5481,23 +5471,15 @@
 
     function playHymnYouTube(num, encodedTitle) {
         const title = decodeURIComponent(encodedTitle || "");
-        const query = encodeURIComponent("새찬송가 " + num + "장 " + title + " 반주");
-        const box = document.getElementById("hymnPlayerBox");
-        const iframe = document.getElementById("hymnPlayerIframe");
-        const titleEl = document.getElementById("hymnPlayerTitle");
-        if (titleEl) titleEl.innerText = "🎵 " + num + "장 " + title;
-        if (iframe) iframe.src = "https://www.youtube.com/results?search_query=" + query;
-        if (box) {
-            box.style.display = "block";
-            setTimeout(function() { box.scrollIntoView({behavior:"smooth", block:"start"}); }, 100);
+        const query = encodeURIComponent("새찬송가 " + num + "장 " + title + "  찬양");
+        const ytUrl = "https://www.youtube.com/results?search_query=" + query;
+        if (typeof Android !== "undefined" && Android.openUrl) {
+            Android.openUrl(ytUrl);
+        } else {
+            window.open(ytUrl, "_blank");
         }
     }
-    function closeHymnPlayer() {
-        const box = document.getElementById("hymnPlayerBox");
-        const iframe = document.getElementById("hymnPlayerIframe");
-        if (iframe) iframe.src = "about:blank";
-        if (box) box.style.display = "none";
-    }
+    function closeHymnPlayer() {}
     window.closeHymnPlayer = closeHymnPlayer;
     window.playHymnYouTube = playHymnYouTube;
 
@@ -5584,7 +5566,7 @@
                 lyricsHtml = `
                     <div style="text-align:center; padding:30px 14px; background:#faf5ff; border-radius:12px; border:1px dashed #d8b4fe;">
                         <div style="font-size:28px; margin-bottom:8px;">🎵</div>
-                        <div style="font-size:19px; font-weight:900; color:#6b21a8; margin-bottom:6px;">새찬송가 ${num}장 [${info.title}]</div>
+                        <div style="font-size:19px; font-weight:900; color:#6b21a8; margin-bottom:6px;">새찬송가 ${num}장</div>
                         <div style="font-size:13px; color:#7e22ce; font-weight:750; margin-bottom:12px;">${info.engTitle ? '(' + info.engTitle + ')' : ''}</div>
                         <div style="font-size:14.5px; color:#475569; line-height:1.65; margin-bottom:18px;">
                             성도님 개인 찬양 및 묵상을 위해 준비된 찬송입니다.<br>
@@ -5597,6 +5579,27 @@
                 `;
             }
             contentEl.innerHTML = lyricsHtml;
+            // Sheet music image section
+            const akboQuery = encodeURIComponent("새찬송가 " + num + "장 약보");
+            const akboSearchUrl = "https://www.google.com/search?q=" + akboQuery + "&tbm=isch";
+            const ytSearchUrl2 = "https://www.youtube.com/results?search_query=" + encodeURIComponent("새찬송가 " + num + "장 " + info.title + " ");
+            
+            // Add sheet music section below lyrics
+            const existingAkbo = document.getElementById("hymnAkboSection");
+            if (!existingAkbo) {
+                const akboDiv = document.createElement("div");
+                akboDiv.id = "hymnAkboSection";
+                akboDiv.style.cssText = "margin-top:16px; border-top:1px dashed #d8b4fe; padding-top:12px;";
+                akboDiv.innerHTML = '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">'
+                    + '<button onclick="window.open(\'' + akboSearchUrl + '\',\'_blank\')" style="flex:1; padding:9px 6px; background:#f3f0ff; border:1.5px solid #a78bfa; border-radius:10px; color:#6d28d9; font-weight:800; font-size:13px; cursor:pointer;">'
+                    + '&#127925; 약보 보기</button>'
+                    + '<button onclick="window.open(\'' + ytSearchUrl2 + '\',\'_blank\')" style="flex:1; padding:9px 6px; background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; color:#dc2626; font-weight:800; font-size:13px; cursor:pointer;">'
+                    + '&#9654; &middot;찬양 듣기</button>'
+                    + '</div>';
+                contentEl.appendChild(akboDiv);
+            } else {
+                existingAkbo.style.display = "block";
+            }
         }
 
         // 하단 출처 표기
