@@ -835,6 +835,67 @@
             localStorage.setItem(customKey, JSON.stringify(loaded));
         }
 
+        // 🌟 [사용자 요청] 교회가 중심: 홈 또는 보물창고 형식과 상호 완벽 호환 변환
+        if (Array.isArray(loaded)) {
+            loaded = loaded.map(item => {
+                if (!item) return null;
+                return {
+                    id: item.id || Date.now(),
+                    category: item.category || item.tagText || '주일예배',
+                    title: item.title || '',
+                    content: item.content || '',
+                    author: item.author || item.sender || (churchName + ' 교회사무실'),
+                    time: item.time || item.dateText || '최신',
+                    views: item.views || 10,
+                    img: item.img || null,
+                    fileName: item.fileName || null,
+                    fileData: item.fileData || null
+                };
+            }).filter(item => item && item.title && item.title.trim().length > 0);
+        } else {
+            loaded = [];
+        }
+
+        if (!loaded || loaded.length === 0) {
+            loaded = [
+                {
+                    id: 'notice_worship_' + churchKey,
+                    category: '예배·주보',
+                    title: `[${churchName}] 금주 예배 및 주보 안내`,
+                    content: `🕊️ [${churchName} 예배 안내]\n\n• 주일 대예배: 주일 오전 11:00\n• 수요 기도회: 수요일 저녁 7:30\n• 새벽 기도회: 매일 새벽 5:30\n\n“하나님은 영이시니 예배하는 자가 영과 진리로 예배할지니라 (요한복음 4:24)”\n${churchName} 성도님들을 환영하고 축복합니다.`,
+                    author: churchName + ' 교회사무실',
+                    time: '오늘',
+                    views: 520,
+                    img: null,
+                    fileName: null
+                },
+                {
+                    id: 'notice_comm_' + churchKey,
+                    category: '교우소식',
+                    title: `[${churchName}] 우리교회 전용 앱 & 홈페이지 개설 안내`,
+                    content: `✨ [${churchName} 교우 소식]\n\n우리 '${churchName}'의 전용 모바일 교회앱과 홈페이지가 개설되었습니다.\n함께 말씀과 찬양을 나누며 기도하는 은혜의 성도 공동체가 되길 소망합니다.`,
+                    author: '당회 / 관리국',
+                    time: '최신',
+                    views: 430,
+                    img: null,
+                    fileName: null
+                },
+                {
+                    id: 'notice_prayer_' + churchKey,
+                    category: '기도제목',
+                    title: `[${churchName}] 금주의 한마음 중보기도 제목`,
+                    content: `🙏 [${churchName} 한마음 기도제목]\n\n1. 교회의 부흥과 담임목사님의 영육 간 강건함을 위해\n2. 모든 교우 가정의 평안과 다음 세대의 신앙 성장을 위해\n3. 이웃에게 주님의 사랑과 복음을 전하는 사명을 위해`,
+                    author: '중보기도팀',
+                    time: '금주',
+                    views: 380,
+                    img: null,
+                    fileName: null
+                }
+            ];
+            localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(loaded));
+            localStorage.setItem(customKey, JSON.stringify(loaded));
+        }
+
         notices = loaded;
         renderNoticeFeed();
 

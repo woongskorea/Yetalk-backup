@@ -39,7 +39,7 @@
                 bottom: 24px !important;
             }
             .right-actions-bar {
-                bottom: 136px !important;
+                bottom: 195px !important;
             }
             .right-bottom-dangol-btn {
                 bottom: 24px !important;
@@ -205,7 +205,7 @@
         /* 3. 우측 세로 퀵 액션 바 (사용자 요청: 시안 B - 핵심 3개 버튼 [무료앱신청, 영상올리기, 내앱가기] 미니멀 집중 배치) */
                 .right-actions-bar {
             position: absolute; right: 10px;
-            bottom: max(env(safe-area-inset-bottom, 0px) + 128px, 132px);
+            bottom: max(env(safe-area-inset-bottom, 0px) + 195px, 200px) !important;
             z-index: 10015 !important;
             display: flex;
             flex-direction: column; gap: 10px;
@@ -220,6 +220,47 @@
         .right-actions-bar::-webkit-scrollbar { display: none; }
 
         /* 🌟 [사용자 요청] 상단 한줄창 바로 아래 가로 프로세스 체인 바: 회원가입 ➔ 무료앱제작 신청 ➔ 내앱 보기 (크게 강조) */
+        /* 🌟 [사용자 요청] 예톡TV 5대 소메뉴 채널 바 (가로 스크롤) */
+        .header-tv-channels-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            margin-top: 6px;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 3px 2px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            box-sizing: border-box;
+        }
+        .header-tv-channels-bar::-webkit-scrollbar { display: none; }
+        .tv-ch-pill {
+            background: rgba(15, 23, 42, 0.88);
+            border: 1.5px solid rgba(148, 163, 184, 0.35);
+            border-radius: 18px;
+            padding: 5px 12px;
+            font-size: 12.5px;
+            font-weight: 900;
+            color: #cbd5e1;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.18s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .tv-ch-pill:active { transform: scale(0.95); }
+        .tv-ch-pill.active {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 3px 12px rgba(2, 132, 199, 0.55);
+        }
+
         .header-process-chain {
             display: flex;
             align-items: center;
@@ -325,7 +366,7 @@
            (영상 재생 중에는 항상 노출되나, 영상 종료 후 애드몹 250 노출 시에는 애드몹 방해 방지를 위해 100% 숨김) */
         .right-bottom-dangol-btn {
             position: absolute; right: 8px;
-            bottom: max(env(safe-area-inset-bottom, 0px) + 128px, 132px);
+            bottom: max(env(safe-area-inset-bottom, 0px) + 195px, 200px) !important;
             z-index: 24000 !important;
             display: flex !important;
             flex-direction: row !important;
@@ -808,7 +849,7 @@
         /* 4. 하단 좌측: 올린이 전문앱/비즈니스 통합 카드 (사용자 지정: 250px & 우측 검색/단골내앱 세트와 황금비율 배치 & 전문앱 박스 위 적정 빈공간 확보) */
         .bottom-left-info-bar {
             position: absolute; left: 8px;
-            bottom: max(env(safe-area-inset-bottom, 0px) + 128px, 132px);
+            bottom: max(env(safe-area-inset-bottom, 0px) + 195px, 200px) !important;
             width: max-content;
             max-width: calc(100% - 16px);
             z-index: 9998;
@@ -2826,7 +2867,7 @@
             }
             .right-actions-bar {
                 top: 24px !important;
-                bottom: 136px !important;
+                bottom: 195px !important;
             }
             .right-bottom-dangol-btn {
                 bottom: 24px !important;
@@ -3756,6 +3797,13 @@
                 <span style="font-size:12px; color:#0f172a;">⭐</span>
                 <span class="step-label">내앱 보기</span>
             </button>
+                <!-- 🌟 [사용자 요청] 예톡TV 5대 소메뉴 채널 바: 찬양TV, 자유TV, 말씀TV, 간증TV, 천국TV -->
+        <div class="header-tv-channels-bar" id="headerTvChannelsBar">
+            <button type="button" class="tv-ch-pill" data-ch="찬양" onclick="switchTvChannel('찬양')">🎵 찬양TV</button>
+            <button type="button" class="tv-ch-pill" data-ch="자유" onclick="switchTvChannel('자유')">🕊️ 자유TV</button>
+            <button type="button" class="tv-ch-pill active" data-ch="말씀" onclick="switchTvChannel('말씀')">📖 말씀TV</button>
+            <button type="button" class="tv-ch-pill" data-ch="간증" onclick="switchTvChannel('간증')">🙏 간증TV</button>
+            <button type="button" class="tv-ch-pill" data-ch="천국" onclick="switchTvChannel('천국')">✨ 천국TV</button>
         </div>
     </div>
 
@@ -4593,6 +4641,45 @@
             }
         }
 
+                // 🌟 [사용자 요청] 5개 소메뉴 채널 필터링 및 전용 영상 목록 병합
+        if (currentTvChannel && CHANNEL_PRESETS[currentTvChannel]) {
+            let channelItems = CHANNEL_PRESETS[currentTvChannel];
+            // 해당 채널로 등록된 사용자 커스텀 영상 포함
+            let matchingCustom = customList.filter(f => f.channel === currentTvChannel);
+            list = [...matchingCustom, ...channelItems, ...list.filter(f => !channelItems.some(ci => ci.id === f.id))];
+        }
+
+        // 🌟 [사용자 요청] 말씀TV 1~2번에 본 교회 라이브/설교 영상 최우선 배치 (본 교인들이 가장 보기 쉽게)
+        const churchName = localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || '우리교회';
+        let churchLiveYt = localStorage.getItem('yetalk_church_live_video_url') || localStorage.getItem('yetalk_church_sermon_video');
+        let churchLiveVid = churchLiveYt ? extractYouTubeVideoId(churchLiveYt) : null;
+        if (!churchLiveVid) {
+            // 본 교회가 등록한 커스텀 영상 탐색
+            const myChurchCustom = customList.find(f => (f.bizName && f.bizName.includes(churchName)) || (f.targetUrl && f.targetUrl.includes('church')));
+            if (myChurchCustom) churchLiveVid = myChurchCustom.videoId;
+        }
+        if (!churchLiveVid) churchLiveVid = '3JZ_D3ELwOQ';
+
+        const churchTopFeed = {
+            id: 'church_worship_priority_feed',
+            videoId: churchLiveVid,
+            bizName: churchName,
+            shortAd: `[우리교회 실시간예배/설교] ${churchName} 은혜의 말씀`,
+            targetUrl: 'churchmain.html',
+            views: 5280,
+            likes: 910,
+            format: '16:9',
+            region: localStorage.getItem('yetalkUserRegion') || '전국',
+            badge: '🔴 [우리교회] 실시간예배/설교',
+            channel: '말씀'
+        };
+
+        if (currentTvChannel === '말씀' || !currentTvChannel) {
+            // 기존 중복 제거 후 1번 최상단 배치
+            list = list.filter(f => f.id !== 'church_worship_priority_feed' && f.videoId !== churchLiveVid);
+            list.unshift(churchTopFeed);
+        }
+
         const hiddenIds = JSON.parse(localStorage.getItem("yetalkHiddenFeedIds") || "[]");
         return list.filter(f => !hiddenIds.includes(f.id));
     }
@@ -5004,6 +5091,53 @@
     let selectedJob = '';
     let selectedJobs = []; // 🌟 [사용자 요청] 직종 최대 2개 다중 선택 배열 지원
     let ytPlayerMap = {};
+
+    /* 🌟 [사용자 요청] 예톡TV 5대 소메뉴 채널 프리셋 */
+    let currentTvChannel = '말씀';
+
+    const CHANNEL_PRESETS = {
+        '찬양': [
+            { id: 2001, videoId: '3JZ_D3ELwOQ', bizName: '찬양TV 워십', shortAd: '은혜로운 찬양과 피아노 / 찬송가 멜로디', targetUrl: 'churchmain.html', views: 2450, likes: 380, format: '16:9', channel: '찬양' },
+            { id: 2002, videoId: 'kJQP7kiw5Fk', bizName: '은혜 찬양의 밤', shortAd: '주의 은혜라 / 마음을 울리는 복음성가 워십', targetUrl: 'churchmain.html', views: 1820, likes: 290, format: '16:9', channel: '찬양' },
+            { id: 2003, videoId: '9bZkp7q19f0', bizName: 'CCM 워십 찬양', shortAd: '내 삶은 주의 것 / 깊은 기도와 찬양', targetUrl: 'churchmain.html', views: 1540, likes: 210, format: '16:9', channel: '찬양' }
+        ],
+        '자유': [
+            { id: 2101, videoId: '3JZ_D3ELwOQ', bizName: '예톡 자유TV', shortAd: '어느날 사탄의 리더가 나에게 말을 걸어왔다 - 예수보혈선포', targetUrl: 'churchmain.html', views: 3200, likes: 450, format: '16:9', channel: '자유' },
+            { id: 2102, videoId: 'kJQP7kiw5Fk', bizName: '크리스천 라이프', shortAd: '성도들의 따뜻한 교제와 믿음의 동행', targetUrl: 'churchmain.html', views: 1650, likes: 195, format: '16:9', channel: '자유' }
+        ],
+        '말씀': [
+            { id: 2201, videoId: '3JZ_D3ELwOQ', bizName: '말씀TV 생명의양식', shortAd: '주일 대예배 설교 - 환난 날에 나를 부르라 내가 너를 건지리니', targetUrl: 'churchmain.html', views: 4120, likes: 620, format: '16:9', channel: '말씀' },
+            { id: 2202, videoId: '9bZkp7q19f0', bizName: '성경 통독과 강해', shortAd: '믿음의 주요 온전하게 하시는 이인 예수를 바라보자', targetUrl: 'churchmain.html', views: 2890, likes: 340, format: '16:9', channel: '말씀' }
+        ],
+        '간증': [
+            { id: 2301, videoId: 'kJQP7kiw5Fk', bizName: '새은혜 간증TV', shortAd: '눈물의 기도와 주님의 응답 - 절망에서 기적으로', targetUrl: 'churchmain.html', views: 3880, likes: 510, format: '16:9', channel: '간증' },
+            { id: 2302, videoId: '3JZ_D3ELwOQ', bizName: '치유와 회복의 역사', shortAd: '살아계신 하나님을 만난 감동적인 신앙 고백', targetUrl: 'churchmain.html', views: 2740, likes: 360, format: '16:9', channel: '간증' }
+        ],
+        '천국': [
+            { id: 2401, videoId: '9bZkp7q19f0', bizName: '천국TV 영원한소망', shortAd: '영원한 본향 천국과 주 예수님의 보혈', targetUrl: 'churchmain.html', views: 4620, likes: 780, format: '16:9', channel: '천국' },
+            { id: 2402, videoId: '3JZ_D3ELwOQ', bizName: '천국 복음과 구원', shortAd: '눈물도 슬픔도 없는 영원한 하나님 나라', targetUrl: 'churchmain.html', views: 3310, likes: 490, format: '16:9', channel: '천국' }
+        ]
+    };
+
+    function switchTvChannel(ch) {
+        if (!CHANNEL_PRESETS[ch]) return;
+        currentTvChannel = ch;
+
+        // UI 탭 활성화 갱신
+        document.querySelectorAll('.tv-ch-pill').forEach(btn => {
+            if (btn.getAttribute('data-ch') === ch) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+
+        // 🌟 [사용자 요청] 누르면 해당 유튜브 영상이 바로 즉각 열림!
+        currentFeedIndex = 0;
+        const container = document.getElementById('feedScrollContainer');
+        if (container) container.scrollTop = 0;
+        renderFeedList();
+        loadVideoByIndex(0);
+        showToast('📺 ' + ch + 'TV 채널로 이동하였습니다.');
+    }
+
 
             /* 🌟 [사용자 요청] 직종 선택 처리 (단일 라디오 선택 규칙):
        - 개인앱 이외는 1개의 전문앱만 선택 (의사, 치과의사, 한의사, 목사, 자영업 등 중복 선택 절대 불가!)

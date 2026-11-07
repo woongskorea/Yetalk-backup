@@ -1447,6 +1447,47 @@
             font-weight: 900;
             box-shadow: 0 1px 4px rgba(239, 68, 68, 0.2);
         }
+        /* 🌟 [사용자 요청] 예톡TV 누르면 나타나는 가로 5개 소메뉴 바 */
+        .yetalk-tv-subchannels-bar {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 8px 4px 4px 4px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            width: 100%;
+            box-sizing: border-box;
+            border-top: 1px dashed #e2e8f0;
+            margin-top: 4px;
+        }
+        .yetalk-tv-subchannels-bar::-webkit-scrollbar { display: none; }
+        .subchannel-pill {
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 20px;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 900;
+            color: #1e293b;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 1.5px 4px rgba(0,0,0,0.04);
+            transition: all 0.15s ease;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .subchannel-pill:active { transform: scale(0.95); }
+        .subchannel-pill.pill-praise { border-color: #f43f5e; color: #e11d48; background: #fff1f2; }
+        .subchannel-pill.pill-freedom { border-color: #0284c7; color: #0369a1; background: #f0f9ff; }
+        .subchannel-pill.pill-word { border-color: #16a34a; color: #15803d; background: #f0fdf4; }
+        .subchannel-pill.pill-testimony { border-color: #8b5cf6; color: #6d28d9; background: #faf5ff; }
+        .subchannel-pill.pill-heaven { border-color: #eab308; color: #a16207; background: #fefce8; }
+
         .btn-three-board {
             background: #f8fafc;
             border: 2px solid #475569; /* 🌟 [사용자 요청] 자유게시판 바깥 테두리 선명하고 진하게 */
@@ -3686,7 +3727,7 @@
                     <span>🔔 공지알림</span>
                     <span class="three-badge-pill" id="noticeBadgeCount">7</span>
                 </button>
-                <button type="button" class="btn-three-item btn-three-tv" onclick="location.href='yetalktv.html'" title="예톡TV 메인 직행">
+                <button type="button" class="btn-three-item btn-three-tv" id="btnThreeTv" onclick="toggleYetalkTvSubChannels()" title="예톡TV 5대 채널 보기">
                     <span>📺 예톡TV ▶</span>
                 </button>
                 <button type="button" class="btn-three-item btn-three-board" id="btnThreeBoard" onclick="openFullscreenBoard()">
@@ -3697,6 +3738,14 @@
             <!-- 1. 공지알림 상세 내역 드롭 패널: [사용자 요청] 평소에는 닫혀 있고 버튼 누를 때만 열림 -->
             <div class="notice-flow-list" id="unifiedNoticePanel" style="display:none;">
                 <!-- JS로 최근 1주일치 알림 실시간 렌더링 -->
+            </div>
+                    <!-- 🌟 [사용자 요청] 예톡TV 누르면 가로 소메뉴 5개: 찬양TV, 자유TV, 말씀TV, 간증TV, 천국TV -->
+            <div class="yetalk-tv-subchannels-bar" id="yetalkTvSubChannelsBar" style="display:none;">
+                <button type="button" class="subchannel-pill pill-praise" onclick="openTvChannel('찬양')">🎵 찬양TV</button>
+                <button type="button" class="subchannel-pill pill-freedom" onclick="openTvChannel('자유')">🕊️ 자유TV</button>
+                <button type="button" class="subchannel-pill pill-word" onclick="openTvChannel('말씀')">📖 말씀TV</button>
+                <button type="button" class="subchannel-pill pill-testimony" onclick="openTvChannel('간증')">🙏 간증TV</button>
+                <button type="button" class="subchannel-pill pill-heaven" onclick="openTvChannel('천국')">✨ 천국TV</button>
             </div>
         </section>
 
@@ -7787,6 +7836,23 @@
 
     // 🌟 [사용자 요청] 공지알림 · 예톡TV · 자유게시판 3개 버튼 토글 로직
     // 평소에는 상세 내역이 닫혀 있어 메인 공간 절약! 버튼을 누를 때만 열림
+    function toggleYetalkTvSubChannels() {
+        const bar = document.getElementById("yetalkTvSubChannelsBar");
+        const btnTv = document.getElementById("btnThreeTv");
+        if (!bar) return;
+        if (bar.style.display === "none" || !bar.style.display) {
+            bar.style.display = "flex";
+            if (btnTv) btnTv.classList.add("active");
+        } else {
+            bar.style.display = "none"
+            if (btnTv) btnTv.classList.remove("active");
+        }
+    }
+
+    function openTvChannel(ch) {
+        window.location.href = "yetalktv.html?channel=" + encodeURIComponent(ch);
+    }
+
     function toggleNoticeDropPanel() {
         const panelNotice = document.getElementById("unifiedNoticePanel");
         const panelBoard = document.getElementById("unifiedBoardPanel");
