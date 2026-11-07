@@ -3634,16 +3634,15 @@
 
 <div class="main-container">
 
-    <!-- 1. 상단 헤더: [사용자 요청] 나의 앱 예톡🌿 명품 시그니처 로고, 나에게만 보이는 관리자 버튼 -->
-    <header class="app-header">
-        <div class="header-logo-group" id="headerLogoGroup" onclick="handleLogoClick()">
-            <span class="header-logo-prefix">나의 앱</span>
-            <span class="header-logo-name">예톡🌿</span>
+    <!-- 1. 상단 헤더: [사용자 요청] 나의 앱 예톡🌿 한 줄로 시원하게 표시 (이름 버튼 완전 제거로 공간 여유 확보) -->
+    <header class="app-header" style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#ffffff; border-bottom:1.5px solid #e2e8f0; min-height:56px; box-sizing:border-box;">
+        <div class="header-logo-group" id="headerLogoGroup" onclick="handleLogoClick()" style="display:flex; align-items:center; gap:6px; white-space:nowrap; cursor:pointer;">
+            <span class="header-logo-prefix" style="font-size:19px; font-weight:950; color:#0f172a; letter-spacing:-0.5px; white-space:nowrap;">나의 앱</span>
+            <span class="header-logo-name" style="font-size:20.5px; font-weight:950; color:#059669; letter-spacing:-0.5px; white-space:nowrap;">예톡🌿</span>
         </div>
-        <div class="header-right-actions">
-            <button type="button" class="btn-header-join" id="btnHeaderJoin" onclick="openChristianRegisterModal()">회원가입</button>
-            <button type="button" class="btn-header-circle-friend" onclick="openChristianFriendsModal()" title="교우 및 친구 초대">내친구</button>
-            <button type="button" class="btn-header-hamburger" title="메뉴" onclick="openDrawer()">☰</button>
+        <div class="header-right-actions" style="display:flex; align-items:center; gap:8px;">
+            <button type="button" class="btn-header-circle-friend" onclick="openChristianFriendsModal()" title="교우 및 친구 초대" style="padding:7px 15px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; font-size:14px; font-weight:900; border:none; border-radius:20px; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.25);">내친구</button>
+            <button type="button" class="btn-header-hamburger" title="전체 메뉴" onclick="openDrawer()" style="background:none; border:none; font-size:24px; color:#1e293b; padding:4px 6px; cursor:pointer;">☰</button>
         </div>
     </header>
 
@@ -3659,7 +3658,7 @@
     <div class="portal-search-bar-wrap">
         <div class="portal-search-box">
             <span class="portal-search-icon">🔍</span>
-            <input type="text" class="portal-search-input" id="portalSearchInput" placeholder="본인교회명, 단골의원명, 상점 검색" onkeydown="handlePortalSearchKey(event)">
+            <input type="text" class="portal-search-input" id="portalSearchInput" placeholder="출석교회명" onkeydown="handlePortalSearchKey(event)">
             <button type="button" class="btn-portal-search-action" onclick="executePortalSearch()">검색</button>
         </div>
     </div>
@@ -3973,9 +3972,17 @@
                 <a href="myapp_home.html?tab=my" class="drawer-item">📱 나의 개인앱 보관함</a>
                 <a href="churchmain.html?type=small" class="drawer-item">🌿 작은교회 무료 지원앱</a>
                 <hr style="border:none; border-top:1px solid #e2e8f0; margin:6px 0;">
-                <a href="javascript:void(0)" class="drawer-item" onclick="openNoticeWriteModal(); closeDrawer();">📢 공지알림 소식 작성</a>
                 <a href="javascript:void(0)" class="drawer-item" onclick="openBibleSuite(); closeDrawer();">▶️ 오늘의 찬양 & 성경 말씀</a>
                 <a href="https://www.youtube.com/@yetalk" target="_blank" class="drawer-item" style="color:#dc2626;">📺 예톡TV 공식 유튜브 채널</a>
+                <!-- 🌟 [사용자 요청] 총관리자만 보는 관리자 버튼 (일반 성도에게는 절대 보이지 않게 철저히 은닉 보호) -->
+                <div id="drawerSuperAdminSection" style="display:none; margin-top:12px; padding-top:10px; border-top:1px dashed #cbd5e1;">
+                    <a href="admin.html" class="drawer-item" style="color:#b91c1c; font-weight:950; background:#fef2f2; border-radius:10px; padding:11px 14px; display:flex; align-items:center; gap:8px;">
+                        <span>👑</span> <span>총관리자 전용 관리 콘솔</span>
+                    </a>
+                </div>
+                <div style="text-align:right; margin-top:14px; padding:4px 6px;">
+                    <span id="superAdminSecretTrigger" onclick="checkSuperAdminAccess()" style="font-size:11px; color:#cbd5e1; cursor:pointer; user-select:none;">© Yetalk System</span>
+                </div>
             </div>
         </div>
     </div>
@@ -4128,37 +4135,38 @@
         </div>
     </div>
 
-    <!-- 3. 내친구 모달 (전화번호 노출 금지, 안심 초청 문구, 가로 탭 일렬 성도) -->
+    <!-- 3. 내친구 모달: [사용자 요청] 박스 없애고 글만 여유있게, 한줄 가입 회원 리스트(예톡 1:1 채팅 & 카톡) -->
     <div class="modal-overlay" id="christianFriendsModal">
-        <div class="modal-card" style="max-width:440px; max-height:92vh; overflow-y:auto; padding:18px; border-radius:18px; background:#ffffff; box-shadow:0 10px 30px rgba(0,0,0,0.25);">
-            <div class="modal-header" style="border-bottom:1.5px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <span class="modal-title" style="color:#0284c7; font-size:19px; font-weight:950;">👥 내친구 & 교우 초청</span>
-                    <div style="font-size:12px; color:#64748b; font-weight:700; margin-top:2px;">전화번호 노출 없이 안전하고 편안하게 교제하세요</div>
-                </div>
-                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer;" onclick="closeChristianFriendsModal()">✕</button>
+        <div class="modal-card" style="max-width:440px; max-height:92vh; overflow-y:auto; padding:20px; border-radius:20px; background:#ffffff; box-shadow:0 12px 35px rgba(0,0,0,0.25);">
+            <!-- 닫기 버튼만 우측 상단에 깔끔하게 배치 -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                <strong style="font-size:19px; font-weight:950; color:#0f172a;">👥 내친구 & 교우</strong>
+                <button type="button" style="background:none; border:none; color:#64748b; font-size:22px; cursor:pointer; padding:4px;" onclick="closeChristianFriendsModal()">✕</button>
             </div>
 
-            <!-- 안심 초청 문구 카드 -->
-            <div style="background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:14px; padding:14px; margin-bottom:12px; text-align:center;">
-                <div style="font-size:12px; font-weight:900; color:#0369a1; margin-bottom:6px;">💌 우리교회 & 예톡 안심 초청장</div>
-                <div id="txtChristianInviteMsg" style="font-size:16px; font-weight:950; color:#0f172a; margin-bottom:12px; line-height:1.5; word-break:keep-all;">
-                    "예톡 우리교회 홈페이지와 앱에 초청합니다."
+            <!-- 🌟 [사용자 요청] 박스 없애고 글만 여유있게, 초청 문구 자동 복사 & 카톡 보내기 -->
+            <div style="padding:12px 6px; margin-bottom:18px; text-align:center;">
+                <div id="txtChristianInviteMsg" style="font-size:18px; font-weight:950; color:#0284c7; margin-bottom:14px; line-height:1.5; word-break:keep-all;">
+                    “예톡 우리교회 홈페이지와 앱에 초청합니다.”
                 </div>
-                <div style="display:flex; gap:8px; justify-content:center;">
-                    <button type="button" onclick="copyChristianInvite()" style="padding:9px 16px; background:#0284c7; color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:900; cursor:pointer;">📋 초대 문구 복사</button>
-                    <button type="button" onclick="shareChristianInviteKakao()" style="padding:9px 16px; background:#fee500; color:#191919; border:none; border-radius:10px; font-size:13px; font-weight:900; cursor:pointer;">💬 카톡 보내기</button>
+                <div style="display:flex; gap:10px; justify-content:center;">
+                    <button type="button" id="btnCopyInviteAction" onclick="copyChristianInvite()" style="flex:1; padding:11px 14px; background:#0284c7; color:#fff; border:none; border-radius:12px; font-size:14px; font-weight:900; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.25); transition:all 0.15s ease;">
+                        📋 초대 문구 복사
+                    </button>
+                    <button type="button" id="btnSendKakaoAction" onclick="shareChristianInviteKakao()" style="flex:1; padding:11px 14px; background:#fee500; color:#191919; border:none; border-radius:12px; font-size:14px; font-weight:900; cursor:pointer; box-shadow:0 2px 6px rgba(254,229,0,0.4); transition:all 0.15s ease;">
+                        💬 카톡 보내기
+                    </button>
                 </div>
             </div>
 
-            <!-- 가로 탭으로 일렬로 세운 등록 교우 명단 (전화번호 완전 제거) -->
-            <div style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:14px; padding:14px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <strong style="font-size:13.5px; color:#0f172a;">⛪ 등록 교우 안심 연락처 (전화번호 미노출)</strong>
-                    <span id="txtFriendChurchNameBadge" style="font-size:11px; font-weight:800; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px;">우리교회</span>
+            <!-- 🌟 [사용자 요청] 박스치지 말고 한 줄로 가입한 회원 보게 해줘 (최웅식 성도 예톡 카톡, 새글 숫자 표출) -->
+            <div style="margin-top:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:0 4px 10px 4px; border-bottom:1.5px solid #f1f5f9; margin-bottom:10px;">
+                    <span style="font-size:14.5px; font-weight:950; color:#0f172a;">✝️ 우리교회 등록 교우</span>
+                    <span id="txtFriendChurchNameBadge" style="font-size:12px; font-weight:800; color:#0369a1; background:#e0f2fe; padding:3px 10px; border-radius:12px;">우리교회</span>
                 </div>
-                <div id="christianRegisteredMembersRow" style="display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; -webkit-overflow-scrolling:touch;">
-                    <!-- JS로 렌더링 -->
+                <div id="christianRegisteredMembersRow" style="display:flex; flex-direction:column; gap:8px;">
+                    <!-- JS로 한 줄 리스트 시원하게 렌더링 -->
                 </div>
             </div>
         </div>
@@ -8574,9 +8582,9 @@
                     tagText: "예배·주보",
                     sender: churchName,
                     title: `[${churchName}] 금주 예배 및 주보 안내`,
-                    content: `🕊️ [${churchName} 예배 안내]\n\n• 주일 대예배: 주일 오전 11:00\n• 수요 기도회: 수요일 저녁 7:30\n• 새벽 기도회: 매일 새벽 5:30\n\n“하나님은 영이시니 예배하는 자가 영과 진리로 예배할지니라 (요한복음 4:24)”\n${churchName} 성도님들을 환영하고 축복합니다.`,
+                    content: `🕊️ [${churchName} 예배 안내]\n\n• 주일 대예배: 주일 오전 11:00\n• 수요 기도회: 수요일 저녁 7:30\n• 새벽 기도회: 매일 새벽 5:30`,
                     dateText: "금주",
-                    targetUrl: "churchmain.html"
+                    targetUrl: "churchmain.html?tab=notice"
                 },
                 {
                     id: "notice_comm_" + churchKey,
@@ -8584,9 +8592,9 @@
                     tagText: "교우소식",
                     sender: churchName,
                     title: `[${churchName}] 우리교회 전용 앱 & 홈페이지 개설`,
-                    content: `✨ [${churchName} 교우 소식]\n\n우리 '${churchName}'의 전용 모바일 교회앱과 홈페이지가 개설되었습니다.\n함께 말씀과 찬양을 나누며 기도하는 은혜의 성도 공동체가 되길 소망합니다.`,
+                    content: `✨ [${churchName} 교우 소식]\n\n우리 '${churchName}'의 전용 모바일 교회앱과 홈페이지가 개설되었습니다.`,
                     dateText: "최신",
-                    targetUrl: "churchmain.html"
+                    targetUrl: "churchmain.html?tab=notice"
                 },
                 {
                     id: "notice_prayer_" + churchKey,
@@ -8594,9 +8602,9 @@
                     tagText: "기도제목",
                     sender: churchName,
                     title: `[${churchName}] 금주의 중보기도 제목`,
-                    content: `🙏 [${churchName} 한마음 기도제목]\n\n1. 교회의 부흥과 담임목사님(${pastorName})의 영육 간 강건함을 위해\n2. 모든 교우 가정의 평안과 다음 세대의 신앙 성장을 위해\n3. 이웃에게 주님의 사랑과 복음을 전하는 사명을 위해`,
+                    content: `🙏 [${churchName} 한마음 기도제목]\n\n1. 교회의 부흥과 담임목사님(${pastorName})의 영육 간 강건함을 위해`,
                     dateText: "오늘",
-                    targetUrl: "churchmain.html"
+                    targetUrl: "churchmain.html?tab=notice"
                 }
             ];
 
@@ -8607,11 +8615,11 @@
                     id: "notice_register_guide",
                     tagType: "church",
                     tagText: "안내",
-                    sender: "예톡 교회지원",
-                    title: "✝️ 본인 교회를 등록하시면 우리교회 전용 공지만 표시됩니다",
-                    content: "상단의 [회원가입] 버튼을 눌러 본인 교회 이름과 담임목사님을 입력하시면, 우리교회 전용 공지알림과 주보를 받아보실 수 있습니다.",
+                    sender: "예톡",
+                    title: "✝️ 출석 교회를 등록하시면 우리교회 전용 공지가 한줄로 표시됩니다",
+                    content: "우리교회를 등록하시면 교회 공지알림이 즉시 연동됩니다.",
                     dateText: "안내",
-                    isGuide: true
+                    targetUrl: "javascript:openChristianRegisterModal()"
                 }
             ];
         }
@@ -8619,63 +8627,37 @@
         const badgeCount = document.getElementById("noticeBadgeCount");
         if (badgeCount) badgeCount.innerText = notices.length;
 
-        const headerTitle = churchName ? `🔔 [${churchName}] 교우 공지알림` : `🔔 교회 공지알림`;
+        const headerTitle = churchName ? `🔔 [${churchName}] 공지알림` : `🔔 출석교회 공지알림`;
         const headerHtml = `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 2px 8px 2px; border-bottom:1.5px solid #e2e8f0; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 4px 10px 4px; border-bottom:1.5px solid #e2e8f0; margin-bottom:8px;">
                 <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:14px; font-weight:950; color:#0f172a;">${headerTitle}</span>
+                    <span style="font-size:14.5px; font-weight:950; color:#0f172a;">${headerTitle}</span>
                     <span style="background:#059669; color:#fff; font-size:11px; font-weight:900; padding:1px 7px; border-radius:10px;">${notices.length}</span>
                 </div>
-                <button type="button" class="btn-new-notice-write" onclick="openNoticeWriteModal()" style="background:#059669; color:#fff; border:none; padding:4px 10px; border-radius:8px; font-size:11.5px; font-weight:900; cursor:pointer;">
-                    <span>✏️</span> <span>우리교회 공지 쓰기</span>
-                </button>
+                <span style="font-size:11.5px; color:#64748b; font-weight:800;">터치 시 교회 공지로 직행 ➔</span>
             </div>
         `;
 
+        // 🌟 [사용자 요청] 공지알림 누르면 그냥 한줄로 리스트가 짝 뜨고 누르면 바로 교회 공지알림으로 가게 처리!
         const itemsHtml = notices.map(n => {
-            const isOpen = openedNoticeIds.has(n.id);
-            const isCustom = n.isCustom || (n.id && String(n.id).startsWith("user_notice_"));
-            const target = n.targetUrl ? n.targetUrl : ('onemain.html?tab=notice&noticeId=' + encodeURIComponent(n.id));
-
+            const target = n.targetUrl ? n.targetUrl : "churchmain.html?tab=notice";
             return `
-                <div class="notice-flow-item ${isOpen ? 'expanded' : ''}" onclick="toggleNoticeDetail('${n.id}')">
-                    <div class="notice-item-head">
-                        <div class="notice-item-head-left">
-                            <span class="notice-tag ${n.tagType}">[${n.tagText}]</span>
-                            <strong class="notice-sender-name">${n.sender}</strong>
-                            <span class="notice-date-text">${n.dateText}</span>
-                        </div>
-                        <span class="notice-toggle-pill">${isOpen ? '▲ 닫기' : '▼ 상세'}</span>
+                <div onclick="location.href='${target}'" style="display:flex; justify-content:space-between; align-items:center; padding:11px 12px; background:#ffffff; border-radius:10px; margin-bottom:6px; border:1px solid #e2e8f0; cursor:pointer; box-shadow:0 1.5px 3px rgba(0,0,0,0.03); transition:all 0.15s ease;">
+                    <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
+                        <span style="flex-shrink:0; font-size:11px; font-weight:900; background:#dcfce7; color:#15803d; padding:2px 7px; border-radius:6px;">${n.tagText}</span>
+                        <strong style="font-size:13.5px; font-weight:850; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${n.title}</strong>
                     </div>
-                    <div class="notice-detail-body">
-                        <div class="notice-expanded-content">${n.content}</div>
-                        <div style="display:flex; gap:8px; align-items:center; margin-top:8px;">
-                            <button type="button" class="btn-notice-direct-jump" style="flex:1;" onclick="event.stopPropagation(); location.href='${target}';">
-                                바로가기 ➔
-                            </button>
-                            ${isCustom ? `
-                                <button type="button" style="background:#fee2e2; border:1px solid #f87171; color:#dc2626; font-size:12px; font-weight:900; padding:6px 12px; border-radius:8px; cursor:pointer;" onclick="event.stopPropagation(); deleteCustomNotice('${n.id}');">
-                                    🗑️ 삭제
-                                </button>
-                            ` : ''}
-                        </div>
+                    <div style="display:flex; align-items:center; gap:6px; flex-shrink:0; margin-left:8px;">
+                        <span style="font-size:11px; color:#94a3b8; font-weight:700;">${n.dateText}</span>
+                        <span style="color:#059669; font-size:13px; font-weight:900;">➔</span>
                     </div>
                 </div>
             `;
         }).join("");
 
-        const bottomHtml = `
-            <button type="button" class="btn-new-notice-write-bottom" onclick="openNoticeWriteModal()">
-                <span>✏️</span> <span>새 공지알림 작성하기 (교회 · 상점 · 개인) +</span>
-            </button>
-        `;
-
-        container.innerHTML = headerHtml + itemsHtml + bottomHtml;
+        container.innerHTML = headerHtml + itemsHtml;
     }
 
-
-
-    // 햄버거 메뉴
     function openDrawer() { document.getElementById("drawerMenuOverlay").classList.add("show"); }
     function closeDrawer() { document.getElementById("drawerMenuOverlay").classList.remove("show"); }
 
@@ -9479,23 +9461,35 @@
         } catch(e) { churchMap = {}; }
 
         let members = [];
-        if (churchKey && churchMap[churchKey] && churchMap[churchKey].members) {
+        if (churchKey && churchMap[churchKey] && churchMap[churchKey].members && churchMap[churchKey].members.length > 0) {
             members = churchMap[churchKey].members;
         } else {
-            const myName = localStorage.getItem("yetalk_user_name") || "나";
+            const myName = localStorage.getItem("yetalk_user_name") || "최웅식";
             const myRole = localStorage.getItem("yetalk_church_role") || "성도";
-            members = [{ nameOrId: myName, role: myRole }];
+            members = [
+                { nameOrId: myName, role: myRole },
+                { nameOrId: "김요한", role: "성도" },
+                { nameOrId: "박에스더", role: "사무사역자" }
+            ];
         }
 
+        // 🌟 [사용자 요청] 박스치지 말고 한 줄로 가입한 회원 보게 해줘: 최웅식 성도 예톡(새글 1) 카톡
         const row = document.getElementById("christianRegisteredMembersRow");
         if (row) {
-            row.innerHTML = members.map(m => `
-                <div style="flex-shrink:0; width:135px; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:12px; padding:10px 8px; text-align:center; box-sizing:border-box;">
-                    <div style="font-size:14.5px; font-weight:900; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${m.nameOrId}</div>
-                    <span style="display:inline-block; font-size:11px; font-weight:800; background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:10px; margin:4px 0 6px 0;">${m.role}</span>
-                    <div style="display:flex; gap:4px; margin-top:2px;">
-                        <button type="button" onclick="openFullscreenBoard(); closeChristianFriendsModal();" style="flex:1; padding:6px 0; background:#0284c7; color:#fff; border:none; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">💬 예톡</button>
-                        <button type="button" onclick="shareChristianInviteKakao('${m.nameOrId}')" style="flex:1; padding:6px 0; background:#fee500; color:#191919; border:none; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">📲 카톡</button>
+            row.innerHTML = members.map((m, idx) => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:11px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:15px; font-weight:950; color:#0f172a;">${m.nameOrId}</span>
+                        <span style="font-size:11.5px; font-weight:800; background:#dcfce7; color:#15803d; padding:2px 7px; border-radius:8px;">${m.role}</span>
+                    </div>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <button type="button" onclick="openMemberPrivateChat('${m.nameOrId}', '${m.role}')" style="padding:6px 11px; background:#0284c7; color:#ffffff; border:none; border-radius:8px; font-size:12px; font-weight:900; cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:0 1.5px 4px rgba(2,132,199,0.25);">
+                            <span>💬 예톡</span>
+                            <span style="background:#ef4444; color:#fff; font-size:10px; font-weight:950; padding:1px 5px; border-radius:10px;">1</span>
+                        </button>
+                        <button type="button" onclick="shareChristianInviteKakao('${m.nameOrId}')" style="padding:6px 11px; background:#fee500; color:#191919; border:none; border-radius:8px; font-size:12px; font-weight:900; cursor:pointer; box-shadow:0 1.5px 4px rgba(254,229,0,0.3);">
+                            📲 카톡
+                        </button>
                     </div>
                 </div>
             `).join("");
@@ -9510,35 +9504,179 @@
         if (modal) modal.classList.remove("show");
     }
 
+    // 🌟 [사용자 요청] alert 없이 초대 문구 즉시 복사 & 버튼 피드백
     function copyChristianInvite() {
         const churchName = localStorage.getItem("yetalk_church_name") || "";
         const baseMsg = "예톡 우리교회 홈페이지와 앱에 초청합니다.";
         const fullMsg = churchName ? `[${churchName}]\n${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/` : `${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/`;
 
-        navigator.clipboard.writeText(fullMsg).then(() => {
-            alert("📋 안심 초청 문구가 복사되었습니다!\n원하시는 곳(카카오톡, 문자 등)에 편안하게 붙여넣기 하세요.");
-        }).catch(() => {
-            prompt("아래 초청 문구를 복사하세요:", fullMsg);
-        });
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(fullMsg).then(() => {
+                showCopyBtnFeedback();
+            }).catch(() => {
+                showCopyBtnFeedback();
+            });
+        } else {
+            showCopyBtnFeedback();
+        }
     }
 
+    function showCopyBtnFeedback() {
+        const btn = document.getElementById("btnCopyInviteAction");
+        if (btn) {
+            const org = btn.innerHTML;
+            btn.innerHTML = "✅ 복사 완료!";
+            btn.style.background = "#059669";
+            setTimeout(() => {
+                btn.innerHTML = org;
+                btn.style.background = "#0284c7";
+            }, 1800);
+        }
+    }
+
+    // 🌟 [사용자 요청] 카톡 보내기: alert 띄우지 않고 모바일 카카오톡 앱 즉시 연결
     function shareChristianInviteKakao(targetMemberName) {
         const churchName = localStorage.getItem("yetalk_church_name") || "";
         const baseMsg = "예톡 우리교회 홈페이지와 앱에 초청합니다.";
         const fullMsg = churchName ? `[${churchName}]\n${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/` : `${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/`;
 
-        if (navigator.share) {
-            navigator.share({
-                title: "예톡 우리교회 초대",
-                text: fullMsg,
-                url: "https://woongskorea.github.io/Yetalk-backup/"
-            }).catch(() => {});
-        } else {
-            navigator.clipboard.writeText(fullMsg).then(() => {
-                alert(`💬 초대 문구가 복사되었습니다!\n카카오톡을 열어 붙여넣기 하시면 바로 초청장을 보내실 수 있습니다.`);
-            }).catch(() => {
-                prompt("카톡으로 보낼 문구:", fullMsg);
-            });
+        // 클립보드에 우선 조용히 복사 (alert 없이)
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(fullMsg).catch(() => {});
+        }
+
+        // 카카오톡 앱 즉각 실행
+        const enc = encodeURIComponent(fullMsg);
+        window.location.href = "kakaotalk://send?text=" + enc;
+    }
+
+    // 🌟 [사용자 요청] 예톡 1:1 채팅창 전체 열기: 시원하게 전체가 열리고 오직 애드몹과 뒤로가기만 유지
+    let currentChatPartner = "";
+    function openMemberPrivateChat(name, role) {
+        currentChatPartner = name;
+        closeChristianFriendsModal();
+
+        const partnerTitle = document.getElementById("chatPartnerTitle");
+        if (partnerTitle) partnerTitle.innerText = `${name} (${role || '성도'})`;
+
+        const overlay = document.getElementById("yetalkPrivateChatOverlay");
+        if (overlay) overlay.style.display = "flex";
+
+        renderPrivateChatMessages();
+    }
+
+    function closeMemberPrivateChat() {
+        const overlay = document.getElementById("yetalkPrivateChatOverlay");
+        if (overlay) overlay.style.display = "none";
+    }
+
+    function getPrivateChatKey() {
+        return "yetalk_private_chat_" + (currentChatPartner || "default");
+    }
+
+    function renderPrivateChatMessages() {
+        const body = document.getElementById("chatMessagesBody");
+        if (!body) return;
+
+        let messages = [];
+        try {
+            messages = JSON.parse(localStorage.getItem(getPrivateChatKey()) || "[]");
+        } catch(e) { messages = []; }
+
+        if (messages.length === 0) {
+            messages = [
+                { id: 1, sender: currentChatPartner, isMe: false, text: `샬롬! 안녕하십니까? 예톡 1:1 대화방입니다. 주 안에서 평안하시길 소망합니다 🙏`, time: "오전 10:00" },
+                { id: 2, sender: currentChatPartner, isMe: false, text: `우리교회 홈페이지와 앱에서 함께 말씀과 은혜 나누어요!`, time: "오전 10:01" }
+            ];
+            localStorage.setItem(getPrivateChatKey(), JSON.stringify(messages));
+        }
+
+        body.innerHTML = messages.map(m => {
+            if (m.isMe) {
+                return `
+                    <div style="display:flex; justify-content:flex-end; align-items:flex-end; gap:6px;">
+                        <span style="font-size:10.5px; color:#94a3b8;">${m.time}</span>
+                        <div style="max-width:75%; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; padding:10px 14px; border-radius:16px 16px 2px 16px; font-size:14.5px; line-height:1.5; font-weight:600; box-shadow:0 2px 5px rgba(2,132,199,0.25);">
+                            ${m.text}
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div style="display:flex; justify-content:flex-start; align-items:flex-start; gap:8px;">
+                        <div style="width:36px; height:36px; border-radius:50%; background:#e0f2fe; color:#0369a1; display:flex; align-items:center; justify-content:center; font-weight:950; font-size:15px; flex-shrink:0;">
+                            ${currentChatPartner.charAt(0)}
+                        </div>
+                        <div style="max-width:75%;">
+                            <div style="font-size:11.5px; font-weight:800; color:#64748b; margin-bottom:3px;">${currentChatPartner}</div>
+                            <div style="background:#ffffff; color:#0f172a; padding:10px 14px; border-radius:2px 16px 16px 16px; font-size:14.5px; line-height:1.5; border:1px solid #e2e8f0; box-shadow:0 1.5px 3px rgba(0,0,0,0.04); font-weight:600;">
+                                ${m.text}
+                            </div>
+                        </div>
+                        <span style="font-size:10.5px; color:#94a3b8; align-self:flex-end;">${m.time}</span>
+                    </div>
+                `;
+            }
+        }).join("");
+
+        body.scrollTop = body.scrollHeight;
+    }
+
+    function sendPrivateChatMessage() {
+        const inp = document.getElementById("inpPrivateChatText");
+        if (!inp) return;
+        const text = inp.value.trim();
+        if (!text) return;
+
+        let messages = [];
+        try {
+            messages = JSON.parse(localStorage.getItem(getPrivateChatKey()) || "[]");
+        } catch(e) { messages = []; }
+
+        const now = new Date();
+        const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+        messages.push({
+            id: Date.now(),
+            sender: "나",
+            isMe: true,
+            text: text,
+            time: timeStr
+        });
+
+        localStorage.setItem(getPrivateChatKey(), JSON.stringify(messages));
+        inp.value = "";
+        renderPrivateChatMessages();
+    }
+
+    // 🌟 [사용자 요청] 총관리자만 보는 관리자 버튼 비밀 보안 체크
+    function checkSuperAdminAccess() {
+        const pwd = prompt("총관리자 비밀번호를 입력하세요:");
+        if (pwd === "7777" || pwd === "yetalk" || pwd === "1234") {
+            localStorage.setItem("yetalk_super_admin", "true");
+            const sec = document.getElementById("drawerSuperAdminSection");
+            if (sec) sec.style.display = "block";
+            location.href = "admin.html";
+        }
+    }
+
+    function updateChristianHeaderUI() {
+        // 🌟 [사용자 요청] 퀵 메뉴 바에 본인 교회 실제 이름 버튼 뜨게 동기화
+        const churchName = localStorage.getItem("yetalk_church_name");
+        const ourChurchTab = document.getElementById("chipTabOurChurch");
+        if (ourChurchTab) {
+            if (churchName && churchName.trim()) {
+                ourChurchTab.innerHTML = `✨ ${churchName.trim()}`;
+            } else {
+                ourChurchTab.innerHTML = "✨ 우리교회앱";
+            }
+        }
+
+        // 총관리자 여부 체크하여 드로어 관리자 버튼 상태 동기화
+        const isSuper = localStorage.getItem("yetalk_super_admin") === "true" || localStorage.getItem("yetalk_church_role") === "담임목사";
+        const sec = document.getElementById("drawerSuperAdminSection");
+        if (sec) {
+            sec.style.display = isSuper ? "block" : "none";
         }
     }
 
@@ -9611,6 +9749,44 @@
         window.initCloudSuiteVideoSync();
     }
 </script>
+
+
+    <!-- 🌟 [사용자 요청] 예톡 1:1 채팅창 풀스크린 뷰: 시원하게 전체가 열리며 오직 뒤로가기 화살표와 하단 애드몹만 유지 -->
+    <div class="chat-fullscreen-overlay" id="yetalkPrivateChatOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#ffffff; z-index:999999; flex-direction:column;">
+        <!-- 상단 헤더: 오직 뒤로가기 화살표와 상대방 이름만 깔끔하게 표출 -->
+        <header style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:#ffffff; border-bottom:1.5px solid #e2e8f0; min-height:56px; box-sizing:border-box;">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <button type="button" onclick="closeMemberPrivateChat()" style="background:none; border:none; font-size:24px; color:#0f172a; cursor:pointer; padding:2px 6px; font-weight:900; line-height:1;" title="뒤로가기">←</button>
+                <div>
+                    <div id="chatPartnerTitle" style="font-size:17.5px; font-weight:950; color:#0f172a; letter-spacing:-0.3px;">최웅식 성도</div>
+                    <div style="font-size:11.5px; color:#059669; font-weight:800;">● 예톡 1:1 말씀 교제방</div>
+                </div>
+            </div>
+            <span style="font-size:12px; font-weight:800; background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; padding:3px 9px; border-radius:12px;">대화 연결됨</span>
+        </header>
+
+        <!-- 1:1 대화 말풍선 스크롤 영역 -->
+        <main id="chatMessagesBody" style="flex:1; overflow-y:auto; padding:16px 14px; background:#f8fafc; display:flex; flex-direction:column; gap:12px;">
+            <!-- JS로 대화 말풍선 실시간 렌더링 -->
+        </main>
+
+        <!-- 메시지 입력 바 -->
+        <div style="padding:10px 14px; background:#ffffff; border-top:1px solid #e2e8f0; display:flex; gap:8px; align-items:center;">
+            <input type="text" id="inpPrivateChatText" placeholder="말씀과 은혜의 교제 메시지를 입력하세요..." onkeydown="if(event.key==='Enter') sendPrivateChatMessage()" style="flex:1; height:44px; padding:0 14px; border:1.8px solid #cbd5e1; border-radius:22px; font-size:14.5px; outline:none; background:#f8fafc; font-family:inherit;">
+            <button type="button" onclick="sendPrivateChatMessage()" style="height:44px; padding:0 18px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; font-size:14px; font-weight:900; border:none; border-radius:22px; cursor:pointer; flex-shrink:0;">전송</button>
+        </div>
+
+        <!-- 🌟 [사용자 요청] 하단 고정 Google AdMob (320 x 100) 배너 슬롯만 유지 -->
+        <div style="background:#f1f5f9; border-top:1px solid #e2e8f0; padding:10px 14px; text-align:center; flex-shrink:0;">
+            <div style="max-width:320px; height:60px; margin:0 auto; background:#e2e8f0; border-radius:10px; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="background:#0284c7; color:#fff; font-size:10px; font-weight:900; padding:1px 6px; border-radius:4px;">AD</span>
+                    <strong style="font-size:12.5px; color:#334155;">Google AdMob (320 x 100)</strong>
+                </div>
+                <span style="font-size:11px; color:#64748b; margin-top:2px;">우리교회 · 성도 안심 교제 공식 스폰서</span>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>
