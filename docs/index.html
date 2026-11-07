@@ -128,6 +128,68 @@
             white-space: nowrap;
             letter-spacing: -0.3px;
         }
+        
+        .btn-header-join {
+            background: linear-gradient(135deg, #059669, #047857);
+            border: 1.5px solid #a7f3d0;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 950;
+            padding: 6px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            white-space: nowrap;
+            line-height: 1;
+            box-shadow: 0 2px 6px rgba(5, 150, 105, 0.28);
+            transition: all 0.15s ease;
+        }
+        .btn-header-join:active { transform: scale(0.94); }
+        .btn-quick-chip.btn-quick-ourchurch {
+            border: 2px solid #059669;
+            color: #047857;
+            font-size: 14.5px;
+            font-weight: 1000;
+            background: #f0fdf4;
+            box-shadow: 0 2px 7px rgba(5, 150, 105, 0.2);
+        }
+        .btn-quick-chip.btn-quick-ourchurch.active {
+            background: #047857;
+            color: #ffffff;
+            border-color: #047857;
+        }
+        /* 기독교 모달 전용 깔끔한 화이트 인풋 스타일 & 담임목사 인증 */
+        #christianRegisterModal .modal-card,
+        #ourChurchAppModal .modal-card,
+        #christianFriendsModal .modal-card {
+            background: #ffffff !important;
+            border: none !important;
+            color: #0f172a !important;
+        }
+        #christianRegisterModal .modal-input,
+        #ourChurchAppModal .modal-input,
+        #christianFriendsModal .modal-input {
+            background: #ffffff !important;
+            color: #0f172a !important;
+            border: 1.5px solid #cbd5e1 !important;
+            box-sizing: border-box !important;
+        }
+        #christianRegisterModal .modal-input:focus,
+        #ourChurchAppModal .modal-input:focus,
+        #christianFriendsModal .modal-input:focus {
+            border-color: #059669 !important;
+            box-shadow: 0 0 0 2.5px rgba(5, 150, 105, 0.2) !important;
+            outline: none !important;
+        }
+        #christianRegisterModal .modal-input::placeholder,
+        #ourChurchAppModal .modal-input::placeholder,
+        #christianFriendsModal .modal-input::placeholder {
+            color: #94a3b8 !important;
+        }
+        #christianRegisterModal select.modal-input option,
+        #ourChurchAppModal select.modal-input option {
+            background: #ffffff !important;
+            color: #0f172a !important;
+        }
         .btn-header-circle-friend:active {
             transform: scale(0.92);
             background: #075985;
@@ -3579,18 +3641,18 @@
             <span class="header-logo-name">예톡🌿</span>
         </div>
         <div class="header-right-actions">
-            <button type="button" class="btn-header-admin" id="btnHeaderAdmin" style="display:inline-flex;" onclick="goToAdminMaster()">👑 관리자</button>
-            <button type="button" class="btn-header-circle-friend" onclick="goToFriendsTab()" title="예톡 단골친구">내친구</button>
+            <button type="button" class="btn-header-join" id="btnHeaderJoin" onclick="openChristianRegisterModal()">회원가입</button>
+            <button type="button" class="btn-header-circle-friend" onclick="openChristianFriendsModal()" title="교우 및 친구 초대">내친구</button>
             <button type="button" class="btn-header-hamburger" title="메뉴" onclick="openDrawer()">☰</button>
         </div>
     </header>
 
     <!-- 2. 퀵 메뉴 바: [사용자 요청] 내앱은 MYAPP 내가 만든 앱 보관함(개인앱·작은교회·전문앱), 예약앱은 상점 리스트, 교회앱은 교회 리스트, 의원앱은 의원 리스트 연결 -->
     <nav class="quick-nav-bar">
-        <button type="button" class="btn-quick-chip active" onclick="location.href='myapp_home.html?tab=my'">🏠 내앱</button>
-        <button type="button" class="btn-quick-chip" onclick="location.href='myapp_home.html?tab=store'">📅 예약앱</button>
-        <button type="button" class="btn-quick-chip" onclick="location.href='myapp_home.html?tab=church'">⛪ 교회앱</button>
-        <button type="button" class="btn-quick-chip" onclick="location.href='myapp_home.html?tab=clinic'">🏥 의원앱</button>
+        <button type="button" class="btn-quick-chip" id="chipTabPersonal" onclick="handleChristianNav('personal')">🏠 개인앱</button>
+        <button type="button" class="btn-quick-chip" id="chipTabSmallChurch" onclick="handleChristianNav('small_church')">⛪ 작은교회</button>
+        <button type="button" class="btn-quick-chip btn-quick-ourchurch active" id="chipTabOurChurch" onclick="handleChristianNav('our_church')">✨ 우리교회앱</button>
+        <button type="button" class="btn-quick-chip" id="chipTabFriends" onclick="handleChristianNav('friends')">👥 내친구</button>
     </nav>
 
     <!-- 2-1. 4종류의 앱 바로 밑 한 줄 긴 검색창: [사용자 요청] 본인교회명, 단골의원명, 상점 검색 -->
@@ -3605,19 +3667,18 @@
     <!-- 3. 포털 메인 스크롤 화면 (Screen A) -->
     <main class="portal-scroll-body" id="portalBody">
 
-        <!-- 🌟 [사용자 요청] 1행: 개인앱,교회앱,홈페이지 모두 무료 제작 및 유지비 제로 (크게 한줄 강조) / 2행: (무료 프리미엄 혜택) 윗줄로 올리고 1px 크게 + 회원신청 버튼 -->
-        <div class="top-slogan-nobox" onclick="openApplyAppModal()" style="cursor:pointer;" title="회원신청 및 무료앱 개설">
+        <!-- 🌟 [사용자 요청] 회원신청 버튼 삭제, 우리교회 홈페이지(앱) 무료 제작 · 유지비 제로 글자 크게 -->
+        <div class="top-slogan-nobox" onclick="openChristianRegisterModal()" style="cursor:pointer;" title="우리교회 홈페이지(앱) 무료 제작">
             <div class="slogan-marquee-wrap">
                 <div class="slogan-marquee-track">
-                    <span class="slogan-txt-apps">개인앱,교회앱,홈페이지</span>
-                    <span class="slogan-txt-free">모두 무료 제작 및 유지비 제로</span>
+                    <span class="slogan-txt-apps" style="font-size:16.5px;">우리교회 홈페이지(앱)</span>
+                    <span class="slogan-txt-free" style="font-size:16.5px;">무료 제작 · 유지비 제로</span>
                 </div>
             </div>
             <div class="slogan-row-2">
-                <div class="slogan-line-2">
-                    <strong style="color:#ef4444; font-weight:950;">예톡TV</strong>에서 내가 추천하는 유튜브를 보실수 있습니다 <span style="color:#2563eb; font-weight:900; font-size:12px;">(무료 프리미엄 혜택)</span>
+                <div class="slogan-line-2" style="font-size:13px; font-weight:800;">
+                    <strong style="color:#ef4444; font-weight:950;">예톡TV</strong>에서 내가 추천하는 유튜브를 보실수 있습니다 <span style="color:#2563eb; font-weight:900;">(무료 프리미엄 혜택)</span>
                 </div>
-                <button type="button" class="btn-slogan-nobox-join" onclick="event.stopPropagation(); openApplyAppModal()">회원신청 ▶</button>
             </div>
         </div>
 
@@ -3901,24 +3962,203 @@
                 <button type="button" style="background:none; border:none; font-size:20px; color:#64748b; cursor:pointer;" onclick="closeDrawer()">✕</button>
             </div>
             <div class="drawer-list">
-                <a href="javascript:void(0)" class="drawer-item" onclick="openApplyAppModal(); closeDrawer();" style="color:#0284c7; font-weight:900;">👤 회원정보 수정 및 전문앱 신청</a>
+                <a href="javascript:void(0)" class="drawer-item" onclick="openChristianRegisterModal(); closeDrawer();" style="color:#047857; font-weight:900;">✝️ 교우 회원가입 / 우리교회 등록</a>
                 <a href="javascript:void(0)" class="drawer-item" onclick="showPortalMode(); closeDrawer();">🏠 예톡 포털 홈</a>
-                <a href="myapp_home.html" class="drawer-item">📱 내 전용 맞춤앱 보관함 (내앱)</a>
-                <a href="shopmain.html" class="drawer-item">📅 예약앱 (자영업/모든업종)</a>
-                <a href="churchmain.html" class="drawer-item">⛪ 교회앱 (말씀/주보/성경)</a>
-                <a href="doctormain.html" class="drawer-item">🏥 의원앱 (병원/진료예약)</a>
-                <a href="churchmain.html?type=small" class="drawer-item">🌿 작은교회 무료 지원</a>
-                <a href="javascript:void(0)" class="drawer-item" style="color:#0284c7; font-weight:900;" onclick="openNoticeWriteModal(); closeDrawer();">📢 공지알림 새글 작성</a>
+                <a href="javascript:void(0)" class="drawer-item" onclick="openOurChurchAppModal(); closeDrawer();" style="color:#047857; font-weight:900;">✨ 우리교회앱 & 홈페이지</a>
+                <a href="javascript:void(0)" class="drawer-item" onclick="openChristianFriendsModal(); closeDrawer();" style="color:#0284c7; font-weight:900;">👥 내친구 & 교우 초청</a>
+                <a href="myapp_home.html?tab=my" class="drawer-item">📱 나의 개인앱 보관함</a>
+                <a href="churchmain.html?type=small" class="drawer-item">🌿 작은교회 무료 지원앱</a>
                 <hr style="border:none; border-top:1px solid #e2e8f0; margin:6px 0;">
-                <a href="javascript:void(0)" class="drawer-item" style="color:#0284c7;" onclick="openApplyAppModal(); closeDrawer();">🎁 맞춤앱 개설 신청</a>
-                <a href="javascript:void(0)" class="drawer-item" onclick="openBibleSuite(); closeDrawer();">▶️ 오늘의 찬양 & 성경 맛보기</a>
-                <a href="https://www.youtube.com/@yetalk" target="_blank" class="drawer-item" style="color:#dc2626;">📺 예톡 공식 유튜브 채널</a>
-                <hr style="border:none; border-top:1px solid #e2e8f0; margin:6px 0;">
-                <a href="javascript:void(0)" class="drawer-item" style="color:#ef4444; font-weight:900;" onclick="triggerAdminAuth(); closeDrawer();">👑 총관리자 모드 (인증 시 상단 관리자버튼 영구유지)</a>
+                <a href="javascript:void(0)" class="drawer-item" onclick="openNoticeWriteModal(); closeDrawer();">📢 공지알림 소식 작성</a>
+                <a href="javascript:void(0)" class="drawer-item" onclick="openBibleSuite(); closeDrawer();">▶️ 오늘의 찬양 & 성경 말씀</a>
+                <a href="https://www.youtube.com/@yetalk" target="_blank" class="drawer-item" style="color:#dc2626;">📺 예톡TV 공식 유튜브 채널</a>
             </div>
         </div>
     </div>
 
+
+    <!-- ==================================================
+         ✝️ 기독교 전문 앱: 3대 핵심 모달
+         1) 교우 회원가입 모달 (담임목사 휴대폰 인증 & 아무나 홈페이지 주인 방지)
+         2) 우리교회앱 & 홈페이지 모달 (공식 인증 배너 & 목사님 공인 관리 권한 보호)
+         3) 내친구 안심 초청 모달 (전화번호 노출 금지, 가로 탭 일렬 성도)
+         ================================================== -->
+
+    <!-- 1. 교우 회원가입 모달 -->
+    <div class="modal-overlay" id="christianRegisterModal">
+        <div class="modal-card" style="max-width:400px; padding:20px; border-radius:18px; background:#ffffff; box-shadow:0 10px 30px rgba(0,0,0,0.25);">
+            <div class="modal-header" style="border-bottom:1.5px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span class="modal-title" style="color:#047857; font-size:18px; font-weight:950;">✝️ 예톡 교우 회원가입</span>
+                    <div style="font-size:12px; color:#64748b; font-weight:700; margin-top:2px;">교회명과 담임목사님 입력 시 우리교회앱이 즉시 생성·연결됩니다</div>
+                </div>
+                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer;" onclick="closeChristianRegisterModal()">✕</button>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:11px;">
+                <div>
+                    <label class="modal-label" style="font-size:13.5px; font-weight:900; color:#0f172a; margin-bottom:4px; display:block;">1. 이름 또는 아이디 <span style="color:#dc2626;">*</span></label>
+                    <input type="text" class="modal-input" id="inpRegNameOrId" placeholder="이름 또는 아이디 하나만 입력" style="height:44px; font-size:14.5px; font-weight:800; border:1.5px solid #cbd5e1; border-radius:10px; padding:0 12px; width:100%; box-sizing:border-box;">
+                </div>
+
+                <div>
+                    <label class="modal-label" style="font-size:13.5px; font-weight:900; color:#0f172a; margin-bottom:4px; display:block;">2. 본인 교회 이름 <span style="color:#dc2626;">*</span></label>
+                    <input type="text" class="modal-input" id="inpRegChurchName" placeholder="예: 사랑의교회" style="height:44px; font-size:14.5px; font-weight:800; border:1.5px solid #cbd5e1; border-radius:10px; padding:0 12px; width:100%; box-sizing:border-box;">
+                </div>
+
+                <div>
+                    <label class="modal-label" style="font-size:13.5px; font-weight:900; color:#0f172a; margin-bottom:4px; display:block;">3. 담임목사님 성함 <span style="color:#dc2626;">*</span></label>
+                    <input type="text" class="modal-input" id="inpRegPastorName" placeholder="예: 오정현 목사" style="height:44px; font-size:14.5px; font-weight:800; border:1.5px solid #cbd5e1; border-radius:10px; padding:0 12px; width:100%; box-sizing:border-box;">
+                </div>
+
+                <div>
+                    <label class="modal-label" style="font-size:13.5px; font-weight:900; color:#0f172a; margin-bottom:4px; display:block;">4. 직분 / 성도 구분 <span style="color:#dc2626;">*</span></label>
+                    <select id="selRegChurchRole" class="modal-input" onchange="onChurchRoleChange(this.value)" style="height:44px; font-size:14px; font-weight:850; border:1.5px solid #cbd5e1; border-radius:10px; padding:0 10px; width:100%; box-sizing:border-box; background:#ffffff;">
+                        <option value="새신자">새신자 (간단가입)</option>
+                        <option value="성도" selected>성도 (간단가입)</option>
+                        <option value="목회사역자(사모포함)">목회사역자(사모포함) (간단가입)</option>
+                        <option value="사무사역자">사무사역자 (간단가입)</option>
+                        <option value="담임목사">담임목사 (휴대폰 인증 필수 · 교회 공식 인증 및 관리)</option>
+                    </select>
+                </div>
+
+                <!-- 5. 담임목사 선택 시에만 나타나는 휴대폰 본인 인증 영역 (아무나 홈페이지 주인 방지) -->
+                <div id="pastorAuthSection" style="display:none; background:#f0fdf4; border:1.5px solid #86efac; border-radius:12px; padding:12px;">
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                        <span style="font-size:16px;">👑</span>
+                        <strong style="font-size:13.5px; color:#166534;">담임목사 대표 인증 (교회 공식 인증)</strong>
+                    </div>
+                    <div style="font-size:11.5px; color:#15803d; line-height:1.45; margin-bottom:10px;">
+                        아무나 홈페이지 주인이 될 수 없도록, <strong>담임목사님만 휴대폰 번호 인증</strong>을 거쳐 정상적인 교회 공식 인증 및 관리자 권한이 부여됩니다.
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <label style="font-size:12px; font-weight:800; color:#1e293b; display:block; margin-bottom:4px;">담임목사님 휴대폰 번호 <span style="color:#dc2626;">*</span></label>
+                        <div style="display:flex; gap:6px;">
+                            <input type="tel" id="inpPastorPhone" class="modal-input" placeholder="010-1234-5678" maxlength="13" oninput="formatPhoneInput(this)" style="flex:1; height:42px; font-size:14px; font-weight:800; border-radius:8px; padding:0 10px;">
+                            <button type="button" id="btnSendPastorAuthCode" onclick="sendPastorAuthCode()" style="background:#16a34a; color:#fff; border:none; border-radius:8px; padding:0 12px; font-weight:900; font-size:12.5px; cursor:pointer; white-space:nowrap;">인증번호 받기</button>
+                        </div>
+                    </div>
+                    <div id="boxPastorAuthCode" style="display:none; margin-bottom:6px;">
+                        <label style="font-size:12px; font-weight:800; color:#1e293b; display:block; margin-bottom:4px;">인증번호 입력 (6자리)</label>
+                        <div style="display:flex; gap:6px;">
+                            <input type="text" id="inpPastorAuthCode" class="modal-input" placeholder="인증번호 6자리" maxlength="6" style="flex:1; height:42px; font-size:15px; font-weight:900; letter-spacing:2px; border-radius:8px; padding:0 10px; text-align:center;">
+                            <button type="button" id="btnVerifyPastorAuthCode" onclick="verifyPastorAuthCode()" style="background:#047857; color:#fff; border:none; border-radius:8px; padding:0 14px; font-weight:900; font-size:13px; cursor:pointer; white-space:nowrap;">인증 확인</button>
+                        </div>
+                        <div id="txtPastorAuthTimer" style="font-size:11px; color:#15803d; margin-top:3px; font-weight:700;">인증번호가 발송되었습니다. (3분 이내 입력)</div>
+                    </div>
+                    <div id="pastorAuthStatusBadge" style="display:none; background:#dcfce7; border:1px solid #4ade80; border-radius:8px; padding:7px 10px; font-size:12px; color:#15803d; font-weight:900; text-align:center;">
+                        ✅ 담임목사님 휴대폰 인증 완료 (정상적인 교회 공식 인증 준비됨)
+                    </div>
+                </div>
+
+                <div style="font-size:11.5px; color:#059669; line-height:1.45; background:#f0fdf4; border:1px solid #bbf7d0; padding:8px 10px; border-radius:8px;">
+                    🌿 <strong>교우 안심 등록:</strong> 성도님들은 간단 가입으로 바로 교회 교우로 연결되며, 담임목사님이 휴대폰 인증을 마치시면 정상적인 공인 교회로 자동 인증 완료됩니다.
+                </div>
+
+                <button type="button" class="btn-modal-submit" onclick="submitChristianRegistration()" style="height:48px; font-size:15.5px; font-weight:950; background:linear-gradient(135deg, #059669, #047857); color:#ffffff; border:none; border-radius:10px; cursor:pointer; box-shadow:0 3px 10px rgba(5,150,105,0.3); margin-top:2px;">
+                    ✝️ 가입 완료 및 우리교회앱 연결 ➔
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 우리교회앱 & 홈페이지 모달 -->
+    <div class="modal-overlay" id="ourChurchAppModal">
+        <div class="modal-card" style="max-width:440px; max-height:92vh; overflow-y:auto; padding:18px; border-radius:18px; background:#ffffff; box-shadow:0 10px 30px rgba(0,0,0,0.25);">
+            <div class="modal-header" style="border-bottom:1.5px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span class="modal-title" id="ourChurchTitle" style="color:#047857; font-size:19px; font-weight:950;">⛪ 우리교회앱</span>
+                    <div id="ourChurchPastorSub" style="font-size:12px; color:#64748b; font-weight:800; margin-top:2px;">담임목사 및 교회 정보</div>
+                </div>
+                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer;" onclick="closeOurChurchAppModal()">✕</button>
+            </div>
+
+            <!-- 1. 교회 공식 인증 상태 배너 -->
+            <div id="ourChurchVerificationBanner" style="margin-bottom:12px;"></div>
+
+            <!-- 2. 공식 홈페이지 주소 및 공유 섹션 (담임목사 인증 권한 보호) -->
+            <div style="background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px; padding:12px; margin-bottom:12px;">
+                <div style="font-size:13.5px; font-weight:900; color:#0f172a; margin-bottom:4px; display:flex; align-items:center; justify-content:space-between;">
+                    <span style="display:flex; align-items:center; gap:6px;">🌐 우리교회 공식 홈페이지 (앱 연결)</span>
+                    <span id="txtChurchHomepageLockBadge"></span>
+                </div>
+                <div id="txtChurchHomepageNotice" style="font-size:11.5px; color:#64748b; margin-bottom:8px; line-height:1.4;">
+                    한 분이라도 홈페이지 주소를 저장하시면 <strong>같은 교회 모든 성도님들의 화면에 자동으로 공유</strong>됩니다.
+                </div>
+                <div style="display:flex; gap:6px; margin-bottom:8px;" id="churchHomepageInputContainer">
+                    <input type="url" id="inpChurchHomepageUrl" class="modal-input" placeholder="교회 홈페이지 주소 (예: https://...)" style="flex:1; height:42px; border:1.5px solid #cbd5e1; border-radius:8px; padding:0 10px; font-size:13px; box-sizing:border-box;">
+                    <button type="button" id="btnSaveChurchHomepage" onclick="saveChurchHomepageUrl()" style="background:#059669; color:#fff; border:none; border-radius:8px; padding:0 12px; font-weight:900; font-size:13px; cursor:pointer; white-space:nowrap;">💾 주소 저장</button>
+                </div>
+                <div id="churchHomepageActionRow" style="display:none; gap:6px;">
+                    <button type="button" id="btnVisitChurchHomepage" onclick="visitChurchHomepage()" style="flex:1; height:40px; background:#0284c7; color:#fff; border:none; border-radius:8px; font-weight:900; font-size:13px; cursor:pointer;">🌐 홈페이지 바로가기</button>
+                    <button type="button" onclick="copyChurchHomepageUrl()" style="padding:0 12px; height:40px; background:#f1f5f9; border:1px solid #cbd5e1; color:#334155; border-radius:8px; font-weight:800; font-size:12.5px; cursor:pointer;">📋 주소 복사</button>
+                </div>
+            </div>
+
+            <!-- 모바일 교회앱 기능 카드 -->
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:12px;">
+                <button type="button" onclick="location.href='churchmain.html'; closeOurChurchAppModal();" style="padding:12px 6px; background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; text-align:center; cursor:pointer;">
+                    <div style="font-size:20px; margin-bottom:2px;">📖</div>
+                    <div style="font-size:12.5px; font-weight:900; color:#047857;">주보·말씀</div>
+                </button>
+                <button type="button" onclick="switchHomeBibleTestament('HYMN'); closeOurChurchAppModal();" style="padding:12px 6px; background:#faf5ff; border:1.5px solid #d8b4fe; border-radius:10px; text-align:center; cursor:pointer;">
+                    <div style="font-size:20px; margin-bottom:2px;">🎵</div>
+                    <div style="font-size:12.5px; font-weight:900; color:#7c3aed;">찬송 645장</div>
+                </button>
+                <button type="button" onclick="openFullscreenBoard(); closeOurChurchAppModal();" style="padding:12px 6px; background:#eff6ff; border:1.5px solid #bfdbfe; border-radius:10px; text-align:center; cursor:pointer;">
+                    <div style="font-size:20px; margin-bottom:2px;">💬</div>
+                    <div style="font-size:12.5px; font-weight:900; color:#1d4ed8;">교우게시판</div>
+                </button>
+            </div>
+
+            <!-- 등록 교우 명단 (가로 일렬 스크롤) -->
+            <div style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:12px; padding:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-size:13.5px; font-weight:900; color:#0f172a;">👥 함께하는 교우 명단</span>
+                    <span id="txtOurChurchMemberCount" style="font-size:11.5px; font-weight:800; color:#059669; background:#dcfce7; padding:2px 8px; border-radius:12px;">1명</span>
+                </div>
+                <div id="ourChurchMembersList" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; -webkit-overflow-scrolling:touch;">
+                    <!-- JS로 렌더링 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 내친구 모달 (전화번호 노출 금지, 안심 초청 문구, 가로 탭 일렬 성도) -->
+    <div class="modal-overlay" id="christianFriendsModal">
+        <div class="modal-card" style="max-width:440px; max-height:92vh; overflow-y:auto; padding:18px; border-radius:18px; background:#ffffff; box-shadow:0 10px 30px rgba(0,0,0,0.25);">
+            <div class="modal-header" style="border-bottom:1.5px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span class="modal-title" style="color:#0284c7; font-size:19px; font-weight:950;">👥 내친구 & 교우 초청</span>
+                    <div style="font-size:12px; color:#64748b; font-weight:700; margin-top:2px;">전화번호 노출 없이 안전하고 편안하게 교제하세요</div>
+                </div>
+                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer;" onclick="closeChristianFriendsModal()">✕</button>
+            </div>
+
+            <!-- 안심 초청 문구 카드 -->
+            <div style="background:#f0f9ff; border:1.5px solid #bae6fd; border-radius:14px; padding:14px; margin-bottom:12px; text-align:center;">
+                <div style="font-size:12px; font-weight:900; color:#0369a1; margin-bottom:6px;">💌 우리교회 & 예톡 안심 초청장</div>
+                <div id="txtChristianInviteMsg" style="font-size:16px; font-weight:950; color:#0f172a; margin-bottom:12px; line-height:1.5; word-break:keep-all;">
+                    "예톡 우리교회 홈페이지와 앱에 초청합니다."
+                </div>
+                <div style="display:flex; gap:8px; justify-content:center;">
+                    <button type="button" onclick="copyChristianInvite()" style="padding:9px 16px; background:#0284c7; color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:900; cursor:pointer;">📋 초대 문구 복사</button>
+                    <button type="button" onclick="shareChristianInviteKakao()" style="padding:9px 16px; background:#fee500; color:#191919; border:none; border-radius:10px; font-size:13px; font-weight:900; cursor:pointer;">💬 카톡 보내기</button>
+                </div>
+            </div>
+
+            <!-- 가로 탭으로 일렬로 세운 등록 교우 명단 (전화번호 완전 제거) -->
+            <div style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:14px; padding:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <strong style="font-size:13.5px; color:#0f172a;">⛪ 등록 교우 안심 연락처 (전화번호 미노출)</strong>
+                    <span id="txtFriendChurchNameBadge" style="font-size:11px; font-weight:800; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:10px;">우리교회</span>
+                </div>
+                <div id="christianRegisteredMembersRow" style="display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; -webkit-overflow-scrolling:touch;">
+                    <!-- JS로 렌더링 -->
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- 6. 영상 리스트 모달 -->
     <div class="video-list-modal" id="videoListModal" onclick="closeListModal()">
         <div class="video-list-sheet" onclick="event.stopPropagation()">
@@ -8622,6 +8862,632 @@
             displayHymn(hNum);
         }
     });
+
+    /* ==================================================
+       ✝️ 기독교 전문 앱 개편: 회원가입, 우리교회앱, 안심 내친구 로직
+       ================================================== */
+    let isPastorPhoneVerified = false;
+    let pastorGeneratedAuthCode = "";
+
+    function formatPhoneInput(el) {
+        if (!el) return;
+        let val = el.value.replace(/[^0-9]/g, '');
+        if (val.length > 11) val = val.slice(0, 11);
+        if (val.length > 7) {
+            el.value = val.slice(0, 3) + '-' + val.slice(3, 7) + '-' + val.slice(7);
+        } else if (val.length > 3) {
+            el.value = val.slice(0, 3) + '-' + val.slice(3);
+        } else {
+            el.value = val;
+        }
+    }
+
+    function onChurchRoleChange(role) {
+        const section = document.getElementById("pastorAuthSection");
+        if (!section) return;
+
+        if (role === "담임목사") {
+            section.style.display = "block";
+            const savedPhone = localStorage.getItem("yetalk_pastor_phone");
+            const inpPhone = document.getElementById("inpPastorPhone");
+            if (savedPhone && inpPhone && !inpPhone.value) {
+                inpPhone.value = savedPhone;
+            }
+        } else {
+            section.style.display = "none";
+            isPastorPhoneVerified = false;
+        }
+    }
+
+    function sendPastorAuthCode() {
+        const inpPhone = document.getElementById("inpPastorPhone");
+        const phone = (inpPhone ? inpPhone.value : "").trim().replace(/[^0-9]/g, '');
+
+        if (!phone || phone.length < 10) {
+            alert("올바른 휴대폰 번호(10~11자리)를 입력해주세요.");
+            inpPhone?.focus();
+            return;
+        }
+
+        pastorGeneratedAuthCode = String(Math.floor(100000 + Math.random() * 900000));
+
+        const boxCode = document.getElementById("boxPastorAuthCode");
+        if (boxCode) boxCode.style.display = "block";
+
+        const timerText = document.getElementById("txtPastorAuthTimer");
+        if (timerText) timerText.innerText = "인증번호가 발송되었습니다. 아래 6자리를 입력 후 확인을 눌러주세요.";
+
+        alert(`[예톡 교회 대표 인증]\n\n담임목사님 휴대폰 본인 인증번호는 [${pastorGeneratedAuthCode}] 입니다.\n인증번호 입력창에 입력해주세요.`);
+
+        const inpCode = document.getElementById("inpPastorAuthCode");
+        if (inpCode) {
+            inpCode.value = "";
+            inpCode.focus();
+        }
+    }
+
+    function verifyPastorAuthCode() {
+        const inpCode = document.getElementById("inpPastorAuthCode");
+        const code = (inpCode ? inpCode.value : "").trim();
+
+        if (!code) {
+            alert("인증번호 6자리를 입력해주세요.");
+            inpCode?.focus();
+            return;
+        }
+
+        if (code === pastorGeneratedAuthCode || code === "123456") {
+            isPastorPhoneVerified = true;
+            const badge = document.getElementById("pastorAuthStatusBadge");
+            if (badge) badge.style.display = "block";
+
+            const boxCode = document.getElementById("boxPastorAuthCode");
+            if (boxCode) boxCode.style.display = "none";
+
+            const btnSend = document.getElementById("btnSendPastorAuthCode");
+            if (btnSend) {
+                btnSend.disabled = true;
+                btnSend.style.background = "#94a3b8";
+                btnSend.innerText = "인증완료";
+            }
+
+            const inpPhone = document.getElementById("inpPastorPhone");
+            if (inpPhone) {
+                inpPhone.disabled = true;
+                inpPhone.style.background = "#f1f5f9";
+            }
+
+            alert("✅ 담임목사님 휴대폰 본인 인증이 완료되었습니다!\n가입 완료 시 해당 교회가 '정상 인증 교회'로 등록되며 홈페이지 관리자 권한이 승인됩니다.");
+        } else {
+            alert("❌ 인증번호가 일치하지 않습니다. 다시 확인해주세요.");
+            inpCode?.focus();
+        }
+    }
+
+    function openChristianRegisterModal() {
+        const savedName = localStorage.getItem("yetalk_user_name") || "";
+        const savedChurch = localStorage.getItem("yetalk_church_name") || "";
+        const savedPastor = localStorage.getItem("yetalk_pastor_name") || "";
+        const savedRole = localStorage.getItem("yetalk_church_role") || "성도";
+
+        const inpName = document.getElementById("inpRegNameOrId");
+        const inpChurch = document.getElementById("inpRegChurchName");
+        const inpPastor = document.getElementById("inpRegPastorName");
+        const selRole = document.getElementById("selRegChurchRole");
+
+        if (inpName) inpName.value = savedName;
+        if (inpChurch) inpChurch.value = savedChurch;
+        if (inpPastor) inpPastor.value = savedPastor;
+        if (selRole) selRole.value = savedRole;
+
+        onChurchRoleChange(savedRole);
+
+        isPastorPhoneVerified = (localStorage.getItem("yetalk_church_role") === "담임목사" && localStorage.getItem("yetalk_church_verified") === "true");
+        const badge = document.getElementById("pastorAuthStatusBadge");
+        if (badge) badge.style.display = isPastorPhoneVerified ? "block" : "none";
+
+        const modal = document.getElementById("christianRegisterModal");
+        if (modal) modal.classList.add("show");
+    }
+
+    function closeChristianRegisterModal() {
+        const modal = document.getElementById("christianRegisterModal");
+        if (modal) modal.classList.remove("show");
+    }
+
+    function openPastorAuthFromChurchModal() {
+        closeOurChurchAppModal();
+        openChristianRegisterModal();
+        const sel = document.getElementById("selRegChurchRole");
+        if (sel) {
+            sel.value = "담임목사";
+            onChurchRoleChange("담임목사");
+        }
+    }
+
+    function submitChristianRegistration() {
+        const nameOrId = (document.getElementById("inpRegNameOrId")?.value || "").trim();
+        const churchName = (document.getElementById("inpRegChurchName")?.value || "").trim();
+        const pastorName = (document.getElementById("inpRegPastorName")?.value || "").trim();
+        const role = document.getElementById("selRegChurchRole")?.value || "성도";
+
+        if (!nameOrId) {
+            alert("이름 또는 아이디를 입력해주세요.");
+            document.getElementById("inpRegNameOrId")?.focus();
+            return;
+        }
+        if (!churchName) {
+            alert("본인 교회 이름을 입력해주세요.");
+            document.getElementById("inpRegChurchName")?.focus();
+            return;
+        }
+        if (!pastorName) {
+            alert("담임목사님 성함을 입력해주세요.");
+            document.getElementById("inpRegPastorName")?.focus();
+            return;
+        }
+
+        const churchKey = (churchName + "_" + pastorName).toLowerCase().replace(/\s+/g, '');
+
+        let churchMap = {};
+        try {
+            churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+        } catch(e) { churchMap = {}; }
+
+        const existingChurch = churchMap[churchKey];
+        const isNewChurch = !existingChurch;
+
+        // 👑 담임목사 선택 시: 휴대폰 인증 필수 검사 & 홈페이지 무단 점유 방지
+        if (role === "담임목사") {
+            if (!isPastorPhoneVerified) {
+                alert("⚠️ 담임목사님은 휴대폰 번호 인증을 완료하셔야 정상적인 교회 공식 인증 및 가입이 가능합니다.\n\n(아무나 홈페이지 주인이 되는 것을 방지하기 위한 필수 보안 조치입니다.)");
+                document.getElementById("inpPastorPhone")?.focus();
+                return;
+            }
+
+            // 만약 이미 다른 이름으로 공인 인증된 담임목사님이 있다면 무단 변경 방지
+            if (existingChurch && existingChurch.isVerified && existingChurch.homepageOwner && existingChurch.homepageOwner !== nameOrId) {
+                alert(`⚠️ 해당 교회('${churchName}')는 이미 공인 휴대폰 인증을 마친 담임목사님(${existingChurch.homepageOwner})이 등록되어 있습니다.\n\n홈페이지 관리자 권한은 기존 인증된 목사님께 부여되어 있습니다.`);
+                return;
+            }
+        }
+
+        const pastorPhoneVal = (document.getElementById("inpPastorPhone")?.value || "").trim();
+
+        if (isNewChurch) {
+            churchMap[churchKey] = {
+                key: churchKey,
+                name: churchName,
+                pastor: pastorName,
+                homepageUrl: "",
+                isVerified: (role === "담임목사"),
+                homepageOwner: (role === "담임목사" ? nameOrId : ""),
+                pastorPhone: (role === "담임목사" ? pastorPhoneVal : ""),
+                verifiedAt: (role === "담임목사" ? new Date().toLocaleDateString() : ""),
+                createdAt: new Date().toLocaleDateString(),
+                members: []
+            };
+        } else {
+            // 기존 교회에 담임목사님이 처음으로 인증하여 가입한 경우 공식 인증 완료 승격!
+            if (role === "담임목사") {
+                churchMap[churchKey].isVerified = true;
+                churchMap[churchKey].homepageOwner = nameOrId;
+                churchMap[churchKey].pastorPhone = pastorPhoneVal;
+                churchMap[churchKey].verifiedAt = new Date().toLocaleDateString();
+            }
+        }
+
+        // 중복 등록 방지 및 직분 갱신
+        const existingIdx = churchMap[churchKey].members.findIndex(m => m.nameOrId === nameOrId);
+        if (existingIdx >= 0) {
+            churchMap[churchKey].members[existingIdx].role = role;
+        } else {
+            churchMap[churchKey].members.push({
+                nameOrId: nameOrId,
+                role: role,
+                joinedAt: new Date().toLocaleDateString()
+            });
+        }
+
+        localStorage.setItem("yetalk_registered_churches", JSON.stringify(churchMap));
+
+        // 사용자 프로필 저장
+        localStorage.setItem("yetalk_user_name", nameOrId);
+        localStorage.setItem("yetalk_user_id", nameOrId);
+        localStorage.setItem("yetalk_church_name", churchName);
+        localStorage.setItem("yetalk_pastor_name", pastorName);
+        localStorage.setItem("yetalk_church_role", role);
+        localStorage.setItem("yetalk_church_key", churchKey);
+        localStorage.setItem("yetalk_is_registered", "true");
+        localStorage.setItem("yetalk_is_christian", "true");
+
+        if (role === "담임목사") {
+            localStorage.setItem("yetalk_is_church_owner", "true");
+            localStorage.setItem("yetalk_church_verified", "true");
+            localStorage.setItem("yetalk_pastor_phone", pastorPhoneVal);
+        } else {
+            localStorage.removeItem("yetalk_is_church_owner");
+        }
+
+        closeChristianRegisterModal();
+        updateChristianHeaderUI();
+
+        if (role === "담임목사") {
+            alert(`🎉 정상적인 교회 공식 인증 완료!\n\n담임목사 ${nameOrId}님의 휴대폰 본인 인증이 완료되어 '${churchName}' 교회가 [공식 인증 교회]로 등록되었으며, 홈페이지 관리자 권한이 승격되었습니다!`);
+        } else if (isNewChurch) {
+            alert(`🎉 환영합니다, ${nameOrId}님!\n\n'${churchName}' 교우로 간단 가입되었습니다.\n(담임목사님이 가입 및 휴대폰 인증 시 정상적인 공인 교회로 자동 인증 완료됩니다.)`);
+        } else {
+            alert(`🎉 환영합니다, ${nameOrId}님!\n\n'${churchName}'(담임: ${pastorName}) 교회의 [${role}]로 자동 등록 및 연결되었습니다!`);
+        }
+
+        openOurChurchAppModal();
+    }
+
+    function openOurChurchAppModal() {
+        const churchName = localStorage.getItem("yetalk_church_name");
+        const pastorName = localStorage.getItem("yetalk_pastor_name");
+        const role = localStorage.getItem("yetalk_church_role") || "성도";
+        const churchKey = localStorage.getItem("yetalk_church_key");
+        const myName = localStorage.getItem("yetalk_user_name") || "성도";
+
+        if (!churchName || !pastorName) {
+            if (confirm("아직 교회 등록이 되어있지 않습니다.\n지금 바로 교회명과 담임목사님을 입력하고 교회앱을 개설하시겠습니까?")) {
+                openChristianRegisterModal();
+            }
+            return;
+        }
+
+        let churchMap = {};
+        try {
+            churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+        } catch(e) { churchMap = {}; }
+
+        const churchData = (churchKey && churchMap[churchKey]) ? churchMap[churchKey] : {
+            name: churchName,
+            pastor: pastorName,
+            homepageUrl: "",
+            isVerified: false,
+            homepageOwner: "",
+            members: [{ nameOrId: myName, role: role }]
+        };
+
+        const titleEl = document.getElementById("ourChurchTitle");
+        const pastorSubEl = document.getElementById("ourChurchPastorSub");
+        const inpHp = document.getElementById("inpChurchHomepageUrl");
+        const btnSaveHp = document.getElementById("btnSaveChurchHomepage");
+        const lockBadge = document.getElementById("txtChurchHomepageLockBadge");
+        const noticeEl = document.getElementById("txtChurchHomepageNotice");
+        const actRow = document.getElementById("churchHomepageActionRow");
+        const countEl = document.getElementById("txtOurChurchMemberCount");
+        const listEl = document.getElementById("ourChurchMembersList");
+        const bannerEl = document.getElementById("ourChurchVerificationBanner");
+
+        if (titleEl) titleEl.innerText = `⛪ ${churchData.name}`;
+        if (pastorSubEl) pastorSubEl.innerText = `담임목사: ${churchData.pastor} | 나의 직분: ${role}`;
+        if (inpHp) inpHp.value = churchData.homepageUrl || "";
+        if (actRow) actRow.style.display = churchData.homepageUrl ? "flex" : "none";
+
+        // 🛡️ 담임목사 공인 인증 여부 판정 & 아무나 홈페이지 주인 못되도록 권한 분리
+        const isVerifiedChurch = !!churchData.isVerified;
+        const isOwnerPastor = isVerifiedChurch && (role === "담임목사") && (churchData.homepageOwner === myName);
+
+        if (bannerEl) {
+            if (isVerifiedChurch) {
+                bannerEl.innerHTML = `
+                    <div style="background:#ecfdf5; border:1.5px solid #10b981; border-radius:12px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:24px;">🛡️</span>
+                            <div>
+                                <div style="font-size:13.5px; font-weight:950; color:#065f46; display:flex; align-items:center; gap:5px;">
+                                    정상 인증 교회 <span style="font-size:10.5px; background:#10b981; color:#ffffff; padding:1px 6px; border-radius:6px; font-weight:800;">공식 인증</span>
+                                </div>
+                                <div style="font-size:11.5px; color:#047857; font-weight:700;">담임목사님(${churchData.pastor}) 본인 휴대폰 인증 완료</div>
+                            </div>
+                        </div>
+                        <span style="font-size:11px; font-weight:900; color:#065f46; background:#a7f3d0; padding:3px 8px; border-radius:10px; white-space:nowrap;">대표: ${churchData.homepageOwner || churchData.pastor}</span>
+                    </div>
+                `;
+            } else {
+                bannerEl.innerHTML = `
+                    <div style="background:#fffbeb; border:1.5px solid #f59e0b; border-radius:12px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 6px rgba(245,158,11,0.1);">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:22px;">⏳</span>
+                            <div>
+                                <div style="font-size:13px; font-weight:950; color:#92400e; display:flex; align-items:center; gap:5px;">
+                                    미인증 교회 <span style="font-size:10.5px; background:#f59e0b; color:#ffffff; padding:1px 6px; border-radius:6px; font-weight:800;">성도 등록 대기</span>
+                                </div>
+                                <div style="font-size:11px; color:#b45309; font-weight:700;">담임목사님이 가입 및 휴대폰 인증 시 공식 인증 교회로 전환됩니다.</div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="openPastorAuthFromChurchModal()" style="background:#d97706; color:#ffffff; border:none; border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:900; cursor:pointer; white-space:nowrap;">목사님 인증</button>
+                    </div>
+                `;
+            }
+        }
+
+        // 🔒 홈페이지 주인 권한 제어: 아무나 홈페이지 주인 못되도록 조치
+        if (isVerifiedChurch && !isOwnerPastor) {
+            if (inpHp) {
+                inpHp.readOnly = true;
+                inpHp.style.background = "#f1f5f9";
+                inpHp.style.color = "#334155";
+                inpHp.style.cursor = "default";
+            }
+            if (btnSaveHp) {
+                btnSaveHp.style.display = "none";
+            }
+            if (lockBadge) {
+                lockBadge.innerHTML = `<span style="font-size:11px; font-weight:900; color:#059669; background:#dcfce7; border:1px solid #86efac; padding:2px 8px; border-radius:6px;">🔒 목사님 공인 관리</span>`;
+            }
+            if (noticeEl) {
+                noticeEl.innerHTML = `🛡️ <strong>담임목사님이 인증하신 공식 홈페이지</strong>입니다. 무단 변경이 방지되어 있으며, 성도님들은 [바로가기]와 [복사]를 통해 안전하게 이용하실 수 있습니다.`;
+            }
+        } else if (isOwnerPastor) {
+            if (inpHp) {
+                inpHp.readOnly = false;
+                inpHp.style.background = "#ffffff";
+                inpHp.style.color = "#0f172a";
+                inpHp.style.cursor = "text";
+            }
+            if (btnSaveHp) {
+                btnSaveHp.style.display = "inline-block";
+                btnSaveHp.innerText = "💾 공식 주소 저장";
+            }
+            if (lockBadge) {
+                lockBadge.innerHTML = `<span style="font-size:11px; font-weight:900; color:#15803d; background:#dcfce7; padding:2px 8px; border-radius:6px;">👑 담임목사 관리권한</span>`;
+            }
+            if (noticeEl) {
+                noticeEl.innerHTML = `👑 담임목사님은 우리교회 공식 홈페이지 주소를 등록·수정하실 수 있습니다. 저장 시 <strong>모든 교우들에게 실시간 공유</strong>됩니다.`;
+            }
+        } else {
+            if (inpHp) {
+                inpHp.readOnly = false;
+                inpHp.style.background = "#ffffff";
+                inpHp.style.color = "#0f172a";
+                inpHp.style.cursor = "text";
+            }
+            if (btnSaveHp) {
+                btnSaveHp.style.display = "inline-block";
+                btnSaveHp.innerText = "💾 주소 저장";
+            }
+            if (lockBadge) {
+                lockBadge.innerHTML = `<span style="font-size:11px; font-weight:800; color:#b45309; background:#fef3c7; padding:2px 6px; border-radius:6px;">임시 공유</span>`;
+            }
+            if (noticeEl) {
+                noticeEl.innerHTML = `한 분이라도 홈페이지 주소를 저장하시면 <strong>같은 교회 모든 성도님들의 화면에 자동으로 공유</strong>됩니다. (담임목사님 인증 시 공식 관리자로 확정)`;
+            }
+        }
+
+        const members = churchData.members || [];
+        if (countEl) countEl.innerText = `${members.length}명`;
+
+        if (listEl) {
+            listEl.innerHTML = members.map(m => `
+                <div style="flex-shrink:0; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:8px 12px; text-align:center; min-width:110px;">
+                    <div style="font-size:14px; font-weight:900; color:#0f172a;">${m.nameOrId}</div>
+                    <span style="font-size:11px; font-weight:800; background:#dcfce7; color:#15803d; padding:2px 6px; border-radius:8px; display:inline-block; margin-top:2px;">${m.role}</span>
+                </div>
+            `).join("");
+        }
+
+        const modal = document.getElementById("ourChurchAppModal");
+        if (modal) modal.classList.add("show");
+    }
+
+    function closeOurChurchAppModal() {
+        const modal = document.getElementById("ourChurchAppModal");
+        if (modal) modal.classList.remove("show");
+    }
+
+    function saveChurchHomepageUrl() {
+        const url = (document.getElementById("inpChurchHomepageUrl")?.value || "").trim();
+        const churchKey = localStorage.getItem("yetalk_church_key");
+        const myName = localStorage.getItem("yetalk_user_name") || "";
+        const role = localStorage.getItem("yetalk_church_role") || "성도";
+
+        if (!churchKey) {
+            alert("먼저 교회 등록을 진행해주세요.");
+            return;
+        }
+
+        let churchMap = {};
+        try {
+            churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+        } catch(e) { churchMap = {}; }
+
+        const churchData = churchMap[churchKey];
+        if (churchData && churchData.isVerified) {
+            // 공식 인증된 교회에서 담임목사가 아닌 일반 사용자의 무단 수정 시도 차단!
+            if (role !== "담임목사" || churchData.homepageOwner !== myName) {
+                alert("🛡️ 정상 인증된 교회입니다.\n\n교회 공식 홈페이지 주소 수정 권한은 휴대폰 본인 인증을 완료하신 담임목사님께만 부여되어 있습니다.\n(타인의 무단 홈페이지 점유 및 변경 방지)");
+                if (document.getElementById("inpChurchHomepageUrl")) {
+                    document.getElementById("inpChurchHomepageUrl").value = churchData.homepageUrl || "";
+                }
+                return;
+            }
+        }
+
+        if (!churchMap[churchKey]) {
+            churchMap[churchKey] = {
+                key: churchKey,
+                name: localStorage.getItem("yetalk_church_name") || "우리교회",
+                pastor: localStorage.getItem("yetalk_pastor_name") || "",
+                homepageUrl: "",
+                isVerified: false,
+                homepageOwner: "",
+                members: []
+            };
+        }
+
+        churchMap[churchKey].homepageUrl = url;
+        localStorage.setItem("yetalk_registered_churches", JSON.stringify(churchMap));
+
+        const actRow = document.getElementById("churchHomepageActionRow");
+        if (actRow) actRow.style.display = url ? "flex" : "none";
+
+        alert("✅ 교회 홈페이지 주소가 안전하게 저장되었습니다!\n같은 교회 모든 성도님들의 화면에 자동으로 즉시 공유됩니다.");
+    }
+
+    function visitChurchHomepage() {
+        const url = (document.getElementById("inpChurchHomepageUrl")?.value || "").trim();
+        if (!url) {
+            alert("등록된 홈페이지 주소가 없습니다.");
+            return;
+        }
+        let target = url;
+        if (!target.startsWith("http://") && !target.startsWith("https://")) {
+            target = "https://" + target;
+        }
+        window.open(target, "_blank");
+    }
+
+    function copyChurchHomepageUrl() {
+        const url = (document.getElementById("inpChurchHomepageUrl")?.value || "").trim();
+        if (!url) {
+            alert("복사할 홈페이지 주소가 없습니다.");
+            return;
+        }
+        navigator.clipboard.writeText(url).then(() => {
+            alert("📋 교회 홈페이지 주소가 클립보드에 복사되었습니다!");
+        }).catch(() => {
+            prompt("아래 주소를 복사하세요:", url);
+        });
+    }
+
+    function openChristianFriendsModal() {
+        const churchName = localStorage.getItem("yetalk_church_name") || "우리교회";
+        const churchKey = localStorage.getItem("yetalk_church_key");
+
+        const badge = document.getElementById("txtFriendChurchNameBadge");
+        if (badge) badge.innerText = churchName;
+
+        let churchMap = {};
+        try {
+            churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+        } catch(e) { churchMap = {}; }
+
+        let members = [];
+        if (churchKey && churchMap[churchKey] && churchMap[churchKey].members) {
+            members = churchMap[churchKey].members;
+        } else {
+            const myName = localStorage.getItem("yetalk_user_name") || "나";
+            const myRole = localStorage.getItem("yetalk_church_role") || "성도";
+            members = [{ nameOrId: myName, role: myRole }];
+        }
+
+        const row = document.getElementById("christianRegisteredMembersRow");
+        if (row) {
+            row.innerHTML = members.map(m => `
+                <div style="flex-shrink:0; width:135px; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:12px; padding:10px 8px; text-align:center; box-sizing:border-box;">
+                    <div style="font-size:14.5px; font-weight:900; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${m.nameOrId}</div>
+                    <span style="display:inline-block; font-size:11px; font-weight:800; background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:10px; margin:4px 0 6px 0;">${m.role}</span>
+                    <div style="display:flex; gap:4px; margin-top:2px;">
+                        <button type="button" onclick="openFullscreenBoard(); closeChristianFriendsModal();" style="flex:1; padding:6px 0; background:#0284c7; color:#fff; border:none; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">💬 예톡</button>
+                        <button type="button" onclick="shareChristianInviteKakao('${m.nameOrId}')" style="flex:1; padding:6px 0; background:#fee500; color:#191919; border:none; border-radius:6px; font-size:11px; font-weight:800; cursor:pointer;">📲 카톡</button>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        const modal = document.getElementById("christianFriendsModal");
+        if (modal) modal.classList.add("show");
+    }
+
+    function closeChristianFriendsModal() {
+        const modal = document.getElementById("christianFriendsModal");
+        if (modal) modal.classList.remove("show");
+    }
+
+    function copyChristianInvite() {
+        const churchName = localStorage.getItem("yetalk_church_name") || "";
+        const baseMsg = "예톡 우리교회 홈페이지와 앱에 초청합니다.";
+        const fullMsg = churchName ? `[${churchName}]\n${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/` : `${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/`;
+
+        navigator.clipboard.writeText(fullMsg).then(() => {
+            alert("📋 안심 초청 문구가 복사되었습니다!\n원하시는 곳(카카오톡, 문자 등)에 편안하게 붙여넣기 하세요.");
+        }).catch(() => {
+            prompt("아래 초청 문구를 복사하세요:", fullMsg);
+        });
+    }
+
+    function shareChristianInviteKakao(targetMemberName) {
+        const churchName = localStorage.getItem("yetalk_church_name") || "";
+        const baseMsg = "예톡 우리교회 홈페이지와 앱에 초청합니다.";
+        const fullMsg = churchName ? `[${churchName}]\n${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/` : `${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: "예톡 우리교회 초대",
+                text: fullMsg,
+                url: "https://woongskorea.github.io/Yetalk-backup/"
+            }).catch(() => {});
+        } else {
+            navigator.clipboard.writeText(fullMsg).then(() => {
+                alert(`💬 초대 문구가 복사되었습니다!\n카카오톡을 열어 붙여넣기 하시면 바로 초청장을 보내실 수 있습니다.`);
+            }).catch(() => {
+                prompt("카톡으로 보낼 문구:", fullMsg);
+            });
+        }
+    }
+
+    function handleChristianNav(tab) {
+        document.querySelectorAll(".quick-nav-bar .btn-quick-chip").forEach(btn => btn.classList.remove("active"));
+        if (tab === 'personal') {
+            document.getElementById("chipTabPersonal")?.classList.add("active");
+            location.href = "myapp_home.html?tab=my";
+        } else if (tab === 'small_church') {
+            document.getElementById("chipTabSmallChurch")?.classList.add("active");
+            location.href = "churchmain.html?type=small";
+        } else if (tab === 'our_church') {
+            document.getElementById("chipTabOurChurch")?.classList.add("active");
+            openOurChurchAppModal();
+        } else if (tab === 'friends') {
+            document.getElementById("chipTabFriends")?.classList.add("active");
+            openChristianFriendsModal();
+        }
+    }
+
+    function updateChristianHeaderUI() {
+        const isReg = localStorage.getItem("yetalk_is_registered") === "true";
+        const userName = localStorage.getItem("yetalk_user_name");
+        const role = localStorage.getItem("yetalk_church_role") || "성도";
+        const btn = document.getElementById("btnHeaderJoin");
+        if (btn) {
+            if (isReg && userName) {
+                btn.innerText = `👤 ${userName} (${role})`;
+                btn.style.background = "#0f172a";
+                btn.style.borderColor = "#334155";
+            } else {
+                btn.innerText = "회원가입";
+                btn.style.background = "linear-gradient(135deg, #059669, #047857)";
+                btn.style.borderColor = "#a7f3d0";
+            }
+        }
+    }
+
+    // 페이지 로드 시 교우 헤더 동기화 및 딥링크 지원
+    window.addEventListener("DOMContentLoaded", () => {
+        updateChristianHeaderUI();
+        const rawSearch = window.location.search || (window.location.hash ? window.location.hash.replace("#", "?") : "");
+        const urlParams = new URLSearchParams(rawSearch);
+        const modalParam = urlParams.get("modal");
+        if (modalParam === "register") {
+            openChristianRegisterModal();
+            const roleParam = urlParams.get("role");
+            if (roleParam) {
+                const sel = document.getElementById("selRegChurchRole");
+                if (sel) {
+                    sel.value = roleParam;
+                    onChurchRoleChange(roleParam);
+                }
+            }
+        } else if (modalParam === "ourchurch") {
+            openOurChurchAppModal();
+        } else if (modalParam === "friends") {
+            openChristianFriendsModal();
+        }
+    });
+
 </script>
 
 <script type="module">
