@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -224,7 +224,7 @@
             background: #ffffff;
             padding: 10px 12px;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: 1fr 1.6fr 1fr;
             gap: 6px;
             border-bottom: 1.5px solid #f1f5f9;
             flex-shrink: 0;
@@ -3641,17 +3641,15 @@
             <span class="header-logo-name" style="font-size:20.5px; font-weight:950; color:#059669; letter-spacing:-0.5px; white-space:nowrap;">예톡🌿</span>
         </div>
         <div class="header-right-actions" style="display:flex; align-items:center; gap:8px;">
-            <button type="button" class="btn-header-circle-friend" onclick="openChristianFriendsModal()" title="교우 및 친구 초대" style="padding:7px 15px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; font-size:14px; font-weight:900; border:none; border-radius:20px; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.25);">내친구</button>
             <button type="button" class="btn-header-hamburger" title="전체 메뉴" onclick="openDrawer()" style="background:none; border:none; font-size:24px; color:#1e293b; padding:4px 6px; cursor:pointer;">☰</button>
         </div>
     </header>
 
     <!-- 2. 퀵 메뉴 바: [사용자 요청] 내앱은 MYAPP 내가 만든 앱 보관함(개인앱·작은교회·전문앱), 예약앱은 상점 리스트, 교회앱은 교회 리스트, 의원앱은 의원 리스트 연결 -->
     <nav class="quick-nav-bar">
-        <button type="button" class="btn-quick-chip" id="chipTabPersonal" onclick="handleChristianNav('personal')">🏠 개인앱</button>
-        <button type="button" class="btn-quick-chip" id="chipTabSmallChurch" onclick="handleChristianNav('small_church')">⛪ 작은교회</button>
-        <button type="button" class="btn-quick-chip btn-quick-ourchurch active" id="chipTabOurChurch" onclick="handleChristianNav('our_church')">✨ 우리교회앱</button>
-        <button type="button" class="btn-quick-chip" id="chipTabFriends" onclick="handleChristianNav('friends')">👥 내친구</button>
+        <button type="button" class="btn-quick-chip" id="chipTabPersonal" onclick="handleChristianNav('personal')" style="font-size:13.5px; font-weight:850; padding:9px 4px; text-align:center;">🏠 내앱</button>
+        <button type="button" class="btn-quick-chip btn-quick-ourchurch active" id="chipTabOurChurch" onclick="handleChristianNav('our_church')" style="font-size:14px; font-weight:950; padding:9px 4px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">⛪ 우리교회</button>
+        <button type="button" class="btn-quick-chip" id="chipTabInvite" onclick="handleChristianNav('invite')" style="font-size:13px; font-weight:850; padding:9px 4px; text-align:center;">💌 초청</button>
     </nav>
 
     <!-- 2-1. 4종류의 앱 바로 밑 한 줄 긴 검색창: [사용자 요청] 본인교회명, 단골의원명, 상점 검색 -->
@@ -9187,6 +9185,7 @@
         localStorage.setItem("yetalk_user_name", nameOrId);
         localStorage.setItem("yetalk_user_id", nameOrId);
         localStorage.setItem("yetalk_church_name", churchName);
+        localStorage.setItem("yetalkChurchName", churchName);
         localStorage.setItem("yetalk_pastor_name", pastorName);
         localStorage.setItem("yetalk_church_role", role);
         localStorage.setItem("yetalk_church_key", churchKey);
@@ -9682,63 +9681,39 @@
 
     function handleChristianNav(tab) {
         document.querySelectorAll(".quick-nav-bar .btn-quick-chip").forEach(btn => btn.classList.remove("active"));
-        if (tab === 'personal') {
+        if (tab === 'personal' || tab === 'my') {
             document.getElementById("chipTabPersonal")?.classList.add("active");
             location.href = "myapp_home.html?tab=my";
-        } else if (tab === 'small_church') {
-            document.getElementById("chipTabSmallChurch")?.classList.add("active");
-            location.href = "churchmain.html?type=small";
-        } else if (tab === 'our_church') {
+        } else if (tab === 'our_church' || tab === 'church') {
             document.getElementById("chipTabOurChurch")?.classList.add("active");
-            openOurChurchAppModal();
-        } else if (tab === 'friends') {
-            document.getElementById("chipTabFriends")?.classList.add("active");
+            // 🌟 [사용자 요청] 임시창 모달이 아니라 사진 4의 churchmain.html(누구나 가입하면 모이는 실제 우리교회 화면)로 바로 직행!
+            location.href = "churchmain.html";
+        } else if (tab === 'invite' || tab === 'friends') {
+            document.getElementById("chipTabInvite")?.classList.add("active");
             openChristianFriendsModal();
         }
     }
 
     function updateChristianHeaderUI() {
-        const isReg = localStorage.getItem("yetalk_is_registered") === "true";
-        const userName = localStorage.getItem("yetalk_user_name");
-        const role = localStorage.getItem("yetalk_church_role") || "성도";
-        const btn = document.getElementById("btnHeaderJoin");
-        if (btn) {
-            if (isReg && userName) {
-                btn.innerText = `👤 ${userName} (${role})`;
-                btn.style.background = "#0f172a";
-                btn.style.borderColor = "#334155";
-            } else {
-                btn.innerText = "회원가입";
-                btn.style.background = "linear-gradient(135deg, #059669, #047857)";
-                btn.style.borderColor = "#a7f3d0";
-            }
+        // 🌟 [사용자 요청] 퀵 메뉴 바에 본인 교회 실제 이름 버튼 표출 (없으면 '우리교회')
+        const churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "우리교회";
+        const ourChurchTab = document.getElementById("chipTabOurChurch");
+        if (ourChurchTab) {
+            ourChurchTab.innerHTML = `⛪ ${churchName.trim()}`;
+        }
+
+        // 총관리자 여부 체크하여 드로어 관리자 버튼 상태 동기화
+        const isSuper = localStorage.getItem("yetalk_super_admin") === "true" || localStorage.getItem("yetalk_church_role") === "담임목사";
+        const sec = document.getElementById("drawerSuperAdminSection");
+        if (sec) {
+            sec.style.display = isSuper ? "block" : "none";
         }
     }
 
-    // 페이지 로드 시 교우 헤더 동기화 및 딥링크 지원
     window.addEventListener("DOMContentLoaded", () => {
         updateChristianHeaderUI();
-        const rawSearch = window.location.search || (window.location.hash ? window.location.hash.replace("#", "?") : "");
-        const urlParams = new URLSearchParams(rawSearch);
-        const modalParam = urlParams.get("modal");
-        if (modalParam === "register") {
-            openChristianRegisterModal();
-            const roleParam = urlParams.get("role");
-            if (roleParam) {
-                const sel = document.getElementById("selRegChurchRole");
-                if (sel) {
-                    sel.value = roleParam;
-                    onChurchRoleChange(roleParam);
-                }
-            }
-        } else if (modalParam === "ourchurch") {
-            openOurChurchAppModal();
-        } else if (modalParam === "friends") {
-            openChristianFriendsModal();
-        }
     });
-
-</script>
+    </script>
 
 <script type="module">
     import { db, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "./firebase.js";
