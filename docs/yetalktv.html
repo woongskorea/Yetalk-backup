@@ -6946,10 +6946,29 @@
             isUploadedByMe: true
         };
 
-        // 1번 최신 대표 꽂기 체크 시
+        // 1번 최신 대표 꽂기 체크 시 & 🌟 [사용자 요청] 예톡TV 및 메일성경찬송 실시간 클라우드 즉각 배포
         if (!chkPin || chkPin.checked) {
             localStorage.setItem("yetalkPinnedVideoId", videoId);
             localStorage.setItem("yetalkPinnedBizName", chosenBiz);
+            localStorage.setItem("yetalk_admin_yt_url_vid", videoId);
+            localStorage.setItem("yetalk_admin_yt_url", url);
+        }
+        if (window.yetalkDb && window.yetalkFs) {
+            try {
+                const { doc, setDoc, serverTimestamp } = window.yetalkFs;
+                const tvPayload = {
+                    ytUrl: url,
+                    vId: videoId,
+                    videoId: videoId,
+                    title: promoText,
+                    bizName: chosenBiz,
+                    updatedAt: serverTimestamp(),
+                    updatedBy: localStorage.getItem("yetalkUserName") || "admin"
+                };
+                setDoc(doc(window.yetalkDb, "yetalk_global_config", "tv_top_video"), tvPayload, { merge: true }).catch(() => {});
+                setDoc(doc(window.yetalkDb, "yetalk_global_config", "suite_video"), tvPayload, { merge: true }).catch(() => {});
+                console.log("🔥 [예톡TV] 새 유튜브 주소가 모든 회원 기기에 실시간 즉각 반영되도록 클라우드 배포되었습니다.");
+            } catch(e) {}
         }
 
         savedList.unshift(newFeed);
@@ -9613,6 +9632,56 @@ https://yetalk.cc`;
                 return;
             }
             const { collection, query, orderBy, limit, onSnapshot } = window.yetalkFs;
+            // 🌟 [사용자 요청] 최신 등록된 대표 유튜브 영상을 1초 만에 전체 회원 예톡TV 최상단에 자동 반영
+            try {
+                const refTvTop = doc(window.yetalkDb, "yetalk_global_config", "tv_top_video");
+                const refSuite = doc(window.yetalkDb, "yetalk_global_config", "suite_video");
+
+                function applyTopCloudVideo(cloudData) {
+                    if (!cloudData || !cloudData.videoId) return;
+                    const topVid = cloudData.videoId || cloudData.vId;
+                    if (!topVid) return;
+                    localStorage.setItem("yetalkPinnedVideoId", topVid);
+                    localStorage.setItem("yetalk_admin_yt_url_vid", topVid);
+
+                    let feeds = [];
+                    try {
+                        feeds = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]");
+                    } catch(e) { feeds = []; }
+
+                    const existingIdx = feeds.findIndex(f => f.videoId === topVid);
+                    if (existingIdx > 0) {
+                        const item = feeds.splice(existingIdx, 1)[0];
+                        feeds.unshift(item);
+                    } else if (existingIdx < 0) {
+                        feeds.unshift({
+                            id: Date.now(),
+                            videoId: topVid,
+                            title: cloudData.title || "추천 찬양 말씀",
+                            bizName: cloudData.bizName || "예톡TV",
+                            shortAd: cloudData.title || "",
+                            targetUrl: "churchmain.html",
+                            format: (cloudData.ytUrl && cloudData.ytUrl.includes("shorts")) ? "shorts" : "16:9",
+                            views: 120,
+                            likes: 7,
+                            date: "최신",
+                            timestamp: Date.now()
+                        });
+                    }
+                    localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(feeds));
+                    console.log("🔥 [예톡TV 회원 즉시 반영] 대표 영상 실시간 동기화 완료:", topVid);
+                    if (typeof renderFeedCards === "function") renderFeedCards();
+                }
+
+                onSnapshot(refTvTop, (snap) => {
+                    if (snap && snap.exists()) applyTopCloudVideo(snap.data());
+                }, (err) => console.warn("tv_top_video onSnapshot notice:", err));
+
+                onSnapshot(refSuite, (snap) => {
+                    if (snap && snap.exists()) applyTopCloudVideo(snap.data());
+                }, (err) => console.warn("suite_video onSnapshot notice:", err));
+            } catch(e) {}
+
             const q = query(collection(window.yetalkDb, "yetalk_videos"), orderBy("createdAt", "desc"), limit(300));
 
             // 🌟 실시간 onSnapshot 리스너로 누군가 새 영상을 올리는 즉시 전체 회원에게 자동 반영
