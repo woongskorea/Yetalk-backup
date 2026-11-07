@@ -768,25 +768,89 @@
         const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
         document.body.setAttribute('data-theme', savedTheme);
 
-        let churchName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        let churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "우리교회";
         if (!churchName || churchName.includes("움직이는") || churchName.includes("김예톡") || churchName.includes("최예톡")) {
-            churchName = "예톡행복한교회";
-            localStorage.setItem("yetalkChurchName", "예톡행복한교회");
+            churchName = "우리교회";
         }
+        localStorage.setItem("yetalkChurchName", churchName);
+        localStorage.setItem("yetalk_church_name", churchName);
+
         const titleEl = document.getElementById("noticeHeaderTitle");
         if (titleEl) titleEl.innerText = `✝ ${churchName} 공지알림`;
 
-        const saved = localStorage.getItem(NOTICE_STORAGE_KEY);
-        if (saved) {
-            try { notices = JSON.parse(saved); } catch(e) { notices = DEFAULT_NOTICES; }
-        } else {
-            notices = DEFAULT_NOTICES;
-            localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(notices));
+        // 🌟 [사용자 요청] 기본 공지알림 데이터 (텅 빈 화면 원천 방지 및 교회명 자동 반영)
+        const churchKey = localStorage.getItem("yetalk_church_key") || "default";
+        const customKey = "yetalk_church_notices_" + churchKey;
+
+        let loaded = [];
+        try {
+            const savedCustom = localStorage.getItem(customKey);
+            if (savedCustom) loaded = JSON.parse(savedCustom);
+        } catch(e) { loaded = []; }
+
+        if (!loaded || loaded.length === 0) {
+            try {
+                const savedMaster = localStorage.getItem(NOTICE_STORAGE_KEY);
+                if (savedMaster) loaded = JSON.parse(savedMaster);
+            } catch(e) { loaded = []; }
         }
+
+        if (!loaded || loaded.length === 0) {
+            loaded = [
+                {
+                    id: "notice_worship_" + churchKey,
+                    category: "예배·주보",
+                    title: `[${churchName}] 금주 예배 및 주보 안내`,
+                    content: `🕊️ [${churchName} 예배 안내]\n\n• 주일 대예배: 주일 오전 11:00\n• 수요 기도회: 수요일 저녁 7:30\n• 새벽 기도회: 매일 새벽 5:30\n\n“하나님은 영이시니 예배하는 자가 영과 진리로 예배할지니라 (요한복음 4:24)”\n${churchName} 성도님들을 환영하고 축복합니다.`,
+                    author: churchName + " 교회사무실",
+                    time: "오늘",
+                    views: 520,
+                    img: null,
+                    fileName: null
+                },
+                {
+                    id: "notice_comm_" + churchKey,
+                    category: "교우소식",
+                    title: `[${churchName}] 우리교회 전용 앱 & 홈페이지 개설 안내`,
+                    content: `✨ [${churchName} 교우 소식]\n\n우리 '${churchName}'의 전용 모바일 교회앱과 홈페이지가 개설되었습니다.\n함께 말씀과 찬양을 나누며 기도하는 은혜의 성도 공동체가 되길 소망합니다.`,
+                    author: "당회 / 관리국",
+                    time: "최신",
+                    views: 430,
+                    img: null,
+                    fileName: null
+                },
+                {
+                    id: "notice_prayer_" + churchKey,
+                    category: "기도제목",
+                    title: `[${churchName}] 금주의 한마음 중보기도 제목`,
+                    content: `🙏 [${churchName} 한마음 기도제목]\n\n1. 교회의 부흥과 담임목사님의 영육 간 강건함을 위해\n2. 모든 교우 가정의 평안과 다음 세대의 신앙 성장을 위해\n3. 이웃에게 주님의 사랑과 복음을 전하는 사명을 위해`,
+                    author: "중보기도팀",
+                    time: "금주",
+                    views: 380,
+                    img: null,
+                    fileName: null
+                }
+            ];
+            localStorage.setItem(NOTICE_STORAGE_KEY, JSON.stringify(loaded));
+            localStorage.setItem(customKey, JSON.stringify(loaded));
+        }
+
+        notices = loaded;
         renderNoticeFeed();
+
+        // 🌟 [사용자 요청] 홈에서 공지알림을 눌러 들어왔을 때 해당 공지글의 상세창이 바로 연결되어 시원하게 열림!
+        const urlParams = new URLSearchParams(window.location.search);
+        const noticeIdParam = urlParams.get("noticeId");
+        if (noticeIdParam) {
+            const foundIdx = notices.findIndex(item => String(item.id) === String(noticeIdParam));
+            if (foundIdx !== -1) {
+                openDetailModalByIndex(foundIdx);
+            } else if (notices.length > 0) {
+                openDetailModalByIndex(0);
+            }
+        }
     }
 
-    // 🌟 [요청사항 준수] 처음 페이지에서는 이미지 말고 글(제목, 요약, 뱃지)만 깔끔하게 표시!
     function renderNoticeFeed() {
         const container = document.getElementById("noticeFeedContainer");
         container.innerHTML = "";

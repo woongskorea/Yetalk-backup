@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -3708,16 +3708,16 @@
             </div>
 
             <div class="goodnews-text" id="gnText">
-                “복 있는 사람은 악인들의 꾀를 따르지 아니하며 죄인들의 길에 서지 아니하며 오만한 자들의 자리에 앉지 아니하고 오직 여호와의 율법을 즐거워하여 그의 율법을 주야로 묵상하는도다”
+                “두려워하지 말라 내가 너와 함께 함이라 놀라지 말라 나는 네 하나님이 됨이라”
             </div>
-            <div style="text-align:right; margin-top:10px;">
-                <button type="button" class="btn-goodnews-verse-action" id="btnGoodnewsVerseAction" onclick="openGoodnewsVerseInFullBible()" title="이 성경 말씀 한 페이지 전체 읽기" style="background:#ecfdf5; border:1.5px solid #10b981; color:#047857; font-size:13.5px; font-weight:900; padding:7px 14px; border-radius:20px; cursor:pointer; box-shadow:0 2px 6px rgba(16,185,129,0.18); display:inline-flex; align-items:center; gap:6px; transition:all 0.15s ease;">
+            <!-- 🌟 [사용자 요청] 복잡한 녹색 바 버튼 대신 말씀만 깔끔하게 동그라미 쳐서 우측에 위치 (터치 시 해당 장 전체 본문 즉시 열림) -->
+            <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+                <button type="button" class="btn-verse-circle" id="btnGoodnewsVerseAction" onclick="openGoodnewsVerseInFullBible()" title="성경 본문 전체 읽기" style="background:#ffffff; border:2px solid #059669; color:#047857; font-size:15px; font-weight:950; padding:6px 16px; border-radius:24px; cursor:pointer; box-shadow:0 2px 6px rgba(5,150,105,0.18); display:inline-flex; align-items:center; gap:6px; transition:all 0.15s ease;">
                     <span>📖</span>
-                    <span id="gnRefText">- 시편 1:1~2 -</span>
-                    <span style="background:#10b981; color:#ffffff; font-size:11px; font-weight:800; padding:2px 8px; border-radius:12px; margin-left:4px;">한페이지 전체 읽기 ➔</span>
+                    <span id="gnRefText">이사야 41:10</span>
+                    <span style="color:#059669; font-weight:950; font-size:13px;">➔</span>
                 </button>
-            </div>
-        </article>
+            </div></article>
 
         <!-- 🌟 [사용자 요청] 역사상 가장 많이 읽힌 책 / 성경, 영원한 천국의 책 / 왜 예수님께서 나의 구원자 되시는가? 3줄 + 매일 열기 버튼 세로 확대 -->
         <article class="best-book-portal-row" onclick="openBibleSuite()" title="성경과 찬양 매일 열기">
@@ -7214,23 +7214,42 @@
 
     // 🌟 [사용자 요청] '이 시간의 말씀' 성경 몇장몇절 버튼 누르면 바로 그 말씀 선택되어 한 페이지 전체 표시
     function openGoodnewsVerseInFullBible() {
-        const rawRef = (document.getElementById('gnRefText')?.innerText || document.getElementById('gnRef')?.innerText || '').replace(/[-–—\[\]\(\)]/g, '').trim();
-        const match = rawRef.match(/^([가-힣a-zA-Z]+)\s*(\d+)/);
-        let book = '시편';
-        let ch = 1;
+        const rawRef = (document.getElementById('gnRefText')?.innerText || document.getElementById('gnRef')?.innerText || '').replace(/[-📖🔍\[\]\(\)]/g, '').trim();
+        const match = rawRef.match(/([가-힣]+)\s*(\d+)/);
+        let book = '이사야';
+        let ch = 41;
         if (match) {
-            book = match[1];
-            ch = parseInt(match[2], 10);
+            book = match[1].trim();
+            ch = parseInt(match[2], 10) || 1;
         }
+
+        // 🌟 [사용자 요청] 이사야 41:10 등 해당 성경과 장 전체가 확실하게 뷰어에 렌더링되도록 구약/신약 탭, 셀렉트박스 완벽 동기화
         const meta = (typeof getBibleBookMeta === 'function') ? getBibleBookMeta(book) : { type: 'OT' };
+        currentHomeTestament = meta.type || 'OT';
+
         if (typeof switchHomeBibleTestament === 'function') {
-            switchHomeBibleTestament(meta.type || 'OT');
+            switchHomeBibleTestament(currentHomeTestament);
         }
+
         currentUserBibleBook = book;
         currentUserBibleCh = ch;
-        if (typeof initUserBibleReading === 'function') initUserBibleReading();
-        if (typeof displayUserBibleChapter === 'function') displayUserBibleChapter(book, ch);
-        const targetSection = document.getElementById('dailyBibleSection');
+        localStorage.setItem("yetalk_user_bible_book", book);
+        localStorage.setItem("yetalk_user_bible_ch", String(ch));
+
+        if (typeof populateHomeBibleBookSelect === 'function') populateHomeBibleBookSelect();
+        const selBook = document.getElementById("selUserBibleBook");
+        if (selBook) selBook.value = book;
+
+        if (typeof populateHomeBibleChapterSelect === 'function') populateHomeBibleChapterSelect();
+        const selCh = document.getElementById("selUserBibleChapter");
+        if (selCh) selCh.value = String(ch);
+
+        if (typeof displayUserBibleChapter === 'function') {
+            displayUserBibleChapter(book, ch);
+        }
+
+        // 🌟 [오류 수정] id="dailyBibleReadingSection" 으로 확실히 스크롤 이동!
+        const targetSection = document.getElementById('dailyBibleReadingSection');
         if (targetSection) {
             targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
@@ -8561,9 +8580,9 @@
         const container = document.getElementById("unifiedNoticePanel");
         if (!container) return;
 
-        const churchName = localStorage.getItem("yetalk_church_name");
+        const churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "우리교회";
         const pastorName = localStorage.getItem("yetalk_pastor_name") || "담임목사";
-        const churchKey = localStorage.getItem("yetalk_church_key");
+        const churchKey = localStorage.getItem("yetalk_church_key") || "default";
 
         let notices = [];
 
@@ -8582,7 +8601,7 @@
                     title: `[${churchName}] 금주 예배 및 주보 안내`,
                     content: `🕊️ [${churchName} 예배 안내]\n\n• 주일 대예배: 주일 오전 11:00\n• 수요 기도회: 수요일 저녁 7:30\n• 새벽 기도회: 매일 새벽 5:30`,
                     dateText: "금주",
-                    targetUrl: "churchmain.html?tab=notice"
+                    targetUrl: "churchnotice.html?noticeId=notice_worship_" + churchKey
                 },
                 {
                     id: "notice_comm_" + churchKey,
@@ -8592,7 +8611,7 @@
                     title: `[${churchName}] 우리교회 전용 앱 & 홈페이지 개설`,
                     content: `✨ [${churchName} 교우 소식]\n\n우리 '${churchName}'의 전용 모바일 교회앱과 홈페이지가 개설되었습니다.`,
                     dateText: "최신",
-                    targetUrl: "churchmain.html?tab=notice"
+                    targetUrl: "churchnotice.html?noticeId=notice_comm_" + churchKey
                 },
                 {
                     id: "notice_prayer_" + churchKey,
@@ -8602,7 +8621,7 @@
                     title: `[${churchName}] 금주의 중보기도 제목`,
                     content: `🙏 [${churchName} 한마음 기도제목]\n\n1. 교회의 부흥과 담임목사님(${pastorName})의 영육 간 강건함을 위해`,
                     dateText: "오늘",
-                    targetUrl: "churchmain.html?tab=notice"
+                    targetUrl: "churchnotice.html?noticeId=notice_prayer_" + churchKey
                 }
             ];
 
@@ -8617,7 +8636,7 @@
                     title: "✝️ 출석 교회를 등록하시면 우리교회 전용 공지가 한줄로 표시됩니다",
                     content: "우리교회를 등록하시면 교회 공지알림이 즉시 연동됩니다.",
                     dateText: "안내",
-                    targetUrl: "javascript:openChristianRegisterModal()"
+                    targetUrl: "churchnotice.html"
                 }
             ];
         }
@@ -8632,13 +8651,13 @@
                     <span style="font-size:14.5px; font-weight:950; color:#0f172a;">${headerTitle}</span>
                     <span style="background:#059669; color:#fff; font-size:11px; font-weight:900; padding:1px 7px; border-radius:10px;">${notices.length}</span>
                 </div>
-                <span style="font-size:11.5px; color:#64748b; font-weight:800;">터치 시 교회 공지로 직행 ➔</span>
+                <span style="font-size:11.5px; color:#64748b; font-weight:800;">터치 시 교회 공지글로 직행 ➔</span>
             </div>
         `;
 
-        // 🌟 [사용자 요청] 공지알림 누르면 그냥 한줄로 리스트가 짝 뜨고 누르면 바로 교회 공지알림으로 가게 처리!
+        // 🌟 [사용자 요청] 공지알림 버튼 누르면 교회앱속에 그 공지글이 바로 연결되어 열리게 처리!
         const itemsHtml = notices.map(n => {
-            const target = n.targetUrl ? n.targetUrl : "churchmain.html?tab=notice";
+            const target = n.targetUrl ? n.targetUrl : (`churchnotice.html?noticeId=${encodeURIComponent(n.id)}`);
             return `
                 <div onclick="location.href='${target}'" style="display:flex; justify-content:space-between; align-items:center; padding:11px 12px; background:#ffffff; border-radius:10px; margin-bottom:6px; border:1px solid #e2e8f0; cursor:pointer; box-shadow:0 1.5px 3px rgba(0,0,0,0.03); transition:all 0.15s ease;">
                     <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
