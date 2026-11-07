@@ -1,4 +1,4 @@
-﻿﻿﻿﻿<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -3780,7 +3780,7 @@
                     <span class="amen-confession-sub">말씀 묵상 후 아래 '아멘'을 누르시면 자유게시판에 자동 등록됩니다</span>
                 </div>
                 <div class="amen-confession-input-row">
-                    <textarea id="inpBibleAmenConfession" class="inp-bible-amen-confession" rows="3" oninput="this.dataset.userEdited='true'" placeholder="새날을 아침 말씀으로 시작하게하시니 감사합니다. 아멘 🙏">새날을 아침 말씀으로 시작하게하시니 감사합니다. 아멘 🙏</textarea>
+                    <textarea id="inpBibleAmenConfession" class="inp-bible-amen-confession" rows="3" oninput="this.dataset.userEdited='true'" placeholder="새날을 아침 말씀으로 시작하게하시니 감사합니다. 아멘 🙏"></textarea>
                     <button type="button" class="btn-bible-amen-action" id="btnBibleAmenAction" onclick="submitBibleAmenConfession()">
                         🙏 아멘
                     </button>
@@ -5188,7 +5188,7 @@
         if (titleEl) titleEl.innerText = slotTitle;
         inp.placeholder = defaultPrayer;
         if (!inp.dataset.userEdited) {
-            inp.value = defaultPrayer;
+            inp.value = "";
         }
     }
 
@@ -5246,6 +5246,8 @@
             }, 3000);
         }
 
+        inp.value = "";
+        delete inp.dataset.userEdited;
         alert(`✨ 아멘!\n아이디 '${displayAuthorId}' 님으로 예톡 자유게시판에 오늘의 감사 고백이 안전하게 등록되었습니다.`);
     }
 
@@ -5509,97 +5511,105 @@
             txtAutoTimeSlot.innerText = `${num}장 ${info.title}`;
         }
 
-        // 소제목 업데이트 (찬송가 번호, 제목 및 유튜브 찬양 듣기 버튼)
+        // 소제목 업데이트 (찬송가 번호 및 제목 표출 - 상단 빨강 버튼 삭제)
         const subTitleEl = document.getElementById("bbrChapterSubtitle");
         if (subTitleEl) {
             subTitleEl.style.color = "#7c3aed";
-            subTitleEl.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                    <span style="font-weight:900; color:#7c3aed; font-size:17px;">${num}장 &nbsp;${info.title}</span>
-                    <button type="button" class="btn-hymn-listen-yt" onclick="playHymnYouTube(${num}, '${encodeURIComponent(info.title)}')">
-                        ▶ 반주·찬양 듣기
-                    </button>
-                </div>
-            `;
+            subTitleEl.innerHTML = '<div style="display:flex; align-items:center; padding:2px 0;"><span style="font-weight:950; color:#7c3aed; font-size:17.5px; letter-spacing:-0.3px;">' + num + '장 &nbsp;' + info.title + '</span></div>';
         }
 
-        // 본문 가사 렌더링 (성경 구절처럼 절별로 깔끔하게 18px 렌더링)
+        // 본문 가사 렌더링 (1절+후렴, 2절+후렴 결합 & 절간 빈 공간 없는 콤팩트 카드형 표출)
         const contentEl = document.getElementById("bbrContentBody");
         if (contentEl) {
             let lyricsHtml = "";
             if (info.lyrics && info.lyrics.trim().length > 0) {
-                const stanzas = info.lyrics.split(/\n\s*\n/).filter(s => s.trim().length > 0);
-                lyricsHtml = stanzas.map(stanza => {
-                    const st = stanza.trim();
-                    if (!st) return "";
-                    const lines = st.split("\n").map(l => l.trim()).filter(Boolean);
-                    if (lines.length === 0) return "";
-                    
-                    let stanzaLabel = "";
-                    let stanzaText = lines.join(" ");
-                    
-                    if (lines[0].startsWith("1절") || lines[0].startsWith("2절") || lines[0].startsWith("3절") || lines[0].startsWith("4절") || lines[0].startsWith("5절")) {
-                        stanzaLabel = lines[0];
-                        stanzaText = lines.slice(1).join(" ");
-                    } else if (lines[0].includes("후렴")) {
-                        stanzaLabel = "(후렴)";
-                        stanzaText = lines.join(" ").replace(/\(후렴\)/g, "").trim();
+                const rawStanzas = info.lyrics.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+
+                // 1. 공통 후렴(Chorus) 탐색
+                let commonChorus = "";
+                for (const s of rawStanzas) {
+                    const lines = s.split("\n").map(l => l.trim()).filter(Boolean);
+                    for (const l of lines) {
+                        if (l.startsWith("(후렴)") || l.startsWith("[후렴]") || l.startsWith("후렴")) {
+                            commonChorus = l.replace(/^(\(후렴\)|\[후렴\]|후렴:?)\s*/, "").trim();
+                            break;
+                        }
                     }
-                    
-                    const isChorus = stanzaLabel.includes("후렴");
-                    if (isChorus) {
-                        return `
-                            <div class="bible-verse-item" style="background:#faf5ff; border:1px solid #e9d5ff; border-radius:10px; margin:4px 0; padding:6px 10px;">
-                                <span class="bible-verse-num" style="color:#7c3aed; font-weight:900;">${stanzaLabel}</span>
-                                <span class="bible-verse-body" style="color:#581c87; font-weight:750; line-height:1.8;">${stanzaText}</span>
-                            </div>
-                        `;
+                    if (commonChorus) break;
+                }
+
+                // 2. 각 절별로 가사 분리 및 후렴 결합 (1절+후렴, 2절+후렴 ...)
+                const verseItems = [];
+                rawStanzas.forEach(s => {
+                    if (s.startsWith("(후렴)") || s.startsWith("[후렴]") || s.startsWith("후렴")) {
+                        return;
                     }
-                    return `
-                        <div class="bible-verse-item" style="padding:3px 0; line-height:1.75; margin-bottom:4px;">
-                            <span class="bible-verse-num" style="color:#7c3aed; font-weight:900; margin-right:6px;">${stanzaLabel || '•'}</span>
-                            <span class="bible-verse-body" style="color:#1e293b; font-size:18px;">${stanzaText}</span>
-                        </div>
-                    `;
-                }).join("");
+                    const lines = s.split("\n").map(l => l.trim()).filter(Boolean);
+                    if (lines.length === 0) return;
+
+                    let label = "";
+                    let vLines = [];
+                    let localChorus = "";
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        if (i === 0 && /^(\d+절|[0-9]+절)/.test(line)) {
+                            label = line.match(/^(\d+절|[0-9]+절)/)[1];
+                            const rest = line.replace(/^(\d+절|[0-9]+절)\s*/, "").trim();
+                            if (rest) {
+                                if (rest.startsWith("(후렴)") || rest.startsWith("[후렴]") || rest.startsWith("후렴")) {
+                                    localChorus = rest.replace(/^(\(후렴\)|\[후렴\]|후렴:?)\s*/, "");
+                                } else {
+                                    vLines.push(rest);
+                                }
+                            }
+                        } else if (line.startsWith("(후렴)") || line.startsWith("[후렴]") || line.startsWith("후렴")) {
+                            const chText = line.replace(/^(\(후렴\)|\[후렴\]|후렴:?)\s*/, "").trim();
+                            localChorus = (localChorus ? localChorus + " " : "") + chText;
+                        } else {
+                            if (localChorus) {
+                                localChorus += " " + line;
+                            } else {
+                                vLines.push(line);
+                            }
+                        }
+                    }
+
+                    const vText = vLines.join(" ").trim();
+                    const chorusToUse = localChorus || commonChorus;
+                    if (vText) {
+                        verseItems.push({
+                            label: label || "•",
+                            verseText: vText,
+                            chorusText: chorusToUse
+                        });
+                    }
+                });
+
+                if (verseItems.length > 0) {
+                    lyricsHtml = verseItems.map(item => {
+                        let chHtml = "";
+                        if (item.chorusText) {
+                            chHtml = '<div style="margin-top:6px; padding-top:6px; border-top:1px dashed #d8b4fe; font-size:16px; font-weight:700; color:#6b21a8; line-height:1.65;"><span style="color:#7c3aed; font-weight:900; margin-right:4px;">(후렴)</span>' + item.chorusText + '</div>';
+                        }
+                        return '<div class="hymn-verse-card" style="margin-bottom:8px; padding:10px 14px; background:#faf5ff; border:1px solid #e9d5ff; border-radius:12px;"><div style="font-size:13.5px; font-weight:900; color:#7c3aed; margin-bottom:4px;">' + item.label + '</div><div style="font-size:17.5px; font-weight:700; color:#1e293b; line-height:1.7;">' + item.verseText + '</div>' + chHtml + '</div>';
+                    }).join("");
+                } else {
+                    lyricsHtml = '<div style="padding:14px; background:#faf5ff; border-radius:12px; font-size:17.5px; line-height:1.75; color:#1e293b;">' + info.lyrics.replace(/\n/g, "<br>") + '</div>';
+                }
             } else {
-                lyricsHtml = `
-                    <div style="text-align:center; padding:30px 14px; background:#faf5ff; border-radius:12px; border:1px dashed #d8b4fe;">
-                        <div style="font-size:28px; margin-bottom:8px;">🎵</div>
-                        <div style="font-size:19px; font-weight:900; color:#6b21a8; margin-bottom:6px;">새찬송가 ${num}장</div>
-                        <div style="font-size:13px; color:#7e22ce; font-weight:750; margin-bottom:12px;">${info.engTitle ? '(' + info.engTitle + ')' : ''}</div>
-                        <div style="font-size:14.5px; color:#475569; line-height:1.65; margin-bottom:18px;">
-                            성도님 개인 찬양 및 묵상을 위해 준비된 찬송입니다.<br>
-                            아래 버튼을 누르시면 <strong>저작권 걱정 없이 고음질 전곡 찬양 및 피아노/오르간 반주</strong>를 즉시 감상하며 함께 부르실 수 있습니다.
-                        </div>
-                        <button type="button" class="btn-hymn-listen-yt" style="padding:10px 20px; font-size:14px; border-radius:10px;" onclick="playHymnYouTube(${num}, '${encodeURIComponent(info.title)}')">
-                            ▶ 유튜브로 전곡 찬양 및 반주 즉시 듣기
-                        </button>
-                    </div>
-                `;
+                lyricsHtml = '<div style="text-align:center; padding:28px 14px; background:#faf5ff; border-radius:12px; border:1px dashed #d8b4fe;">'
+                    + '<div style="font-size:26px; margin-bottom:6px;">🎵</div>'
+                    + '<div style="font-size:18px; font-weight:900; color:#6b21a8; margin-bottom:4px;">새찬송가 ' + num + '장</div>'
+                    + '<div style="font-size:13px; color:#7e22ce; font-weight:750; margin-bottom:10px;">' + (info.title || '') + '</div>'
+                    + '<div style="font-size:14.5px; color:#475569; line-height:1.65;">성도님 개인 찬양 및 묵상을 위해 준비된 찬송입니다.</div>'
+                    + '</div>';
             }
             contentEl.innerHTML = lyricsHtml;
-            // Sheet music image section
-            const akboQuery = encodeURIComponent("새찬송가 " + num + "장 약보");
-            const akboSearchUrl = "https://www.google.com/search?q=" + akboQuery + "&tbm=isch";
-            const ytSearchUrl2 = "https://www.youtube.com/results?search_query=" + encodeURIComponent("새찬송가 " + num + "장 " + info.title + " ");
-            
-            // Add sheet music section below lyrics
+
+            // 저작권 및 딜레이 방지를 위해 악보/외부 이동 버튼 완전 제거
             const existingAkbo = document.getElementById("hymnAkboSection");
-            if (!existingAkbo) {
-                const akboDiv = document.createElement("div");
-                akboDiv.id = "hymnAkboSection";
-                akboDiv.style.cssText = "margin-top:16px; border-top:1px dashed #d8b4fe; padding-top:12px;";
-                akboDiv.innerHTML = '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">'
-                    + '<button onclick="window.open(\'' + akboSearchUrl + '\',\'_blank\')" style="flex:1; padding:9px 6px; background:#f3f0ff; border:1.5px solid #a78bfa; border-radius:10px; color:#6d28d9; font-weight:800; font-size:13px; cursor:pointer;">'
-                    + '&#127925; 약보 보기</button>'
-                    + '<button onclick="window.open(\'' + ytSearchUrl2 + '\',\'_blank\')" style="flex:1; padding:9px 6px; background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; color:#dc2626; font-weight:800; font-size:13px; cursor:pointer;">'
-                    + '&#9654; &middot;찬양 듣기</button>'
-                    + '</div>';
-                contentEl.appendChild(akboDiv);
-            } else {
-                existingAkbo.style.display = "block";
-            }
+            if (existingAkbo) existingAkbo.remove();
         }
 
         // 하단 출처 표기
