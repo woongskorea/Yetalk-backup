@@ -10305,12 +10305,18 @@
         if (currentDay < 1 || currentDay > 15) currentDay = 1;
         renderHeavenMeditationContent(currentDay);
         const modal = document.getElementById('modalHeavenMeditation');
-        if (modal) modal.classList.add('show');
+        if (modal) {
+            modal.style.removeProperty('display');
+            modal.classList.add('show');
+        }
     }
 
     function closeHeavenMeditationModal(saveDismissToday) {
         const modal = document.getElementById('modalHeavenMeditation');
-        if (modal) modal.classList.remove('show');
+        if (modal) {
+            modal.classList.remove('show');
+            modal.style.setProperty('display', 'none', 'important');
+        }
 
         if (saveDismissToday) {
             const now = new Date();
@@ -10318,6 +10324,12 @@
             localStorage.setItem('yetalk_heaven_dismiss_date', todayStr);
         }
     }
+
+    // 전역 window 스코프에 안전하게 바인딩 (PC 브라우저 및 인라인 onclick 100% 보장)
+    window.renderHeavenMeditationContent = renderHeavenMeditationContent;
+    window.navigateHeavenDay = navigateHeavenDay;
+    window.openHeavenMeditationModal = openHeavenMeditationModal;
+    window.closeHeavenMeditationModal = closeHeavenMeditationModal;
 
     function checkHeavenDaily8PmPopup() {
         const now = new Date();
@@ -10396,7 +10408,7 @@
 
 
     <!-- 🌟 [사용자 요청] 천국 소망 & 영적 경고 15일 매일 저녁 8시 묵상 팝업 + 맨 밑 애드몹 250 -->
-    <div class="heaven-modal-backdrop" id="modalHeavenMeditation">
+    <div class="heaven-modal-backdrop" id="modalHeavenMeditation" onclick="if(event.target===this) closeHeavenMeditationModal(false)">
         <div class="heaven-modal-card">
             <div class="heaven-modal-header">
                 <div style="display:flex; align-items:center; gap:8px;">
@@ -10406,7 +10418,7 @@
                         <span style="color:#e0f2fe; font-size:11px; font-weight:800;">매일 저녁 8시 영혼을 깨우는 말씀 (한 달 2회 순환)</span>
                     </div>
                 </div>
-                <button type="button" onclick="closeHeavenMeditationModal(false)" style="background:none; border:none; color:#ffffff; font-size:22px; cursor:pointer; padding:0 4px;">✕</button>
+                <button type="button" onclick="event.stopPropagation(); closeHeavenMeditationModal(false)" style="background:none; border:none; color:#ffffff; font-size:22px; cursor:pointer; padding:0 4px;" title="닫기">✕</button>
             </div>
 
             <div class="heaven-modal-body" style="padding:18px 20px;">
@@ -10459,10 +10471,10 @@
             </div>
 
             <div class="heaven-modal-footer">
-                <button type="button" onclick="closeHeavenMeditationModal(true)" style="background:none; border:none; color:#94a3b8; font-size:12px; font-weight:800; cursor:pointer;">
+                <button type="button" onclick="event.stopPropagation(); closeHeavenMeditationModal(true)" style="background:none; border:none; color:#94a3b8; font-size:12px; font-weight:800; cursor:pointer;">
                     오늘 하루 보지 않기
                 </button>
-                <button type="button" onclick="closeHeavenMeditationModal(false)" style="background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; font-size:13px; font-weight:950; padding:8px 18px; border-radius:10px; cursor:pointer;">
+                <button type="button" onclick="event.stopPropagation(); closeHeavenMeditationModal(false)" style="background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; font-size:13px; font-weight:950; padding:8px 18px; border-radius:10px; cursor:pointer;">
                     말씀 마음에 새기기 (닫기)
                 </button>
             </div>
