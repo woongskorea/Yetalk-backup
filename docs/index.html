@@ -1453,16 +1453,15 @@
             font-weight: 900;
             box-shadow: 0 1px 4px rgba(239, 68, 68, 0.2);
         }
-        /* 🌟 [사용자 요청] 예톡TV 누르면 나타나는 가로 5개 소메뉴 바 */
+        /* 🌟 [사용자 요청] 예톡TV 누르면 나타나는 가로 5개 소메뉴 바: 동그란 박스 완전 제거, 글자만 동일하게 유지하고 간격을 줄여 한 화면에 5개 모두 쏙 들어가게 배치 */
         .yetalk-tv-subchannels-bar {
             display: flex;
             align-items: center;
-            gap: 7px;
-            overflow-x: auto;
+            justify-content: space-around;
+            gap: 2px;
+            overflow: hidden;
             white-space: nowrap;
-            padding: 8px 4px 4px 4px;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
+            padding: 8px 6px 4px 6px;
             width: 100%;
             box-sizing: border-box;
             border-top: 1px dashed #e2e8f0;
@@ -1470,29 +1469,29 @@
         }
         .yetalk-tv-subchannels-bar::-webkit-scrollbar { display: none; }
         .subchannel-pill {
-            background: #ffffff;
-            border: 1.5px solid #cbd5e1;
-            border-radius: 20px;
-            padding: 7px 14px;
-            font-size: 13px;
-            font-weight: 900;
-            color: #1e293b;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            padding: 5px 3px !important;
+            font-size: 14px !important;
+            font-weight: 950 !important;
             cursor: pointer;
-            flex-shrink: 0;
+            flex: 1;
+            text-align: center;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            box-shadow: 0 1.5px 4px rgba(0,0,0,0.04);
+            justify-content: center;
+            box-shadow: none !important;
             transition: all 0.15s ease;
             outline: none;
             -webkit-tap-highlight-color: transparent;
         }
-        .subchannel-pill:active { transform: scale(0.95); }
-        .subchannel-pill.pill-praise { border-color: #f43f5e; color: #e11d48; background: #fff1f2; }
-        .subchannel-pill.pill-freedom { border-color: #0284c7; color: #0369a1; background: #f0f9ff; }
-        .subchannel-pill.pill-word { border-color: #16a34a; color: #15803d; background: #f0fdf4; }
-        .subchannel-pill.pill-testimony { border-color: #8b5cf6; color: #6d28d9; background: #faf5ff; }
-        .subchannel-pill.pill-heaven { border-color: #eab308; color: #a16207; background: #fefce8; }
+        .subchannel-pill:active { transform: scale(0.92); opacity: 0.8; }
+        .subchannel-pill.pill-praise { color: #e11d48 !important; }
+        .subchannel-pill.pill-freedom { color: #0284c7 !important; }
+        .subchannel-pill.pill-word { color: #15803d !important; }
+        .subchannel-pill.pill-testimony { color: #7c3aed !important; }
+        .subchannel-pill.pill-heaven { color: #d97706 !important; }
 
         .btn-three-board {
             background: #f8fafc;
@@ -3835,11 +3834,11 @@
 
 <div class="main-container">
 
-    <!-- 1. 상단 헤더: [사용자 요청] 나의 앱 예톡🌿 한 줄로 시원하게 표시 (이름 버튼 완전 제거로 공간 여유 확보) -->
-    <header class="app-header" style="display:flex; justify-content:space-between; align-items:center; padding:calc(var(--safe-top, 24px) - 8px) 14px 2px 14px; background:#ffffff; border-bottom:2.5px solid #ef4444; box-sizing:border-box;">
-        <div class="header-logo-group" id="headerLogoGroup" onclick="handleLogoClick()" style="display:flex; align-items:center; gap:6px; white-space:nowrap; cursor:pointer;">
-            <span class="header-logo-prefix" style="font-size:19px; font-weight:950; color:#0f172a; letter-spacing:-0.5px; white-space:nowrap;">나의 앱</span>
-            <span class="header-logo-name" style="font-size:20.5px; font-weight:950; color:#059669; letter-spacing:-0.5px; white-space:nowrap;">예톡🌿</span>
+    <!-- 1. 상단 헤더: [사용자 요청] 빨강줄 완전 제거, 나의 앱은 15px로 정돈하고 예톡🌿은 24px로 훨씬 더 크고 멋지게 강조 -->
+    <header class="app-header" style="display:flex; justify-content:space-between; align-items:center; padding:calc(var(--safe-top, 24px) - 8px) 14px 4px 14px; background:#ffffff; border-bottom:none; box-sizing:border-box;">
+        <div class="header-logo-group" id="headerLogoGroup" onclick="handleLogoClick()" style="display:flex; align-items:baseline; gap:5px; white-space:nowrap; cursor:pointer;">
+            <span class="header-logo-prefix" style="font-size:15px; font-weight:750; color:#475569; letter-spacing:-0.3px; white-space:nowrap;">나의 앱</span>
+            <span class="header-logo-name" style="font-size:24px; font-weight:950; color:#059669; letter-spacing:-0.5px; white-space:nowrap;">예톡🌿</span>
         </div>
         <div class="header-right-actions" style="display:flex; align-items:center; gap:8px;">
             <!-- 🌟 [사용자 요청] 나의 앱 예톡 우측 햄버거 버튼 좌측에 [회원가입] 배치 -->
@@ -8074,6 +8073,18 @@
     }
 
     function openTvChannel(ch) {
+        // [사용자 요청] 이동 전 매일성경찬송 영상/오디오 완전 정지 및 iframe 파괴
+        try {
+            cancelAutoSuiteTimer();
+            const mainYt = document.getElementById("mainYtPlayerIframe");
+            if (mainYt) {
+                mainYt.src = "about:blank";
+                mainYt.remove();
+            }
+            if (window.mainYtPlayer && typeof window.mainYtPlayer.stopVideo === 'function') {
+                window.mainYtPlayer.stopVideo();
+            }
+        } catch(e){}
         window.location.href = "yetalktv.html?channel=" + encodeURIComponent(ch);
     }
 
