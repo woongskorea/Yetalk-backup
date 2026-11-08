@@ -4726,6 +4726,32 @@
 
     let isMyVideosOnlyMode = false;
 
+    /* 🌟 [사용자 요청] 예톡TV 5대 소메뉴 각 채널별 고유 영상 프리셋 (찬양, 자유, 말씀, 간증, 천국) */
+    let currentTvChannel = '말씀';
+
+    const CHANNEL_PRESETS = {
+        '찬양': [
+            { id: 2001, videoId: 'pZuW2CV0mXY', bizName: '찬양TV 손경민', shortAd: '은혜 (모든 것이 은혜 은혜 은혜 한없는 은혜)', targetUrl: 'churchmain.html', views: 5420, likes: 890, format: '16:9', channel: '찬양' },
+            { id: 2002, videoId: '0Eq3R4P_NdQ', bizName: '찬양TV 마커스워십', shortAd: '꽃들도 (Flowers) - 이곳에 생명 샘 솟아나 눈물 골짝 지나갈 때에', targetUrl: 'churchmain.html', views: 4210, likes: 720, format: '16:9', channel: '찬양' }
+        ],
+        '자유': [
+            { id: 2101, videoId: 'SI9qVsTpMUM', bizName: '예톡 자유TV', shortAd: '어느날 사탄의 리더가 나에게 말을 걸어왔다 - 새롭게하소서 전원희 목사', targetUrl: 'churchmain.html', views: 6300, likes: 950, format: '16:9', channel: '자유' },
+            { id: 2102, videoId: 'q8BF9wWeHb4', bizName: '크리스천 자유 토크', shortAd: '기독교 문화와 은혜의 신앙 나눔', targetUrl: 'churchmain.html', views: 2450, likes: 310, format: '16:9', channel: '자유' }
+        ],
+        '말씀': [
+            { id: 2201, videoId: '92oktJl3-Fo', bizName: '말씀TV 생명의양식', shortAd: '주일 대예배 설교 - 환난 날에 나를 부르라 내가 너를 건지리니', targetUrl: 'churchmain.html', views: 5120, likes: 820, format: '16:9', channel: '말씀' },
+            { id: 2202, videoId: '3JZ_D3ELwOQ', bizName: '성경 강해와 말씀', shortAd: '믿음의 주요 온전하게 하시는 이인 예수를 바라보자', targetUrl: 'churchmain.html', views: 3890, likes: 490, format: '16:9', channel: '말씀' }
+        ],
+        '간증': [
+            { id: 2301, videoId: 'fy7S6WOYJiE', bizName: '새은혜 간증TV', shortAd: '새롭게하소서 이지선 교수 감동 간증 - 지선아 사랑해', targetUrl: 'churchmain.html', views: 6880, likes: 1120, format: '16:9', channel: '간증' },
+            { id: 2302, videoId: 'AQyJfzLSv2M', bizName: '치유와 회복 간증', shortAd: '눈물의 기도와 주님의 기적적인 응답', targetUrl: 'churchmain.html', views: 3740, likes: 560, format: '16:9', channel: '간증' }
+        ],
+        '천국': [
+            { id: 2401, videoId: 'AQyJfzLSv2M', bizName: '천국TV 영원한소망', shortAd: '천국에서 온 편지 - 영원한 본향 천국과 예수 그리스도', targetUrl: 'churchmain.html', views: 5620, likes: 980, format: '16:9', channel: '천국' },
+            { id: 2402, videoId: 'SI9qVsTpMUM', bizName: '천국 복음과 구원', shortAd: '눈물도 슬픔도 없는 영원한 하나님 나라', targetUrl: 'churchmain.html', views: 3310, likes: 490, format: '16:9', channel: '천국' }
+        ]
+    };
+
     function loadSavedFeeds() {
         const currentActiveBiz = localStorage.getItem("yetalkUserStoreName") || "예톡행복한교회";
         const currentActiveUrl = localStorage.getItem("yetalkMyBizAppUrl") || "churchmain.html";
@@ -4804,19 +4830,19 @@
             let channelItems = CHANNEL_PRESETS[currentTvChannel];
             // 해당 채널로 등록된 사용자 커스텀 영상 포함
             let matchingCustom = customList.filter(f => f.channel === currentTvChannel);
-            list = [...matchingCustom, ...channelItems, ...list.filter(f => !channelItems.some(ci => ci.id === f.id))];
+            list = [...matchingCustom, ...channelItems];
         }
 
         // 🌟 [사용자 요청] 말씀TV 1~2번에 본 교회 라이브/설교 영상 최우선 배치 (본 교인들이 가장 보기 쉽게)
         const churchName = localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || '우리교회';
-        let churchLiveYt = localStorage.getItem('yetalk_church_live_video_url') || localStorage.getItem('yetalk_church_sermon_video');
-        let churchLiveVid = churchLiveYt ? extractYouTubeVideoId(churchLiveYt) : null;
+        let topLiveSermonYt = localStorage.getItem('yetalk_church_live_video_url') || localStorage.getItem('yetalk_church_sermon_video');
+        let churchLiveVid = topLiveSermonYt ? extractYouTubeVideoId(topLiveSermonYt) : null;
         if (!churchLiveVid) {
             // 본 교회가 등록한 커스텀 영상 탐색
             const myChurchCustom = customList.find(f => (f.bizName && f.bizName.includes(churchName)) || (f.targetUrl && f.targetUrl.includes('church')));
             if (myChurchCustom) churchLiveVid = myChurchCustom.videoId;
         }
-        if (!churchLiveVid) churchLiveVid = '3JZ_D3ELwOQ';
+        if (!churchLiveVid) churchLiveVid = '92oktJl3-Fo';
 
         const churchTopFeed = {
             id: 'church_worship_priority_feed',
@@ -5250,32 +5276,7 @@
     let selectedJobs = []; // 🌟 [사용자 요청] 직종 최대 2개 다중 선택 배열 지원
     let ytPlayerMap = {};
 
-    /* 🌟 [사용자 요청] 예톡TV 5대 소메뉴 채널 프리셋 */
-    let currentTvChannel = '말씀';
-
-    const CHANNEL_PRESETS = {
-        '찬양': [
-            { id: 2001, videoId: '3JZ_D3ELwOQ', bizName: '찬양TV 워십', shortAd: '은혜로운 찬양과 피아노 / 찬송가 멜로디', targetUrl: 'churchmain.html', views: 2450, likes: 380, format: '16:9', channel: '찬양' },
-            { id: 2002, videoId: 'kJQP7kiw5Fk', bizName: '은혜 찬양의 밤', shortAd: '주의 은혜라 / 마음을 울리는 복음성가 워십', targetUrl: 'churchmain.html', views: 1820, likes: 290, format: '16:9', channel: '찬양' },
-            { id: 2003, videoId: '9bZkp7q19f0', bizName: 'CCM 워십 찬양', shortAd: '내 삶은 주의 것 / 깊은 기도와 찬양', targetUrl: 'churchmain.html', views: 1540, likes: 210, format: '16:9', channel: '찬양' }
-        ],
-        '자유': [
-            { id: 2101, videoId: '3JZ_D3ELwOQ', bizName: '예톡 자유TV', shortAd: '어느날 사탄의 리더가 나에게 말을 걸어왔다 - 예수보혈선포', targetUrl: 'churchmain.html', views: 3200, likes: 450, format: '16:9', channel: '자유' },
-            { id: 2102, videoId: 'kJQP7kiw5Fk', bizName: '크리스천 라이프', shortAd: '성도들의 따뜻한 교제와 믿음의 동행', targetUrl: 'churchmain.html', views: 1650, likes: 195, format: '16:9', channel: '자유' }
-        ],
-        '말씀': [
-            { id: 2201, videoId: '3JZ_D3ELwOQ', bizName: '말씀TV 생명의양식', shortAd: '주일 대예배 설교 - 환난 날에 나를 부르라 내가 너를 건지리니', targetUrl: 'churchmain.html', views: 4120, likes: 620, format: '16:9', channel: '말씀' },
-            { id: 2202, videoId: '9bZkp7q19f0', bizName: '성경 통독과 강해', shortAd: '믿음의 주요 온전하게 하시는 이인 예수를 바라보자', targetUrl: 'churchmain.html', views: 2890, likes: 340, format: '16:9', channel: '말씀' }
-        ],
-        '간증': [
-            { id: 2301, videoId: 'kJQP7kiw5Fk', bizName: '새은혜 간증TV', shortAd: '눈물의 기도와 주님의 응답 - 절망에서 기적으로', targetUrl: 'churchmain.html', views: 3880, likes: 510, format: '16:9', channel: '간증' },
-            { id: 2302, videoId: '3JZ_D3ELwOQ', bizName: '치유와 회복의 역사', shortAd: '살아계신 하나님을 만난 감동적인 신앙 고백', targetUrl: 'churchmain.html', views: 2740, likes: 360, format: '16:9', channel: '간증' }
-        ],
-        '천국': [
-            { id: 2401, videoId: '9bZkp7q19f0', bizName: '천국TV 영원한소망', shortAd: '영원한 본향 천국과 주 예수님의 보혈', targetUrl: 'churchmain.html', views: 4620, likes: 780, format: '16:9', channel: '천국' },
-            { id: 2402, videoId: '3JZ_D3ELwOQ', bizName: '천국 복음과 구원', shortAd: '눈물도 슬픔도 없는 영원한 하나님 나라', targetUrl: 'churchmain.html', views: 3310, likes: 490, format: '16:9', channel: '천국' }
-        ]
-    };
+    /* 예톡TV 채널 프리셋은 상단 loadSavedFeeds() 상위에서 전역 선언됨 */
 
     function switchTvChannel(ch) {
         if (!CHANNEL_PRESETS[ch]) return;

@@ -3720,10 +3720,10 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(2, 6, 23, 0.85);
+            background: rgba(15, 23, 42, 0.7);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            z-index: 10050 !important;
+            z-index: 9999999 !important;
             align-items: center;
             justify-content: center;
             padding: 16px 12px;
@@ -3736,10 +3736,10 @@
             width: 100%;
             max-width: 480px; width: 94%;
             max-height: 90vh;
-            background: linear-gradient(180deg, #0f172a 0%, #060b18 100%);
-            border: 1.8px solid #38bdf8;
+            background: #ffffff;
+            border: 2px solid #38bdf8;
             border-radius: 20px;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.9), 0 0 24px rgba(56, 189, 248, 0.35);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -3819,13 +3819,13 @@
             overflow: hidden;
         }
         .heaven-modal-footer {
-            padding: 10px 16px;
-            background: #0b1326;
-            border-top: 1px solid #1e293b;
+            padding: 12px 18px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            gap: 10px;
             flex-shrink: 0;
         }
 
@@ -5574,16 +5574,8 @@
         const isOriginalSlot = (currBook === slotInfo.book && currCh === slotInfo.ch);
 
         if (txtEl) {
-            if (isOriginalSlot) {
-                txtEl.innerText = `${slotInfo.icon} ${slotInfo.slotName} ${slotInfo.book} ${slotInfo.ch}${slotInfo.unit}`;
-            } else {
-                // 임시로 좌우 화살표로 다른 장으로 이동했을 때: 3장, 4장 등으로 함께 변경 표출
-                if (currBook === slotInfo.book) {
-                    txtEl.innerText = `${slotInfo.icon} ${slotInfo.slotName} ${currBook} ${currCh}${unit}`;
-                } else {
-                    txtEl.innerText = `📖 ${currBook} ${currCh}${unit}`;
-                }
-            }
+            // 🌟 [사용자 요청] 성경 장수 앞의 모든 아이콘(📖, ☀️, 🌙 등) 완전 제거 ➔ 글자만 깔끔하게 표출
+            txtEl.innerText = `${currBook} ${currCh}${unit}`;
         }
         if (btnEl) {
             if (isOriginalSlot) {
@@ -5856,33 +5848,23 @@
             listEl.appendChild(chip);
         });
 
-        // 🌟 [사용자 요청 사진 1] [✓ 선택] 버튼 배치
-const confirmBtn = document.createElement("button");
-        confirmBtn.type = "button";
-        confirmBtn.className = "btn-user-book-chip btn-user-book-confirm";
-        confirmBtn.innerHTML = "\u2713 \uC120\uD0DD";
-        confirmBtn.title = "\uC120\uD0DD \uC644\uB8CC \uBC0F \uD3BC\uCCD0\uC9C4 \uC131\uACBD \uBAA9\uB85D \uC811\uAE30";
-        confirmBtn.onclick = function(e) {
-            e.stopPropagation();
-            foldHomeBibleBooks();
-        };
-        listEl.appendChild(confirmBtn);
-
+        // 🌟 [사용자 요청] 녹색 [✓ 선택] 완전 삭제 및 단독 [에스더 통독] 원버튼 배치 (평소: 연분홍, 선택: 빨강)
         const tongdokBtn = document.createElement("button");
         tongdokBtn.type = "button";
         tongdokBtn.className = "btn-user-book-chip btn-user-book-tongdok";
         const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") !== "false");
-        const currentTongdokBook = localStorage.getItem("yetalk_tongdok_book") || "\uCC3D\uC138\uAE30";
+        const currentTongdokBook = localStorage.getItem("yetalk_tongdok_book") || "창세기";
         const isCurrentOn = isTongdokActive && (currentTongdokBook === currentUserBibleBook);
 
+        tongdokBtn.innerText = currentUserBibleBook + " 통독" + (isCurrentOn ? " ON" : "");
+        tongdokBtn.title = currentUserBibleBook + " 매일 3장 연속 통독 " + (isCurrentOn ? "켜짐 (누르면 끄기)" : "시작 (누르면 켜기)");
+        
         if (isCurrentOn) {
-            tongdokBtn.innerHTML = "\uD83D\uDFE2 " + currentUserBibleBook + " \uD1B5\uB3C5 ON";
-            tongdokBtn.title = currentUserBibleBook + " \uB9E4\uC77C 3\uC7A5 \uC5F0\uC18D \uD1B5\uB3C5 \uCF1C\uC9D0 (\uB204\uB974\uBA74 \uB044\uAE30)";
-            tongdokBtn.style.cssText = "background:#15803d !important; border:1.5px solid #166534 !important; color:#ffffff !important; font-weight:950 !important; box-shadow:0 2px 6px rgba(21,128,61,0.4) !important; flex:1.4; min-width:115px;";
+            // 선택 누른 후: 선명한 빨강색 (통독 ON)
+            tongdokBtn.style.cssText = "background:#dc2626 !important; border:1.5px solid #b91c1c !important; color:#ffffff !important; font-weight:900 !important; font-size:14px !important; border-radius:8px !important; padding:7px 16px !important; min-width:125px !important; box-shadow:0 2px 6px rgba(220,38,38,0.3) !important; cursor:pointer;";
         } else {
-            tongdokBtn.innerHTML = "\uD83D\uDCD5 " + currentUserBibleBook + " \uD1B5\uB3C5";
-            tongdokBtn.title = currentUserBibleBook + " \uB9E4\uC77C 3\uC7A5 \uC5F0\uC18D \uD1B5\uB3C5 \uC2DC\uC791 (\uB204\uB974\uBA74 \uCF1C\uAE30)";
-            tongdokBtn.style.cssText = "background:#dc2626 !important; border:1.5px solid #b91c1c !important; color:#ffffff !important; font-weight:950 !important; box-shadow:0 2px 6px rgba(220,38,38,0.3) !important; flex:1.4; min-width:115px;";
+            // 평상시: 연한 분홍색
+            tongdokBtn.style.cssText = "background:#fce7f3 !important; border:1.5px solid #f472b6 !important; color:#be185d !important; font-weight:900 !important; font-size:14px !important; border-radius:8px !important; padding:7px 16px !important; min-width:125px !important; box-shadow:0 2px 6px rgba(244,114,182,0.2) !important; cursor:pointer;";
         }
         tongdokBtn.onclick = function(e) {
             e.stopPropagation();
@@ -10309,8 +10291,9 @@ const confirmBtn = document.createElement("button");
         const dayBadge = document.getElementById('heavenDayBadge');
         if (dayBadge) dayBadge.innerText = `[제 ${item.day}일 차] ${item.theme}`;
 
+        // 🌟 [사용자 요청] 어중간한 부가설명 완전 제거하여 본문 말씀에만 집중
         const cycleLabel = document.getElementById('heavenCycleLabel');
-        if (cycleLabel) cycleLabel.innerText = `${cycleText} (15일 × 2회 = 한달 완성)`;
+        if (cycleLabel) cycleLabel.style.display = 'none';
 
         const hTitle = document.getElementById('hopeTitle');
         if (hTitle) hTitle.innerText = item.hope.title;
@@ -10354,6 +10337,7 @@ const confirmBtn = document.createElement("button");
         if (modal) {
             modal.classList.remove('show');
             modal.style.setProperty('display', 'none', 'important');
+            modal.style.display = 'none';
         }
 
         if (saveDismissToday) {
@@ -10368,6 +10352,16 @@ const confirmBtn = document.createElement("button");
     window.navigateHeavenDay = navigateHeavenDay;
     window.openHeavenMeditationModal = openHeavenMeditationModal;
     window.closeHeavenMeditationModal = closeHeavenMeditationModal;
+
+    // 🌟 [사용자 요청] 컴퓨터 및 모바일에서 닫기 버튼 3개 (우측상단 X, 오늘하루 안보기, 닫기) 100% 즉각 닫힘 보장
+    window.addEventListener('DOMContentLoaded', () => {
+        const btnX = document.getElementById('btnHeavenCloseX');
+        const btnDismiss = document.getElementById('btnHeavenDismissToday');
+        const btnConfirm = document.getElementById('btnHeavenConfirmClose');
+        if (btnX) btnX.addEventListener('click', (e) => { e.stopPropagation(); closeHeavenMeditationModal(false); });
+        if (btnDismiss) btnDismiss.addEventListener('click', (e) => { e.stopPropagation(); closeHeavenMeditationModal(true); });
+        if (btnConfirm) btnConfirm.addEventListener('click', (e) => { e.stopPropagation(); closeHeavenMeditationModal(false); });
+    });
 
     function checkHeavenDaily8PmPopup() {
         const now = new Date();
@@ -10445,74 +10439,74 @@ const confirmBtn = document.createElement("button");
     </div>
 
 
-    <!-- 🌟 [사용자 요청] 천국 소망 & 영적 경고 15일 매일 저녁 8시 묵상 팝업 + 맨 밑 애드몹 250 -->
+    <!-- 🌟 [사용자 요청] 천국 소망 & 영적 경고 15일 매일 저녁 8시 묵상 팝업 (하얀색/연한톤, 큰 글자, 닫기 버튼 3개 완전 작동) -->
     <div class="heaven-modal-backdrop" id="modalHeavenMeditation" onclick="if(event.target===this) closeHeavenMeditationModal(false)">
         <div class="heaven-modal-card">
-            <div class="heaven-modal-header">
+            <div class="heaven-modal-header" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #e2e8f0; flex-shrink:0;">
                 <div style="display:flex; align-items:center; gap:8px;">
-                    <span style="font-size:20px;">🕊️</span>
+                    <span style="font-size:22px;">🕊️</span>
                     <div>
-                        <strong style="color:#ffffff; font-size:14.5px; font-weight:950; display:block;" id="heavenPopupTitle">천국 소망 & 영적 경고 15일 묵상</strong>
-                        <span style="color:#e0f2fe; font-size:11px; font-weight:800;">매일 저녁 8시 영혼을 깨우는 말씀 (한 달 2회 순환)</span>
+                        <strong style="color:#ffffff; font-size:16px; font-weight:950; display:block;" id="heavenPopupTitle">천국 소망 & 영적 경고 묵상</strong>
+                        <span style="color:#e0f2fe; font-size:11.5px; font-weight:800;">매일 저녁 8시 영혼을 깨우는 말씀</span>
                     </div>
                 </div>
-                <button type="button" onclick="event.stopPropagation(); closeHeavenMeditationModal(false)" style="background:none; border:none; color:#ffffff; font-size:22px; cursor:pointer; padding:0 4px;" title="닫기">✕</button>
+                <button type="button" id="btnHeavenCloseX" onclick="event.stopPropagation(); closeHeavenMeditationModal(false)" style="background:none; border:none; color:#ffffff; font-size:24px; cursor:pointer; padding:2px 8px; font-weight:900; line-height:1;" title="닫기">✕</button>
             </div>
 
-            <div class="heaven-modal-body" style="padding:18px 20px;">
-                <!-- 🌟 [사용자 요청] 네비게이션 버튼 제거, 바깥 답답한 박스 완전 제거 후 시원하고 넓게 확장 -->
-                <div style="text-align:center; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.15); margin-bottom:14px;">
-                    <span style="font-size:16px; font-weight:950; color:#38bdf8; display:block; letter-spacing:-0.3px;" id="heavenDayBadge">[제 1일 차] 시작과 기초</span>
-                    <small style="font-size:11.5px; color:#94a3b8; font-weight:800;" id="heavenCycleLabel">매일 저녁 8시 자동 알림 (한 달 2회 순환)</small>
+            <div class="heaven-modal-body" style="padding:18px 20px; background:#ffffff; overflow-y:auto; -webkit-overflow-scrolling:touch; display:flex; flex-direction:column; gap:14px;">
+                <!-- 🌟 [사용자 요청] 어중간한 잔글씨 완전 삭제, 말씀 제목과 절 시원하게 표출 -->
+                <div style="text-align:center; padding-bottom:8px; border-bottom:1.5px solid #e2e8f0;">
+                    <span style="font-size:17.5px; font-weight:950; color:#0284c7; display:block; letter-spacing:-0.3px;" id="heavenDayBadge">[제 1일 차] 시작과 기초</span>
                 </div>
 
-                <!-- ☀️ 천국 소망 (바깥 박스 제거 & 100% 넓고 시원한 뷰) -->
-                <div style="width:100%; padding-left:12px; border-left:4px solid #f59e0b; margin-bottom:16px; box-sizing:border-box;">
+                <!-- ☀️ 천국 소망 (깨끗한 화이트 테마 & 큰 글자 16.5px) -->
+                <div style="width:100%; padding-left:14px; border-left:4px solid #f59e0b; margin-bottom:8px; box-sizing:border-box;">
                     <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-                        <span style="font-size:18px;">☀️</span>
-                        <strong style="color:#facc15; font-size:15.5px; font-weight:950;" id="hopeTitle">예수님을 나의 구주로 영접한 믿음의 은혜</strong>
+                        <span style="font-size:20px;">☀️</span>
+                        <strong style="color:#d97706; font-size:16.5px; font-weight:950;" id="hopeTitle">예수님을 나의 구주로 영접한 믿음의 은혜</strong>
                     </div>
-                    <div style="font-family:'Nanum Myeongjo', serif; font-size:14.5px; color:#fef08a; line-height:1.7; margin-bottom:6px; font-weight:800; word-break:keep-all;" id="hopeVerse">
+                    <div style="font-family:'Nanum Myeongjo', serif; font-size:16px; color:#1e293b; line-height:1.75; margin-bottom:8px; font-weight:800; background:#fefce8; padding:10px 14px; border-radius:8px; border:1px solid #fef08a; word-break:keep-all;" id="hopeVerse">
                         “영접하는 자 곧 그 이름을 믿는 자들에게는 하나님의 자녀가 되는 권세를 주셨으니” (요 1:12)
                     </div>
-                    <div style="font-size:13.5px; color:#f1f5f9; line-height:1.65; word-break:keep-all;" id="hopeDesc">
+                    <div style="font-size:14.5px; color:#334155; line-height:1.65; word-break:keep-all; font-weight:600;" id="hopeDesc">
                         당신은 이미 천국 버스의 가장 확실한 티켓을 손에 쥐었습니다!
                     </div>
                 </div>
 
-                <div style="width:100%; height:1px; background:rgba(255,255,255,0.12); margin:14px 0;"></div>
+                <div style="width:100%; height:1px; background:#e2e8f0; margin:6px 0;"></div>
 
-                <!-- ⛈️ 영적 경고 (바깥 박스 제거 & 100% 넓고 시원한 뷰) -->
-                <div style="width:100%; padding-left:12px; border-left:4px solid #ef4444; margin-bottom:16px; box-sizing:border-box;">
+                <!-- ⛈️ 영적 경고 (깨끗한 화이트 테마 & 큰 글자 16.5px) -->
+                <div style="width:100%; padding-left:14px; border-left:4px solid #ef4444; margin-bottom:8px; box-sizing:border-box;">
                     <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-                        <span style="font-size:18px;">⛈️</span>
-                        <strong style="color:#f87171; font-size:15.5px; font-weight:950;" id="warningTitle">입술로만 "주여, 주여" 하고 순종이 없는 헛된 고백</strong>
+                        <span style="font-size:20px;">⛈️</span>
+                        <strong style="color:#dc2626; font-size:16.5px; font-weight:950;" id="warningTitle">입술로만 "주여, 주여" 하고 순종이 없는 헛된 고백</strong>
                     </div>
-                    <div style="font-family:'Nanum Myeongjo', serif; font-size:14.5px; color:#fca5a5; line-height:1.7; margin-bottom:6px; font-weight:800; word-break:keep-all;" id="warningVerse">
+                    <div style="font-family:'Nanum Myeongjo', serif; font-size:16px; color:#1e293b; line-height:1.75; margin-bottom:8px; font-weight:800; background:#fef2f2; padding:10px 14px; border-radius:8px; border:1px solid #fecaca; word-break:keep-all;" id="warningVerse">
                         “나더러 주여 주여 하는 자마다 다 천국에 들어갈 것이 아니요 다만 하늘에 계신 내 아버지의 뜻대로 행하는 자라야 들어가리라” (마 7:21)
                     </div>
-                    <div style="font-size:13.5px; color:#f1f5f9; line-height:1.65; word-break:keep-all;" id="warningDesc">
+                    <div style="font-size:14.5px; color:#334155; line-height:1.65; word-break:keep-all; font-weight:600;" id="warningDesc">
                         오늘 나의 믿음은 고백을 넘어 삶의 순종으로 이어지고 있습니까?
                     </div>
                 </div>
 
-                <div class="heaven-admob-250-wrap">
+                <!-- 🌟 Google AdMob (300 × 250) 공식 배너 -->
+                <div class="heaven-admob-250-wrap" style="width:100%; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:14px; padding:14px 10px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; box-sizing:border-box; flex-shrink:0; margin-top:8px;">
                     <div style="font-size:10px; color:#64748b; font-weight:900; letter-spacing:0.8px; margin-bottom:4px;">AD • Google AdMob 공식 스폰서 (300 × 250)</div>
-                    <div style="font-size:15px; font-weight:950; color:#38bdf8; margin-bottom:4px;">Google AdMob (300 × 250 / MREC)</div>
-                    <div style="font-size:11.5px; color:#94a3b8; line-height:1.4; padding:0 16px; margin-bottom:6px;">
+                    <div style="font-size:15px; font-weight:950; color:#0284c7; margin-bottom:4px;">Google AdMob (300 × 250 / MREC)</div>
+                    <div style="font-size:11.5px; color:#64748b; line-height:1.4; padding:0 16px; margin-bottom:6px;">
                         전국 교회 선교 방송 & 천국 복음 사역 공식 후원 슬롯
                     </div>
-                    <div style="background:rgba(56, 189, 248, 0.15); border:1px solid #38bdf8; color:#38bdf8; font-size:11px; font-weight:900; padding:4px 14px; border-radius:14px;">
+                    <div style="background:#e0f2fe; border:1px solid #0284c7; color:#0369a1; font-size:11px; font-weight:900; padding:4px 14px; border-radius:14px;">
                         Medium Rectangle 250 공식 안전 배치
                     </div>
                 </div>
             </div>
 
-            <div class="heaven-modal-footer">
-                <button type="button" onclick="event.stopPropagation(); closeHeavenMeditationModal(true)" style="background:none; border:none; color:#94a3b8; font-size:12px; font-weight:800; cursor:pointer;">
+            <div class="heaven-modal-footer" style="padding:12px 18px; background:#f8fafc; border-top:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-shrink:0;">
+                <button type="button" id="btnHeavenDismissToday" onclick="event.stopPropagation(); closeHeavenMeditationModal(true)" style="background:none; border:none; color:#64748b; font-size:13px; font-weight:800; cursor:pointer; padding:6px 10px;">
                     오늘 하루 보지 않기
                 </button>
-                <button type="button" onclick="event.stopPropagation(); closeHeavenMeditationModal(false)" style="background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; font-size:13px; font-weight:950; padding:8px 18px; border-radius:10px; cursor:pointer;">
+                <button type="button" id="btnHeavenConfirmClose" onclick="event.stopPropagation(); closeHeavenMeditationModal(false)" style="background:linear-gradient(135deg, #0284c7, #0369a1); border:none; color:#ffffff; font-size:14px; font-weight:950; padding:10px 20px; border-radius:10px; cursor:pointer;">
                     말씀 마음에 새기기 (닫기)
                 </button>
             </div>
