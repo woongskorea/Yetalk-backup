@@ -2079,7 +2079,7 @@
         }
         .btn-simple-arrow-nav {
             width: 32px;
-            min-width: 30px;
+            min-width: 24px;
             height: 36px;
             padding: 0;
             background: #ffffff;
@@ -2099,7 +2099,7 @@
         .btn-simple-arrow-nav.btn-double-prev,
         .btn-simple-arrow-nav.btn-double-next {
             width: 34px;
-            min-width: 32px;
+            min-width: 26px;
             font-size: 11px;
             letter-spacing: -2px;
             padding: 0;
@@ -3836,7 +3836,7 @@
 <div class="main-container">
 
     <!-- 1. 상단 헤더: [사용자 요청] 나의 앱 예톡🌿 한 줄로 시원하게 표시 (이름 버튼 완전 제거로 공간 여유 확보) -->
-    <header class="app-header" style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; background:#ffffff; border-bottom:1.5px solid #e2e8f0; min-height:56px; box-sizing:border-box;">
+    <header class="app-header" style="display:flex; justify-content:space-between; align-items:center; padding:calc(var(--safe-top, 24px) - 8px) 14px 2px 14px; background:#ffffff; border-bottom:2.5px solid #ef4444; box-sizing:border-box;">
         <div class="header-logo-group" id="headerLogoGroup" onclick="handleLogoClick()" style="display:flex; align-items:center; gap:6px; white-space:nowrap; cursor:pointer;">
             <span class="header-logo-prefix" style="font-size:19px; font-weight:950; color:#0f172a; letter-spacing:-0.5px; white-space:nowrap;">나의 앱</span>
             <span class="header-logo-name" style="font-size:20.5px; font-weight:950; color:#059669; letter-spacing:-0.5px; white-space:nowrap;">예톡🌿</span>
@@ -3849,7 +3849,7 @@
     </header>
 
     <!-- 2. 퀵 메뉴 바: [사용자 요청] 내앱은 MYAPP 내가 만든 앱 보관함(개인앱·작은교회·전문앱), 예약앱은 상점 리스트, 교회앱은 교회 리스트, 의원앱은 의원 리스트 연결 -->
-    <nav class="quick-nav-bar">
+    <nav class="quick-nav-bar" style="padding:4px 12px 6px 12px; margin-top:0;">
         <button type="button" class="btn-quick-chip" id="chipTabPersonal" onclick="handleChristianNav('personal')" style="font-size:13.5px; font-weight:850; padding:9px 4px; text-align:center;">🏠 내앱</button>
         <button type="button" class="btn-quick-chip btn-quick-ourchurch active" id="chipTabOurChurch" onclick="handleChristianNav('our_church')" style="font-size:14px; font-weight:950; padding:9px 4px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">⛪ 우리교회</button>
         <button type="button" class="btn-quick-chip" id="chipTabInvite" onclick="handleChristianNav('invite')" style="font-size:13px; font-weight:850; padding:9px 4px; text-align:center;">💌 초청</button>
@@ -5721,23 +5721,23 @@
             highlights = JSON.parse(localStorage.getItem("yetalk_bible_highlights") || "{}");
         } catch(e) { highlights = {}; }
 
-        const currentVal = highlights[verseKey]; // undefined | 'pink' | true | 'yellow'
+        const currentVal = highlights[verseKey];
 
         if (!currentVal) {
-            // 없음 -> 분홍색
             highlights[verseKey] = "pink";
-            el.classList.remove("highlight-yellow");
+            el.classList.remove("highlight-yellow", "highlight-blue");
             el.classList.add("highlight-pink");
         } else if (currentVal === "pink" || currentVal === true) {
-            // 분홍색 -> 노랑색
             highlights[verseKey] = "yellow";
-            el.classList.remove("highlight-pink");
+            el.classList.remove("highlight-pink", "highlight-blue");
             el.classList.add("highlight-yellow");
+        } else if (currentVal === "yellow") {
+            highlights[verseKey] = "blue";
+            el.classList.remove("highlight-pink", "highlight-yellow");
+            el.classList.add("highlight-blue");
         } else {
-            // 노랑색 -> 없음
             delete highlights[verseKey];
-            el.classList.remove("highlight-pink");
-            el.classList.remove("highlight-yellow");
+            el.classList.remove("highlight-pink", "highlight-yellow", "highlight-blue");
         }
         localStorage.setItem("yetalk_bible_highlights", JSON.stringify(highlights));
     }
@@ -5814,17 +5814,28 @@
     }
 
         // 🌟 [사용자 요청] 성경 통독 지정 함수 (오늘 다른 성경을 찾아도 매일 3장씩 연속 진행)
+    function toggleDailyTongdokBook(bookName) {
+        if (!bookName) bookName = currentUserBibleBook || "\uCC3D\uC138\uAE30";
+        const isCurrentActive = (localStorage.getItem("yetalk_tongdok_active") !== "false");
+        const currentTongdokBook = localStorage.getItem("yetalk_tongdok_book") || "\uCC3D\uC138\uAE30";
+
+        if (isCurrentActive && currentTongdokBook === bookName) {
+            localStorage.setItem("yetalk_tongdok_active", "false");
+            showBibleToast("\uD83D\uDCD5 [" + bookName + "] \uD1B5\uB3C5\uC774 \uD574\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+        } else {
+            localStorage.setItem("yetalk_tongdok_active", "true");
+            localStorage.setItem("yetalk_tongdok_book", bookName);
+            localStorage.setItem("yetalk_tongdok_start_date", new Date().toISOString());
+            localStorage.setItem("yetalk_tongdok_base_ch", "1");
+            showBibleToast("\uD83D\uDFE2 [" + bookName + "] \uB9E4\uC77C 3\uC7A5 \uC5F0\uC18D \uD1B5\uB3C5 ON!");
+        }
+
+        renderHomeBibleBookChips();
+        updateAutoTimeSlotButtonUI();
+    }
+
     function setAsDailyTongdokBook(bookName) {
-        if (!bookName) bookName = currentUserBibleBook || "창세기";
-        localStorage.setItem("yetalk_tongdok_book", bookName);
-        localStorage.setItem("yetalk_tongdok_start_date", new Date().toISOString());
-        localStorage.setItem("yetalk_tongdok_base_ch", "1");
-        localStorage.setItem("yetalk_user_bible_book", bookName);
-
-        alert("🎉 [" + bookName + "] 성경이 '매일 3장 연속 통독'으로 지정되었습니다!\n\n• 오늘 다른 성경을 찾아보시더라도, 매일 영혼의 양식(오전·오후·저녁)은 '" + bookName + "'부터 매일 3장씩 자동으로 이어집니다.");
-
-        foldHomeBibleBooks();
-        initUserBibleReading();
+        toggleDailyTongdokBook(bookName);
     }
 
     function renderHomeBibleBookChips() {
@@ -5846,28 +5857,36 @@
         });
 
         // 🌟 [사용자 요청 사진 1] [✓ 선택] 버튼 배치
-        const confirmBtn = document.createElement("button");
+const confirmBtn = document.createElement("button");
         confirmBtn.type = "button";
         confirmBtn.className = "btn-user-book-chip btn-user-book-confirm";
-        confirmBtn.innerHTML = "✓ 선택";
-        confirmBtn.title = "선택 완료 및 펼쳐진 성경 목록 접기";
+        confirmBtn.innerHTML = "\u2713 \uC120\uD0DD";
+        confirmBtn.title = "\uC120\uD0DD \uC644\uB8CC \uBC0F \uD3BC\uCCD0\uC9C4 \uC131\uACBD \uBAA9\uB85D \uC811\uAE30";
         confirmBtn.onclick = function(e) {
             e.stopPropagation();
             foldHomeBibleBooks();
         };
         listEl.appendChild(confirmBtn);
 
-        // 🌟 [사용자 요청 사진 1] 선택 버튼 바로 옆에 빨강버튼 [📕 (현재성경) 통독] 신설!
-        // 누르면 오늘 다른 성경을 찾아보더라도 매일 3장씩 자동으로 연속해서 통독 진행!
         const tongdokBtn = document.createElement("button");
         tongdokBtn.type = "button";
         tongdokBtn.className = "btn-user-book-chip btn-user-book-tongdok";
-        tongdokBtn.innerHTML = "📕 " + currentUserBibleBook + " 통독";
-        tongdokBtn.title = "매일 3장씩 [" + currentUserBibleBook + "] 연속 통독 지정";
-        tongdokBtn.style.cssText = "background:#dc2626 !important; border:1.5px solid #b91c1c !important; color:#ffffff !important; font-weight:950 !important; box-shadow:0 2px 6px rgba(220,38,38,0.3) !important; flex:1.4; min-width:110px;";
+        const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") !== "false");
+        const currentTongdokBook = localStorage.getItem("yetalk_tongdok_book") || "\uCC3D\uC138\uAE30";
+        const isCurrentOn = isTongdokActive && (currentTongdokBook === currentUserBibleBook);
+
+        if (isCurrentOn) {
+            tongdokBtn.innerHTML = "\uD83D\uDFE2 " + currentUserBibleBook + " \uD1B5\uB3C5 ON";
+            tongdokBtn.title = currentUserBibleBook + " \uB9E4\uC77C 3\uC7A5 \uC5F0\uC18D \uD1B5\uB3C5 \uCF1C\uC9D0 (\uB204\uB974\uBA74 \uB044\uAE30)";
+            tongdokBtn.style.cssText = "background:#15803d !important; border:1.5px solid #166534 !important; color:#ffffff !important; font-weight:950 !important; box-shadow:0 2px 6px rgba(21,128,61,0.4) !important; flex:1.4; min-width:115px;";
+        } else {
+            tongdokBtn.innerHTML = "\uD83D\uDCD5 " + currentUserBibleBook + " \uD1B5\uB3C5";
+            tongdokBtn.title = currentUserBibleBook + " \uB9E4\uC77C 3\uC7A5 \uC5F0\uC18D \uD1B5\uB3C5 \uC2DC\uC791 (\uB204\uB974\uBA74 \uCF1C\uAE30)";
+            tongdokBtn.style.cssText = "background:#dc2626 !important; border:1.5px solid #b91c1c !important; color:#ffffff !important; font-weight:950 !important; box-shadow:0 2px 6px rgba(220,38,38,0.3) !important; flex:1.4; min-width:115px;";
+        }
         tongdokBtn.onclick = function(e) {
             e.stopPropagation();
-            setAsDailyTongdokBook(currentUserBibleBook);
+            toggleDailyTongdokBook(currentUserBibleBook);
         };
         listEl.appendChild(tongdokBtn);
 
@@ -6360,8 +6379,15 @@
         // 현재 시간대에 맞는 슬롯 선택
         const slotInfo = getCurrentTimeSlotInfo();
         currentUserSlotIdx = slotInfo.slotIdx;
-        currentUserBibleBook = slotInfo.book;
-        currentUserBibleCh = slotInfo.ch;
+        const savedUserChoice = localStorage.getItem("yetalk_user_bible_book");
+        if (savedUserChoice) {
+            currentUserBibleBook = savedUserChoice;
+            currentUserBibleCh = parseInt(localStorage.getItem("yetalk_user_bible_ch") || "1", 10);
+            if (isNaN(currentUserBibleCh) || currentUserBibleCh < 1) currentUserBibleCh = 1;
+        } else {
+            currentUserBibleBook = slotInfo.book;
+            currentUserBibleCh = slotInfo.ch;
+        }
 
         const currentMeta = getBibleBookMeta(currentUserBibleBook);
         populateUserBibleChapterSelect(currentUserBibleBook, currentMeta.totalCh, currentMeta.unit || "장");
@@ -6369,7 +6395,7 @@
         updateAutoTimeSlotButtonUI();
         displayUserBibleChapter(currentUserBibleBook, currentUserBibleCh);
         renderHomeBibleBookChips();
-        foldHomeBibleBooks(); // 🌟 [사용자 요청] 초기 접속 시 성경 목록 접어두고 당일 시간대 말씀에 바로 집중
+        // foldHomeBibleBooks(); // auto-fold removed // 🌟 [사용자 요청] 초기 접속 시 성경 목록 접어두고 당일 시간대 말씀에 바로 집중
         initBibleReadingFocusListeners();
     }
 
@@ -6386,10 +6412,22 @@
     }
 
     function onUserSelectBibleBook(book) {
+        if (!book) return;
         currentUserBibleBook = book;
+        currentUserBibleCh = 1;
         localStorage.setItem("yetalk_user_bible_book", book);
-        localStorage.setItem("yetalk_user_bible_start_date", new Date().toISOString());
-        initUserBibleReading();
+        localStorage.setItem("yetalk_user_bible_ch", "1");
+
+        const meta = getBibleBookMeta(book);
+        currentHomeTestament = meta.type || "OT";
+
+        const selBook = document.getElementById("selUserBibleBook");
+        if (selBook) selBook.value = book;
+        populateUserBibleChapterSelect(book, meta.totalCh, meta.unit || "\uC7A5");
+
+        renderHomeBibleBookChips();
+        displayUserBibleChapter(book, 1);
+        showBibleToast("\uD83D\uDCD6 [" + book + "] 1\uC7A5\uC774 \uC120\uD0DD\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
     }
 
     function selectUserBibleSlot(slotIdx) {
