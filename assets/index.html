@@ -4676,7 +4676,7 @@
             <div class="drawer-list">
                 <a href="javascript:void(0)" class="drawer-item" onclick="openChristianRegisterModal(); closeDrawer();" style="color:#047857; font-weight:900;">✝️ 교우 회원가입 / 우리교회 등록</a>
                 <a href="javascript:void(0)" class="drawer-item" onclick="showPortalMode(); closeDrawer();">🏠 예톡 포털 홈</a>
-                <a href="javascript:void(0)" class="drawer-item" onclick="openOurChurchAppModal(); closeDrawer();" style="color:#047857; font-weight:900;">✨ 우리교회앱 & 홈페이지</a>
+                <a href="javascript:void(0)" class="drawer-item" onclick="location.href='churchmain.html'; closeDrawer();" style="color:#047857; font-weight:900;">✨ 우리교회앱 & 홈페이지</a>
                 <a href="javascript:void(0)" class="drawer-item" onclick="openChristianFriendsModal(); closeDrawer();" style="color:#0284c7; font-weight:900;">👥 내친구 & 교우 초청</a>
                 <a href="myapp_home.html?tab=my" class="drawer-item">📱 나의 개인앱 보관함</a>
                 <a href="churchmain.html?type=small" class="drawer-item">🌿 작은교회 무료 지원앱</a>
@@ -5104,7 +5104,7 @@
     </div>
 
     <!-- 2. 우리교회앱 & 홈페이지 모달 -->
-    <div class="modal-overlay" id="ourChurchAppModal">
+    <div class="modal-overlay" id="ourChurchAppModal" style="display:none !important;">
         <div class="modal-card" style="max-width:440px; max-height:92vh; overflow-y:auto; padding:18px; border-radius:18px; background:#ffffff; box-shadow:0 10px 30px rgba(0,0,0,0.25);">
             <div class="modal-header" style="border-bottom:1.5px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
                 <div>
@@ -5562,6 +5562,20 @@
                     <button type="button" class="btn-post-action-pill btn-post-action-photo" onclick="handleDetailPhotoClick()" title="사진 보기/첨부">🖼️ 그림</button>
                     <button type="button" class="btn-post-action-pill btn-post-action-del" onclick="deleteCurrentPost()" title="글 삭제">🗑️ 삭제</button>
                     <input type="file" id="fileDetailQuickPhotoInput" accept="image/*" style="display:none;" onchange="handleDetailQuickPhotoUpload(event)">
+                </div>
+
+                <!-- 🌟 [사용자 요청] 모든 게시판마다 다음글 제목 한줄 보이게 하여 터치 시 다음글 바로 연속 읽기 -->
+                <div class="post-detail-nav-rows" id="detailPostNavRows" style="margin-top:10px; margin-bottom:8px; display:flex; flex-direction:column; gap:6px;">
+                    <div id="rowDetailNextPost" onclick="goToAdjacentBoardPost('next')" style="display:none; background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:10px 14px; cursor:pointer; align-items:center; gap:8px; box-shadow:0 1px 3px rgba(0,0,0,0.03); transition:background 0.15s ease;">
+                        <span style="font-size:12px; font-weight:900; color:#15803d; background:#dcfce7; padding:3px 8px; border-radius:6px; flex-shrink:0;">다음글 ▶</span>
+                        <span id="txtDetailNextTitle" style="font-size:13.5px; font-weight:800; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;"></span>
+                        <span style="font-size:14px; color:#15803d; font-weight:900;">›</span>
+                    </div>
+                    <div id="rowDetailPrevPost" onclick="goToAdjacentBoardPost('prev')" style="display:none; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:10px; padding:9px 14px; cursor:pointer; align-items:center; gap:8px; box-shadow:0 1px 3px rgba(0,0,0,0.02); transition:background 0.15s ease;">
+                        <span style="font-size:12px; font-weight:900; color:#475569; background:#f1f5f9; padding:3px 8px; border-radius:6px; flex-shrink:0;">◀ 이전글</span>
+                        <span id="txtDetailPrevTitle" style="font-size:13px; font-weight:700; color:#475569; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;"></span>
+                        <span style="font-size:14px; color:#94a3b8; font-weight:900;">›</span>
+                    </div>
                 </div>
 
                 <!-- 🌟 [사용자 요청] 하트/십자가 애니메이션과 간섭 없도록 애드몹 100을 댓글 바로 위 공간에 배치 -->
@@ -9767,6 +9781,71 @@
 
         currentViewingPost = post;
 
+        // 🌟 [사용자 요청] 다음글 제목 한줄 표기 & 터치 시 바로 읽기 계산
+        let activeBoardPosts = [];
+        const catFiltered = posts.filter(p => {
+            const b = p.board || p.tag || '';
+            const t = p.title || '';
+            if (currentBoardCategory === '감사게시판') {
+                return b === '감사게시판' || b === '감사' || b === '말씀아멘' || t.includes('감사') || t.includes('아멘');
+            } else if (currentBoardCategory === '자유게시판') {
+                return b === '자유게시판' || b === '일상나눔' || b === '소통' || b === '동네정보' || (!b && !t.includes('감사') && !t.includes('동행'));
+            } else if (currentBoardCategory === '예수동행') {
+                return b === '예수동행' || b === '기도제목' || b === '묵상' || t.includes('동행') || t.includes('순종');
+            }
+            return true;
+        });
+
+        if (catFiltered.some(p => String(p.id) === String(post.id))) {
+            activeBoardPosts = catFiltered;
+        } else {
+            const postBoard = post.board || post.tag || '';
+            const matchTag = posts.filter(p => (p.board || p.tag || '') === postBoard);
+            activeBoardPosts = matchTag.length > 1 ? matchTag : posts;
+        }
+
+        const currIdx = activeBoardPosts.findIndex(p => String(p.id) === String(post.id));
+        let nextPost = null;
+        let prevPost = null;
+        if (currIdx >= 0 && activeBoardPosts.length > 1) {
+            if (currIdx + 1 < activeBoardPosts.length) {
+                nextPost = activeBoardPosts[currIdx + 1];
+            } else {
+                nextPost = activeBoardPosts[0]; // 순환 이동
+            }
+            if (currIdx - 1 >= 0) {
+                prevPost = activeBoardPosts[currIdx - 1];
+            } else {
+                prevPost = activeBoardPosts[activeBoardPosts.length - 1];
+            }
+        }
+
+        currentAdjacentNextPostId = nextPost ? nextPost.id : null;
+        currentAdjacentPrevPostId = prevPost ? prevPost.id : null;
+
+        const rowNext = document.getElementById("rowDetailNextPost");
+        const txtNext = document.getElementById("txtDetailNextTitle");
+        const rowPrev = document.getElementById("rowDetailPrevPost");
+        const txtPrev = document.getElementById("txtDetailPrevTitle");
+
+        if (rowNext && txtNext) {
+            if (nextPost) {
+                txtNext.innerText = nextPost.title || (formatBoardAuthorId(nextPost.author) + '님의 나눔');
+                rowNext.style.display = "flex";
+            } else {
+                rowNext.style.display = "none";
+            }
+        }
+
+        if (rowPrev && txtPrev) {
+            if (prevPost) {
+                txtPrev.innerText = prevPost.title || (formatBoardAuthorId(prevPost.author) + '님의 나눔');
+                rowPrev.style.display = "flex";
+            } else {
+                rowPrev.style.display = "none";
+            }
+        }
+
         const modal = document.getElementById("boardPostDetailModal");
         const tagEl = document.getElementById("detailPostTag");
         const authorEl = document.getElementById("detailPostAuthor");
@@ -10897,154 +10976,7 @@
     }
 
     function openOurChurchAppModal() {
-        const churchName = localStorage.getItem("yetalk_church_name");
-        const pastorName = localStorage.getItem("yetalk_pastor_name");
-        const role = localStorage.getItem("yetalk_church_role") || "성도";
-        const churchKey = localStorage.getItem("yetalk_church_key");
-        const myName = localStorage.getItem("yetalk_user_name") || "성도";
-
-        if (!churchName || !pastorName) {
-            if (confirm("아직 교회 등록이 되어있지 않습니다.\n지금 바로 교회명과 담임목사님을 입력하고 교회앱을 개설하시겠습니까?")) {
-                openChristianRegisterModal();
-            }
-            return;
-        }
-
-        let churchMap = {};
-        try {
-            churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
-        } catch(e) { churchMap = {}; }
-
-        const churchData = (churchKey && churchMap[churchKey]) ? churchMap[churchKey] : {
-            name: churchName,
-            pastor: pastorName,
-            homepageUrl: "",
-            isVerified: false,
-            homepageOwner: "",
-            members: [{ nameOrId: myName, role: role }]
-        };
-
-        const titleEl = document.getElementById("ourChurchTitle");
-        const pastorSubEl = document.getElementById("ourChurchPastorSub");
-        const inpHp = document.getElementById("inpChurchHomepageUrl");
-        const btnSaveHp = document.getElementById("btnSaveChurchHomepage");
-        const lockBadge = document.getElementById("txtChurchHomepageLockBadge");
-        const noticeEl = document.getElementById("txtChurchHomepageNotice");
-        const actRow = document.getElementById("churchHomepageActionRow");
-        const countEl = document.getElementById("txtOurChurchMemberCount");
-        const listEl = document.getElementById("ourChurchMembersList");
-        const bannerEl = document.getElementById("ourChurchVerificationBanner");
-
-        if (titleEl) titleEl.innerText = `⛪ ${churchData.name}`;
-        if (pastorSubEl) pastorSubEl.innerText = `담임목사: ${churchData.pastor} | 나의 직분: ${role}`;
-        if (inpHp) inpHp.value = churchData.homepageUrl || "";
-        if (actRow) actRow.style.display = churchData.homepageUrl ? "flex" : "none";
-
-        // 🛡️ 담임목사 공인 인증 여부 판정 & 아무나 홈페이지 주인 못되도록 권한 분리
-        const isVerifiedChurch = !!churchData.isVerified;
-        const isOwnerPastor = isVerifiedChurch && (role === "담임목사") && (churchData.homepageOwner === myName);
-
-        if (bannerEl) {
-            if (isVerifiedChurch) {
-                bannerEl.innerHTML = `
-                    <div style="background:#ecfdf5; border:1.5px solid #10b981; border-radius:12px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="font-size:24px;">🛡️</span>
-                            <div>
-                                <div style="font-size:13.5px; font-weight:950; color:#065f46; display:flex; align-items:center; gap:5px;">
-                                    정상 인증 교회 <span style="font-size:10.5px; background:#10b981; color:#ffffff; padding:1px 6px; border-radius:6px; font-weight:800;">공식 인증</span>
-                                </div>
-                                <div style="font-size:11.5px; color:#047857; font-weight:700;">담임목사님(${churchData.pastor}) 본인 휴대폰 인증 완료</div>
-                            </div>
-                        </div>
-                        <span style="font-size:11px; font-weight:900; color:#065f46; background:#a7f3d0; padding:3px 8px; border-radius:10px; white-space:nowrap;">대표: ${churchData.homepageOwner || churchData.pastor}</span>
-                    </div>
-                `;
-            } else {
-                bannerEl.innerHTML = `
-                    <div style="background:#fffbeb; border:1.5px solid #f59e0b; border-radius:12px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 6px rgba(245,158,11,0.1);">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="font-size:22px;">⏳</span>
-                            <div>
-                                <div style="font-size:13px; font-weight:950; color:#92400e; display:flex; align-items:center; gap:5px;">
-                                    미인증 교회 <span style="font-size:10.5px; background:#f59e0b; color:#ffffff; padding:1px 6px; border-radius:6px; font-weight:800;">성도 등록 대기</span>
-                                </div>
-                                <div style="font-size:11px; color:#b45309; font-weight:700;">담임목사님이 가입 및 휴대폰 인증 시 공식 인증 교회로 전환됩니다.</div>
-                            </div>
-                        </div>
-                        <button type="button" onclick="openPastorAuthFromChurchModal()" style="background:#d97706; color:#ffffff; border:none; border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:900; cursor:pointer; white-space:nowrap;">목사님 인증</button>
-                    </div>
-                `;
-            }
-        }
-
-        // 🔒 홈페이지 주인 권한 제어: 아무나 홈페이지 주인 못되도록 조치
-        if (isVerifiedChurch && !isOwnerPastor) {
-            if (inpHp) {
-                inpHp.readOnly = true;
-                inpHp.style.background = "#f1f5f9";
-                inpHp.style.color = "#334155";
-                inpHp.style.cursor = "default";
-            }
-            if (btnSaveHp) {
-                btnSaveHp.style.display = "none";
-            }
-            if (lockBadge) {
-                lockBadge.innerHTML = `<span style="font-size:11px; font-weight:900; color:#059669; background:#dcfce7; border:1px solid #86efac; padding:2px 8px; border-radius:6px;">🔒 목사님 공인 관리</span>`;
-            }
-            if (noticeEl) {
-                noticeEl.innerHTML = `🛡️ <strong>담임목사님이 인증하신 공식 홈페이지</strong>입니다. 무단 변경이 방지되어 있으며, 성도님들은 [바로가기]와 [복사]를 통해 안전하게 이용하실 수 있습니다.`;
-            }
-        } else if (isOwnerPastor) {
-            if (inpHp) {
-                inpHp.readOnly = false;
-                inpHp.style.background = "#ffffff";
-                inpHp.style.color = "#0f172a";
-                inpHp.style.cursor = "text";
-            }
-            if (btnSaveHp) {
-                btnSaveHp.style.display = "inline-block";
-                btnSaveHp.innerText = "💾 공식 주소 저장";
-            }
-            if (lockBadge) {
-                lockBadge.innerHTML = `<span style="font-size:11px; font-weight:900; color:#15803d; background:#dcfce7; padding:2px 8px; border-radius:6px;">👑 담임목사 관리권한</span>`;
-            }
-            if (noticeEl) {
-                noticeEl.innerHTML = `👑 담임목사님은 우리교회 공식 홈페이지 주소를 등록·수정하실 수 있습니다. 저장 시 <strong>모든 교우들에게 실시간 공유</strong>됩니다.`;
-            }
-        } else {
-            if (inpHp) {
-                inpHp.readOnly = false;
-                inpHp.style.background = "#ffffff";
-                inpHp.style.color = "#0f172a";
-                inpHp.style.cursor = "text";
-            }
-            if (btnSaveHp) {
-                btnSaveHp.style.display = "inline-block";
-                btnSaveHp.innerText = "💾 주소 저장";
-            }
-            if (lockBadge) {
-                lockBadge.innerHTML = `<span style="font-size:11px; font-weight:800; color:#b45309; background:#fef3c7; padding:2px 6px; border-radius:6px;">임시 공유</span>`;
-            }
-            if (noticeEl) {
-                noticeEl.innerHTML = `한 분이라도 홈페이지 주소를 저장하시면 <strong>같은 교회 모든 성도님들의 화면에 자동으로 공유</strong>됩니다. (담임목사님 인증 시 공식 관리자로 확정)`;
-            }
-        }
-
-        const members = churchData.members || [];
-        if (countEl) countEl.innerText = `${members.length}명`;
-
-        if (listEl) {
-            listEl.innerHTML = members.map(m => `
-                <div style="flex-shrink:0; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:8px 12px; text-align:center; min-width:110px;">
-                    <div style="font-size:14px; font-weight:900; color:#0f172a;">${m.nameOrId}</div>
-                    <span style="font-size:11px; font-weight:800; background:#dcfce7; color:#15803d; padding:2px 6px; border-radius:8px; display:inline-block; margin-top:2px;">${m.role}</span>
-                </div>
-            `).join("");
-        }
-
-        const modal = document.getElementById("ourChurchAppModal");
-        if (modal) modal.classList.add("show");
+        location.href = "churchmain.html";
     }
 
     function closeOurChurchAppModal() {
