@@ -213,10 +213,10 @@
             position: absolute; inset: 0; width: 100%; height: 100%; z-index: 5; cursor: pointer;
         }
 
-        /* 3. 우측 세로 퀵 액션 바 (영상올리기 버튼 위치 상향 조정: 삭제 버튼과 겹치지 않게 bottom 상향) */
+        /* 3. 우측 세로 퀵 액션 바 (하단 애드몹 100 바로 위 바짝 배치하여 영상 중앙 풀스크린 시야 확보) */
         .right-actions-bar {
             position: absolute; right: 10px;
-            bottom: max(env(safe-area-inset-bottom, 0px) + 240px, 245px) !important;
+            bottom: calc(max(env(safe-area-inset-bottom, 0px), 8px) + 104px) !important;
             z-index: 10015 !important;
             display: flex;
             flex-direction: column; gap: 10px;
@@ -864,10 +864,10 @@
             justify-content: center;
         }
 
-        /* 4. 하단 좌측: 올린이 전문앱/비즈니스 통합 카드 (사용자 지정: 250px & 우측 검색/단골내앱 세트와 황금비율 배치 & 전문앱 박스 위 적정 빈공간 확보) */
+        /* 4. 하단 좌측: 올린이 전문앱/비즈니스 통합 카드 (하단 애드몹 100 바로 위 바짝 배치하여 영상 중앙 풀스크린 시야 확보) */
         .bottom-left-info-bar {
             position: absolute; left: 8px;
-            bottom: max(env(safe-area-inset-bottom, 0px) + 195px, 200px) !important;
+            bottom: calc(max(env(safe-area-inset-bottom, 0px), 8px) + 104px) !important;
             width: max-content;
             max-width: calc(100% - 16px);
             z-index: 9998;
@@ -3949,10 +3949,6 @@
         </div>
     </div>
 
-    <!-- 🌟 [사용자 요청] 시원한 소리 켜기 플로팅 버튼 (터치 시 100% 빵빵한 사운드 재생) -->
-    <button type="button" id="btnTvFloatingUnmute" onclick="unmuteAllTvPlayers()" style="position:fixed; top:calc(env(safe-area-inset-top, 0px) + 84px); left:50%; transform:translateX(-50%); z-index:10025; background:linear-gradient(135deg, #ef4444, #dc2626); border:2px solid #ffffff; color:#ffffff; border-radius:24px; padding:6px 16px; font-size:13.5px; font-weight:950; box-shadow:0 4px 18px rgba(239,68,68,0.7); cursor:pointer; display:flex; align-items:center; gap:6px;">
-        <span>🔊</span> <span>소리 켜기 (터치)</span>
-    </button>
 
     <!-- 2. 풀스크린 피드 컨테이너 -->
     <main class="feed-scroll-container" id="feedScrollContainer">
@@ -5361,9 +5357,6 @@
                 }
             }
         } catch(e){}
-        const btn = document.getElementById("btnTvFloatingUnmute");
-        if (btn) btn.style.display = "none";
-        showToast("🔊 소리가 켜졌습니다!");
     }
 
     function switchTvChannel(ch) {
@@ -5378,11 +5371,7 @@
             else btn.classList.remove('active');
         });
 
-        // 🌟 소리 켜기 플로팅 버튼 다시 노출
-        const unmuteBtn = document.getElementById("btnTvFloatingUnmute");
-        if (unmuteBtn) unmuteBtn.style.display = "flex";
-
-        // 🌟 [사용자 요청] 누르면 해당 유튜브 영상이 바로 즉각 열림!
+        // 🌟 [사용자 요청] 누르면 해당 유튜브 영상이 바로 즉각 열림 & 소리 자동 재생!
         currentFeedIndex = 0;
         const container = document.getElementById('feedScrollContainer');
         if (container) container.scrollTop = 0;
@@ -5469,7 +5458,26 @@
             } catch(e){}
         });
         ytPlayerMap = {};
+
+        // 🌟 [사용자 요청] 스마트폰 뒤로가기 / 포털홈 이동 시 백그라운드 영상 소리 100% 완전 소멸
+        document.querySelectorAll('.video-slot iframe, #feedScrollContainer iframe').forEach(ifr => {
+            try {
+                ifr.src = "about:blank";
+                ifr.remove();
+            } catch(e){}
+        });
     }
+
+    // 🌟 모바일 뒤로가기 / 화면 전환 시 오디오 원천 차단
+    window.addEventListener('pagehide', stopAndClearAllPlayers);
+    window.addEventListener('beforeunload', stopAndClearAllPlayers);
+    window.addEventListener('popstate', stopAndClearAllPlayers);
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopAllVideoPlayback();
+            stopAndClearAllPlayers();
+        }
+    });
 
     function stopAndSilenceOtherPlayers(activeFeedId) {
         Object.keys(ytPlayerMap).forEach(id => {
@@ -5603,8 +5611,8 @@
         const safeOrigin = (window.location.protocol.startsWith('http') && window.location.origin && window.location.origin !== 'null') ? window.location.origin : undefined;
         const playerVars = {
             autoplay: isFirst ? 1 : 0,
-            mute: 1, // 🌟 모바일 크롬/웹뷰 자동재생 정책 준수 필수 (음소거 상태로 시작해야 즉시 영상 실행)
-            controls: 1, // 🌟 사용자가 바로 재생/일시정지/볼륨 제어 가능
+            mute: 0, // 🌟 [사용자 요청] 소리켜기 버튼 없애고 바로 소리 나며 자동 재생!
+            controls: 1,
             disablekb: 0,
             fs: 1,
             playsinline: 1,
@@ -5629,9 +5637,15 @@
                         } catch(e){}
                         if (idx === currentFeedIndex) {
                             try {
-                                event.target.mute();
+                                event.target.unMute();
+                                event.target.setVolume(100);
                                 event.target.playVideo();
-                            } catch(e){}
+                            } catch(e){
+                                try {
+                                    event.target.mute();
+                                    event.target.playVideo();
+                                } catch(err){}
+                            }
                             const poster = document.getElementById(`poster_${feed.id}`);
                             if (poster) {
                                 setTimeout(() => { poster.classList.add("loaded"); }, 400);
@@ -5650,7 +5664,7 @@
                         console.warn("YouTube player error:", event.data);
                         // 에러 발생 시 fallback 직접 삽입
                         slotEl.innerHTML = `<iframe id="yt_fb_${feed.id}"
-                            src="https://www.youtube.com/embed/${feed.videoId}?autoplay=${isFirst ? 1 : 0}&mute=1&playsinline=1&controls=1&rel=0"
+                            src="https://www.youtube.com/embed/${feed.videoId}?autoplay=${isFirst ? 1 : 0}&mute=0&playsinline=1&controls=1&rel=0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen
                             style="width:100%; height:100%; border:none; pointer-events:auto;">
@@ -5663,7 +5677,7 @@
         } catch(e) {
             // 🌟 확실한 Fallback: YT.Player 미지원/지연 시 표준 IFrame 직접 삽입으로 검은 화면 원천 차단
             slotEl.innerHTML = `<iframe id="yt_fb_${feed.id}"
-                src="https://www.youtube.com/embed/${feed.videoId}?autoplay=${isFirst ? 1 : 0}&mute=1&playsinline=1&controls=1&rel=0"
+                src="https://www.youtube.com/embed/${feed.videoId}?autoplay=${isFirst ? 1 : 0}&mute=0&playsinline=1&controls=1&rel=0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowfullscreen
                 style="width:100%; height:100%; border:none; pointer-events:auto;">
@@ -5674,6 +5688,18 @@
             }
         }
     }
+
+    // 🌟 [사용자 요청] 번거로운 소리켜기 버튼 없이 첫 인터랙션 시 자동 음소거 해제 (자연스러운 고음질 재생)
+    function setupSilentAutoUnmute() {
+        const tryUnmute = () => {
+            unmuteAllTvPlayers();
+            window.removeEventListener('click', tryUnmute, true);
+            window.removeEventListener('touchstart', tryUnmute, true);
+        };
+        window.addEventListener('click', tryUnmute, true);
+        window.addEventListener('touchstart', tryUnmute, true);
+    }
+    window.addEventListener('DOMContentLoaded', setupSilentAutoUnmute);
 
     let admobReplayTimer = null;
     let currentEndedFeedId = null;
