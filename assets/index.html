@@ -3861,7 +3861,7 @@
     <!-- 2. 퀵 메뉴 바: [사용자 요청] 내앱은 MYAPP 내가 만든 앱 보관함(개인앱·작은교회·전문앱), 예약앱은 상점 리스트, 교회앱은 교회 리스트, 의원앱은 의원 리스트 연결 -->
     <nav class="quick-nav-bar" style="padding:2px 12px 6px 12px; margin-top:0;">
         <button type="button" class="btn-quick-chip" id="chipTabPersonal" onclick="handleChristianNav('personal')" style="font-size:13.5px; font-weight:850; padding:9px 4px; text-align:center;">🏠 내앱</button>
-        <button type="button" class="btn-quick-chip btn-quick-ourchurch active" id="chipTabOurChurch" onclick="handleChristianNav('our_church')" style="font-size:14px; font-weight:950; padding:9px 4px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">⛪ 우리교회</button>
+        <button type="button" class="btn-quick-chip btn-quick-ourchurch active" id="chipTabOurChurch" onclick="handleChristianNav('our_church')" style="font-size:14px; font-weight:950; padding:9px 4px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">⛪ 부산제일감리교회</button>
         <button type="button" class="btn-quick-chip" id="chipTabInvite" onclick="handleChristianNav('invite')" style="font-size:13px; font-weight:850; padding:9px 4px; text-align:center;">💌 초청</button>
     </nav>
 
@@ -3944,7 +3944,7 @@
             </div>
             <!-- 🌟 [사용자 요청] 복잡한 녹색 바 버튼 대신 말씀만 깔끔하게 동그라미 쳐서 우측에 위치 (터치 시 해당 장 전체 본문 즉시 열림) -->
             <div style="display:flex; justify-content:flex-end; margin-top:12px;">
-                <button type="button" class="btn-verse-circle" id="btnGoodnewsVerseAction" onclick="openGoodnewsVerseInFullBible()" title="성경 본문 전체 읽기" style="background:#ffffff; border:2px solid #059669; color:#047857; font-size:15px; font-weight:950; padding:6px 16px; border-radius:24px; cursor:pointer; box-shadow:0 2px 6px rgba(5,150,105,0.18); display:inline-flex; align-items:center; gap:6px; transition:all 0.15s ease;">
+                <button type="button" class="btn-verse-circle" id="btnGoodnewsVerseAction" onclick="openGoodnewsMeditationModal()" title="성경 본문 전체 읽기" style="background:#ffffff; border:2px solid #059669; color:#047857; font-size:15px; font-weight:950; padding:6px 16px; border-radius:24px; cursor:pointer; box-shadow:0 2px 6px rgba(5,150,105,0.18); display:inline-flex; align-items:center; gap:6px; transition:all 0.15s ease;">
                     <span>📖</span>
                     <span id="gnRefText">이사야 41:10</span>
                     <span style="color:#059669; font-weight:950; font-size:13px;">➔</span>
@@ -4222,6 +4222,117 @@
     </div>
 
     <!-- 🌟 [사용자 요청] 총관리실 모달: 기본 은혜 소개글 편집/저장 기능 탑재 -->
+        <!-- 🌟 [사용자 요청] 이 시간의 말씀 묵상 & 성경 전체 본문 새창 모달 (박스 없이 시원하고 넓은 묵상 레이아웃) -->
+    <div class="modal-overlay" id="goodnewsMeditationModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.72); z-index:99999; justify-content:center; align-items:flex-start; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:12px 10px;" onclick="closeGoodnewsMeditationModal()">
+        <div style="background:#ffffff; width:100%; max-width:540px; margin:16px auto 40px auto; border-radius:18px; box-shadow:0 25px 60px rgba(0,0,0,0.35); overflow:hidden; display:flex; flex-direction:column; animation:fadeInUpModal 0.25s ease-out;" onclick="event.stopPropagation()">
+            <!-- 상단 헤더 바 (뒤로가기 & 닫기) -->
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; background:#f8fafc; border-bottom:1px solid #f1f5f9;">
+                <button type="button" onclick="closeGoodnewsMeditationModal()" style="background:none; border:none; font-size:18px; font-weight:900; color:#475569; cursor:pointer; display:flex; align-items:center; gap:4px; padding:0;">
+                    <span style="font-size:20px; line-height:1;">&larr;</span>
+                    <span style="font-size:13.5px; font-weight:800;">뒤로</span>
+                </button>
+                <div style="font-size:15px; font-weight:950; color:#0f172a; display:flex; align-items:center; gap:6px;">
+                    <span>📖</span>
+                    <span>이 시간의 말씀 &amp; 묵상</span>
+                </div>
+                <button type="button" onclick="closeGoodnewsMeditationModal()" style="background:#e2e8f0; border:none; color:#475569; font-size:16px; font-weight:900; width:28px; height:28px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;">&#10005;</button>
+            </div>
+
+            <!-- 바디 영역 (박스 테두리 없이 시원하고 은혜로운 묵상 레이아웃) -->
+            <div style="padding:22px 20px; display:flex; flex-direction:column; gap:26px;">
+                <!-- 1. 말씀 한 절 -->
+                <div style="text-align:center; padding:6px 4px;">
+                    <div id="gnModalRefBadge" style="display:inline-block; background:#ecfdf5; color:#059669; font-size:13.5px; font-weight:950; padding:4px 14px; border-radius:20px; margin-bottom:12px; letter-spacing:-0.2px;">
+                        말씀
+                    </div>
+                    <div id="gnModalVerseText" style="font-family:'Pretendard', 'Nanum Myeongjo', serif; font-size:22px; font-weight:900; color:#0f172a; line-height:1.75; word-break:keep-all; letter-spacing:-0.4px;">
+                        “말씀 본문”
+                    </div>
+                </div>
+
+                <!-- 은은한 구분선 -->
+                <div style="height:1px; background:linear-gradient(90deg, transparent, #e2e8f0, transparent);"></div>
+
+                <!-- 2. 주님의 말씀 묵상 -->
+                <div>
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;">
+                        <span style="font-size:18px;">🕊️</span>
+                        <span style="font-size:17px; font-weight:950; color:#047857; letter-spacing:-0.3px;">주님의 말씀 묵상</span>
+                    </div>
+                    <div id="gnModalMeditationText" style="font-size:15.5px; color:#334155; line-height:1.85; word-break:keep-all; letter-spacing:-0.2px; text-align:justify;">
+                        묵상 내용이 이곳에 표시됩니다.
+                    </div>
+                </div>
+
+                <!-- 3. 회개와 나눔 -->
+                <div>
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;">
+                        <span style="font-size:18px;">💧</span>
+                        <span style="font-size:17px; font-weight:950; color:#dc2626; letter-spacing:-0.3px;">회개와 나눔</span>
+                    </div>
+                    <div id="gnModalRepentText" style="font-size:15.5px; color:#475569; line-height:1.85; word-break:keep-all; letter-spacing:-0.2px; text-align:justify;">
+                        회개와 나눔 내용이 이곳에 표시됩니다.
+                    </div>
+                </div>
+
+                <!-- 4. 오늘의 기도 -->
+                <div>
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;">
+                        <span style="font-size:18px;">🙏</span>
+                        <span style="font-size:17px; font-weight:950; color:#4338ca; letter-spacing:-0.3px;">오늘의 기도</span>
+                    </div>
+                    <div id="gnModalPrayerText" style="font-size:15.5px; color:#1e293b; line-height:1.85; word-break:keep-all; letter-spacing:-0.2px; font-style:italic; text-align:justify;">
+                        기도문이 이곳에 표시됩니다.
+                    </div>
+                </div>
+
+                <!-- 은은한 구분선 -->
+                <div style="height:1px; background:linear-gradient(90deg, transparent, #cbd5e1, transparent);"></div>
+
+                <!-- 5. 전체 성경이 펼쳐짐 -->
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; padding-bottom:8px; border-bottom:1.5px solid #059669;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:18px;">📖</span>
+                            <span id="gnModalFullBibleTitle" style="font-size:17.5px; font-weight:950; color:#065f46;">전체 말씀</span>
+                        </div>
+                        <span style="font-size:12px; color:#059669; font-weight:800; background:#f0fdf4; padding:2px 8px; border-radius:12px;">개역개정</span>
+                    </div>
+                    <div id="gnModalFullBibleBody" style="font-size:16px; color:#1e293b; line-height:1.95; word-break:keep-all;">
+                        <!-- 전체 본문 -->
+                    </div>
+                </div>
+
+                <!-- 6. 마지막에 애드몹 250 (300 × 250 MREC 공식 배너) -->
+                <div style="margin-top:6px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                    <div style="font-size:11px; color:#94a3b8; margin-bottom:6px; font-weight:700;">AD · Google AdMob 공식 스폰서 (300 × 250)</div>
+                    <div style="width:300px; height:250px; background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border:1px solid #cbd5e1; border-radius:12px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:16px; box-sizing:border-box;">
+                        <div style="display:inline-flex; align-items:center; gap:5px; background:#e0f2fe; color:#0284c7; font-size:12px; font-weight:900; padding:4px 10px; border-radius:6px; margin-bottom:10px;">
+                            <span>AD</span>
+                            <span>Google AdMob MREC</span>
+                        </div>
+                        <strong style="color:#0f172a; font-size:15px; font-weight:950; line-height:1.45; margin-bottom:6px;">
+                            말씀과 함께하는 은혜로운 하루
+                        </strong>
+                        <p style="color:#64748b; font-size:12.5px; line-height:1.5; margin:0 0 14px 0;">
+                            소상공인 · 한국 교회 · 복음 사역 공식 지원
+                        </p>
+                        <button type="button" style="background:#059669; color:#ffffff; border:none; padding:8px 16px; border-radius:8px; font-size:12.5px; font-weight:900; cursor:pointer;" onclick="alert('Google AdMob 공식 광고 슬롯입니다.')">
+                            공식 스폰서 참여하기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 7. 하단 닫기 버튼 -->
+                <div style="margin-top:6px; margin-bottom:10px;">
+                    <button type="button" onclick="closeGoodnewsMeditationModal()" style="width:100%; padding:14px; background:linear-gradient(135deg, #059669, #047857); color:#ffffff; font-size:16px; font-weight:950; border:none; border-radius:12px; cursor:pointer; box-shadow:0 4px 14px rgba(5,150,105,0.3); letter-spacing:-0.2px;">
+                        말씀 마음에 새기기 (닫기)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="superAdminDeskModal" onclick="closeSuperAdminDeskModal()">
         <div class="modal-card" style="max-width:440px; width:92%; padding:20px 18px; background:#ffffff; border:2px solid #ef4444; border-radius:16px; box-shadow:0 20px 50px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #e2e8f0; padding-bottom:10px; margin-bottom:14px;">
@@ -7592,6 +7703,170 @@
             targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
+        // 🌟 [사용자 요청] 이 시간의 말씀 묵상 데이터셋 (9대 말씀 매핑 & 일반 구절 기본 fallback)
+    const GOODNEWS_MEDITATIONS = {
+        "시편_1": {
+            meditation: "세상의 소리와 유혹이 가득한 세상 속에서 참된 복은 오직 주의 말씀을 사랑하고 그 법을 주야로 즐거워하는 데에 있습니다. 시냇가에 심은 나무가 시절을 좇아 과실을 맺듯, 말씀에 깊이 뿌리내린 삶은 가뭄과 환난 속에서도 결코 마르지 않는 하늘의 생명력으로 채워집니다.",
+            repentance: "하나님의 거룩한 말씀보다 세상의 꾀와 눈앞의 이익을 먼저 따르려 했던 순간들을 회개합니다. 오늘도 바쁘다는 핑계로 말씀 앞에 머무는 경건의 시간을 뒤로 미루고 내 생각대로 살아갔던 연약함을 주님 앞에 솔직히 고백합니다.",
+            prayer: "주님, 악인의 꾀와 죄인의 길을 멀리하고 오직 여호와의 말씀을 기뻐하며 주야로 묵상하는 복된 성도가 되게 하옵소서. 말씀의 단비가 메마른 내 심령을 적시어 주님을 닮은 아름다운 성령의 열매를 맺게 하소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "시편_23": {
+            meditation: "선한 목자 되신 여호와께서 나와 함께 동행하실 때, 내 삶에는 어떤 결핍도 없으며 참된 만족이 넘칩니다. 내 힘과 욕심으로 채우려 했던 헛된 빈자리를 주님의 사랑과 평안으로 채우시고, 사망의 음침한 골짜기를 지날 때에도 가장 안전하게 인도하십니다.",
+            repentance: "목자 되신 주님이 늘 곁에 계심에도 눈앞의 현실을 보며 불평하고 염려했던 작은 믿음을 회개합니다. 이미 베풀어주신 은혜의 잔을 바라보지 못하고 세상의 비교에 흔들렸던 마음을 돌이켜 오직 목자의 음성에만 귀 기울이겠습니다.",
+            prayer: "나의 선한 목자이신 하나님 아버지, 오늘도 나를 푸른 풀밭과 쉴 만한 물가로 인도하여 주옵소서. 내 영혼을 소생시키시고 의의 길로 이끄시며, 평생에 주의 선하심과 인자하심을 따라 살게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "마태복음_11": {
+            meditation: "주님은 삶의 무거운 짐을 홀로 지고 지쳐 허덕이는 모든 영혼을 부드러운 음성으로 부르십니다. 실패의 짐, 염려의 짐, 죄의 무게를 혼자 감당하려 애쓰지 말고, 온유하고 겸손하신 예수 그리스도의 십자가 앞에 내려놓을 때 세상이 줄 수 없는 영원한 쉼과 평안이 찾아옵니다.",
+            repentance: "모든 짐을 주께 맡기라 하셨음에도 끝까지 내 손으로 쥐고 놓지 못한 채 염려와 두려움에 사로잡혔던 죄를 회개합니다. 수고하고 무거운 짐을 주님 없이 해결하려다 주변 사람들에게 짜증과 불평을 쏟아냈던 연약함을 고백합니다.",
+            prayer: "수고하고 무거운 짐 진 자들을 안식으로 부르시는 주님, 내 모든 아픔과 염려와 눈물을 주님 발 앞에 내려놓습니다. 내 멍에는 벗겨주시고 쉽고 가벼운 주님의 멍에를 메고 참된 기쁨과 평강을 누리게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "빌립보서_4": {
+            meditation: "성도의 능력은 세상의 부나 권력, 뛰어난 재능에 있지 않고 오직 내 안에 살아서 역사하시는 예수 그리스도께로부터 흘러나옵니다. 주님이 주시는 영적인 힘을 공급받을 때 어떠한 결핍과 곤경 속에서도 자족하며 모든 상황을 믿음으로 넉넉히 돌파할 수 있습니다.",
+            repentance: "눈앞의 장벽과 부족함 앞에서 주님의 전능하심을 잊은 채 낙심하고 원망했던 불신앙을 회개합니다. 내 야망과 성공을 위해 주의 능력을 구했던 이기심을 내려놓고, 하나님의 뜻에 온전히 복종하는 참된 믿음의 사람이 되기를 결단합니다.",
+            prayer: "내게 능력 주시는 살아계신 예수님, 두려움과 낙심을 떨쳐버리고 오직 주님만 바라보며 담대하게 전진하게 하옵소서. 어떤 형편에 처하든지 감사하며, 주님의 손잡고 날마다 승리하는 삶을 살게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "요한복음_3": {
+            meditation: "하나님께서 독생자 예수를 아낌없이 십자가에 내어주신 것은 세상 그 어떤 사랑과도 비교할 수 없는 영원한 희생입니다. 멸망으로 치닫던 죄인인 우리를 값없이 구원하시고 영생의 자녀로 삼아주신 은혜는 오늘도 우리의 유일한 소망이자 삶의 이유입니다.",
+            repentance: "날마다 누리는 십자가의 대속 은혜를 너무나 쉽게 잊어버리고 첫사랑의 감격을 잃어버렸던 무뎌진 심령을 회개합니다. 값없이 영생을 얻었으면서도 정작 이웃에게는 손해 보지 않으려 계산적이었던 편협한 사랑을 고백합니다.",
+            prayer: "독생자를 주시기까지 우리를 극진히 사랑하신 하나님 아버지, 그 헤아릴 수 없는 십자가 사랑을 가슴 깊이 새기며 영생의 확신 가운데 살아가게 하옵소서. 오늘 하루도 주님의 사랑을 품고 이웃을 품는 복음의 통로가 되게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "시편_37": {
+            meditation: "나의 인생길과 모든 계획을 온전히 여호와께 맡기고 신뢰할 때, 하나님께서 친히 앞서 행하시며 가장 완벽한 때에 이루어 주십니다. 때로 억울하고 어두운 터널을 지나갈지라도, 주님은 마침내 정오의 햇살처럼 찬란한 공의와 의를 드러내실 것입니다.",
+            repentance: "내 뜻과 내 시간표대로 일이 풀리지 않는다고 조급해하며 주님보다 앞서 달려갔던 조급함을 회개합니다. 결과를 미리 불안해하며 모든 것을 하나님께 온전히 내어맡기지 못했던 믿음 없음을 주님 앞에 회개합니다.",
+            prayer: "내 갈 길을 처음부터 끝까지 아시는 주님, 내 모든 길과 삶의 결정을 주님의 신실하신 손에 온전히 맡겨드립니다. 의를 정오의 빛 같이 나타내실 전능자의 구원을 바라보며 담대히 인내하고 기대하게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "요한복음_14": {
+            meditation: "세상이 주는 평안은 작은 위기 앞에서도 덧없이 사라지지만, 부활의 주님께서 우리에게 선물하신 평안은 사망의 권세를 이긴 영원한 평안입니다. 주님이 내 마음에 계시기에 세상 풍파 속에서도 우리는 결코 마음에 근심하거나 두려워할 이유가 없습니다.",
+            repentance: "세상의 작은 소식과 환경의 변화에도 쉽게 요동하며 불안과 두려움에 사로잡혔던 연약한 심령을 회개합니다. 평강의 왕이신 주님을 마음에 모시고도 문제의 파도만 바라보며 침몰하려 했던 믿음 없음을 용서하여 주옵소서.",
+            prayer: "평안을 너희에게 주노라 말씀하신 예수님, 세상이 결코 빼앗을 수 없는 하늘의 신령한 평안으로 오늘 내 영혼과 생각을 굳게 지켜주옵소서. 모든 근심과 공포가 예수 그리스도의 이름으로 물러가게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "이사야_41": {
+            meditation: "‘두려워하지 말라 내가 너와 함께 함이라 놀라지 말라 나는 네 하나님이 됨이라.’ 우주 만물을 창조하신 전능자의 의로운 오른손이 나를 붙들고 계십니다. 주님이 나의 하나님이 되시기에 어떠한 대적과 환난 앞에서도 우리는 결코 홀로 남겨지지 않으며 반드시 승리합니다.",
+            repentance: "하나님께서 나와 영원토록 함께 계신다는 약속을 잊은 채, 눈앞의 두려움에 눌려 좌절하고 떨었던 죄를 고백합니다. 하나님의 강한 오른손을 의지하기보다 사람의 도움과 세상의 헛된 방법을 먼저 찾았던 나약함을 회개합니다.",
+            prayer: "나를 굳세게 하시고 참으로 도와주시는 하나님, 오늘도 주의 의롭고 강한 오른손으로 나를 붙들어 주옵소서. 두려움 대신 담대함을, 떨림 대신 평강을 부어주사 주님 손 꼭 잡고 모든 어려움을 능히 돌파하게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "로마서_8": {
+            meditation: "우리가 겪는 아픔과 실패, 이해할 수 없는 환난조차도 하나님의 주권 안에 있습니다. 하나님을 사랑하고 그 뜻대로 부르심을 입은 자들에게는 인생의 모든 조각들이 아름답게 합력하여 결국 최선의 선과 축복을 이루어 냅니다. 신실하신 주님을 끝까지 신뢰하십시오.",
+            repentance: "지금 당장 내 눈에 보이는 고난과 손해만을 바라보며 하나님을 오해하고 원망했던 어리석음을 회개합니다. 모든 고난을 통해 나를 빚으시고 더 큰 선을 이루어가시는 하나님의 깊은 섭리를 신뢰하지 못했던 조급함을 고백합니다.",
+            prayer: "모든 것을 합력하여 가장 아름다운 선을 이루시는 하나님 아버지, 비바람이 불고 눈앞이 캄캄할 때에도 주님의 선하심을 한순간도 의심하지 않게 하옵소서. 주님의 선한 섭리를 기대하며 날마다 찬송과 감사로 살아가게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        }
+    };
+
+    // 🌟 [사용자 요청] '이 시간의 말씀' 새창 열기 (말씀 한절 + 묵상 + 회개와 나눔 + 기도 + 전체 성경 본문 + 애드몹 250)
+    function openGoodnewsMeditationModal() {
+        const rawRef = (document.getElementById('gnRefText')?.innerText || document.getElementById('gnRef')?.innerText || '').replace(/[-📖🔍\[\]\(\)]/g, '').trim();
+        const verseText = (document.getElementById('gnText')?.innerText || '').trim();
+
+        // 성경 책이름 약칭 변환 맵
+        const abbrMap = {
+            '창': '창세기', '출': '출애굽기', '레': '레위기', '민': '민수기', '신': '신명기',
+            '수': '여호수아', '삿': '사사기', '룻': '룻기', '삼상': '사무엘상', '삼하': '사무엘하',
+            '왕상': '열왕기상', '왕하': '열왕기하', '대상': '역대상', '대하': '역대하',
+            '스': '에스라', '느': '느헤미야', '에': '에스더', '욥': '욥기', '시': '시편',
+            '잠': '잠언', '전': '전도서', '아': '아가', '사': '이사야', '렘': '예레미야',
+            '애': '예레미야애가', '겔': '에스겔', '단': '다니엘', '호': '호세아', '욜': '요엘',
+            '암': '아모스', '옵': '오바댜', '욘': '요나', '미': '미가', '나': '나훔',
+            '합': '하박국', '습': '스바냐', '학': '학개', '슥': '스가랴', '말': '말라기',
+            '마': '마태복음', '막': '마가복음', '눅': '누가복음', '요': '요한복음',
+            '행': '사도행전', '롬': '로마서', '고전': '고린도전서', '고후': '고린도후서',
+            '갈': '갈라디아서', '엡': '에베소서', '빌': '빌립보서', '골': '골로새서',
+            '살전': '데살로니가전서', '살후': '데살로니가후서', '딤전': '디모데전서', '딤후': '디모데후서',
+            '딛': '디도서', '몬': '빌레몬서', '히': '히브리서', '약': '야고보서',
+            '벧전': '베드로전서', '벧후': '베드로후서', '요일': '요한일서', '요이': '요한이서',
+            '요삼': '요한삼서', '유': '유다서', '계': '요한계시록'
+        };
+
+        const match = rawRef.match(/([가-힣]+)\s*(\d+)/);
+        let book = '시편';
+        let ch = 23;
+        if (match) {
+            let parsedBook = match[1].trim();
+            book = abbrMap[parsedBook] || parsedBook;
+            ch = parseInt(match[2], 10) || 1;
+        }
+
+        // 1. 모달 엘리먼트 가져오기
+        const modal = document.getElementById("goodnewsMeditationModal");
+        const refBadge = document.getElementById("gnModalRefBadge");
+        const vText = document.getElementById("gnModalVerseText");
+        const mText = document.getElementById("gnModalMeditationText");
+        const rText = document.getElementById("gnModalRepentText");
+        const pText = document.getElementById("gnModalPrayerText");
+        const bibleTitle = document.getElementById("gnModalFullBibleTitle");
+        const bibleBody = document.getElementById("gnModalFullBibleBody");
+
+        if (!modal) return;
+
+        // 2. 구절 및 출처 설정
+        if (refBadge) refBadge.innerText = rawRef || `${book} ${ch}장`;
+        if (vText) vText.innerText = verseText ? `“${verseText.replace(/^[\s“"']+|[\s”"']+$/g, '')}”` : "“주님의 말씀은 내 발에 등이요 내 길에 빛이니이다”";
+
+        // 3. 묵상 / 회개 / 기도문 매핑
+        const key = `${book}_${ch}`;
+        const med = GOODNEWS_MEDITATIONS[key] || {
+            meditation: `오늘 우리에게 생명의 양식으로 주신 ${book} ${ch}장의 거룩한 말씀 앞에 겸손히 나아갑니다. 주님의 말씀은 혼과 영과 및 관절과 골수를 찔러 쪼개기까지 하며 마음의 생각과 뜻을 감찰하십니다. 이 말씀을 통해 내 심령이 새 힘을 얻고 진리의 길로 온전히 행하게 하옵소서.`,
+            repentance: `말씀의 거울 앞에 나를 솔직하게 비추어보며, 하나님의 선하신 뜻을 알면서도 세상의 정욕과 게으름에 타협했던 연약함을 회개합니다. 오늘 받은 말씀 한 구절이라도 가슴에 깊이 품고 삶의 현장에서 순종하며 실천하기를 결단합니다.`,
+            prayer: `살아 역사하시는 거룩하신 하나님, 기록된 성경 말씀을 내 영혼의 나침반으로 삼아 오늘도 믿음으로 승리하게 하옵소서. 어두운 세상 속에서 주의 말씀의 빛을 비추며 주님만을 기쁘시게 하는 거룩한 하루가 되게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘.`
+        };
+
+        if (mText) mText.innerText = med.meditation;
+        if (rText) rText.innerText = med.repentance;
+        if (pText) pText.innerText = med.prayer;
+
+        // 4. 전체 성경 본문 렌더링 (박스 없이 시원하고 넓게)
+        const item = (typeof getBibleChapterItem === 'function') ? getBibleChapterItem(book, ch) : { title: `${book} ${ch}장`, text: '' };
+        if (bibleTitle) {
+            bibleTitle.innerText = `${book} ${ch}장 전체 말씀`;
+        }
+
+        if (bibleBody) {
+            const rawLines = (item.text || '').split('\n');
+            let fullHtml = '';
+            rawLines.forEach(line => {
+                const trimmed = line.trim();
+                if (!trimmed) return;
+                const m = trimmed.match(/^(\d+)[.\s]\s*(.*)$/);
+                if (m) {
+                    fullHtml += `
+                        <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:10px; line-height:1.9;">
+                            <span style="color:#059669; font-weight:950; font-size:14.5px; min-width:28px; padding-top:1px; user-select:none;">${m[1]}</span>
+                            <span style="flex:1; color:#1e293b; font-size:16.5px; letter-spacing:-0.2px;">${m[2]}</span>
+                        </div>
+                    `;
+                } else {
+                    fullHtml += `
+                        <div style="margin-bottom:10px; color:#1e293b; font-size:16.5px; line-height:1.9;">
+                            ${trimmed}
+                        </div>
+                    `;
+                }
+            });
+
+            if (!fullHtml) {
+                fullHtml = `<div style="text-align:center; color:#64748b; padding:20px 0;">${book} ${ch}장의 성경 본문을 불러오는 중입니다...</div>`;
+            }
+
+            bibleBody.innerHTML = fullHtml;
+        }
+
+        // 5. 모달 오픈
+        modal.style.display = "flex";
+        modal.classList.add("show");
+        modal.scrollTop = 0;
+    }
+
+    function closeGoodnewsMeditationModal() {
+        const modal = document.getElementById("goodnewsMeditationModal");
+        if (modal) {
+            modal.style.display = "none";
+            modal.classList.remove("show");
+        }
+    }
+
+    window.openGoodnewsMeditationModal = openGoodnewsMeditationModal;
+    window.closeGoodnewsMeditationModal = closeGoodnewsMeditationModal;
+    window.openGoodnewsVerseInFullBible = openGoodnewsVerseInFullBible;
+
     window.openGoodnewsVerseInFullBible = openGoodnewsVerseInFullBible;
 
     function openListModal() { document.getElementById("videoListModal").classList.add("show"); }
@@ -8130,6 +8405,14 @@
     function toggleYetalkTvSubChannels() {
         const bar = document.getElementById("yetalkTvSubChannelsBar");
         const btnTv = document.getElementById("btnThreeTv");
+        const panelNotice = document.getElementById("unifiedNoticePanel");
+        const btnNotice = document.getElementById("btnThreeNotice");
+        const panelBoard = document.getElementById("unifiedBoardPanel");
+        const btnBoard = document.getElementById("btnThreeBoard");
+        if (panelNotice) panelNotice.style.display = "none";
+        if (btnNotice) btnNotice.classList.remove("active");
+        if (panelBoard) panelBoard.style.display = "none";
+        if (btnBoard) btnBoard.classList.remove("active");
         if (!bar) return;
         if (bar.style.display === "none" || !bar.style.display) {
             bar.style.display = "flex";
@@ -8159,6 +8442,10 @@
     function toggleNoticeDropPanel() {
         const panelNotice = document.getElementById("unifiedNoticePanel");
         const panelBoard = document.getElementById("unifiedBoardPanel");
+        const barTv = document.getElementById("yetalkTvSubChannelsBar");
+        const btnTv = document.getElementById("btnThreeTv");
+        if (barTv) barTv.style.display = "none";
+        if (btnTv) btnTv.classList.remove("active");
         const btnNotice = document.getElementById("btnThreeNotice");
         const btnBoard = document.getElementById("btnThreeBoard");
 
@@ -8949,7 +9236,7 @@
         const container = document.getElementById("unifiedNoticePanel");
         if (!container) return;
 
-        const churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "우리교회";
+        const churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회";
         const pastorName = localStorage.getItem("yetalk_pastor_name") || "담임목사";
         const churchKey = localStorage.getItem("yetalk_church_key") || "default";
 
@@ -9861,7 +10148,7 @@
     }
 
     function openChristianFriendsModal() {
-        const churchName = localStorage.getItem("yetalk_church_name") || "우리교회";
+        const churchName = localStorage.getItem("yetalk_church_name") || "부산제일감리교회";
         const churchKey = localStorage.getItem("yetalk_church_key");
 
         const badge = document.getElementById("txtFriendChurchNameBadge");
@@ -10140,7 +10427,7 @@
             if (churchName && churchName.trim()) {
                 ourChurchTab.innerHTML = `✨ ${churchName.trim()}`;
             } else {
-                ourChurchTab.innerHTML = "✨ 우리교회앱";
+                ourChurchTab.innerHTML = "⛪ 부산제일감리교회";
             }
         }
 
@@ -10168,7 +10455,7 @@
 
     function updateChristianHeaderUI() {
         // 🌟 [사용자 요청] 퀵 메뉴 바에 본인 교회 실제 이름 버튼 표출 (없으면 '우리교회')
-        const churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "우리교회";
+        const churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회";
         const ourChurchTab = document.getElementById("chipTabOurChurch");
         if (ourChurchTab) {
             ourChurchTab.innerHTML = `⛪ ${churchName.trim()}`;
