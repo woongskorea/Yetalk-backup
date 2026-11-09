@@ -894,7 +894,7 @@ function handleBottomNav(type) {
         case 'salvation': location.href = "church_salvation.html"; break;
         case 'map': location.href = "church_map.html"; break;
         case 'offering': openChurchOfferingModal(); break;
-        case 'tv': location.href = "yetalktv.html?channel=" + encodeURIComponent("우리교회"); break;
+        case 'tv': location.href = "index.html"; break;
         case 'coupang': runFastCoupangModal(); break;
     }
 }
