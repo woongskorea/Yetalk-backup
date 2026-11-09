@@ -1453,27 +1453,33 @@
             font-weight: 900;
             box-shadow: 0 1px 4px rgba(239, 68, 68, 0.2);
         }
-        /* 🌟 [사용자 요청] 예톡TV 누르면 나타나는 가로 5개 소메뉴 바: 동그란 박스 완전 제거, 글자만 동일하게 유지하고 간격을 줄여 한 화면에 5개 모두 쏙 들어가게 배치 */
+        /* 🌟 [사용자 요청] 예톡TV 누르면 나타나는 가로 10개 소메뉴 바: 동그란 박스 완전 제거, 2줄(5개+5개)로 쏙 들어가게 배치 */
         .yetalk-tv-subchannels-bar {
             display: flex;
-            align-items: center;
-            justify-content: space-around;
-            gap: 2px;
-            overflow: hidden;
-            white-space: nowrap;
-            padding: 8px 6px 4px 6px;
+            flex-direction: column;
+            gap: 4px;
             width: 100%;
             box-sizing: border-box;
             border-top: 1px dashed #e2e8f0;
             margin-top: 4px;
+            padding: 8px 4px 6px 4px;
+        }
+        .subchannels-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            gap: 2px;
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
         }
         .yetalk-tv-subchannels-bar::-webkit-scrollbar { display: none; }
         .subchannel-pill {
             background: transparent !important;
             border: none !important;
             border-radius: 0 !important;
-            padding: 5px 3px !important;
-            font-size: 14px !important;
+            padding: 4px 2px !important;
+            font-size: 13.5px !important;
             font-weight: 950 !important;
             cursor: pointer;
             flex: 1;
@@ -1492,6 +1498,11 @@
         .subchannel-pill.pill-word { color: #15803d !important; }
         .subchannel-pill.pill-testimony { color: #7c3aed !important; }
         .subchannel-pill.pill-heaven { color: #d97706 !important; }
+        .subchannel-pill.pill-pray { color: #2563eb !important; }
+        .subchannel-pill.pill-repent { color: #dc2626 !important; }
+        .subchannel-pill.pill-ourchurch { color: #059669 !important; }
+        .subchannel-pill.pill-bible { color: #0891b2 !important; }
+        .subchannel-pill.pill-patriot { color: #4338ca !important; }
 
         .btn-three-board {
             background: #f8fafc;
@@ -3902,13 +3913,22 @@
             <div class="notice-flow-list" id="unifiedNoticePanel" style="display:none;">
                 <!-- JS로 최근 1주일치 알림 실시간 렌더링 -->
             </div>
-                    <!-- 🌟 [사용자 요청] 예톡TV 누르면 가로 소메뉴 5개: 찬양TV, 자유TV, 말씀TV, 간증TV, 천국TV -->
+            <!-- 🌟 [사용자 요청] 예톡TV 누르면 가로 소메뉴 10개 (5개 + 5개 2줄): 찬양, 자유, 말씀TV, 간증, 천국 / 기도, 회개, 우리교회, 성경, 애국 -->
             <div class="yetalk-tv-subchannels-bar" id="yetalkTvSubChannelsBar" style="display:none;">
-                <button type="button" class="subchannel-pill pill-praise" onclick="openTvChannel('찬양')">찬양</button>
-                <button type="button" class="subchannel-pill pill-freedom" onclick="openTvChannel('자유')">자유</button>
-                <button type="button" class="subchannel-pill pill-word" onclick="openTvChannel('말씀')">말씀TV</button>
-                <button type="button" class="subchannel-pill pill-testimony" onclick="openTvChannel('간증')">간증</button>
-                <button type="button" class="subchannel-pill pill-heaven" onclick="openTvChannel('천국')">천국</button>
+                <div class="subchannels-row">
+                    <button type="button" class="subchannel-pill pill-praise" onclick="openTvChannel('찬양')">찬양</button>
+                    <button type="button" class="subchannel-pill pill-freedom" onclick="openTvChannel('자유')">자유</button>
+                    <button type="button" class="subchannel-pill pill-word" onclick="openTvChannel('말씀')">말씀TV</button>
+                    <button type="button" class="subchannel-pill pill-testimony" onclick="openTvChannel('간증')">간증</button>
+                    <button type="button" class="subchannel-pill pill-heaven" onclick="openTvChannel('천국')">천국</button>
+                </div>
+                <div class="subchannels-row" style="margin-top:3px; padding-top:3px; border-top:1px dashed #f1f5f9;">
+                    <button type="button" class="subchannel-pill pill-pray" onclick="openTvChannel('기도')">기도</button>
+                    <button type="button" class="subchannel-pill pill-repent" onclick="openTvChannel('회개')">회개</button>
+                    <button type="button" class="subchannel-pill pill-ourchurch" onclick="openTvChannel('우리교회')">우리교회</button>
+                    <button type="button" class="subchannel-pill pill-bible" onclick="openTvChannel('성경')">성경</button>
+                    <button type="button" class="subchannel-pill pill-patriot" onclick="openTvChannel('애국')">애국</button>
+                </div>
             </div>
         </section>
 
@@ -9108,6 +9128,12 @@
 
     // 초기화
     document.addEventListener("DOMContentLoaded", () => {
+        // 🌟 [사용자 요청] 메인 화면 진입 시 보이지 않는 백그라운드 유튜브 영상/오디오 재생 원천 차단
+        try {
+            stopAndDestroySuitePlayer();
+            cancelAutoSuiteTimer();
+        } catch(e){}
+
         // 🌟 [사용자 요청] 나에게만 보이는 관리자 버튼: 영구 인증 상태 복원 (명시적 종료 시에만 숨김)
         if (localStorage.getItem("yetalk_admin_auth") !== "false") {
             localStorage.setItem("yetalk_admin_auth", "true");
@@ -9271,6 +9297,16 @@
             switchHomeBibleTestament("HYMN");
             displayHymn(hNum);
         }
+    });
+
+    window.addEventListener("pageshow", () => {
+        try {
+            const overlay = document.getElementById("bibleSuiteOverlay");
+            if (!overlay || !overlay.classList.contains("show")) {
+                stopAndDestroySuitePlayer();
+                cancelAutoSuiteTimer();
+            }
+        } catch(e){}
     });
 
     /* ==================================================

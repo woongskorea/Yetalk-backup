@@ -348,7 +348,8 @@ function getCurrentLiveWorship() {
 
 function goToLiveWorship(tabKey) {
     sessionStorage.setItem("church_last_active_card_idx", "1");
-    location.href = `churchworship.html?tab=${tabKey || 'sunday'}`;
+    // 🌟 [사용자 요청] 우리교회 라이브 예배 드릴 때 예톡TV [우리교회] 실시간 라이브 채널로 바로 이동
+    location.href = `yetalktv.html?channel=` + encodeURIComponent("우리교회");
 }
 
 function goToDetailPage(secId, targetLink) {
@@ -893,7 +894,7 @@ function handleBottomNav(type) {
         case 'salvation': location.href = "church_salvation.html"; break;
         case 'map': location.href = "church_map.html"; break;
         case 'offering': openChurchOfferingModal(); break;
-        case 'tv': location.href = "index.html"; break;
+        case 'tv': location.href = "yetalktv.html?channel=" + encodeURIComponent("우리교회"); break;
         case 'coupang': runFastCoupangModal(); break;
     }
 }
