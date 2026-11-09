@@ -4526,6 +4526,19 @@
 
             <div style="text-align:right; font-size:11.5px; color:#059669; margin-top:8px; opacity:0.9; font-weight:750;">[본문: 개역개정 / 정회원 개인 묵상 및 성경 통독용]</div>
 
+            <!-- 🌟 [사용자 요청] 구약 신약 찬송 모두 성경 본문 맨밑에도 좌우 삼각형(◀ / ▶) 앞뒤로만 가게, 중간에 지금 읽는 성경이나 찬양 장만 (제목 필요없이) -->
+            <div class="bible-bottom-nav-bar" style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin:14px 0 10px 0; padding:8px 14px; background:#f0fdf4; border:1.5px solid #86efac; border-radius:14px; box-shadow:0 2px 6px rgba(5,150,105,0.08);">
+                <button type="button" onclick="navBottomBibleChapter(-1)" style="padding:9px 20px; background:#ffffff; border:1.5px solid #10b981; border-radius:10px; font-size:16px; font-weight:950; color:#047857; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.08); touch-action:manipulation;" title="이전 장">
+                    <span>◀</span>
+                </button>
+                <div id="txtBottomBibleChapter" style="font-size:17.5px; font-weight:950; color:#065f46; letter-spacing:-0.3px; text-align:center; flex:1;">
+                    창세기 1장
+                </div>
+                <button type="button" onclick="navBottomBibleChapter(1)" style="padding:9px 20px; background:#ffffff; border:1.5px solid #10b981; border-radius:10px; font-size:16px; font-weight:950; color:#047857; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.08); touch-action:manipulation;" title="다음 장">
+                    <span>▶</span>
+                </button>
+            </div>
+
             <!-- 🌟 [사용자 요청] 감사 고백 창 널찍하게 확대 & '아멘' 버튼 삐져나오지 않도록 밑으로 배치 (전체 너비 100%) -->
             <div class="bible-amen-confession-card" id="bibleAmenConfessionCard">
                 <div class="amen-confession-header">
@@ -4565,9 +4578,15 @@
             <div class="suite-top-video-section" id="suiteTopVideoSection">
                 <!-- 유튜브 쇼츠 영상 영역: 세로 숏폼 9:16 전폭 풀뷰 (영상 탭 시 재생/정지, 스크롤 막힘 없이 바로 밑 말씀으로 이동) -->
                 <div class="suite-shorts-video-wrapper" onclick="toggleSuiteVideoPlayback()" title="영상 재생/일시정지">
-                    <div id="ytPlayerContainer" style="width:100%; height:100%; position:relative; background:#000;">
+                    <div id="ytPlayerContainer" style="width:100%; height:100%; position:relative; background:linear-gradient(135deg, #0f172a, #1e293b); display:flex; align-items:center; justify-content:center;">
+                        <!-- 🌟 [사용자 요청] 검은 로딩 화면 방지: 부드러운 로딩 플레이스홀더 -->
+                        <div id="ytLoadingPlaceholder" style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#0f172a; color:#38bdf8; z-index:1; pointer-events:none;">
+                            <span style="font-size:28px;">🎬</span>
+                            <span style="font-size:13px; font-weight:800; color:#94a3b8; margin-top:8px;">은혜로운 찬양 영상을 준비 중입니다...</span>
+                        </div>
                         <iframe id="mainYtPlayerIframe" 
                                 src="about:blank"
+                                onload="document.getElementById('ytLoadingPlaceholder')?.style.setProperty('display', 'none')"
                                 style="width:100%; height:100%; border:none; pointer-events:none;" 
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                 allowfullscreen>
@@ -4586,9 +4605,10 @@
                         <button type="button" class="badge-focus-toggle" id="bibleFocusBtn" onclick="event.stopPropagation(); scrollToBibleContent()">📖 성경열기 ▼</button>
                     </div>
 
-                    <!-- 2행: 1차 조작 메뉴 (홈, 확대, 속도, 화면고정) -->
+                    <!-- 2행: 1차 조작 메뉴 (홈, 정지/재생 전용버튼, 확대, 속도, 화면고정) -->
                     <div class="suite-dock-row">
                         <button type="button" class="btn-suite-pill" onclick="closeBibleSuite()">🏠 홈</button>
+                        <button type="button" class="btn-suite-pill" id="btnSuitePlayPause" onclick="event.stopPropagation(); toggleSuiteVideoPlayback()" style="background:#dc2626; color:#ffffff; font-weight:950;">⏸️ 정지</button>
                         <button type="button" class="btn-suite-pill" id="btnZoomToggle" onclick="toggleVideoZoom()">확대 100%</button>
                         <button type="button" class="btn-suite-pill" id="btnSpeedToggle" onclick="toggleVideoSpeed()">속도 1배</button>
                         <button type="button" class="btn-suite-pill btn-pill-lock" id="btnLockToggle" onclick="toggleVideoLock()">🔒 화면고정</button>
@@ -6901,6 +6921,12 @@
             txtAutoTimeSlot.innerText = `${num}장 ${info.title}`;
         }
 
+        // 🌟 [사용자 요청] 성경/찬송 본문 맨 밑 하단 네비게이션: 찬양 장만 표기 (제목 필요없이)
+        const bottomChText = document.getElementById("txtBottomBibleChapter");
+        if (bottomChText) {
+            bottomChText.innerText = `찬송가 ${num}장`;
+        }
+
         // 소제목 업데이트 (찬송가 번호 및 제목 표출 - 상단 빨강 반주 버튼 완전 제거)
         const subTitleEl = document.getElementById("bbrChapterSubtitle");
         if (subTitleEl) {
@@ -7390,6 +7416,12 @@
         }
         if (contentEl) {
             contentEl.innerHTML = formatBibleVersesHtml(item.text, currentUserBibleBook, currentUserBibleCh);
+        }
+
+        // 🌟 [사용자 요청] 성경/찬송 본문 맨 밑 하단 네비게이션: 지금 읽는 성경 장만 표기 (제목 필요없이)
+        const bottomChText = document.getElementById("txtBottomBibleChapter");
+        if (bottomChText) {
+            bottomChText.innerText = `${currentUserBibleBook} ${currentUserBibleCh}장`;
         }
 
         // 하단 출처 표기 복원
@@ -8024,22 +8056,40 @@
         }
     }
 
-    // 🌟 [사용자 요청] 쇼츠 영상 탭 시 재생/일시정지 토글
+    // 🌟 [사용자 요청] 쇼츠 영상 탭 및 정지버튼 클릭 시 즉시 확실하게 정지/재생 토글
     let isVideoPaused = false;
     function toggleSuiteVideoPlayback() {
         const iframe = document.getElementById("mainYtPlayerIframe");
+        const btn = document.getElementById("btnSuitePlayPause");
         if (!iframe) return;
         try {
             if (isVideoPaused) {
                 iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
                 iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
                 isVideoPaused = false;
+                if (btn) {
+                    btn.innerHTML = '⏸️ 정지';
+                    btn.style.background = '#dc2626';
+                    btn.style.color = '#ffffff';
+                }
             } else {
                 iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*');
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'stopVideo', args: [] }), '*');
                 isVideoPaused = true;
+                if (btn) {
+                    btn.innerHTML = '▶️ 재생';
+                    btn.style.background = '#16a34a';
+                    btn.style.color = '#ffffff';
+                }
             }
         } catch(e) {}
     }
+
+    // 🌟 [사용자 요청] 성경/찬송 본문 맨 밑 하단 네비게이션: 앞뒤로 1장씩만 이동 & 현재 장명 표기
+    function navBottomBibleChapter(delta) {
+        navUserBibleChapter(delta);
+    }
+    window.navBottomBibleChapter = navBottomBibleChapter;
 
     // 🌟 [사용자 요청] 상단에 관리자는 총관리자 화면(admin.html)으로 가야 함 (성경구절 유튜브 적기가 아님)
     function goToAdminMaster() {

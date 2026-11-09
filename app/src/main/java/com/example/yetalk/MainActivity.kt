@@ -198,14 +198,25 @@ class MainActivity : AppCompatActivity() {
                     if (result == "\"handled\"" || result == "handled") {
                         return@evaluateJavascript
                     }
-                    if (webView.canGoBack()) {
-                        webView.goBack()
+
+                    val currentUrl = webView.url ?: ""
+                    val isAtHome = currentUrl.endsWith("/assets/index.html") ||
+                                   currentUrl.endsWith("/index.html") ||
+                                   currentUrl == "https://yetalk.cc" ||
+                                   currentUrl == "https://yetalk.cc/" ||
+                                   currentUrl == "https://yetalk.cc/assets/" ||
+                                   currentUrl.isEmpty()
+
+                    // 🌟 [사용자 요청] 서브 화면(예톡TV, 우리교회, 개인홈 등)에서는 뒤로가기 시 반드시 예톡 홈을 먼저 거침!
+                    if (!isAtHome) {
+                        webView.loadUrl("https://yetalk.cc/assets/index.html")
                         return@evaluateJavascript
                     }
+
+                    // 🌟 예톡 홈에 있을 때만 2초 내에 뒤로가기 2회 누르면 바탕화면(종료)
                     val now = System.currentTimeMillis()
                     if (now - lastBackTime < 2000) {
-                        isEnabled = false
-                        onBackPressedDispatcher.onBackPressed()
+                        finish()
                     } else {
                         lastBackTime = now
                         android.widget.Toast.makeText(this@MainActivity, "'뒤로' 버튼을 한 번 더 누르면 예톡이 종료됩니다.", android.widget.Toast.LENGTH_SHORT).show()

@@ -4346,8 +4346,8 @@
 
             <!-- 3. 소속 교회 이름 (사용자 요청: 전문앱 홍보 대신 소속 교회명 노출) -->
             <div class="form-group-line">
-                <label class="form-label-title" style="color:#4ade80; font-weight:900;">3. 소속 교회 이름 (영상 좌측 하단에 교회명 노출)</label>
-                <input type="text" id="ytInpChurchName" class="modal-input" placeholder="소속 교회명을 입력하세요 (기본: 부산제일감리교회)">
+                <label class="form-label-title" style="color:#4ade80; font-weight:900;">3. 소속 교회 또는 작성자 이름 (영상 좌측 하단에 노출)</label>
+                <input type="text" id="ytInpChurchName" class="modal-input" placeholder="이름 또는 교회명을 입력하세요 (기본: 최베드로)">
             </div>
 
             <!-- 전체 1번 최신 대표 고정 옵션 -->
@@ -4903,15 +4903,12 @@
             }
         }
 
-        // 🌟 [사용자 요청] 10개 소메뉴 채널 필터링 & 다른 회원이 올린 클라우드 실시간 영상도 전원에게 100% 표출!
+        // 🌟 [사용자 요청] 10개 소메뉴 채널 필터링: 해당 채널에 등록된 영상만 엄격하게 분리 표출! (타 채널 침범 차단)
         if (currentTvChannel && CHANNEL_PRESETS[currentTvChannel]) {
             let channelItems = CHANNEL_PRESETS[currentTvChannel];
-            // 해당 채널 등록 영상, 본인 업로드 영상, 그리고 다른 회원이 올린 클라우드 공유 영상도 최우선 상단 표출
+            // 해당 채널로 등록된 맞춤 영상만 상단에 표출하고 타 채널 영상 침범 방지
             let matchingCustom = customList.filter(f => {
-                if (f.channel === currentTvChannel) return true;
-                if (!f.channel && (f.isUploadedByMe || f.isCloud)) return true;
-                if (f.isCloud) return true; // 타 회원이 올린 클라우드 영상도 전체 회원에게 즉시 노출!
-                return false;
+                return (f.channel && f.channel === currentTvChannel);
             });
             list = [...matchingCustom, ...channelItems];
         }
@@ -6600,13 +6597,15 @@
         // "내 안에 계신 하나님을 기쁘시게 하는 인생을 살아갑시다."
         const globalDefaultMotto = (localStorage.getItem("yetalk_global_tv_motto") || "내 안에 계신 하나님을 기쁘시게 하는 인생을 살아갑시다.").trim();
 
-        // 1. 소속 교회 이름 (영상 등록 시 저장된 교회명 우선, 없으면 현재 회원 소속 교회, 기본값: 부산제일감리교회)
+        // 1. 🌟 [사용자 요청] 부산제일감리교회가 아니라 최베드로(또는 회원 이름)로 유튜브 화면 밑에 표기
+        const savedUserName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id") || "최베드로";
+        let authorDisplay = savedUserName;
         let churchName = (feed.churchName || "").trim();
-        if (!churchName || churchName === "예톡TV" || churchName === "예톡새영상" || churchName.includes("의원") || churchName.includes("상점")) {
-            churchName = (localStorage.getItem("yetalkChurchName") || localStorage.getItem("yetalk_user_church") || "").trim();
+        if (!churchName || churchName === "예톡TV" || churchName === "예톡새영상" || churchName === "부산제일감리교회" || churchName.includes("의원") || churchName.includes("상점")) {
+            churchName = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "").trim();
         }
-        if (!churchName || churchName.includes("의원") || churchName.includes("상점") || churchName === "예톡새영상") {
-            churchName = "부산제일감리교회";
+        if (!churchName || churchName === "부산제일감리교회") {
+            churchName = authorDisplay;
         }
 
         // 2. 소개글 (성도가 입력한 소개글 우선, 비어있거나 이전 상투글이면 관리실 기본글 적용)
@@ -6621,7 +6620,8 @@
         const targetUrl = "churchmain.html";
 
         if (linkEl) {
-            linkEl.innerText = `⛪ ${churchName}`;
+            // 사용자 요청: 부산제일감리교회 대신 최베드로(또는 회원 이름) 표기
+            linkEl.innerText = `👤 ${authorDisplay}`;
             linkEl.dataset.targetUrl = targetUrl;
         }
         const cardEl = document.querySelector(".author-unified-card");
@@ -7407,8 +7407,8 @@
         const defaultMotto = (localStorage.getItem("yetalk_global_tv_motto") || "내 안에 계신 하나님을 기쁘시게 하는 인생을 살아갑시다.").trim();
         const inputPromo = titleInp ? titleInp.value.trim() : "";
         const promoText = inputPromo || defaultMotto;
-        let churchName = (churchInp && churchInp.value.trim()) ? churchInp.value.trim() : (localStorage.getItem("yetalkChurchName") || localStorage.getItem("yetalk_user_church") || "부산제일감리교회");
-        if (churchName.includes("의원") || churchName.includes("상점")) churchName = "부산제일감리교회";
+        let churchName = (churchInp && churchInp.value.trim()) ? churchInp.value.trim() : (localStorage.getItem("yetalk_user_name") || "최베드로");
+        if (churchName.includes("의원") || churchName.includes("상점")) churchName = "최베드로";
 
         localStorage.setItem("yetalkChurchName", churchName);
         localStorage.setItem("yetalkUserPromoText", promoText);
@@ -10427,6 +10427,16 @@ https://yetalk.cc`;
             try { initPcPanelResizer(); } catch(e){ console.error(e); }
         }
     });
+
+    // 🌟 [사용자 요청] 안드로이드 뒤로가기 버튼 처리: 모달 닫기 우선, 모달 없으면 메인홈으로 복귀
+    window.handleAppBackPress = function() {
+        const activeModal = document.querySelector('.modal-overlay.show, .comment-drawer.show, #commentDrawerWrapper.show, .side-drawer.show');
+        if (activeModal) {
+            activeModal.classList.remove('show');
+            return true;
+        }
+        return false;
+    };
 
 </script>
 
