@@ -216,7 +216,7 @@
         /* 3. 우측 세로 퀵 액션 바 (하단 애드몹 100 바로 위 바짝 배치하여 영상 중앙 풀스크린 시야 확보) */
         .right-actions-bar {
             position: absolute; right: 10px;
-            bottom: calc(max(env(safe-area-inset-bottom, 0px), 8px) + 104px) !important;
+            bottom: calc(max(env(safe-area-inset-bottom, 0px), 8px) + 158px) !important; right: 12px !important;
             z-index: 10015 !important;
             display: flex;
             flex-direction: column; gap: 10px;
@@ -265,6 +265,10 @@
             outline: none;
             -webkit-tap-highlight-color: transparent;
             transition: color 0.15s ease;
+        }
+        .tv-ch-pill[data-ch="우리교회"] {
+            font-size: 14.5px !important;
+            font-weight: 950 !important;
         }
         .tv-ch-pill.active,
         .tv-ch-pill[data-ch="말씀"] {
@@ -3962,6 +3966,9 @@
             <div class="unified-card-row-top">
                 <span class="unified-biz-title" id="whiteBizLinkText">@예톡 아름다운의원</span>
                 <span style="font-size:10.5px; color:#38bdf8; font-weight:900; margin-left:auto;">바로가기 ➔</span>
+                <button type="button" class="mini-tool-pill mini-delete-pill" id="btnAdminDelete" onclick="deleteCurrentVideoForMe(event)" title="현재 영상 완전 삭제 (총관리자 전용)" style="display:none; margin-left:8px; padding:3px 8px; font-size:11px; height:22px; line-height:1; border-radius:6px; background:rgba(239,68,68,0.85); border:1px solid #ef4444; color:#ffffff; font-weight:900;">
+                    <span>삭제</span>
+                </button>
             </div>
             <!-- 🌟 [사용자 요청] 1줄 홍보글은 15자 이내 & 클릭 시 팝업 박스 없이 바로 전문앱으로 이동 -->
             <div class="unified-card-row-bottom" id="whiteBizAdText" title="전문앱 바로가기">
@@ -3992,10 +3999,7 @@
                 <button type="button" class="mini-tool-pill" id="btnPermanentLock" onclick="toggleScreenLockMode()" title="화면고정 (스크롤/터치 완전 잠금)">
                     <span id="lockTextSpan">화면고정</span>
                 </button>
-                <!-- 🌟 4. 삭제 -->
-                <button type="button" class="mini-tool-pill mini-delete-pill" id="btnAdminDelete" onclick="deleteCurrentVideoForMe()" title="현재 영상 삭제">
-                    <span>삭제</span>
-                </button>
+
             </div>
         </div>
     </div>
@@ -7069,6 +7073,10 @@
         if (adminBox) {
             adminBox.style.display = isMaster ? "flex" : "none";
         }
+        const btnDelete = document.getElementById("btnAdminDelete");
+        if (btnDelete) {
+            btnDelete.style.display = isMaster ? "inline-flex" : "none";
+        }
     }
 
             /* 🌟 [사용자 요청] 현재 로그인된 사용자의 실제 아이디/이름 자동 연계 */
@@ -7562,7 +7570,8 @@
     /* 🌟 [사용자 요청] 삭제 권한 분기:
        - 일반 회원: 본인 화면 또는 본인이 올린 영상만 삭제
        - 내가(총관리자): 예톡TV 전체에서 해당 영상을 완전 삭제 */
-    function deleteCurrentVideoForMe() {
+    function deleteCurrentVideoForMe(e) {
+        if (e && e.stopPropagation) e.stopPropagation();
         const feeds = loadSavedFeeds();
         if (!feeds || feeds.length === 0) return;
         const curFeed = feeds[currentFeedIndex] || feeds[0];
