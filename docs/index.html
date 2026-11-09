@@ -4398,11 +4398,15 @@
                 <button type="button" class="btn-simple-arrow-nav btn-double-next" onclick="navUserBibleChapter(10)" title="10장 다음" style="font-weight:950; letter-spacing:-2px; padding:0 6px;">▶▶</button>
             </div>
 
-            <!-- 장별 소제목 ([사용자 요청] 마태복음/성경 제목 내용 옆 복사 버튼 불필요로 삭제) -->
-            <div style="border-bottom:1px dashed #bbf7d0; padding:2px 0 4px 0;">
-                <div class="bible-reading-sub-title" id="bbrChapterSubtitle" style="font-size:15px; color:#047857; font-weight:900; line-height:1.4;">
-                    요한복음 1장: 말씀이 육신이 되심과 세례 요한의 증언
+            <!-- 장별 소제목 및 🌟 [사용자 요청] 대표식사기도 버튼 배치 -->
+            <div style="border-bottom:1px dashed #bbf7d0; padding:4px 0 6px 0; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                <div class="bible-reading-sub-title" id="bbrChapterSubtitle" style="font-size:16px; color:#047857; font-weight:950; line-height:1.4; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    출애굽기 1장
                 </div>
+                <button type="button" onclick="openMealPrayerLotteryModal()" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#ffffff; border:none; padding:5px 12px; border-radius:20px; font-size:13px; font-weight:950; cursor:pointer; box-shadow:0 2px 6px rgba(217,119,6,0.3); display:inline-flex; align-items:center; gap:4px; flex-shrink:0; white-space:nowrap; transition:transform 0.1s ease;" title="재미있는 대표 식사 기도자 추첨 (1~4번 중 25% 당선)">
+                    <span>🍽️</span>
+                    <span>대표식사기도</span>
+                </button>
             </div>
 
             <!-- 🌟 찬송가 전용 광고 없는 예톡 내장 플레이어 박스 -->
@@ -4810,12 +4814,98 @@
          3) 내친구 안심 초청 모달 (전화번호 노출 금지, 가로 탭 일렬 성도)
          ================================================== -->
 
+
+    <!-- 🌟 [사용자 요청] 대표식사기도 추첨 모달 (25% 당선 1명, 75% 낙선 3명 + 팡파레/딩동댕 소리) -->
+    <div class="modal-overlay" id="mealPrayerLotteryModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.78); z-index:99999; justify-content:center; align-items:center; padding:14px; box-sizing:border-box;" onclick="closeMealPrayerLotteryModal()">
+        <div style="background:#ffffff; width:100%; max-width:440px; border-radius:20px; box-shadow:0 25px 60px rgba(0,0,0,0.35); overflow:hidden; display:flex; flex-direction:column; animation:fadeInUpModal 0.25s ease-out;" onclick="event.stopPropagation()">
+            <!-- 헤더 바 -->
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; background:linear-gradient(135deg, #fef3c7, #fde68a); border-bottom:1.5px solid #fcd34d;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:22px;">🍽️</span>
+                    <strong style="font-size:17.5px; font-weight:950; color:#92400e;">대표 식사 기도자 뽑기</strong>
+                </div>
+                <button type="button" onclick="closeMealPrayerLotteryModal()" style="background:#ffffff; border:none; color:#78350f; font-size:16px; font-weight:900; width:28px; height:28px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.1);">✕</button>
+            </div>
+
+            <!-- 바디 영역 -->
+            <div style="padding:18px 18px 20px 18px; display:flex; flex-direction:column; gap:14px; max-height:82vh; overflow-y:auto;">
+                <!-- 안내문 -->
+                <div style="background:#fefce8; border:1.5px dashed #f59e0b; border-radius:12px; padding:12px 14px; text-align:center;">
+                    <div style="font-size:14.5px; font-weight:950; color:#b45309; margin-bottom:4px;">
+                        “식사 전 은혜로운 기도자 뽑기!”
+                    </div>
+                    <div style="font-size:12.5px; color:#78350f; font-weight:800; line-height:1.45; word-break:keep-all;">
+                        참여하신 분들은 각자 <strong>1번 ~ 4번</strong> 중 하나씩 입으로 미리 정해 주세요! (당선 1명 25%, 낙선 3명)
+                    </div>
+                </div>
+
+                <!-- 4개 번호 카드 슬롯 -->
+                <div id="mealLotteryCardsRow" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
+                    <div class="meal-lottery-card" id="mealCard_1" onclick="runMealPrayerLottery(1)" style="background:#f8fafc; border:2px solid #cbd5e1; border-radius:12px; padding:14px 4px; text-align:center; cursor:pointer; transition:all 0.2s ease;">
+                        <div style="font-size:22px; font-weight:950; color:#1e293b;" id="mealNum_1">1번</div>
+                        <div style="font-size:11.5px; color:#64748b; font-weight:800; margin-top:4px;" id="mealStatus_1">선택</div>
+                    </div>
+                    <div class="meal-lottery-card" id="mealCard_2" onclick="runMealPrayerLottery(2)" style="background:#f8fafc; border:2px solid #cbd5e1; border-radius:12px; padding:14px 4px; text-align:center; cursor:pointer; transition:all 0.2s ease;">
+                        <div style="font-size:22px; font-weight:950; color:#1e293b;" id="mealNum_2">2번</div>
+                        <div style="font-size:11.5px; color:#64748b; font-weight:800; margin-top:4px;" id="mealStatus_2">선택</div>
+                    </div>
+                    <div class="meal-lottery-card" id="mealCard_3" onclick="runMealPrayerLottery(3)" style="background:#f8fafc; border:2px solid #cbd5e1; border-radius:12px; padding:14px 4px; text-align:center; cursor:pointer; transition:all 0.2s ease;">
+                        <div style="font-size:22px; font-weight:950; color:#1e293b;" id="mealNum_3">3번</div>
+                        <div style="font-size:11.5px; color:#64748b; font-weight:800; margin-top:4px;" id="mealStatus_3">선택</div>
+                    </div>
+                    <div class="meal-lottery-card" id="mealCard_4" onclick="runMealPrayerLottery(4)" style="background:#f8fafc; border:2px solid #cbd5e1; border-radius:12px; padding:14px 4px; text-align:center; cursor:pointer; transition:all 0.2s ease;">
+                        <div style="font-size:22px; font-weight:950; color:#1e293b;" id="mealNum_4">4번</div>
+                        <div style="font-size:11.5px; color:#64748b; font-weight:800; margin-top:4px;" id="mealStatus_4">선택</div>
+                    </div>
+                </div>
+
+                <!-- 메인 추첨 버튼 -->
+                <div>
+                    <button type="button" id="btnRunMealLottery" onclick="runMealPrayerLottery()" style="width:100%; padding:13px; background:linear-gradient(135deg, #f59e0b, #d97706); color:#ffffff; font-size:16px; font-weight:950; border:none; border-radius:12px; cursor:pointer; box-shadow:0 4px 14px rgba(217,119,6,0.35); letter-spacing:-0.2px;">
+                        🎲 오늘의 대표 기도자 번호 추첨하기!
+                    </button>
+                </div>
+
+                <!-- 추첨 결과 알림 배너 (추첨 전에는 숨김) -->
+                <div id="mealLotteryResultBox" style="display:none; background:linear-gradient(135deg, #ecfdf5, #d1fae5); border:2px solid #10b981; border-radius:14px; padding:14px; text-align:center;">
+                    <div style="font-size:13px; font-weight:900; color:#047857;" id="mealResultSub">🎉 축하합니다! 오늘의 은혜로운 대표 기도자입니다!</div>
+                    <div style="font-size:24px; font-weight:950; color:#065f46; margin:6px 0;" id="mealResultWinner">1번 당선! 🙏</div>
+                    <div style="font-size:12px; color:#059669; font-weight:800;" id="mealResultPass">나머지 번호는 낙선 (맛있게 드세요 😊)</div>
+                </div>
+
+                <!-- 🌟 오늘의 대표 식사 기도문 -->
+                <div style="background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:14px; padding:14px 14px 12px 14px;">
+                    <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                        <span style="font-size:16px;">🙏</span>
+                        <strong style="font-size:14px; color:#0f172a; font-weight:950;">오늘의 대표 식사 기도문</strong>
+                    </div>
+                    <div style="font-family:'Pretendard', 'Nanum Myeongjo', serif; font-size:14px; color:#334155; line-height:1.8; word-break:keep-all; font-weight:700;">
+                        “사랑의 하나님 아버지, 오늘도 일용할 양식을 풍성히 베풀어 주시니 감사드립니다.<br>
+                        이 음식을 먹고 마시는 우리의 영과 육이 더욱 강건하여져서 주님의 영광을 위해 살아가게 하옵소서.<br>
+                        음식을 정성껏 준비한 모든 손길 위에 주의 크신 복을 더하여 주옵소서.<br>
+                        <span style="color:#047857; font-weight:950;">예수 그리스도의 이름으로 감사히 기도드립니다. 아멘!</span>”
+                    </div>
+                </div>
+
+                <!-- 하단 버튼들 -->
+                <div style="display:flex; gap:8px;">
+                    <button type="button" onclick="resetMealPrayerLottery()" style="flex:1; padding:11px; background:#f1f5f9; color:#475569; font-size:14px; font-weight:900; border:1px solid #cbd5e1; border-radius:10px; cursor:pointer;">
+                        🔄 다시 뽑기
+                    </button>
+                    <button type="button" onclick="closeMealPrayerLotteryModal()" style="flex:1; padding:11px; background:#334155; color:#ffffff; font-size:14px; font-weight:900; border:none; border-radius:10px; cursor:pointer;">
+                        식사 시작 (닫기)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 1. 교우 회원가입 모달 -->
     <div class="modal-overlay" id="christianRegisterModal">
         <div class="modal-card" style="max-width:400px; padding:20px; border-radius:18px; background:#ffffff; box-shadow:0 10px 30px rgba(0,0,0,0.25);">
             <div class="modal-header" style="border-bottom:1.5px solid #f1f5f9; padding-bottom:10px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
                 <div>
-                    <span class="modal-title" style="color:#047857; font-size:18px; font-weight:950;">✝️ 예톡 교우 회원가입</span>
+                    <span class="modal-title" id="christianRegisterModalTitle" style="color:#047857; font-size:18px; font-weight:950;">✝️ 예톡 교우 회원가입</span>
                     <div style="font-size:12px; color:#64748b; font-weight:700; margin-top:2px;">교회명과 담임목사님 입력 시 우리교회앱이 즉시 생성·연결됩니다</div>
                 </div>
                 <button type="button" style="background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer;" onclick="closeChristianRegisterModal()">✕</button>
@@ -4884,7 +4974,7 @@
                     🌿 <strong>교우 안심 등록:</strong> 성도님들은 간단 가입으로 바로 교회 교우로 연결되며, 담임목사님이 휴대폰 인증을 마치시면 정상적인 공인 교회로 자동 인증 완료됩니다.
                 </div>
 
-                <button type="button" class="btn-modal-submit" onclick="submitChristianRegistration()" style="height:48px; font-size:15.5px; font-weight:950; background:linear-gradient(135deg, #059669, #047857); color:#ffffff; border:none; border-radius:10px; cursor:pointer; box-shadow:0 3px 10px rgba(5,150,105,0.3); margin-top:2px;">
+                <button type="button" id="btnSubmitChristianReg" class="btn-modal-submit" onclick="submitChristianRegistration()" style="height:48px; font-size:15.5px; font-weight:950; background:linear-gradient(135deg, #059669, #047857); color:#ffffff; border:none; border-radius:10px; cursor:pointer; box-shadow:0 3px 10px rgba(5,150,105,0.3); margin-top:2px;">
                     ✝️ 가입 완료 및 우리교회앱 연결 ➔
                 </button>
             </div>
@@ -7171,12 +7261,12 @@
         if (subTitleEl) {
             subTitleEl.style.color = "#047857";
             subTitleEl.style.fontSize = "15px";
-            // 🌟 [사용자 요청] 성경본문 시작전 '창세기 1장: 창세기 1장...' 처럼 중복되는 부분 하나로 줄이고 1px 크게
-            let sub = (item.subtitle || '개역개정 말씀 통독').trim();
-            if (sub.startsWith(item.title)) {
-                subTitleEl.innerText = sub;
+            // 🌟 [사용자 요청] 앞에 글자 줄이기 (개역개정 말씀 통독 등 중복 군더더기 제거하고 깔끔하게 표출)
+            let sub = (item.subtitle || '').trim();
+            if (sub && !sub.includes('말씀 통독') && !sub.includes('개역개정') && !sub.startsWith(item.title)) {
+                subTitleEl.innerText = `${item.title}: ${sub}`;
             } else {
-                subTitleEl.innerText = `${item.title} ${sub}`.trim();
+                subTitleEl.innerText = `${item.title}`;
             }
         }
         if (contentEl) {
@@ -10310,14 +10400,32 @@
         const inpChurch = document.getElementById("inpRegChurchName");
         const inpPastor = document.getElementById("inpRegPastorName");
         const selRole = document.getElementById("selRegChurchRole");
+        const titleEl = document.getElementById("christianRegisterModalTitle");
+        const submitBtn = document.getElementById("btnSubmitChristianReg");
 
-        // 🌟 [사용자 요청] 검정 글씨로 기존 이름 노출 금지! 가상 예시 플레이스홀더로 은은하게 보이도록 초기화
-        if (inpName) { inpName.value = ""; inpName.placeholder = "예: 홍길동 (또는 성도명)"; }
-        if (inpChurch) { inpChurch.value = ""; inpChurch.placeholder = "예: 은혜교회 (또는 본인 교회명)"; }
-        if (inpPastor) { inpPastor.value = ""; inpPastor.placeholder = "예: 김요셉 목사 (성과 이름 전체 입력)"; }
-        if (selRole) selRole.value = "성도";
+        const savedName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id") || "";
+        const savedChurch = localStorage.getItem("yetalk_church_name") || "";
+        const savedPastor = localStorage.getItem("yetalk_pastor_name") || "";
+        const savedRole = localStorage.getItem("yetalk_church_role") || "성도";
 
-        onChurchRoleChange("성도");
+        // 🌟 [사용자 요청] 회원가입 후에는 본인 기존 정보가 입력창에 바로 떠서 언제든 수정 가능!
+        if (savedName) {
+            if (inpName) inpName.value = savedName;
+            if (inpChurch) inpChurch.value = savedChurch;
+            if (inpPastor) inpPastor.value = savedPastor;
+            if (selRole) selRole.value = savedRole;
+            if (titleEl) titleEl.innerText = "✏️ 회원정보 확인 및 수정";
+            if (submitBtn) submitBtn.innerText = "💾 회원정보 수정 완료 ✓";
+            onChurchRoleChange(savedRole);
+        } else {
+            if (inpName) { inpName.value = ""; inpName.placeholder = "예: 홍길동 (또는 성도명)"; }
+            if (inpChurch) { inpChurch.value = ""; inpChurch.placeholder = "예: 은혜교회 (또는 본인 교회명)"; }
+            if (inpPastor) { inpPastor.value = ""; inpPastor.placeholder = "예: 김요셉 목사 (성과 이름 전체 입력)"; }
+            if (selRole) selRole.value = "성도";
+            if (titleEl) titleEl.innerText = "✝️ 예톡 교우 회원가입";
+            if (submitBtn) submitBtn.innerText = "✝️ 가입 완료 및 우리교회앱 연결 ➔";
+            onChurchRoleChange("성도");
+        }
 
         isPastorPhoneVerified = (localStorage.getItem("yetalk_church_role") === "담임목사" && localStorage.getItem("yetalk_church_verified") === "true");
         const badge = document.getElementById("pastorAuthStatusBadge");
@@ -11166,11 +11274,31 @@
     }
 
     function updateChristianHeaderUI() {
-        // 🌟 [사용자 요청] 퀵 메뉴 바에 본인 교회 실제 이름 버튼 표출 (없으면 '우리교회')
+        // 🌟 [사용자 요청] 퀵 메뉴 바에 본인 교회 실제 이름 버튼 표출
         const churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회";
         const ourChurchTab = document.getElementById("chipTabOurChurch");
         if (ourChurchTab) {
             ourChurchTab.innerHTML = `⛪ ${churchName.trim()}`;
+        }
+
+        // 🌟 [사용자 요청] 회원가입 후 버튼 텍스트가 [이름 (직분)]으로 변경되고, 누르면 언제든 정보 수정 가능!
+        const joinBtn = document.getElementById("btnHeaderJoinAction");
+        const uName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id");
+        const uRole = localStorage.getItem("yetalk_church_role") || "성도";
+        if (joinBtn) {
+            if (uName && uName.trim()) {
+                joinBtn.innerHTML = `👤 ${uName.trim()} <span style="font-size:11px; font-weight:750; opacity:0.95;">(${uRole})</span>`;
+                joinBtn.title = "내 회원정보 확인 및 수정";
+                joinBtn.style.background = "linear-gradient(135deg, #047857, #065f46)";
+                joinBtn.style.borderColor = "#34d399";
+                joinBtn.style.padding = "5px 10px";
+            } else {
+                joinBtn.innerHTML = "회원가입";
+                joinBtn.title = "기독교인 회원가입";
+                joinBtn.style.background = "linear-gradient(135deg, #059669, #047857)";
+                joinBtn.style.borderColor = "#10b981";
+                joinBtn.style.padding = "5px 12px";
+            }
         }
 
         // 총관리실 드로어 버튼 항상 노출
@@ -11179,6 +11307,190 @@
             sec.style.display = "block";
         }
     }
+
+
+    // ==============================================================
+    // 🌟 [사용자 요청] 대표 식사 기도자 추첨 (25% 당선 1명, 75% 낙선 3명) & 팡파레/딩동댕 소리
+    // ==============================================================
+    function playCelebrationFanfare() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+
+            // 🎶 딩-동-댕 팡파레 멜로디 (도 - 미 - 솔 - 높은 도!)
+            const notes = [
+                { freq: 523.25, time: 0.00, dur: 0.16 }, // 딩 (C5)
+                { freq: 659.25, time: 0.14, dur: 0.16 }, // 동 (E5)
+                { freq: 783.99, time: 0.28, dur: 0.20 }, // 댕 (G5)
+                { freq: 1046.50, time: 0.46, dur: 0.65 } // 짠! (C6)
+            ];
+
+            notes.forEach(n => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'triangle'; // 맑고 경쾌한 벨/브라스 톤
+                osc.frequency.setValueAtTime(n.freq, ctx.currentTime + n.time);
+
+                gain.gain.setValueAtTime(0, ctx.currentTime + n.time);
+                gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + n.time + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + n.time + n.dur);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start(ctx.currentTime + n.time);
+                osc.stop(ctx.currentTime + n.time + n.dur);
+            });
+
+            // 화음 코드 서포트 (C5 + E5 + G5 + C6)
+            setTimeout(() => {
+                try {
+                    [523.25, 659.25, 783.99, 1046.50].forEach(f => {
+                        const chordOsc = ctx.createOscillator();
+                        const chordGain = ctx.createGain();
+                        chordOsc.type = 'sine';
+                        chordOsc.frequency.setValueAtTime(f, ctx.currentTime);
+                        chordGain.gain.setValueAtTime(0.22, ctx.currentTime);
+                        chordGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+                        chordOsc.connect(chordGain);
+                        chordGain.connect(ctx.destination);
+                        chordOsc.start(ctx.currentTime);
+                        chordOsc.stop(ctx.currentTime + 0.6);
+                    });
+                } catch(e){}
+            }, 460);
+        } catch(err) {
+            console.warn('AudioContext error:', err);
+        }
+    }
+
+    function openMealPrayerLotteryModal() {
+        resetMealPrayerLottery();
+        const modal = document.getElementById('mealPrayerLotteryModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+        }
+    }
+
+    function closeMealPrayerLotteryModal() {
+        const modal = document.getElementById('mealPrayerLotteryModal');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+        }
+    }
+
+    let isMealLotteryRunning = false;
+
+    function resetMealPrayerLottery() {
+        isMealLotteryRunning = false;
+        for (let i = 1; i <= 4; i++) {
+            const card = document.getElementById('mealCard_' + i);
+            const num = document.getElementById('mealNum_' + i);
+            const status = document.getElementById('mealStatus_' + i);
+            if (card) {
+                card.style.background = '#f8fafc';
+                card.style.borderColor = '#cbd5e1';
+                card.style.boxShadow = 'none';
+                card.style.transform = 'scale(1)';
+            }
+            if (num) {
+                num.innerText = i + '번';
+                num.style.color = '#1e293b';
+            }
+            if (status) {
+                status.innerText = '대기';
+                status.style.color = '#64748b';
+            }
+        }
+        const resultBox = document.getElementById('mealLotteryResultBox');
+        if (resultBox) resultBox.style.display = 'none';
+        const btn = document.getElementById('btnRunMealLottery');
+        if (btn) {
+            btn.innerText = '🎲 오늘의 대표 기도자 번호 추첨하기!';
+            btn.disabled = false;
+        }
+    }
+
+    function runMealPrayerLottery(clickedNum) {
+        if (isMealLotteryRunning) return;
+        isMealLotteryRunning = true;
+
+        // 🌟 [사용자 요청] 25% 비율로 정확히 1명 당선, 3명 낙선 (1, 2, 3, 4번 중 1개 랜덤 추첨)
+        const winner = Math.floor(Math.random() * 4) + 1; // 1, 2, 3, 4 중 하나 (각 25% 확률)
+
+        const btn = document.getElementById('btnRunMealLottery');
+        if (btn) btn.innerText = '추첨 진행 중... 🥁';
+
+        // 0.3초 드럼 롤 후 당선 발표
+        setTimeout(() => {
+            for (let i = 1; i <= 4; i++) {
+                const card = document.getElementById('mealCard_' + i);
+                const num = document.getElementById('mealNum_' + i);
+                const status = document.getElementById('mealStatus_' + i);
+
+                if (i === winner) {
+                    // 🎉 당선자 (25%)
+                    if (card) {
+                        card.style.background = 'linear-gradient(135deg, #fef08a, #facc15)';
+                        card.style.borderColor = '#d97706';
+                        card.style.boxShadow = '0 6px 18px rgba(217, 119, 6, 0.45)';
+                        card.style.transform = 'scale(1.08)';
+                    }
+                    if (num) {
+                        num.innerHTML = '🎉 ' + i + '번';
+                        num.style.color = '#78350f';
+                    }
+                    if (status) {
+                        status.innerHTML = '<strong>당선!</strong> 🙏';
+                        status.style.color = '#92400e';
+                    }
+                } else {
+                    // 낙선자 3명 (75%)
+                    if (card) {
+                        card.style.background = '#f1f5f9';
+                        card.style.borderColor = '#e2e8f0';
+                        card.style.boxShadow = 'none';
+                        card.style.transform = 'scale(0.96)';
+                    }
+                    if (num) {
+                        num.innerText = i + '번';
+                        num.style.color = '#94a3b8';
+                    }
+                    if (status) {
+                        status.innerText = '낙선 😊';
+                        status.style.color = '#94a3b8';
+                    }
+                }
+            }
+
+            // 결과 안내 배너
+            const resultBox = document.getElementById('mealLotteryResultBox');
+            const winnerText = document.getElementById('mealResultWinner');
+            if (winnerText) winnerText.innerText = '🎉 ' + winner + '번 당선! 🙏';
+            if (resultBox) resultBox.style.display = 'block';
+
+            if (btn) {
+                btn.innerText = '🎉 ' + winner + '번 당선! (다시 하려면 아래 [다시 뽑기])';
+                btn.disabled = true;
+            }
+
+            // 🌟 [사용자 요청] 당선 시 신나는 팡파레 / 딩동댕 소리 재생!
+            playCelebrationFanfare();
+        }, 300);
+    }
+
+    window.openMealPrayerLotteryModal = openMealPrayerLotteryModal;
+    window.closeMealPrayerLotteryModal = closeMealPrayerLotteryModal;
+    window.runMealPrayerLottery = runMealPrayerLottery;
+    window.resetMealPrayerLottery = resetMealPrayerLottery;
+    window.playCelebrationFanfare = playCelebrationFanfare;
 
     window.addEventListener("DOMContentLoaded", () => {
         updateChristianHeaderUI();
