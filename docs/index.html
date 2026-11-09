@@ -6013,34 +6013,31 @@
         renderHomeBibleBookChips();
     }
 
-            // 🌟 [사용자 요청] 성경 통독 지정 및 해제 함수
-    // - 분홍색: 통독 해제 상태 (누르면 빨강으로 고정되어 매일 연속 진도 나감)
-    // - 빨강색: 통독 고정 상태 (누르면 고정 해제되어 분홍색으로 복귀)
-    // - 마태복음 등이 통독으로 고정되어 있으면 항상 밑에 빨강으로 보이고, 해제되지 않은 상태에서는 다른 성경 통독 불가!
+                // 🌟 [사용자 요청] 성경 통독 지정 및 해제 함수 (팝업창 없이 즉시 토글)
+    // - 분홍색: 통독 해제 상태 (누르면 팝업 없이 즉시 빨강으로 고정)
+    // - 빨강색: 통독 고정 상태 (누르면 팝업 없이 즉시 분홍색으로 해제)
     function toggleDailyTongdokBook(bookName) {
         const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
         const currentTongdokBook = localStorage.getItem("yetalk_tongdok_book") || "";
         const targetBook = bookName || currentUserBibleBook || "마태복음";
 
         if (isTongdokActive) {
-            // 이미 통독이 고정된 상태에서 버튼 클릭 시 -> 고정 해제 확인
-            if (confirm(`현재 [${currentTongdokBook}] 매일 연속 통독이 고정되어 진행 중입니다.\n\n[${currentTongdokBook}] 통독 고정을 해제하시겠습니까?\n(해제 후 새로운 성경 통독을 시작할 수 있습니다)`)) {
-                localStorage.setItem("yetalk_tongdok_active", "false");
-                showBibleToast(`🌸 [${currentTongdokBook}] 통독 고정이 해제되었습니다.`);
-                renderHomeBibleBookChips();
-                updateAutoTimeSlotButtonUI();
-            }
+            // 🔴 빨강 고정 상태에서 클릭 시 ➔ 팝업 없이 즉시 분홍색(해제)으로 전환!
+            localStorage.setItem("yetalk_tongdok_active", "false");
+            localStorage.removeItem("yetalk_tongdok_book");
+            showBibleToast(`🌸 [${currentTongdokBook || targetBook}] 통독 해제 (분홍색)`);
         } else {
-            // 통독 해제 상태에서 클릭 시 -> 해당 성경 빨강 고정 시작!
+            // 🌸 분홍 해제 상태에서 클릭 시 ➔ 팝업 없이 즉시 빨강색(고정)으로 전환!
             localStorage.setItem("yetalk_tongdok_active", "true");
             localStorage.setItem("yetalk_tongdok_book", targetBook);
             localStorage.setItem("yetalk_tongdok_start_date", new Date().toISOString());
             localStorage.setItem("yetalk_tongdok_base_ch", "1");
             currentUserBibleBook = targetBook;
-            showBibleToast(`🔴 [${targetBook}] 매일 연속 통독이 빨강으로 고정되었습니다!`);
-            renderHomeBibleBookChips();
-            updateAutoTimeSlotButtonUI();
+            showBibleToast(`🔴 [${targetBook}] 통독 고정 (빨강색)`);
         }
+
+        renderHomeBibleBookChips();
+        updateAutoTimeSlotButtonUI();
     }
 
     function setAsDailyTongdokBook(bookName) {
@@ -6077,26 +6074,24 @@
             listEl.appendChild(chip);
         });
 
-        // 🌟 [사용자 요청] 통독 버튼 단독 배치 (분홍: 해제, 빨강: 고정)
-        // 만약 신약 마태복음이 통독으로 선택되어 있으면 빨강으로 밑에 항상 보이고
-        // 해제되지 않은 상태에서는 다른 성경 통독을 못하게 함
+        // 🌟 [사용자 요청] 통독 버튼 단독 배치 (팝업 없이 1클릭 토글: 분홍 해제 ➔ 빨강 고정 ➔ 분홍 해제)
         const tongdokBtn = document.createElement("button");
         tongdokBtn.type = "button";
         tongdokBtn.className = "btn-user-book-chip btn-user-book-tongdok";
 
         if (isTongdokActive && currentTongdokBook) {
             // 🔴 빨강색 고정 상태: 항상 밑에 표시!
-            tongdokBtn.innerText = `🔴 [${currentTongdokBook} 통독 고정중] (해제 클릭)`;
-            tongdokBtn.title = `현재 [${currentTongdokBook}] 매일 3장 연속 통독이 빨강으로 고정되어 있습니다. 누르면 고정이 해제(분홍색)됩니다.`;
+            tongdokBtn.innerText = `🔴 [${currentTongdokBook} 통독 고정]`;
+            tongdokBtn.title = `현재 [${currentTongdokBook}] 매일 3장 연속 통독이 빨강으로 고정되어 있습니다. 누르면 즉시 해제(분홍색)됩니다.`;
             tongdokBtn.style.cssText = "background:#dc2626 !important; border:1.5px solid #b91c1c !important; color:#ffffff !important; font-weight:950 !important; font-size:14px !important; border-radius:8px !important; padding:8px 16px !important; min-width:145px !important; box-shadow:0 3px 8px rgba(220,38,38,0.4) !important; cursor:pointer;";
             tongdokBtn.onclick = function(e) {
                 e.stopPropagation();
                 toggleDailyTongdokBook(currentTongdokBook);
             };
         } else {
-            // 🌸 분홍색 해제 상태: 새로운 성경 통독 시작 가능
-            tongdokBtn.innerText = `🌸 [${currentUserBibleBook} 통독 시작]`;
-            tongdokBtn.title = `누르면 [${currentUserBibleBook}] 매일 3장 연속 통독이 빨강으로 고정되어 매일 진도가 나갑니다.`;
+            // 🌸 분홍색 해제 상태: 누르면 즉시 빨강 고정!
+            tongdokBtn.innerText = `🌸 [${currentUserBibleBook} 통독]`;
+            tongdokBtn.title = `누르면 즉시 [${currentUserBibleBook}] 매일 3장 연속 통독이 빨강으로 고정됩니다.`;
             tongdokBtn.style.cssText = "background:#fce7f3 !important; border:1.5px solid #f472b6 !important; color:#be185d !important; font-weight:950 !important; font-size:14px !important; border-radius:8px !important; padding:8px 16px !important; min-width:145px !important; box-shadow:0 2px 6px rgba(244,114,182,0.25) !important; cursor:pointer;";
             tongdokBtn.onclick = function(e) {
                 e.stopPropagation();
@@ -6119,11 +6114,12 @@
     let currentHymnTitle = "나 같은 죄인 살리신";
     let hymnDebounceTimer = null;
 
-    function switchHomeBibleTestament(type) {
+        function switchHomeBibleTestament(type) {
         const hymnBar = document.getElementById("hymnControlBar");
         const tabOT = document.getElementById("tabHomeOT");
         const tabNT = document.getElementById("tabHomeNT");
         const tabHymn = document.getElementById("tabHomeHymn");
+        const wrapper = document.getElementById("bibleBooksUnfoldedWrapper");
         const bottomNote = document.querySelector(".daily-bible-reading-section div[style*='text-align:right']");
 
         if (type === 'HYMN') {
@@ -6138,12 +6134,20 @@
             return;
         }
 
-        // 구약 또는 신약 탭 선택 시
+        // 구약 또는 신약 탭 선택 시 찬송가 바 숨김
         if (hymnBar) hymnBar.style.display = "none";
         if (tabHymn) tabHymn.classList.remove("active");
 
-        const wrapper = document.getElementById("bibleBooksUnfoldedWrapper");
-        // 🌟 [사용자 요청] 누르면 즉시 구약 39권 또는 신약 27권 성경 리스트가 바로 아래에 쫘악 뜸! (두 번 누를 필요 없이 원클릭 즉시 오픈)
+        // 🌟 [사용자 요청] 구약이나 신약 버튼을 한번 더 누르면 리스트 닫기 (토글)
+        const isCurrentlyOpen = wrapper && wrapper.style.display !== "none" && !isHomeBibleBooksFolded;
+        const isSameTab = (currentHomeTestament === type);
+
+        if (isCurrentlyOpen && isSameTab) {
+            foldHomeBibleBooks();
+            return;
+        }
+
+        // 리스트 펼치기
         unfoldHomeBibleBooks(type);
 
         // 현재 선택된 성경이 해당 탭에 속하지 않으면 첫 번째 책으로 자동 변경
