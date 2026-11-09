@@ -2221,7 +2221,7 @@
         /* 🌟 [사용자 요청] 메인 성경 본문 글자 크기 키움 (18px) & 무한 세로 스크롤 (중간 여백 축소) */
         .bible-reading-content-body {
             font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-            font-size: 18px;
+            font-size: 19px !important;
             font-weight: 700;
             line-height: 1.85;
             color: #0f172a;
@@ -2233,6 +2233,7 @@
             -webkit-user-select: text;
         }
         .bible-verse-item {
+            font-size: 19px !important;
             margin-bottom: 6px;
             line-height: 1.85;
             color: #0f172a;
@@ -4245,7 +4246,7 @@
                     <div id="gnModalRefBadge" style="display:inline-block; background:#ecfdf5; color:#059669; font-size:14px; font-weight:950; padding:5px 16px; border-radius:20px; margin-bottom:12px; letter-spacing:-0.2px;">
                         말씀
                     </div>
-                    <div id="gnModalVerseText" style="font-family:'Pretendard', 'Nanum Myeongjo', serif; font-size:22px; font-weight:900; color:#0f172a; line-height:1.75; word-break:keep-all; letter-spacing:-0.4px;">
+                    <div id="gnModalVerseText" style="font-family:'Pretendard', 'Nanum Myeongjo', serif; font-size:23px; font-weight:900; color:#0f172a; line-height:1.75; word-break:keep-all; letter-spacing:-0.4px;">
                         “말씀 본문”
                     </div>
                 </div>
@@ -4310,7 +4311,7 @@
                         </div>
                         <span style="font-size:12px; color:#059669; font-weight:800; background:#f0fdf4; padding:2px 8px; border-radius:12px;">개역개정</span>
                     </div>
-                    <div id="gnModalFullBibleBody" style="font-size:16px; color:#1e293b; line-height:1.95; word-break:keep-all;">
+                    <div id="gnModalFullBibleBody" style="font-size:17.5px; color:#1e293b; line-height:1.95; word-break:keep-all;">
                         <!-- 전체 본문 -->
                     </div>
                 </div>
@@ -5248,35 +5249,43 @@
         { text: "“잠시 쉬어가도 괜찮습니다. 지친 날에는 마음에 쉼을 주고 한 걸음 천천히 호흡해보세요.”", ref: "- 평안의 쉼터 -" }
     ];
 
-    // 🌟 말씀 / 좋은 말씀 3시간 자동 순환 평가 (한 구절씩 깔끔하게 표시)
-    function evaluateGoodNews() {
+        // 🌟 [사용자 요청] 전국 누구에게나 100% 동일한 말씀 제공 (전국 공동 예배 & 묵상 동기화)
+    function getSynchronizedGoodNewsIndex(totalCount) {
+        if (!totalCount || totalCount <= 0) return 0;
+        // 대한민국 표준시 (KST: UTC+9) 절대 밀리초 기준
         const now = new Date();
-        const hour = now.getHours();
-        const slot = Math.floor(hour / 3);
+        const kstMillis = now.getTime() + (9 * 60 * 60 * 1000);
+        // 3시간(3 * 3600 * 1000 ms) 단위로 전국 모든 성도가 동시에 다음 구절로 전환
+        const total3HourSlots = Math.floor(kstMillis / (3 * 60 * 60 * 1000));
+        return total3HourSlots % totalCount;
+    }
 
+    // 🌟 말씀 3시간 자동 순환 평가 (전국 어디서나 누구에게나 똑같은 말씀)
+    function evaluateGoodNews() {
         const badgeEl = document.getElementById("gnBadge");
         const textEl = document.getElementById("gnText");
         const refEl = document.getElementById("gnRef");
         const typeTagEl = document.getElementById("gnUserTypeTag");
 
-        if (isChristianUser) {
-            const item = CHRISTIAN_VERSES[slot % CHRISTIAN_VERSES.length];
+        const verseIdx = getSynchronizedGoodNewsIndex(CHRISTIAN_VERSES.length);
+        const item = CHRISTIAN_VERSES[verseIdx] || CHRISTIAN_VERSES[0];
+
+        if (badgeEl) {
             badgeEl.innerText = "📖 이 시간의 말씀";
-            badgeEl.style.background = "#7c3aed";
-            textEl.innerText = item.text;
-            if (document.getElementById('gnRefText')) document.getElementById('gnRefText').innerText = item.ref; else refEl.innerText = item.ref;
-            typeTagEl.innerText = "말씀 모드";
-            typeTagEl.style.color = "#7c3aed";
-            typeTagEl.style.background = "rgba(124, 58, 237, 0.1)";
-        } else {
-            const item = GENERAL_GOOD_WORDS[slot % GENERAL_GOOD_WORDS.length];
-            badgeEl.innerText = "✨ 이 시간의 행복 글귀";
             badgeEl.style.background = "#059669";
+        }
+        if (textEl) {
             textEl.innerText = item.text;
-            if (document.getElementById('gnRefText')) document.getElementById('gnRefText').innerText = item.ref; else refEl.innerText = item.ref;
-            typeTagEl.innerText = "일반 모드";
-            typeTagEl.style.color = "#059669";
-            typeTagEl.style.background = "rgba(5, 150, 105, 0.1)";
+        }
+        const refTarget = document.getElementById("gnRefText") || refEl;
+        if (refTarget) {
+            refTarget.innerText = item.ref;
+        }
+        if (typeTagEl) {
+            typeTagEl.innerText = "전국 공동 묵상";
+            typeTagEl.style.color = "#047857";
+            typeTagEl.style.background = "#ecfdf5";
+            typeTagEl.style.border = "1px solid #a7f3d0";
         }
     }
 
@@ -6004,25 +6013,34 @@
         renderHomeBibleBookChips();
     }
 
-        // 🌟 [사용자 요청] 성경 통독 지정 함수 (오늘 다른 성경을 찾아도 매일 3장씩 연속 진행)
+            // 🌟 [사용자 요청] 성경 통독 지정 및 해제 함수
+    // - 분홍색: 통독 해제 상태 (누르면 빨강으로 고정되어 매일 연속 진도 나감)
+    // - 빨강색: 통독 고정 상태 (누르면 고정 해제되어 분홍색으로 복귀)
+    // - 마태복음 등이 통독으로 고정되어 있으면 항상 밑에 빨강으로 보이고, 해제되지 않은 상태에서는 다른 성경 통독 불가!
     function toggleDailyTongdokBook(bookName) {
-        if (!bookName) bookName = currentUserBibleBook || "\uCC3D\uC138\uAE30";
-        const isCurrentActive = (localStorage.getItem("yetalk_tongdok_active") !== "false");
-        const currentTongdokBook = localStorage.getItem("yetalk_tongdok_book") || "\uCC3D\uC138\uAE30";
+        const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
+        const currentTongdokBook = localStorage.getItem("yetalk_tongdok_book") || "";
+        const targetBook = bookName || currentUserBibleBook || "마태복음";
 
-        if (isCurrentActive && currentTongdokBook === bookName) {
-            localStorage.setItem("yetalk_tongdok_active", "false");
-            showBibleToast("\uD83D\uDCD5 [" + bookName + "] \uD1B5\uB3C5\uC774 \uD574\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+        if (isTongdokActive) {
+            // 이미 통독이 고정된 상태에서 버튼 클릭 시 -> 고정 해제 확인
+            if (confirm(`현재 [${currentTongdokBook}] 매일 연속 통독이 고정되어 진행 중입니다.\n\n[${currentTongdokBook}] 통독 고정을 해제하시겠습니까?\n(해제 후 새로운 성경 통독을 시작할 수 있습니다)`)) {
+                localStorage.setItem("yetalk_tongdok_active", "false");
+                showBibleToast(`🌸 [${currentTongdokBook}] 통독 고정이 해제되었습니다.`);
+                renderHomeBibleBookChips();
+                updateAutoTimeSlotButtonUI();
+            }
         } else {
+            // 통독 해제 상태에서 클릭 시 -> 해당 성경 빨강 고정 시작!
             localStorage.setItem("yetalk_tongdok_active", "true");
-            localStorage.setItem("yetalk_tongdok_book", bookName);
+            localStorage.setItem("yetalk_tongdok_book", targetBook);
             localStorage.setItem("yetalk_tongdok_start_date", new Date().toISOString());
             localStorage.setItem("yetalk_tongdok_base_ch", "1");
-            showBibleToast("\uD83D\uDFE2 [" + bookName + "] \uB9E4\uC77C 3\uC7A5 \uC5F0\uC18D \uD1B5\uB3C5 ON!");
+            currentUserBibleBook = targetBook;
+            showBibleToast(`🔴 [${targetBook}] 매일 연속 통독이 빨강으로 고정되었습니다!`);
+            renderHomeBibleBookChips();
+            updateAutoTimeSlotButtonUI();
         }
-
-        renderHomeBibleBookChips();
-        updateAutoTimeSlotButtonUI();
     }
 
     function setAsDailyTongdokBook(bookName) {
@@ -6034,41 +6052,57 @@
         if (!listEl) return;
         listEl.innerHTML = "";
 
+        const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
+        const currentTongdokBook = localStorage.getItem("yetalk_tongdok_book") || "";
+
         const books = BIBLE_66_BOOKS.filter(b => b.type === currentHomeTestament);
         books.forEach(b => {
             const chip = document.createElement("button");
             chip.type = "button";
-            chip.className = "btn-user-book-chip" + (b.name === currentUserBibleBook ? " active" : "");
-            chip.innerText = b.name;
-            chip.title = `${b.name} (${b.totalCh}${b.unit || '장'})`;
+            const isCurrentViewing = (b.name === currentUserBibleBook);
+            const isThisBookTongdok = isTongdokActive && (b.name === currentTongdokBook);
+
+            chip.className = "btn-user-book-chip" + (isCurrentViewing ? " active" : "");
+            if (isThisBookTongdok) {
+                chip.style.borderColor = "#dc2626";
+                chip.style.fontWeight = "950";
+                chip.innerHTML = `<span style="color:#dc2626; margin-right:3px;">🔴</span>${b.name}`;
+            } else {
+                chip.innerText = b.name;
+            }
+            chip.title = `${b.name} (${b.totalCh}${b.unit || '장'})` + (isThisBookTongdok ? " - [현재 매일 통독 고정중]" : "");
             chip.onclick = function() {
                 onUserSelectBibleBook(b.name);
             };
             listEl.appendChild(chip);
         });
 
-        // 🌟 [사용자 요청] 녹색 [✓ 선택] 완전 삭제 및 단독 [에스더 통독] 원버튼 배치 (평소: 연분홍, 선택: 빨강)
+        // 🌟 [사용자 요청] 통독 버튼 단독 배치 (분홍: 해제, 빨강: 고정)
+        // 만약 신약 마태복음이 통독으로 선택되어 있으면 빨강으로 밑에 항상 보이고
+        // 해제되지 않은 상태에서는 다른 성경 통독을 못하게 함
         const tongdokBtn = document.createElement("button");
         tongdokBtn.type = "button";
         tongdokBtn.className = "btn-user-book-chip btn-user-book-tongdok";
-        const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") !== "false");
-        const currentTongdokBook = localStorage.getItem("yetalk_tongdok_book") || "창세기";
-        const isCurrentOn = isTongdokActive && (currentTongdokBook === currentUserBibleBook);
 
-        tongdokBtn.innerText = currentUserBibleBook + " 통독" + (isCurrentOn ? " ON" : "");
-        tongdokBtn.title = currentUserBibleBook + " 매일 3장 연속 통독 " + (isCurrentOn ? "켜짐 (누르면 끄기)" : "시작 (누르면 켜기)");
-        
-        if (isCurrentOn) {
-            // 선택 누른 후: 선명한 빨강색 (통독 ON)
-            tongdokBtn.style.cssText = "background:#dc2626 !important; border:1.5px solid #b91c1c !important; color:#ffffff !important; font-weight:900 !important; font-size:14px !important; border-radius:8px !important; padding:7px 16px !important; min-width:125px !important; box-shadow:0 2px 6px rgba(220,38,38,0.3) !important; cursor:pointer;";
+        if (isTongdokActive && currentTongdokBook) {
+            // 🔴 빨강색 고정 상태: 항상 밑에 표시!
+            tongdokBtn.innerText = `🔴 [${currentTongdokBook} 통독 고정중] (해제 클릭)`;
+            tongdokBtn.title = `현재 [${currentTongdokBook}] 매일 3장 연속 통독이 빨강으로 고정되어 있습니다. 누르면 고정이 해제(분홍색)됩니다.`;
+            tongdokBtn.style.cssText = "background:#dc2626 !important; border:1.5px solid #b91c1c !important; color:#ffffff !important; font-weight:950 !important; font-size:14px !important; border-radius:8px !important; padding:8px 16px !important; min-width:145px !important; box-shadow:0 3px 8px rgba(220,38,38,0.4) !important; cursor:pointer;";
+            tongdokBtn.onclick = function(e) {
+                e.stopPropagation();
+                toggleDailyTongdokBook(currentTongdokBook);
+            };
         } else {
-            // 평상시: 연한 분홍색
-            tongdokBtn.style.cssText = "background:#fce7f3 !important; border:1.5px solid #f472b6 !important; color:#be185d !important; font-weight:900 !important; font-size:14px !important; border-radius:8px !important; padding:7px 16px !important; min-width:125px !important; box-shadow:0 2px 6px rgba(244,114,182,0.2) !important; cursor:pointer;";
+            // 🌸 분홍색 해제 상태: 새로운 성경 통독 시작 가능
+            tongdokBtn.innerText = `🌸 [${currentUserBibleBook} 통독 시작]`;
+            tongdokBtn.title = `누르면 [${currentUserBibleBook}] 매일 3장 연속 통독이 빨강으로 고정되어 매일 진도가 나갑니다.`;
+            tongdokBtn.style.cssText = "background:#fce7f3 !important; border:1.5px solid #f472b6 !important; color:#be185d !important; font-weight:950 !important; font-size:14px !important; border-radius:8px !important; padding:8px 16px !important; min-width:145px !important; box-shadow:0 2px 6px rgba(244,114,182,0.25) !important; cursor:pointer;";
+            tongdokBtn.onclick = function(e) {
+                e.stopPropagation();
+                toggleDailyTongdokBook(currentUserBibleBook);
+            };
         }
-        tongdokBtn.onclick = function(e) {
-            e.stopPropagation();
-            toggleDailyTongdokBook(currentUserBibleBook);
-        };
         listEl.appendChild(tongdokBtn);
 
         // 활성화된 칩이 보이도록 자동 스크롤
@@ -7871,7 +7905,7 @@
                     fullHtml += `
                         <div style="display:flex; align-items:flex-start; gap:10px; margin-bottom:10px; line-height:1.9;">
                             <span style="color:#059669; font-weight:950; font-size:14.5px; min-width:28px; padding-top:1px; user-select:none;">${m[1]}</span>
-                            <span style="flex:1; color:#1e293b; font-size:16.5px; letter-spacing:-0.2px;">${m[2]}</span>
+                            <span style="flex:1; color:#1e293b; font-size:17.5px; letter-spacing:-0.2px;">${m[2]}</span>
                         </div>
                     `;
                 } else {
