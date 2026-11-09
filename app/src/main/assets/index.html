@@ -6122,21 +6122,21 @@
     function toggleDailyTongdokBook(bookName) {
         const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
         const currentTongdokBook = (localStorage.getItem("yetalk_tongdok_book") || "").trim();
-        const targetBook = bookName || currentUserBibleBook || "마태복음";
+        const targetBook = bookName || currentUserBibleBook || "창세기";
 
         if (isTongdokActive) {
-            // 🔴 빨강 고정 상태에서 클릭 시 ➔ 팝업 없이 즉시 분홍색(해제)으로 전환!
+            // 🔴 빨강 등록 고정 상태에서 클릭 시 ➔ 즉시 분홍색(통독해지)으로 전환!
             localStorage.setItem("yetalk_tongdok_active", "false");
             localStorage.removeItem("yetalk_tongdok_book");
-            showBibleToast(`🌸 [${currentTongdokBook || targetBook}] 통독 해제`);
+            showBibleToast(`🌸 [${currentTongdokBook || targetBook}] 통독해지`);
         } else {
-            // 🌸 분홍 해제 상태에서 클릭 시 ➔ 팝업 없이 즉시 빨강색(고정)으로 전환!
+            // 🌸 분홍 통독해지 상태에서 클릭 시 ➔ 즉시 빨강색(등록 고정)으로 전환!
             localStorage.setItem("yetalk_tongdok_active", "true");
             localStorage.setItem("yetalk_tongdok_book", targetBook);
             localStorage.setItem("yetalk_tongdok_start_date", new Date().toISOString());
             localStorage.setItem("yetalk_tongdok_base_ch", "1");
             currentUserBibleBook = targetBook;
-            showBibleToast(`🔴 [${targetBook}] 통독 고정`);
+            showBibleToast(`🔴 [${targetBook}] 등록 고정`);
         }
 
         renderHomeBibleBookChips();
@@ -6155,7 +6155,7 @@
 
         const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
         const currentTongdokBook = (localStorage.getItem("yetalk_tongdok_book") || "").trim();
-        const currentBook = currentUserBibleBook || "마태복음";
+        const currentBook = currentUserBibleBook || "창세기";
 
         const books = BIBLE_66_BOOKS.filter(b => b.type === currentHomeTestament);
         books.forEach(b => {
@@ -6172,28 +6172,28 @@
             } else {
                 chip.innerText = b.name;
             }
-            chip.title = `${b.name} (${b.totalCh}${b.unit || '장'})` + (isThisBookTongdok ? " - [현재 매일 통독 고정중]" : "");
+            chip.title = `${b.name} (${b.totalCh}${b.unit || '장'})` + (isThisBookTongdok ? " - [현재 매일 등록 고정중]" : "");
             chip.onclick = function() {
                 onUserSelectBibleBook(b.name);
             };
             listEl.appendChild(chip);
         });
 
-        // 🌟 [사용자 요청] 마태복음 통독을 별도로 빼지 말고 39(말라기 뒤) / 27(요한계시록 옆 빈공간) 마지막 성경 속으로!
-        // 구약/신약 무관하게 통독 고정 시 동일하게 [${currentTongdokBook} 통독 고정] 빨강 버튼으로 노출
+        // 🌟 [사용자 요청] 분홍색은 [창세기 통독해지], 빨강은 [창세기 등록 고정]
+        // 39(말라기 뒤) / 27(요한계시록 옆 빈공간) 마지막 성경 속에 항상 단일하게 위치
         const tongdokChip = document.createElement("button");
         tongdokChip.type = "button";
         tongdokChip.className = "btn-user-book-chip btn-user-tongdok-chip";
         if (isTongdokActive && currentTongdokBook) {
-            // 🔴 빨강색 고정 상태: 구약/신약 무관 고정된 성경(예: 마태복음)이 동일하게 빨강으로 선택되어 있음
+            // 🔴 빨강색: 등록 고정 상태
             tongdokChip.style.cssText = "background:#dc2626 !important; border:1.8px solid #b91c1c !important; color:#ffffff !important; font-weight:950 !important; font-size:13px !important; border-radius:8px !important; padding:6px 14px !important; box-shadow:0 2px 7px rgba(220,38,38,0.4) !important; cursor:pointer; flex:1 1 auto; min-width:130px; display:inline-flex; align-items:center; justify-content:center; gap:5px;";
-            tongdokChip.innerHTML = `<span>🔴</span> <span>[${currentTongdokBook} 통독 고정]</span>`;
-            tongdokChip.title = `현재 [${currentTongdokBook}] 매일 통독이 빨강으로 고정되어 있습니다. 누르면 즉시 해제(분홍색)됩니다.`;
+            tongdokChip.innerHTML = `<span>🔴</span> <span>[${currentTongdokBook} 등록 고정]</span>`;
+            tongdokChip.title = `현재 [${currentTongdokBook}] 등록 고정되어 있습니다. 누르면 즉시 해제(통독해지)됩니다.`;
         } else {
-            // 🌸 분홍색 해제 상태: 누르면 즉시 해당 성경 통독 빨강 고정
+            // 🌸 분홍색: 통독해지 상태 (누르면 즉시 등록 고정)
             tongdokChip.style.cssText = "background:#fce7f3 !important; border:1.8px solid #f472b6 !important; color:#be185d !important; font-weight:950 !important; font-size:13px !important; border-radius:8px !important; padding:6px 14px !important; box-shadow:0 2px 7px rgba(244,114,182,0.28) !important; cursor:pointer; flex:1 1 auto; min-width:130px; display:inline-flex; align-items:center; justify-content:center; gap:5px;";
-            tongdokChip.innerHTML = `<span>🌸</span> <span>[${currentBook} 통독]</span>`;
-            tongdokChip.title = `누르면 즉시 [${currentBook}] 매일 3장 연속 통독이 빨강으로 고정됩니다.`;
+            tongdokChip.innerHTML = `<span>🌸</span> <span>[${currentBook} 통독해지]</span>`;
+            tongdokChip.title = `누르면 즉시 [${currentBook}] 등록 고정됩니다.`;
         }
         tongdokChip.onclick = function(e) {
             e.stopPropagation();
@@ -6207,12 +6207,12 @@
         if (!btn) return;
         const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
         const currentTongdokBook = (localStorage.getItem("yetalk_tongdok_book") || "").trim();
-        const currentBook = currentUserBibleBook || "마태복음";
+        const currentBook = currentUserBibleBook || "창세기";
         if (isTongdokActive && currentTongdokBook) {
-            btn.innerHTML = `<span style="font-size:15px;">🔴</span> <span>[${currentTongdokBook} 통독 고정]</span>`;
+            btn.innerHTML = `<span style="font-size:15px;">🔴</span> <span>[${currentTongdokBook} 등록 고정]</span>`;
             btn.style.cssText = "background:#dc2626 !important; border:1.8px solid #b91c1c !important; color:#ffffff !important; font-weight:950 !important; font-size:14.5px !important; border-radius:10px !important; padding:9px 22px !important; cursor:pointer;";
         } else {
-            btn.innerHTML = `<span style="font-size:15px;">🌸</span> <span>[${currentBook} 통독]</span>`;
+            btn.innerHTML = `<span style="font-size:15px;">🌸</span> <span>[${currentBook} 통독해지]</span>`;
             btn.style.cssText = "background:#fce7f3 !important; border:1.8px solid #f472b6 !important; color:#be185d !important; font-weight:950 !important; font-size:14.5px !important; border-radius:10px !important; padding:9px 22px !important; cursor:pointer;";
         }
     }
