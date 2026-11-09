@@ -1512,20 +1512,21 @@
             box-sizing: border-box;
             border-top: 1px dashed #e2e8f0;
             margin-top: 4px;
-            padding: 8px 4px 6px 4px;
+            padding: 6px 2px 4px 2px;
         }
         .community-sub-pill {
-            padding: 7px 10px !important;
+            padding: 7px 2px !important;
             border-radius: 8px !important;
             font-size: 13.5px !important;
             font-weight: 950 !important;
             cursor: pointer;
-            flex: 1;
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
             text-align: center;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
+            white-space: nowrap !important;
             box-shadow: 0 1px 3px rgba(0,0,0,0.06) !important;
             transition: all 0.15s ease;
         }
@@ -4365,17 +4366,17 @@
                 </div>
             </div>
 
-            <!-- 🌟 [사용자 요청] 커뮤니티 누르면 나타나는 가로 3개 소메뉴: 감사게시판, 자유게시판, 예수동행 -->
+            <!-- 🌟 [사용자 요청] 커뮤니티 누르면 나타나는 가로 3개 소메뉴: 감사게시판, 자유게시판, 예수동행 (공간확보 및 잘림 방지를 위해 이모티콘 제거) -->
             <div class="community-subchannels-bar" id="communitySubChannelsBar" style="display:none;">
-                <div class="subchannels-row" style="gap:6px; justify-content:space-around; padding:6px 2px;">
+                <div class="subchannels-row" style="gap:4px; justify-content:space-between; padding:4px 0;">
                     <button type="button" class="subchannel-pill community-sub-pill pill-thanks" onclick="openFullscreenBoard('감사게시판')">
-                        <span>🙏 감사게시판</span>
+                        <span>감사게시판</span>
                     </button>
                     <button type="button" class="subchannel-pill community-sub-pill pill-free" onclick="openFullscreenBoard('자유게시판')">
-                        <span>💬 자유게시판</span>
+                        <span>자유게시판</span>
                     </button>
                     <button type="button" class="subchannel-pill community-sub-pill pill-jesus" onclick="openFullscreenBoard('예수동행')">
-                        <span>✝️ 예수동행</span>
+                        <span>예수동행</span>
                     </button>
                 </div>
             </div>
@@ -5418,13 +5419,13 @@
         <!-- 🌟 [사용자 요청] 감사게시판, 자유게시판, 예수동행 3대 게시판 탭 전환 -->
         <div class="community-board-tabs-bar" id="communityBoardTabsBar">
             <button type="button" class="com-tab-item active" id="tabComThanks" onclick="switchBoardCategory('감사게시판')">
-                <span>🙏 감사게시판</span>
+                <span>감사게시판</span>
             </button>
             <button type="button" class="com-tab-item" id="tabComFree" onclick="switchBoardCategory('자유게시판')">
-                <span>💬 자유게시판</span>
+                <span>자유게시판</span>
             </button>
             <button type="button" class="com-tab-item" id="tabComJesus" onclick="switchBoardCategory('예수동행')">
-                <span>✝️ 예수동행</span>
+                <span>예수동행</span>
             </button>
         </div>
 
@@ -11676,6 +11677,9 @@
 
         // 0.3초 드럼 롤 후 당선 발표
         setTimeout(() => {
+            const isUserWon = (clickedNum != null && clickedNum === winner);
+            const isUserLost = (clickedNum != null && clickedNum !== winner);
+
             for (let i = 1; i <= 4; i++) {
                 const card = document.getElementById('mealCard_' + i);
                 const num = document.getElementById('mealNum_' + i);
@@ -11694,7 +11698,11 @@
                         num.style.color = '#78350f';
                     }
                     if (status) {
-                        status.innerHTML = '<strong>당선!</strong> 🙏';
+                        if (clickedNum != null && i === clickedNum) {
+                            status.innerHTML = '<strong style="color:#b45309;">내 선택 당선!</strong> 🎉';
+                        } else {
+                            status.innerHTML = '<strong>당선!</strong> 🙏';
+                        }
                         status.style.color = '#92400e';
                     }
                 } else {
@@ -11710,25 +11718,68 @@
                         num.style.color = '#94a3b8';
                     }
                     if (status) {
-                        status.innerText = '낙선 😊';
-                        status.style.color = '#94a3b8';
+                        if (clickedNum != null && i === clickedNum) {
+                            status.innerHTML = '<span style="color:#2563eb; font-weight:800;">내 선택 (낙선 😊)</span>';
+                        } else {
+                            status.innerText = '낙선 😊';
+                            status.style.color = '#94a3b8';
+                        }
                     }
                 }
             }
 
-            // 결과 안내 배너
+            // 결과 안내 배너 (사용자 요청: 본인 누른 번호 당선 시 '당선 엄청 축하합니다', 낙선 시 '낙선을 축하드립니다')
             const resultBox = document.getElementById('mealLotteryResultBox');
+            const subText = document.getElementById('mealResultSub');
             const winnerText = document.getElementById('mealResultWinner');
-            if (winnerText) winnerText.innerText = '🎉 ' + winner + '번 당선! 🙏';
-            if (resultBox) resultBox.style.display = 'block';
+            const passText = document.getElementById('mealResultPass');
 
-            if (btn) {
-                btn.innerText = '🎉 ' + winner + '번 당선! (다시 하려면 아래 [다시 뽑기])';
-                btn.disabled = true;
+            if (isUserWon) {
+                // 본인이 누른 번호가 당선된 경우
+                if (subText) subText.innerText = '🎉 당선 엄청 축하합니다! 오늘의 은혜로운 대표 기도자입니다!';
+                if (winnerText) winnerText.innerText = '🎉 내가 누른 [' + clickedNum + '번] 당선! 🙏';
+                if (passText) passText.innerText = '오늘의 대표 식사 기도를 맡으셨습니다. 은혜로운 기도 부탁드립니다 ✨';
+                if (resultBox) {
+                    resultBox.style.background = 'linear-gradient(135deg, #ecfdf5, #d1fae5)';
+                    resultBox.style.borderColor = '#10b981';
+                    resultBox.style.display = 'block';
+                }
+                if (btn) {
+                    btn.innerText = '🎉 내가 누른 [' + clickedNum + '번] 당선 엄청 축하합니다!';
+                    btn.disabled = true;
+                }
+                // 🌟 [사용자 요청] 소리는 본인 누른 번호가 당첨(당선)되었을 때만 빵빠레 울림!
+                playCelebrationFanfare();
+            } else if (isUserLost) {
+                // 본인이 누른 번호가 낙선된 경우
+                if (subText) subText.innerText = '😊 낙선을 축하드립니다! 맛있게 식사하세요 🍽️';
+                if (winnerText) winnerText.innerText = '🎉 ' + winner + '번 당선! (내 번호: ' + clickedNum + '번 낙선)';
+                if (passText) passText.innerText = winner + '번 성도님께서 대표 기도해 주십니다. 편안하게 맛있게 드세요 😊';
+                if (resultBox) {
+                    resultBox.style.background = 'linear-gradient(135deg, #f0fdf4, #eff6ff)';
+                    resultBox.style.borderColor = '#60a5fa';
+                    resultBox.style.display = 'block';
+                }
+                if (btn) {
+                    btn.innerText = '😊 낙선을 축하드립니다! (' + winner + '번 성도님 당선)';
+                    btn.disabled = true;
+                }
+                // 낙선된 경우에는 빵빠레 울리지 않음!
+            } else {
+                // 특정 번호 클릭 없이 전체 추첨 버튼을 누른 경우
+                if (subText) subText.innerText = '🎉 축하합니다! 오늘의 은혜로운 대표 기도자입니다!';
+                if (winnerText) winnerText.innerText = '🎉 ' + winner + '번 당선! 🙏';
+                if (passText) passText.innerText = '나머지 번호는 낙선 (맛있게 드세요 😊)';
+                if (resultBox) {
+                    resultBox.style.background = 'linear-gradient(135deg, #ecfdf5, #d1fae5)';
+                    resultBox.style.borderColor = '#10b981';
+                    resultBox.style.display = 'block';
+                }
+                if (btn) {
+                    btn.innerText = '🎉 ' + winner + '번 당선! (다시 하려면 아래 [다시 뽑기])';
+                    btn.disabled = true;
+                }
             }
-
-            // 🌟 [사용자 요청] 당선 시 신나는 팡파레 / 딩동댕 소리 재생!
-            playCelebrationFanfare();
         }, 300);
     }
 
