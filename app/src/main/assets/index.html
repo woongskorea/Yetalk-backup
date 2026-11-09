@@ -4043,6 +4043,13 @@
                 </div>
             </div>
 
+            <!-- 🌟 [사용자 요청] 구약/신약 관계없이 하단에 단 한 개만 동일하게 보이는 통독 고정/해제 버튼 -->
+            <div class="bible-tongdok-row" id="bibleTongdokRow" style="display:flex; justify-content:center; align-items:center; margin:8px 0 10px 0;">
+                <button type="button" id="btnHomeTongdokToggle" onclick="toggleDailyTongdokBook()" style="cursor:pointer; border-radius:10px; padding:9px 22px; font-size:14.5px; font-weight:950; display:inline-flex; align-items:center; justify-content:center; gap:6px; transition:all 0.15s ease;">
+                    <span style="font-size:15px;">🌸</span> <span>[마태복음 통독]</span>
+                </button>
+            </div>
+
             <!-- 🌟 [사용자 요청 손도면 사진 2] 좌우 화살표: 1개(1장 이동) + 2개(10장씩 이동) ◀◀ ◀ [☀️ 오후 창세기 2장] ▶ ▶▶ -->
             <div class="bible-simple-nav-bar">
                 <button type="button" class="btn-simple-arrow-nav btn-double-prev" onclick="navUserBibleChapter(-10)" title="10장 이전" style="font-weight:950; letter-spacing:-2px; padding:0 6px;">◀◀</button>
@@ -6013,12 +6020,32 @@
         renderHomeBibleBookChips();
     }
 
-                // 🌟 [사용자 요청] 성경 통독 지정 및 해제 함수 (팝업창 없이 즉시 토글)
-    // - 분홍색: 통독 해제 상태 (누르면 팝업 없이 즉시 빨강으로 고정)
-    // - 빨강색: 통독 고정 상태 (누르면 팝업 없이 즉시 분홍색으로 해제)
+                    // 🌟 [사용자 요청] 통독 버튼 단일화 및 실시간 UI 갱신 함수 (구약/신약 관계없이 단 1개만 일관되게 표시)
+    function updateHomeTongdokButtonUI() {
+        const btn = document.getElementById("btnHomeTongdokToggle");
+        if (!btn) return;
+
+        const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
+        const currentTongdokBook = (localStorage.getItem("yetalk_tongdok_book") || "").trim();
+        const currentBook = currentUserBibleBook || "마태복음";
+
+        if (isTongdokActive && currentTongdokBook) {
+            // 🔴 빨강색 고정 상태: 구약/신약을 누르든 관계없이 고정된 성경(예: 마태복음)이 동일하게 빨강으로 선택되어 있음!
+            btn.innerHTML = `<span style="font-size:15px;">🔴</span> <span>[${currentTongdokBook} 통독 고정]</span>`;
+            btn.title = `현재 [${currentTongdokBook}] 매일 통독이 빨강으로 고정되어 있습니다. 누르면 팝업 없이 즉시 해제(분홍색)됩니다.`;
+            btn.style.cssText = "background:#dc2626 !important; border:1.8px solid #b91c1c !important; color:#ffffff !important; font-weight:950 !important; font-size:14.5px !important; border-radius:10px !important; padding:9px 22px !important; box-shadow:0 3px 10px rgba(220,38,38,0.4) !important; cursor:pointer;";
+        } else {
+            // 🌸 분홍색 해제 상태: 누르면 즉시 해당 성경 통독 빨강 고정
+            btn.innerHTML = `<span style="font-size:15px;">🌸</span> <span>[${currentBook} 통독]</span>`;
+            btn.title = `누르면 팝업 없이 즉시 [${currentBook}] 매일 3장 연속 통독이 빨강으로 고정됩니다.`;
+            btn.style.cssText = "background:#fce7f3 !important; border:1.8px solid #f472b6 !important; color:#be185d !important; font-weight:950 !important; font-size:14.5px !important; border-radius:10px !important; padding:9px 22px !important; box-shadow:0 2px 7px rgba(244,114,182,0.28) !important; cursor:pointer;";
+        }
+    }
+
+    // 🌟 [사용자 요청] 성경 통독 지정 및 해제 함수 (팝업창 없이 1클릭 즉시 토글: 분홍 ➔ 빨강 ➔ 분홍)
     function toggleDailyTongdokBook(bookName) {
         const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
-        const currentTongdokBook = localStorage.getItem("yetalk_tongdok_book") || "";
+        const currentTongdokBook = (localStorage.getItem("yetalk_tongdok_book") || "").trim();
         const targetBook = bookName || currentUserBibleBook || "마태복음";
 
         if (isTongdokActive) {
@@ -6036,6 +6063,7 @@
             showBibleToast(`🔴 [${targetBook}] 통독 고정 (빨강색)`);
         }
 
+        updateHomeTongdokButtonUI();
         renderHomeBibleBookChips();
         updateAutoTimeSlotButtonUI();
     }
@@ -6050,7 +6078,7 @@
         listEl.innerHTML = "";
 
         const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
-        const currentTongdokBook = localStorage.getItem("yetalk_tongdok_book") || "";
+        const currentTongdokBook = (localStorage.getItem("yetalk_tongdok_book") || "").trim();
 
         const books = BIBLE_66_BOOKS.filter(b => b.type === currentHomeTestament);
         books.forEach(b => {
@@ -6074,31 +6102,8 @@
             listEl.appendChild(chip);
         });
 
-        // 🌟 [사용자 요청] 통독 버튼 단독 배치 (팝업 없이 1클릭 토글: 분홍 해제 ➔ 빨강 고정 ➔ 분홍 해제)
-        const tongdokBtn = document.createElement("button");
-        tongdokBtn.type = "button";
-        tongdokBtn.className = "btn-user-book-chip btn-user-book-tongdok";
-
-        if (isTongdokActive && currentTongdokBook) {
-            // 🔴 빨강색 고정 상태: 항상 밑에 표시!
-            tongdokBtn.innerText = `🔴 [${currentTongdokBook} 통독 고정]`;
-            tongdokBtn.title = `현재 [${currentTongdokBook}] 매일 3장 연속 통독이 빨강으로 고정되어 있습니다. 누르면 즉시 해제(분홍색)됩니다.`;
-            tongdokBtn.style.cssText = "background:#dc2626 !important; border:1.5px solid #b91c1c !important; color:#ffffff !important; font-weight:950 !important; font-size:14px !important; border-radius:8px !important; padding:8px 16px !important; min-width:145px !important; box-shadow:0 3px 8px rgba(220,38,38,0.4) !important; cursor:pointer;";
-            tongdokBtn.onclick = function(e) {
-                e.stopPropagation();
-                toggleDailyTongdokBook(currentTongdokBook);
-            };
-        } else {
-            // 🌸 분홍색 해제 상태: 누르면 즉시 빨강 고정!
-            tongdokBtn.innerText = `🌸 [${currentUserBibleBook} 통독]`;
-            tongdokBtn.title = `누르면 즉시 [${currentUserBibleBook}] 매일 3장 연속 통독이 빨강으로 고정됩니다.`;
-            tongdokBtn.style.cssText = "background:#fce7f3 !important; border:1.5px solid #f472b6 !important; color:#be185d !important; font-weight:950 !important; font-size:14px !important; border-radius:8px !important; padding:8px 16px !important; min-width:145px !important; box-shadow:0 2px 6px rgba(244,114,182,0.25) !important; cursor:pointer;";
-            tongdokBtn.onclick = function(e) {
-                e.stopPropagation();
-                toggleDailyTongdokBook(currentUserBibleBook);
-            };
-        }
-        listEl.appendChild(tongdokBtn);
+        // 하단 단일 통독 버튼 UI 동기화
+        updateHomeTongdokButtonUI();
 
         // 활성화된 칩이 보이도록 자동 스크롤
         setTimeout(() => {
@@ -6645,6 +6650,7 @@
         populateUserBibleChapterSelect(book, meta.totalCh, meta.unit || "\uC7A5");
 
         renderHomeBibleBookChips();
+        updateHomeTongdokButtonUI();
         displayUserBibleChapter(book, 1);
         showBibleToast("\uD83D\uDCD6 [" + book + "] 1\uC7A5\uC774 \uC120\uD0DD\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
     }
