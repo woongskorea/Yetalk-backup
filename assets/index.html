@@ -7373,7 +7373,11 @@
                 if (cloudVid !== currentVideoId) {
                     console.log("🔥 [실시간 전파] 모든 회원 기기에 새 유튜브 즉각 반영:", cloudVid);
                     currentVideoId = cloudVid;
-                    if (typeof changeYouTubeVideo === 'function') changeYouTubeVideo(cloudVid);
+                    // 🌟 [사용자 요청] 앱을 켜자마자 소리가 나오는 문제 원천 차단: 모달이 실제로 열려있을 때만 재생!
+                    const overlay = document.getElementById("bibleSuiteOverlay");
+                    if (overlay && overlay.classList.contains("show")) {
+                        if (typeof changeYouTubeVideo === 'function') changeYouTubeVideo(cloudVid);
+                    }
                 }
             }
 
@@ -7483,6 +7487,11 @@
     function changeYouTubeVideo(vid) {
         const vId = extractYouTubeVideoId(vid) || vid;
         currentVideoId = vId;
+        // 🌟 [사용자 요청] 사용자가 매일성경찬송을 열지 않았으면 백그라운드 재생 금지!
+        const overlay = document.getElementById("bibleSuiteOverlay");
+        if (!overlay || !overlay.classList.contains("show")) {
+            return;
+        }
         const container = document.getElementById("ytPlayerContainer");
         if (container && vId) {
             container.innerHTML = `<iframe id="mainYtPlayerIframe" 
@@ -7815,6 +7824,8 @@
     }
 
     function resumeYouTubeVideo() {
+        const overlay = document.getElementById("bibleSuiteOverlay");
+        if (!overlay || !overlay.classList.contains("show")) return;
         const iframe = document.getElementById("mainYtPlayerIframe");
         if (!iframe) return;
         if (!iframe.src || iframe.src === "about:blank" || iframe.src.includes("about:blank")) {
