@@ -5379,6 +5379,20 @@
                     🌿 <strong>교우 안심 등록:</strong> 성도님들은 간단 가입으로 바로 교회 교우로 연결되며, 담임목사님이 휴대폰 인증을 마치시면 정상적인 공인 교회로 자동 인증 완료됩니다.
                 </div>
 
+                <!-- 🌟 [사용자 요청] 개인정보보호 및 이용약관 · 종교고지 동의 체크박스 & 전문 보기 링크 -->
+                <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px 12px; margin-top:2px;">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" id="chkChristianTermsAgree" checked style="width:18px; height:18px; accent-color:#059669; cursor:pointer;">
+                        <span style="font-size:12.5px; font-weight:900; color:#0f172a; line-height:1.35;">
+                            [필수] 개인정보보호 및 이용약관 · 종교고지 동의
+                        </span>
+                    </label>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; padding-left:26px;">
+                        <span style="font-size:11px; color:#64748b;">최소 정보 수집 · 건전한 신앙 교제 준수</span>
+                        <button type="button" onclick="openYetalkTermsModal()" style="background:none; border:none; color:#0284c7; font-size:11.5px; font-weight:850; cursor:pointer; text-decoration:underline; padding:0;">[약관 전문 보기 ➔]</button>
+                    </div>
+                </div>
+
                 <button type="button" id="btnSubmitChristianReg" class="btn-modal-submit" onclick="submitChristianRegistration()" style="height:48px; font-size:15.5px; font-weight:950; background:linear-gradient(135deg, #059669, #047857); color:#ffffff; border:none; border-radius:10px; cursor:pointer; box-shadow:0 3px 10px rgba(5,150,105,0.3); margin-top:2px;">
                     ✝️ 가입 완료 및 우리교회앱 연결 ➔
                 </button>
@@ -8476,6 +8490,8 @@
         localStorage.setItem("yetalk_terms_agreed", "true");
         const chk = document.getElementById("chkApplyTermsAgree");
         if (chk) chk.checked = true;
+        const chkReg = document.getElementById("chkChristianTermsAgree");
+        if (chkReg) chkReg.checked = true;
         closeYetalkTermsModal();
         alert("✨ 예톡 서비스 이용약관 및 개인정보·종교 안내에 동의하셨습니다.");
     }
@@ -11911,6 +11927,8 @@
         isPastorPhoneVerified = (localStorage.getItem("yetalk_church_role") === "담임목사" && localStorage.getItem("yetalk_church_verified") === "true");
         const badge = document.getElementById("pastorAuthStatusBadge");
         if (badge) badge.style.display = isPastorPhoneVerified ? "block" : "none";
+        const termsChk = document.getElementById("chkChristianTermsAgree");
+        if (termsChk) termsChk.checked = true;
         const modal = document.getElementById("christianRegisterModal");
         if (modal) modal.classList.add("show");
     }
@@ -11931,142 +11949,170 @@
     }
 
     function submitChristianRegistration() {
-        const nameOrId = (document.getElementById("inpRegNameOrId")?.value || "").trim();
-        const churchName = (document.getElementById("inpRegChurchName")?.value || "").trim();
-        const pastorName = (document.getElementById("inpRegPastorName")?.value || "").trim();
-        const role = document.getElementById("selRegChurchRole")?.value || "성도";
-
-        if (!nameOrId) {
-            alert("이름 또는 아이디를 입력해주세요.");
-            document.getElementById("inpRegNameOrId")?.focus();
-            return;
-        }
-        if (!churchName) {
-            alert("본인 교회 이름을 입력해주세요.");
-            document.getElementById("inpRegChurchName")?.focus();
-            return;
-        }
-        if (!pastorName) {
-            alert("담임목사님 성함을 입력해주세요.");
-            document.getElementById("inpRegPastorName")?.focus();
-            return;
-        }
-
-        // 🌟 [사용자 요청] '김목사', '최목사' 처럼 성만 적는 착각 방지: 성과 이름을 모두 입력하도록 검증
-        const cleanPastorName = pastorName.replace(/\s+/g, '').replace(/^(담임)?목사님?/g, '').replace(/(담임)?목사(님)?$/g, '');
-        if (cleanPastorName.length <= 1) {
-            alert("담임목사님의 성과 이름을 모두 입력해 주세요.\n(예: '김목사' ➔ '김요셉 목사')");
-            document.getElementById("inpRegPastorName")?.focus();
-            return;
-        }
-
-        const churchKey = normalizeChurchKey(churchName, pastorName);
-
-        let churchMap = {};
         try {
-            churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
-        } catch(e) { churchMap = {}; }
+            const nameOrId = (document.getElementById("inpRegNameOrId")?.value || "").trim();
+            const churchName = (document.getElementById("inpRegChurchName")?.value || "").trim();
+            const pastorName = (document.getElementById("inpRegPastorName")?.value || "").trim();
+            const role = document.getElementById("selRegChurchRole")?.value || "성도";
 
-        const existingChurch = churchMap[churchKey];
-        const isNewChurch = !existingChurch;
-
-        // 👑 담임목사 선택 시: 휴대폰 인증 필수 검사 & 홈페이지 무단 점유 방지
-        if (role === "담임목사") {
-            if (!isPastorPhoneVerified) {
-                alert("⚠️ 담임목사님은 휴대폰 번호 인증을 완료하셔야 정상적인 교회 공식 인증 및 가입이 가능합니다.\n\n(아무나 홈페이지 주인이 되는 것을 방지하기 위한 필수 보안 조치입니다.)");
-                document.getElementById("inpPastorPhone")?.focus();
+            if (!nameOrId) {
+                alert("이름 또는 아이디를 입력해주세요.");
+                document.getElementById("inpRegNameOrId")?.focus();
+                return;
+            }
+            if (!churchName) {
+                alert("본인 교회 이름을 입력해주세요.");
+                document.getElementById("inpRegChurchName")?.focus();
+                return;
+            }
+            if (!pastorName) {
+                alert("담임목사님 성함을 입력해주세요.");
+                document.getElementById("inpRegPastorName")?.focus();
                 return;
             }
 
-            // 만약 이미 다른 이름으로 공인 인증된 담임목사님이 있다면 무단 변경 방지
-            if (existingChurch && existingChurch.isVerified && existingChurch.homepageOwner && existingChurch.homepageOwner !== nameOrId) {
-                alert(`⚠️ 해당 교회('${churchName}')는 이미 공인 휴대폰 인증을 마친 담임목사님(${existingChurch.homepageOwner})이 등록되어 있습니다.\n\n홈페이지 관리자 권한은 기존 인증된 목사님께 부여되어 있습니다.`);
+            // 🌟 [사용자 요청] '김목사', '최목사' 처럼 성만 적는 착각 방지: 성과 이름을 모두 입력하도록 검증
+            const cleanPastorName = pastorName.replace(/\s+/g, '').replace(/^(담임)?목사님?/g, '').replace(/(담임)?목사(님)?$/g, '');
+            if (cleanPastorName.length <= 1) {
+                alert("담임목사님의 성과 이름을 모두 입력해 주세요.\n(예: '김목사' ➔ '김요셉 목사')");
+                document.getElementById("inpRegPastorName")?.focus();
                 return;
             }
-        }
 
-        const pastorPhoneVal = (document.getElementById("inpPastorPhone")?.value || "").trim();
+            // 🌟 [사용자 요청] 개인정보보호 및 이용약관 · 종교고지 동의 확인
+            const termsChk = document.getElementById("chkChristianTermsAgree");
+            if (termsChk && !termsChk.checked) {
+                alert("🔒 예톡 교우 등록을 위해 [필수] 개인정보보호 및 이용약관 · 종교고지에 동의해 주세요.");
+                return;
+            }
 
-        if (isNewChurch) {
-            churchMap[churchKey] = {
-                key: churchKey,
-                name: churchName,
-                pastor: pastorName,
-                homepageUrl: "",
-                isVerified: (role === "담임목사"),
-                homepageOwner: (role === "담임목사" ? nameOrId : ""),
-                pastorPhone: (role === "담임목사" ? pastorPhoneVal : ""),
-                verifiedAt: (role === "담임목사" ? new Date().toLocaleDateString() : ""),
-                createdAt: new Date().toLocaleDateString(),
-                members: []
-            };
-        } else {
-            if (!churchMap[churchKey].members || !Array.isArray(churchMap[churchKey].members)) {
+            const churchKey = (typeof normalizeChurchKey === "function")
+                ? normalizeChurchKey(churchName, pastorName)
+                : ((churchName || "").replace(/\s+/g, '').toLowerCase() + "_" + (pastorName || "").replace(/\s+/g, '').toLowerCase());
+
+            let churchMap = {};
+            try {
+                const rawMap = localStorage.getItem("yetalk_registered_churches");
+                if (rawMap && rawMap !== "null" && rawMap !== "undefined") {
+                    churchMap = JSON.parse(rawMap);
+                }
+            } catch(e) { churchMap = {}; }
+            if (!churchMap || typeof churchMap !== "object") churchMap = {};
+
+            const existingChurch = churchMap[churchKey];
+            const isNewChurch = !existingChurch;
+
+            // 👑 담임목사 선택 시: 휴대폰 인증 필수 검사 & 홈페이지 무단 점유 방지
+            if (role === "담임목사") {
+                if (!isPastorPhoneVerified) {
+                    alert("⚠️ 담임목사님은 휴대폰 번호 인증을 완료하셔야 정상적인 교회 공식 인증 및 가입이 가능합니다.\n\n(아무나 홈페이지 주인이 되는 것을 방지하기 위한 필수 보안 조치입니다.)");
+                    document.getElementById("inpPastorPhone")?.focus();
+                    return;
+                }
+
+                // 만약 이미 다른 이름으로 공인 인증된 담임목사님이 있다면 무단 변경 방지
+                if (existingChurch && existingChurch.isVerified && existingChurch.homepageOwner && existingChurch.homepageOwner !== nameOrId) {
+                    alert(`⚠️ 해당 교회('${churchName}')는 이미 공인 휴대폰 인증을 마친 담임목사님(${existingChurch.homepageOwner})이 등록되어 있습니다.\n\n홈페이지 관리자 권한은 기존 인증된 목사님께 부여되어 있습니다.`);
+                    return;
+                }
+            }
+
+            const pastorPhoneVal = (document.getElementById("inpPastorPhone")?.value || "").trim();
+
+            if (isNewChurch) {
+                churchMap[churchKey] = {
+                    key: churchKey,
+                    name: churchName,
+                    pastor: pastorName,
+                    homepageUrl: "",
+                    isVerified: (role === "담임목사"),
+                    homepageOwner: (role === "담임목사" ? nameOrId : ""),
+                    pastorPhone: (role === "담임목사" ? pastorPhoneVal : ""),
+                    verifiedAt: (role === "담임목사" ? new Date().toLocaleDateString() : ""),
+                    createdAt: new Date().toLocaleDateString(),
+                    members: []
+                };
+            } else {
+                if (!churchMap[churchKey].members || !Array.isArray(churchMap[churchKey].members)) {
+                    churchMap[churchKey].members = [];
+                }
+                // 기존 교회에 담임목사님이 처음으로 인증하여 가입한 경우 공식 인증 완료 승격!
+                if (role === "담임목사") {
+                    churchMap[churchKey].isVerified = true;
+                    churchMap[churchKey].homepageOwner = nameOrId;
+                    churchMap[churchKey].pastorPhone = pastorPhoneVal;
+                    churchMap[churchKey].verifiedAt = new Date().toLocaleDateString();
+                }
+            }
+
+            if (!Array.isArray(churchMap[churchKey].members)) {
                 churchMap[churchKey].members = [];
             }
-            // 기존 교회에 담임목사님이 처음으로 인증하여 가입한 경우 공식 인증 완료 승격!
-            if (role === "담임목사") {
-                churchMap[churchKey].isVerified = true;
-                churchMap[churchKey].homepageOwner = nameOrId;
-                churchMap[churchKey].pastorPhone = pastorPhoneVal;
-                churchMap[churchKey].verifiedAt = new Date().toLocaleDateString();
+
+            // 중복 등록 방지 및 직분 갱신
+            const existingIdx = churchMap[churchKey].members.findIndex(m => m.nameOrId === nameOrId);
+            if (existingIdx >= 0) {
+                churchMap[churchKey].members[existingIdx].role = role;
+            } else {
+                churchMap[churchKey].members.push({
+                    nameOrId: nameOrId,
+                    role: role,
+                    joinedAt: new Date().toLocaleDateString()
+                });
             }
-        }
 
-        if (!Array.isArray(churchMap[churchKey].members)) {
-            churchMap[churchKey].members = [];
-        }
+            try {
+                localStorage.setItem("yetalk_registered_churches", JSON.stringify(churchMap));
+            } catch(e) { console.warn(e); }
 
-        // 중복 등록 방지 및 직분 갱신
-        const existingIdx = churchMap[churchKey].members.findIndex(m => m.nameOrId === nameOrId);
-        if (existingIdx >= 0) {
-            churchMap[churchKey].members[existingIdx].role = role;
-        } else {
-            churchMap[churchKey].members.push({
-                nameOrId: nameOrId,
-                role: role,
-                joinedAt: new Date().toLocaleDateString()
-            });
-        }
+            // 사용자 프로필 저장 (snake_case 및 camelCase 상호 호환 저장)
+            localStorage.setItem("yetalk_user_name", nameOrId);
+            localStorage.setItem("yetalkUserName", nameOrId);
+            localStorage.setItem("yetalk_user_id", nameOrId);
+            localStorage.setItem("yetalkUserId", nameOrId);
+            localStorage.setItem("yetalk_church_name", churchName);
+            localStorage.setItem("yetalkChurchName", churchName);
+            localStorage.setItem("yetalkMyChurchName", churchName);
+            localStorage.setItem("yetalk_pastor_name", pastorName);
+            localStorage.setItem("yetalk_church_role", role);
+            localStorage.setItem("yetalkChurchRole", role);
+            localStorage.setItem("yetalk_church_key", churchKey);
+            localStorage.setItem("yetalk_is_registered", "true");
+            localStorage.setItem("yetalkLoggedIn", "true");
+            localStorage.setItem("yetalkIsRegularMember", "true");
+            localStorage.setItem("yetalk_tv_member", "true"); // 예톡TV 정회원 동시 자동 가입
+            localStorage.setItem("yetalk_church_member", "true"); // 우리교회홈앱 정회원 동시 자동 가입
+            localStorage.setItem("yetalk_is_christian", "true");
+            localStorage.setItem("yetalk_terms_agreed", "true");
 
-        try {
-            localStorage.setItem("yetalk_registered_churches", JSON.stringify(churchMap));
-        } catch(e) { console.warn(e); }
+            if (role === "담임목사") {
+                localStorage.setItem("yetalk_is_church_owner", "true");
+                localStorage.setItem("yetalk_church_verified", "true");
+                localStorage.setItem("yetalk_pastor_phone", pastorPhoneVal);
+            } else {
+                localStorage.removeItem("yetalk_is_church_owner");
+            }
 
-        // 사용자 프로필 저장
-        localStorage.setItem("yetalk_user_name", nameOrId);
-        localStorage.setItem("yetalk_user_id", nameOrId);
-        localStorage.setItem("yetalk_church_name", churchName);
-        localStorage.setItem("yetalkChurchName", churchName);
-        localStorage.setItem("yetalk_pastor_name", pastorName);
-        localStorage.setItem("yetalk_church_role", role);
-        localStorage.setItem("yetalk_church_key", churchKey);
-        localStorage.setItem("yetalk_is_registered", "true");
-        localStorage.setItem("yetalk_tv_member", "true"); // 예톡TV 정회원 동시 자동 가입
-        localStorage.setItem("yetalk_church_member", "true"); // 우리교회홈앱 정회원 동시 자동 가입
-        localStorage.setItem("yetalk_is_christian", "true");
+            // 🌟 [사용자 요청] 저장 즉시 버튼이 화사한 에메랄드 초록색 '✅ 저장 완료! ✓'로 즉각 반응!
+            const submitBtn = document.getElementById("btnSubmitChristianReg");
+            if (submitBtn) {
+                submitBtn.innerText = isRegEditMode ? "✅ 회원정보 수정 완료! ✓" : "✅ 가입 완료 및 연결됨! ✓";
+                submitBtn.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+                submitBtn.style.boxShadow = "0 4px 16px rgba(16,185,129,0.5)";
+            }
 
-        if (role === "담임목사") {
-            localStorage.setItem("yetalk_is_church_owner", "true");
-            localStorage.setItem("yetalk_church_verified", "true");
-            localStorage.setItem("yetalk_pastor_phone", pastorPhoneVal);
-        } else {
-            localStorage.removeItem("yetalk_is_church_owner");
-        }
-
-        // 🌟 [사용자 요청] 수정 완료 시 버튼이 화사한 에메랄드 초록색 '✅ 회원정보 수정 완료! ✓'로 확실하게 반응!
-        const submitBtn = document.getElementById("btnSubmitChristianReg");
-        if (submitBtn) {
-            submitBtn.innerText = "✅ 회원정보 수정 완료! ✓";
-            submitBtn.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
-            submitBtn.style.boxShadow = "0 4px 16px rgba(16,185,129,0.5)";
-        }
-
-        setTimeout(() => {
-            closeChristianRegisterModal();
+            // 상단 헤더 UI 즉시 실시간 갱신 (지연 없이 즉시 반영!)
             updateChristianHeaderUI();
-            alert(`✅ 회원정보가 성공적으로 저장되었습니다!\n\n• 성도명: ${nameOrId}\n• 교회명: ${churchName}\n• 담임목사: ${pastorName}\n• 직분: ${role}`);
-        }, 350);
+
+            setTimeout(() => {
+                closeChristianRegisterModal();
+                alert(`✅ ${isRegEditMode ? "회원정보가 성공적으로 수정되었습니다" : "예톡 교우 가입 및 우리교회앱 연결이 완료되었습니다"}!\n\n• 성도명: ${nameOrId}\n• 본인교회: ${churchName}\n• 담임목사: ${pastorName}\n• 직분: ${role}`);
+            }, 300);
+
+        } catch (err) {
+            console.error("submitChristianRegistration error:", err);
+            alert("⚠️ 가입 처리 중 오류가 발생했습니다: " + (err.message || err));
+        }
     }
 
     function openOurChurchAppModal() {
@@ -12608,10 +12654,10 @@
 
         // 🌟 [사용자 요청] 회원가입 후 버튼 텍스트가 [이름 (직분)]으로 변경되고, 누르면 언제든 정보 수정 가능!
         const joinBtn = document.getElementById("btnHeaderJoinAction");
-        const uName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id");
-        const rawRole = localStorage.getItem("yetalk_church_role") || "성도";
+        const uName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id") || localStorage.getItem("yetalkUserName") || localStorage.getItem("yetalkUserId");
+        const rawRole = localStorage.getItem("yetalk_church_role") || localStorage.getItem("yetalkChurchRole") || "성도";
         // 헤더 좁은 폭에 깔끔하게 나오도록 (사모포함) 등 부가 텍스트 정돈
-        const displayRole = rawRole.replace(/\(사모포함\)/g, '').replace(/\(간단가입\)/g, '').trim() || "성도";
+        const displayRole = rawRole.replace(/\(사모포함\)/g, '').replace(/\(간단가입\)/g, '').replace(/\(간단등록\)/g, '').trim() || "성도";
 
         if (joinBtn) {
             if (uName && uName.trim()) {
@@ -12621,7 +12667,7 @@
                 joinBtn.style.borderColor = "#34d399";
                 joinBtn.style.padding = "5px 10px";
             } else {
-                joinBtn.innerHTML = "회원가입";
+                joinBtn.innerHTML = "✝️ 회원가입";
                 joinBtn.title = "기독교인 회원가입";
                 joinBtn.style.background = "linear-gradient(135deg, #059669, #047857)";
                 joinBtn.style.borderColor = "#10b981";

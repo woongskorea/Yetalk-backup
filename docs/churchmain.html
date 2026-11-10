@@ -410,7 +410,7 @@
             <!-- 🌟 상단 단색 화이트 기본 고정 (다양한 색상 순환 버튼 숨김) -->
             <button type="button" class="theme-cycle-button" id="themeCycleButton" style="display:none !important;" onclick="cycleChurchTheme()" title="기본 단색 화이트 모드"></button>
             <!-- 🌟 성도가입 전용 단일 버튼 (my 삭제) -->
-            <button type="button" class="btn-header-join-only" onclick="openSimpleMemberJoinModal()" title="교회 성도 간편 가입">
+            <button type="button" class="btn-header-join-only" id="btnChurchHeaderJoin" onclick="handleChurchMemberJoinClick()" title="교회 성도 간편 가입">
                 <span>⛪</span> 성도가입
             </button>
         </div>
@@ -1293,6 +1293,13 @@
 
     /* 🌟 성도가입 클릭 시 원클릭 등록 분기 */
     function handleChurchMemberJoinClick() {
+        const uName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName");
+        if (uName && uName.trim()) {
+            if (confirm(`👤 [${uName.trim()}] 교우님으로 등록되어 있습니다.\n\n회원정보 확인 및 수정을 위해 예톡 홈으로 이동하시겠습니까?`)) {
+                location.href = "index.html";
+            }
+            return;
+        }
         openSimpleMemberJoinModal();
     }
 
@@ -1701,6 +1708,16 @@
         localStorage.setItem("yetalk_church_name", churchName);
         const titleEl = document.getElementById("churchName");
         if (titleEl) titleEl.innerText = churchName;
+
+        const uName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName");
+        const uRole = localStorage.getItem("yetalk_church_role") || localStorage.getItem("yetalkChurchRole") || "성도";
+        const cleanRole = uRole.replace(/\(사모포함\)/g, '').replace(/\(간단가입\)/g, '').replace(/\(간단등록\)/g, '').trim() || "성도";
+        const churchJoinBtn = document.getElementById("btnChurchHeaderJoin") || document.querySelector(".btn-header-join-only");
+        if (churchJoinBtn && uName && uName.trim()) {
+            churchJoinBtn.innerHTML = `<span>👤</span> ${uName.trim()} <small style="font-size:10px; font-weight:750; opacity:0.9;">(${cleanRole})</small>`;
+            churchJoinBtn.title = "내 교우 정보 확인";
+            churchJoinBtn.style.background = "#047857";
+        }
 
         initRollingVerses();
         loadPcPopupData();
