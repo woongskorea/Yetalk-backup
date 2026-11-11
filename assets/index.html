@@ -4578,7 +4578,7 @@
 
     <!-- 1. 상단 헤더: [사용자 요청] 빨강줄 완전 제거, 나의 앱은 13.5px로 정돈하고 예톡🌿은 26px로 훨씬 더 크고 멋지게 강조 (아래 버튼에 착 밀착) -->
     
-    <header class="app-header" style="display:flex; justify-content:space-between; align-items:center; padding:2px 14px 0 14px; background:#ffffff; border-bottom:none; box-sizing:border-box;">
+    <header class="app-header" style="display:flex; justify-content:space-between; align-items:center; padding:28px 14px 6px 14px; background:#ffffff; border-bottom:none; box-sizing:border-box;">
         <div class="header-logo-group" id="headerLogoGroup" onclick="handleLogoClick()" style="display:flex; flex-direction:column; justify-content:center; white-space:nowrap; cursor:pointer;">
             <span id="txtHeaderLiveClock" style="font-size:11px; font-weight:800; color:#64748b; letter-spacing:-0.2px; line-height:1.2; margin-bottom:2px;">
                 🕒 <span id="liveClockDateText">11월 11일(화) 오후 11:30</span>
@@ -7400,30 +7400,14 @@
        - 현재 장 안에서 색칠된 모든 구절을 순서대로 모아서 클립보드에 복사
        - 색칠된 구절이 없을 때 길게 누르면 해당 구절을 바로 색칠하고 복사
     ========================================================================== */
-    let versePressTimer = null;
-    let verseLongPressed = false;
-
-    function handleVersePressStart(el, verseKey) {
-        verseLongPressed = false;
-        clearTimeout(versePressTimer);
-        versePressTimer = setTimeout(() => {
-            verseLongPressed = true;
-            copyHighlightedVersesInCurrentChapter(verseKey);
-        }, 550);
-    }
-
-    function handleVersePressEnd() {
-        clearTimeout(versePressTimer);
-    }
+    // 🌟 [사용자 요청] 스크롤 시 자동 클립복사 완전 제거! (터치할 때만 깨끗하게 색칠되고, 복사는 [색칠 복사] 버튼으로만 안전하게 실행)
+    function handleVersePressStart(el, verseKey) {}
+    function handleVersePressEnd() {}
 
     function handleBibleVerseClick(event, el, verseKey) {
-        if (verseLongPressed) {
-            verseLongPressed = false;
-            if (event) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            return;
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
         }
         toggleBibleVerseHighlight(el, verseKey);
     }
@@ -7487,7 +7471,7 @@
         }
 
         if (versesInChapter.length === 0) {
-            showBibleToast('💡 성경 구절을 터치하여 색칠한 후 꾹 누르면 복사됩니다.');
+            showBibleToast('💡 복사할 성경 구절을 먼저 터치하여 색칠한 후 [색칠 복사] 버튼을 눌러주세요.');
             return;
         }
 
@@ -7622,7 +7606,7 @@
                 if (hlVal === "yellow") hlClass = "highlight-yellow";
                 else if (hlVal === "blue") hlClass = "highlight-blue";
                 else if (hlVal === "pink" || hlVal === true) hlClass = "highlight-pink";
-                html += `<div class="bible-verse-item ${hlClass}" data-verse-key="${verseKey}" onclick="handleBibleVerseClick(event, this, '${verseKey}')" onmousedown="handleVersePressStart(this, '${verseKey}')" onmouseup="handleVersePressEnd()" onmouseleave="handleVersePressEnd()" ontouchstart="handleVersePressStart(this, '${verseKey}')" ontouchend="handleVersePressEnd()" ontouchcancel="handleVersePressEnd()" oncontextmenu="event.preventDefault(); return false;" title="터치: 형광펜 색칠 / 꾹 길게 누르면: 색칠 구절 복사"><span class="bible-verse-num">${verseNum}.</span><span class="bible-verse-body">${verseBody}</span></div>`;
+                html += `<div class="bible-verse-item ${hlClass}" data-verse-key="${verseKey}" onclick="handleBibleVerseClick(event, this, '${verseKey}')" oncontextmenu="event.preventDefault(); return false;" title="터치: 형광펜 색칠 (상단 [색칠 복사] 버튼으로 복사)"><span class="bible-verse-num">${verseNum}.</span><span class="bible-verse-body">${verseBody}</span></div>`;
             } else {
                 const lineKey = `${bookName}_${chNum}_L${idx}`;
                 const hlLineVal = highlights[lineKey];
@@ -7630,7 +7614,7 @@
                 if (hlLineVal === "yellow") hlLineClass = "highlight-yellow";
                 else if (hlLineVal === "blue") hlLineClass = "highlight-blue";
                 else if (hlLineVal === "pink" || hlLineVal === true) hlLineClass = "highlight-pink";
-                html += `<div class="bible-verse-item ${hlLineClass}" data-verse-key="${lineKey}" onclick="handleBibleVerseClick(event, this, '${lineKey}')" onmousedown="handleVersePressStart(this, '${lineKey}')" onmouseup="handleVersePressEnd()" onmouseleave="handleVersePressEnd()" ontouchstart="handleVersePressStart(this, '${lineKey}')" ontouchend="handleVersePressEnd()" ontouchcancel="handleVersePressEnd()" oncontextmenu="event.preventDefault(); return false;" title="터치: 형광펜 색칠 / 꾹 길게 누르면: 색칠 구절 복사">${trimmed}</div>`;
+                html += `<div class="bible-verse-item ${hlLineClass}" data-verse-key="${lineKey}" onclick="handleBibleVerseClick(event, this, '${lineKey}')" oncontextmenu="event.preventDefault(); return false;" title="터치: 형광펜 색칠 (상단 [색칠 복사] 버튼으로 복사)">${trimmed}</div>`;
             }
         });
         return html;
@@ -12338,6 +12322,8 @@
     }
 
     function openChristianRegisterModal() {
+        const modal = document.getElementById("christianRegisterModal");
+        if (modal) { modal.style.display = "flex"; modal.classList.add("show"); }
         const inpName = document.getElementById("inpRegNameOrId");
         const inpChurch = document.getElementById("inpRegChurchName");
         const inpPastor = document.getElementById("inpRegPastorName");
@@ -12407,8 +12393,6 @@
         const termsChk = document.getElementById("chkChristianTermsAgree");
         if (termsChk) termsChk.checked = alreadyAgreed;
         
-        const modal = document.getElementById("christianRegisterModal");
-        if (modal) { modal.style.display = "flex"; modal.classList.add("show"); }
     }
 
     function closeChristianRegisterModal() {
@@ -12683,6 +12667,16 @@
 
     // 🌟 [사용자 요청] 초청 누르면 박스 없애고 상단부터 공간 활용 잘해서 밑으로 친구들이 한줄로 아래로 스크롤 되는 전체화면 뷰 및 회원 관리
     function openChristianFriendsModal() {
+        const modal = document.getElementById("christianFriendsModal");
+        if (modal) { modal.style.display = "flex"; modal.classList.add("show"); }
+        try {
+            _renderChristianFriendsModalContent();
+        } catch(err) {
+            console.error("Error rendering christian friends modal:", err);
+        }
+    }
+
+    function _renderChristianFriendsModalContent() {
         const churchName = localStorage.getItem("yetalk_church_name") || "부산제일감리교회";
         const pastorName = localStorage.getItem("yetalk_pastor_name") || "";
         const churchKey = localStorage.getItem("yetalk_church_key") || normalizeChurchKey(churchName, pastorName);
@@ -12733,13 +12727,23 @@
             starredFriends = JSON.parse(localStorage.getItem("yetalk_starred_friends") || "[]");
         } catch(e) { starredFriends = []; }
 
+        // 🌟 교우 데이터 정규화 및 null/문자열 안전 필터링
+        members = (members || []).map(m => {
+            if (!m) return null;
+            if (typeof m === 'string') return { nameOrId: m.trim(), role: '성도' };
+            const n = (m.nameOrId || m.name || '').trim();
+            return n ? { nameOrId: n, role: m.role || '성도' } : null;
+        }).filter(Boolean);
+
         // 🌟 [사용자 요청] 1순위: 별표 체크된 교우가 최상단 / 2순위: 가나다라 순서(이름 오름차순) 정렬!
         members.sort((a, b) => {
-            const aStarred = starredFriends.includes(a.nameOrId);
-            const bStarred = starredFriends.includes(b.nameOrId);
+            const aName = a ? (a.nameOrId || '') : '';
+            const bName = b ? (b.nameOrId || '') : '';
+            const aStarred = starredFriends.includes(aName);
+            const bStarred = starredFriends.includes(bName);
             if (aStarred && !bStarred) return -1;
             if (!aStarred && bStarred) return 1;
-            return (a.nameOrId || '').localeCompare(b.nameOrId || '', 'ko');
+            return aName.localeCompare(bName, 'ko');
         });
 
         // 총 인원수 배지 갱신
@@ -13711,6 +13715,12 @@
     window.runMealPrayerLottery = runMealPrayerLottery;
     window.resetMealPrayerLottery = resetMealPrayerLottery;
     window.playCelebrationFanfare = playCelebrationFanfare;
+
+    window.openChristianRegisterModal = openChristianRegisterModal;
+    window.closeChristianRegisterModal = closeChristianRegisterModal;
+    window.openChristianFriendsModal = openChristianFriendsModal;
+    window.closeChristianFriendsModal = closeChristianFriendsModal;
+    window.handleChristianNav = handleChristianNav;
 
     window.addEventListener("DOMContentLoaded", () => {
         updateChristianHeaderUI();
