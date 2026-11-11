@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -571,7 +571,7 @@
             top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover;
             /* 🌟 [사용자 요청] 하늘의 "타실분 다 타세요"가 조금 아래로 내려와 시원하게 보이도록 조정 */
-            object-position: center 14%;
+            object-position: center center;
             z-index: 1;
             transition: transform 0.3s ease;
         }
@@ -1035,13 +1035,14 @@
         }
         .chat-msg-row.me .chat-bubble-with-time { flex-direction: row-reverse; }
         .chat-bubble-main {
-            padding: 8px 12px;
+            padding: 9px 13px;
             border-radius: 14px;
             font-size: 15px;
-            line-height: 1.45;
+            line-height: 1.6;
             letter-spacing: -0.2px;
             white-space: pre-wrap;
-            word-break: break-word;
+            word-break: keep-all;
+            overflow-wrap: break-word;
             box-shadow: 0 1px 2px rgba(0,0,0,0.08);
             max-width: 100%;
             user-select: text;
@@ -2674,7 +2675,7 @@
             <!-- 상태 A: 성화 슬라이더 카드 뷰 (3개 성화 순환, 투명 말씀 박스, 4대 고정메뉴) -->
             <div class="bus-hero-fullscreen-wrap" id="busHeroView">
                 <div class="bus-hero-card" onclick="openChatRoomView()" title="터치하여 예수동행 자유채팅방 입장">
-                    <img class="bus-hero-bg" id="heroBgImage" src="images/heaven_bus.jpg" alt="성화 - 타실 분 다 타세요!" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=90';">
+                    <img class="bus-hero-bg" id="heroBgImage" src="images/jesus_walking_path.jpg" alt="성화 - 예수님과 함께 걷는 길" onerror="this.onerror=null; this.src='images/heaven_bus_peace.jpg';">
                     <div class="bus-hero-overlay"></div>
 
                     <!-- 🌟 [사용자 요청] 우측 상단 복음 & 구원 원형 뱃지 버튼 (매일 구원의 7대 구절 팝업) -->
@@ -2732,21 +2733,21 @@
             <!-- 상태 B: 꽉 찬 예수동행 채팅창 (교회앱과 100% 동일한 디자인) -->
             <div class="chat-room-fullscreen-container" id="chatRoomView" style="display:none;">
 
-                <!-- 🌟 [사용자 요청] 교회앱과 100% 동일한 상단 고정 예수동행 말씀 카드 (복사/수정/삭제/발송 지원) -->
+                <!-- 🌟 [사용자 요청] 슬림형 예수동행 말씀 카드 (터치시 본문 전체 펼침 / 길게누르면 관리창) -->
                 <div class="chat-pinned-devotion-card" id="chatPinnedDevotion"
-                     onclick="openPinnedDevotionActionModal(event)"
+                     onclick="togglePinnedDevotionExpand(event)"
                      oncontextmenu="event.preventDefault(); openPinnedDevotionActionModal(event);"
                      ontouchstart="handlePinnedDevotionTouchStart(event)"
                      ontouchend="handlePinnedDevotionTouchEnd(event)"
                      ontouchmove="handlePinnedDevotionTouchMove(event)"
-                     title="터치하여 말씀 복사/수정/삭제">
+                     title="터치: 본문 전체보기 / 길게누름: 복사·수정·삭제">
                     <div class="pinned-header-row">
                         <div class="pinned-tag-title">
                             <span class="pinned-tag-badge">[예수동행]</span>
                             <span id="pinnedDevotionTitle">“주 여호와의 영이 내게 내리...”</span>
                         </div>
                         <div style="display:flex; align-items:center; gap:6px;">
-                            <button type="button" class="btn-pinned-manage" onclick="openPinnedDevotionActionModal(event)" title="말씀 관리 (복사/수정/삭제)">⋮ 관리</button>
+                            <button type="button" class="btn-pinned-manage" onclick="event.stopPropagation(); openPinnedDevotionActionModal(event)" title="말씀 관리 (복사/수정/삭제)">⋮ 관리</button>
                             <button type="button" class="btn-pinned-toggle" id="btnPinnedToggle" onclick="togglePinnedDevotionExpand(event)" title="접기/펼치기">▼</button>
                         </div>
                     </div>
@@ -2759,9 +2760,6 @@
                         <span class="pinned-stat">👀 <span id="pinnedViewCount">28</span></span>
                         <span class="pinned-author">· <span id="pinnedAuthorName">최예톡의 작은교회</span></span>
                         <span class="pinned-date">· <span id="pinnedDateStr">2026-10-29</span></span>
-                        <button type="button" class="btn-pinned-send-members" id="btnPinnedSendMembers" onclick="sendDevotionToMembersDirect(event)" title="성도 개인앱 공지로 발송">
-                            📨 회원에게 보내기
-                        </button>
                     </div>
                 </div>
 
@@ -2773,16 +2771,9 @@
                 <!-- 하단 입력 도크 (채팅창과 경계 없이 일체형으로 통합) -->
                 <div class="chat-fixed-dock-bottom">
                     <div style="display:flex; align-items:center; gap:6px; width:100%;">
-                        <button type="button" class="btn-chat-plus" onclick="openQuickBlessingsModal()">＋</button>
+                        <button type="button" class="btn-chat-plus" onclick="openChatNewPostModal()" title="새글 나눔 & 사진 등록">＋</button>
                         <textarea id="inpChatText" class="inp-chat-message-field" rows="1" placeholder="은혜 나눔을 남겨주세요..." onkeydown="handleChatInputKeyDown(event)" oninput="autoGrowTextarea(this)"></textarea>
                         <button type="button" class="btn-chat-send-yellow" onclick="sendChatMessage()">전송</button>
-                    </div>
-                    <!-- 🌟 [사용자 요청] 기본은 개인앱에 발송 안 됨 (공지 폭탄 방지), 누를 때만 발송 -->
-                    <div class="chat-dock-subbar" id="chatBroadcastRow">
-                        <label class="chat-dock-broadcast-toggle">
-                            <input type="checkbox" id="chkSendToMembersNotice">
-                            <span>📨 회원에게 알림 발송 (기본: 해제)</span>
-                        </label>
                     </div>
                 </div>
             </div>
@@ -3922,7 +3913,7 @@
        ============================================================== */
     const KEY_CHURCH_NAME = "yetalk_minichurch_name";
     const KEY_OWNER_MODE = "yetalk_minichurch_owner_mode";
-    const KEY_HERO_SLIDES = "yetalk_minichurch_hero_slides_v3";
+    const KEY_HERO_SLIDES = "yetalk_minichurch_hero_slides_v4";
     const KEY_WORSHIP_VIDEOS = "yetalk_minichurch_worship_videos_v3";
     const KEY_CHAT_MSGS = "yetalk_minichurch_chat_v3";
     const KEY_CONTACTS = "yetalk_minichurch_device_contacts_v3";
@@ -3943,30 +3934,30 @@
     const DEFAULT_HERO_SLIDES = [
         {
             id: "slide_1",
-            title: "천국버스",
-            subBadge: "✨ 타실 분 다 타세요!",
+            title: "예수님과 동행하는 삶",
+            subBadge: "✨ 주님이 나의 길이 되십니다",
             verseBadge: "📖 요한복음 14:6",
             verseText: "“예수께서 이르시되 내가 곧 길이요 진리요 생명이니 나로 말미암지 않고는 아버지께로 올 자가 없느니라”",
-            imageUrl: "images/heaven_bus.jpg",
-            fallbackUrl: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1600&q=90"
+            imageUrl: "images/jesus_walking_path.jpg",
+            fallbackUrl: "images/heaven_bus_peace.jpg"
         },
         {
             id: "slide_2",
-            title: "선한 목자 예수님",
-            subBadge: "✨ 내게 부족함이 없으리로다",
+            title: "천국행 평화의 버스",
+            subBadge: "✨ 평화의 버스 타실 분 다 타세요!",
             verseBadge: "📖 시편 23:1-2",
             verseText: "“여호와는 나의 목자시니 내게 부족함이 없으리로다 그가 나를 푸른 풀밭에 누이시며 쉴 만한 물 가로 인도하시는도다”",
-            imageUrl: "https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=1600&q=90",
-            fallbackUrl: "images/heaven_bus.jpg"
+            imageUrl: "images/heaven_bus_peace.jpg",
+            fallbackUrl: "images/heaven_bus_life.jpg"
         },
         {
             id: "slide_3",
-            title: "은혜의 십자가 사랑",
-            subBadge: "✨ 내가 너희를 쉬게 하리라",
+            title: "천국행 영원한 생명",
+            subBadge: "✨ 참된 쉼과 영원한 구원",
             verseBadge: "📖 마태복음 11:28",
             verseText: "“수고하고 무거운 짐 진 자들아 다 내게로 오라 내가 너희를 쉬게 하리라 나는 마음이 온유하고 겸손하니 나의 멍에를 메고 내게 배우라”",
-            imageUrl: "https://images.unsplash.com/photo-1544427920-c49ccfb85579?auto=format&fit=crop&w=1600&q=90",
-            fallbackUrl: "images/heaven_bus.jpg"
+            imageUrl: "images/heaven_bus_life.jpg",
+            fallbackUrl: "images/jesus_walking_path.jpg"
         }
     ];
 
@@ -5315,12 +5306,15 @@
     let currentPinnedDevotion = null;
     let pinnedDevTouchTimer = null;
     let pinnedDevTouchMoved = false;
+    let pinnedDevLongPressed = false;
 
     function handlePinnedDevotionTouchStart(e) {
         pinnedDevTouchMoved = false;
+        pinnedDevLongPressed = false;
         clearTimeout(pinnedDevTouchTimer);
         pinnedDevTouchTimer = setTimeout(() => {
             if (!pinnedDevTouchMoved) {
+                pinnedDevLongPressed = true;
                 openPinnedDevotionActionModal(e);
             }
         }, 450);
@@ -5333,10 +5327,13 @@
         clearTimeout(pinnedDevTouchTimer);
     }
 
+    /* 🌟 [사용자 요청] 상단 박스 클릭 시 본문 전체 펼쳐보기 토글 */
     function togglePinnedDevotionExpand(e) {
-        if (e) {
-            if (typeof e.stopPropagation === "function") e.stopPropagation();
+        if (pinnedDevLongPressed) {
+            pinnedDevLongPressed = false;
+            return;
         }
+        if (e && typeof e.stopPropagation === "function") e.stopPropagation();
         const card = document.getElementById("chatPinnedDevotion");
         const btn = document.getElementById("btnPinnedToggle");
         if (!card) return;
@@ -5828,16 +5825,78 @@
         }
     }
 
-    function openQuickBlessingsModal() { openModal("modalQuickBlessings"); }
+    /* 🌟 [사용자 요청] 새글 쓰기 창 (글 쓰는 공간 늘리고 사진/그림 첨부 기능) */
+    let newPostPhotoData = "";
 
-    function insertQuickChat(phrase) {
-        const inp = document.getElementById("inpChatText");
-        if (inp) {
-            inp.value = phrase;
-            autoGrowTextarea(inp);
+    function openChatNewPostModal() {
+        const authorInp = document.getElementById("inpNewPostAuthor");
+        if (authorInp) {
+            authorInp.value = localStorage.getItem("yetalkUserName") || "최예톡";
         }
-        closeModal("modalQuickBlessings");
-        sendChatMessage();
+        const textInp = document.getElementById("inpNewPostText");
+        if (textInp) textInp.value = "";
+        clearNewPostPhoto();
+        openModal("modalChatNewPost");
+    }
+
+    function openQuickBlessingsModal() {
+        openChatNewPostModal();
+    }
+
+    function handleNewPostPhotoSelected(e) {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            newPostPhotoData = evt.target.result;
+            const wrap = document.getElementById("newPostPhotoPreviewWrap");
+            const img = document.getElementById("imgNewPostPreview");
+            if (img) img.src = newPostPhotoData;
+            if (wrap) wrap.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function clearNewPostPhoto() {
+        newPostPhotoData = "";
+        const fileInp = document.getElementById("inpNewPostFile");
+        if (fileInp) fileInp.value = "";
+        const wrap = document.getElementById("newPostPhotoPreviewWrap");
+        if (wrap) wrap.style.display = "none";
+        const img = document.getElementById("imgNewPostPreview");
+        if (img) img.src = "";
+    }
+
+    function submitChatNewPost() {
+        const author = (document.getElementById("inpNewPostAuthor")?.value || "").trim() || "최예톡";
+        const text = (document.getElementById("inpNewPostText")?.value || "").trim();
+        if (!text && !newPostPhotoData) {
+            showToast("글 내용이나 사진을 등록해주세요.");
+            return;
+        }
+
+        let chats = DEFAULT_CHAT_SEED;
+        try {
+            const raw = localStorage.getItem(KEY_CHAT_MSGS);
+            if (raw) chats = JSON.parse(raw);
+        } catch(e){}
+
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+        chats.push({
+            id: Date.now(),
+            author: author,
+            isMe: true,
+            text: text,
+            time: timeStr,
+            img: newPostPhotoData || ""
+        });
+
+        localStorage.setItem(KEY_CHAT_MSGS, JSON.stringify(chats));
+        closeModal("modalChatNewPost");
+        initChatMessages(true);
+        showToast("✨ 은혜로운 새글이 등록되었습니다!");
     }
 
     /* ==============================================================
