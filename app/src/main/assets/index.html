@@ -9860,15 +9860,32 @@
         }
 
         // 3. 실제 등록/개설된 맞춤앱 데이터베이스 매칭
+        // 🌟 [사용자 요청] 검색된 교회가 기존에 만들어졌으면 반드시 그 교회로 뜨도록 URL 파라미터 연동!
         const registeredChurches = [
-            { name: "예톡행복한교회", url: "churchmain.html" },
-            { name: "행복한교회", url: "churchmain.html" },
-            { name: "최예톡의 작은교회", url: "churchmain.html?type=small" },
+            { name: "행복한교회", url: "churchmain.html?churchName=" + encodeURIComponent("행복한교회") },
+            { name: "예톡행복한교회", url: "churchmain.html?churchName=" + encodeURIComponent("예톡행복한교회") },
+            { name: "부산제일감리교회", url: "churchmain.html?churchName=" + encodeURIComponent("부산제일감리교회") },
+            { name: "사랑의교회", url: "churchmain.html?churchName=" + encodeURIComponent("사랑의교회") },
+            { name: "새빛교회", url: "churchmain.html?churchName=" + encodeURIComponent("새빛교회") },
+            { name: "최예톡의 작은교회", url: "churchmain.html?type=small&churchName=" + encodeURIComponent("최예톡의 작은교회") },
             { name: "나의작은교회", url: "minichurch.html" },
-            { name: "움직이는교회", url: "minichurch.html" },
-            { name: "사랑의교회", url: "churchmain.html" },
-            { name: "새빛교회", url: "churchmain.html" }
+            { name: "움직이는교회", url: "minichurch.html" }
         ];
+
+        // 🌟 [사용자 요청] 사용자들이 개설/등록한 모든 교회(yetalk_registered_churches) 동적 검색 반영
+        try {
+            const regMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+            if (regMap && typeof regMap === "object") {
+                Object.values(regMap).forEach(ch => {
+                    if (ch && ch.name && !registeredChurches.some(rc => rc.name === ch.name)) {
+                        registeredChurches.push({
+                            name: ch.name,
+                            url: "churchmain.html?churchName=" + encodeURIComponent(ch.name)
+                        });
+                    }
+                });
+            }
+        } catch(e) {}
 
         const registeredClinics = [
             { name: "사랑받는 최웅식의원", url: "doctormain.html" },
@@ -9905,23 +9922,32 @@
                 }
                 if (parsed.additionalApps && Array.isArray(parsed.additionalApps)) {
                     parsed.additionalApps.forEach(a => {
-                        if (a.title) registeredChurches.push({ name: a.title, url: a.url || "churchmain.html" });
+                        if (a.title && !registeredChurches.some(rc => rc.name === a.title)) {
+                            registeredChurches.push({ name: a.title, url: a.url || ("churchmain.html?churchName=" + encodeURIComponent(a.title)) });
+                        }
                     });
                 }
             }
-            const savedChName = localStorage.getItem("yetalkChurchName");
-            if (savedChName) registeredChurches.push({ name: savedChName, url: "churchmain.html" });
+            const myRegisteredHome = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "").trim();
+            if (myRegisteredHome && !registeredChurches.some(rc => rc.name === myRegisteredHome)) {
+                registeredChurches.push({ name: myRegisteredHome, url: "churchmain.html?churchName=" + encodeURIComponent(myRegisteredHome) });
+            }
             const savedFoodName = localStorage.getItem("yetalk_food_name");
             if (savedFoodName) registeredStores.push({ name: savedFoodName, url: "foodmain.html" });
         } catch(e) {}
 
-        // 등록된 교회 검색 일치 여부 확인
+        // 등록된 교회 검색 일치 여부 확인 (공백 무시 유연한 매칭 & 정확한 교회명 URL 연결)
+        const cleanQuery = q.replace(/\s+/g, '');
         const matchChurch = registeredChurches.find(c => {
-            const cn = c.name.toLowerCase();
-            return q.includes(cn) || cn.includes(q);
+            const cn = c.name.toLowerCase().replace(/\s+/g, '');
+            return cleanQuery === cn || cleanQuery.includes(cn) || cn.includes(cleanQuery);
         });
         if (matchChurch) {
-            location.href = matchChurch.url;
+            let targetUrl = matchChurch.url;
+            if (targetUrl.includes("churchmain.html") && !targetUrl.includes("churchName=")) {
+                targetUrl += (targetUrl.includes("?") ? "&" : "?") + "churchName=" + encodeURIComponent(matchChurch.name);
+            }
+            location.href = targetUrl;
             return;
         }
 
@@ -9959,8 +9985,11 @@
             return;
         }
 
-        // 🌟 [사용자 요청] 아직 안 만들어진 상태(예: 부산제일감리교회 등) 검색 시 바로 예톡행복한교회 등으로 넘어가지 않고 alert창 띄우기!
-        alert("담임목사님이나 의사선생님,사장님에게 예톡에서 무료로 앱과 홈페이지를 만드시라고 전달해주세요.");
+        if (q.includes("교회")) {
+            alert(`📢 ['${query}']는 아직 예톡에 개설되지 않은 교회입니다.\n\n담임목사님이나 교우분들에게 예톡에서 무료로 우리교회 앱과 홈페이지를 만드시라고 전해주세요!\n\n(예톡홈 상단 '우리교회 홈페이지 무료 제작'에서 즉시 개설할 수 있습니다.)`);
+            return;
+        }
+        alert(`📢 ['${query}'] 검색 결과가 없습니다.\n\n담임목사님이나 의사선생님, 사장님에게 예톡에서 무료로 전용 앱과 모바일 홈페이지를 만드시라고 추천해 주세요.`);
     }
 
     /* ==================================================
@@ -12292,6 +12321,7 @@
             localStorage.setItem("yetalkUserName", nameOrId);
             localStorage.setItem("yetalk_user_id", nameOrId);
             localStorage.setItem("yetalkUserId", nameOrId);
+            localStorage.setItem("yetalk_registered_home_church", churchName);
             localStorage.setItem("yetalk_church_name", churchName);
             localStorage.setItem("yetalkChurchName", churchName);
             localStorage.setItem("yetalkMyChurchName", churchName);
@@ -12858,8 +12888,9 @@
             location.href = "myapp_home.html?tab=my";
         } else if (tab === 'our_church' || tab === 'church') {
             document.getElementById("chipTabOurChurch")?.classList.add("active");
-            // 🌟 [사용자 요청] 임시창 모달이 아니라 사진 4의 churchmain.html(누구나 가입하면 모이는 실제 우리교회 화면)로 바로 직행!
-            location.href = "churchmain.html";
+            // 🌟 [사용자 요청] 본인 출석교회명을 파라미터로 붙여 정확하게 본교회 앱으로 직행!
+            const myChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회").trim();
+            location.href = "churchmain.html?churchName=" + encodeURIComponent(myChurch);
         } else if (tab === 'invite' || tab === 'friends') {
             document.getElementById("chipTabInvite")?.classList.add("active");
             openChristianFriendsModal();

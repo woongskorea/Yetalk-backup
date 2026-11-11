@@ -1304,11 +1304,14 @@
 
     // 🌟 [사용자 요청] 교회 헤더 회원 배지 및 정회원/준회원 실시간 UI 반영
     function updateChurchHeaderMemberUI(curChurch) {
-        const churchName = curChurch || localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        const churchName = curChurch || sessionStorage.getItem("yetalk_viewing_church") || localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
         const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
-        const myHomeChurch = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || localStorage.getItem("yetalkMyChurchName") || "").trim();
+        // 사용자가 예톡홈에 등록한 본인 실제 출석교회명
+        const myHomeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || "").trim();
         
-        const isRegular = Boolean(uName && (myHomeChurch === churchName || localStorage.getItem("yetalk_is_regular_member_" + churchName) === "true"));
+        // 정회원: 본인 출석교회와 현재 보고 있는 교회가 일치하거나, 명시적으로 정회원인 경우
+        const isRegular = Boolean(uName && myHomeChurch && (myHomeChurch === churchName || localStorage.getItem("yetalk_is_regular_member_" + churchName) === "true"));
+        // 준회원: 이 교회에 준회원으로 가입한 경우
         const isAssociate = Boolean(localStorage.getItem("yetalk_church_member_grade_" + churchName) === "준회원");
 
         const btn = document.getElementById("btnChurchHeaderJoin") || document.querySelector(".btn-header-join-only");
@@ -1342,11 +1345,11 @@
 
     /* 🌟 성도가입 클릭 시 원클릭 등록 분기: 정회원 vs 준회원 */
     function handleChurchMemberJoinClick() {
-        const churchName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        const churchName = sessionStorage.getItem("yetalk_viewing_church") || localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
         const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
-        const myHomeChurch = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "").trim();
+        const myHomeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || "").trim();
         
-        const isRegular = Boolean(uName && (myHomeChurch === churchName || localStorage.getItem("yetalk_is_regular_member_" + churchName) === "true"));
+        const isRegular = Boolean(uName && myHomeChurch && (myHomeChurch === churchName || localStorage.getItem("yetalk_is_regular_member_" + churchName) === "true"));
         const isAssociate = Boolean(localStorage.getItem("yetalk_church_member_grade_" + churchName) === "준회원");
 
         if (isRegular) {
@@ -1767,7 +1770,7 @@
         localStorage.setItem('yetalk_active_theme', 'white');
         document.body.setAttribute('data-theme', 'white');
 
-        // 🌟 URL 쿼리 파라미터에서 교회명 읽기 (?churchName=부산제일감리교회)
+        // 🌟 URL 쿼리 파라미터에서 교회명 읽기 (?churchName=행복한교회)
         const urlParams = new URLSearchParams(window.location.search);
         const qChurch = urlParams.get("churchName") || urlParams.get("churchId");
         let churchName = "";
@@ -1775,15 +1778,18 @@
             try { churchName = decodeURIComponent(qChurch); } catch(e) { churchName = qChurch; }
         }
         if (!churchName) {
-            churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+            churchName = localStorage.getItem("yetalkChurchName") || localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || "예톡행복한교회";
         }
         if (!churchName || churchName.includes("최웅식") || churchName.includes("최용식") || churchName.includes("김예톡") || churchName.includes("최예톡")) {
             churchName = "예톡행복한교회";
         }
+        // 현재 보고 있는 교회를 세션과 임시 스토리지에 저장 (단, 사용자의 본교회인 yetalk_registered_home_church는 보존!)
+        sessionStorage.setItem("yetalk_viewing_church", churchName);
         localStorage.setItem("yetalkChurchName", churchName);
-        localStorage.setItem("yetalk_church_name", churchName);
+
         const titleEl = document.getElementById("churchName");
         if (titleEl) titleEl.innerText = churchName;
+        document.title = churchName + " | 예톡";
 
         // 🌟 [사용자 요청] 정회원 vs 준회원 구분
         // 1. 본교회 교인 (예톡홈에서 본교회로 회원가입한 경우): 정회원 상태
