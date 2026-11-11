@@ -3754,7 +3754,14 @@
             align-items: stretch !important;
             justify-content: flex-start !important;
         }
-        #christianFriendsModal.modal-overlay.show {
+        #christianRegisterModal.modal-overlay,
+        #christianFriendsModal.modal-overlay,
+        .modal-overlay {
+            z-index: 99999 !important;
+        }
+        #christianRegisterModal.modal-overlay.show,
+        #christianFriendsModal.modal-overlay.show,
+        .modal-overlay.show {
             display: flex !important;
         }
         .christian-friends-full-container {
@@ -4570,6 +4577,13 @@
 <div class="main-container">
 
     <!-- 1. 상단 헤더: [사용자 요청] 빨강줄 완전 제거, 나의 앱은 13.5px로 정돈하고 예톡🌿은 26px로 훨씬 더 크고 멋지게 강조 (아래 버튼에 착 밀착) -->
+    
+    <!-- 🌟 [사용자 요청] 스마트폰 상단 시계 감춤 대응: 나의 앱 예톡 위에 겹치지 않게 날짜/시계 실시간 표출 -->
+    <div class="header-live-clock-row" style="padding:4px 14px 2px 14px; display:flex; justify-content:flex-start; align-items:center; background:#ffffff; box-sizing:border-box;">
+        <span id="txtHeaderLiveClock" style="font-size:11.5px; font-weight:800; color:#64748b; letter-spacing:-0.2px; display:inline-flex; align-items:center; gap:5px;">
+            <span style="font-size:11px;">🕒</span><span id="liveClockDateText">11월 11일(화) 오후 11:30</span>
+        </span>
+    </div>
     <header class="app-header" style="display:flex; justify-content:space-between; align-items:center; padding:calc(var(--safe-top, 24px) - 14px) 14px 0 14px; background:#ffffff; border-bottom:none; box-sizing:border-box;">
         <div class="header-logo-group" id="headerLogoGroup" onclick="handleLogoClick()" style="display:flex; align-items:baseline; gap:5px; white-space:nowrap; cursor:pointer;">
             <span class="header-logo-prefix" style="font-size:13.5px; font-weight:750; color:#475569; letter-spacing:-0.3px; white-space:nowrap;">나의 앱</span>
@@ -4836,6 +4850,9 @@
                 <div class="bible-reading-sub-title" id="bbrChapterSubtitle" style="font-size:16px; color:#047857; font-weight:950; line-height:1.4; flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                     출애굽기 1장
                 </div>
+                <button type="button" onclick="copyHighlightedVersesInCurrentChapter()" style="background:#f0fdf4; border:1.5px solid #86efac; color:#15803d; border-radius:18px; padding:5px 10px; font-size:12px; font-weight:950; cursor:pointer; display:inline-flex; align-items:center; gap:4px; flex-shrink:0; white-space:nowrap; box-shadow:0 1.5px 4px rgba(22,163,74,0.15);" title="현재 장에서 형광펜 색칠한 구절 모두 복사하기">
+                    <span>📋</span><span>색칠 복사</span>
+                </button>
                 <button type="button" onclick="openMealPrayerLotteryModal()" style="background:linear-gradient(135deg, #ea580c 0%, #f59e0b 50%, #d97706 100%); color:#ffffff; border:1.5px solid #fed7aa; padding:6px 13px; border-radius:22px; font-size:13px; font-weight:950; cursor:pointer; box-shadow:0 3px 10px rgba(234,88,12,0.38); display:inline-flex; align-items:center; gap:5px; flex-shrink:0; white-space:nowrap;" title="재미있는 대표 식사 기도자 추첨 & 3가지 상황별 기도문">
                     <span style="font-size:15px;">🍽️</span>
                     <span>대표식사기도</span>
@@ -7362,6 +7379,169 @@
     }
 
     // 🌟 [사용자 요청 3단계 순환] 터치 1회: 분홍색 -> 터치 2회: 노랑색 -> 터치 3회: 색 없음
+    
+    /* ==========================================================================
+       🌟 [사용자 요청] 헤더 상단 실시간 시계 (몇월 몇일(요일) 몇시 몇분)
+    ========================================================================== */
+    function updateHeaderLiveClock() {
+        const el = document.getElementById('liveClockDateText');
+        if (!el) return;
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const date = now.getDate();
+        const days = ['일', '월', '화', '수', '목', '금', '토'];
+        const dayName = days[now.getDay()];
+        let hours = now.getHours();
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? '오후' : '오전';
+        const displayHours = hours % 12 === 0 ? 12 : hours % 12;
+        el.innerText = `${month}월 ${date}일(${dayName}) ${ampm} ${displayHours}시 ${minutes}분`;
+    }
+    setInterval(updateHeaderLiveClock, 30000);
+    setTimeout(updateHeaderLiveClock, 100);
+
+    /* ==========================================================================
+       🌟 [사용자 요청] 성경 구절 터치하여 색칠(형광펜) 후 꾹 길게 누르면 색칠 구절 자동 복사!
+       - 현재 장 안에서 색칠된 모든 구절을 순서대로 모아서 클립보드에 복사
+       - 색칠된 구절이 없을 때 길게 누르면 해당 구절을 바로 색칠하고 복사
+    ========================================================================== */
+    let versePressTimer = null;
+    let verseLongPressed = false;
+
+    function handleVersePressStart(el, verseKey) {
+        verseLongPressed = false;
+        clearTimeout(versePressTimer);
+        versePressTimer = setTimeout(() => {
+            verseLongPressed = true;
+            copyHighlightedVersesInCurrentChapter(verseKey);
+        }, 550);
+    }
+
+    function handleVersePressEnd() {
+        clearTimeout(versePressTimer);
+    }
+
+    function handleBibleVerseClick(event, el, verseKey) {
+        if (verseLongPressed) {
+            verseLongPressed = false;
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            return;
+        }
+        toggleBibleVerseHighlight(el, verseKey);
+    }
+
+    function copyHighlightedVersesInCurrentChapter(clickedKey) {
+        const book = currentUserBibleBook || '성경';
+        const ch = currentUserBibleCh || 1;
+        let highlights = {};
+        try {
+            highlights = JSON.parse(localStorage.getItem('yetalk_bible_highlights') || '{}');
+        } catch(e) { highlights = {}; }
+
+        const item = getBibleChapterItem(book, ch);
+        const lines = (item.text || '').split('\n');
+        let versesInChapter = [];
+
+        lines.forEach((line, idx) => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+            const m = trimmed.match(/^(\d+)[.\s]\s*(.*)$/);
+            if (m) {
+                const vNum = parseInt(m[1], 10);
+                const vKey = `${book}_${ch}_${m[1]}`;
+                if (highlights[vKey]) {
+                    versesInChapter.push({ num: vNum, text: `${m[1]}. ${m[2]}` });
+                }
+            } else {
+                const lKey = `${book}_${ch}_L${idx}`;
+                if (highlights[lKey]) {
+                    versesInChapter.push({ num: idx + 1, text: trimmed });
+                }
+            }
+        });
+
+        // 현재 장에 아직 색칠된 구절이 없다면, 방금 길게 누른 구절을 바로 색칠하고 복사
+        if (versesInChapter.length === 0 && clickedKey) {
+            const targetEl = document.querySelector(`[data-verse-key="${clickedKey}"]`);
+            if (targetEl) {
+                toggleBibleVerseHighlight(targetEl, clickedKey);
+            }
+            try {
+                highlights = JSON.parse(localStorage.getItem('yetalk_bible_highlights') || '{}');
+            } catch(e) {}
+            lines.forEach((line, idx) => {
+                const trimmed = line.trim();
+                if (!trimmed) return;
+                const m = trimmed.match(/^(\d+)[.\s]\s*(.*)$/);
+                if (m) {
+                    const vNum = parseInt(m[1], 10);
+                    const vKey = `${book}_${ch}_${m[1]}`;
+                    if (highlights[vKey]) {
+                        versesInChapter.push({ num: vNum, text: `${m[1]}. ${m[2]}` });
+                    }
+                } else {
+                    const lKey = `${book}_${ch}_L${idx}`;
+                    if (highlights[lKey]) {
+                        versesInChapter.push({ num: idx + 1, text: trimmed });
+                    }
+                }
+            });
+        }
+
+        if (versesInChapter.length === 0) {
+            showBibleToast('💡 성경 구절을 터치하여 색칠한 후 꾹 누르면 복사됩니다.');
+            return;
+        }
+
+        // 절 번호 순서로 오름차순 정렬
+        versesInChapter.sort((a, b) => a.num - b.num);
+        const minVerse = versesInChapter[0].num;
+        const maxVerse = versesInChapter[versesInChapter.length - 1].num;
+        const rangeStr = (minVerse === maxVerse) ? `${minVerse}절` : `${minVerse}~${maxVerse}절`;
+
+        const copyBody = versesInChapter.map(v => v.text).join('\n');
+        const fullText = `[${book} ${ch}장 (${rangeStr} 말씀)]\n${copyBody}\n\n- 예톡 성경 (yetalk.cc)`;
+
+        let copied = false;
+        if (window.AndroidBridge && window.AndroidBridge.copyToClipboard) {
+            try {
+                window.AndroidBridge.copyToClipboard(fullText);
+                copied = true;
+            } catch(e) {}
+        }
+        if (!copied && navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(fullText).then(() => {}).catch(() => {});
+            copied = true;
+        }
+        if (!copied) {
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = fullText;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                copied = true;
+            } catch(e) {}
+        }
+
+        try {
+            if (navigator.vibrate) navigator.vibrate(50);
+        } catch(e) {}
+        showBibleToast(`📋 ${book} ${ch}장 색칠 말씀 (${versesInChapter.length}개 절) 복사 완료!`);
+    }
+
+    window.updateHeaderLiveClock = updateHeaderLiveClock;
+    window.copyHighlightedVersesInCurrentChapter = copyHighlightedVersesInCurrentChapter;
+    window.handleBibleVerseClick = handleBibleVerseClick;
+    window.handleVersePressStart = handleVersePressStart;
+    window.handleVersePressEnd = handleVersePressEnd;
+
     function toggleBibleVerseHighlight(el, verseKey) {
         if (!verseKey) return;
         let highlights = {};
@@ -7447,7 +7627,7 @@
                 if (hlVal === "yellow") hlClass = "highlight-yellow";
                 else if (hlVal === "blue") hlClass = "highlight-blue";
                 else if (hlVal === "pink" || hlVal === true) hlClass = "highlight-pink";
-                html += `<div class="bible-verse-item ${hlClass}" data-verse-key="${verseKey}" onclick="toggleBibleVerseHighlight(this, '${verseKey}')" title="터치하여 형광펜 칠하기 (분홍 ➔ 노랑 ➔ 해제)"><span class="bible-verse-num">${verseNum}.</span><span class="bible-verse-body">${verseBody}</span></div>`;
+                html += `<div class="bible-verse-item ${hlClass}" data-verse-key="${verseKey}" onclick="handleBibleVerseClick(event, this, '${verseKey}')" onmousedown="handleVersePressStart(this, '${verseKey}')" onmouseup="handleVersePressEnd()" onmouseleave="handleVersePressEnd()" ontouchstart="handleVersePressStart(this, '${verseKey}')" ontouchend="handleVersePressEnd()" ontouchcancel="handleVersePressEnd()" oncontextmenu="event.preventDefault(); return false;" title="터치: 형광펜 색칠 / 꾹 길게 누르면: 색칠 구절 복사"><span class="bible-verse-num">${verseNum}.</span><span class="bible-verse-body">${verseBody}</span></div>`;
             } else {
                 const lineKey = `${bookName}_${chNum}_L${idx}`;
                 const hlLineVal = highlights[lineKey];
@@ -7455,7 +7635,7 @@
                 if (hlLineVal === "yellow") hlLineClass = "highlight-yellow";
                 else if (hlLineVal === "blue") hlLineClass = "highlight-blue";
                 else if (hlLineVal === "pink" || hlLineVal === true) hlLineClass = "highlight-pink";
-                html += `<div class="bible-verse-item ${hlLineClass}" data-verse-key="${lineKey}" onclick="toggleBibleVerseHighlight(this, '${lineKey}')" title="터치하여 형광펜 칠하기 (분홍 ➔ 노랑 ➔ 해제)">${trimmed}</div>`;
+                html += `<div class="bible-verse-item ${hlLineClass}" data-verse-key="${lineKey}" onclick="handleBibleVerseClick(event, this, '${lineKey}')" onmousedown="handleVersePressStart(this, '${lineKey}')" onmouseup="handleVersePressEnd()" onmouseleave="handleVersePressEnd()" ontouchstart="handleVersePressStart(this, '${lineKey}')" ontouchend="handleVersePressEnd()" ontouchcancel="handleVersePressEnd()" oncontextmenu="event.preventDefault(); return false;" title="터치: 형광펜 색칠 / 꾹 길게 누르면: 색칠 구절 복사">${trimmed}</div>`;
             }
         });
         return html;
@@ -12233,12 +12413,12 @@
         if (termsChk) termsChk.checked = alreadyAgreed;
         
         const modal = document.getElementById("christianRegisterModal");
-        if (modal) modal.classList.add("show");
+        if (modal) { modal.style.display = "flex"; modal.classList.add("show"); }
     }
 
     function closeChristianRegisterModal() {
         const modal = document.getElementById("christianRegisterModal");
-        if (modal) modal.classList.remove("show");
+        if (modal) { modal.style.display = "none"; modal.classList.remove("show"); }
     }
 
     function openPastorAuthFromChurchModal() {
@@ -12610,7 +12790,7 @@
         }
 
         const modal = document.getElementById("christianFriendsModal");
-        if (modal) modal.classList.add("show");
+        if (modal) { modal.style.display = "flex"; modal.classList.add("show"); }
     }
 
     // 🌟 [사용자 요청] 교우 별표(즐겨찾기/상단고정) 토글 함수
@@ -12720,7 +12900,7 @@
 
     function closeChristianFriendsModal() {
         const modal = document.getElementById("christianFriendsModal");
-        if (modal) modal.classList.remove("show");
+        if (modal) { modal.style.display = "none"; modal.classList.remove("show"); }
     }
 
     // 🌟 [사용자 요청] alert 없이 초대 문구 즉시 복사 & 버튼 피드백
@@ -12974,12 +13154,14 @@
                 joinBtn.style.background = "linear-gradient(135deg, #047857, #065f46)";
                 joinBtn.style.borderColor = "#34d399";
                 joinBtn.style.padding = "5px 10px";
+                joinBtn.onclick = () => openChristianRegisterModal();
             } else {
                 joinBtn.innerHTML = "✝️ 회원가입";
                 joinBtn.title = "기독교인 회원가입";
                 joinBtn.style.background = "linear-gradient(135deg, #059669, #047857)";
                 joinBtn.style.borderColor = "#10b981";
                 joinBtn.style.padding = "5px 12px";
+                joinBtn.onclick = () => openChristianRegisterModal();
             }
         }
 
