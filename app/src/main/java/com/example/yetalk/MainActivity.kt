@@ -487,7 +487,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 if (target == "navershop") {
                     try {
-                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://shopping.naver.com")).apply {
+                        val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://m.shopping.naver.com")).apply {
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                         }
                         startActivity(browserIntent)
