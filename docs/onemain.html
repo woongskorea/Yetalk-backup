@@ -2790,7 +2790,7 @@
                 </div>
 
                 <!-- 🌟 [사용자 요청] 첫 화면 은혜 카드 (내모습처럼 큼직하고 시원하게, 공지알림 버튼은 그림 하단 위에 겹쳐 배치) -->
-                <div class="grace-welcome-card" id="graceWelcomeCard" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; overflow:hidden; box-shadow:0 6px 20px rgba(0,0,0,0.08); position:relative; line-height:0; margin-bottom:8px;">
+                <div class="grace-welcome-card" id="graceWelcomeCard" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:18px; overflow:hidden; box-shadow:0 6px 20px rgba(0,0,0,0.08); position:relative; line-height:0; margin-bottom:14px;">
                     <!-- 큼직한 말라기 4:2 은혜 그림 (내모습 스타일) -->
                     <img src="images/grace_malachi_card.jpg" alt="말라기 4:2 은혜의 말씀" style="width:100%; height:auto; max-height:500px; display:block; object-fit:contain; margin:0 auto;" onerror="this.onerror=null; this.src='../images/grace_malachi_card.jpg';">
 
@@ -2803,6 +2803,39 @@
                                 <span id="badgeNoticeExactCount" style="background:#ffffff; color:#0284c7; font-size:11.5px; font-weight:950; padding:2px 8px; border-radius:10px;">8건</span>
                             </div>
                             <span id="txtNoticeToggleArrow" style="font-size:12px; font-weight:900; background:rgba(255,255,255,0.25); padding:3px 10px; border-radius:8px; letter-spacing:-0.2px;">▼ 눌러서 보기</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 🌟 [사용자 요청] 첫번째 그림 밑: 내앱에 손님모드로 초청하고 싶을 때 안내 + QR코드 + 복사하기 + 카톡보내기 -->
+                <div class="guest-invite-promo-card" id="cardGuestInvitePromo" style="background:linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border:1.8px solid #cbd5e1; border-radius:18px; padding:20px 16px; margin-bottom:20px; box-shadow:0 4px 16px rgba(0,0,0,0.06); text-align:center; box-sizing:border-box;">
+                    <div style="display:inline-flex; align-items:center; gap:6px; background:#eff6ff; border:1px solid #bfdbfe; color:#1e40af; font-size:12px; font-weight:900; padding:4px 12px; border-radius:14px; margin-bottom:8px;">
+                        <span>💌</span>
+                        <span>내 개인앱 초대장</span>
+                    </div>
+                    <div style="font-size:17.5px; font-weight:950; color:#0f172a; letter-spacing:-0.4px; line-height:1.35; margin-bottom:6px;">
+                        내앱에 손님모드로 초청하고 싶을 때
+                    </div>
+                    <p style="font-size:12.5px; color:#64748b; font-weight:700; line-height:1.55; margin:0 0 16px 0; word-break:keep-all;">
+                        소중한 분에게 QR코드나 카톡 초대장을 보내보세요.<br>
+                        비밀 일정은 숨겨지고 오직 안전한 <b>손님모드(열람용)</b>로만 구경할 수 있습니다.
+                    </p>
+
+                    <!-- 스마트 QR코드 이미지 박스 -->
+                    <div style="display:inline-block; padding:10px; background:#ffffff; border:1.5px solid #e2e8f0; border-radius:14px; box-shadow:0 3px 10px rgba(0,0,0,0.06); margin-bottom:14px;">
+                        <img id="imgGuestInviteQr" src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=https%3A%2F%2Fwoongskorea.github.io%2FYetalk-backup%2Fassets%2Fonemain.html%3Fview%3Dguest" alt="손님모드 초대 QR" style="width:160px; height:160px; display:block; border-radius:8px;">
+                        <span style="display:block; font-size:11px; font-weight:800; color:#0284c7; margin-top:6px;">📷 카메라로 스캔 시 손님모드 입장</span>
+                    </div>
+
+                    <!-- 복사하기 / 카톡보내기 버튼 2개 -->
+                    <div style="display:flex; gap:8px; justify-content:center; max-width:320px; margin:0 auto;">
+                        <button type="button" onclick="copyGuestInviteText()" style="flex:1; height:44px; background:#0284c7; color:#ffffff; border:none; border-radius:12px; font-size:13.5px; font-weight:950; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:5px; box-shadow:0 2px 8px rgba(2,132,199,0.3); transition:all 0.15s ease;">
+                            <span>📋</span>
+                            <span id="btnCopyGuestTextLabel">초대 복사</span>
+                        </button>
+                        <button type="button" onclick="shareGuestInviteKakao()" style="flex:1; height:44px; background:#fee500; color:#191919; border:none; border-radius:12px; font-size:13.5px; font-weight:950; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:5px; box-shadow:0 2px 8px rgba(254,229,0,0.35); transition:all 0.15s ease;">
+                            <span>💬</span>
+                            <span>카톡 보내기</span>
                         </button>
                     </div>
                 </div>
@@ -4765,6 +4798,69 @@
             showToast("✨ 수정 모드가 꺼졌습니다.");
         }
     }
+
+    /* 🌟 [사용자 요청] 첫 화면 첫번째 그림 밑: 내앱에 손님모드로 초청하고 싶을 때 복사 및 카톡 공유 */
+    function getGuestInviteUrl() {
+        return "https://woongskorea.github.io/Yetalk-backup/assets/onemain.html?view=guest";
+    }
+
+    function getGuestInviteMessage() {
+        const myTitle = document.getElementById("txtOneMainHeaderTitle")?.innerText || "최베드로의 개인앱";
+        return `[${myTitle} 모바일 초대장]\n\n소중한 당신을 예톡 개인 스마트 공간으로 초대합니다.\n언제든 편안하게 방문하셔서 은혜와 소통을 함께 나누어요!\n(손님모드로 안전하게 열람하실 수 있습니다)\n\n👉 모바일 초대장 열기 (터치):\n${getGuestInviteUrl()}`;
+    }
+
+    function copyGuestInviteText() {
+        const fullMsg = getGuestInviteMessage();
+        const btnLabel = document.getElementById("btnCopyGuestTextLabel");
+
+        function showSuccess() {
+            if (btnLabel) {
+                const org = btnLabel.innerText;
+                btnLabel.innerText = "복사 완료!";
+                setTimeout(() => { btnLabel.innerText = org; }, 1800);
+            }
+            showToast("📋 손님모드 초대장 문구와 링크가 복사되었습니다!");
+        }
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(fullMsg).then(showSuccess).catch(() => {
+                prompt("아래 초대 문구를 복사하세요:", fullMsg);
+            });
+        } else {
+            prompt("아래 초대 문구를 복사하세요:", fullMsg);
+        }
+    }
+
+    function shareGuestInviteKakao() {
+        const fullMsg = getGuestInviteMessage();
+
+        // 1. 안드로이드 브릿지 (앱 환경)
+        if (window.AndroidBridge && typeof window.AndroidBridge.shareToKakaoFriends === "function") {
+            window.AndroidBridge.shareToKakaoFriends(fullMsg);
+            showToast("💬 카카오톡으로 초대장을 전송합니다.");
+            return;
+        }
+
+        // 2. 카카오톡 커스텀 URL 스킴
+        const kakaoScheme = "kakaolink://send?text=" + encodeURIComponent(fullMsg);
+        window.location.href = kakaoScheme;
+
+        // 3. Fallback: 기기 공유 창 또는 복사
+        setTimeout(() => {
+            if (navigator.share) {
+                navigator.share({
+                    title: "예톡 개인앱 손님모드 초대장",
+                    text: fullMsg,
+                    url: getGuestInviteUrl()
+                }).catch(() => {});
+                return;
+            }
+            copyGuestInviteText();
+        }, 500);
+    }
+
+    window.copyGuestInviteText = copyGuestInviteText;
+    window.shareGuestInviteKakao = shareGuestInviteKakao;
 
     /* 🌟 1. 나의 QR 섹션 */
     function renderQrSection() {

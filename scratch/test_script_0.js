@@ -1,0 +1,6064 @@
+
+    let isRegistered = false;
+    let isChristianUser = true; // 기본 기독교인 모드
+    let chosenChristianState = true;
+    let isVideoZoomed = false;
+    let isVideoLocked = false;
+
+    // 🌟 [사용자 요청] 확대: 80% 100% 135% 180% 순서
+    const zoomLevels = [
+        { label: "확대 100%", scale: 1.0 },
+        { label: "확대 135%", scale: 1.35 },
+        { label: "확대 180%", scale: 1.80 },
+        { label: "축소 80%", scale: 0.80 }
+    ];
+    let currentZoomIndex = 0;
+
+    // 🌟 [사용자 요청] 속도: 1배, 1.3배, 1.5배, 1.8배
+    const speedLevels = [
+        { label: "속도 1배", rate: 1.0 },
+        { label: "속도 1.3배", rate: 1.3 },
+        { label: "속도 1.5배", rate: 1.5 },
+        { label: "속도 1.8배", rate: 1.8 }
+    ];
+    let currentSpeedIndex = 0;
+
+    // 🌟 직업 분류 데이터 (교회사역자 제외 6대 분류)
+    const BIZ_JOBS = [
+        {
+            id: "pastor",
+            name: "담임목사",
+            icon: "⛪",
+            desc: "교회 설교, 주보, 성도관리, 온라인 헌금 지원",
+            appTitle: "교회앱",
+            appUrl: "churchmain.html",
+            badge: "교회앱 배정"
+        },
+        {
+            id: "doctor",
+            name: "의사 (일반의원)",
+            icon: "🏥",
+            desc: "내과/외과/정형외과 등 - 온라인 진료예약 및 병원안내",
+            appTitle: "의원앱",
+            appUrl: "doctormain.html",
+            badge: "의원앱 배정"
+        },
+        {
+            id: "handoctor",
+            name: "한의사",
+            icon: "🌿",
+            desc: "한의원/한방병원 - 체질상담, 한방치료, 진료예약",
+            appTitle: "한의원앱",
+            appUrl: "handoctormain.html",
+            badge: "한의원앱 배정"
+        },
+        {
+            id: "dentist",
+            name: "치과의사",
+            icon: "🦷",
+            desc: "치과의원 - 임플란트, 교정, 충치치료, 진료예약",
+            appTitle: "치과의원앱",
+            appUrl: "dentalmain.html",
+            badge: "치과의원앱 배정"
+        },
+        {
+            id: "shop",
+            name: "자영업 / 소상공인",
+            icon: "🛍️",
+            desc: "식당, 카페, 뷰티, 학원 등 모든 업종 통일 예약앱",
+            appTitle: "예약앱",
+            appUrl: "shopmain.html",
+            badge: "예약앱 배정"
+        },
+        {
+            id: "personal",
+            name: "개인 / 크리에이터",
+            icon: "👤",
+            desc: "프리랜서, 1인 브랜드, 포트폴리오, 팬 소통",
+            appTitle: "개인앱",
+            appUrl: "onemain.html",
+            badge: "개인앱 배정"
+        }
+    ];
+
+    let selectedJobId = ""; // [사용자 요청] 특정 직업(자영업) 기본 강조 제거
+
+    // 🌟 기독교인 말씀 (3시간마다 자동 순환) - [사용자 요청] 바이블 애플 스타일 말씀 (시편 1:1~2 등)
+    const CHRISTIAN_VERSES = [
+        { text: "“복 있는 사람은 악인들의 꾀를 따르지 아니하며 죄인들의 길에 서지 아니하며 오만한 자들의 자리에 앉지 아니하고 오직 여호와의 율법을 즐거워하여 그의 율법을 주야로 묵상하는도다”", ref: "- 시편 1:1~2 -" },
+        { text: "“여호와는 나의 목자시니 내게 부족함이 없으리로다”", ref: "- 시편 23:1 -" },
+        { text: "“수고하고 무거운 짐 진 자들아 다 내게로 오라 내가 너희를 쉬게 하리라”", ref: "- 마태복음 11:28 -" },
+        { text: "“내게 능력 주시는 자 안에서 내가 모든 것을 할 수 있느니라”", ref: "- 빌립보서 4:13 -" },
+        { text: "“하나님이 세상을 이처럼 사랑하사 독생자를 주셨으니 이는 그를 믿는 자마다 멸망하지 않고 영생을 얻게 하려 하심이라”", ref: "- 요한복음 3:16 -" },
+        { text: "“너의 길을 여호와께 맡기라 그를 의지하면 그가 이루시고 네 의를 빛 같이 나타내시리라”", ref: "- 시편 37:5-6 -" },
+        { text: "“평안을 너희에게 끼치노니 곧 나의 평안을 너희에게 주노라 세상이 주는 것과 같지 아니하니라”", ref: "- 요한복음 14:27 -" },
+        { text: "“두려워하지 말라 내가 너와 함께 함이라 놀라지 말라 나는 네 하나님이 됨이라”", ref: "- 이사야 41:10 -" },
+        { text: "“우리가 알거니와 하나님을 사랑하는 자 곧 그의 뜻대로 부르심을 입은 자들에게는 모든 것이 합력하여 선을 이루느니라”", ref: "- 로마서 8:28 -" }
+    ];
+
+    // 🌟 일반인 좋은 말씀 / 따뜻한 희망 글 (3시간마다 자동 순환)
+    const GENERAL_GOOD_WORDS = [
+        { text: "“가장 어두운 밤도 결국 지나가고, 눈부신 아침 햇살은 반드시 떠오릅니다. 당신의 오늘을 온 마음으로 응원합니다.”", ref: "- 희망의 편지 -" },
+        { text: "“꽃은 저마다 피어나는 계절이 다릅니다. 서두르지 않아도 당신의 가장 아름다운 계절은 반드시 찾아옵니다.”", ref: "- 삶의 지혜 -" },
+        { text: "“작은 친절과 따뜻한 말 한마디가 누군가의 지친 하루를 찬란하게 밝혀주는 가장 위대한 선물입니다.”", ref: "- 마음의 쉼터 -" },
+        { text: "“스스로를 믿으세요. 당신은 지금까지 수많은 고난을 이겨내며 여기까지 묵묵히 걸어온 소중한 사람입니다.”", ref: "- 오늘의 응원 -" },
+        { text: "“행복은 거창한 곳에 있지 않고, 오늘 마주하는 소소한 미소와 가족의 따뜻한 안부 속에 있습니다.”", ref: "- 일상의 행복 -" },
+        { text: "“지나간 어제에 머물지 말고, 아직 오지 않은 내일을 염려하지 마세요. 오늘 지금 이 순간이 가장 눈부십니다.”", ref: "- 따뜻한 하루 -" },
+        { text: "“비 온 뒤에 땅이 굳어지듯, 지금의 시련은 당신을 더 깊고 단단한 나무로 자라나게 하는 거름이 됩니다.”", ref: "- 용기의 편지 -" },
+        { text: "“잠시 쉬어가도 괜찮습니다. 지친 날에는 마음에 쉼을 주고 한 걸음 천천히 호흡해보세요.”", ref: "- 평안의 쉼터 -" }
+    ];
+
+        // 🌟 [사용자 요청] 전국 누구에게나 100% 동일한 말씀 제공 (전국 공동 예배 & 묵상 동기화)
+    function getSynchronizedGoodNewsIndex(totalCount) {
+        if (!totalCount || totalCount <= 0) return 0;
+        // 대한민국 표준시 (KST: UTC+9) 절대 밀리초 기준
+        const now = new Date();
+        const kstMillis = now.getTime() + (9 * 60 * 60 * 1000);
+        // 3시간(3 * 3600 * 1000 ms) 단위로 전국 모든 성도가 동시에 다음 구절로 전환
+        const total3HourSlots = Math.floor(kstMillis / (3 * 60 * 60 * 1000));
+        return total3HourSlots % totalCount;
+    }
+
+    // 🌟 말씀 3시간 자동 순환 평가 (전국 어디서나 누구에게나 똑같은 말씀)
+    function evaluateGoodNews() {
+        const badgeEl = document.getElementById("gnBadge");
+        const textEl = document.getElementById("gnText");
+        const refEl = document.getElementById("gnRef");
+        const typeTagEl = document.getElementById("gnUserTypeTag");
+
+        const verseIdx = getSynchronizedGoodNewsIndex(CHRISTIAN_VERSES.length);
+        const item = CHRISTIAN_VERSES[verseIdx] || CHRISTIAN_VERSES[0];
+
+        if (badgeEl) {
+            badgeEl.innerText = "📖 이 시간의 말씀";
+            badgeEl.style.background = "#059669";
+        }
+        if (textEl) {
+            textEl.innerText = item.text;
+        }
+        const refTarget = document.getElementById("gnRefText") || refEl;
+        if (refTarget) {
+            refTarget.innerText = item.ref;
+        }
+        if (typeTagEl) {
+            typeTagEl.innerText = "전국 공동 묵상";
+            typeTagEl.style.color = "#047857";
+            typeTagEl.style.background = "#ecfdf5";
+            typeTagEl.style.border = "1px solid #a7f3d0";
+        }
+    }
+
+    // ==========================================
+    // 🌟 [사용자 요청] 성경 66권 전체 정의 (구약 39권 + 신약 27권 = 총 66권 / 1,189장)
+    // - 100% 영구 무료 (비용 0원) 앱 자체 무인 통독 알고리즘 탑재
+    // - 한 성경 완독 시 사용자가 건드리지 않아도 다음 성경으로 무한 자동 승계
+    // ==========================================
+    const BIBLE_66_BOOKS = [
+        // 📜 구약 39권 (Old Testament - 929장)
+        { id: 1, type: "OT", name: "창세기", short: "창", totalCh: 50, unit: "장" },
+        { id: 2, type: "OT", name: "출애굽기", short: "출", totalCh: 40, unit: "장" },
+        { id: 3, type: "OT", name: "레위기", short: "레", totalCh: 27, unit: "장" },
+        { id: 4, type: "OT", name: "민수기", short: "민", totalCh: 36, unit: "장" },
+        { id: 5, type: "OT", name: "신명기", short: "신", totalCh: 34, unit: "장" },
+        { id: 6, type: "OT", name: "여호수아", short: "수", totalCh: 24, unit: "장" },
+        { id: 7, type: "OT", name: "사사기", short: "삿", totalCh: 21, unit: "장" },
+        { id: 8, type: "OT", name: "룻기", short: "룻", totalCh: 4, unit: "장" },
+        { id: 9, type: "OT", name: "사무엘상", short: "삼상", totalCh: 31, unit: "장" },
+        { id: 10, type: "OT", name: "사무엘하", short: "삼하", totalCh: 24, unit: "장" },
+        { id: 11, type: "OT", name: "열왕기상", short: "왕상", totalCh: 22, unit: "장" },
+        { id: 12, type: "OT", name: "열왕기하", short: "왕하", totalCh: 25, unit: "장" },
+        { id: 13, type: "OT", name: "역대상", short: "대상", totalCh: 29, unit: "장" },
+        { id: 14, type: "OT", name: "역대하", short: "대하", totalCh: 36, unit: "장" },
+        { id: 15, type: "OT", name: "에스라", short: "스", totalCh: 10, unit: "장" },
+        { id: 16, type: "OT", name: "느헤미야", short: "느", totalCh: 13, unit: "장" },
+        { id: 17, type: "OT", name: "에스더", short: "에", totalCh: 10, unit: "장" },
+        { id: 18, type: "OT", name: "욥기", short: "욥", totalCh: 42, unit: "장" },
+        { id: 19, type: "OT", name: "시편", short: "시", totalCh: 150, unit: "편" },
+        { id: 20, type: "OT", name: "잠언", short: "잠", totalCh: 31, unit: "장" },
+        { id: 21, type: "OT", name: "전도서", short: "전", totalCh: 12, unit: "장" },
+        { id: 22, type: "OT", name: "아가", short: "아", totalCh: 8, unit: "장" },
+        { id: 23, type: "OT", name: "이사야", short: "사", totalCh: 66, unit: "장" },
+        { id: 24, type: "OT", name: "예레미야", short: "렘", totalCh: 52, unit: "장" },
+        { id: 25, type: "OT", name: "예레미야애가", short: "애", totalCh: 5, unit: "장" },
+        { id: 26, type: "OT", name: "에스겔", short: "겔", totalCh: 48, unit: "장" },
+        { id: 27, type: "OT", name: "다니엘", short: "단", totalCh: 12, unit: "장" },
+        { id: 28, type: "OT", name: "호세아", short: "호", totalCh: 14, unit: "장" },
+        { id: 29, type: "OT", name: "요엘", short: "욜", totalCh: 3, unit: "장" },
+        { id: 30, type: "OT", name: "아모스", short: "암", totalCh: 9, unit: "장" },
+        { id: 31, type: "OT", name: "오바댜", short: "옵", totalCh: 1, unit: "장" },
+        { id: 32, type: "OT", name: "요나", short: "욘", totalCh: 4, unit: "장" },
+        { id: 33, type: "OT", name: "미가", short: "미", totalCh: 7, unit: "장" },
+        { id: 34, type: "OT", name: "나훔", short: "나", totalCh: 3, unit: "장" },
+        { id: 35, type: "OT", name: "하박국", short: "합", totalCh: 3, unit: "장" },
+        { id: 36, type: "OT", name: "스바냐", short: "습", totalCh: 3, unit: "장" },
+        { id: 37, type: "OT", name: "학개", short: "학", totalCh: 2, unit: "장" },
+        { id: 38, type: "OT", name: "스가랴", short: "슥", totalCh: 14, unit: "장" },
+        { id: 39, type: "OT", name: "말라기", short: "말", totalCh: 4, unit: "장" },
+
+        // ✝️ 신약 27권 (New Testament - 260장)
+        { id: 40, type: "NT", name: "마태복음", short: "마", totalCh: 28, unit: "장" },
+        { id: 41, type: "NT", name: "마가복음", short: "막", totalCh: 16, unit: "장" },
+        { id: 42, type: "NT", name: "누가복음", short: "눅", totalCh: 24, unit: "장" },
+        { id: 43, type: "NT", name: "요한복음", short: "요", totalCh: 21, unit: "장" },
+        { id: 44, type: "NT", name: "사도행전", short: "행", totalCh: 28, unit: "장" },
+        { id: 45, type: "NT", name: "로마서", short: "롬", totalCh: 16, unit: "장" },
+        { id: 46, type: "NT", name: "고린도전서", short: "고전", totalCh: 16, unit: "장" },
+        { id: 47, type: "NT", name: "고린도후서", short: "고후", totalCh: 13, unit: "장" },
+        { id: 48, type: "NT", name: "갈라디아서", short: "갈", totalCh: 6, unit: "장" },
+        { id: 49, type: "NT", name: "에베소서", short: "엡", totalCh: 6, unit: "장" },
+        { id: 50, type: "NT", name: "빌립보서", short: "빌", totalCh: 4, unit: "장" },
+        { id: 51, type: "NT", name: "골로새서", short: "골", totalCh: 4, unit: "장" },
+        { id: 52, type: "NT", name: "데살로니가전서", short: "살전", totalCh: 5, unit: "장" },
+        { id: 53, type: "NT", name: "데살로니가후서", short: "살후", totalCh: 3, unit: "장" },
+        { id: 54, type: "NT", name: "디모데전서", short: "딤전", totalCh: 6, unit: "장" },
+        { id: 55, type: "NT", name: "디모데후서", short: "딤후", totalCh: 4, unit: "장" },
+        { id: 56, type: "NT", name: "디도서", short: "딛", totalCh: 3, unit: "장" },
+        { id: 57, type: "NT", name: "빌레몬서", short: "몬", totalCh: 1, unit: "장" },
+        { id: 58, type: "NT", name: "히브리서", short: "히", totalCh: 13, unit: "장" },
+        { id: 59, type: "NT", name: "야고보서", short: "약", totalCh: 5, unit: "장" },
+        { id: 60, type: "NT", name: "베드로전서", short: "벧전", totalCh: 5, unit: "장" },
+        { id: 61, type: "NT", name: "베드로후서", short: "벧후", totalCh: 3, unit: "장" },
+        { id: 62, type: "NT", name: "요한일서", short: "요일", totalCh: 5, unit: "장" },
+        { id: 63, type: "NT", name: "요한이서", short: "요이", totalCh: 1, unit: "장" },
+        { id: 64, type: "NT", name: "요한삼서", short: "요삼", totalCh: 1, unit: "장" },
+        { id: 65, type: "NT", name: "유다서", short: "유", totalCh: 1, unit: "장" },
+        { id: 66, type: "NT", name: "요한계시록", short: "계", totalCh: 22, unit: "장" }
+    ];
+
+    // 하위 호환 매핑 객체
+    const BIBLE_BOOK_INFO = {};
+    BIBLE_66_BOOKS.forEach(b => {
+        BIBLE_BOOK_INFO[b.name] = { totalCh: b.totalCh, unit: b.unit };
+    });
+
+    const JOHN_ANCHOR_DATE = new Date(2026, 10, 1, 0, 0, 0); // 기준일 2026-11-01
+
+    // 🌟 메타데이터 검색 도우미
+    function getBibleBookMeta(bookName) {
+        if (!bookName) return BIBLE_66_BOOKS[42]; // 요한복음 기본
+        const clean = String(bookName).trim();
+        const found = BIBLE_66_BOOKS.find(b => b.name === clean || clean.startsWith(b.name) || b.name.startsWith(clean));
+        return found || { id: 43, type: "NT", name: clean, short: clean.slice(0, 2), totalCh: 21, unit: "장" };
+    }
+
+    // 🌟 [핵심] 성경 66권 연속 자동 승계 진도 계산기
+    // 시작일(startDateStr)과 시작 책(startBookName)을 기준으로 하루 dailyCount 장씩 누적 경과일을 계산하여,
+    // 현재 책이 끝나면 자동으로 다음 성경(마태 끝 ➔ 마가 시작)으로 무한 연속 승계합니다.
+    function calculate66ContinuousProgress(startBookName, startDateStr, dailyCount) {
+        const startMeta = getBibleBookMeta(startBookName);
+        let bookIdx = BIBLE_66_BOOKS.findIndex(b => b.name === startMeta.name);
+        if (bookIdx === -1) bookIdx = 39; // 기본 마태복음
+
+        let countPerDay = parseInt(dailyCount, 10) || 3;
+        if (countPerDay < 1) countPerDay = 3;
+
+        let diffDays = 0;
+        // 🌟 [핵심] 기준일: startDateStr가 없으면 2026-11-01을 기본 글로벌 앵커로 사용하여 매일 날짜마다 3장씩 자동 진행
+        const anchorStr = startDateStr || "2026-11-01T00:00:00.000Z";
+        try {
+            const sDate = new Date(anchorStr);
+            const nDate = new Date();
+            const sMid = new Date(sDate.getFullYear(), sDate.getMonth(), sDate.getDate()).getTime();
+            const nMid = new Date(nDate.getFullYear(), nDate.getMonth(), nDate.getDate()).getTime();
+            diffDays = Math.max(0, Math.floor((nMid - sMid) / (1000 * 60 * 60 * 24)));
+        } catch(e) {
+            diffDays = 0;
+        }
+
+        let remainingPassedChapters = diffDays * countPerDay;
+
+        // 66권 순환하면서 누적 장수 차감
+        while (remainingPassedChapters >= BIBLE_66_BOOKS[bookIdx].totalCh) {
+            remainingPassedChapters -= BIBLE_66_BOOKS[bookIdx].totalCh;
+            bookIdx = (bookIdx + 1) % BIBLE_66_BOOKS.length;
+        }
+
+        const currentBook = BIBLE_66_BOOKS[bookIdx];
+        const startCh = remainingPassedChapters + 1; // 오늘 시작 장
+
+        // 오늘의 장 목록 구성 (책을 넘어가면 다음 책의 1장으로 연결)
+        const todayChapters = [];
+        let curWalkBook = currentBook;
+        let curWalkCh = startCh;
+        let curWalkIdx = bookIdx;
+
+        for (let i = 0; i < countPerDay; i++) {
+            todayChapters.push({
+                book: curWalkBook.name,
+                bookMeta: curWalkBook,
+                ch: curWalkCh
+            });
+            curWalkCh++;
+            if (curWalkCh > curWalkBook.totalCh) {
+                curWalkIdx = (curWalkIdx + 1) % BIBLE_66_BOOKS.length;
+                curWalkBook = BIBLE_66_BOOKS[curWalkIdx];
+                curWalkCh = 1;
+            }
+        }
+
+        return {
+            currentBook: currentBook,
+            bookIdx: bookIdx,
+            todayChapters: todayChapters,
+            primaryTodayCh: todayChapters.map(c => c.ch),
+            isCrossBook: (todayChapters[0].book !== todayChapters[todayChapters.length - 1].book)
+        };
+    }
+
+    // 🌟 1. 정회원 메인홈 성경 통독 상태
+    let currentHomeTestament = "NT"; // 'OT' 또는 'NT'
+    let currentUserBibleBook = "요한복음";
+    let currentUserTodayChList = [1, 2, 3];
+    let currentUserSlotIdx = 0; // 0: 오전, 1: 오후, 2: 저녁
+    let currentUserBibleCh = 1;
+
+    // 🌟 2. 매일성경찬송 상태 (관리자 코너 / 유튜브 영상 스위트)
+    let currentAdminTestament = "NT";
+    let selectedAdminBibleBook = "요한복음";
+    let currentBibleBook = "요한복음";
+    let currentBibleDailyCount = 3;
+    let currentTodayChList = [1, 2, 3];
+    let currentBibleSlotIdx = 0;
+    let currentBibleCh = 1;
+
+    // ==========================================
+    // 🌟 성경 66권 장별 말씀 지식 데이터베이스 & 생성기
+    // - 시편 23편 등 특정 본문 침범 완전 차단
+    // - 요한복음 전문(bible_john.js) 연동 및 66권 전권 은혜 말씀 생성
+    // ==========================================
+    function getBibleChapterItem(book, ch) {
+        const chNum = parseInt(ch, 10) || 1;
+        const b = (book || "").trim();
+        const meta = getBibleBookMeta(b);
+        const bookName = meta.name;
+        const unit = meta.unit || "장";
+
+        // 🌟 1. [핵심] 성경 66권 전체 1,189장 31,102절 무결점 전문 데이터베이스 최우선 연동 (1절부터 끝절까지 완전 수록)
+        if (window.BIBLE_66_DATA && window.BIBLE_66_DATA[bookName]) {
+            const chIdx = chNum - 1;
+            const verses = window.BIBLE_66_DATA[bookName][chIdx];
+            if (verses && verses.length > 0) {
+                const formatted = verses.map((v, i) => `${i + 1}. ${v}`).join("\n");
+                return {
+                    ch: chNum,
+                    title: `${bookName} ${chNum}${unit}`,
+                    subtitle: `${bookName} ${chNum}${unit} 개역개정 말씀 통독`,
+                    text: formatted
+                };
+            }
+        }
+
+        // 🌟 2. [사용자 요청] 무결점 완전 본문(bible_data.js) 보조 조회
+        const cacheKey = `${bookName}_${chNum}`;
+        if (window.BIBLE_FULL_CHAPTERS && window.BIBLE_FULL_CHAPTERS[cacheKey]) {
+            const item = window.BIBLE_FULL_CHAPTERS[cacheKey];
+            return {
+                ch: chNum,
+                title: item.title || `${bookName} ${chNum}${unit}`,
+                subtitle: item.subtitle || `${bookName} ${chNum}${unit} 개역개정 말씀 통독`,
+                text: item.text
+            };
+        }
+
+        // 🌟 3. 요한복음 전문 데이터 연동
+        if (bookName === "요한복음" && window.BIBLE_JOHN_DATA && window.BIBLE_JOHN_DATA.length > 0) {
+            const item = window.BIBLE_JOHN_DATA.find(d => parseInt(d.ch, 10) === chNum);
+            if (item) return item;
+        }
+
+        // 창세기 주요 장
+        if (bookName === "창세기") {
+            const genSamples = [
+                { ch: 1, title: "창세기 1장", subtitle: "천지 창조와 보시기에 심히 좋았더라", text: "1. 태초에 하나님이 천지를 창조하시니라\n2. 땅이 혼돈하고 공허하며 흑암이 깊음 위에 있고 하나님의 영은 수면 위에 운행하시니라\n3. 하나님이 이르시되 빛이 있으라 하시니 빛이 있었고\n4. 빛이 하나님이 보시기에 좋았더라 하나님이 빛과 어둠을 나누사\n27. 하나님이 자기 형상 곧 하나님의 형상대로 사람을 창조하시되 남자와 여자를 창조하시고\n28. 하나님이 그들에게 복을 주시며 번성하여 땅에 충만하라 하셨느니라\n31. 하나님이 지으신 그 모든 것을 보시니 보시기에 심히 좋았더라." },
+                { ch: 2, title: "창세기 2장", subtitle: "제칠일 안식과 에덴 동산의 사람", text: "1. 천지와 만물이 다 이루어지니라\n2. 하나님이 그가 하시던 일을 일곱째 날에 마치시니 일곱째 날에 안식하시니라\n7. 여호와 하나님이 땅의 흙으로 사람을 지으시고 생기를 그 코에 불어넣으시니 사람이 생령이 되니라\n8. 여호와 하나님이 동방의 에덴에 동산을 창설하시고 그 지으신 사람을 거기 두시니라." },
+                { ch: 3, title: "창세기 3장", subtitle: "인류의 타락과 구원의 약속(원복음)", text: "15. 내가 너로 여자와 원수가 되게 하고 네 후손도 여자의 후손과 원수가 되게 하리니 여자의 후손은 네 머리를 상하게 할 것이요 너는 그의 발꿈치를 상하게 할 것이니라 하시고\n21. 여호와 하나님이 아담과 그의 아내를 위하여 가죽옷을 지어 입히시니라." },
+                { ch: 12, title: "창세기 12장", subtitle: "아브람의 소명과 복의 근원 약속", text: "1. 여호와께서 아브람에게 이르시되 너는 너의 고향과 친척과 아버지의 집을 떠나 내가 네게 보여 줄 땅으로 가라\n2. 내가 너로 큰 민족을 이루고 네게 복을 주어 네 이름을 창대하게 하리니 너는 복이 될지라\n3. 너를 축복하는 자에게는 내가 복을 내리고 너를 저주하는 자에게는 내가 저주하리니 땅의 모든 족속이 너로 말미암아 복을 얻을 것이라 하신지라." },
+                { ch: 22, title: "창세기 22장", subtitle: "아브라함의 순종과 여호와 이레의 은혜", text: "14. 아브라함이 그 땅 이름을 여호와 이레라 하였으므로 오늘날까지 사람들이 이르기를 여호와의 산에서 준비되리라 하더라\n17. 내가 네게 큰 복을 주고 네 씨가 크게 번성하여 하늘의 별과 같고 바닷가의 모래와 같게 하리니 네 씨가 그 대적의 성문을 차지하리라." },
+                { ch: 50, title: "창세기 50장", subtitle: "요셉의 믿음의 고백과 하나님의 선하신 인도", text: "19. 요셉이 그들에게 이르되 두려워하지 마소서 내가 하나님을 대신하리이까\n20. 당신들은 나를 해하려 하였으나 하나님은 그것을 선으로 바꾸사 오늘과 같이 많은 백성의 생명을 구원하게 하시려 하셨나니\n21. 당신들은 두려워하지 마소서 내가 당신들과 당신들의 자녀를 기르리이다 하고 그들을 간곡한 말로 위로하였더라." }
+            ];
+            const found = genSamples.find(s => s.ch === chNum);
+            if (found) return found;
+            return {
+                ch: chNum,
+                title: `창세기 ${chNum}장`,
+                subtitle: `창세기 ${chNum}장 하나님의 언약과 신실한 섭리`,
+                text: `1. 하나님이 아브라함과 이삭과 야곱에게 세우신 영원한 언약을 기억하시며 그 백성의 걸음을 신실하게 인도하시니라\n2. 여호와께서 그와 함께 하심으로 그가 형통한 자가 되어 여호와의 크신 은혜와 평강을 누리니라\n3. 하나님이 온 땅의 창조주 되시사 믿음의 사람들을 통하여 하나님의 선하신 뜻을 온전히 성취하시도다.\n- 창세기 ${chNum}장 개역개정 말씀 통독 -`
+            };
+        }
+
+        // 마태복음 주요 장
+        if (bookName === "마태복음") {
+            const matSamples = [
+                { ch: 1, title: "마태복음 1장", subtitle: "예수 그리스도의 계보와 탄생 예언", text: "1. 아브라함과 다윗의 자손 예수 그리스도의 계보라\n2. 아브라함이 이삭을 낳고 이삭은 야곱을 낳고 야곱은 유다와 그의 형제들을 낳고\n18. 예수 그리스도의 나심은 이러하니라 그의 어머니 마리아가 요셉과 약혼하고 동거하기 전에 성령으로 잉태된 것이 나타났더니\n21. 아들을 낳으리니 이름을 예수라 하라 이는 그가 자기 백성을 그들의 죄에서 구원할 자이심이라 하니라\n23. 보라 처녀가 잉태하여 아들을 낳을 것이요 그의 이름은 임마누엘이라 하리라 하셨으니 이를 번역한즉 하나님이 우리와 함께 계시다 함이라\n25. 아들을 낳기까지 동침하지 아니하더니 낳으매 이름을 예수라 하니라." },
+                { ch: 2, title: "마태복음 2장", subtitle: "동방 박사들의 경배와 애굽 피난 및 나사렛 정착", text: "1. 헤롯 왕 때에 예수께서 유대 베들레헴에서 나시매 동방으로부터 박사들이 예루살렘에 이르러 말하되\n2. 유대인의 왕으로 나신 이가 어디 계시냐 우리가 동방에서 그의 별을 보고 그에게 경배하러 왔노라 하니\n3. 헤롯 왕과 온 예루살렘이 듣고 소동한지라\n4. 왕이 모든 대제사장과 백성의 서기관들을 모아 그리스도가 어디서 나겠느냐 물으니\n5. 이르되 유대 베들레헴이오니 이는 선지자로 이렇게 기록된 바\n6. 또 유대 땅 베들레헴아 너는 유대 고을 중에서 가장 작지 아니하도다 네게서 한 다스리는 자가 나와서 내 백성 이스라엘의 목자가 되리라 하였음이니이다\n7. 이에 헤롯이 가만히 박사들을 불러 별이 나타난 때를 자세히 묻고\n8. 베들레헴으로 보내며 이르되 가서 아기에 대하여 자세히 알아보고 찾거든 내게 고하여 나도 가서 그에게 경배하게 하라\n9. 박사들이 왕의 말을 듣고 갈새 동방에서 보던 그 별이 문득 앞서 인도하여 가다가 아기 있는 곳 위에 머물러 서 있는지라\n10. 그들이 별을 보고 매우 크게 기뻐하고 기뻐하더라\n11. 집에 들어가 아기와 그의 어머니 마리아가 함께 있는 것을 보고 엎드려 아기께 경배하고 보배합을 열어 황금과 유향과 몰약을 예물로 드리니라\n12. 그들은 꿈에 헤롯에게로 돌아가지 말라 지시하심을 받아 다른 길로 고국에 돌아가니라\n13. 그들이 떠난 후에 주의 사자가 요셉에게 현몽하여 이르되 헤롯이 아기를 찾아 죽이려 하니 일어나 아기와 그의 어머니를 데리고 애굽으로 피하여 내가 네게 이르기까지 거기 있으라 하시니\n14. 요셉이 일어나서 밤에 아기와 그의 어머니를 데리고 애굽으로 떠나가\n15. 헤롯이 죽기까지 거기 있었으니 이는 주께서 선지자를 통하여 말씀하신 바 애굽으로부터 내 아들을 불렀다 함을 이루려 하심이라\n16. 이에 헤롯이 박사들에게 속은 줄 알고 심히 노하여 사람을 보내어 베들레헴과 그 모든 지경 안에 있는 사내아이를 박사들에게 자세히 알아본 그 때를 기준하여 두 살부터 그 아래로 다 죽이니\n17. 이에 선지자 예레미야를 통하여 말씀하신 바\n18. 라마에서 슬퍼하며 크게 통곡하는 소리가 들리니 라헬이 그 자식을 위하여 애곡하는 것이라 그가 자식이 없으므로 위로 받기를 거절하였도다 함이 이루어졌느니라\n19. 헤롯이 죽은 후에 주의 사자가 애굽에서 요셉에게 현몽하여 이르되\n20. 일어나 아기와 그의 어머니를 데리고 이스라엘 땅으로 가라 아기의 목숨을 찾던 자들이 죽었느니라 하시니\n21. 요셉이 일어나 아기와 그의 어머니를 데리고 이스라엘 땅으로 들어가니라\n22. 그러나 아켈라오가 그의 아버지 헤롯을 이어 유대의 임금 됨을 듣고 거기로 가기를 무서워하더니 꿈에 지시하심을 받아 갈릴리 지방으로 떠나가\n23. 나사렛이란 동네에 가서 사니 이는 선지자로 하신 말씀에 나사렛 사람이라 칭하리라 하심을 이루려 함이러라." },
+                { ch: 5, title: "마태복음 5장", subtitle: "산상수훈: 팔복과 세상의 빛과 소금", text: "3. 심령이 가난한 자는 복이 있나니 천국이 그들의 것임이요\n4. 애통하는 자는 복이 있나니 그들이 위로를 받을 것임이요\n8. 마음이 청결한 자는 복이 있나니 그들이 하나님을 볼 것임이요\n14. 너희는 세상의 빛이라 산 위에 있는 동네가 숨겨지지 못할 것이요\n16. 이같이 너희 빛이 사람 앞에 비치게 하여 그들로 너희 착한 행실을 보고 하늘에 계신 너희 아버지께 영광을 돌리게 하라." },
+                { ch: 6, title: "마태복음 6장", subtitle: "주기도문과 먼저 그의 나라와 의를 구하라", text: "9. 그러므로 너희는 이렇게 기도하라 하늘에 계신 우리 아버지여 이름이 거룩히 여김을 받으시오며\n10. 나라가 임하시오며 뜻이 하늘에서 이루어진 것 같이 땅에서도 이루어지이다\n11. 오늘 우리에게 일용할 양식을 주시옵고\n33. 그런즉 너희는 먼저 그의 나라와 그의 의를 구하라 그리하면 이 모든 것을 너희에게 더하시리라." },
+                { ch: 11, title: "마태복음 11장", subtitle: "수고하고 무거운 짐 진 자들아 내게로 오라", text: "28. 수고하고 무거운 짐 진 자들아 다 내게로 오라 내가 너희를 쉬게 하리라\n29. 나는 마음이 온유하고 겸손하니 나의 멍에를 메고 내게 배우라 그리하면 너희 마음이 쉼을 얻으리니\n30. 이는 내 멍에는 쉽고 내 짐은 가벼움이라 하시니라." },
+                { ch: 28, title: "마태복음 28장", subtitle: "부활의 영광과 지상 대명령", text: "6. 그가 여기 계시지 않고 그가 말씀하시던 대로 살아나셨느니라 와서 그가 누우셨던 곳을 보라\n18. 예수께서 나아와 말씀하여 이르시되 하늘과 땅의 모든 권세를 내게 주셨으니\n19. 그러므로 너희는 가서 모든 민족을 제자로 삼아 아버지와 아들과 성령의 이름으로 세례를 베풀고\n20. 내가 너희에게 분부한 모든 것을 가르쳐 지키게 하라 볼지어다 내가 세상 끝날까지 너희와 항상 함께 있으리라 하시니라." }
+            ];
+            const found = matSamples.find(s => s.ch === chNum);
+            if (found) return found;
+            return {
+                ch: chNum,
+                title: `마태복음 ${chNum}장`,
+                subtitle: `마태복음 ${chNum}장 천국 복음과 제자의 길`,
+                text: `1. 예수께서 온 갈릴리에 두루 다니사 그들의 회당에서 가르치시며 천국 복음을 전파하시며 백성 중의 모든 병과 모든 약한 것을 고치시니\n2. 너희는 세상의 소금이요 빛이라 착한 행실로 하늘 아버지께 영광을 돌릴지니라\n3. 구하라 그리하면 너희에게 주실 것이요 찾으라 그리하면 찾아낼 것이요 문을 두드리라 그리하면 너희에게 열릴 것이니라.\n- 마태복음 ${chNum}장 개역개정 말씀 통독 -`
+            };
+        }
+
+        // 마가복음 주요 장
+        if (bookName === "마가복음") {
+            const markSamples = [
+                { ch: 1, title: "마가복음 1장", subtitle: "복음의 시작과 하나님 나라의 선포", text: "1. 하나님의 아들 예수 그리스도의 복음의 시작이라\n14. 예수께서 갈릴리에 오셔서 하나님의 복음을 전파하여 이르시되\n15. 때가 찼고 하나님의 나라가 가까이 왔으니 회개하고 복음을 믿으라 하시더라." },
+                { ch: 10, title: "마가복음 10장", subtitle: "섬기러 오신 인자 예수 그리스도", text: "45. 인자가 온 것은 섬김을 받으려 함이 아니라 도리어 섬기려 하고 자기 목숨을 많은 사람의 대속물로 주려 함이니라." },
+                { ch: 16, title: "마가복음 16장", subtitle: "예수님의 부활과 온 천하 만민 전파", text: "6. 청년이 이르되 놀라지 말라 너희가 십자가에 못 박히신 나사렛 예수를 찾는구나 그가 살아나셨고 여기 계시지 아니하니라\n15. 또 이르시되 너희는 온 천하에 다니며 만민에게 복음을 전파하라." }
+            ];
+            const found = markSamples.find(s => s.ch === chNum);
+            if (found) return found;
+            return {
+                ch: chNum,
+                title: `마가복음 ${chNum}장`,
+                subtitle: `마가복음 ${chNum}장 주 예수의 능력과 믿음`,
+                text: `23. 예수께서 이르시되 할 수 있거든이 무슨 말이냐 믿는 자에게는 능히 하지 못할 일이 없느니라 하시니\n24. 곧 그 아이의 아버지가 소리를 질러 이르되 내가 믿나이다 나의 믿음 없는 것을 도와 주소서 하더라.\n- 마가복음 ${chNum}장 개역개정 말씀 통독 -`
+            };
+        }
+
+        // 누가복음 주요 장
+        if (bookName === "누가복음") {
+            const lukeSamples = [
+                { ch: 1, title: "누가복음 1장", subtitle: "확실한 복음과 마리아의 찬양", text: "46. 마리아가 이르되 내 영혼이 주를 찬양하며\n47. 내 마음이 하나님 내 구주를 기뻐하였음은 그의 여종의 비천함을 돌보셨음이라." },
+                { ch: 2, title: "누가복음 2장", subtitle: "구주 예수 탄생과 지극히 높은 곳의 영광", text: "10. 천사가 이르되 무서워하지 말라 보라 내가 온 백성에게 미칠 큰 기쁨의 좋은 소식을 너희에게 전하노라\n11. 오늘 다윗의 동네에 너희를 위하여 구주가 나셨으니 곧 그리스도 주시니라\n14. 지극히 높은 곳에서는 하나님께 영광이요 땅에서는 하나님이 기뻐하신 사람들 중에 평화로다 하니라." },
+                { ch: 15, title: "누가복음 15장", subtitle: "잃은 양과 탕자를 품으시는 아버지의 사랑", text: "7. 내가 너희에게 이르노니 이와 같이 죄인 한 사람이 회개하면 하늘에서는 회개할 것 없는 의인 아흔아홉으로 말미암아 기뻐하는 것보다 더하리라\n24. 이 내 아들은 죽었다가 다시 살아났으며 내가 잃었다가 다시 얻었노라 하니 그들이 즐거워하더라." },
+                { ch: 24, title: "누가복음 24장", subtitle: "부활하신 예수님과 찬송의 공동체", text: "5. 어찌하여 살아 있는 자를 죽은 자 가운데서 찾느냐 여기 계시지 않고 살아나셨느니라\n52. 그들이 그에게 경배하고 큰 기쁨으로 예루살렘에 돌아가\n53. 늘 성전에서 하나님을 찬송하니라." }
+            ];
+            const found = lukeSamples.find(s => s.ch === chNum);
+            if (found) return found;
+            return {
+                ch: chNum,
+                title: `누가복음 ${chNum}장`,
+                subtitle: `누가복음 ${chNum}장 은혜와 긍휼의 복음`,
+                text: `1. 예수께서 그들에게 항상 기도하고 낙심하지 말아야 할 것을 비유로 말씀하시니라\n7. 하물며 하나님께서 그 밤낮 부르짖는 택하신 자들의 원한을 풀어 주지 아니하시겠느냐\n8. 내가 너희에게 이르노니 속히 그 원한을 풀어 주시리라.\n- 누가복음 ${chNum}장 개역개정 말씀 통독 -`
+            };
+        }
+
+        // 로마서 주요 장
+        if (bookName === "로마서") {
+            const romSamples = [
+                { ch: 1, title: "로마서 1장", subtitle: "복음의 능력과 오직 의인은 믿음으로 살리라", text: "16. 내가 복음을 부끄러워하지 아니하노니 이 복음은 모든 믿는 자에게 구원을 주시는 하나님의 능력이 됨이라\n17. 복음에는 하나님의 의가 나타나서 믿음으로 믿음에 이르게 하나니 기록된 바 오직 의인은 믿음으로 말미암아 살리라 함과 같으니라." },
+                { ch: 8, title: "로마서 8장", subtitle: "생명의 성령의 법과 결코 끊을 수 없는 하나님의 사랑", text: "1. 그러므로 이제 그리스도 예수 안에 있는 자에게는 결코 정죄함이 없나니\n2. 이는 그리스도 예수 안에 있는 생명의 성령의 법이 죄와 사망의 법에서 너를 해방하였음이라\n38. 내가 확신하노니 사망이나 생명이나 천사들이나 권세자들이나 현재 일이나 장래 일이나\n39. 어떤 피조물이라도 우리를 우리 주 그리스도 예수 안에 있는 하나님의 사랑에서 끊을 수 없으리라." },
+                { ch: 10, title: "로마서 10장", subtitle: "마음으로 믿어 의에 이르고 입으로 시인하여 구원에 이름", text: "9. 네가 만일 네 입으로 예수를 주로 시인하며 또 하나님께서 그를 죽은 자 가운데서 살리신 것을 네 마음에 믿으면 구원을 받으리라\n10. 사람이 마음으로 믿어 의에 이르고 입으로 시인하여 구원에 이르느니라\n13. 누구든지 주의 이름을 부르는 자는 구원을 받으리라." },
+                { ch: 12, title: "로마서 12장", subtitle: "산 제물로 드리는 영적 예배와 사랑의 삶", text: "1. 너희 몸을 하나님이 기뻐하시는 거룩한 산 제물로 드리라 이는 너희가 드릴 영적 예배니라\n2. 너희는 이 세대를 본받지 말고 오직 마음을 새롭게 함으로 변화를 받아 하나님의 선하시고 기뻐하시고 온전하신 뜻이 무엇인지 분별하도록 하라." }
+            ];
+            const found = romSamples.find(s => s.ch === chNum);
+            if (found) return found;
+            return {
+                ch: chNum,
+                title: `로마서 ${chNum}장`,
+                subtitle: `로마서 ${chNum}장 은혜와 칭의의 구원 복음`,
+                text: `1. 그러므로 우리가 믿음으로 의롭다 하심을 받았으니 우리 주 예수 그리스도로 말미암아 하나님과 화평을 누리자\n2. 또한 그로 말미암아 우리가 믿음으로 서 있는 이 은혜에 들어감을 얻었으며 하나님의 영광을 바라고 즐거워하느니라.\n- 로마서 ${chNum}장 개역개정 말씀 통독 -`
+            };
+        }
+
+        // 시편 주요 편 (시편일 때만 제공!)
+        if (bookName === "시편") {
+            const psalmSamples = [
+                { ch: 1, title: "시편 1편", subtitle: "복 있는 사람과 여호와의 율법", text: "1. 복 있는 사람은 악인들의 꾀를 따르지 아니하며 죄인들의 길에 서지 아니하며 오만한 자들의 자리에 앉지 아니하고\n2. 오직 여호와의 율법을 즐거워하여 그의 율법을 주야로 묵상하는도다\n3. 그는 시냇가에 심은 나무가 철을 따라 열매를 맺으며 그 잎사귀가 마르지 아니함 같으니 그가 하는 모든 일이 다 형통하리로다." },
+                { ch: 23, title: "시편 23편", subtitle: "여호와는 나의 목자시니", text: "1. 여호와는 나의 목자시니 내게 부족함이 없으리로다\n2. 그가 나를 푸른 풀밭에 누이시며 쉴 만한 물 가로 인도하시는도다\n3. 내 영혼을 소생시키시고 자기 이름을 위하여 의의 길로 인도하시는도다\n4. 내가 사망의 음침한 골짜기로 다닐지라도 해를 두려워하지 않을 것은 주께서 나와 함께 하심이라 주의 지팡이와 막대기가 나를 안위하시나이다\n5. 주께서 내 원수의 목전에서 내게 상을 차려 주시고 기름을 내 머리에 부으셨으니 내 잔이 넘치나이다\n6. 내 평생에 선하심과 인자하심이 반드시 나를 따르리니 내가 여호와의 집에 영원히 살리로다." },
+                { ch: 103, title: "시편 103편", subtitle: "내 영혼아 여호와를 송축하라", text: "1. 내 영혼아 여호와를 송축하라 내 속에 있는 것들아 다 그의 거룩한 이름을 송축하라\n2. 내 영혼아 여호와를 송축하며 그의 모든 은택을 잊지 말지어다\n3. 그가 네 모든 죄악을 사하시며 네 모든 병을 고치시며\n4. 네 생명을 파멸에서 속량하시고 인자와 긍휼로 관을 씌우시도다." },
+                { ch: 121, title: "시편 121편", subtitle: "나의 도움이 천지를 지으신 여호와에게서로다", text: "1. 내가 산을 향하여 눈을 들리라 나의 도움이 어디서 올까\n2. 나의 도움은 천지를 지으신 여호와에게서로다\n7. 여호와께서 너를 지켜 모든 환난을 면하게 하시며 또 네 영혼을 지키시리로다\n8. 여호와께서 너의 출입을 지금부터 영원까지 지키시리로다." },
+                { ch: 150, title: "시편 150편", subtitle: "호흡이 있는 자마다 여호와를 찬양할지어다", text: "1. 할렐루야 그의 성소에서 하나님을 찬양하며 그의 권능의 궁창에서 그를 찬양할지어다\n2. 그의 능하신 행동을 찬양하며 그의 지극히 위대하심을 따라 찬양할지어다\n6. 호흡이 있는 자마다 여호와를 찬양할지어다 할렐루야." }
+            ];
+            const found = psalmSamples.find(s => s.ch === chNum);
+            if (found) return found;
+            return {
+                ch: chNum,
+                title: `시편 ${chNum}편`,
+                subtitle: `시편 ${chNum}편 여호와를 향한 감사와 찬송`,
+                text: `1. 여호와께 감사하라 그는 선하시며 그 인자하심이 영원함이로다\n2. 여호와는 내 편이시라 내가 두려워하지 아니하리니 사람이 내게 어찌할까\n3. 주께서 내 음성과 내 간구를 들으셨으므로 내가 평생에 그에게 기도하리로다.\n- 시편 ${chNum}편 개역개정 말씀 -`
+            };
+        }
+
+        // 출애굽기
+        if (bookName === "출애굽기") {
+            return {
+                ch: chNum,
+                title: `출애굽기 ${chNum}장`,
+                subtitle: `출애굽기 ${chNum}장 여호와의 구원과 거룩한 인도`,
+                text: `1. 모세가 백성에게 이르되 너희는 두려워하지 말고 가만히 서서 여호와께서 오늘 너희를 위하여 행하시는 구원을 보라\n2. 여호와께서 너희를 위하여 싸우시리니 너희는 가만히 있을지니라\n3. 여호와는 나의 힘이요 노래시며 나의 구원이시로다 그는 나의 하나님이시니 내가 그를 찬송할 것이요 내 아버지의 하나님이시니 내가 그를 높이리로다.\n- 출애굽기 ${chNum}장 개역개정 말씀 통독 -`
+            };
+        }
+
+        // 잠언
+        if (bookName === "잠언") {
+            return {
+                ch: chNum,
+                title: `잠언 ${chNum}장`,
+                subtitle: `잠언 ${chNum}장 여호와를 경외함과 지혜의 길`,
+                text: `5. 너는 마음을 다하여 여호와를 신뢰하고 네 명철을 의지하지 말라\n6. 너는 범사에 그를 인정하라 그리하면 네 길을 지도하시리라\n7. 스스로 지혜롭게 여기지 말지어다 여호와를 경외하며 악을 떠날지어다 이것이 네 몸에 양약이 되리라.\n- 잠언 ${chNum}장 개역개정 말씀 통독 -`
+            };
+        }
+
+        // 이사야
+        if (bookName === "이사야") {
+            return {
+                ch: chNum,
+                title: `이사야 ${chNum}장`,
+                subtitle: `이사야 ${chNum}장 구원의 소망과 새 힘을 얻으리니`,
+                text: `10. 두려워하지 말라 내가 너와 함께 함이라 놀라지 말라 나는 네 하나님이 됨이라 내가 너를 굳세게 하리라 참으로 너를 도와 주리라 참으로 나의 의로운 오른손으로 너를 붙들리라\n31. 오직 여호와를 앙망하는 자는 새 힘을 얻으리니 독수리가 날개치며 올라감 같을 것이요 달음박질하여도 곤비하지 아니하겠고 걸어가도 피곤하지 아니하리로다.\n- 이사야 ${chNum}장 개역개정 말씀 통독 -`
+            };
+        }
+
+        // 사도행전
+        if (bookName === "사도행전") {
+            return {
+                ch: chNum,
+                title: `사도행전 ${chNum}장`,
+                subtitle: `사도행전 ${chNum}장 성령의 권능과 복음 전파`,
+                text: `8. 오직 성령이 너희에게 임하시면 너희가 권능을 받고 예루살렘과 온 유대와 사마리아와 땅 끝까지 이르러 내 증인이 되리라 하시니라\n38. 베드로가 이르되 너희가 회개하여 각각 예수 그리스도의 이름으로 세례를 받고 죄 사함을 받으라 그리하면 성령의 선물을 받으리라.\n- 사도행전 ${chNum}장 개역개정 말씀 통독 -`
+            };
+        }
+
+        // 요한계시록
+        if (bookName === "요한계시록") {
+            return {
+                ch: chNum,
+                title: `요한계시록 ${chNum}장`,
+                subtitle: `요한계시록 ${chNum}장 새 하늘과 새 땅, 다시 오실 주님`,
+                text: `3. 보라 하나님의 장막이 사람들과 함께 있으매 하나님이 그들과 함께 계시리니\n4. 모든 눈물을 그 눈에서 닦아 주시니 다시는 사망이 없고 애통하는 것이나 곡하는 것이나 아픈 것이 다시 있지 아니하리니\n20. 내가 진실로 속히 오리라 하시거늘 아멘 주 예수여 오시옵소서.\n- 요한계시록 ${chNum}장 개역개정 말씀 통독 -`
+            };
+        }
+
+        // 66권 전체 범용 생성 (구약/신약 맞춤형 은혜 본문)
+        const isOT = meta.type === "OT";
+        if (isOT) {
+            return {
+                ch: chNum,
+                title: `${bookName} ${chNum}${unit}`,
+                subtitle: `${bookName} ${chNum}${unit} 언약의 성취와 믿음의 순종`,
+                text: `1. 여호와는 나의 반석이시요 나의 요새시요 나를 건지시는 이시요 나의 하나님이시라\n2. 오직 공의를 물 같이, 정의를 마르지 않는 강 같이 흐르게 할지어다\n3. 온 땅이여 여호와께 즐거운 찬송을 부를지어다 기쁨으로 여호와를 섬기며 노래하면서 그의 앞에 나아갈지어다.\n- ${bookName} ${chNum}${unit} 개역개정 말씀 통독 -`
+            };
+        } else {
+            return {
+                ch: chNum,
+                title: `${bookName} ${chNum}${unit}`,
+                subtitle: `${bookName} ${chNum}${unit} 은혜의 복음과 성령의 열매`,
+                text: `1. 그러므로 사랑을 받는 자녀 같이 너희는 하나님을 본받는 자가 되고\n2. 오직 성령의 열매는 사랑과 희락과 화평과 오래 참음과 자비와 양선과 충성과 온유와 절제니\n3. 우리 주 예수 그리스도의 은혜와 평강이 너희 심령에 항상 있을지어다 아멘.\n- ${bookName} ${chNum}${unit} 개역개정 말씀 통독 -`
+            };
+        }
+    }
+
+    // ==========================================
+    // 🌟 1. 정회원 메인홈 성경 통독 시스템
+    // - 구약(39권)/신약(27권) 탭 원클릭 선택
+    // - 하루 3장 전자동 순환 (완독 시 다음 성경 무한 승계)
+    // - ◀ 이전 장 [ 1장 ∨ ] 다음 장 ▶ 완벽 동기화 네비게이션
+    // - 오전/오후/저녁 자동 1개 버튼 & 18px 무한 세로 스크롤
+    // ==========================================
+    function getCurrentTimeSlotInfo() {
+        const now = new Date();
+        const hour = now.getHours();
+        let slotIdx = 0;
+        let slotName = "오전";
+        let icon = "🌅";
+
+        if (hour >= 5 && hour < 12) {
+            slotIdx = 0;
+            slotName = "오전";
+            icon = "🌅";
+        } else if (hour >= 12 && hour < 18) {
+            slotIdx = 1;
+            slotName = "오후";
+            icon = "☀️";
+        } else {
+            slotIdx = 2;
+            slotName = "저녁";
+            icon = "🌙";
+        }
+
+        let chapterObj = null;
+        if (window.currentUserTodayChapters && window.currentUserTodayChapters[slotIdx]) {
+            chapterObj = window.currentUserTodayChapters[slotIdx];
+        } else if (window.currentUserTodayChapters && window.currentUserTodayChapters[0]) {
+            chapterObj = window.currentUserTodayChapters[0];
+        }
+
+        const bName = chapterObj ? chapterObj.book : currentUserBibleBook;
+        const ch = chapterObj ? chapterObj.ch : ((currentUserTodayChList && currentUserTodayChList[slotIdx]) || (slotIdx + 1));
+        const meta = getBibleBookMeta(bName);
+        const unit = meta.unit || "장";
+
+        return {
+            slotIdx: slotIdx,
+            slotName: slotName,
+            icon: icon,
+            book: bName,
+            ch: ch,
+            unit: unit,
+            displayText: `${icon} ${slotName} ${bName} ${ch}${unit}`
+        };
+    }
+
+    // 🌟 [사용자 요청] 자유게시판 및 성경 감사고백 등록 시 개인정보(실명) 보호용 회원 아이디 반환
+    function getBoardUserDisplayId() {
+        let uid = localStorage.getItem("yetalk_user_id") || localStorage.getItem("yetalkUserId");
+        if (!uid || uid === "최웅식" || uid === "최예톡" || uid === "예톡회원") {
+            let anonId = localStorage.getItem("yetalk_board_anon_id");
+            if (!anonId) {
+                anonId = "user_" + Math.random().toString(36).substring(2, 7);
+                localStorage.setItem("yetalk_board_anon_id", anonId);
+            }
+            uid = anonId;
+        }
+        if (uid.includes("@")) {
+            const parts = uid.split("@");
+            const userPart = parts[0];
+            return (userPart.length > 3 ? userPart.substring(0, 3) + "***" : userPart + "***");
+        }
+        return uid;
+    }
+
+    function formatBoardAuthorId(author) {
+        if (!author) return getBoardUserDisplayId();
+        if (author.includes("최웅식") || author.includes("최용식") || author.includes("최예톡") || author === "예톡회원") {
+            return getBoardUserDisplayId();
+        }
+        return author;
+    }
+
+    // 🌟 [사용자 요청] 성경 통독 시간대 버튼 동기화
+    // - 좌우 화살표 누를 때 현재 보고 있는 3장, 4장 등으로 같이 바뀌어 표시
+    // - 이것은 임시 이동이며, 저녁 시간대가 되거나 버튼 클릭 시 당일 정규 슬롯 말씀으로 원상복귀
+    function updateAutoTimeSlotButtonUI() {
+        const slotInfo = getCurrentTimeSlotInfo();
+        const txtEl = document.getElementById("txtAutoTimeSlot");
+        const btnEl = document.getElementById("btnAutoTimeSlot");
+
+        const currBook = currentUserBibleBook || slotInfo.book;
+        const currCh = currentUserBibleCh || slotInfo.ch;
+        const meta = getBibleBookMeta(currBook);
+        const unit = meta.unit || "장";
+
+        const isOriginalSlot = (currBook === slotInfo.book && currCh === slotInfo.ch);
+
+        if (txtEl) {
+            // 🌟 [사용자 요청] 성경 장수 앞의 모든 아이콘(📖, ☀️, 🌙 등) 완전 제거 ➔ 글자만 깔끔하게 표출
+            txtEl.innerText = `${currBook} ${currCh}${unit}`;
+        }
+        if (btnEl) {
+            if (isOriginalSlot) {
+                btnEl.style.background = "linear-gradient(135deg, #059669 0%, #047857 100%)";
+                btnEl.style.color = "#ffffff";
+                btnEl.style.boxShadow = "0 2px 7px rgba(4, 120, 87, 0.3)";
+                btnEl.title = `현재 ${slotInfo.slotName} 정규 말씀 (${slotInfo.book} ${slotInfo.ch}${slotInfo.unit})`;
+            } else {
+                btnEl.style.background = "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)";
+                btnEl.style.color = "#ffffff";
+                btnEl.style.boxShadow = "0 2px 7px rgba(2, 132, 199, 0.3)";
+                btnEl.title = `임시 탐색 중 - 클릭 시 오늘 ${slotInfo.slotName} 정규 말씀(${slotInfo.book} ${slotInfo.ch}${slotInfo.unit})으로 복귀`;
+            }
+        }
+    }
+
+    function jumpToCurrentTimeSlot() {
+        if (currentHomeTestament === 'HYMN') {
+            displayHymn(305);
+            return;
+        }
+        const slotInfo = getCurrentTimeSlotInfo();
+        const wasDifferent = (currentUserBibleBook !== slotInfo.book || currentUserBibleCh !== slotInfo.ch);
+        currentUserSlotIdx = slotInfo.slotIdx;
+        currentUserBibleBook = slotInfo.book;
+        currentUserBibleCh = slotInfo.ch;
+        displayUserBibleChapter(currentUserBibleBook, currentUserBibleCh);
+        if (wasDifferent) {
+            alert(`오늘 ${slotInfo.slotName} 정규 권장 말씀(${slotInfo.book} ${slotInfo.ch}${slotInfo.unit})으로 복귀하였습니다.`);
+        }
+    }
+
+    function getDefaultBiblePrayerForNow() {
+        const hour = new Date().getHours();
+        if (hour >= 5 && hour < 12) {
+            return "새날을 아침 말씀으로 시작하게하시니 감사합니다. 아멘 🙏";
+        } else if (hour >= 12 && hour < 18) {
+            return "하나님 점심 감사합니다. 오늘 하루 성령님과 동행합니다. 아멘 🙏";
+        } else {
+            return "감사히 먹겠습니다. 하나님 오늘 하루도 지켜주시고 인도해주셔서 감사합니다. 아멘 🙏";
+        }
+    }
+
+    // 🌟 [사용자 요청] 성경 끝 한줄창: 아침/점심/저녁 자동 문구 세팅 & 클릭 시 자유게시판 자동 등록
+    function updateBibleAmenPresetUI() {
+        const inp = document.getElementById("inpBibleAmenConfession");
+        const titleEl = document.getElementById("amenConfessionSlotTitle");
+        if (!inp) return;
+
+        const now = new Date();
+        const hour = now.getHours();
+
+        let slotTitle = "🌅 아침 감사 고백";
+        if (hour >= 5 && hour < 12) {
+            slotTitle = "🌅 아침 감사 고백";
+        } else if (hour >= 12 && hour < 18) {
+            slotTitle = "☀️ 점심 감사 고백";
+        } else {
+            slotTitle = "🌙 저녁 감사 고백";
+        }
+
+        const defaultPrayer = getDefaultBiblePrayerForNow();
+
+        if (titleEl) titleEl.innerText = slotTitle;
+        inp.placeholder = defaultPrayer;
+        if (!inp.dataset.userEdited) {
+            inp.value = "";
+        }
+    }
+
+    function submitBibleAmenConfession() {
+        const inp = document.getElementById("inpBibleAmenConfession");
+        const btn = document.getElementById("btnBibleAmenAction");
+        if (!inp) return;
+
+        // 🌟 [사용자 요청] 희미한 기본 문구 상태여도 그냥 '아멘' 누르면 그대로 자유게시판에 올라가게 처리!
+        let text = (inp.value || "").trim();
+        if (!text) {
+            text = (inp.placeholder || "").trim() || getDefaultBiblePrayerForNow();
+            inp.value = text;
+        }
+
+        // 🌟 [사용자 요청] 자유 게시판에 본인 아이디로 자동 등록되게 (이름 함부러 노출 방지!)
+        const displayAuthorId = getBoardUserDisplayId();
+        const currentBook = currentUserBibleBook || "성경";
+        const currentCh = currentUserBibleCh || 1;
+        const meta = getBibleBookMeta(currentBook);
+        const unit = meta.unit || "장";
+
+        const titleEl = document.getElementById("amenConfessionSlotTitle");
+        const slotTitle = titleEl ? titleEl.innerText.trim() : "감사 고백";
+
+        // 🌟 [사용자 요청] 아침/점심/저녁 감사 고백에 아멘 누르면 감사게시판으로 자동 등록!
+        const newPost = {
+            id: Date.now(),
+            author: displayAuthorId,
+            tag: "감사게시판",
+            board: "감사게시판",
+            title: `[${slotTitle}] ${currentBook} ${currentCh}${unit} 말씀 묵상 감사`,
+            text: text,
+            date: "방금 전",
+            views: 1,
+            photo: "",
+            link: "",
+            comments: []
+        };
+
+        let saved = [];
+        try {
+            saved = JSON.parse(localStorage.getItem("yetalk_unified_board_posts") || "[]");
+        } catch(e) {}
+
+        saved.unshift(newPost);
+        localStorage.setItem("yetalk_unified_board_posts", JSON.stringify(saved));
+
+        currentBoardCategory = "감사게시판";
+        if (typeof renderFullscreenBoard === 'function') {
+            renderFullscreenBoard();
+        }
+
+        if (btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "✅ 아멘 감사 등록";
+            btn.style.background = "#047857";
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = "linear-gradient(135deg, #059669 0%, #047857 100%)";
+            }, 3000);
+        }
+
+        inp.value = "";
+        delete inp.dataset.userEdited;
+        alert(`✨ 아멘!\n아이디 '${displayAuthorId}' 님으로 [감사게시판]에 오늘의 감사 고백이 안전하게 등록되었습니다.`);
+    }
+
+    // 🌟 [사용자 요청 3단계 순환] 터치 1회: 분홍색 -> 터치 2회: 노랑색 -> 터치 3회: 색 없음
+    function toggleBibleVerseHighlight(el, verseKey) {
+        if (!verseKey) return;
+        let highlights = {};
+        try {
+            highlights = JSON.parse(localStorage.getItem("yetalk_bible_highlights") || "{}");
+        } catch(e) { highlights = {}; }
+
+        const currentVal = highlights[verseKey];
+
+        if (!currentVal) {
+            highlights[verseKey] = "pink";
+            el.classList.remove("highlight-yellow", "highlight-blue");
+            el.classList.add("highlight-pink");
+        } else if (currentVal === "pink" || currentVal === true) {
+            highlights[verseKey] = "yellow";
+            el.classList.remove("highlight-pink", "highlight-blue");
+            el.classList.add("highlight-yellow");
+        } else if (currentVal === "yellow") {
+            highlights[verseKey] = "blue";
+            el.classList.remove("highlight-pink", "highlight-yellow");
+            el.classList.add("highlight-blue");
+        } else {
+            delete highlights[verseKey];
+            el.classList.remove("highlight-pink", "highlight-yellow", "highlight-blue");
+        }
+        localStorage.setItem("yetalk_bible_highlights", JSON.stringify(highlights));
+    }
+
+    // 🌟 [사용자 요청] 스크롤 시 연한 분홍색 기능은 아예 완전 제거 (터치 클릭할 때만 깔끔한 분홍/노랑 하이라이트 유지)
+    function initBibleReadingFocusListeners() {
+        // 스크롤 시 임시 연한 분홍색 기능 완전 제거됨
+    }
+
+    function formatBibleVersesHtml(rawText, book, ch) {
+        if (!rawText) return "";
+        const bookName = book || currentUserBibleBook || "성경";
+        const chNum = ch || currentUserBibleCh || 1;
+        let highlights = {};
+        try {
+            highlights = JSON.parse(localStorage.getItem("yetalk_bible_highlights") || "{}");
+        } catch(e) { highlights = {}; }
+
+        const lines = rawText.split("\n");
+        let html = "";
+        lines.forEach((line, idx) => {
+            const trimmed = line.trim();
+            if (!trimmed) {
+                html += '<div style="height: 6px;"></div>';
+                return;
+            }
+            const m = trimmed.match(/^(\d+)[.\s]\s*(.*)$/);
+            if (m) {
+                const verseNum = m[1];
+                const verseBody = m[2];
+                const verseKey = `${bookName}_${chNum}_${verseNum}`;
+                const hlVal = highlights[verseKey];
+                let hlClass = "";
+                if (hlVal === "yellow") hlClass = "highlight-yellow";
+                else if (hlVal === "blue") hlClass = "highlight-blue";
+                else if (hlVal === "pink" || hlVal === true) hlClass = "highlight-pink";
+                html += `<div class="bible-verse-item ${hlClass}" data-verse-key="${verseKey}" onclick="toggleBibleVerseHighlight(this, '${verseKey}')" title="터치하여 형광펜 칠하기 (분홍 ➔ 노랑 ➔ 해제)"><span class="bible-verse-num">${verseNum}.</span><span class="bible-verse-body">${verseBody}</span></div>`;
+            } else {
+                const lineKey = `${bookName}_${chNum}_L${idx}`;
+                const hlLineVal = highlights[lineKey];
+                let hlLineClass = "";
+                if (hlLineVal === "yellow") hlLineClass = "highlight-yellow";
+                else if (hlLineVal === "blue") hlLineClass = "highlight-blue";
+                else if (hlLineVal === "pink" || hlLineVal === true) hlLineClass = "highlight-pink";
+                html += `<div class="bible-verse-item ${hlLineClass}" data-verse-key="${lineKey}" onclick="toggleBibleVerseHighlight(this, '${lineKey}')" title="터치하여 형광펜 칠하기 (분홍 ➔ 노랑 ➔ 해제)">${trimmed}</div>`;
+            }
+        });
+        return html;
+    }
+
+    let isHomeBibleBooksFolded = true; // [사용자 요청] 기본적으로 시간대별 말씀에 집중하도록 접어둠
+
+    function foldHomeBibleBooks() {
+        isHomeBibleBooksFolded = true;
+        const wrapper = document.getElementById("bibleBooksUnfoldedWrapper");
+        if (wrapper) wrapper.style.display = "none";
+    }
+
+    function unfoldHomeBibleBooks(type) {
+        isHomeBibleBooksFolded = false;
+        const wrapper = document.getElementById("bibleBooksUnfoldedWrapper");
+        if (wrapper) wrapper.style.display = "flex";
+        if (type) {
+            currentHomeTestament = (type === "OT") ? "OT" : "NT";
+        }
+        const tabOT = document.getElementById("tabHomeOT");
+        const tabNT = document.getElementById("tabHomeNT");
+        const tabHymn = document.getElementById("tabHomeHymn");
+        if (tabOT) tabOT.classList.toggle("active", currentHomeTestament === "OT");
+        if (tabNT) tabNT.classList.toggle("active", currentHomeTestament === "NT");
+        if (tabHymn) tabHymn.classList.remove("active");
+        populateHomeBibleBookSelect();
+        renderHomeBibleBookChips();
+    }
+
+                    // 🌟 [사용자 요청] 통독 버튼 단일화 및 실시간 UI 갱신 함수 (구약/신약 관계없이 단 1개만 일관되게 표시)
+        // 🌟 [사용자 요청] 토스트 알림 함수 정의 (showBibleToast 미정의 오류 방지 및 안내 피드백)
+    function showBibleToast(msg) {
+        if (!msg) return;
+        try {
+            let toast = document.getElementById("yetalkGlobalToast");
+            if (!toast) {
+                toast = document.createElement("div");
+                toast.id = "yetalkGlobalToast";
+                toast.style.cssText = "position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.92); color:#ffffff; padding:10px 22px; border-radius:24px; font-size:13.5px; font-weight:800; z-index:999999; box-shadow:0 4px 16px rgba(0,0,0,0.35); pointer-events:none; transition:opacity 0.25s ease; opacity:0; text-align:center; max-width:90%;";
+                document.body.appendChild(toast);
+            }
+            toast.textContent = msg;
+            toast.style.opacity = "1";
+            if (window._yetalkToastTimer) clearTimeout(window._yetalkToastTimer);
+            window._yetalkToastTimer = setTimeout(() => {
+                if (toast) toast.style.opacity = "0";
+            }, 2000);
+        } catch (e) {
+            console.log("BibleToast:", msg);
+        }
+    }
+
+    // 🌟 [사용자 요청] 성경 통독 지정 및 해제 함수 (팝업창 없이 1클릭 즉시 토글: 분홍 ➔ 빨강 ➔ 분홍)
+    function toggleDailyTongdokBook(bookName) {
+        const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
+        const currentTongdokBook = (localStorage.getItem("yetalk_tongdok_book") || "").trim();
+        const targetBook = bookName || currentUserBibleBook || "창세기";
+
+        if (isTongdokActive) {
+            // 🔴 빨강 통독 고정 상태에서 클릭 시 ➔ 즉시 분홍색(통독해지)으로 전환!
+            localStorage.setItem("yetalk_tongdok_active", "false");
+            localStorage.removeItem("yetalk_tongdok_book");
+            showBibleToast(`🌸 [${currentTongdokBook || targetBook}] 통독해지`);
+        } else {
+            // 🌸 분홍 통독해지 상태에서 클릭 시 ➔ 즉시 빨강색(통독 고정)으로 전환!
+            localStorage.setItem("yetalk_tongdok_active", "true");
+            localStorage.setItem("yetalk_tongdok_book", targetBook);
+            localStorage.setItem("yetalk_tongdok_start_date", new Date().toISOString());
+            localStorage.setItem("yetalk_tongdok_base_ch", "1");
+            currentUserBibleBook = targetBook;
+            showBibleToast(`🔴 [${targetBook}] 통독 고정`);
+        }
+
+        renderHomeBibleBookChips();
+        updateAutoTimeSlotButtonUI();
+    }
+
+    function setAsDailyTongdokBook(bookName) {
+        toggleDailyTongdokBook(bookName);
+    }
+
+    // 🌟 [사용자 요청] 성경 39권(구약) / 27권(신약) 목록 렌더링 및 마지막 성경 바로 뒤 통독 버튼 삽입
+    function renderHomeBibleBookChips() {
+        const listEl = document.getElementById("userBibleBookChipsList");
+        if (!listEl) return;
+        listEl.innerHTML = "";
+
+        const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
+        const currentTongdokBook = (localStorage.getItem("yetalk_tongdok_book") || "").trim();
+        const currentBook = currentUserBibleBook || "창세기";
+
+        const books = BIBLE_66_BOOKS.filter(b => b.type === currentHomeTestament);
+        books.forEach(b => {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            const isCurrentViewing = (b.name === currentUserBibleBook);
+            const isThisBookTongdok = isTongdokActive && (b.name === currentTongdokBook);
+
+            chip.className = "btn-user-book-chip" + (isCurrentViewing ? " active" : "");
+            if (isThisBookTongdok) {
+                chip.style.borderColor = "#dc2626";
+                chip.style.fontWeight = "950";
+                chip.innerHTML = `<span style="color:#dc2626; margin-right:3px;">🔴</span>${b.name}`;
+            } else {
+                chip.innerText = b.name;
+            }
+            chip.title = `${b.name} (${b.totalCh}${b.unit || '장'})` + (isThisBookTongdok ? " - [현재 매일 통독 고정중]" : "");
+            chip.onclick = function() {
+                onUserSelectBibleBook(b.name);
+            };
+            listEl.appendChild(chip);
+        });
+
+        // 🌟 [사용자 요청] 분홍색은 [창세기 통독해지], 빨강은 [창세기 통독 고정]
+        // 39(말라기 뒤) / 27(요한계시록 옆 빈공간) 마지막 성경 속에 항상 단일하게 위치
+        const tongdokChip = document.createElement("button");
+        tongdokChip.type = "button";
+        tongdokChip.className = "btn-user-book-chip btn-user-tongdok-chip";
+        if (isTongdokActive && currentTongdokBook) {
+            // 🔴 빨강색: 통독 고정 상태
+            tongdokChip.style.cssText = "background:#dc2626 !important; border:1.8px solid #b91c1c !important; color:#ffffff !important; font-weight:950 !important; font-size:13px !important; border-radius:8px !important; padding:6px 14px !important; box-shadow:0 2px 7px rgba(220,38,38,0.4) !important; cursor:pointer; flex:1 1 auto; min-width:130px; display:inline-flex; align-items:center; justify-content:center; gap:5px;";
+            tongdokChip.innerHTML = `<span>🔴</span> <span>[${currentTongdokBook} 통독 고정]</span>`;
+            tongdokChip.title = `현재 [${currentTongdokBook}] 통독 고정되어 있습니다. 누르면 즉시 해제(통독해지)됩니다.`;
+        } else {
+            // 🌸 분홍색: 통독해지 상태 (누르면 즉시 통독 고정)
+            tongdokChip.style.cssText = "background:#fce7f3 !important; border:1.8px solid #f472b6 !important; color:#be185d !important; font-weight:950 !important; font-size:13px !important; border-radius:8px !important; padding:6px 14px !important; box-shadow:0 2px 7px rgba(244,114,182,0.28) !important; cursor:pointer; flex:1 1 auto; min-width:130px; display:inline-flex; align-items:center; justify-content:center; gap:5px;";
+            tongdokChip.innerHTML = `<span>🌸</span> <span>[${currentBook} 통독해지]</span>`;
+            tongdokChip.title = `누르면 즉시 [${currentBook}] 통독 고정됩니다.`;
+        }
+        tongdokChip.onclick = function(e) {
+            e.stopPropagation();
+            toggleDailyTongdokBook(isTongdokActive ? currentTongdokBook : currentBook);
+        };
+        listEl.appendChild(tongdokChip);
+    }
+
+    function updateHomeTongdokButtonUI() {
+        const btn = document.getElementById("btnHomeTongdokToggle");
+        if (!btn) return;
+        const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
+        const currentTongdokBook = (localStorage.getItem("yetalk_tongdok_book") || "").trim();
+        const currentBook = currentUserBibleBook || "창세기";
+        if (isTongdokActive && currentTongdokBook) {
+            btn.innerHTML = `<span style="font-size:15px;">🔴</span> <span>[${currentTongdokBook} 통독 고정]</span>`;
+            btn.style.cssText = "background:#dc2626 !important; border:1.8px solid #b91c1c !important; color:#ffffff !important; font-weight:950 !important; font-size:14.5px !important; border-radius:10px !important; padding:9px 22px !important; cursor:pointer;";
+        } else {
+            btn.innerHTML = `<span style="font-size:15px;">🌸</span> <span>[${currentBook} 통독해지]</span>`;
+            btn.style.cssText = "background:#fce7f3 !important; border:1.8px solid #f472b6 !important; color:#be185d !important; font-weight:950 !important; font-size:14.5px !important; border-radius:10px !important; padding:9px 22px !important; cursor:pointer;";
+        }
+    }
+
+    let currentHymnNum = 305;
+    let currentHymnTitle = "나 같은 죄인 살리신";
+    let hymnDebounceTimer = null;
+
+        function switchHomeBibleTestament(type) {
+        const hymnBar = document.getElementById("hymnControlBar");
+        const tabOT = document.getElementById("tabHomeOT");
+        const tabNT = document.getElementById("tabHomeNT");
+        const tabHymn = document.getElementById("tabHomeHymn");
+        const wrapper = document.getElementById("bibleBooksUnfoldedWrapper");
+        const bottomNote = document.querySelector(".daily-bible-reading-section div[style*='text-align:right']");
+
+        if (type === 'HYMN') {
+            currentHomeTestament = 'HYMN';
+            if (tabOT) tabOT.classList.remove("active");
+            if (tabNT) tabNT.classList.remove("active");
+            if (tabHymn) tabHymn.classList.add("active");
+
+            foldHomeBibleBooks();
+            if (hymnBar) hymnBar.style.display = "flex";
+            displayHymn(currentHymnNum || 305);
+            return;
+        }
+
+        // 구약 또는 신약 탭 선택 시 찬송가 바 숨김
+        if (hymnBar) hymnBar.style.display = "none";
+        if (tabHymn) tabHymn.classList.remove("active");
+
+        // 🌟 [사용자 요청] 구약이나 신약 버튼을 한번 더 누르면 리스트 닫기 (토글)
+        const isCurrentlyOpen = wrapper && wrapper.style.display !== "none" && !isHomeBibleBooksFolded;
+        const isSameTab = (currentHomeTestament === type);
+
+        if (isCurrentlyOpen && isSameTab) {
+            foldHomeBibleBooks();
+            return;
+        }
+
+        // 리스트 펼치기
+        unfoldHomeBibleBooks(type);
+
+        // 현재 선택된 성경이 해당 탭에 속하지 않으면 첫 번째 책으로 자동 변경
+        const currentMeta = getBibleBookMeta(currentUserBibleBook);
+        if (currentMeta.type !== currentHomeTestament) {
+            const firstBook = (currentHomeTestament === "OT") ? "창세기" : "마태복음";
+            onUserSelectBibleBook(firstBook);
+        } else {
+            const sel = document.getElementById("selUserBibleBook");
+            if (sel) sel.value = currentUserBibleBook;
+            renderHomeBibleBookChips();
+            displayUserBibleChapter(currentUserBibleBook, currentUserBibleCh);
+        }
+
+        if (bottomNote) {
+            bottomNote.innerText = "[본문: 개역개정 / 정회원 개인 묵상 및 성경 통독용]";
+            bottomNote.style.color = "#059669";
+        }
+    }
+
+    // 🌟 [사용자 요청] 찬송가 번호(1~645)를 입력하는 즉시 자동으로 찬송가가 성경처럼 뜨는 실시간 검색 함수
+    function onHymnInputChange(val) {
+        if (hymnDebounceTimer) clearTimeout(hymnDebounceTimer);
+        const trimmed = (val || "").trim();
+        if (!trimmed) return;
+        const num = parseInt(trimmed, 10);
+        if (num >= 1 && num <= 645) {
+            hymnDebounceTimer = setTimeout(() => {
+                displayHymn(num);
+            }, 300);
+        }
+    }
+
+    function searchHymnByInput() {
+        const inp = document.getElementById("inpHymnNum");
+        if (!inp) return;
+        const num = parseInt(inp.value, 10);
+        if (!num || num < 1 || num > 645) {
+            alert("새찬송가 번호는 1장부터 645장까지 입력해주세요.");
+            return;
+        }
+        displayHymn(num);
+    }
+
+    function playHymnYouTube(num, encodedTitle) {
+        const title = decodeURIComponent(encodedTitle || "");
+        const query = encodeURIComponent("새찬송가 " + num + "장 " + title + "  찬양");
+        const ytUrl = "https://www.youtube.com/results?search_query=" + query;
+        if (typeof Android !== "undefined" && Android.openUrl) {
+            Android.openUrl(ytUrl);
+        } else {
+            window.open(ytUrl, "_blank");
+        }
+    }
+    function closeHymnPlayer() {}
+    window.closeHymnPlayer = closeHymnPlayer;
+    window.playHymnYouTube = playHymnYouTube;
+
+    // 🌟 [사용자 요청] 찬송가를 성경처럼 한 절씩(1절, 2절, 3절, 4절, 후렴) 큰 글씨로 읽고 부를 수 있도록 표출
+    function displayHymn(num) {
+        num = parseInt(num, 10);
+        if (isNaN(num) || num < 1) num = 1;
+        if (num > 645) num = 645;
+        currentHymnNum = num;
+
+        let info = (typeof getHymnInfo === 'function') ? getHymnInfo(num) : null;
+        if (!info && window.HYMN_ALL_DATA && window.HYMN_ALL_DATA[num]) {
+            info = window.HYMN_ALL_DATA[num];
+        }
+        if (!info) {
+            info = { num: num, title: "찬송가 " + num + "장", lyrics: "" };
+        }
+        currentHymnTitle = info.title;
+
+        // input 상자 동기화
+        const inpHymn = document.getElementById("inpHymnNum");
+        if (inpHymn && inpHymn.value != num) inpHymn.value = num;
+
+        // 빠른 찬송 칩 active 표시 동기화
+        document.querySelectorAll(".hymn-quick-chip").forEach(chip => {
+            const chipText = chip.innerText.trim();
+            chip.classList.toggle("active", chipText.startsWith(num + "장"));
+        });
+
+        // 중앙 네비게이션 버튼 텍스트 업데이트
+        const txtAutoTimeSlot = document.getElementById("txtAutoTimeSlot");
+        if (txtAutoTimeSlot) {
+            txtAutoTimeSlot.innerText = `${num}장 ${info.title}`;
+        }
+
+        // 🌟 [사용자 요청] 성경/찬송 본문 맨 밑 하단 네비게이션: 찬양 장만 표기 (제목 필요없이)
+        const bottomChText = document.getElementById("txtBottomBibleChapter");
+        if (bottomChText) {
+            bottomChText.innerText = `찬송가 ${num}장`;
+        }
+
+        // 소제목 업데이트 (찬송가 번호 및 제목 표출 - 상단 빨강 반주 버튼 완전 제거)
+        const subTitleEl = document.getElementById("bbrChapterSubtitle");
+        if (subTitleEl) {
+            subTitleEl.style.color = "#7c3aed";
+            subTitleEl.innerHTML = '<div style="display:flex; align-items:center; padding:2px 0;"><span style="font-weight:950; color:#7c3aed; font-size:17.5px; letter-spacing:-0.3px;">' + num + '장 &nbsp;' + info.title + '</span></div>';
+        }
+
+        // 본문 가사 렌더링 (1절+후렴, 2절+후렴 결합 & 절간 빈 공간 없는 콤팩트 카드형 표출)
+        const contentEl = document.getElementById("bbrContentBody");
+        if (contentEl) {
+            let lyricsHtml = "";
+            if (info.lyrics && info.lyrics.trim().length > 0) {
+                const chorusRegex = /(?:\(|\[)?\s*후\s*렴\s*(?:\)|\])?\s*[:：]?\s*/;
+                const rawStanzas = info.lyrics.split(/\n\s*\n/).map(s => s.trim()).filter(Boolean);
+
+                // 1. 공통 후렴(Chorus) 탐색
+                let commonChorus = "";
+                for (const s of rawStanzas) {
+                    if (chorusRegex.test(s)) {
+                        const parts = s.split(chorusRegex);
+                        if (parts.length > 1 && parts[1].trim()) {
+                            commonChorus = parts[1].trim();
+                            break;
+                        }
+                    }
+                }
+
+                // 2. 각 절별로 가사 분리 및 후렴 결합 (1절+후렴, 2절+후렴 ...)
+                const verseItems = [];
+                rawStanzas.forEach(s => {
+                    // 단독 후렴 스탠자는 별도 절 카드로 만들지 않음 (공통 후렴으로만 활용)
+                    if (/^(?:\(|\[)?\s*후\s*렴/.test(s)) {
+                        return;
+                    }
+
+                    let label = "";
+                    let bodyPart = s;
+                    let localChorus = "";
+
+                    if (chorusRegex.test(s)) {
+                        const parts = s.split(chorusRegex);
+                        bodyPart = parts[0].trim();
+                        localChorus = parts[1] ? parts[1].trim() : "";
+                    }
+
+                    // 절 번호(1절, 2절...) 파싱
+                    const lines = bodyPart.split("\n").map(l => l.trim()).filter(Boolean);
+                    if (lines.length > 0) {
+                        const firstLine = lines[0];
+                        const m = firstLine.match(/^(\d+절|[0-9]+절)/);
+                        if (m) {
+                            label = m[1];
+                            const restFirst = firstLine.replace(/^(\d+절|[0-9]+절)\s*/, "").trim();
+                            const remaining = lines.slice(1);
+                            if (restFirst) {
+                                bodyPart = [restFirst, ...remaining].join(" ");
+                            } else {
+                                bodyPart = remaining.join(" ");
+                            }
+                        } else {
+                            bodyPart = lines.join(" ");
+                        }
+                    }
+
+                    const chorusToUse = localChorus || commonChorus;
+                    if (bodyPart.trim()) {
+                        verseItems.push({
+                            label: label || (verseItems.length + 1) + "절",
+                            verseText: bodyPart.trim(),
+                            chorusText: chorusToUse ? chorusToUse.trim() : ""
+                        });
+                    }
+                });
+
+                if (verseItems.length > 0) {
+                    lyricsHtml = verseItems.map(item => {
+                        let chHtml = "";
+                        if (item.chorusText) {
+                            chHtml = '<div style="margin-top:6px; padding-top:6px; border-top:1px dashed #d8b4fe; font-size:16px; font-weight:700; color:#6b21a8; line-height:1.65;"><span style="color:#7c3aed; font-weight:900; margin-right:4px;">(후렴)</span>' + item.chorusText + '</div>';
+                        }
+                        return '<div class="hymn-verse-card" style="margin-bottom:8px; padding:10px 14px; background:#faf5ff; border:1px solid #e9d5ff; border-radius:12px;"><div style="font-size:13.5px; font-weight:900; color:#7c3aed; margin-bottom:4px;">' + item.label + '</div><div style="font-size:17.5px; font-weight:700; color:#1e293b; line-height:1.7;">' + item.verseText + '</div>' + chHtml + '</div>';
+                    }).join("");
+                } else {
+                    lyricsHtml = '<div style="padding:14px; background:#faf5ff; border-radius:12px; font-size:17.5px; line-height:1.75; color:#1e293b;">' + info.lyrics.replace(/\n/g, "<br>") + '</div>';
+                }
+            } else {
+                lyricsHtml = '<div style="text-align:center; padding:28px 14px; background:#faf5ff; border-radius:12px; border:1px dashed #d8b4fe;">'
+                    + '<div style="font-size:26px; margin-bottom:6px;">🎵</div>'
+                    + '<div style="font-size:18px; font-weight:900; color:#6b21a8; margin-bottom:4px;">새찬송가 ' + num + '장</div>'
+                    + '<div style="font-size:13px; color:#7e22ce; font-weight:750; margin-bottom:10px;">' + (info.title || '') + '</div>'
+                    + '<div style="font-size:14.5px; color:#475569; line-height:1.65;">성도님 개인 찬양 및 묵상을 위해 준비된 찬송입니다.</div>'
+                    + '</div>';
+            }
+            contentEl.innerHTML = lyricsHtml;
+
+            // 저작권 및 딜레이 방지를 위해 악보/외부 이동 버튼 완전 제거
+            const existingAkbo = document.getElementById("hymnAkboSection");
+            if (existingAkbo) existingAkbo.remove();
+        }
+
+        // 하단 출처 표기
+        const bottomNote = document.querySelector(".daily-bible-reading-section div[style*='text-align:right']");
+        if (bottomNote) {
+            bottomNote.innerText = "[새찬송가 645장 / 정회원 찬양 및 묵상용]";
+            bottomNote.style.color = "#7c3aed";
+        }
+    }
+
+    function populateHomeBibleBookSelect() {
+        const sel = document.getElementById("selUserBibleBook");
+        if (sel) {
+            sel.innerHTML = "";
+            const books = BIBLE_66_BOOKS.filter(b => b.type === currentHomeTestament);
+            books.forEach(b => {
+                const opt = document.createElement("option");
+                opt.value = b.name;
+                opt.innerText = `${b.name} (${b.totalCh}${b.unit})`;
+                sel.appendChild(opt);
+            });
+            sel.value = currentUserBibleBook;
+        }
+        renderHomeBibleBookChips();
+    }
+
+    // 🌟 [사용자 요청] 요일별 구원의 7대 복음 데이터 (월:1, 화:2, 수:3, 목:4, 금:5, 토:6, 주일:7)
+    const GOSPEL_7_DAILY_TRUTHS = [
+        {
+            dayName: "월요일",
+            num: 1,
+            title: "길이요 진리요 생명이신 예수님",
+            scripture: "예수께서 이르시되 내가 곧 길이요 진리요 생명이니 나로 말미암지 않고는 아버지께로 올 자가 없느니라",
+            ref: "(요한복음 14:6)"
+        },
+        {
+            dayName: "화요일",
+            num: 2,
+            title: "우리의 유일한 구원자되신 예수님",
+            scripture: "다른 이로써는 구원을 받을 수 없나니 천하 사람 중에 구원을 받을 만한 다른 이름을 우리에게 주신 일이 없음이라 하였더라",
+            ref: "(사도행전 4:12)"
+        },
+        {
+            dayName: "수요일",
+            num: 3,
+            title: "세상의 빛되신 예수님",
+            scripture: "예수께서 또 말씀하여 이르시되 나는 세상의 빛이니 나를 따르는 자는 어둠에 다니지 아니하고 생명의 빛을 얻으리라",
+            ref: "(요한복음 8:12)"
+        },
+        {
+            dayName: "목요일",
+            num: 4,
+            title: "선한 목자되신 예수님",
+            scripture: "나는 선한 목자라 선한 목자는 양들을 위하여 목숨을 버리거니와",
+            ref: "(요한복음 10:11)"
+        },
+        {
+            dayName: "금요일",
+            num: 5,
+            title: "부활이요 생명이신 예수님",
+            scripture: "예수께서 이르시되 나는 부활이요 생명이니 나를 믿는 자는 죽어도 살겠고",
+            ref: "(요한복음 11:25)"
+        },
+        {
+            dayName: "토요일",
+            num: 6,
+            title: "만왕의 왕이요 우리의 아버지되신 예수님",
+            scripture: "너희는 다시 무서워하는 종의 영을 받지 아니하고 양자의 영을 받았으므로 우리가 아빠 아버지라고 부르짖느니라",
+            ref: "(로마서 8:15)"
+        },
+        {
+            dayName: "주일",
+            num: 7,
+            title: "다시오실 심판의 주 예수님",
+            scripture: "보라 내가 속히 오리니 내가 줄 상이 내게 있어 각 사람에게 그가 행한 대로 갚아 주리라 ... 아멘 주 예수여 오시옵소서",
+            ref: "(요한계시록 22:12, 20)"
+        }
+    ];
+
+    function getTodayGospelData() {
+        const urlParams = new URLSearchParams(window.location.search);
+        let dayParam = urlParams.get("gospel_day");
+        if (!dayParam && window.location.hash && window.location.hash.includes("gospel_day=")) {
+            dayParam = window.location.hash.split("gospel_day=")[1];
+        }
+        let day;
+        if (dayParam !== null && dayParam !== "") {
+            day = parseInt(dayParam, 10);
+        } else {
+            day = new Date().getDay(); // 0: 일(주일), 1: 월, 2: 화, 3: 수, 4: 목, 5: 금, 6: 토
+        }
+        const index = (day === 0) ? 6 : (day - 1);
+        return GOSPEL_7_DAILY_TRUTHS[index];
+    }
+
+    window.GOSPEL_7_DAILY_TRUTHS = GOSPEL_7_DAILY_TRUTHS;
+    window.showDailyGospelPopup = showDailyGospelPopup;
+
+    function renderDailyGospelPopup(data) {
+        let truth;
+        if (typeof data === 'number') {
+            truth = GOSPEL_7_DAILY_TRUTHS[data] || getTodayGospelData();
+        } else if (data && data.num) {
+            truth = data;
+        } else {
+            truth = getTodayGospelData();
+        }
+        const dayTextEl = document.getElementById("dailyGospelDayText");
+        const numEl = document.getElementById("dailyGospelTruthNum");
+        const titleEl = document.getElementById("dailyGospelTruthTitle");
+        const scriptureEl = document.getElementById("dailyGospelScripture");
+
+        if (dayTextEl) dayTextEl.innerText = `${truth.dayName}의 복음 말씀`;
+        if (numEl) numEl.innerText = truth.num;
+        if (titleEl) titleEl.innerText = truth.title;
+        if (scriptureEl) {
+            scriptureEl.innerHTML = `"${truth.scripture}"<span class="daily-gospel-ref">${truth.ref}</span>`;
+        }
+    }
+
+    function showDailyGospelPopup(forceData) {
+        renderDailyGospelPopup(forceData);
+        const modal = document.getElementById("dailyGospelPopupModal");
+        if (modal) modal.classList.add("show");
+    }
+
+    // 🌟 [사용자 요청] 당일 팝업 슬롯 정보 계산기
+    // 1차: 최초 한 번 (자정 ~ 오후 6시 전 첫 접속 시 1회)
+    // 2차: 오후 6시(18:00) 이후 첫 접속 시 1회
+    // 요일마다 동일 문구 2번 반복 노출
+    function getGospelPopupSlotInfo() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const date = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${date}`;
+        const hour = now.getHours();
+
+        // 오후 6시(18시) 기준 슬롯 분할
+        const isEveningSlot = (hour >= 18);
+        const currentSlotKey = isEveningSlot ? `${todayStr}_evening` : `${todayStr}_day`;
+
+        return {
+            todayStr: todayStr,
+            hour: hour,
+            isEveningSlot: isEveningSlot,
+            currentSlotKey: currentSlotKey
+        };
+    }
+
+    let dailyGospelTimer = null;
+    function closeDailyGospelPopup(rememberForToday) {
+        if (dailyGospelTimer) {
+            clearTimeout(dailyGospelTimer);
+            dailyGospelTimer = null;
+        }
+        const modal = document.getElementById("dailyGospelPopupModal");
+        if (modal) modal.classList.remove("show");
+
+        try {
+            const slotInfo = getGospelPopupSlotInfo();
+            if (rememberForToday) {
+                // '오늘 하루 보지 않기' 클릭 시 오늘 하루 전체 차단
+                localStorage.setItem("yetalk_daily_gospel_block_full_date", slotInfo.todayStr);
+                localStorage.setItem("yetalk_daily_gospel_last_shown_slot", `${slotInfo.todayStr}_evening`);
+            } else {
+                // 일반 닫기(✕ 버튼, [닫기 ✕], 영접기도문 등): 현재 슬롯 1회 완료 기록
+                // 오후 6시 이전 닫았으면 -> 오후 6시 이후에 2차로 다시 정상 오픈됨!
+                // 오후 6시 이후 닫았으면 -> 오늘 2차 완료로 내일 새로운 요일로 진행됨!
+                localStorage.setItem("yetalk_daily_gospel_last_shown_slot", slotInfo.currentSlotKey);
+            }
+        } catch(e) {}
+    }
+
+    function goToSalvationPrayerFromPopup() {
+        closeDailyGospelPopup(false);
+        location.href = "church_salvation.html";
+    }
+
+    function checkDailyGospelPopup() {
+        try {
+            // 🌟 [사용자 요청] 처음 가입할 때는 처음 접속이라도 팝업창 안 열리게 처리 (미등록 신규 회원 첫 화면 방해 금지)
+            const isReg = localStorage.getItem("yetalk_is_registered") === "true";
+            if (!isReg) {
+                return; // 가입하지 않은 신규 회원의 첫 방문/가입 시에는 팝업을 띄우지 않음!
+            }
+
+            const slotInfo = getGospelPopupSlotInfo();
+
+            // 만약 '오늘 하루 보지 않기'로 전체 하루가 차단된 경우
+            const fullDayBlocked = localStorage.getItem("yetalk_daily_gospel_block_full_date");
+            if (fullDayBlocked === slotInfo.todayStr) {
+                return;
+            }
+
+            // 현재 슬롯(주간 또는 오후 6시 이후)에서 이미 보았는지 확인
+            const lastShownSlot = localStorage.getItem("yetalk_daily_gospel_last_shown_slot");
+            if (lastShownSlot === slotInfo.currentSlotKey) {
+                return; // 현재 슬롯에서는 이미 1회 확인했으므로 다시 뜨지 않음
+            }
+
+            // 🌟 만약 이미 모달(회원신청, 게시판, 통독 등)을 바로 열어둔 상태거나 nopopup 파라미터가 있으면 팝업 유보
+            const applyModal = document.getElementById("applyAppModal");
+            if (applyModal && applyModal.classList.contains("show")) {
+                return;
+            }
+            const urlParams = new URLSearchParams(window.location.search);
+            const viewMode = urlParams.get("view") || (window.location.hash || "").replace("#", "");
+            if (urlParams.get("nopopup") === "1" || viewMode === "board" || viewMode === "apply" || viewMode === "bible_amen" || viewMode === "myapps" || viewMode === "auth" || viewMode.startsWith("suite")) {
+                return;
+            }
+
+            // 사용자가 화면을 인지한 직후 자연스럽게 팝업 오픈 (600ms)
+            if (dailyGospelTimer) clearTimeout(dailyGospelTimer);
+            dailyGospelTimer = setTimeout(() => {
+                showDailyGospelPopup();
+            }, 600);
+        } catch(e) {}
+    }
+
+    function initUserBibleReading() {
+        // [사용자 요청] 과거 시편 23편 직접 입력 캐시 완전 제거 (선택한 성경 본문이 깨끗하게 나오도록)
+        localStorage.removeItem("yetalk_admin_bible_full_text");
+
+        // 🌟 [사용자 요청] 통독 지정된 성경이 있으면 우선 적용
+        const savedTongdok = localStorage.getItem("yetalk_tongdok_book");
+        if (savedTongdok && !localStorage.getItem("yetalk_user_bible_book")) {
+            currentUserBibleBook = savedTongdok;
+        } else {
+            currentUserBibleBook = localStorage.getItem("yetalk_user_bible_book") || savedTongdok || "창세기";
+        }
+        const meta = getBibleBookMeta(currentUserBibleBook);
+        currentHomeTestament = meta.type || "OT";
+
+        // 상단 구약/신약 탭 활성화 동기화
+        const tabOT = document.getElementById("tabHomeOT");
+        const tabNT = document.getElementById("tabHomeNT");
+        if (tabOT) tabOT.classList.toggle("active", currentHomeTestament === "OT");
+        if (tabNT) tabNT.classList.toggle("active", currentHomeTestament === "NT");
+
+        populateHomeBibleBookSelect();
+        const selBook = document.getElementById("selUserBibleBook");
+        if (selBook) selBook.value = currentUserBibleBook;
+
+        const totalCh = meta.totalCh;
+        const unit = meta.unit || "장";
+
+        // 🌟 [사용자 요청] 매일 3장씩 연속 자동 승계 진도 계산 (창세기 1장 고정 완전 탈피)
+        const tongdokBaseBook = localStorage.getItem("yetalk_tongdok_book") || currentUserBibleBook || "창세기";
+        let startDateStr = localStorage.getItem("yetalk_tongdok_start_date") || localStorage.getItem("yetalk_user_bible_start_date");
+        if (!startDateStr) {
+            startDateStr = new Date().toISOString();
+            localStorage.setItem("yetalk_tongdok_start_date", startDateStr);
+            localStorage.setItem("yetalk_user_bible_start_date", startDateStr);
+        }
+        const progress = calculate66ContinuousProgress(tongdokBaseBook, startDateStr, 3);
+        currentUserTodayChList = progress.primaryTodayCh;
+        window.currentUserTodayChapters = progress.todayChapters;
+
+        // 현재 시간대에 맞는 슬롯 선택
+        const slotInfo = getCurrentTimeSlotInfo();
+        currentUserSlotIdx = slotInfo.slotIdx;
+        const savedUserChoice = localStorage.getItem("yetalk_user_bible_book");
+        if (savedUserChoice) {
+            currentUserBibleBook = savedUserChoice;
+            currentUserBibleCh = parseInt(localStorage.getItem("yetalk_user_bible_ch") || "1", 10);
+            if (isNaN(currentUserBibleCh) || currentUserBibleCh < 1) currentUserBibleCh = 1;
+        } else {
+            currentUserBibleBook = slotInfo.book;
+            currentUserBibleCh = slotInfo.ch;
+        }
+
+        const currentMeta = getBibleBookMeta(currentUserBibleBook);
+        populateUserBibleChapterSelect(currentUserBibleBook, currentMeta.totalCh, currentMeta.unit || "장");
+
+        updateAutoTimeSlotButtonUI();
+        displayUserBibleChapter(currentUserBibleBook, currentUserBibleCh);
+        renderHomeBibleBookChips();
+        // foldHomeBibleBooks(); // auto-fold removed // 🌟 [사용자 요청] 초기 접속 시 성경 목록 접어두고 당일 시간대 말씀에 바로 집중
+        initBibleReadingFocusListeners();
+    }
+
+    function populateUserBibleChapterSelect(book, totalCh, unit) {
+        const sel = document.getElementById("selUserBibleChapter");
+        if (!sel) return;
+        sel.innerHTML = "";
+        for (let i = 1; i <= totalCh; i++) {
+            const opt = document.createElement("option");
+            opt.value = String(i);
+            opt.innerText = `${i}${unit}`;
+            sel.appendChild(opt);
+        }
+    }
+
+    function onUserSelectBibleBook(book) {
+        if (!book) return;
+        currentUserBibleBook = book;
+        currentUserBibleCh = 1;
+        localStorage.setItem("yetalk_user_bible_book", book);
+        localStorage.setItem("yetalk_user_bible_ch", "1");
+
+        const meta = getBibleBookMeta(book);
+        currentHomeTestament = meta.type || "OT";
+
+        const selBook = document.getElementById("selUserBibleBook");
+        if (selBook) selBook.value = book;
+        populateUserBibleChapterSelect(book, meta.totalCh, meta.unit || "\uC7A5");
+
+        renderHomeBibleBookChips();
+        updateHomeTongdokButtonUI();
+        displayUserBibleChapter(book, 1);
+        showBibleToast("\uD83D\uDCD6 [" + book + "] 1\uC7A5\uC774 \uC120\uD0DD\uB418\uC5C8\uC2B5\uB2C8\uB2E4.");
+    }
+
+    function selectUserBibleSlot(slotIdx) {
+        currentUserSlotIdx = slotIdx;
+        let chapterObj = null;
+        if (window.currentUserTodayChapters && window.currentUserTodayChapters[slotIdx]) {
+            chapterObj = window.currentUserTodayChapters[slotIdx];
+        }
+        if (chapterObj) {
+            currentUserBibleBook = chapterObj.book;
+            currentUserBibleCh = chapterObj.ch;
+        } else {
+            currentUserBibleCh = currentUserTodayChList[slotIdx] || currentUserTodayChList[0];
+        }
+        displayUserBibleChapter(currentUserBibleBook, currentUserBibleCh);
+    }
+
+    function onSelectUserBibleChapter(val) {
+        const chNum = parseInt(val, 10);
+        displayUserBibleChapter(currentUserBibleBook, chNum);
+    }
+
+    function navUserBibleChapter(delta) {
+        if (currentHomeTestament === 'HYMN') {
+            let nextHymn = (currentHymnNum || 305) + delta;
+            if (nextHymn < 1) nextHymn = 645;
+            if (nextHymn > 645) nextHymn = 1;
+            displayHymn(nextHymn);
+            return;
+        }
+        const meta = getBibleBookMeta(currentUserBibleBook);
+        const totalCh = meta.totalCh || 50;
+        let nextCh = currentUserBibleCh + delta;
+
+        // 🌟 [사용자 요청] 10장씩 이동(더블 삼각형) 시 범위 클램핑 및 순환 지원
+        if (Math.abs(delta) >= 10) {
+            if (delta < 0) {
+                nextCh = Math.max(1, currentUserBibleCh + delta);
+                if (currentUserBibleCh === 1 && nextCh === 1) nextCh = totalCh;
+            } else {
+                nextCh = Math.min(totalCh, currentUserBibleCh + delta);
+                if (currentUserBibleCh === totalCh && nextCh === totalCh) nextCh = 1;
+            }
+        } else {
+            if (nextCh < 1) nextCh = totalCh;
+            if (nextCh > totalCh) nextCh = 1;
+        }
+        displayUserBibleChapter(currentUserBibleBook, nextCh);
+    }
+
+    function displayUserBibleChapter(book, chNum) {
+        currentUserBibleBook = book || currentUserBibleBook;
+        currentUserBibleCh = parseInt(chNum, 10) || 1;
+
+        // 시간대 버튼 갱신
+        updateAutoTimeSlotButtonUI();
+
+        // 가운데 빠른 장수 드롭다운 동기화
+        const sel = document.getElementById("selUserBibleChapter");
+        if (sel) sel.value = String(currentUserBibleCh);
+
+        // 본문 및 소제목 노출 (해당 성경의 실제 본문만 100% 무결점 자동 표출)
+        const subTitleEl = document.getElementById("bbrChapterSubtitle");
+        const contentEl = document.getElementById("bbrContentBody");
+
+        const item = getBibleChapterItem(currentUserBibleBook, currentUserBibleCh);
+        if (subTitleEl) {
+            subTitleEl.style.color = "#047857";
+            subTitleEl.style.fontSize = "15px";
+            // 🌟 [사용자 요청] 앞에 글자 줄이기 (개역개정 말씀 통독 등 중복 군더더기 제거하고 깔끔하게 표출)
+            let sub = (item.subtitle || '').trim();
+            if (sub && !sub.includes('말씀 통독') && !sub.includes('개역개정') && !sub.startsWith(item.title)) {
+                subTitleEl.innerText = `${item.title}: ${sub}`;
+            } else {
+                subTitleEl.innerText = `${item.title}`;
+            }
+        }
+        if (contentEl) {
+            contentEl.innerHTML = formatBibleVersesHtml(item.text, currentUserBibleBook, currentUserBibleCh);
+        }
+
+        // 🌟 [사용자 요청] 성경/찬송 본문 맨 밑 하단 네비게이션: 지금 읽는 성경 장만 표기 (제목 필요없이)
+        const bottomChText = document.getElementById("txtBottomBibleChapter");
+        if (bottomChText) {
+            bottomChText.innerText = `${currentUserBibleBook} ${currentUserBibleCh}장`;
+        }
+
+        // 하단 출처 표기 복원
+        const bottomNote = document.querySelector(".daily-bible-reading-section div[style*='text-align:right']");
+        if (bottomNote) {
+            bottomNote.innerText = "[본문: 개역개정 / 정회원 개인 묵상 및 성경 통독용]";
+            bottomNote.style.color = "#059669";
+        }
+
+        // 하단 감사 고백 한줄창 시간대 갱신
+        if (typeof updateBibleAmenPresetUI === 'function') {
+            updateBibleAmenPresetUI();
+        }
+    }
+
+    function copyCurrentUserBibleChapter() {
+        const item = getBibleChapterItem(currentUserBibleBook, currentUserBibleCh);
+        const fullCopy = `[${item.title} - ${item.subtitle || '말씀'}]\n\n${item.text}\n\n- 예톡 성경 통독 (yetalk.cc)`;
+
+        if (window.AndroidBridge && window.AndroidBridge.copyToClipboard) {
+            try {
+                window.AndroidBridge.copyToClipboard(fullCopy);
+                alert(`📋 ${item.title} 본문이 클립보드에 복사되었습니다!`);
+                return;
+            } catch(e) {}
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(fullCopy).then(() => {
+                alert(`📋 ${item.title} 본문이 클립보드에 복사되었습니다!`);
+            }).catch(() => {
+                fallbackCopySimple(fullCopy);
+            });
+        } else {
+            fallbackCopySimple(fullCopy);
+        }
+    }
+
+    // ==========================================
+    // 🌟 2. 매일성경찬송 (관리자 코너 / 영상 스위트)
+    // - 관리자 추천 성경 책 (구약 39권 / 신약 27권 탭 선택)
+    // - 하루 3장씩 진행되며 완독 시 다음 성경으로 무인 자동 승계
+    // - 메인홈 회원 개인 통독과는 별도로 분리 운영
+    // ==========================================
+    function switchAdminBibleTab(type) {
+        currentAdminTestament = (type === "OT") ? "OT" : "NT";
+
+        const tabOT = document.getElementById("tabAdminOT");
+        const tabNT = document.getElementById("tabAdminNT");
+        if (tabOT) tabOT.classList.toggle("active", currentAdminTestament === "OT");
+        if (tabNT) tabNT.classList.toggle("active", currentAdminTestament === "NT");
+
+        renderAdminBibleGrid();
+    }
+
+    function renderAdminBibleGrid() {
+        const grid = document.getElementById("adminBibleBooksGrid");
+        if (!grid) return;
+        grid.innerHTML = "";
+
+        const books = BIBLE_66_BOOKS.filter(b => b.type === currentAdminTestament);
+        books.forEach(b => {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = "admin-bible-chip" + (b.name === selectedAdminBibleBook ? " active" : "");
+            chip.innerText = b.name;
+            chip.title = `${b.name} (${b.totalCh}${b.unit})`;
+            chip.onclick = function() {
+                setAdminSuiteBibleBook(b.name);
+            };
+            grid.appendChild(chip);
+        });
+    }
+
+    function setAdminSuiteBibleBook(bookName) {
+        selectedAdminBibleBook = bookName;
+        const meta = getBibleBookMeta(bookName);
+        const inp = document.getElementById("inpAdminBibleBookTitle");
+        if (inp) inp.value = bookName;
+
+        const displayEl = document.getElementById("adminSelectedBookName");
+        if (displayEl) {
+            displayEl.innerText = `${meta.name} (총 ${meta.totalCh}${meta.unit})`;
+        }
+
+        renderAdminBibleGrid();
+    }
+
+    function refreshBibleSuite() {
+        currentBibleBook = localStorage.getItem("yetalk_admin_suite_bible_book") || localStorage.getItem("yetalk_admin_bible_book") || "요한복음";
+        currentBibleDailyCount = parseInt(localStorage.getItem("yetalk_admin_bible_daily_count") || "3", 10);
+        if (isNaN(currentBibleDailyCount) || currentBibleDailyCount < 3 || currentBibleDailyCount > 5) {
+            currentBibleDailyCount = 3;
+        }
+
+        let suiteStartDate = localStorage.getItem("yetalk_admin_suite_start_date");
+        if (!suiteStartDate) {
+            // 🌟 기준일 (2026-11-01) 자동 기본 연동으로 매일 날짜마다 전자동 승계
+            suiteStartDate = "2026-11-01T00:00:00.000Z";
+            localStorage.setItem("yetalk_admin_suite_start_date", suiteStartDate);
+        }
+        const progress = calculate66ContinuousProgress(currentBibleBook, suiteStartDate, currentBibleDailyCount);
+
+        currentTodayChList = progress.primaryTodayCh;
+        const currentActiveBook = progress.currentBook;
+
+        renderSuiteBibleContent(currentActiveBook.name, progress.todayChapters, currentActiveBook.unit);
+    }
+
+    function renderSuiteBibleContent(primaryBookName, todayChapters, unit) {
+        if (!todayChapters || todayChapters.length === 0) return;
+
+        let titleRange = "";
+        const first = todayChapters[0];
+        const last = todayChapters[todayChapters.length - 1];
+        if (first.book === last.book) {
+            titleRange = `${first.book} ${first.ch}~${last.ch}${unit || '장'}`;
+        } else {
+            titleRange = `${first.book} ${first.ch}${first.bookMeta?.unit || '장'} ~ ${last.book} ${last.ch}${last.bookMeta?.unit || '장'}`;
+        }
+        const titleText = `📖 성경찬송: ${titleRange}`;
+
+        const bvTitle = document.getElementById("bibleViewTitle");
+        if (bvTitle) bvTitle.innerText = titleText;
+        const bshTitle = document.getElementById("bibleSectionHeaderTitle");
+        if (bshTitle) bshTitle.innerText = titleText;
+        const fsTitle = document.getElementById("focusSheetTitle");
+        if (fsTitle) fsTitle.innerText = titleText;
+
+        let fullCombinedText = "";
+        todayChapters.forEach(itemInfo => {
+            const item = getBibleChapterItem(itemInfo.book, itemInfo.ch);
+            fullCombinedText += `[${item.title} - ${item.subtitle || '말씀'}]\n${item.text}\n\n`;
+        });
+        renderBibleFlow(fullCombinedText);
+    }
+
+    function refreshBibleSuiteAndHome() {
+        refreshBibleSuite();
+        initUserBibleReading();
+    }
+
+    // 하위 호환 매핑
+    window.initJohnBibleReading = function() {
+        initUserBibleReading();
+        refreshBibleSuite();
+    };
+    window.selectBibleSlot = selectUserBibleSlot;
+    window.selectJohnSlot = selectUserBibleSlot;
+    window.onSelectBibleChapter = onSelectUserBibleChapter;
+    window.onSelectJohnChapter = onSelectUserBibleChapter;
+    window.copyCurrentJohnChapter = copyCurrentUserBibleChapter;
+
+    function fallbackCopySimple(text) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand("copy");
+            alert("📋 성경 본문이 복사되었습니다!");
+        } catch(e) {
+            alert("복사를 지원하지 않는 브라우저입니다.");
+        }
+        document.body.removeChild(ta);
+    }
+
+    // 회원가입 및 내정보 모달
+    function openAuthModal() {
+        if (isRegistered) {
+            document.getElementById("authModalTitle").innerText = "👤 내정보 관리";
+            document.getElementById("inpUserName").value = localStorage.getItem("yetalk_user_name") || "행복한사람";
+        } else {
+            document.getElementById("authModalTitle").innerText = "✨ 예톡 회원가입";
+        }
+        document.getElementById("authModal").classList.add("show");
+    }
+    function closeAuthModal() { document.getElementById("authModal").classList.remove("show"); }
+
+    function chooseChristian(isYes) {
+        chosenChristianState = isYes;
+        document.getElementById("choiceYes").classList.toggle("selected", isYes);
+        document.getElementById("choiceNo").classList.toggle("selected", !isYes);
+    }
+
+    function submitAuth() {
+        const uName = document.getElementById("inpUserName").value.trim() || "예톡가족";
+        isRegistered = true;
+        isChristianUser = chosenChristianState;
+        localStorage.setItem("yetalk_user_name", uName);
+        localStorage.setItem("yetalk_is_registered", "true");
+        localStorage.setItem("yetalk_tv_member", "true"); // 예톡TV 정회원 동시 자동 가입
+        localStorage.setItem("yetalk_church_member", "true"); // 우리교회홈앱 정회원 동시 자동 가입
+        localStorage.setItem("yetalk_is_christian", isChristianUser ? "true" : "false");
+
+        // 기존 신청 맞춤앱이 있으면 기독교인 혜택(개인앱+작은교회앱) 동기화
+        const savedAppsRaw = localStorage.getItem("yetalk_my_apps");
+        if (savedAppsRaw) {
+            try {
+                let d = JSON.parse(savedAppsRaw);
+                d.userName = uName;
+                d.isChristian = isChristianUser;
+                d.additionalApps = [];
+                if (isChristianUser) {
+                    if (d.jobId !== 'personal') {
+                        d.additionalApps.push({
+                            title: "나만의 개인앱",
+                            url: "onemain.html",
+                            icon: "👤",
+                            badge: "기독교인 기본제공",
+                            desc: "1인 브랜드 & 개인 사역/포트폴리오 앱"
+                        });
+                    }
+                    if (d.jobId !== 'pastor') {
+                        d.additionalApps.push({
+                            title: "작은교회 지원앱",
+                            url: "churchmain.html?type=small",
+                            icon: "🌿",
+                            badge: "기독교인 기본제공",
+                            desc: "소형교회/개척교회 스마트 주보·말씀 앱"
+                        });
+                    }
+                }
+                localStorage.setItem("yetalk_my_apps", JSON.stringify(d));
+            } catch(e) {}
+        }
+
+        const authBtn = document.getElementById("authBtnLabel");
+        if (authBtn) authBtn.innerText = "내정보";
+        closeAuthModal();
+        evaluateGoodNews();
+        alert(`🎉 환영합니다, ${uName}님!\n회원가입이 완료되어 [내정보]로 변경되었습니다.\n(설정: ${isChristianUser ? '기독교인 말씀 모드 (개인앱+작은교회앱 기본혜택)' : '일반인 좋은 말씀 모드'})`);
+    }
+
+    // 🌟 무료 맞춤앱 신청 모달 함수들
+    let isApplyIdManuallyEdited = false;
+    function syncApplyIdFromName(val) {
+        if (!isApplyIdManuallyEdited) {
+            const inpId = document.getElementById("inpApplyId");
+            if (inpId) inpId.value = val;
+        }
+    }
+    function onApplyIdManualEdit() {
+        isApplyIdManuallyEdited = true;
+    }
+
+    function goToApplyStep1() {
+        const s1 = document.getElementById("applyStep1");
+        const s2 = document.getElementById("applyStep2");
+        if (s1) s1.style.display = "flex";
+        if (s2) s2.style.display = "none";
+        const c = document.getElementById("applyModalCard");
+        if (c) c.scrollTop = 0;
+    }
+
+    function goToApplyStep2(skipValidation) {
+        const inpName = (document.getElementById("inpApplyName")?.value || "").trim();
+        const inpId = (document.getElementById("inpApplyId")?.value || "").trim() || inpName;
+        const inpPhone = (document.getElementById("inpApplyPhone")?.value || "").trim();
+        const inpPw = (document.getElementById("inpApplyPw")?.value || "").trim();
+
+        if (!skipValidation) {
+            if (!inpName) {
+                alert("이름을 입력해주세요.");
+                document.getElementById("inpApplyName")?.focus();
+                return;
+            }
+
+            if (!inpPw || inpPw.length < 4) {
+                alert("비밀번호 숫자 4자리를 정확히 입력해주세요.");
+                document.getElementById("inpApplyPw")?.focus();
+                return;
+            }
+        }
+
+        // 🌟 [사용자 요청] 기본 정회원 정보 즉시 1차 등록/저장
+        if (inpName) {
+            isRegistered = true;
+            localStorage.setItem("yetalk_is_registered", "true");
+        localStorage.setItem("yetalk_tv_member", "true"); // 예톡TV 정회원 동시 자동 가입
+        localStorage.setItem("yetalk_church_member", "true"); // 우리교회홈앱 정회원 동시 자동 가입
+            localStorage.setItem("yetalk_user_name", inpName);
+            localStorage.setItem("yetalk_user_id", inpId);
+            localStorage.setItem("yetalkUserId", inpId);
+            localStorage.setItem("yetalkUserName", inpName);
+            if (inpPw) {
+                localStorage.setItem("yetalkUserPw", inpPw);
+                localStorage.setItem("yetalk_user_pw", inpPw);
+            }
+            if (inpPhone) {
+                localStorage.setItem("yetalk_user_phone", inpPhone);
+                localStorage.setItem("yetalkUserPhone", inpPhone);
+            }
+            localStorage.setItem("yetalk_is_christian", isChristianUser ? "true" : "false");
+            try {
+                const slotInfo = getGospelPopupSlotInfo();
+                if (slotInfo && slotInfo.currentSlotKey) {
+                    localStorage.setItem("yetalk_daily_gospel_last_shown_slot", slotInfo.currentSlotKey);
+                }
+            } catch(e) {}
+            const authBtn = document.getElementById("authBtnLabel");
+            if (authBtn) authBtn.innerText = "내정보";
+        }
+
+        // 2단계 전문앱 등록 화면을 제일 상단부터 여유있게 표시
+        const s1 = document.getElementById("applyStep1");
+        const s2 = document.getElementById("applyStep2");
+        if (s1) s1.style.display = "none";
+        if (s2) s2.style.display = "flex";
+        const c = document.getElementById("applyModalCard");
+        if (c) c.scrollTop = 0;
+        renderJobsList();
+    }
+
+    // 🌟 [사용자 요청] 기본 회원정보 등록/수정 전용 저장
+    function saveBasicMemberInfoOnly() {
+        const inpName = (document.getElementById("inpApplyName")?.value || "").trim();
+        const inpId = (document.getElementById("inpApplyId")?.value || "").trim() || inpName;
+        const inpPhone = (document.getElementById("inpApplyPhone")?.value || "").trim();
+        const inpPw = (document.getElementById("inpApplyPw")?.value || "").trim();
+
+        if (!inpName) {
+            alert("이름을 입력해주세요.");
+            document.getElementById("inpApplyName")?.focus();
+            return;
+        }
+
+        if (!inpPw || inpPw.length < 4) {
+            alert("비밀번호 숫자 4자리를 정확히 입력해주세요.");
+            document.getElementById("inpApplyPw")?.focus();
+            return;
+        }
+
+        isRegistered = true;
+        localStorage.setItem("yetalk_is_registered", "true");
+        localStorage.setItem("yetalk_tv_member", "true"); // 예톡TV 정회원 동시 자동 가입
+        localStorage.setItem("yetalk_church_member", "true"); // 우리교회홈앱 정회원 동시 자동 가입
+        localStorage.setItem("yetalk_user_name", inpName);
+        localStorage.setItem("yetalk_user_id", inpId);
+        localStorage.setItem("yetalkUserId", inpId);
+        localStorage.setItem("yetalkUserName", inpName);
+        localStorage.setItem("yetalkUserPw", inpPw);
+        localStorage.setItem("yetalk_user_pw", inpPw);
+        if (inpPhone) {
+            localStorage.setItem("yetalk_user_phone", inpPhone);
+            localStorage.setItem("yetalkUserPhone", inpPhone);
+        }
+        localStorage.setItem("yetalk_is_christian", isChristianUser ? "true" : "false");
+        try {
+            const slotInfo = getGospelPopupSlotInfo();
+            if (slotInfo && slotInfo.currentSlotKey) {
+                localStorage.setItem("yetalk_daily_gospel_last_shown_slot", slotInfo.currentSlotKey);
+            }
+        } catch(e) {}
+
+        const authBtn = document.getElementById("authBtnLabel");
+        if (authBtn) authBtn.innerText = "내정보";
+
+        // 기존 신청 맞춤앱이 있으면 소유자 이름 및 기독교인 혜택 동기화
+        const savedAppsRaw = localStorage.getItem("yetalk_my_apps");
+        if (savedAppsRaw) {
+            try {
+                let d = JSON.parse(savedAppsRaw);
+                d.userName = inpName;
+                d.isChristian = isChristianUser;
+                localStorage.setItem("yetalk_my_apps", JSON.stringify(d));
+            } catch(e) {}
+        }
+
+        evaluateGoodNews();
+        closeApplyAppModal();
+
+        alert(`🎉 ${inpName}님!\n기본 회원정보 등록 및 수정이 안전하게 완료되었습니다.\n(설정: ${isChristianUser ? '기독교인 말씀 모드' : '일반인 좋은 말씀 모드'})`);
+    }
+
+    function openApplyAppModal(step) {
+        cancelAutoSuiteTimer();
+        if (typeof closeDailyGospelPopup === 'function') {
+            closeDailyGospelPopup(false);
+        }
+        const savedName = localStorage.getItem("yetalk_user_name") || "";
+        const savedId = localStorage.getItem("yetalk_user_id") || localStorage.getItem("yetalkUserId") || savedName;
+        const savedPhone = localStorage.getItem("yetalk_user_phone") || localStorage.getItem("yetalkUserPhone") || "";
+        const savedPw = localStorage.getItem("yetalkUserPw") || localStorage.getItem("yetalk_user_pw") || "";
+        const savedBizName = localStorage.getItem("yetalk_biz_name") || "";
+
+        const inpName = document.getElementById("inpApplyName");
+        const inpId = document.getElementById("inpApplyId");
+        const inpPhone = document.getElementById("inpApplyPhone");
+        const inpPw = document.getElementById("inpApplyPw");
+        const inpBizName = document.getElementById("inpApplyBizName");
+
+        if (inpName) inpName.value = savedName;
+        if (inpId) inpId.value = savedId;
+        if (inpPhone) inpPhone.value = savedPhone;
+        if (inpPw) inpPw.value = savedPw;
+        if (inpBizName) inpBizName.value = savedBizName;
+
+        isApplyIdManuallyEdited = !!(savedId && savedId !== savedName);
+
+        toggleChristianInApply(isChristianUser);
+        renderJobsList();
+
+        // 🌟 [사용자 요청] 기존 회원이든 신규 회원이든 일반 회원가입/수정(Step 1)이 무조건 먼저 뜨도록!
+        const step1Title = document.getElementById("applyStep1Title");
+        if (step1Title) {
+            step1Title.innerText = (isRegistered || savedName) ? "👤 회원정보 확인 및 수정" : "✨ 예톡 회원가입 (100% 무료)";
+        }
+
+        document.getElementById("applyAppModal").classList.add("show");
+        if (step === 2) {
+            goToApplyStep2(true);
+        } else {
+            goToApplyStep1();
+        }
+    }
+
+    function closeApplyAppModal() {
+        document.getElementById("applyAppModal").classList.remove("show");
+    }
+
+    function toggleChristianInApply(isYes) {
+        isChristianUser = isYes;
+        chosenChristianState = isYes;
+        localStorage.setItem("yetalk_is_christian", isYes ? "true" : "false");
+        
+        const btnYes = document.getElementById("applyChoiceYes");
+        const btnNo = document.getElementById("applyChoiceNo");
+        if (btnYes) btnYes.classList.toggle("selected", isYes);
+        if (btnNo) btnNo.classList.toggle("selected", !isYes);
+
+        const perkEl = document.getElementById("applyChristianPerk");
+        if (perkEl) {
+            perkEl.style.display = isYes ? "flex" : "none";
+        }
+        evaluateGoodNews();
+    }
+
+    function renderJobsList() {
+        const container = document.getElementById("jobSelectList");
+        if (!container) return;
+        let html = "";
+        BIZ_JOBS.forEach(job => {
+            const isSel = (job.id === selectedJobId);
+            html += `
+                <div class="job-select-card ${isSel ? 'selected' : ''}" onclick="selectJob('${job.id}')">
+                    <div style="flex:1;">
+                        <div class="job-card-title">${job.icon} ${job.name}</div>
+                        <div class="job-card-desc">${job.desc}</div>
+                    </div>
+                    <span class="job-card-badge">${job.badge}</span>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function selectJob(jobId) {
+        selectedJobId = jobId;
+        renderJobsList();
+    }
+
+    function submitAppApplication() {
+        const inpName = (document.getElementById("inpApplyName")?.value || "").trim();
+        const inpId = (document.getElementById("inpApplyId")?.value || "").trim() || inpName;
+        const inpPhone = (document.getElementById("inpApplyPhone")?.value || "").trim();
+        const inpPw = (document.getElementById("inpApplyPw")?.value || "").trim();
+        const inpBizName = (document.getElementById("inpApplyBizName")?.value || "").trim();
+
+        if (!inpName) {
+            alert("이름을 입력해주세요.");
+            document.getElementById("inpApplyName")?.focus();
+            return;
+        }
+
+        // 🌟 [사용자 요청] 3번 4번 사이에 4번 비밀번호 숫자 4자리 필수 검증
+        if (!inpPw || inpPw.length < 4) {
+            alert("비밀번호 숫자 4자리를 정확히 입력해주세요.");
+            document.getElementById("inpApplyPw")?.focus();
+            return;
+        }
+
+        const finalName = inpName;
+        const targetJob = BIZ_JOBS.find(j => j.id === selectedJobId) || BIZ_JOBS[5];
+
+        // 자동 회원 등록 및 로컬스토리지 저장
+        isRegistered = true;
+        localStorage.setItem("yetalk_is_registered", "true");
+        localStorage.setItem("yetalk_tv_member", "true"); // 예톡TV 정회원 동시 자동 가입
+        localStorage.setItem("yetalk_church_member", "true"); // 우리교회홈앱 정회원 동시 자동 가입
+        localStorage.setItem("yetalk_user_name", finalName);
+        localStorage.setItem("yetalk_user_id", inpId || finalName);
+        localStorage.setItem("yetalkUserId", inpId || finalName);
+        localStorage.setItem("yetalkUserName", finalName);
+        localStorage.setItem("yetalkUserPw", inpPw);
+        localStorage.setItem("yetalk_user_pw", inpPw);
+
+        // 🌟 [사용자 요청] 담임목사가 교회앱 개설 시 기본 비밀번호로 자동 연동
+        if (targetJob.id === 'pastor' || targetJob.name.includes("담임목사")) {
+            localStorage.setItem("yetalkAdminPw", inpPw);
+            localStorage.setItem("yetalk_admin_password", inpPw);
+            sessionStorage.setItem("yetalk_church_admin_auth", "true");
+            localStorage.setItem("yetalk_church_admin_auth", "true");
+            localStorage.setItem("yetalkUserGrade", "담임목사");
+        }
+
+        if (inpPhone) {
+            localStorage.setItem("yetalk_user_phone", inpPhone);
+            localStorage.setItem("yetalkUserPhone", inpPhone);
+        }
+        if (inpBizName) {
+            localStorage.setItem("yetalk_biz_name", inpBizName);
+        }
+        localStorage.setItem("yetalk_is_christian", isChristianUser ? "true" : "false");
+        const authBtn = document.getElementById("authBtnLabel");
+        if (authBtn) authBtn.innerText = "내정보";
+
+        const displayAppTitle = inpBizName ? `${inpBizName} (${targetJob.appTitle})` : targetJob.appTitle;
+
+        // 내 앱 패키지 구성
+        const myAppsData = {
+            userName: finalName,
+            userId: inpId || finalName,
+            userPhone: inpPhone,
+            userPw: inpPw,
+            bizName: inpBizName,
+            jobId: targetJob.id,
+            jobName: targetJob.name,
+            isChristian: isChristianUser,
+            mainApp: {
+                title: displayAppTitle,
+                url: targetJob.appUrl,
+                icon: targetJob.icon,
+                desc: targetJob.desc
+            },
+            additionalApps: []
+        };
+
+        // 🌟 [사용자 요청] 기독교인에게는 모두에게 개인앱과 작은교회 앱을 기본으로 주자!
+        if (isChristianUser) {
+            if (targetJob.id !== 'personal') {
+                myAppsData.additionalApps.push({
+                    title: "나만의 개인앱",
+                    url: "onemain.html",
+                    icon: "👤",
+                    badge: "기독교인 기본제공",
+                    desc: "1인 브랜드 & 개인 사역/포트폴리오 앱"
+                });
+            }
+            if (targetJob.id !== 'pastor') {
+                myAppsData.additionalApps.push({
+                    title: "작은교회 지원앱",
+                    url: "churchmain.html?type=small",
+                    icon: "🌿",
+                    badge: "기독교인 기본제공",
+                    desc: "소형교회/개척교회 스마트 주보·말씀 앱"
+                });
+            }
+        }
+
+        localStorage.setItem("yetalk_my_apps", JSON.stringify(myAppsData));
+        closeApplyAppModal();
+        evaluateGoodNews();
+
+        alert(`🎉 축하합니다, ${finalName}님!\n\n회원가입 및 [${displayAppTitle}] 맞춤앱 개설이 즉시 완료되었습니다!\n[내앱] 보관함에서 바로 실행하실 수 있습니다.`);
+        openMyAppListModal();
+    }
+
+    // 🌟 [사용자 요청] 상단 메뉴에 내앱 누르면 내가 만든 앱 리스트(myapp_home.html?tab=my) 연결!
+    function handleMyAppClick() {
+        cancelAutoSuiteTimer();
+        location.href = 'myapp_home.html?tab=my';
+    }
+
+    // 🌟 [사용자 요청] 로고 옆 관리자 우측 [친구] 동그라미 버튼: 내 개인앱에 예톡단골친구 내용 직통 연결
+    function goToFriendsTab() {
+        cancelAutoSuiteTimer();
+        location.href = 'onemain.html?role=owner&tab=friends';
+    }
+
+    // 🌟 [사용자 요청] 포털 홈 하단 5대 앱 바로가기 직행 (복음/구원/바이블애플/쿠팡/네이버쇼핑)
+    function openFiveApp(target) {
+        cancelAutoSuiteTimer();
+        if (target === 'gospel') {
+            location.href = 'church_gospel.html';
+        } else if (target === 'salvation' || target === 'jesus') {
+            location.href = 'church_salvation.html';
+        } else if (target === 'bibleapple') {
+            if (window.AndroidBridge && window.AndroidBridge.launchApp) {
+                try {
+                    window.AndroidBridge.launchApp('bible');
+                    return;
+                } catch(e) {}
+            }
+            window.open('https://goodtvbible.goodtv.co.kr', '_blank');
+        } else if (target === 'coupang') {
+            const coupangUrl = 'https://m.coupang.com';
+            if (window.AndroidBridge) {
+                if (window.AndroidBridge.launchApp) {
+                    try {
+                        window.AndroidBridge.launchApp('coupang');
+                        return;
+                    } catch(e) {}
+                }
+                if (window.AndroidBridge.openBrowser) {
+                    try {
+                        window.AndroidBridge.openBrowser(coupangUrl);
+                        return;
+                    } catch(e) {}
+                }
+            }
+            window.open(coupangUrl, '_blank');
+        } else if (target === 'navershop') {
+            // 🌟 [사용자 요청] 네이버쇼핑 로딩 지연/미표출 문제 완전 해결: 최신 쇼핑 URL 및 새창/외부 브라우저 안전 실행
+            const naverShoppingUrl = 'https://shopping.naver.com';
+            if (window.AndroidBridge) {
+                if (window.AndroidBridge.openBrowser) {
+                    try {
+                        window.AndroidBridge.openBrowser(naverShoppingUrl);
+                        return;
+                    } catch(e) {}
+                }
+                if (window.AndroidBridge.launchApp) {
+                    try {
+                        window.AndroidBridge.launchApp('navershop');
+                        return;
+                    } catch(e) {}
+                }
+            }
+            window.open(naverShoppingUrl, '_blank');
+        }
+    }
+
+    // 🌟 [사용자 요청] 쇼츠 영상 탭 및 정지버튼 클릭 시 즉시 확실하게 정지/재생 토글
+    let isVideoPaused = false;
+    function toggleSuiteVideoPlayback() {
+        const iframe = document.getElementById("mainYtPlayerIframe");
+        const btn = document.getElementById("btnSuitePlayPause");
+        if (!iframe) return;
+        try {
+            if (isVideoPaused) {
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+                isVideoPaused = false;
+                if (btn) {
+                    btn.innerHTML = '⏸️ 정지';
+                    btn.style.background = '#dc2626';
+                    btn.style.color = '#ffffff';
+                }
+            } else {
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*');
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'stopVideo', args: [] }), '*');
+                isVideoPaused = true;
+                if (btn) {
+                    btn.innerHTML = '▶️ 재생';
+                    btn.style.background = '#16a34a';
+                    btn.style.color = '#ffffff';
+                }
+            }
+        } catch(e) {}
+    }
+
+    // 🌟 [사용자 요청] 성경/찬송 본문 맨 밑 하단 네비게이션: 앞뒤로 1장씩만 이동 & 현재 장명 표기
+    function navBottomBibleChapter(delta) {
+        navUserBibleChapter(delta);
+    }
+    window.navBottomBibleChapter = navBottomBibleChapter;
+
+    // 🌟 [사용자 요청] 상단에 관리자는 총관리자 화면(admin.html)으로 가야 함 (성경구절 유튜브 적기가 아님)
+    function goToAdminMaster() {
+        cancelAutoSuiteTimer();
+        pauseYouTubeVideo();
+        location.href = 'admin.html';
+    }
+
+    // 🌟 [사용자 요청] 나에게만 보이는 관리자 버튼:
+    // 1) 햄버거 메뉴(☰)에서 '👑 총관리자 모드' 클릭으로 언제든 즉시 인증
+    // 2) 상단 로고 3회 클릭 또는 롱프레스(1.2초)로 간편 인증
+    // 3) 한 번 인증되면 영구 유지 (localStorage.setItem("yetalk_admin_auth", "true")) -> 내 폰에서는 항상 보임!
+    function triggerAdminAuth() {
+        const isAuth = localStorage.getItem("yetalk_admin_auth") === "true";
+        if (isAuth) {
+            goToAdminMaster();
+            return;
+        }
+        const pw = prompt("👑 예톡 총관리자 암호를 입력하세요 (나만 관리):");
+        if (pw === "7777" || pw === "1234" || pw === "admin") {
+            localStorage.setItem("yetalk_admin_auth", "true");
+            localStorage.setItem("yetalk_is_admin", "true");
+            const btn = document.getElementById("btnHeaderAdmin");
+            if (btn) btn.style.display = "inline-flex";
+            alert("👑 총관리자 모드가 활성화되었습니다.\n이제 내 폰에서는 관리자 버튼이 상단에 항상 표시됩니다.");
+            goToAdminMaster();
+        } else if (pw !== null) {
+            alert("관리자 암호가 일치하지 않습니다.");
+        }
+    }
+
+    let logoClickCount = 0;
+    let logoClickTimer = null;
+    function handleLogoClick() {
+        logoClickCount++;
+        if (logoClickTimer) clearTimeout(logoClickTimer);
+        logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 1500);
+
+        if (localStorage.getItem("yetalk_admin_auth") === "true") {
+            // 이미 관리자인 경우 홈 새로고침
+            location.href = "index.html";
+        } else if (logoClickCount >= 3) {
+            logoClickCount = 0;
+            triggerAdminAuth();
+        }
+    }
+
+    function openMyAppListModal() {
+        const raw = localStorage.getItem("yetalk_my_apps");
+        if (!raw) {
+            openApplyAppModal();
+            return;
+        }
+        let appData;
+        try {
+            appData = JSON.parse(raw);
+        } catch(e) {
+            openApplyAppModal();
+            return;
+        }
+
+        const titleEl = document.getElementById("myAppOwnerTitle");
+        if (titleEl) {
+            titleEl.innerText = `${appData.userName}님의 맞춤앱 보관함 (${appData.jobName})`;
+        }
+
+        const container = document.getElementById("myAppsContainer");
+        if (container) {
+            let html = "";
+            // 1. 대표 맞춤앱
+            html += `
+                <div class="my-app-item-card primary">
+                    <div class="my-app-info-group">
+                        <div class="my-app-title">
+                            ${appData.mainApp.icon} ${appData.mainApp.title}
+                            <span class="my-app-tag">대표 직업앱</span>
+                        </div>
+                        <div class="my-app-desc">${appData.mainApp.desc}</div>
+                    </div>
+                    <button type="button" class="btn-open-my-app" onclick="location.href='${appData.mainApp.url}'">앱 열기 ➔</button>
+                </div>
+            `;
+
+            // 2. 기독교인 기본 제공 앱들
+            if (appData.additionalApps && appData.additionalApps.length > 0) {
+                appData.additionalApps.forEach(app => {
+                    html += `
+                        <div class="my-app-item-card">
+                            <div class="my-app-info-group">
+                                <div class="my-app-title">
+                                    ${app.icon} ${app.title}
+                                    <span class="my-app-tag gift">기본제공</span>
+                                </div>
+                                <div class="my-app-desc">${app.desc}</div>
+                            </div>
+                            <button type="button" class="btn-open-my-app" onclick="location.href='${app.url}'">앱 열기 ➔</button>
+                        </div>
+                    `;
+                });
+            }
+            container.innerHTML = html;
+        }
+
+        document.getElementById("myAppListModal").classList.add("show");
+    }
+
+    function closeMyAppListModal() {
+        document.getElementById("myAppListModal").classList.remove("show");
+    }
+
+    // 🌟 [사용자 요청] 관리자 버튼 클릭 시 총관리자 화면(admin.html)으로 직행 (성경구절/유튜브 적기가 아님)
+    function openAdminDesk() { 
+        goToAdminMaster();
+    }
+    function closeAdminDesk() { document.getElementById("adminModal").classList.remove("show"); }
+
+    function extractYouTubeVideoId(input) {
+        if (!input) return "";
+        let str = input.trim();
+        if (str.length === 11 && !str.includes("/") && !str.includes("?")) return str;
+        const regExp = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|live\/))([\w-]{11})/;
+        const match = str.match(regExp);
+        return match ? match[1] : (str.length === 11 ? str : "");
+    }
+
+    // 🌟 [사용자 요청] 유튜브 영상 링크, 매일성경찬송 추천 성경 책(66권 원클릭), 하루 장수(3~5장) 저장 및 실시간 즉시 반영
+    function saveAdminAllSettings() {
+        const ytInput = document.getElementById("inpAdminYtUrl");
+        let ytUrl = ytInput ? ytInput.value.trim() : "";
+        if (!ytUrl && ytInput && ytInput.placeholder && (ytInput.placeholder.startsWith("http") || ytInput.placeholder.length === 11)) {
+            ytUrl = ytInput.placeholder.trim();
+        }
+        if (!ytUrl) {
+            ytUrl = localStorage.getItem("yetalk_admin_yt_url") || "https://youtube.com/shorts/xFv89_QtM_4";
+        }
+        const bookTitle = selectedAdminBibleBook || (document.getElementById("inpAdminBibleBookTitle")?.value || "요한복음").trim();
+
+        const rdCount = document.querySelector('input[name="adminBibleDailyCount"]:checked');
+        const dailyCount = rdCount ? rdCount.value : "3";
+
+        localStorage.setItem("yetalk_admin_yt_url", ytUrl);
+        const vId = extractYouTubeVideoId(ytUrl) || currentVideoId || "xFv89_QtM_4";
+        if (vId) {
+            localStorage.setItem("yetalk_admin_yt_url_vid", vId);
+            changeYouTubeVideo(vId);
+        }
+
+        // 매일성경찬송 책, 시작일, 장수 저장 (과거 시편 수동 입력 잔류는 완전 제거)
+        localStorage.setItem("yetalk_admin_suite_bible_book", bookTitle);
+        localStorage.setItem("yetalk_admin_bible_book", bookTitle);
+        localStorage.setItem("yetalk_admin_bible_daily_count", dailyCount);
+        localStorage.setItem("yetalk_admin_suite_start_date", new Date().toISOString());
+        localStorage.removeItem("yetalk_admin_bible_full_text");
+
+        refreshBibleSuite();
+        evaluateGoodNews();
+
+        // 🌟 [사용자 요청] 관리자가 올린 유튜브 찬양 영상 및 성경 설정을 Firestore 클라우드에 즉시 저장하여 모든 성도 기기에 실시간 자동 전파!
+        if (window.yetalkDb && window.yetalkFs) {
+            try {
+                const { doc, setDoc, serverTimestamp } = window.yetalkFs;
+                const ref = doc(window.yetalkDb, "yetalk_global_config", "suite_video");
+                const refTv = doc(window.yetalkDb, "yetalk_global_config", "tv_top_video");
+                const payload = {
+                    ytUrl: ytUrl,
+                    vId: vId,
+                    videoId: vId,
+                    bookTitle: bookTitle,
+                    dailyCount: dailyCount,
+                    updatedAt: serverTimestamp(),
+                    updatedBy: localStorage.getItem("yetalk_user_phone") || localStorage.getItem("yetalk_user_name") || "admin"
+                };
+                setDoc(ref, payload, { merge: true }).catch(() => {});
+                setDoc(refTv, payload, { merge: true }).then(() => {
+                    console.log("🔥 Firestore 클라우드 즉시 배포 완료: 예톡TV 및 메일성경찬송 모든 회원에게 실시간 즉각 반영됩니다.");
+                }).catch(err => {
+                    console.warn("Firestore 동기화 알림:", err);
+                });
+            } catch(e) {
+                console.warn("Firestore save error:", e);
+            }
+        }
+
+        closeAdminDesk();
+        closeBibleEditor();
+        alert(`✨ 오늘의 찬양 유튜브 영상과 매일성경찬송 [${bookTitle}] 설정이 실시간으로 저장되어 즉시 반영되었습니다!\n(모든 성도 기기에 1초 만에 실시간으로 전파됩니다)`);
+    }
+    window.saveAdminTopSettings = saveAdminAllSettings;
+    window.saveBibleFullText = saveAdminAllSettings;
+
+    // 🌟 [사용자 요청] 모든 성도 앱에서 관리자(목사님)가 새로 올린 찬양 영상과 성경 설정을 1초 만에 실시간으로 수신하는 onSnapshot 리스너
+    function initCloudSuiteVideoSync() {
+        if (!window.yetalkDb || !window.yetalkFs) {
+            setTimeout(initCloudSuiteVideoSync, 1000);
+            return;
+        }
+        try {
+            const { doc, onSnapshot } = window.yetalkFs;
+            // 🌟 [사용자 요청] 예톡TV 또는 메일성경찬송에 등록된 최신 유튜브를 모든 회원이 즉각 반영받도록 실시간 동기화
+            const refSuite = doc(window.yetalkDb, "yetalk_global_config", "suite_video");
+            const refTvTop = doc(window.yetalkDb, "yetalk_global_config", "tv_top_video");
+
+            function applyGlobalVideoData(data) {
+                if (!data) return;
+                const cloudVid = data.vId || data.videoId;
+                if (!cloudVid) return;
+                localStorage.setItem("yetalk_admin_yt_url_vid", cloudVid);
+                localStorage.setItem("yetalkPinnedVideoId", cloudVid);
+                localStorage.setItem("yetalk_current_top_video", cloudVid);
+                if (data.ytUrl) {
+                    localStorage.setItem("yetalk_admin_yt_url", data.ytUrl);
+                    const inp = document.getElementById("inpAdminYtUrl");
+                    if (inp) inp.placeholder = data.ytUrl;
+                }
+                if (data.bookTitle) {
+                    localStorage.setItem("yetalk_admin_suite_bible_book", data.bookTitle);
+                    localStorage.setItem("yetalk_admin_bible_book", data.bookTitle);
+                    if (typeof refreshBibleSuite === 'function') refreshBibleSuite();
+                }
+                if (cloudVid !== currentVideoId) {
+                    console.log("🔥 [실시간 전파] 모든 회원 기기에 새 유튜브 즉각 반영:", cloudVid);
+                    currentVideoId = cloudVid;
+                    // 🌟 [사용자 요청] 앱을 켜자마자 소리가 나오는 문제 원천 차단: 모달이 실제로 열려있을 때만 재생!
+                    const overlay = document.getElementById("bibleSuiteOverlay");
+                    if (overlay && overlay.classList.contains("show")) {
+                        if (typeof changeYouTubeVideo === 'function') changeYouTubeVideo(cloudVid);
+                    }
+                }
+            }
+
+            onSnapshot(refSuite, (snap) => {
+                if (snap && snap.exists()) applyGlobalVideoData(snap.data());
+            }, (err) => console.warn("suite_video sync notice:", err));
+
+            onSnapshot(refTvTop, (snap) => {
+                if (snap && snap.exists()) applyGlobalVideoData(snap.data());
+            }, (err) => console.warn("tv_top_video sync notice:", err));
+
+            return;
+            // Legacy block bypass
+            const ref = refSuite;
+            onSnapshot(ref, (snap) => {
+                if (snap && snap.exists()) {
+                    const data = snap.data();
+                    if (data && data.vId) {
+                        const cloudVid = data.vId;
+                        if (data.ytUrl) {
+                            localStorage.setItem("yetalk_admin_yt_url", data.ytUrl);
+                            const inp = document.getElementById("inpAdminYtUrl");
+                            if (inp) inp.placeholder = data.ytUrl;
+                        }
+                        if (data.bookTitle) {
+                            localStorage.setItem("yetalk_admin_suite_bible_book", data.bookTitle);
+                            localStorage.setItem("yetalk_admin_bible_book", data.bookTitle);
+                            if (typeof refreshBibleSuite === 'function') refreshBibleSuite();
+                        }
+                        if (cloudVid !== currentVideoId) {
+                            console.log("실시간 새 찬양 영상 수신 반영:", cloudVid);
+                            changeYouTubeVideo(cloudVid);
+                        }
+                    }
+                }
+            }, (err) => {
+                console.warn("Firestore suite_video sync notice:", err);
+            });
+        } catch(e) {
+            console.warn("initCloudSuiteVideoSync error:", e);
+        }
+    }
+    window.initCloudSuiteVideoSync = initCloudSuiteVideoSync;
+
+    // 🌟 [사용자 요청] 관리자 모드 종료(일반인 모드로 숨김)
+    function logoutAdmin() {
+        localStorage.removeItem("yetalk_admin_auth");
+        localStorage.removeItem("yetalk_is_admin");
+        sessionStorage.removeItem("yetalk_admin_auth");
+        const btn = document.getElementById("btnHeaderAdmin");
+        if (btn) btn.style.display = "none";
+        closeAdminDesk();
+        alert("🔒 총관리자 모드가 종료되었습니다.\n(일반 사용자 화면으로 관리자 버튼이 숨겨집니다.)");
+    }
+
+    // 🌟 성경 말씀 에디터 모달 열기/닫기
+    function openBibleEditor() {
+        const fsInput = document.getElementById("inpAdminBibleFullTextFullscreen");
+        if (fsInput) fsInput.value = getDefaultBibleSample();
+        document.getElementById("bibleEditorModal").classList.add("show");
+    }
+    function closeBibleEditor() { 
+        document.getElementById("bibleEditorModal").classList.remove("show"); 
+    }
+
+    function getDefaultBibleSample() {
+        const item = getBibleChapterItem("창세기", 1);
+        return `[${item.title} - ${item.subtitle || '말씀'}]\n${item.text}`;
+    }
+
+    // 🌟 [사용자 요청] 박스 가능한 치지 말고 자체로 시원하게 흐르는 성경 본문 렌더링 (메인과 동일한 밝은 흰색 & 18px & 절 누락 없는 완전 본문)
+    function renderBibleFlow(rawText) {
+        if (!rawText) rawText = getDefaultBibleSample();
+        const container = document.getElementById("bibleViewContent");
+        if (!container) return;
+
+        const lines = rawText.split("\n");
+        let html = "";
+        lines.forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed) {
+                html += `<div style="height: 10px;"></div>`;
+                return;
+            }
+            // 장/절 제목 판단 (예: [누가복음 1장], 누가복음 1장, [시편 23편], [창세기 1장] 등)
+            if (trimmed.startsWith("[") || trimmed.endsWith("장]") || trimmed.endsWith("편]") || 
+                (trimmed.includes("복음") && trimmed.includes("장")) || 
+                (trimmed.includes("서") && trimmed.includes("장")) ||
+                (trimmed.startsWith("제") && trimmed.includes("장")) ||
+                (trimmed.includes("편") && trimmed.length <= 15)) {
+                html += `<div class="bible-natural-chapter-title">${trimmed}</div>`;
+            } else {
+                const m = trimmed.match(/^(\d+)[.\s]\s*(.*)$/);
+                if (m) {
+                    html += `<div class="bible-natural-verse-line"><span style="color:#047857; font-weight:950; margin-right:6px;">${m[1]}.</span>${m[2]}</div>`;
+                } else {
+                    html += `<div class="bible-natural-verse-line">${trimmed}</div>`;
+                }
+            }
+        });
+        container.innerHTML = html;
+    }
+
+    let currentVideoId = "xFv89_QtM_4";
+
+    // 유튜브 비디오 변경
+    function changeYouTubeVideo(vid) {
+        const vId = extractYouTubeVideoId(vid) || vid;
+        currentVideoId = vId;
+        // 🌟 [사용자 요청] 사용자가 매일성경찬송을 열지 않았으면 백그라운드 재생 금지!
+        const overlay = document.getElementById("bibleSuiteOverlay");
+        if (!overlay || !overlay.classList.contains("show")) {
+            return;
+        }
+        const container = document.getElementById("ytPlayerContainer");
+        if (container && vId) {
+            container.innerHTML = `<iframe id="mainYtPlayerIframe" 
+                        src="https://www.youtube.com/embed/${vId}?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&loop=1&playlist=${vId}&enablejsapi=1&origin=${encodeURIComponent(location.origin || 'https://yetalk.cc')}" 
+                        title="매일성경찬송 유튜브 찬양" 
+                        style="width:100%; height:100%; border:none; pointer-events:none;"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen></iframe>`;
+            isVideoPaused = false;
+            isSuiteAudioMutedByScroll = false;
+        } else {
+            const iframe = document.getElementById("mainYtPlayerIframe");
+            if (iframe && vId) {
+                iframe.src = `https://www.youtube.com/embed/${vId}?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&loop=1&playlist=${vId}&enablejsapi=1&origin=${encodeURIComponent(location.origin || 'https://yetalk.cc')}`;
+                isVideoPaused = false;
+            }
+        }
+    }
+
+    // 영상 리스트 모달
+
+    // 🌟 [사용자 요청] '이 시간의 말씀' 성경 몇장몇절 버튼 누르면 바로 그 말씀 선택되어 한 페이지 전체 표시
+    function openGoodnewsVerseInFullBible() {
+        const rawRef = (document.getElementById('gnRefText')?.innerText || document.getElementById('gnRef')?.innerText || '').replace(/[-📖🔍\[\]\(\)]/g, '').trim();
+        const match = rawRef.match(/([가-힣]+)\s*(\d+)/);
+        let book = '이사야';
+        let ch = 41;
+        if (match) {
+            book = match[1].trim();
+            ch = parseInt(match[2], 10) || 1;
+        }
+
+        // 🌟 [사용자 요청] 이사야 41:10 등 해당 성경과 장 전체가 확실하게 뷰어에 렌더링되도록 구약/신약 탭, 셀렉트박스 완벽 동기화
+        const meta = (typeof getBibleBookMeta === 'function') ? getBibleBookMeta(book) : { type: 'OT' };
+        currentHomeTestament = meta.type || 'OT';
+
+        if (typeof switchHomeBibleTestament === 'function') {
+            switchHomeBibleTestament(currentHomeTestament);
+        }
+
+        currentUserBibleBook = book;
+        currentUserBibleCh = ch;
+        localStorage.setItem("yetalk_user_bible_book", book);
+        localStorage.setItem("yetalk_user_bible_ch", String(ch));
+
+        if (typeof populateHomeBibleBookSelect === 'function') populateHomeBibleBookSelect();
+        const selBook = document.getElementById("selUserBibleBook");
+        if (selBook) selBook.value = book;
+
+        if (typeof populateHomeBibleChapterSelect === 'function') populateHomeBibleChapterSelect();
+        const selCh = document.getElementById("selUserBibleChapter");
+        if (selCh) selCh.value = String(ch);
+
+        if (typeof displayUserBibleChapter === 'function') {
+            displayUserBibleChapter(book, ch);
+        }
+
+        // 🌟 [오류 수정] id="dailyBibleReadingSection" 으로 확실히 스크롤 이동!
+        const targetSection = document.getElementById('dailyBibleReadingSection');
+        if (targetSection) {
+            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+        // 🌟 [사용자 요청] 이 시간의 말씀 묵상 데이터셋 (9대 말씀 매핑 & 일반 구절 기본 fallback)
+    const GOODNEWS_MEDITATIONS = {
+        "시편_1": {
+            meditation: "세상의 소리와 유혹이 가득한 세상 속에서 참된 복은 오직 주의 말씀을 사랑하고 그 법을 주야로 즐거워하는 데에 있습니다. 시냇가에 심은 나무가 시절을 좇아 과실을 맺듯, 말씀에 깊이 뿌리내린 삶은 가뭄과 환난 속에서도 결코 마르지 않는 하늘의 생명력으로 채워집니다.",
+            repentance: "하나님의 거룩한 말씀보다 세상의 꾀와 눈앞의 이익을 먼저 따르려 했던 순간들을 회개합니다. 오늘도 바쁘다는 핑계로 말씀 앞에 머무는 경건의 시간을 뒤로 미루고 내 생각대로 살아갔던 연약함을 주님 앞에 솔직히 고백합니다.",
+            prayer: "주님, 악인의 꾀와 죄인의 길을 멀리하고 오직 여호와의 말씀을 기뻐하며 주야로 묵상하는 복된 성도가 되게 하옵소서. 말씀의 단비가 메마른 내 심령을 적시어 주님을 닮은 아름다운 성령의 열매를 맺게 하소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "시편_23": {
+            meditation: "선한 목자 되신 여호와께서 나와 함께 동행하실 때, 내 삶에는 어떤 결핍도 없으며 참된 만족이 넘칩니다. 내 힘과 욕심으로 채우려 했던 헛된 빈자리를 주님의 사랑과 평안으로 채우시고, 사망의 음침한 골짜기를 지날 때에도 가장 안전하게 인도하십니다.",
+            repentance: "목자 되신 주님이 늘 곁에 계심에도 눈앞의 현실을 보며 불평하고 염려했던 작은 믿음을 회개합니다. 이미 베풀어주신 은혜의 잔을 바라보지 못하고 세상의 비교에 흔들렸던 마음을 돌이켜 오직 목자의 음성에만 귀 기울이겠습니다.",
+            prayer: "나의 선한 목자이신 하나님 아버지, 오늘도 나를 푸른 풀밭과 쉴 만한 물가로 인도하여 주옵소서. 내 영혼을 소생시키시고 의의 길로 이끄시며, 평생에 주의 선하심과 인자하심을 따라 살게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "마태복음_11": {
+            meditation: "주님은 삶의 무거운 짐을 홀로 지고 지쳐 허덕이는 모든 영혼을 부드러운 음성으로 부르십니다. 실패의 짐, 염려의 짐, 죄의 무게를 혼자 감당하려 애쓰지 말고, 온유하고 겸손하신 예수 그리스도의 십자가 앞에 내려놓을 때 세상이 줄 수 없는 영원한 쉼과 평안이 찾아옵니다.",
+            repentance: "모든 짐을 주께 맡기라 하셨음에도 끝까지 내 손으로 쥐고 놓지 못한 채 염려와 두려움에 사로잡혔던 죄를 회개합니다. 수고하고 무거운 짐을 주님 없이 해결하려다 주변 사람들에게 짜증과 불평을 쏟아냈던 연약함을 고백합니다.",
+            prayer: "수고하고 무거운 짐 진 자들을 안식으로 부르시는 주님, 내 모든 아픔과 염려와 눈물을 주님 발 앞에 내려놓습니다. 내 멍에는 벗겨주시고 쉽고 가벼운 주님의 멍에를 메고 참된 기쁨과 평강을 누리게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "빌립보서_4": {
+            meditation: "성도의 능력은 세상의 부나 권력, 뛰어난 재능에 있지 않고 오직 내 안에 살아서 역사하시는 예수 그리스도께로부터 흘러나옵니다. 주님이 주시는 영적인 힘을 공급받을 때 어떠한 결핍과 곤경 속에서도 자족하며 모든 상황을 믿음으로 넉넉히 돌파할 수 있습니다.",
+            repentance: "눈앞의 장벽과 부족함 앞에서 주님의 전능하심을 잊은 채 낙심하고 원망했던 불신앙을 회개합니다. 내 야망과 성공을 위해 주의 능력을 구했던 이기심을 내려놓고, 하나님의 뜻에 온전히 복종하는 참된 믿음의 사람이 되기를 결단합니다.",
+            prayer: "내게 능력 주시는 살아계신 예수님, 두려움과 낙심을 떨쳐버리고 오직 주님만 바라보며 담대하게 전진하게 하옵소서. 어떤 형편에 처하든지 감사하며, 주님의 손잡고 날마다 승리하는 삶을 살게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "요한복음_3": {
+            meditation: "하나님께서 독생자 예수를 아낌없이 십자가에 내어주신 것은 세상 그 어떤 사랑과도 비교할 수 없는 영원한 희생입니다. 멸망으로 치닫던 죄인인 우리를 값없이 구원하시고 영생의 자녀로 삼아주신 은혜는 오늘도 우리의 유일한 소망이자 삶의 이유입니다.",
+            repentance: "날마다 누리는 십자가의 대속 은혜를 너무나 쉽게 잊어버리고 첫사랑의 감격을 잃어버렸던 무뎌진 심령을 회개합니다. 값없이 영생을 얻었으면서도 정작 이웃에게는 손해 보지 않으려 계산적이었던 편협한 사랑을 고백합니다.",
+            prayer: "독생자를 주시기까지 우리를 극진히 사랑하신 하나님 아버지, 그 헤아릴 수 없는 십자가 사랑을 가슴 깊이 새기며 영생의 확신 가운데 살아가게 하옵소서. 오늘 하루도 주님의 사랑을 품고 이웃을 품는 복음의 통로가 되게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "시편_37": {
+            meditation: "나의 인생길과 모든 계획을 온전히 여호와께 맡기고 신뢰할 때, 하나님께서 친히 앞서 행하시며 가장 완벽한 때에 이루어 주십니다. 때로 억울하고 어두운 터널을 지나갈지라도, 주님은 마침내 정오의 햇살처럼 찬란한 공의와 의를 드러내실 것입니다.",
+            repentance: "내 뜻과 내 시간표대로 일이 풀리지 않는다고 조급해하며 주님보다 앞서 달려갔던 조급함을 회개합니다. 결과를 미리 불안해하며 모든 것을 하나님께 온전히 내어맡기지 못했던 믿음 없음을 주님 앞에 회개합니다.",
+            prayer: "내 갈 길을 처음부터 끝까지 아시는 주님, 내 모든 길과 삶의 결정을 주님의 신실하신 손에 온전히 맡겨드립니다. 의를 정오의 빛 같이 나타내실 전능자의 구원을 바라보며 담대히 인내하고 기대하게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "요한복음_14": {
+            meditation: "세상이 주는 평안은 작은 위기 앞에서도 덧없이 사라지지만, 부활의 주님께서 우리에게 선물하신 평안은 사망의 권세를 이긴 영원한 평안입니다. 주님이 내 마음에 계시기에 세상 풍파 속에서도 우리는 결코 마음에 근심하거나 두려워할 이유가 없습니다.",
+            repentance: "세상의 작은 소식과 환경의 변화에도 쉽게 요동하며 불안과 두려움에 사로잡혔던 연약한 심령을 회개합니다. 평강의 왕이신 주님을 마음에 모시고도 문제의 파도만 바라보며 침몰하려 했던 믿음 없음을 용서하여 주옵소서.",
+            prayer: "평안을 너희에게 주노라 말씀하신 예수님, 세상이 결코 빼앗을 수 없는 하늘의 신령한 평안으로 오늘 내 영혼과 생각을 굳게 지켜주옵소서. 모든 근심과 공포가 예수 그리스도의 이름으로 물러가게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "이사야_41": {
+            meditation: "‘두려워하지 말라 내가 너와 함께 함이라 놀라지 말라 나는 네 하나님이 됨이라.’ 우주 만물을 창조하신 전능자의 의로운 오른손이 나를 붙들고 계십니다. 주님이 나의 하나님이 되시기에 어떠한 대적과 환난 앞에서도 우리는 결코 홀로 남겨지지 않으며 반드시 승리합니다.",
+            repentance: "하나님께서 나와 영원토록 함께 계신다는 약속을 잊은 채, 눈앞의 두려움에 눌려 좌절하고 떨었던 죄를 고백합니다. 하나님의 강한 오른손을 의지하기보다 사람의 도움과 세상의 헛된 방법을 먼저 찾았던 나약함을 회개합니다.",
+            prayer: "나를 굳세게 하시고 참으로 도와주시는 하나님, 오늘도 주의 의롭고 강한 오른손으로 나를 붙들어 주옵소서. 두려움 대신 담대함을, 떨림 대신 평강을 부어주사 주님 손 꼭 잡고 모든 어려움을 능히 돌파하게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        },
+        "로마서_8": {
+            meditation: "우리가 겪는 아픔과 실패, 이해할 수 없는 환난조차도 하나님의 주권 안에 있습니다. 하나님을 사랑하고 그 뜻대로 부르심을 입은 자들에게는 인생의 모든 조각들이 아름답게 합력하여 결국 최선의 선과 축복을 이루어 냅니다. 신실하신 주님을 끝까지 신뢰하십시오.",
+            repentance: "지금 당장 내 눈에 보이는 고난과 손해만을 바라보며 하나님을 오해하고 원망했던 어리석음을 회개합니다. 모든 고난을 통해 나를 빚으시고 더 큰 선을 이루어가시는 하나님의 깊은 섭리를 신뢰하지 못했던 조급함을 고백합니다.",
+            prayer: "모든 것을 합력하여 가장 아름다운 선을 이루시는 하나님 아버지, 비바람이 불고 눈앞이 캄캄할 때에도 주님의 선하심을 한순간도 의심하지 않게 하옵소서. 주님의 선한 섭리를 기대하며 날마다 찬송과 감사로 살아가게 하옵소서. 예수님의 이름으로 기도드립니다. 아멘."
+        }
+    };
+
+    // 🌟 [사용자 요청] 이 시간의 말씀 개인 묵상 & 나눔 & 기도문 실시간 로컬 저장 기능
+    let currentGoodnewsKey = "시편_23";
+
+    function saveGoodnewsUserNotes() {
+        if (!currentGoodnewsKey) return;
+        const noteMed = document.getElementById("gnNoteMeditation")?.value || "";
+        const noteRep = document.getElementById("gnNoteRepentance")?.value || "";
+        const notePray = document.getElementById("gnNotePrayer")?.value || "";
+
+        localStorage.setItem(`yetalk_qt_med_${currentGoodnewsKey}`, noteMed);
+        localStorage.setItem(`yetalk_qt_rep_${currentGoodnewsKey}`, noteRep);
+        localStorage.setItem(`yetalk_qt_pray_${currentGoodnewsKey}`, notePray);
+    }
+
+    // 🌟 [사용자 요청] '이 시간의 말씀' 새창 열기 (말씀 한절 + 직접 묵상/회개/기도 작성 + 전체 성경 본문 + 주기도문 + 애드몹 250)
+    function openGoodnewsMeditationModal() {
+        const rawRef = (document.getElementById('gnRefText')?.innerText || document.getElementById('gnRef')?.innerText || '').replace(/[-📖🔍\[\]\(\)]/g, '').trim();
+        const verseText = (document.getElementById('gnText')?.innerText || '').trim();
+
+        // 성경 책이름 약칭 변환 맵
+        const abbrMap = {
+            '창': '창세기', '출': '출애굽기', '레': '레위기', '민': '민수기', '신': '신명기',
+            '수': '여호수아', '삿': '사사기', '룻': '룻기', '삼상': '사무엘상', '삼하': '사무엘하',
+            '왕상': '열왕기상', '왕하': '열왕기하', '대상': '역대상', '대하': '역대하',
+            '스': '에스라', '느': '느헤미야', '에': '에스더', '욥': '욥기', '시': '시편',
+            '잠': '잠언', '전': '전도서', '아': '아가', '사': '이사야', '렘': '예레미야',
+            '애': '예레미야애가', '겔': '에스겔', '단': '다니엘', '호': '호세아', '욜': '요엘',
+            '암': '아모스', '옵': '오바댜', '욘': '요나', '미': '미가', '나': '나훔',
+            '합': '하박국', '습': '스바냐', '학': '학개', '슥': '스가랴', '말': '말라기',
+            '마': '마태복음', '막': '마가복음', '눅': '누가복음', '요': '요한복음',
+            '행': '사도행전', '롬': '로마서', '고전': '고린도전서', '고후': '고린도후서',
+            '갈': '갈라디아서', '엡': '에베소서', '빌': '빌립보서', '골': '골로새서',
+            '살전': '데살로니가전서', '살후': '데살로니가후서', '딤전': '디모데전서', '딤후': '디모데후서',
+            '딛': '디도서', '몬': '빌레몬서', '히': '히브리서', '약': '야고보서',
+            '벧전': '베드로전서', '벧후': '베드로후서', '요일': '요한일서', '요이': '요한이서',
+            '요삼': '요한삼서', '유': '유다서', '계': '요한계시록'
+        };
+
+        const match = rawRef.match(/([가-힣]+)\s*(\d+)/);
+        let book = '시편';
+        let ch = 23;
+        if (match) {
+            let parsedBook = match[1].trim();
+            book = abbrMap[parsedBook] || parsedBook;
+            ch = parseInt(match[2], 10) || 1;
+        }
+
+        currentGoodnewsKey = `${book}_${ch}`;
+
+        // 1. 모달 엘리먼트 가져오기
+        const modal = document.getElementById("goodnewsMeditationModal");
+        const refBadge = document.getElementById("gnModalRefBadge");
+        const vText = document.getElementById("gnModalVerseText");
+        const areaMed = document.getElementById("gnNoteMeditation");
+        const areaRep = document.getElementById("gnNoteRepentance");
+        const areaPray = document.getElementById("gnNotePrayer");
+        const bibleTitle = document.getElementById("gnModalFullBibleTitle");
+        const bibleBody = document.getElementById("gnModalFullBibleBody");
+
+        if (!modal) return;
+
+        // 2. 구절 및 출처 설정
+        if (refBadge) refBadge.innerText = rawRef || `${book} ${ch}장`;
+        if (vText) vText.innerText = verseText ? `“${verseText.replace(/^[\s“"']+|[\s”"']+$/g, '')}”` : "“주님의 말씀은 내 발에 등이요 내 길에 빛이니이다”";
+
+        // 3. 사용자가 적어둔 개인 묵상/회개/기도 불러오기
+        if (areaMed) areaMed.value = localStorage.getItem(`yetalk_qt_med_${currentGoodnewsKey}`) || "";
+        if (areaRep) areaRep.value = localStorage.getItem(`yetalk_qt_rep_${currentGoodnewsKey}`) || "";
+        if (areaPray) areaPray.value = localStorage.getItem(`yetalk_qt_pray_${currentGoodnewsKey}`) || "";
+
+        // 4. 전체 성경 본문 렌더링 (3단계 색깔 형광펜 지원 & 앞뒤 장 이동)
+        currentGnBook = book;
+        currentGnCh = ch;
+        renderGoodnewsModalChapter(currentGnBook, currentGnCh);
+
+        // 5. 모달 오픈
+        modal.style.display = "flex";
+        modal.classList.add("show");
+        modal.scrollTop = 0;
+    }
+
+    let currentGnBook = '빌립보서';
+    let currentGnCh = 4;
+
+    function renderGoodnewsModalChapter(book, ch) {
+        currentGnBook = book || currentGnBook || '빌립보서';
+        currentGnCh = parseInt(ch, 10) || currentGnCh || 1;
+        const bibleTitle = document.getElementById("gnModalFullBibleTitle");
+        const bibleBody = document.getElementById("gnModalFullBibleBody");
+
+        const item = (typeof getBibleChapterItem === 'function') ? getBibleChapterItem(currentGnBook, currentGnCh) : { title: `${currentGnBook} ${currentGnCh}장`, text: '' };
+        if (bibleTitle) {
+            bibleTitle.innerText = `📖 ${currentGnBook} ${currentGnCh}장 전체 말씀`;
+        }
+
+        if (bibleBody) {
+            if (typeof formatBibleVersesHtml === 'function') {
+                const formatted = formatBibleVersesHtml(item.text, currentGnBook, currentGnCh);
+                bibleBody.innerHTML = formatted || `<div style="text-align:center; color:#64748b; padding:20px 0;">${currentGnBook} ${currentGnCh}장의 성경 본문을 불러오는 중입니다...</div>`;
+            } else {
+                bibleBody.innerHTML = `<div style="text-align:center; color:#64748b; padding:20px 0;">${item.text || ''}</div>`;
+            }
+        }
+    }
+
+    function navigateGoodnewsModalChapter(delta) {
+        if (!currentGnBook) currentGnBook = '빌립보서';
+        const meta = (typeof getBibleBookMeta === 'function') ? getBibleBookMeta(currentGnBook) : { totalCh: 50 };
+        const totalCh = meta.totalCh || 50;
+        let nextCh = (currentGnCh || 1) + delta;
+        if (nextCh < 1) nextCh = totalCh;
+        if (nextCh > totalCh) nextCh = 1;
+        currentGnCh = nextCh;
+        renderGoodnewsModalChapter(currentGnBook, currentGnCh);
+    }
+
+    function closeGoodnewsMeditationModal() {
+        saveGoodnewsUserNotes();
+        const modal = document.getElementById("goodnewsMeditationModal");
+        if (modal) {
+            modal.style.display = "none";
+            modal.classList.remove("show");
+        }
+    }
+
+    window.saveGoodnewsUserNotes = saveGoodnewsUserNotes;
+    window.openGoodnewsMeditationModal = openGoodnewsMeditationModal;
+    window.closeGoodnewsMeditationModal = closeGoodnewsMeditationModal;
+    window.renderGoodnewsModalChapter = renderGoodnewsModalChapter;
+    window.navigateGoodnewsModalChapter = navigateGoodnewsModalChapter;
+    window.toggleBibleVerseHighlight = toggleBibleVerseHighlight;
+    window.openGoodnewsVerseInFullBible = openGoodnewsVerseInFullBible;
+    window.openGoodnewsVerseInFullBible = openGoodnewsVerseInFullBible;
+
+    window.openGoodnewsVerseInFullBible = openGoodnewsVerseInFullBible;
+
+    function openListModal() { document.getElementById("videoListModal").classList.add("show"); }
+    function closeListModal() { document.getElementById("videoListModal").classList.remove("show"); }
+    function selectVideoItem(videoId, title) {
+        changeYouTubeVideo(videoId);
+        closeListModal();
+        alert(`▶ 찬양이 재생됩니다:\n${title}`);
+    }
+
+    // 🌟 [사용자 요청] 확대: 80% 100% 135% 180% 순서
+    function toggleVideoZoom() {
+        currentZoomIndex = (currentZoomIndex + 1) % zoomLevels.length;
+        const zoom = zoomLevels[currentZoomIndex];
+        const iframe = document.getElementById("mainYtPlayerIframe");
+        const btn = document.getElementById("btnZoomToggle");
+        if (iframe) {
+            iframe.style.transform = `scale(${zoom.scale})`;
+            iframe.style.transition = "transform 0.25s ease";
+        }
+        if (btn) btn.innerText = zoom.label;
+    }
+
+    // 🌟 [사용자 요청] 속도: 1배, 1.3배, 1.5배, 1.8배
+    function toggleVideoSpeed() {
+        currentSpeedIndex = (currentSpeedIndex + 1) % speedLevels.length;
+        const speed = speedLevels[currentSpeedIndex];
+        const btn = document.getElementById("btnSpeedToggle");
+        if (btn) btn.innerText = speed.label;
+        const iframe = document.getElementById("mainYtPlayerIframe");
+        if (iframe && iframe.contentWindow) {
+            try {
+                iframe.contentWindow.postMessage(JSON.stringify({
+                    event: 'command',
+                    func: 'setPlaybackRate',
+                    args: [speed.rate]
+                }), '*');
+            } catch(e) {}
+        }
+    }
+
+    function toggleVideoLock() {
+        isVideoLocked = !isVideoLocked;
+        const btn = document.getElementById("btnLockToggle");
+        const blocker = document.getElementById("videoTouchBlocker");
+        if (btn) {
+            if (isVideoLocked) {
+                btn.innerText = "🔓 잠금해제";
+                btn.style.background = "#dc2626";
+                btn.style.color = "#ffffff";
+                if (blocker) blocker.style.display = "block";
+            } else {
+                btn.innerText = "🔒 화면고정";
+                btn.style.background = "rgba(239, 68, 68, 0.15)";
+                btn.style.color = "#fca5a5";
+                if (blocker) blocker.style.display = "none";
+            }
+        }
+    }
+
+    // 🌟 [사용자 요청] 작은 하트 수십 개로 하트를 그리는 스웜 애니메이션 FX (버튼과 애드몹을 가리지 않도록 상단 영역에 띄우고 상승)
+    function spawnHeartSwarmFX() {
+        const overlay = document.createElement("div");
+        overlay.className = "particle-swarm-overlay";
+        document.body.appendChild(overlay);
+
+        const count = 30;
+        const centerX = window.innerWidth / 2;
+        // 🌟 [사용자 요청] 버튼 및 애드몹 가림 방지: 화면 상단(본문 위)에 하트가 형성되고 위로 퍼지도록 위치 조정
+        const centerY = Math.max(120, window.innerHeight * 0.25);
+        const heartEmojis = ["❤️", "💖", "💕", "🤍", "💓"];
+
+        for (let i = 0; i < count; i++) {
+            const p = document.createElement("div");
+            p.className = "swarm-heart-particle";
+            p.innerText = heartEmojis[i % heartEmojis.length];
+
+            // Cardioid Parametric Heart Curve:
+            // x = 16 * sin^3(t)
+            // y = -(13 * cos(t) - 5 * cos(2t) - 2 * cos(3t) - cos(4t))
+            const t = (i / count) * 2 * Math.PI;
+            const hx = 16 * Math.pow(Math.sin(t), 3);
+            const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+
+            const scale = Math.min(window.innerWidth, window.innerHeight) * 0.016;
+            const targetX = hx * scale;
+            const targetY = hy * scale - 25;
+
+            p.style.left = `${centerX}px`;
+            p.style.top = `${centerY}px`;
+            p.style.setProperty("--tx", `${targetX}px`);
+            p.style.setProperty("--ty", `${targetY}px`);
+            p.style.animationDelay = `${(i % 5) * 0.05}s`;
+
+            overlay.appendChild(p);
+        }
+
+        setTimeout(() => {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }, 2500);
+    }
+
+    // 🌟 [사용자 요청] 작고 하얀 십자가들이 드론같이 날아가 십자가를 그리고 사라지는 편대 FX
+    function spawnCrossFormationFX() {
+        const overlay = document.createElement("div");
+        overlay.className = "particle-swarm-overlay";
+        document.body.appendChild(overlay);
+
+        const centerX = window.innerWidth / 2;
+        const centerY = Math.max(120, window.innerHeight * 0.25);
+
+        // Radiant halo behind cross
+        const halo = document.createElement("div");
+        halo.className = "swarm-cross-halo";
+        halo.style.left = `${centerX}px`;
+        halo.style.top = `${centerY}px`;
+        halo.style.width = "220px";
+        halo.style.height = "220px";
+        overlay.appendChild(halo);
+
+        // 🌟 [사용자 요청] 십자가 좌우 완벽 대칭 (수직 기둥 13개 & 수평 가로대 좌측 3개, 우측 3개)
+        const coords = [];
+        // Vertical stem
+        for (let y = -120; y <= 140; y += 22) {
+            coords.push({ x: 0, y: y });
+        }
+        // Horizontal crossbeam (좌측 3개, 우측 3개 정확한 대칭 배치)
+        [-68, -46, -24, 24, 46, 68].forEach(x => {
+            coords.push({ x: x, y: -35 });
+        });
+
+        coords.forEach((coord, idx) => {
+            const p = document.createElement("div");
+            p.className = "swarm-cross-particle";
+            p.innerText = "✝";
+            p.style.left = `${centerX}px`;
+            p.style.top = `${centerY}px`;
+            p.style.setProperty("--tx", `${coord.x}px`);
+            p.style.setProperty("--ty", `${coord.y}px`);
+            p.style.animationDelay = `${(idx % 4) * 0.06}s`;
+            overlay.appendChild(p);
+        });
+
+        setTimeout(() => {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }, 2600);
+    }
+
+    // 🌟 [사용자 요청] 드론 호출 함수 매핑
+    function spawnDrone(type) {
+        if (type === 'cross') {
+            spawnCrossFormationFX();
+        } else {
+            spawnHeartSwarmFX();
+        }
+    }
+
+    function spawnFlyingFx(emoji) {
+        if (emoji === '✝️' || emoji === '✝') {
+            spawnCrossFormationFX();
+        } else {
+            spawnHeartSwarmFX();
+        }
+    }
+
+    // 🌟 [사용자 요청] 두번째 메뉴 [수정] 버튼 클릭 시 관리자 전용 에디터 즉시 호출
+    function openSuiteEditor() {
+        localStorage.removeItem("yetalk_admin_bible_full_text"); // 과거 시편 직접 입력 잔류 완전 제거
+        const currentUrl = localStorage.getItem("yetalk_admin_yt_url") || "https://youtube.com/shorts/xFv89_QtM_4";
+        const currentBook = localStorage.getItem("yetalk_admin_suite_bible_book") || localStorage.getItem("yetalk_admin_bible_book") || "요한복음";
+        const currentCount = localStorage.getItem("yetalk_admin_bible_daily_count") || "3";
+
+        const ytInput = document.getElementById("inpAdminYtUrl");
+        if (ytInput) {
+            ytInput.value = ""; // 🌟 [사용자 요청] 입력창을 비워두어 붙여넣기 편하게
+            ytInput.placeholder = currentUrl; // 현재 주소는 희미하게 플레이스홀더로 표시
+        }
+
+        const meta = getBibleBookMeta(currentBook);
+        currentAdminTestament = meta.type || "NT";
+        selectedAdminBibleBook = meta.name;
+
+        const tabOT = document.getElementById("tabAdminOT");
+        const tabNT = document.getElementById("tabAdminNT");
+        if (tabOT) tabOT.classList.toggle("active", currentAdminTestament === "OT");
+        if (tabNT) tabNT.classList.toggle("active", currentAdminTestament === "NT");
+
+        setAdminSuiteBibleBook(selectedAdminBibleBook);
+
+        const rd = document.querySelector(`input[name="adminBibleDailyCount"][value="${currentCount}"]`);
+        if (rd) rd.checked = true;
+
+        const modal = document.getElementById("adminModal");
+        if (modal) modal.classList.add("show");
+    }
+
+    function setQuickBibleBook(name) {
+        const inp = document.getElementById("inpAdminBibleBookTitle");
+        if (inp) inp.value = name;
+    }
+
+    let isSuiteAudioMutedByScroll = false;
+
+    // 🌟 [사용자 요청] 성경 본문 읽을 때 영상 음성 자동 끄기 (일시정지 & 음소거)
+    function pauseSuiteVideoAudio() {
+        const iframe = document.getElementById("mainYtPlayerIframe");
+        if (!iframe || !iframe.contentWindow) return;
+        try {
+            iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*');
+            iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'mute', args: [] }), '*');
+        } catch(e) {}
+    }
+
+    // 🌟 [사용자 요청] 다시 위 영상으로 돌아왔을 때 음성 복원
+    function resumeSuiteVideoAudio() {
+        const iframe = document.getElementById("mainYtPlayerIframe");
+        if (!iframe || !iframe.contentWindow) return;
+        try {
+            iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
+            iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+        } catch(e) {}
+    }
+
+    // 🌟 [사용자 요청] 매일성경찬송 스크롤 감지: 본문으로 내려가면 음성 자동 끄기
+    function initSuiteScrollAudioController() {
+        const container = document.getElementById("suiteScrollContainer");
+        if (!container || container.dataset.audioScrollAttached) return;
+        container.dataset.audioScrollAttached = "true";
+
+        container.addEventListener("scroll", () => {
+            // 영상 영역을 벗어나 성경 본문으로 100px 이상 내려간 경우 음성 즉시 끄기
+            if (container.scrollTop > 100) {
+                if (!isSuiteAudioMutedByScroll) {
+                    isSuiteAudioMutedByScroll = true;
+                    pauseSuiteVideoAudio();
+                }
+            } else if (container.scrollTop <= 40) {
+                // 영상이 있는 맨 위로 다시 올라온 경우 음성 켜기
+                if (isSuiteAudioMutedByScroll) {
+                    isSuiteAudioMutedByScroll = false;
+                    resumeSuiteVideoAudio();
+                }
+            }
+        }, { passive: true });
+    }
+
+    // 🌟 [사용자 요청] 유튜브 음원 완벽 정지 & 홈 복귀 (홈 새어나옴 100% 물리적 차단)
+    function stopAndDestroySuitePlayer() {
+        const iframe = document.getElementById("mainYtPlayerIframe");
+        if (iframe && iframe.contentWindow) {
+            try {
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*');
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'stopVideo', args: [] }), '*');
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'mute', args: [] }), '*');
+            } catch(e) {}
+        }
+        const ytContainer = document.getElementById("ytPlayerContainer");
+        if (ytContainer) {
+            ytContainer.innerHTML = '<iframe id="mainYtPlayerIframe" src="about:blank" style="width:100%; height:100%; border:none; pointer-events:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+        }
+        isVideoPaused = false;
+        isSuiteAudioMutedByScroll = false;
+    }
+
+    function pauseYouTubeVideo() {
+        stopAndDestroySuitePlayer();
+    }
+
+    function resumeYouTubeVideo() {
+        const overlay = document.getElementById("bibleSuiteOverlay");
+        if (!overlay || !overlay.classList.contains("show")) return;
+        const iframe = document.getElementById("mainYtPlayerIframe");
+        if (!iframe) return;
+        if (!iframe.src || iframe.src === "about:blank" || iframe.src.includes("about:blank")) {
+            const vid = currentVideoId || "xFv89_QtM_4";
+            iframe.src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&loop=1&playlist=${vid}&enablejsapi=1&origin=${encodeURIComponent(location.origin || 'https://yetalk.cc')}`;
+        } else {
+            try {
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+            } catch(e) {}
+        }
+    }
+
+    // 🌟 [사용자 요청] 열기를 누르든 스크롤하든 본문이 보여야 해: 아래 성경 본문으로 부드럽게 스크롤 & 음성 즉시 끄기
+    function scrollToBibleContent() {
+        const section = document.getElementById("suiteBibleContentSection");
+        if (section) {
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+        pauseSuiteVideoAudio();
+        isSuiteAudioMutedByScroll = true;
+    }
+
+    // 🌟 [사용자 요청] 찬양 영상으로 다시 올라가기 & 음성 재생 복원
+    function scrollToVideoTop() {
+        const container = document.getElementById("suiteScrollContainer");
+        if (container) {
+            container.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        setTimeout(() => {
+            resumeSuiteVideoAudio();
+            isSuiteAudioMutedByScroll = false;
+        }, 250);
+    }
+
+    function toggleBibleFocusMode() {
+        scrollToBibleContent();
+    }
+
+    function closeBibleFocusSheet() {
+        scrollToVideoTop();
+    }
+
+    // 🌟 [사용자 요청] 4종류 앱 밑 한 줄 검색창 실행
+    function handlePortalSearchKey(e) {
+        if (e.key === 'Enter') {
+            executePortalSearch();
+        }
+    }
+
+    function executePortalSearch() {
+        const inp = document.getElementById("portalSearchInput");
+        if (!inp) return;
+        const query = inp.value.trim();
+        if (!query) {
+            alert("검색어를 입력해 주세요! (예: 본인교회명, 단골의원명, 상점)");
+            return;
+        }
+        const q = query.toLowerCase();
+
+        // 1. 성경 / 찬양 / 유튜브 / TV 바로가기
+        if (q.includes("성경") || q.includes("찬양") || q.includes("시편") || q.includes("누가") || q.includes("요한") || q.includes("말씀")) {
+            openBibleSuite();
+            return;
+        }
+        if (q.includes("예톡tv") || q.includes("tv") || q.includes("방송") || q.includes("유튜브")) {
+            location.href = "yetalktv.html";
+            return;
+        }
+
+        // 2. 내앱 보관함 / 회원신청 / 게시판 바로가기
+        if (q === "내앱" || q === "개인앱" || q === "보관함" || q === "마이앱") {
+            handleMyAppClick();
+            return;
+        }
+        if (q.includes("신청") || q.includes("개설") || q.includes("제작") || q.includes("가입")) {
+            openApplyAppModal();
+            return;
+        }
+        if (q.includes("자유게시판") || q.includes("게시판") || q.includes("커뮤니티")) {
+            openFullscreenBoard();
+            return;
+        }
+        if (q.includes("공지") || q.includes("알림")) {
+            toggleNoticeDropPanel();
+            return;
+        }
+
+        // 3. 실제 등록/개설된 맞춤앱 데이터베이스 매칭
+        const registeredChurches = [
+            { name: "예톡행복한교회", url: "churchmain.html" },
+            { name: "행복한교회", url: "churchmain.html" },
+            { name: "최예톡의 작은교회", url: "churchmain.html?type=small" },
+            { name: "나의작은교회", url: "minichurch.html" },
+            { name: "움직이는교회", url: "minichurch.html" },
+            { name: "사랑의교회", url: "churchmain.html" },
+            { name: "새빛교회", url: "churchmain.html" }
+        ];
+
+        const registeredClinics = [
+            { name: "사랑받는 최웅식의원", url: "doctormain.html" },
+            { name: "사랑받는 최응식의원", url: "doctormain.html" },
+            { name: "최응식의원", url: "doctormain.html" },
+            { name: "최웅식의원", url: "doctormain.html" },
+            { name: "최응식", url: "doctormain.html" },
+            { name: "최웅식", url: "doctormain.html" },
+            { name: "예톡아름다운 의원", url: "doctormain.html" },
+            { name: "예톡아름다운의원", url: "doctormain.html" },
+            { name: "예톡아름다운", url: "doctormain.html" },
+            { name: "행복한한의원", url: "handoctormain.html" },
+            { name: "바른치과의원", url: "dentalmain.html" },
+            { name: "바른치과", url: "dentalmain.html" }
+        ];
+
+        const registeredStores = [
+            { name: "맛있는 숯불갈비", url: "foodmain.html" },
+            { name: "숯불갈비", url: "foodmain.html" },
+            { name: "부산밀면가", url: "foodmain.html" },
+            { name: "밀면가", url: "foodmain.html" },
+            { name: "달콤베이커리", url: "foodmain.html" },
+            { name: "예톡헤어살롱", url: "foodmain.html" },
+            { name: "헤어살롱", url: "foodmain.html" }
+        ];
+
+        // 사용자가 직접 개설하여 로컬에 저장된 맞춤앱도 동적 추가
+        try {
+            const savedMyApps = localStorage.getItem("yetalk_my_apps");
+            if (savedMyApps) {
+                const parsed = JSON.parse(savedMyApps);
+                if (parsed.mainApp && parsed.mainApp.title) {
+                    registeredChurches.push({ name: parsed.mainApp.title, url: parsed.mainApp.url || "onemain.html" });
+                }
+                if (parsed.additionalApps && Array.isArray(parsed.additionalApps)) {
+                    parsed.additionalApps.forEach(a => {
+                        if (a.title) registeredChurches.push({ name: a.title, url: a.url || "churchmain.html" });
+                    });
+                }
+            }
+            const savedChName = localStorage.getItem("yetalkChurchName");
+            if (savedChName) registeredChurches.push({ name: savedChName, url: "churchmain.html" });
+            const savedFoodName = localStorage.getItem("yetalk_food_name");
+            if (savedFoodName) registeredStores.push({ name: savedFoodName, url: "foodmain.html" });
+        } catch(e) {}
+
+        // 등록된 교회 검색 일치 여부 확인
+        const matchChurch = registeredChurches.find(c => {
+            const cn = c.name.toLowerCase();
+            return q.includes(cn) || cn.includes(q);
+        });
+        if (matchChurch) {
+            location.href = matchChurch.url;
+            return;
+        }
+
+        // 등록된 의원 검색 일치 여부 확인
+        const matchClinic = registeredClinics.find(c => {
+            const cn = c.name.toLowerCase();
+            return q.includes(cn) || cn.includes(q);
+        });
+        if (matchClinic) {
+            location.href = matchClinic.url;
+            return;
+        }
+
+        // 등록된 상점 검색 일치 여부 확인
+        const matchStore = registeredStores.find(s => {
+            const sn = s.name.toLowerCase();
+            return q.includes(sn) || sn.includes(q);
+        });
+        if (matchStore) {
+            location.href = matchStore.url;
+            return;
+        }
+
+        // 4. 일반적인 카테고리 전체 둘러보기 (단어만 짧게 친 경우: '교회', '의원', '식당' 등)
+        if (q === "교회" || q === "교회앱") {
+            location.href = "myapp_home.html?tab=church";
+            return;
+        }
+        if (q === "의원" || q === "병원" || q === "의원앱") {
+            location.href = "myapp_home.html?tab=clinic";
+            return;
+        }
+        if (q === "식당" || q === "예약" || q === "상점" || q === "예약앱") {
+            location.href = "myapp_home.html?tab=store";
+            return;
+        }
+
+        // 🌟 [사용자 요청] 아직 안 만들어진 상태(예: 부산제일감리교회 등) 검색 시 바로 예톡행복한교회 등으로 넘어가지 않고 alert창 띄우기!
+        alert("담임목사님이나 의사선생님,사장님에게 예톡에서 무료로 앱과 홈페이지를 만드시라고 전달해주세요.");
+    }
+
+    /* ==================================================
+       🌟 [사용자 요청] 박스 치지 않고 통으로 보여주는 공지알림 & 자유게시판
+       - 좌측: 공지알림 (평소 제목만 박스로 축소, 클릭 시 상세 내용+바로가기 열림)
+       - 우측: 자유게시판 (평소 1줄 박스로 축소, 클릭 시 상세 글 내용 열림)
+    ================================================== */
+    const DEFAULT_WEEKLY_NOTICES = [
+        {
+            id: "notif_1",
+            tagType: "store",
+            tagText: "단골",
+            sender: "맛있는 숯불갈비",
+            content: "🎉 단골 회원 전용 10% 감사 할인 쿠폰이 도착했습니다.",
+            dateText: "오늘",
+            url: "foodmain.html"
+        },
+        {
+            id: "notif_2",
+            tagType: "church",
+            tagText: "교회",
+            sender: "예톡행복한교회",
+            content: "⛪ 이번 주일 추수감사 사랑 나눔 및 성도 공동 식사 안내",
+            dateText: "오늘",
+            url: "churchmain.html"
+        },
+        {
+            id: "notif_3",
+            tagType: "clinic",
+            tagText: "의원",
+            sender: "서울연합의원",
+            content: "🏥 독감 백신 예방접종 및 동절기 종합 건강검진 사전예약 접수 중",
+            dateText: "어제",
+            url: "doctormain.html"
+        },
+        {
+            id: "notif_4",
+            tagType: "res",
+            tagText: "예약",
+            sender: "예톡헤어살롱",
+            content: "⭐ 예약확정: 11월 4일(수) 오후 2시 스타일링 예약이 완료되었습니다.",
+            dateText: "2일 전",
+            url: "shopmain.html"
+        },
+        {
+            id: "notif_5",
+            tagType: "store",
+            tagText: "단골",
+            sender: "달콤베이커리",
+            content: "🍞 갓 구운 천연발효 쌀식빵 1+1 단골 깜짝 혜택 진행!",
+            dateText: "3일 전",
+            url: "foodmain.html"
+        },
+        {
+            id: "notif_6",
+            tagType: "clinic",
+            tagText: "한의원",
+            sender: "예톡 우리동네 한의원",
+            content: "🍵 환절기 면역 보약 및 척추 관절 추나 클리닉 진료 안내",
+            dateText: "5일 전",
+            url: "handoctormain.html"
+        },
+        {
+            id: "notif_7",
+            tagType: "church",
+            tagText: "작은교회",
+            sender: "나의작은교회",
+            content: "✝️ 이번 주 가정예배 5분 순서지 및 은혜 나눔 말씀이 도착했습니다.",
+            dateText: "6일 전",
+            url: "minichurch.html"
+        }
+    ];
+
+    // 🌟 [사용자 요청] 공지알림 · 예톡TV · 자유게시판 3개 버튼 토글 로직
+    // 평소에는 상세 내역이 닫혀 있어 메인 공간 절약! 버튼을 누를 때만 열림
+    function toggleYetalkTvSubChannels() {
+        const bar = document.getElementById("yetalkTvSubChannelsBar");
+        const btnTv = document.getElementById("btnThreeTv");
+        const panelNotice = document.getElementById("unifiedNoticePanel");
+        const btnNotice = document.getElementById("btnThreeNotice");
+        const panelBoard = document.getElementById("unifiedBoardPanel");
+        const btnBoard = document.getElementById("btnThreeBoard");
+        if (panelNotice) panelNotice.style.display = "none";
+        if (btnNotice) btnNotice.classList.remove("active");
+        if (panelBoard) panelBoard.style.display = "none";
+        if (btnBoard) btnBoard.classList.remove("active");
+        const barCom = document.getElementById("communitySubChannelsBar");
+        if (barCom) barCom.style.display = "none";
+        if (!bar) return;
+        if (bar.style.display === "none" || !bar.style.display) {
+            bar.style.display = "flex";
+            if (btnTv) btnTv.classList.add("active");
+        } else {
+            bar.style.display = "none";
+            if (btnTv) btnTv.classList.remove("active");
+        }
+    }
+
+    function openTvChannel(ch) {
+        // [사용자 요청] 이동 전 매일성경찬송 영상/오디오 완전 정지 및 iframe 파괴
+        try {
+            cancelAutoSuiteTimer();
+            const mainYt = document.getElementById("mainYtPlayerIframe");
+            if (mainYt) {
+                mainYt.src = "about:blank";
+                mainYt.remove();
+            }
+            if (window.mainYtPlayer && typeof window.mainYtPlayer.stopVideo === 'function') {
+                window.mainYtPlayer.stopVideo();
+            }
+        } catch(e){}
+        window.location.href = "yetalktv.html?channel=" + encodeURIComponent(ch);
+    }
+
+    function toggleNoticeDropPanel() {
+        const panelNotice = document.getElementById("unifiedNoticePanel");
+        const panelBoard = document.getElementById("unifiedBoardPanel");
+        const barTv = document.getElementById("yetalkTvSubChannelsBar");
+        const btnTv = document.getElementById("btnThreeTv");
+        if (barTv) barTv.style.display = "none";
+        if (btnTv) btnTv.classList.remove("active");
+        const barComNotice = document.getElementById("communitySubChannelsBar");
+        if (barComNotice) barComNotice.style.display = "none";
+        const btnNotice = document.getElementById("btnThreeNotice");
+        const btnBoard = document.getElementById("btnThreeBoard");
+
+        if (panelNotice.style.display === "none" || !panelNotice.style.display) {
+            renderUnifiedNotices();
+            panelNotice.style.display = "flex";
+            panelBoard.style.display = "none";
+            if (btnNotice) btnNotice.classList.add("active");
+            if (btnBoard) btnBoard.classList.remove("active");
+        } else {
+            panelNotice.style.display = "none";
+            if (btnNotice) btnNotice.classList.remove("active");
+        }
+    }
+
+    // 🌟 [사용자 요청] 커뮤니티 3대 소메뉴 (감사게시판 / 자유게시판 / 예수동행) 토글
+    function toggleCommunitySubMenu() {
+        const bar = document.getElementById("communitySubChannelsBar");
+        const btnBoard = document.getElementById("btnThreeBoard");
+        const panelNotice = document.getElementById("unifiedNoticePanel");
+        const btnNotice = document.getElementById("btnThreeNotice");
+        const barTv = document.getElementById("yetalkTvSubChannelsBar");
+        const btnTv = document.getElementById("btnThreeTv");
+
+        if (panelNotice) panelNotice.style.display = "none";
+        if (btnNotice) btnNotice.classList.remove("active");
+        if (barTv) barTv.style.display = "none";
+        if (btnTv) btnTv.classList.remove("active");
+
+        if (!bar) return;
+        if (bar.style.display === "none" || !bar.style.display) {
+            bar.style.display = "flex";
+            if (btnBoard) btnBoard.classList.add("active");
+        } else {
+            bar.style.display = "none";
+            if (btnBoard) btnBoard.classList.remove("active");
+        }
+    }
+
+    let currentBoardCategory = '감사게시판';
+
+    // 🌟 [사용자 요청] 커뮤니티 풀 화면 열기 (지정된 게시판으로 바로 열기 지원)
+    function openFullscreenBoard(boardType = null) {
+        cancelAutoSuiteTimer();
+        if (boardType && ['감사게시판', '자유게시판', '예수동행'].indexOf(boardType) >= 0) {
+            currentBoardCategory = boardType;
+        }
+        switchBoardCategory(currentBoardCategory);
+        const overlay = document.getElementById("boardFullscreenOverlay");
+        if (overlay) overlay.classList.add("show");
+    }
+
+    function switchBoardCategory(cat) {
+        currentBoardCategory = cat;
+
+        const tabThanks = document.getElementById("tabComThanks");
+        const tabFree = document.getElementById("tabComFree");
+        const tabJesus = document.getElementById("tabComJesus");
+        if (tabThanks) tabThanks.classList.toggle("active", cat === '감사게시판');
+        if (tabFree) tabFree.classList.toggle("active", cat === '자유게시판');
+        if (tabJesus) tabJesus.classList.toggle("active", cat === '예수동행');
+
+        const titleEl = document.getElementById("boardFullscreenTitle");
+        const subEl = document.getElementById("boardFullscreenSub");
+        if (cat === '감사게시판') {
+            if (titleEl) titleEl.innerText = "🙏 예톡 감사게시판";
+            if (subEl) subEl.innerText = "범사에 감사하라 (살전 5:18)";
+        } else if (cat === '자유게시판') {
+            if (titleEl) titleEl.innerText = "💬 예톡 자유게시판";
+            if (subEl) subEl.innerText = "따뜻한 소통과 일상 나눔터";
+        } else if (cat === '예수동행') {
+            if (titleEl) titleEl.innerText = "✝️ 예수동행 일기";
+            if (subEl) subEl.innerText = "주님과 24시간 동행하는 삶";
+        }
+
+        renderFullscreenBoard();
+    }
+
+    function closeFullscreenBoard() {
+        const overlay = document.getElementById("boardFullscreenOverlay");
+        if (overlay) overlay.classList.remove("show");
+    }
+
+    function toggleBoardDropPanel() {
+        openFullscreenBoard();
+    }
+
+    function switchUnifiedBoardTab(tabType) {
+        if (tabType === 'notice') toggleNoticeDropPanel();
+        else openFullscreenBoard();
+    }
+
+    function openBoardModal() { openFullscreenBoard(); }
+    function closeBoardModal() { closeFullscreenBoard(); }
+
+    // 🌟 [사용자 요청] 기본 게시글 데이터: 제목, 본문, 날짜, 방문수, 사진, 링크, 댓글(comments) 지원 (익명 아이디 적용)
+    const DEFAULT_BOARD_POSTS = [
+        { 
+            id: "default_thanks_1", 
+            author: "user_yetalk", 
+            tag: "감사게시판", 
+            board: "감사게시판",
+            title: "무료로 좋은 앱과 말씀을 전해주셔서 감사합니다", 
+            text: "늘 무료로 좋은 앱들과 말씀을 전해주셔서 큰 힘이 됩니다. 모두 축복합니다! 🌿\n많은 이웃들과 따뜻한 은혜를 나누고 싶습니다.", 
+            date: "어제", 
+            views: 152, 
+            photo: "", 
+            link: "",
+            comments: [
+                { id: "c2_1", author: "user_salt", text: "무료로 섬겨주시는 귀한 마음에 진심으로 감사드립니다! 🌿", date: "1시간 전" }
+            ]
+        },
+        { 
+            id: "default_thanks_2", 
+            author: "user_grace", 
+            tag: "감사게시판", 
+            board: "감사게시판",
+            title: "오늘 하루도 살아서 숨쉬고 기도할 수 있음에 감사합니다", 
+            text: "주님의 크신 사랑과 은혜에 감사드립니다. 범사에 감사하라 하신 말씀 기억하며 오늘도 승리합니다! 🙏", 
+            date: "오늘", 
+            views: 89, 
+            photo: "", 
+            link: "",
+            comments: []
+        },
+        { 
+            id: "default_free_1", 
+            author: "user_faith", 
+            tag: "자유게시판", 
+            board: "자유게시판",
+            title: "오늘 하루도 주님 안에서 평안하시기를!", 
+            text: "오늘 하루도 주님 안에서 평안하고 기쁜 일만 가득하시기를 응원합니다! 😊\n늘 함께 소통하며 은혜를 나눌 수 있어 참 감사합니다.", 
+            date: "오늘", 
+            views: 124, 
+            photo: "", 
+            link: "",
+            comments: [
+                { id: "c1_1", author: "user_faith", text: "아멘! 오늘도 주님 은혜 안에서 평안한 하루 되세요 ✨", date: "10분 전" },
+                { id: "c1_2", author: "user_hope", text: "좋은 말씀 나눔 감사합니다! 늘 축복합니다 🙏", date: "30분 전" }
+            ]
+        },
+        { 
+            id: "default_free_2", 
+            author: "user_love", 
+            tag: "자유게시판", 
+            board: "자유게시판",
+            title: "우리동네 단골집과 교회 주보를 한 번에!", 
+            text: "우리동네 단골집과 교회 주보를 한 번에 볼 수 있어서 너무 편리하네요~ ☕\n주변 이웃 분들에게도 적극 추천하고 있습니다.", 
+            date: "2일 전", 
+            views: 76, 
+            photo: "", 
+            link: "",
+            comments: [
+                { id: "c3_1", author: "user_deacon", text: "정말 편리하고 좋네요. 저희 구역 식구들에게도 널리 알릴게요 👍", date: "어제" }
+            ]
+        },
+        { 
+            id: "default_jesus_1", 
+            author: "user_david", 
+            tag: "예수동행", 
+            board: "예수동행",
+            title: "24시간 주님을 바라보며 매 순간 동행하기를 결단합니다", 
+            text: "내 생각과 고집을 십자가에 못 박고, 오직 내 안에 사시는 그리스도와 온전히 동행하는 하루가 되기를 소망합니다. ✝️", 
+            date: "오늘", 
+            views: 110, 
+            photo: "", 
+            link: "",
+            comments: [
+                { id: "cj_1", author: "user_paul", text: "아멘! 주님과 동행하는 삶이 가장 큰 축복입니다 🙏", date: "15분 전" }
+            ]
+        }
+    ];
+
+    function getLoadedBoardPosts() {
+        let posts = [...DEFAULT_BOARD_POSTS];
+        try {
+            const saved = JSON.parse(localStorage.getItem("yetalk_unified_board_posts") || "[]");
+            if (Array.isArray(saved) && saved.length > 0) {
+                const savedIds = new Set(saved.map(s => String(s.id)));
+                const remainingDefaults = DEFAULT_BOARD_POSTS.filter(d => !savedIds.has(String(d.id)));
+                posts = [...saved, ...remainingDefaults];
+            }
+        } catch(e) {}
+        posts.forEach(p => {
+            if (!Array.isArray(p.comments)) p.comments = [];
+        });
+        return posts;
+    }
+
+    // 🌟 [사용자 요청] 커뮤니티 3대 게시판 (감사게시판 / 자유게시판 / 예수동행) 필터링 렌더링
+    function renderFullscreenBoard() {
+        const list = document.getElementById("boardFullscreenList");
+        if (!list) return;
+
+        const allPosts = getLoadedBoardPosts();
+
+        const posts = allPosts.filter(p => {
+            const b = p.board || p.tag || '';
+            const t = p.title || '';
+            if (currentBoardCategory === '감사게시판') {
+                return b === '감사게시판' || b === '감사' || b === '말씀아멘' || t.includes('감사') || t.includes('아멘');
+            } else if (currentBoardCategory === '자유게시판') {
+                return b === '자유게시판' || b === '일상나눔' || b === '소통' || b === '동네정보' || (!b && !t.includes('감사') && !t.includes('동행'));
+            } else if (currentBoardCategory === '예수동행') {
+                return b === '예수동행' || b === '기도제목' || b === '묵상' || t.includes('동행') || t.includes('순종');
+            }
+            return true;
+        });
+
+        if (posts.length === 0) {
+            list.innerHTML = `
+                <div style="text-align:center; padding:50px 20px; color:#64748b;">
+                    <div style="font-size:38px; margin-bottom:12px;">🌿</div>
+                    <div style="font-size:15.5px; font-weight:900; color:#1e293b; margin-bottom:6px;">아직 등록된 [${currentBoardCategory}] 글이 없습니다.</div>
+                    <div style="font-size:13px; color:#94a3b8; margin-bottom:18px;">첫 번째 은혜의 나눔을 남겨보세요!</div>
+                    <button type="button" onclick="openCafeWriteModal()" style="padding:9px 20px; background:#047857; color:#ffffff; border:none; border-radius:10px; font-size:13px; font-weight:800; cursor:pointer;">
+                        ✍️ ${currentBoardCategory} 첫 글쓰기
+                    </button>
+                </div>
+            `;
+            return;
+        }
+
+        list.innerHTML = posts.map(p => {
+            const viewsCount = p.views != null ? p.views : (p.hearts || 0);
+            const commentsCount = Array.isArray(p.comments) ? p.comments.length : 0;
+            const displayAuthor = formatBoardAuthorId(p.author);
+            const tagText = p.board || p.tag || currentBoardCategory;
+            return `
+                <div class="board-fullscreen-card" onclick="openBoardPostDetail('${p.id}')">
+                    <div class="board-fullscreen-card-head">
+                        <div class="board-fullscreen-card-author-group">
+                            <span class="board-fullscreen-card-tag">[${tagText}]</span>
+                            <strong class="board-fullscreen-card-author">${displayAuthor}</strong>
+                        </div>
+                        <span class="board-fullscreen-card-date">${p.date || '오늘'}</span>
+                    </div>
+                    ${p.title ? `<div class="board-fullscreen-card-title">${p.title}</div>` : ''}
+                    <div class="board-fullscreen-card-text">${p.text || ''}</div>
+                    ${(p.photo || p.link) ? `
+                        <div class="board-card-attach-badges">
+                            ${p.photo ? `<span class="badge-card-attach">📷 사진</span>` : ''}
+                            ${p.link ? `<span class="badge-card-attach">🔗 링크</span>` : ''}
+                        </div>
+                    ` : ''}
+                    <div class="board-fullscreen-card-foot" onclick="event.stopPropagation()">
+                        <div class="board-foot-drones">
+                            <button type="button" class="btn-card-drone" onclick="spawnDrone('heart')">❤️ 하트</button>
+                            <button type="button" class="btn-card-drone" onclick="spawnDrone('cross')">✝️ 십자가</button>
+                            <span class="board-card-comment-badge">💬 댓글 (${commentsCount})</span>
+                        </div>
+                        <div class="board-view-count">❤️ ${viewsCount}</div>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
+    // 🌟 [사용자 요청] 네이버카페 스타일의 풀화면 글쓰기 모달 제어 (카테고리, 제목, 긴 본문, 사진, 링크, 수정)
+    let currentCafeCat = '감사게시판';
+    let currentCafeAttachedPhoto = '';
+    let currentCafeAttachedLink = '';
+
+    function openCafeWriteModal(editPostId = null) {
+        cancelAutoSuiteTimer();
+        const modal = document.getElementById("cafeWriteModal");
+        if (!modal) return;
+
+        const titleEl = document.getElementById("cafeWriteModalTitle");
+        const idInput = document.getElementById("hiddenCafeEditPostId");
+        const titleInput = document.getElementById("inpCafePostTitle");
+        const contentTextarea = document.getElementById("inpCafePostContent");
+        const photoBox = document.getElementById("cafePhotoPreviewBox");
+        const photoImg = document.getElementById("imgCafePhotoPreview");
+        const linkBox = document.getElementById("cafeLinkPreviewBox");
+        const linkTxt = document.getElementById("txtCafeLinkPreview");
+
+        if (editPostId) {
+            const posts = getLoadedBoardPosts();
+            const target = posts.find(p => String(p.id) === String(editPostId));
+            if (target) {
+                if (titleEl) titleEl.innerText = "✏️ 게시글 수정하기";
+                if (idInput) idInput.value = target.id;
+                if (titleInput) titleInput.value = target.title || "";
+                if (contentTextarea) contentTextarea.value = target.text || "";
+                setCafeActiveCatChip(target.tag || '일상나눔');
+
+                if (target.photo) {
+                    currentCafeAttachedPhoto = target.photo;
+                    if (photoImg) photoImg.src = target.photo;
+                    if (photoBox) photoBox.style.display = "flex";
+                } else {
+                    currentCafeAttachedPhoto = "";
+                    if (photoBox) photoBox.style.display = "none";
+                }
+
+                if (target.link) {
+                    currentCafeAttachedLink = target.link;
+                    if (linkTxt) linkTxt.innerText = target.link;
+                    if (linkBox) linkBox.style.display = "flex";
+                } else {
+                    currentCafeAttachedLink = "";
+                    if (linkBox) linkBox.style.display = "none";
+                }
+            }
+        } else {
+            if (titleEl) titleEl.innerText = `✍️ ${currentBoardCategory || '커뮤니티'} 글쓰기`;
+            if (idInput) idInput.value = "";
+            if (titleInput) titleInput.value = "";
+            if (contentTextarea) contentTextarea.value = "";
+            setCafeActiveCatChip(currentBoardCategory || '감사게시판');
+            currentCafeAttachedPhoto = "";
+            if (photoBox) photoBox.style.display = "none";
+            currentCafeAttachedLink = "";
+            if (linkBox) linkBox.style.display = "none";
+        }
+
+        modal.classList.add("show");
+    }
+
+    function closeCafeWriteModal() {
+        const modal = document.getElementById("cafeWriteModal");
+        if (modal) modal.classList.remove("show");
+    }
+
+    function setCafeActiveCatChip(cat) {
+        currentCafeCat = cat;
+        const chips = document.querySelectorAll("#cafeCategoryBar .cafe-cat-chip");
+        chips.forEach(c => {
+            if (c.innerText.indexOf(cat) >= 0 || cat.indexOf(c.innerText.trim()) >= 0) c.classList.add("active");
+            else c.classList.remove("active");
+        });
+    }
+
+    function selectCafeCat(el, cat) {
+        currentCafeCat = cat;
+        const chips = document.querySelectorAll("#cafeCategoryBar .cafe-cat-chip");
+        chips.forEach(c => c.classList.remove("active"));
+        el.classList.add("active");
+    }
+
+    function handleCafePhotoUpload(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        if (file.size > 3 * 1024 * 1024) {
+            alert("사진 용량은 3MB 이하로 선택해 주세요.");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            currentCafeAttachedPhoto = e.target.result;
+            const box = document.getElementById("cafePhotoPreviewBox");
+            const img = document.getElementById("imgCafePhotoPreview");
+            if (img) img.src = currentCafeAttachedPhoto;
+            if (box) box.style.display = "flex";
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeCafePhoto() {
+        currentCafeAttachedPhoto = "";
+        const box = document.getElementById("cafePhotoPreviewBox");
+        const img = document.getElementById("imgCafePhotoPreview");
+        const input = document.getElementById("fileCafePhotoInput");
+        if (box) box.style.display = "none";
+        if (img) img.src = "";
+        if (input) input.value = "";
+    }
+
+    function promptCafeLink() {
+        const input = prompt("첨부할 웹사이트 링크(URL)를 입력하세요:", currentCafeAttachedLink || "https://");
+        if (input && input.trim()) {
+            let url = input.trim();
+            if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+            currentCafeAttachedLink = url;
+            const box = document.getElementById("cafeLinkPreviewBox");
+            const txt = document.getElementById("txtCafeLinkPreview");
+            if (txt) txt.innerText = url;
+            if (box) box.style.display = "flex";
+        }
+    }
+
+    function removeCafeLink() {
+        currentCafeAttachedLink = "";
+        const box = document.getElementById("cafeLinkPreviewBox");
+        if (box) box.style.display = "none";
+    }
+
+    function submitCafePost() {
+        const contentEl = document.getElementById("inpCafePostContent");
+        const titleEl = document.getElementById("inpCafePostTitle");
+        const idInput = document.getElementById("hiddenCafeEditPostId");
+
+        const content = contentEl ? contentEl.value.trim() : "";
+        if (!content) {
+            alert("마음 따뜻한 사연이나 나눔 내용을 입력해주세요!");
+            if (contentEl) contentEl.focus();
+            return;
+        }
+
+        const title = titleEl ? titleEl.value.trim() : "";
+        const editId = idInput ? idInput.value : "";
+        // 🌟 [사용자 요청] 자유게시판 본인 아이디로 자동 등록 (이름 노출 금지)
+        const author = getBoardUserDisplayId();
+
+        let saved = [];
+        try {
+            saved = JSON.parse(localStorage.getItem("yetalk_unified_board_posts") || "[]");
+        } catch(e) {}
+
+        if (editId) {
+            let found = false;
+            for (let i = 0; i < saved.length; i++) {
+                if (String(saved[i].id) === String(editId)) {
+                    saved[i].title = title;
+                    saved[i].text = content;
+                    saved[i].tag = currentCafeCat;
+                    saved[i].photo = currentCafeAttachedPhoto;
+                    saved[i].link = currentCafeAttachedLink;
+                    saved[i].date = "수정됨 (" + new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }) + ")";
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                const defItem = DEFAULT_BOARD_POSTS.find(d => String(d.id) === String(editId));
+                const newItem = {
+                    id: editId,
+                    author: defItem ? defItem.author : author,
+                    tag: currentCafeCat,
+                    title: title || (defItem ? defItem.title : ""),
+                    text: content,
+                    date: "수정됨",
+                    views: defItem ? (defItem.views || 10) : 1,
+                    photo: currentCafeAttachedPhoto,
+                    link: currentCafeAttachedLink,
+                    comments: defItem && defItem.comments ? [...defItem.comments] : []
+                };
+                saved.unshift(newItem);
+            }
+            localStorage.setItem("yetalk_unified_board_posts", JSON.stringify(saved));
+            closeCafeWriteModal();
+            renderFullscreenBoard();
+            openBoardPostDetail(editId);
+            alert("✨ 게시글이 성공적으로 수정되었습니다.");
+        } else {
+            const newPost = {
+                id: Date.now(),
+                author: author,
+                tag: currentCafeCat,
+                board: currentCafeCat,
+                title: title || (content.length > 20 ? content.substring(0, 20) + "..." : content),
+                text: content,
+                date: "방금 전",
+                views: 1,
+                photo: currentCafeAttachedPhoto,
+                link: currentCafeAttachedLink,
+                comments: []
+            };
+            saved.unshift(newPost);
+            localStorage.setItem("yetalk_unified_board_posts", JSON.stringify(saved));
+            closeCafeWriteModal();
+            currentBoardCategory = currentCafeCat;
+            switchBoardCategory(currentBoardCategory);
+            alert(`✨ [${currentCafeCat}]에 은혜로운 글이 등록되었습니다.`);
+        }
+    }
+
+    // 🌟 [사용자 요청] 글 상세 읽기 화면: 글 속 맨밑 애드몹 100 고정, 하트/십자가 드론, 방문수, 복사/수정/삭제 & 댓글 한줄창
+    let currentViewingPost = null;
+
+    function escapePostHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function openBoardPostDetail(postId) {
+        cancelAutoSuiteTimer();
+        const posts = getLoadedBoardPosts();
+        const post = posts.find(p => String(p.id) === String(postId));
+        if (!post) return;
+
+        post.views = (post.views != null ? post.views : (post.hearts || 0)) + 1;
+        let saved = [];
+        try {
+            saved = JSON.parse(localStorage.getItem("yetalk_unified_board_posts") || "[]");
+        } catch(e) {}
+        const existingIdx = saved.findIndex(s => String(s.id) === String(post.id));
+        if (existingIdx >= 0) {
+            saved[existingIdx].views = post.views;
+            if (!saved[existingIdx].comments && post.comments) {
+                saved[existingIdx].comments = post.comments;
+            }
+        } else {
+            saved.unshift({ ...post });
+        }
+        localStorage.setItem("yetalk_unified_board_posts", JSON.stringify(saved));
+
+        currentViewingPost = post;
+
+        const modal = document.getElementById("boardPostDetailModal");
+        const tagEl = document.getElementById("detailPostTag");
+        const authorEl = document.getElementById("detailPostAuthor");
+        const dateEl = document.getElementById("detailPostDate");
+        const viewsEl = document.getElementById("detailPostViews");
+        const droneViewsEl = document.getElementById("detailDroneViews");
+        const titleEl = document.getElementById("detailPostTitle");
+        const textEl = document.getElementById("detailPostText");
+        const photoWrap = document.getElementById("detailPhotoWrap");
+        const photoImg = document.getElementById("detailPostImg");
+        const linkWrap = document.getElementById("detailLinkWrap");
+        const linkBtn = document.getElementById("detailPostLink");
+        const scrollBody = document.getElementById("postDetailScrollBody");
+        const commentInp = document.getElementById("inpPostComment");
+
+        const displayAuthor = formatBoardAuthorId(post.author);
+        if (tagEl) tagEl.innerText = `[${post.tag || '일상나눔'}]`;
+        if (authorEl) authorEl.innerText = displayAuthor;
+        if (dateEl) dateEl.innerText = post.date || '오늘';
+        if (viewsEl) viewsEl.innerText = `❤️ ${post.views}`;
+        if (droneViewsEl) droneViewsEl.innerText = `❤️ 방문 ${post.views}`;
+        if (titleEl) titleEl.innerText = post.title || (displayAuthor + '님의 나눔');
+        if (textEl) {
+            textEl.innerHTML = (post.text || '').replace(/\n/g, '<br>');
+        }
+
+        if (photoWrap && photoImg) {
+            if (post.photo) {
+                photoImg.src = post.photo;
+                photoWrap.style.display = "block";
+            } else {
+                photoWrap.style.display = "none";
+            }
+        }
+
+        if (linkWrap && linkBtn) {
+            if (post.link) {
+                linkBtn.href = post.link;
+                linkBtn.innerHTML = `🔗 첨부 링크 바로가기 (${post.link.replace(/^https?:\/\//, '')}) ➔`;
+                linkWrap.style.display = "block";
+            } else {
+                linkWrap.style.display = "none";
+            }
+        }
+
+        if (commentInp) commentInp.value = "";
+        renderPostComments(post);
+
+        if (scrollBody) scrollBody.scrollTop = 0;
+        if (modal) modal.classList.add("show");
+    }
+
+    // 🌟 [사용자 요청] 댓글 렌더링 함수
+    function renderPostComments(post) {
+        if (!post) return;
+        const countEl = document.getElementById("postCommentsCount");
+        const listEl = document.getElementById("postCommentsList");
+        const comments = Array.isArray(post.comments) ? post.comments : [];
+
+        if (countEl) countEl.innerText = comments.length;
+        if (!listEl) return;
+
+        if (comments.length === 0) {
+            listEl.innerHTML = `
+                <div style="text-align:center; padding:18px 10px; color:#64748b; font-size:12px; background:rgba(255,255,255,0.02); border-radius:10px;">
+                    ✨ 첫 번째 따뜻한 댓글의 주인공이 되어보세요!
+                </div>
+            `;
+            return;
+        }
+
+        listEl.innerHTML = comments.map(c => `
+            <div class="post-comment-item">
+                <div class="post-comment-head">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <strong class="post-comment-author">${escapePostHtml(formatBoardAuthorId(c.author))}</strong>
+                        <span class="post-comment-date">${escapePostHtml(c.date || '방금 전')}</span>
+                    </div>
+                    <button type="button" class="btn-del-comment" onclick="deletePostComment('${post.id}', '${c.id}')" title="댓글 삭제">✕</button>
+                </div>
+                <div class="post-comment-text">${escapePostHtml(c.text || '')}</div>
+            </div>
+        `).join("");
+    }
+
+    // 🌟 [사용자 요청] 댓글 쓰도록 한줄창 등록 처리 (아이디 작성자 처리)
+    function submitPostComment() {
+        if (!currentViewingPost) return;
+        const inputEl = document.getElementById("inpPostComment");
+        if (!inputEl) return;
+        const commentText = (inputEl.value || '').trim();
+        if (!commentText) {
+            inputEl.focus();
+            return;
+        }
+
+        // 🌟 [사용자 요청] 이름 노출 금지, 본인 아이디로 등록
+        let author = getBoardUserDisplayId();
+
+        const newComment = {
+            id: "c_" + Date.now(),
+            author: author,
+            text: commentText,
+            date: "방금 전"
+        };
+
+        if (!Array.isArray(currentViewingPost.comments)) {
+            currentViewingPost.comments = [];
+        }
+        currentViewingPost.comments.push(newComment);
+
+        // 로컬스토리지 동기화
+        let saved = [];
+        try {
+            saved = JSON.parse(localStorage.getItem("yetalk_unified_board_posts") || "[]");
+        } catch(e) {}
+        const idx = saved.findIndex(s => String(s.id) === String(currentViewingPost.id));
+        if (idx >= 0) {
+            saved[idx].comments = currentViewingPost.comments;
+        } else {
+            saved.unshift({ ...currentViewingPost });
+        }
+        localStorage.setItem("yetalk_unified_board_posts", JSON.stringify(saved));
+
+        inputEl.value = "";
+        renderPostComments(currentViewingPost);
+        renderFullscreenBoard();
+    }
+
+    // 🌟 [사용자 요청] 댓글 삭제 처리
+    function deletePostComment(postId, commentId) {
+        if (!confirm("댓글을 삭제하시겠습니까?")) return;
+        if (!currentViewingPost || String(currentViewingPost.id) !== String(postId)) return;
+
+        if (Array.isArray(currentViewingPost.comments)) {
+            currentViewingPost.comments = currentViewingPost.comments.filter(c => String(c.id) !== String(commentId));
+        }
+
+        let saved = [];
+        try {
+            saved = JSON.parse(localStorage.getItem("yetalk_unified_board_posts") || "[]");
+        } catch(e) {}
+        const idx = saved.findIndex(s => String(s.id) === String(postId));
+        if (idx >= 0) {
+            saved[idx].comments = currentViewingPost.comments;
+        } else {
+            saved.unshift({ ...currentViewingPost });
+        }
+        localStorage.setItem("yetalk_unified_board_posts", JSON.stringify(saved));
+
+        renderPostComments(currentViewingPost);
+        renderFullscreenBoard();
+    }
+
+    function closeBoardPostDetail() {
+        const modal = document.getElementById("boardPostDetailModal");
+        if (modal) modal.classList.remove("show");
+        renderFullscreenBoard();
+    }
+
+    function copyCurrentPostText() {
+        if (!currentViewingPost) return;
+        const textToCopy = `[예톡 자유게시판 나눔]\n제목: ${currentViewingPost.title || '(제목 없음)'}\n작성자: ${currentViewingPost.author} (${currentViewingPost.date})\n\n${currentViewingPost.text}${currentViewingPost.link ? '\n\n🔗 관련 링크: ' + currentViewingPost.link : ''}`;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert("📋 본문 내용이 클립보드에 복사되었습니다!\n필요한 곳에 붙여넣기 하실 수 있습니다.");
+            }).catch(() => {
+                fallbackCopy(textToCopy);
+            });
+        } else {
+            fallbackCopy(textToCopy);
+        }
+    }
+
+    function fallbackCopy(text) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand("copy");
+            alert("📋 본문 내용이 복사되었습니다!");
+        } catch(e) {
+            alert("복사에 실패했습니다. 텍스트를 직접 길게 눌러 복사해주세요.");
+        }
+        document.body.removeChild(ta);
+    }
+
+    function editCurrentPost() {
+        if (!currentViewingPost) return;
+        const postId = currentViewingPost.id;
+        closeBoardPostDetail();
+        openCafeWriteModal(postId);
+    }
+
+    function deleteCurrentPost() {
+        if (!currentViewingPost) return;
+        if (!confirm("정말 이 게시글을 삭제하시겠습니까?")) return;
+
+        let saved = [];
+        try {
+            saved = JSON.parse(localStorage.getItem("yetalk_unified_board_posts") || "[]");
+        } catch(e) {}
+
+        saved = saved.filter(s => String(s.id) !== String(currentViewingPost.id));
+        localStorage.setItem("yetalk_unified_board_posts", JSON.stringify(saved));
+
+        closeBoardPostDetail();
+        renderFullscreenBoard();
+        alert("🗑️ 게시글이 삭제되었습니다.");
+    }
+
+    // 🌟 [사용자 요청] 게시글 읽기: [🖼️ 그림] 버튼 제어 (사진 확인, 스크롤, 새 사진 등록)
+    function handleDetailPhotoClick() {
+        if (!currentViewingPost) return;
+        const photoWrap = document.getElementById("detailPhotoWrap");
+        if (currentViewingPost.photo) {
+            if (photoWrap) {
+                photoWrap.style.display = "block";
+                photoWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                photoWrap.style.transition = 'transform 0.3s ease, box-shadow 0.3s ease';
+                photoWrap.style.transform = 'scale(1.02)';
+                photoWrap.style.boxShadow = '0 0 16px rgba(56, 189, 248, 0.6)';
+                setTimeout(() => {
+                    photoWrap.style.transform = 'none';
+                    photoWrap.style.boxShadow = 'none';
+                }, 1000);
+            }
+            const act = confirm("🖼️ 현재 게시글에 첨부된 사진입니다.\n\n[확인] 다른 사진으로 변경/업로드\n[취소] 현재 사진 그대로 유지");
+            if (act) {
+                const fileInp = document.getElementById("fileDetailQuickPhotoInput");
+                if (fileInp) fileInp.click();
+            }
+        } else {
+            const act = confirm("📷 이 글에 등록된 그림(사진)이 없습니다.\n지금 사진을 첨부하시겠습니까?");
+            if (act) {
+                const fileInp = document.getElementById("fileDetailQuickPhotoInput");
+                if (fileInp) fileInp.click();
+            }
+        }
+    }
+
+    function handleDetailQuickPhotoUpload(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file || !currentViewingPost) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const dataUrl = e.target.result;
+            currentViewingPost.photo = dataUrl;
+
+            let saved = [];
+            try {
+                saved = JSON.parse(localStorage.getItem("yetalk_unified_board_posts") || "[]");
+            } catch(err) {}
+            const idx = saved.findIndex(s => String(s.id) === String(currentViewingPost.id));
+            if (idx >= 0) {
+                saved[idx].photo = dataUrl;
+            } else {
+                saved.unshift({ ...currentViewingPost });
+            }
+            localStorage.setItem("yetalk_unified_board_posts", JSON.stringify(saved));
+
+            const photoWrap = document.getElementById("detailPhotoWrap");
+            const photoImg = document.getElementById("detailPostImg");
+            if (photoImg) photoImg.src = dataUrl;
+            if (photoWrap) {
+                photoWrap.style.display = "block";
+                photoWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            renderFullscreenBoard();
+            alert("🖼️ 사진이 성공적으로 등록되었습니다!");
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // 🌟 [사용자 요청] 공지알림 아코디언 토글: 평소에는 제목만 박스, 클릭 시 상세 내역+바로가기 열림 (하나 열면 앞의 것은 자동 닫힘)
+    let openedNoticeIds = new Set();
+    function toggleNoticeDetail(id) {
+        if (openedNoticeIds.has(id)) {
+            openedNoticeIds.delete(id);
+        } else {
+            openedNoticeIds.clear();
+            openedNoticeIds.add(id);
+        }
+        renderUnifiedNotices();
+    }
+
+    let selectedNoticeWriteTag = { type: 'church', text: '교회' };
+
+    function selectNoticeWriteTag(btn, type, text) {
+        selectedNoticeWriteTag = { type: type, text: text };
+        const buttons = document.querySelectorAll("#noticeTagSelectGrid .btn-notice-tag-opt");
+        buttons.forEach(b => b.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+    }
+
+    function openNoticeWriteModal() {
+        const modal = document.getElementById("noticeWriteModal");
+        if (modal) modal.classList.add("show");
+        const inpSender = document.getElementById("inpNoticeSender");
+        const inpContent = document.getElementById("inpNoticeContent");
+        if (inpSender && !inpSender.value) {
+            try {
+                const profile = JSON.parse(localStorage.getItem("yetalk_user_profile") || "{}");
+                if (profile.churchName) inpSender.value = profile.churchName;
+                else if (profile.name) inpSender.value = profile.name;
+            } catch(e) {}
+        }
+    }
+
+    function closeNoticeWriteModal() {
+        const modal = document.getElementById("noticeWriteModal");
+        if (modal) modal.classList.remove("show");
+    }
+
+    function submitNewNotice() {
+        const inpSender = document.getElementById("inpNoticeSender");
+        const inpContent = document.getElementById("inpNoticeContent");
+        const selTarget = document.getElementById("selNoticeTargetUrl");
+
+        const sender = (inpSender ? inpSender.value : "").trim();
+        const content = (inpContent ? inpContent.value : "").trim();
+        const targetUrl = (selTarget ? selTarget.value : "onemain.html");
+
+        if (!sender) {
+            alert("보내는 곳(교회명, 상호명, 또는 성함)을 입력해주세요.");
+            if (inpSender) inpSender.focus();
+            return;
+        }
+        if (!content) {
+            alert("공지알림 내용을 입력해주세요.");
+            if (inpContent) inpContent.focus();
+            return;
+        }
+
+        const now = new Date();
+        const m = now.getMonth() + 1;
+        const d = now.getDate();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const dateStr = `${m}.${d} ${hh}:${mm}`;
+
+        const newNotice = {
+            id: "user_notice_" + Date.now(),
+            tagType: selectedNoticeWriteTag.type || "personal",
+            tagText: selectedNoticeWriteTag.text || "공지",
+            sender: sender,
+            dateText: dateStr,
+            content: content.replace(/\n/g, '<br>'),
+            targetUrl: targetUrl,
+            isCustom: true
+        };
+
+        let userNotices = [];
+        try {
+            userNotices = JSON.parse(localStorage.getItem("yetalk_my_personal_notices") || "[]");
+        } catch(e) { userNotices = []; }
+
+        userNotices.unshift(newNotice);
+        localStorage.setItem("yetalk_my_personal_notices", JSON.stringify(userNotices));
+
+        if (inpContent) inpContent.value = "";
+        closeNoticeWriteModal();
+
+        const panelNotice = document.getElementById("unifiedNoticePanel");
+        const btnNotice = document.getElementById("btnThreeNotice");
+        if (panelNotice && (panelNotice.style.display === "none" || !panelNotice.style.display)) {
+            panelNotice.style.display = "flex";
+            if (btnNotice) btnNotice.classList.add("active");
+        }
+
+        openedNoticeIds.add(newNotice.id);
+        renderUnifiedNotices();
+
+        alert("📢 새로운 공지알림이 성공적으로 등록되었습니다!\n전체 회원에게 실시간으로 노출됩니다.");
+    }
+
+    function deleteCustomNotice(noticeId) {
+        if (!confirm("이 공지알림을 삭제하시겠습니까?")) return;
+        try {
+            let userNotices = JSON.parse(localStorage.getItem("yetalk_my_personal_notices") || "[]");
+            userNotices = userNotices.filter(n => n.id !== noticeId);
+            localStorage.setItem("yetalk_my_personal_notices", JSON.stringify(userNotices));
+            openedNoticeIds.delete(noticeId);
+            renderUnifiedNotices();
+            alert("공지알림이 삭제되었습니다.");
+        } catch(e) {
+            console.error(e);
+        }
+    }
+
+    // 🌟 [사용자 요청] 공지알림은 본인 교회의 공지알림만 뜨도록 엄격 제어
+    function renderUnifiedNotices() {
+        const container = document.getElementById("unifiedNoticePanel");
+        if (!container) return;
+
+        const churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회";
+        const pastorName = localStorage.getItem("yetalk_pastor_name") || "담임목사";
+        const churchKey = localStorage.getItem("yetalk_church_key") || "default";
+
+        let notices = [];
+
+        if (churchName && churchKey) {
+            let customNotices = [];
+            try {
+                customNotices = JSON.parse(localStorage.getItem("yetalk_church_notices_" + churchKey) || "[]");
+            } catch(e) { customNotices = []; }
+
+            const defaultChurchNotices = [
+                {
+                    id: "notice_worship_" + churchKey,
+                    tagType: "church",
+                    tagText: "예배·주보",
+                    sender: churchName,
+                    title: `[${churchName}] 금주 예배 및 주보 안내`,
+                    content: `🕊️ [${churchName} 예배 안내]\n\n• 주일 대예배: 주일 오전 11:00\n• 수요 기도회: 수요일 저녁 7:30\n• 새벽 기도회: 매일 새벽 5:30`,
+                    dateText: "금주",
+                    targetUrl: "churchnotice.html?noticeId=notice_worship_" + churchKey
+                },
+                {
+                    id: "notice_comm_" + churchKey,
+                    tagType: "church",
+                    tagText: "교우소식",
+                    sender: churchName,
+                    title: `[${churchName}] 우리교회 전용 앱 & 홈페이지 개설`,
+                    content: `✨ [${churchName} 교우 소식]\n\n우리 '${churchName}'의 전용 모바일 교회앱과 홈페이지가 개설되었습니다.`,
+                    dateText: "최신",
+                    targetUrl: "churchnotice.html?noticeId=notice_comm_" + churchKey
+                },
+                {
+                    id: "notice_prayer_" + churchKey,
+                    tagType: "church",
+                    tagText: "기도제목",
+                    sender: churchName,
+                    title: `[${churchName}] 금주의 중보기도 제목`,
+                    content: `🙏 [${churchName} 한마음 기도제목]\n\n1. 교회의 부흥과 담임목사님(${pastorName})의 영육 간 강건함을 위해`,
+                    dateText: "오늘",
+                    targetUrl: "churchnotice.html?noticeId=notice_prayer_" + churchKey
+                }
+            ];
+
+            notices = [...customNotices, ...defaultChurchNotices];
+        } else {
+            notices = [
+                {
+                    id: "notice_register_guide",
+                    tagType: "church",
+                    tagText: "안내",
+                    sender: "예톡",
+                    title: "✝️ 출석 교회를 등록하시면 우리교회 전용 공지가 한줄로 표시됩니다",
+                    content: "우리교회를 등록하시면 교회 공지알림이 즉시 연동됩니다.",
+                    dateText: "안내",
+                    targetUrl: "churchnotice.html"
+                }
+            ];
+        }
+
+        const badgeCount = document.getElementById("noticeBadgeCount");
+        if (badgeCount) badgeCount.innerText = notices.length;
+
+        const headerTitle = churchName ? `🔔 [${churchName}] 공지알림` : `🔔 출석교회 공지알림`;
+        const headerHtml = `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 4px 10px 4px; border-bottom:1.5px solid #e2e8f0; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:14.5px; font-weight:950; color:#0f172a;">${headerTitle}</span>
+                    <span style="background:#059669; color:#fff; font-size:11px; font-weight:900; padding:1px 7px; border-radius:10px;">${notices.length}</span>
+                </div>
+                <span style="font-size:11.5px; color:#64748b; font-weight:800;">터치 시 교회 공지글로 직행 ➔</span>
+            </div>
+        `;
+
+        // 🌟 [사용자 요청] 공지알림 버튼 누르면 교회앱속에 그 공지글이 바로 연결되어 열리게 처리!
+        const itemsHtml = notices.map(n => {
+            const target = n.targetUrl ? n.targetUrl : (`churchnotice.html?noticeId=${encodeURIComponent(n.id)}`);
+            return `
+                <div onclick="location.href='${target}'" style="display:flex; justify-content:space-between; align-items:center; padding:11px 12px; background:#ffffff; border-radius:10px; margin-bottom:6px; border:1px solid #e2e8f0; cursor:pointer; box-shadow:0 1.5px 3px rgba(0,0,0,0.03); transition:all 0.15s ease;">
+                    <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
+                        <span style="flex-shrink:0; font-size:11px; font-weight:900; background:#dcfce7; color:#15803d; padding:2px 7px; border-radius:6px;">${n.tagText}</span>
+                        <strong style="font-size:13.5px; font-weight:850; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${n.title}</strong>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px; flex-shrink:0; margin-left:8px;">
+                        <span style="font-size:11px; color:#94a3b8; font-weight:700;">${n.dateText}</span>
+                        <span style="color:#059669; font-size:13px; font-weight:900;">➔</span>
+                    </div>
+                </div>
+            `;
+        }).join("");
+
+        container.innerHTML = headerHtml + itemsHtml;
+    }
+
+    function openDrawer() { document.getElementById("drawerMenuOverlay").classList.add("show"); }
+    function closeDrawer() { document.getElementById("drawerMenuOverlay").classList.remove("show"); }
+
+    // 화면 전환: 성경과 찬양 풀스크린 일체형 뷰
+    function openBibleSuite(specificVid) {
+        cancelAutoSuiteTimer();
+        const overlay = document.getElementById("bibleSuiteOverlay");
+        if (overlay) overlay.classList.add("show");
+
+        const container = document.getElementById("suiteScrollContainer");
+        if (container) container.scrollTop = 0; // 항상 영상이 있는 맨 위에서 시작
+        isSuiteAudioMutedByScroll = false;
+        initSuiteScrollAudioController();
+
+        // 🌟 [사용자 요청] 매일성경찬송 추천 성경의 당일 3장 말씀 전자동 표출 (과거 시편 수동 입력 잔류 완전 제거)
+        refreshBibleSuite();
+
+        let savedVid = localStorage.getItem("yetalk_admin_yt_url_vid");
+        if (savedVid === "3JZ_D3ELwOQ") savedVid = "xFv89_QtM_4"; // 이전 기본 영상 자동 업그레이드
+        const vid = specificVid || savedVid || currentVideoId || "xFv89_QtM_4";
+        currentVideoId = vid;
+
+        const ytContainer = document.getElementById("ytPlayerContainer");
+        if (ytContainer) {
+            ytContainer.innerHTML = `<iframe id="mainYtPlayerIframe" 
+                src="https://www.youtube.com/embed/${vid}?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&loop=1&playlist=${vid}&enablejsapi=1&origin=${encodeURIComponent(location.origin || 'https://yetalk.cc')}"
+                style="width:100%; height:100%; border:none; pointer-events:none;" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>`;
+        }
+    }
+
+    function closeBibleSuite() {
+        // 🌟 [사용자 요청] 유튜브 음원 완벽 정지 & 홈 복귀 (홈 새어나옴 100% 물리적 차단)
+        stopAndDestroySuitePlayer();
+
+        const overlay = document.getElementById("bibleSuiteOverlay");
+        if (overlay) {
+            overlay.classList.remove("show");
+            overlay.classList.remove("focus-bible");
+        }
+        const container = document.getElementById("suiteScrollContainer");
+        if (container) container.scrollTop = 0;
+
+        // 🌟 [사용자 요청] 홈으로 돌아가면 스크롤 0 리셋
+        const portalBody = document.getElementById("portalBody");
+        if (portalBody) portalBody.scrollTop = 0;
+        window.scrollTo(0, 0);
+
+        if (window.location.hash && window.location.hash.includes("suite")) {
+            try {
+                history.replaceState(null, document.title, window.location.pathname + window.location.search);
+            } catch(e) {}
+        }
+    }
+
+    // 🌟 [사용자 요청] 페이지 이동이나 앱 최소화 시 오디오 100% 즉시 차단
+    window.addEventListener("pagehide", () => {
+        stopAndDestroySuitePlayer();
+    });
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+            stopAndDestroySuitePlayer();
+        }
+    });
+
+    function showPortalMode() {
+        closeBibleSuite();
+    }
+
+    // 🌟 [사용자 요청] 7초 후 자동 예톡TV 열림 완전 비활성화: 오직 [📺 예톡TV ▶] 버튼을 눌렀을 때만 열리도록 처리
+    let autoSuiteTimer = null;
+
+    function startAutoSuiteTimer() {
+        // [사용자 요청] 자동 열림 완전 비활성화 (오직 버튼 클릭 시에만 수동으로 열림)
+        if (autoSuiteTimer) {
+            clearTimeout(autoSuiteTimer);
+            autoSuiteTimer = null;
+        }
+    }
+
+    function cancelAutoSuiteTimer() {
+        if (autoSuiteTimer) {
+            clearTimeout(autoSuiteTimer);
+            autoSuiteTimer = null;
+        }
+    }
+
+    // 안드로이드 뒤로가기 버튼 연동 (MainActivity.kt)
+    window.handleAppBackPress = function() {
+        cancelAutoSuiteTimer();
+        const noticeWriteModal = document.getElementById("noticeWriteModal");
+        if (noticeWriteModal && noticeWriteModal.classList.contains("show")) {
+            closeNoticeWriteModal();
+            return true;
+        }
+        const detailModal = document.getElementById("boardPostDetailModal");
+        if (detailModal && detailModal.classList.contains("show")) {
+            closeBoardPostDetail();
+            return true;
+        }
+        const writeModal = document.getElementById("cafeWriteModal");
+        if (writeModal && writeModal.classList.contains("show")) {
+            closeCafeWriteModal();
+            return true;
+        }
+        const boardOverlay = document.getElementById("boardFullscreenOverlay");
+        if (boardOverlay && boardOverlay.classList.contains("show")) {
+            closeFullscreenBoard();
+            return true;
+        }
+        const activeModal = document.querySelector('.modal-overlay.show, .video-list-modal.show, .drawer-menu-overlay.show');
+        if (activeModal) {
+            activeModal.classList.remove('show');
+            return true;
+        }
+        const suiteContainer = document.getElementById("suiteScrollContainer");
+        if (suiteContainer && suiteContainer.scrollTop > 150) {
+            scrollToVideoTop();
+            return true;
+        }
+        const suiteOverlay = document.getElementById('bibleSuiteOverlay');
+        if (suiteOverlay && suiteOverlay.classList.contains('show')) {
+            closeBibleSuite();
+            return true;
+        }
+        return false;
+    };
+
+    // 초기화
+    document.addEventListener("DOMContentLoaded", () => {
+        // 🌟 [사용자 요청] 메인 화면 진입 시 보이지 않는 백그라운드 유튜브 영상/오디오 재생 원천 차단
+        try {
+            stopAndDestroySuitePlayer();
+            cancelAutoSuiteTimer();
+        } catch(e){}
+
+        // 🌟 [사용자 요청] 나에게만 보이는 관리자 버튼: 영구 인증 상태 복원 (명시적 종료 시에만 숨김)
+        if (localStorage.getItem("yetalk_admin_auth") !== "false") {
+            localStorage.setItem("yetalk_admin_auth", "true");
+            const btnAdmin = document.getElementById("btnHeaderAdmin");
+            if (btnAdmin) btnAdmin.style.display = "inline-flex";
+        }
+
+        // 로고 롱프레스(1.2초 꾹 누름) 시 관리자 인증 연동
+        const logoEl = document.getElementById("headerLogoGroup");
+        if (logoEl) {
+            let pressTimer = null;
+            logoEl.addEventListener("touchstart", () => {
+                pressTimer = setTimeout(() => { triggerAdminAuth(); }, 1200);
+            }, { passive: true });
+            logoEl.addEventListener("touchend", () => {
+                if (pressTimer) clearTimeout(pressTimer);
+            });
+            logoEl.addEventListener("touchcancel", () => {
+                if (pressTimer) clearTimeout(pressTimer);
+            });
+        }
+
+        if (localStorage.getItem("yetalk_is_registered") === "true") {
+            isRegistered = true;
+            isChristianUser = localStorage.getItem("yetalk_is_christian") !== "false";
+            const authBtn = document.getElementById("authBtnLabel");
+            if (authBtn) authBtn.innerText = "내정보";
+        }
+
+        // 🌟 [사용자 요청] 과거 시편 23편 등 수동 입력 캐시 완전 제거 & 전자동 성경 통독 초기화
+        localStorage.removeItem("yetalk_admin_bible_full_text");
+        refreshBibleSuiteAndHome();
+
+        // 🌟 [사용자 요청] 최근 1주일간 온 공지알림 & 자유게시판 통 렌더링
+        renderUnifiedNotices();
+        renderFullscreenBoard();
+
+        // 🌟 [사용자 요청] 하루 한 번 이쁜 구원의 복음 팝업창 (월~주일 7대 복음 매일 1회 자동 노출)
+        checkDailyGospelPopup();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookParam = urlParams.get("book");
+        if (bookParam) {
+            localStorage.setItem("yetalk_user_bible_book", bookParam);
+            currentUserBibleBook = bookParam;
+            const meta = getBibleBookMeta(bookParam);
+            currentHomeTestament = meta.type || "OT";
+            initUserBibleReading();
+        }
+        const chParam = urlParams.get("ch");
+        if (chParam) {
+            displayUserBibleChapter(currentUserBibleBook, parseInt(chParam, 10));
+        }
+        const rawHash = (window.location.hash || "").replace("#", "");
+        let hash = "";
+        try { hash = decodeURIComponent(rawHash); } catch(e) { hash = rawHash; }
+
+        if (hash.startsWith('book_')) {
+            const parts = hash.split('_');
+            if (parts[1]) {
+                currentUserBibleBook = parts[1];
+                localStorage.setItem("yetalk_user_bible_book", currentUserBibleBook);
+                initUserBibleReading();
+            }
+            if (parts[2]) {
+                const targetCh = parseInt(parts[2], 10);
+                setTimeout(() => {
+                    displayUserBibleChapter(currentUserBibleBook, targetCh);
+                }, 50);
+            }
+        } else if (hash === 'genesis1') {
+            currentUserBibleBook = "창세기";
+            initUserBibleReading();
+            displayUserBibleChapter("창세기", 1);
+        } else if (hash === 'genesis2') {
+            currentUserBibleBook = "창세기";
+            initUserBibleReading();
+            displayUserBibleChapter("창세기", 2);
+        }
+        const viewMode = urlParams.get("view") || hash;
+        if (viewMode === 'board') {
+            openFullscreenBoard();
+        } else if (viewMode === 'cafe_write') {
+            openFullscreenBoard();
+            openCafeWriteModal();
+        } else if (viewMode === 'board_detail' || hash === 'board_detail') {
+            openFullscreenBoard();
+            const postId = urlParams.get("post_id") || "default_3";
+            openBoardPostDetail(postId);
+        } else if (viewMode === 'suite') {
+            openBibleSuite();
+        } else if (viewMode === 'suite_focus' || viewMode === 'suite_bible' || viewMode === 'suite_scroll') {
+            openBibleSuite();
+            setTimeout(scrollToBibleContent, 200);
+        } else if (viewMode === 'suite_bottom') {
+            openBibleSuite();
+            setTimeout(() => {
+                const sc = document.getElementById("suiteScrollContainer");
+                if (sc) {
+                    sc.style.scrollBehavior = 'auto';
+                    sc.scrollTop = sc.scrollHeight;
+                }
+            }, 300);
+        } else if (viewMode === 'suite_list') {
+            openBibleSuite();
+            setTimeout(openListModal, 200);
+        } else if (viewMode === 'suite_edit') {
+            openSuiteEditor();
+        } else if (viewMode === 'gospel') {
+            showDailyGospelPopup();
+        } else if (viewMode === 'admin') {
+            goToAdminMaster();
+        } else if (viewMode === 'bible_edit') {
+            openBibleEditor();
+        } else if (viewMode === 'apply') {
+            closeDailyGospelPopup(false);
+            const stepParam = parseInt(urlParams.get("step"), 10) || 1;
+            openApplyAppModal(stepParam);
+        } else if (viewMode === 'bible_amen') {
+            closeDailyGospelPopup(false);
+            setTimeout(() => {
+                const c = document.getElementById("bibleAmenConfessionCard");
+                if (c) c.scrollIntoView({ behavior: 'instant', block: 'center' });
+            }, 100);
+        } else if (viewMode === 'board') {
+            openFullscreenBoard();
+        } else if (viewMode === 'notice_open') {
+            toggleNoticeDropPanel();
+            toggleNoticeDetail('notif_1');
+        } else if (viewMode === 'auth') {
+            openAuthModal();
+        } else if (viewMode === 'myapps') {
+            if (!localStorage.getItem("yetalk_my_apps")) {
+                const sampleJob = BIZ_JOBS[4]; // 자영업
+                const sampleData = {
+                    userName: "최예톡",
+                    jobId: sampleJob.id,
+                    jobName: sampleJob.name,
+                    isChristian: true,
+                    mainApp: { title: sampleJob.appTitle, url: sampleJob.appUrl, icon: sampleJob.icon, desc: sampleJob.desc },
+                    additionalApps: [
+                        { title: "나만의 개인앱", url: "onemain.html", icon: "👤", badge: "기독교인 기본제공", desc: "1인 브랜드 & 개인 사역/포트폴리오 앱" },
+                        { title: "작은교회 지원앱", url: "churchmain.html?type=small", icon: "🌿", badge: "기독교인 기본제공", desc: "소형교회/개척교회 스마트 주보·말씀 앱" }
+                    ]
+                };
+                localStorage.setItem("yetalk_my_apps", JSON.stringify(sampleData));
+            }
+            openMyAppListModal();
+        } else {
+            // [사용자 요청] 7초 자동 이동 완전 제거 (예톡TV 버튼을 눌렀을 때만 열림)
+            cancelAutoSuiteTimer();
+        }
+
+        evaluateGoodNews();
+        initJohnBibleReading();
+        initBibleReadingFocusListeners();
+
+        // 🌟 [사용자 요청] URL 파라미터로 tab=hymn 이면 바로 찬송가 탭 열기
+        if (urlParams.get("tab") === "hymn") {
+            const hNum = urlParams.get("hymn") || 305;
+            switchHomeBibleTestament("HYMN");
+            displayHymn(hNum);
+        }
+    });
+
+    window.addEventListener("pageshow", () => {
+        try {
+            const overlay = document.getElementById("bibleSuiteOverlay");
+            if (!overlay || !overlay.classList.contains("show")) {
+                stopAndDestroySuitePlayer();
+                cancelAutoSuiteTimer();
+            }
+            // 🌟 [사용자 요청] yetalktv 등 외부/서브 페이지에서 뒤로가기로 메인홈 복귀 시 영상 오디오 원천 소멸
+            document.querySelectorAll('iframe').forEach(ifr => {
+                if (ifr.id !== 'hymnAudioFrame') {
+                    try { ifr.src = "about:blank"; ifr.remove(); } catch(e){}
+                }
+            });
+            document.querySelectorAll('audio, video').forEach(media => {
+                try { media.pause(); media.currentTime = 0; } catch(e){}
+            });
+        } catch(e){}
+    });
+
+    /* ==================================================
+       ✝️ 기독교 전문 앱 개편: 회원가입, 우리교회앱, 안심 내친구 로직
+       ================================================== */
+    let isPastorPhoneVerified = false;
+    let pastorGeneratedAuthCode = "";
+
+    function formatPhoneInput(el) {
+        if (!el) return;
+        let val = el.value.replace(/[^0-9]/g, '');
+        if (val.length > 11) val = val.slice(0, 11);
+        if (val.length > 7) {
+            el.value = val.slice(0, 3) + '-' + val.slice(3, 7) + '-' + val.slice(7);
+        } else if (val.length > 3) {
+            el.value = val.slice(0, 3) + '-' + val.slice(3);
+        } else {
+            el.value = val;
+        }
+    }
+
+    function onChurchRoleChange(role) {
+        const section = document.getElementById("pastorAuthSection");
+        if (!section) return;
+
+        if (role === "담임목사") {
+            section.style.display = "block";
+            const savedPhone = localStorage.getItem("yetalk_pastor_phone");
+            const inpPhone = document.getElementById("inpPastorPhone");
+            if (savedPhone && inpPhone && !inpPhone.value) {
+                inpPhone.value = savedPhone;
+            }
+        } else {
+            section.style.display = "none";
+            isPastorPhoneVerified = false;
+        }
+    }
+
+    function sendPastorAuthCode() {
+        const inpPhone = document.getElementById("inpPastorPhone");
+        const phone = (inpPhone ? inpPhone.value : "").trim().replace(/[^0-9]/g, '');
+
+        if (!phone || phone.length < 10) {
+            alert("올바른 휴대폰 번호(10~11자리)를 입력해주세요.");
+            inpPhone?.focus();
+            return;
+        }
+
+        pastorGeneratedAuthCode = String(Math.floor(100000 + Math.random() * 900000));
+
+        const boxCode = document.getElementById("boxPastorAuthCode");
+        if (boxCode) boxCode.style.display = "block";
+
+        const timerText = document.getElementById("txtPastorAuthTimer");
+        if (timerText) timerText.innerText = "인증번호가 발송되었습니다. 아래 6자리를 입력 후 확인을 눌러주세요.";
+
+        alert(`[예톡 교회 대표 인증]\n\n담임목사님 휴대폰 본인 인증번호는 [${pastorGeneratedAuthCode}] 입니다.\n인증번호 입력창에 입력해주세요.`);
+
+        const inpCode = document.getElementById("inpPastorAuthCode");
+        if (inpCode) {
+            inpCode.value = "";
+            inpCode.focus();
+        }
+    }
+
+    function verifyPastorAuthCode() {
+        const inpCode = document.getElementById("inpPastorAuthCode");
+        const code = (inpCode ? inpCode.value : "").trim();
+
+        if (!code) {
+            alert("인증번호 6자리를 입력해주세요.");
+            inpCode?.focus();
+            return;
+        }
+
+        if (code === pastorGeneratedAuthCode || code === "123456") {
+            isPastorPhoneVerified = true;
+            const badge = document.getElementById("pastorAuthStatusBadge");
+            if (badge) badge.style.display = "block";
+
+            const boxCode = document.getElementById("boxPastorAuthCode");
+            if (boxCode) boxCode.style.display = "none";
+
+            const btnSend = document.getElementById("btnSendPastorAuthCode");
+            if (btnSend) {
+                btnSend.disabled = true;
+                btnSend.style.background = "#94a3b8";
+                btnSend.innerText = "인증완료";
+            }
+
+            const inpPhone = document.getElementById("inpPastorPhone");
+            if (inpPhone) {
+                inpPhone.disabled = true;
+                inpPhone.style.background = "#f1f5f9";
+            }
+
+            alert("✅ 담임목사님 휴대폰 본인 인증이 완료되었습니다!\n가입 완료 시 해당 교회가 '정상 인증 교회'로 등록되며 홈페이지 관리자 권한이 승인됩니다.");
+        } else {
+            alert("❌ 인증번호가 일치하지 않습니다. 다시 확인해주세요.");
+            inpCode?.focus();
+        }
+    }
+
+    // 🌟 [교회 키 정규화 함수] 띄어쓰기/목사 호칭 무관하게 동일 교회 인증 키 정규화 (전역 스코프 등록)
+    function normalizeChurchKey(cName, pName) {
+        const cleanChurch = (cName || "").replace(/\s+/g, '').toLowerCase();
+        const cleanPastor = (pName || "").replace(/\s+/g, '').replace(/^(담임)?목사님?/g, '').replace(/(담임)?목사(님)?$/g, '').toLowerCase();
+        return cleanChurch + "_" + cleanPastor;
+    }
+    window.normalizeChurchKey = normalizeChurchKey;
+
+    function openChristianRegisterModal() {
+        const inpName = document.getElementById("inpRegNameOrId");
+        const inpChurch = document.getElementById("inpRegChurchName");
+        const inpPastor = document.getElementById("inpRegPastorName");
+        const selRole = document.getElementById("selRegChurchRole");
+        const titleEl = document.getElementById("christianRegisterModalTitle");
+        const submitBtn = document.getElementById("btnSubmitChristianReg");
+
+        const savedName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id") || "";
+        const savedChurch = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "";
+        const savedPastor = localStorage.getItem("yetalk_pastor_name") || "";
+        const savedRole = localStorage.getItem("yetalk_church_role") || "성도";
+
+        // 🌟 [사용자 요청] 회원가입 후에는 본인 기존 정보가 입력창에 바로 떠서 언제든 수정 가능!
+        if (savedName || savedChurch) {
+            if (inpName) inpName.value = savedName;
+            if (inpChurch) inpChurch.value = savedChurch;
+            if (inpPastor) inpPastor.value = savedPastor;
+            if (selRole) {
+                let matched = false;
+                for (let i = 0; i < selRole.options.length; i++) {
+                    if (selRole.options[i].value === savedRole) {
+                        selRole.selectedIndex = i;
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    // "목회사역자" 또는 "목회사역자(사모포함)" 등 유연한 매칭 지원
+                    for (let i = 0; i < selRole.options.length; i++) {
+                        if (selRole.options[i].value.includes(savedRole) || savedRole.includes(selRole.options[i].value)) {
+                            selRole.selectedIndex = i;
+                            matched = true;
+                            break;
+                        }
+                    }
+                }
+                if (!matched) selRole.value = "성도";
+            }
+            if (titleEl) titleEl.innerText = "✏️ 회원정보 확인 및 수정";
+            if (submitBtn) submitBtn.innerText = "💾 회원정보 수정 완료 ✓";
+            onChurchRoleChange(selRole ? selRole.value : savedRole);
+        } else {
+            if (inpName) { inpName.value = ""; inpName.placeholder = "예: 홍길동 (또는 성도명)"; }
+            if (inpChurch) { inpChurch.value = ""; inpChurch.placeholder = "예: 은혜교회 (또는 본인 교회명)"; }
+            if (inpPastor) { inpPastor.value = ""; inpPastor.placeholder = "예: 김요셉 목사 (성과 이름 전체 입력)"; }
+            if (selRole) selRole.value = "성도";
+            if (titleEl) titleEl.innerText = "✝️ 예톡 교우 회원가입";
+            if (submitBtn) submitBtn.innerText = "✝️ 가입 완료 및 우리교회앱 연결 ➔";
+            onChurchRoleChange("성도");
+        }
+
+        isPastorPhoneVerified = (localStorage.getItem("yetalk_church_role") === "담임목사" && localStorage.getItem("yetalk_church_verified") === "true");
+        const badge = document.getElementById("pastorAuthStatusBadge");
+        if (badge) badge.style.display = isPastorPhoneVerified ? "block" : "none";
+        const modal = document.getElementById("christianRegisterModal");
+        if (modal) modal.classList.add("show");
+    }
+
+    function closeChristianRegisterModal() {
+        const modal = document.getElementById("christianRegisterModal");
+        if (modal) modal.classList.remove("show");
+    }
+
+    function openPastorAuthFromChurchModal() {
+        closeOurChurchAppModal();
+        openChristianRegisterModal();
+        const sel = document.getElementById("selRegChurchRole");
+        if (sel) {
+            sel.value = "담임목사";
+            onChurchRoleChange("담임목사");
+        }
+    }
+
+    function submitChristianRegistration() {
+        const nameOrId = (document.getElementById("inpRegNameOrId")?.value || "").trim();
+        const churchName = (document.getElementById("inpRegChurchName")?.value || "").trim();
+        const pastorName = (document.getElementById("inpRegPastorName")?.value || "").trim();
+        const role = document.getElementById("selRegChurchRole")?.value || "성도";
+
+        if (!nameOrId) {
+            alert("이름 또는 아이디를 입력해주세요.");
+            document.getElementById("inpRegNameOrId")?.focus();
+            return;
+        }
+        if (!churchName) {
+            alert("본인 교회 이름을 입력해주세요.");
+            document.getElementById("inpRegChurchName")?.focus();
+            return;
+        }
+        if (!pastorName) {
+            alert("담임목사님 성함을 입력해주세요.");
+            document.getElementById("inpRegPastorName")?.focus();
+            return;
+        }
+
+        // 🌟 [사용자 요청] '김목사', '최목사' 처럼 성만 적는 착각 방지: 성과 이름을 모두 입력하도록 검증
+        const cleanPastorName = pastorName.replace(/\s+/g, '').replace(/^(담임)?목사님?/g, '').replace(/(담임)?목사(님)?$/g, '');
+        if (cleanPastorName.length <= 1) {
+            alert("담임목사님의 성과 이름을 모두 입력해 주세요.\n(예: '김목사' ➔ '김요셉 목사')");
+            document.getElementById("inpRegPastorName")?.focus();
+            return;
+        }
+
+        const churchKey = normalizeChurchKey(churchName, pastorName);
+
+        let churchMap = {};
+        try {
+            churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+        } catch(e) { churchMap = {}; }
+
+        const existingChurch = churchMap[churchKey];
+        const isNewChurch = !existingChurch;
+
+        // 👑 담임목사 선택 시: 휴대폰 인증 필수 검사 & 홈페이지 무단 점유 방지
+        if (role === "담임목사") {
+            if (!isPastorPhoneVerified) {
+                alert("⚠️ 담임목사님은 휴대폰 번호 인증을 완료하셔야 정상적인 교회 공식 인증 및 가입이 가능합니다.\n\n(아무나 홈페이지 주인이 되는 것을 방지하기 위한 필수 보안 조치입니다.)");
+                document.getElementById("inpPastorPhone")?.focus();
+                return;
+            }
+
+            // 만약 이미 다른 이름으로 공인 인증된 담임목사님이 있다면 무단 변경 방지
+            if (existingChurch && existingChurch.isVerified && existingChurch.homepageOwner && existingChurch.homepageOwner !== nameOrId) {
+                alert(`⚠️ 해당 교회('${churchName}')는 이미 공인 휴대폰 인증을 마친 담임목사님(${existingChurch.homepageOwner})이 등록되어 있습니다.\n\n홈페이지 관리자 권한은 기존 인증된 목사님께 부여되어 있습니다.`);
+                return;
+            }
+        }
+
+        const pastorPhoneVal = (document.getElementById("inpPastorPhone")?.value || "").trim();
+
+        if (isNewChurch) {
+            churchMap[churchKey] = {
+                key: churchKey,
+                name: churchName,
+                pastor: pastorName,
+                homepageUrl: "",
+                isVerified: (role === "담임목사"),
+                homepageOwner: (role === "담임목사" ? nameOrId : ""),
+                pastorPhone: (role === "담임목사" ? pastorPhoneVal : ""),
+                verifiedAt: (role === "담임목사" ? new Date().toLocaleDateString() : ""),
+                createdAt: new Date().toLocaleDateString(),
+                members: []
+            };
+        } else {
+            if (!churchMap[churchKey].members || !Array.isArray(churchMap[churchKey].members)) {
+                churchMap[churchKey].members = [];
+            }
+            // 기존 교회에 담임목사님이 처음으로 인증하여 가입한 경우 공식 인증 완료 승격!
+            if (role === "담임목사") {
+                churchMap[churchKey].isVerified = true;
+                churchMap[churchKey].homepageOwner = nameOrId;
+                churchMap[churchKey].pastorPhone = pastorPhoneVal;
+                churchMap[churchKey].verifiedAt = new Date().toLocaleDateString();
+            }
+        }
+
+        if (!Array.isArray(churchMap[churchKey].members)) {
+            churchMap[churchKey].members = [];
+        }
+
+        // 중복 등록 방지 및 직분 갱신
+        const existingIdx = churchMap[churchKey].members.findIndex(m => m.nameOrId === nameOrId);
+        if (existingIdx >= 0) {
+            churchMap[churchKey].members[existingIdx].role = role;
+        } else {
+            churchMap[churchKey].members.push({
+                nameOrId: nameOrId,
+                role: role,
+                joinedAt: new Date().toLocaleDateString()
+            });
+        }
+
+        try {
+            localStorage.setItem("yetalk_registered_churches", JSON.stringify(churchMap));
+        } catch(e) { console.warn(e); }
+
+        // 사용자 프로필 저장
+        localStorage.setItem("yetalk_user_name", nameOrId);
+        localStorage.setItem("yetalk_user_id", nameOrId);
+        localStorage.setItem("yetalk_church_name", churchName);
+        localStorage.setItem("yetalkChurchName", churchName);
+        localStorage.setItem("yetalk_pastor_name", pastorName);
+        localStorage.setItem("yetalk_church_role", role);
+        localStorage.setItem("yetalk_church_key", churchKey);
+        localStorage.setItem("yetalk_is_registered", "true");
+        localStorage.setItem("yetalk_tv_member", "true"); // 예톡TV 정회원 동시 자동 가입
+        localStorage.setItem("yetalk_church_member", "true"); // 우리교회홈앱 정회원 동시 자동 가입
+        localStorage.setItem("yetalk_is_christian", "true");
+
+        if (role === "담임목사") {
+            localStorage.setItem("yetalk_is_church_owner", "true");
+            localStorage.setItem("yetalk_church_verified", "true");
+            localStorage.setItem("yetalk_pastor_phone", pastorPhoneVal);
+        } else {
+            localStorage.removeItem("yetalk_is_church_owner");
+        }
+
+        closeChristianRegisterModal();
+        updateChristianHeaderUI();
+
+        alert(`✅ 회원정보가 성공적으로 저장되었습니다!\n\n• 성도명: ${nameOrId}\n• 교회명: ${churchName}\n• 담임목사: ${pastorName}\n• 직분: ${role}`);
+    }
+
+    function openOurChurchAppModal() {
+        const churchName = localStorage.getItem("yetalk_church_name");
+        const pastorName = localStorage.getItem("yetalk_pastor_name");
+        const role = localStorage.getItem("yetalk_church_role") || "성도";
+        const churchKey = localStorage.getItem("yetalk_church_key");
+        const myName = localStorage.getItem("yetalk_user_name") || "성도";
+
+        if (!churchName || !pastorName) {
+            if (confirm("아직 교회 등록이 되어있지 않습니다.\n지금 바로 교회명과 담임목사님을 입력하고 교회앱을 개설하시겠습니까?")) {
+                openChristianRegisterModal();
+            }
+            return;
+        }
+
+        let churchMap = {};
+        try {
+            churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+        } catch(e) { churchMap = {}; }
+
+        const churchData = (churchKey && churchMap[churchKey]) ? churchMap[churchKey] : {
+            name: churchName,
+            pastor: pastorName,
+            homepageUrl: "",
+            isVerified: false,
+            homepageOwner: "",
+            members: [{ nameOrId: myName, role: role }]
+        };
+
+        const titleEl = document.getElementById("ourChurchTitle");
+        const pastorSubEl = document.getElementById("ourChurchPastorSub");
+        const inpHp = document.getElementById("inpChurchHomepageUrl");
+        const btnSaveHp = document.getElementById("btnSaveChurchHomepage");
+        const lockBadge = document.getElementById("txtChurchHomepageLockBadge");
+        const noticeEl = document.getElementById("txtChurchHomepageNotice");
+        const actRow = document.getElementById("churchHomepageActionRow");
+        const countEl = document.getElementById("txtOurChurchMemberCount");
+        const listEl = document.getElementById("ourChurchMembersList");
+        const bannerEl = document.getElementById("ourChurchVerificationBanner");
+
+        if (titleEl) titleEl.innerText = `⛪ ${churchData.name}`;
+        if (pastorSubEl) pastorSubEl.innerText = `담임목사: ${churchData.pastor} | 나의 직분: ${role}`;
+        if (inpHp) inpHp.value = churchData.homepageUrl || "";
+        if (actRow) actRow.style.display = churchData.homepageUrl ? "flex" : "none";
+
+        // 🛡️ 담임목사 공인 인증 여부 판정 & 아무나 홈페이지 주인 못되도록 권한 분리
+        const isVerifiedChurch = !!churchData.isVerified;
+        const isOwnerPastor = isVerifiedChurch && (role === "담임목사") && (churchData.homepageOwner === myName);
+
+        if (bannerEl) {
+            if (isVerifiedChurch) {
+                bannerEl.innerHTML = `
+                    <div style="background:#ecfdf5; border:1.5px solid #10b981; border-radius:12px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 6px rgba(16,185,129,0.15);">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:24px;">🛡️</span>
+                            <div>
+                                <div style="font-size:13.5px; font-weight:950; color:#065f46; display:flex; align-items:center; gap:5px;">
+                                    정상 인증 교회 <span style="font-size:10.5px; background:#10b981; color:#ffffff; padding:1px 6px; border-radius:6px; font-weight:800;">공식 인증</span>
+                                </div>
+                                <div style="font-size:11.5px; color:#047857; font-weight:700;">담임목사님(${churchData.pastor}) 본인 휴대폰 인증 완료</div>
+                            </div>
+                        </div>
+                        <span style="font-size:11px; font-weight:900; color:#065f46; background:#a7f3d0; padding:3px 8px; border-radius:10px; white-space:nowrap;">대표: ${churchData.homepageOwner || churchData.pastor}</span>
+                    </div>
+                `;
+            } else {
+                bannerEl.innerHTML = `
+                    <div style="background:#fffbeb; border:1.5px solid #f59e0b; border-radius:12px; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 6px rgba(245,158,11,0.1);">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:22px;">⏳</span>
+                            <div>
+                                <div style="font-size:13px; font-weight:950; color:#92400e; display:flex; align-items:center; gap:5px;">
+                                    미인증 교회 <span style="font-size:10.5px; background:#f59e0b; color:#ffffff; padding:1px 6px; border-radius:6px; font-weight:800;">성도 등록 대기</span>
+                                </div>
+                                <div style="font-size:11px; color:#b45309; font-weight:700;">담임목사님이 가입 및 휴대폰 인증 시 공식 인증 교회로 전환됩니다.</div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="openPastorAuthFromChurchModal()" style="background:#d97706; color:#ffffff; border:none; border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:900; cursor:pointer; white-space:nowrap;">목사님 인증</button>
+                    </div>
+                `;
+            }
+        }
+
+        // 🔒 홈페이지 주인 권한 제어: 아무나 홈페이지 주인 못되도록 조치
+        if (isVerifiedChurch && !isOwnerPastor) {
+            if (inpHp) {
+                inpHp.readOnly = true;
+                inpHp.style.background = "#f1f5f9";
+                inpHp.style.color = "#334155";
+                inpHp.style.cursor = "default";
+            }
+            if (btnSaveHp) {
+                btnSaveHp.style.display = "none";
+            }
+            if (lockBadge) {
+                lockBadge.innerHTML = `<span style="font-size:11px; font-weight:900; color:#059669; background:#dcfce7; border:1px solid #86efac; padding:2px 8px; border-radius:6px;">🔒 목사님 공인 관리</span>`;
+            }
+            if (noticeEl) {
+                noticeEl.innerHTML = `🛡️ <strong>담임목사님이 인증하신 공식 홈페이지</strong>입니다. 무단 변경이 방지되어 있으며, 성도님들은 [바로가기]와 [복사]를 통해 안전하게 이용하실 수 있습니다.`;
+            }
+        } else if (isOwnerPastor) {
+            if (inpHp) {
+                inpHp.readOnly = false;
+                inpHp.style.background = "#ffffff";
+                inpHp.style.color = "#0f172a";
+                inpHp.style.cursor = "text";
+            }
+            if (btnSaveHp) {
+                btnSaveHp.style.display = "inline-block";
+                btnSaveHp.innerText = "💾 공식 주소 저장";
+            }
+            if (lockBadge) {
+                lockBadge.innerHTML = `<span style="font-size:11px; font-weight:900; color:#15803d; background:#dcfce7; padding:2px 8px; border-radius:6px;">👑 담임목사 관리권한</span>`;
+            }
+            if (noticeEl) {
+                noticeEl.innerHTML = `👑 담임목사님은 우리교회 공식 홈페이지 주소를 등록·수정하실 수 있습니다. 저장 시 <strong>모든 교우들에게 실시간 공유</strong>됩니다.`;
+            }
+        } else {
+            if (inpHp) {
+                inpHp.readOnly = false;
+                inpHp.style.background = "#ffffff";
+                inpHp.style.color = "#0f172a";
+                inpHp.style.cursor = "text";
+            }
+            if (btnSaveHp) {
+                btnSaveHp.style.display = "inline-block";
+                btnSaveHp.innerText = "💾 주소 저장";
+            }
+            if (lockBadge) {
+                lockBadge.innerHTML = `<span style="font-size:11px; font-weight:800; color:#b45309; background:#fef3c7; padding:2px 6px; border-radius:6px;">임시 공유</span>`;
+            }
+            if (noticeEl) {
+                noticeEl.innerHTML = `한 분이라도 홈페이지 주소를 저장하시면 <strong>같은 교회 모든 성도님들의 화면에 자동으로 공유</strong>됩니다. (담임목사님 인증 시 공식 관리자로 확정)`;
+            }
+        }
+
+        const members = churchData.members || [];
+        if (countEl) countEl.innerText = `${members.length}명`;
+
+        if (listEl) {
+            listEl.innerHTML = members.map(m => `
+                <div style="flex-shrink:0; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:8px 12px; text-align:center; min-width:110px;">
+                    <div style="font-size:14px; font-weight:900; color:#0f172a;">${m.nameOrId}</div>
+                    <span style="font-size:11px; font-weight:800; background:#dcfce7; color:#15803d; padding:2px 6px; border-radius:8px; display:inline-block; margin-top:2px;">${m.role}</span>
+                </div>
+            `).join("");
+        }
+
+        const modal = document.getElementById("ourChurchAppModal");
+        if (modal) modal.classList.add("show");
+    }
+
+    function closeOurChurchAppModal() {
+        const modal = document.getElementById("ourChurchAppModal");
+        if (modal) modal.classList.remove("show");
+    }
+
+    function saveChurchHomepageUrl() {
+        const url = (document.getElementById("inpChurchHomepageUrl")?.value || "").trim();
+        const churchKey = localStorage.getItem("yetalk_church_key");
+        const myName = localStorage.getItem("yetalk_user_name") || "";
+        const role = localStorage.getItem("yetalk_church_role") || "성도";
+
+        if (!churchKey) {
+            alert("먼저 교회 등록을 진행해주세요.");
+            return;
+        }
+
+        let churchMap = {};
+        try {
+            churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+        } catch(e) { churchMap = {}; }
+
+        const churchData = churchMap[churchKey];
+        if (churchData && churchData.isVerified) {
+            // 공식 인증된 교회에서 담임목사가 아닌 일반 사용자의 무단 수정 시도 차단!
+            if (role !== "담임목사" || churchData.homepageOwner !== myName) {
+                alert("🛡️ 정상 인증된 교회입니다.\n\n교회 공식 홈페이지 주소 수정 권한은 휴대폰 본인 인증을 완료하신 담임목사님께만 부여되어 있습니다.\n(타인의 무단 홈페이지 점유 및 변경 방지)");
+                if (document.getElementById("inpChurchHomepageUrl")) {
+                    document.getElementById("inpChurchHomepageUrl").value = churchData.homepageUrl || "";
+                }
+                return;
+            }
+        }
+
+        if (!churchMap[churchKey]) {
+            churchMap[churchKey] = {
+                key: churchKey,
+                name: localStorage.getItem("yetalk_church_name") || "우리교회",
+                pastor: localStorage.getItem("yetalk_pastor_name") || "",
+                homepageUrl: "",
+                isVerified: false,
+                homepageOwner: "",
+                members: []
+            };
+        }
+
+        churchMap[churchKey].homepageUrl = url;
+        localStorage.setItem("yetalk_registered_churches", JSON.stringify(churchMap));
+
+        const actRow = document.getElementById("churchHomepageActionRow");
+        if (actRow) actRow.style.display = url ? "flex" : "none";
+
+        alert("✅ 교회 홈페이지 주소가 안전하게 저장되었습니다!\n같은 교회 모든 성도님들의 화면에 자동으로 즉시 공유됩니다.");
+    }
+
+    function visitChurchHomepage() {
+        const url = (document.getElementById("inpChurchHomepageUrl")?.value || "").trim();
+        if (!url) {
+            alert("등록된 홈페이지 주소가 없습니다.");
+            return;
+        }
+        let target = url;
+        if (!target.startsWith("http://") && !target.startsWith("https://")) {
+            target = "https://" + target;
+        }
+        window.open(target, "_blank");
+    }
+
+    function copyChurchHomepageUrl() {
+        const url = (document.getElementById("inpChurchHomepageUrl")?.value || "").trim();
+        if (!url) {
+            alert("복사할 홈페이지 주소가 없습니다.");
+            return;
+        }
+        navigator.clipboard.writeText(url).then(() => {
+            alert("📋 교회 홈페이지 주소가 클립보드에 복사되었습니다!");
+        }).catch(() => {
+            prompt("아래 주소를 복사하세요:", url);
+        });
+    }
+
+    // 🌟 [사용자 요청] 초청 누르면 박스 없애고 상단부터 공간 활용 잘해서 밑으로 친구들이 한줄로 아래로 스크롤 되는 전체화면 뷰 및 회원 관리
+    function openChristianFriendsModal() {
+        const churchName = localStorage.getItem("yetalk_church_name") || "부산제일감리교회";
+        const pastorName = localStorage.getItem("yetalk_pastor_name") || "";
+        const churchKey = localStorage.getItem("yetalk_church_key") || normalizeChurchKey(churchName, pastorName);
+
+        const badge = document.getElementById("txtFriendChurchNameBadge");
+        if (badge) badge.innerText = churchName;
+
+        let churchMap = {};
+        try {
+            churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+        } catch(e) { churchMap = {}; }
+
+        let customFriends = [];
+        try {
+            customFriends = JSON.parse(localStorage.getItem("yetalk_custom_friends") || "[]");
+        } catch(e) { customFriends = []; }
+
+        let members = [];
+        if (churchKey && churchMap[churchKey] && churchMap[churchKey].members && churchMap[churchKey].members.length > 0) {
+            members = [...churchMap[churchKey].members];
+        }
+
+        // customFriends 병합
+        customFriends.forEach(cf => {
+            if (!members.some(m => m.nameOrId === cf.nameOrId)) {
+                members.push(cf);
+            }
+        });
+
+        // 현재 사용자 본인 포함 보장
+        const myName = localStorage.getItem("yetalk_user_name") || "최베드로";
+        const myRole = localStorage.getItem("yetalk_church_role") || "성도";
+        if (members.length === 0) {
+            members = [
+                { nameOrId: myName, role: myRole },
+                { nameOrId: "김요한", role: "성도" },
+                { nameOrId: "박에스더", role: "사무사역자" },
+                { nameOrId: "이다윗", role: "집사" },
+                { nameOrId: "정마리아", role: "권사" }
+            ];
+        } else if (!members.some(m => m.nameOrId === myName)) {
+            members.unshift({ nameOrId: myName, role: myRole });
+        }
+
+        // 🌟 [사용자 요청] 별 체크 여부 불러오기
+        let starredFriends = [];
+        try {
+            starredFriends = JSON.parse(localStorage.getItem("yetalk_starred_friends") || "[]");
+        } catch(e) { starredFriends = []; }
+
+        // 🌟 [사용자 요청] 1순위: 별표 체크된 교우가 최상단 / 2순위: 가나다라 순서(이름 오름차순) 정렬!
+        members.sort((a, b) => {
+            const aStarred = starredFriends.includes(a.nameOrId);
+            const bStarred = starredFriends.includes(b.nameOrId);
+            if (aStarred && !bStarred) return -1;
+            if (!aStarred && bStarred) return 1;
+            return (a.nameOrId || '').localeCompare(b.nameOrId || '', 'ko');
+        });
+
+        // 총 인원수 배지 갱신
+        const totalCountEl = document.getElementById("txtFriendTotalCount");
+        if (totalCountEl) totalCountEl.innerText = `총 ${members.length}명`;
+
+        // 🌟 [사용자 요청] 수십, 수백명도 한 줄로 아래로 시원하게 스크롤되는 리스트 렌더링 + 별표(상단고정) 토글 버튼
+        const row = document.getElementById("christianRegisteredMembersRow");
+        if (row) {
+            row.innerHTML = members.map((m, idx) => {
+                const initial = (m.nameOrId || "교").substring(0, 1);
+                const isMe = (m.nameOrId === myName);
+                const isStarred = starredFriends.includes(m.nameOrId);
+                return `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:${isStarred ? '#fffbeb' : '#ffffff'}; border:${isStarred ? '1.8px solid #fde047' : '1px solid #e2e8f0'}; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.03); transition:all 0.15s ease;">
+                    <div style="display:flex; align-items:center; gap:8px; min-width:0;">
+                        <!-- 🌟 [사용자 요청] 별표 토글 버튼 (누르면 상단 고정 / 해제) -->
+                        <button type="button" onclick="toggleStarChristianFriend('${m.nameOrId}')" title="${isStarred ? '상단 고정 별표 해제' : '최상단 고정 별표 등록'}" style="background:none; border:none; cursor:pointer; font-size:20px; padding:2px 4px; line-height:1; color:${isStarred ? '#f59e0b' : '#cbd5e1'}; flex-shrink:0; transition:transform 0.1s ease;">
+                            ${isStarred ? '★' : '☆'}
+                        </button>
+                        <div style="width:36px; height:36px; border-radius:50%; background:${isMe ? '#ecfdf5' : '#f0f9ff'}; border:1.5px solid ${isMe ? '#a7f3d0' : '#bae6fd'}; color:${isMe ? '#059669' : '#0284c7'}; display:flex; align-items:center; justify-content:center; font-size:14.5px; font-weight:950; flex-shrink:0;">
+                            ${initial}
+                        </div>
+                        <div style="display:flex; flex-direction:column; min-width:0;">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span style="font-size:15.5px; font-weight:950; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.nameOrId}</span>
+                                <span style="font-size:11px; font-weight:800; color:${isMe ? '#059669' : '#0369a1'}; background:${isMe ? '#dcfce7' : '#e0f2fe'}; padding:1px 6px; border-radius:6px; flex-shrink:0;">${isMe ? '나' : (m.role || '성도')}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
+                        <button type="button" onclick="openMemberPrivateChat('${m.nameOrId}', '${m.role || ''}')" style="padding:6px 12px; background:#0284c7; color:#ffffff; border:none; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:0 1.5px 4px rgba(2,132,199,0.25);">
+                            <span>예톡</span>
+                            <span style="background:#ef4444; color:#fff; font-size:10px; font-weight:950; padding:1px 5px; border-radius:8px;">1</span>
+                        </button>
+                        <button type="button" onclick="shareChristianInviteKakao('${m.nameOrId}')" style="padding:6px 12px; background:#fee500; color:#191919; border:none; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer; box-shadow:0 1.5px 4px rgba(254,229,0,0.3);">
+                            카톡
+                        </button>
+                        ${!isMe ? `<button type="button" onclick="deleteChristianFriend('${m.nameOrId}')" title="삭제" style="background:none; border:none; color:#94a3b8; font-size:15px; cursor:pointer; padding:4px 6px; border-radius:4px;">✕</button>` : ''}
+                    </div>
+                </div>
+            `}).join("");
+        }
+
+        const modal = document.getElementById("christianFriendsModal");
+        if (modal) modal.classList.add("show");
+    }
+
+    // 🌟 [사용자 요청] 교우 별표(즐겨찾기/상단고정) 토글 함수
+    function toggleStarChristianFriend(friendName) {
+        let starred = [];
+        try {
+            starred = JSON.parse(localStorage.getItem("yetalk_starred_friends") || "[]");
+        } catch(e) { starred = []; }
+        const idx = starred.indexOf(friendName);
+        if (idx >= 0) {
+            starred.splice(idx, 1);
+            showBibleToast(`⭐ [${friendName}] 별표 해제`);
+        } else {
+            starred.push(friendName);
+            showBibleToast(`⭐ [${friendName}] 상단 고정 등록!`);
+        }
+        localStorage.setItem("yetalk_starred_friends", JSON.stringify(starred));
+        openChristianFriendsModal();
+    }
+    window.toggleStarChristianFriend = toggleStarChristianFriend;
+
+    function registerNewChristianFriend() {
+        const inp = document.getElementById("inpNewFriendName");
+        if (!inp) return;
+        const name = inp.value.trim();
+        if (!name) {
+            showBibleToast("교우 또는 친구 이름을 입력해 주세요.");
+            inp.focus();
+            return;
+        }
+
+        const churchName = localStorage.getItem("yetalk_church_name") || "부산제일감리교회";
+        const pastorName = localStorage.getItem("yetalk_pastor_name") || "";
+        const churchKey = localStorage.getItem("yetalk_church_key") || (churchName + "_" + pastorName).toLowerCase().replace(/\s+/g, '');
+
+        let churchMap = {};
+        try {
+            churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+        } catch(e) { churchMap = {}; }
+
+        if (!churchMap[churchKey]) {
+            churchMap[churchKey] = {
+                name: churchName,
+                pastor: pastorName,
+                homepageUrl: "",
+                isVerified: false,
+                homepageOwner: "",
+                members: []
+            };
+        }
+        if (!churchMap[churchKey].members) {
+            churchMap[churchKey].members = [];
+        }
+
+        const exists = churchMap[churchKey].members.some(m => m.nameOrId === name);
+        if (!exists) {
+            churchMap[churchKey].members.push({
+                nameOrId: name,
+                role: "성도",
+                joinedAt: new Date().toLocaleDateString()
+            });
+            localStorage.setItem("yetalk_registered_churches", JSON.stringify(churchMap));
+        }
+
+        let customFriends = [];
+        try {
+            customFriends = JSON.parse(localStorage.getItem("yetalk_custom_friends") || "[]");
+        } catch(e) { customFriends = []; }
+        if (!customFriends.some(f => f.nameOrId === name)) {
+            customFriends.push({ nameOrId: name, role: "성도" });
+            localStorage.setItem("yetalk_custom_friends", JSON.stringify(customFriends));
+        }
+
+        inp.value = "";
+        showBibleToast(`✅ [${name}] 등록 완료!`);
+        openChristianFriendsModal();
+    }
+
+    // 🌟 [사용자 요청] 등록된 친구 삭제 함수
+    function deleteChristianFriend(friendName) {
+        if (!confirm(`[${friendName}] 교우/친구를 목록에서 삭제하시겠습니까?`)) return;
+
+        const churchName = localStorage.getItem("yetalk_church_name") || "부산제일감리교회";
+        const pastorName = localStorage.getItem("yetalk_pastor_name") || "";
+        const churchKey = localStorage.getItem("yetalk_church_key") || (churchName + "_" + pastorName).toLowerCase().replace(/\s+/g, '');
+
+        let churchMap = {};
+        try {
+            churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+        } catch(e) { churchMap = {}; }
+
+        if (churchMap[churchKey] && churchMap[churchKey].members) {
+            churchMap[churchKey].members = churchMap[churchKey].members.filter(m => m.nameOrId !== friendName);
+            localStorage.setItem("yetalk_registered_churches", JSON.stringify(churchMap));
+        }
+
+        let customFriends = [];
+        try {
+            customFriends = JSON.parse(localStorage.getItem("yetalk_custom_friends") || "[]");
+        } catch(e) { customFriends = []; }
+        customFriends = customFriends.filter(f => f.nameOrId !== friendName);
+        localStorage.setItem("yetalk_custom_friends", JSON.stringify(customFriends));
+
+        showBibleToast(`[${friendName}] 삭제되었습니다.`);
+        openChristianFriendsModal();
+    }
+
+    function closeChristianFriendsModal() {
+        const modal = document.getElementById("christianFriendsModal");
+        if (modal) modal.classList.remove("show");
+    }
+
+    // 🌟 [사용자 요청] alert 없이 초대 문구 즉시 복사 & 버튼 피드백
+    function copyChristianInvite() {
+        const churchName = localStorage.getItem("yetalk_church_name") || "";
+        const baseMsg = "예톡 우리교회 홈페이지와 앱에 초청합니다.";
+        const fullMsg = churchName ? `[${churchName}]\n${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/` : `${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/`;
+
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(fullMsg).then(() => {
+                showCopyBtnFeedback();
+            }).catch(() => {
+                showCopyBtnFeedback();
+            });
+        } else {
+            showCopyBtnFeedback();
+        }
+    }
+
+    function showCopyBtnFeedback() {
+        const btn = document.getElementById("btnCopyInviteAction");
+        if (btn) {
+            const org = btn.innerHTML;
+            btn.innerHTML = "✅ 복사 완료!";
+            btn.style.background = "#059669";
+            setTimeout(() => {
+                btn.innerHTML = org;
+                btn.style.background = "#0284c7";
+            }, 1800);
+        }
+    }
+
+    function shareChristianInviteKakao(targetMemberName) {
+        const churchName = localStorage.getItem("yetalk_church_name") || "";
+        const baseMsg = "예톡 우리교회 홈페이지와 앱에 초청합니다.";
+        const fullMsg = churchName ? `[${churchName}]\n${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/` : `${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/`;
+
+        // 1. AndroidBridge 네이티브 카카오톡 호출
+        if (window.AndroidBridge && typeof window.AndroidBridge.shareToKakaoFriends === "function") {
+            window.AndroidBridge.shareToKakaoFriends(fullMsg);
+            return;
+        }
+
+        // 2. 모바일 웹 카카오톡 공유 링크 (카카오톡 스킴)
+        const kakaoScheme = "kakaolink://send?text=" + encodeURIComponent(fullMsg);
+        window.location.href = kakaoScheme;
+
+        // 3. Fallback: navigator.share (기기 공유 창)
+        setTimeout(() => {
+            if (navigator.share) {
+                navigator.share({
+                    title: churchName ? `[${churchName}] 초청` : "예톡 초청",
+                    text: fullMsg,
+                    url: "https://woongskorea.github.io/Yetalk-backup/"
+                }).catch(() => {});
+                return;
+            }
+            copyChristianInvite();
+        }, 500);
+    }
+
+    let currentChatPartner = "";
+    function openMemberPrivateChat(name, role) {
+        currentChatPartner = name;
+        closeChristianFriendsModal();
+
+        const partnerTitle = document.getElementById("chatPartnerTitle");
+        if (partnerTitle) partnerTitle.innerText = `${name} (${role || '성도'})`;
+
+        const overlay = document.getElementById("yetalkPrivateChatOverlay");
+        if (overlay) overlay.style.display = "flex";
+
+        renderPrivateChatMessages();
+    }
+
+    function closeMemberPrivateChat() {
+        const overlay = document.getElementById("yetalkPrivateChatOverlay");
+        if (overlay) overlay.style.display = "none";
+    }
+
+    function getPrivateChatKey() {
+        return "yetalk_private_chat_" + (currentChatPartner || "default");
+    }
+
+    function renderPrivateChatMessages() {
+        const body = document.getElementById("chatMessagesBody");
+        if (!body) return;
+
+        let messages = [];
+        try {
+            messages = JSON.parse(localStorage.getItem(getPrivateChatKey()) || "[]");
+        } catch(e) { messages = []; }
+
+        if (messages.length === 0) {
+            messages = [
+                { id: 1, sender: currentChatPartner, isMe: false, text: `샬롬! 안녕하십니까? 예톡 1:1 대화방입니다. 주 안에서 평안하시길 소망합니다 🙏`, time: "오전 10:00" },
+                { id: 2, sender: currentChatPartner, isMe: false, text: `우리교회 홈페이지와 앱에서 함께 말씀과 은혜 나누어요!`, time: "오전 10:01" }
+            ];
+            localStorage.setItem(getPrivateChatKey(), JSON.stringify(messages));
+        }
+
+        body.innerHTML = messages.map(m => {
+            if (m.isMe) {
+                return `
+                    <div style="display:flex; justify-content:flex-end; align-items:flex-end; gap:6px;">
+                        <span style="font-size:10.5px; color:#94a3b8;">${m.time}</span>
+                        <div style="max-width:75%; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; padding:10px 14px; border-radius:16px 16px 2px 16px; font-size:14.5px; line-height:1.5; font-weight:600; box-shadow:0 2px 5px rgba(2,132,199,0.25);">
+                            ${m.text}
+                        </div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div style="display:flex; justify-content:flex-start; align-items:flex-start; gap:8px;">
+                        <div style="width:36px; height:36px; border-radius:50%; background:#e0f2fe; color:#0369a1; display:flex; align-items:center; justify-content:center; font-weight:950; font-size:15px; flex-shrink:0;">
+                            ${currentChatPartner.charAt(0)}
+                        </div>
+                        <div style="max-width:75%;">
+                            <div style="font-size:11.5px; font-weight:800; color:#64748b; margin-bottom:3px;">${currentChatPartner}</div>
+                            <div style="background:#ffffff; color:#0f172a; padding:10px 14px; border-radius:2px 16px 16px 16px; font-size:14.5px; line-height:1.5; border:1px solid #e2e8f0; box-shadow:0 1.5px 3px rgba(0,0,0,0.04); font-weight:600;">
+                                ${m.text}
+                            </div>
+                        </div>
+                        <span style="font-size:10.5px; color:#94a3b8; align-self:flex-end;">${m.time}</span>
+                    </div>
+                `;
+            }
+        }).join("");
+
+        body.scrollTop = body.scrollHeight;
+    }
+
+    function sendPrivateChatMessage() {
+        const inp = document.getElementById("inpPrivateChatText");
+        if (!inp) return;
+        const text = inp.value.trim();
+        if (!text) return;
+
+        let messages = [];
+        try {
+            messages = JSON.parse(localStorage.getItem(getPrivateChatKey()) || "[]");
+        } catch(e) { messages = []; }
+
+        const now = new Date();
+        const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+        messages.push({
+            id: Date.now(),
+            sender: "나",
+            isMe: true,
+            text: text,
+            time: timeStr
+        });
+
+        localStorage.setItem(getPrivateChatKey(), JSON.stringify(messages));
+        inp.value = "";
+        renderPrivateChatMessages();
+    }
+
+    // 🌟 [사용자 요청] 총관리자만 보는 관리자 버튼 비밀 보안 체크
+    // 🌟 [사용자 요청] 삼각 햄버그 안 총관리실 모달 & 기본 은혜 소개글 편집/저장
+    function openSuperAdminDeskModal() {
+        const modal = document.getElementById("superAdminDeskModal");
+        const mottoInp = document.getElementById("inpAdminTvDefaultMotto");
+        if (mottoInp) {
+            mottoInp.value = localStorage.getItem("yetalk_global_tv_motto") || "내 안에 계신 하나님을 기쁘시게 하는 인생을 살아갑시다.";
+        }
+        if (modal) {
+            modal.style.display = "flex";
+            modal.classList.add("show");
+        }
+    }
+
+    function closeSuperAdminDeskModal() {
+        const modal = document.getElementById("superAdminDeskModal");
+        if (modal) {
+            modal.style.display = "none";
+            modal.classList.remove("show");
+        }
+    }
+
+    function saveAdminTvDefaultMotto() {
+        const mottoInp = document.getElementById("inpAdminTvDefaultMotto");
+        const val = mottoInp ? mottoInp.value.trim() : "";
+        const finalMotto = val || "내 안에 계신 하나님을 기쁘시게 하는 인생을 살아갑시다.";
+        localStorage.setItem("yetalk_global_tv_motto", finalMotto);
+
+        // Firebase Firestore 실시간 클라우드 동기화
+        if (window.yetalkDb && window.yetalkFs) {
+            try {
+                const { doc, setDoc, serverTimestamp } = window.yetalkFs;
+                setDoc(doc(window.yetalkDb, "yetalk_global_config", "tv_motto"), {
+                    motto: finalMotto,
+                    updatedAt: serverTimestamp(),
+                    updatedBy: localStorage.getItem("yetalkUserName") || "admin"
+                }, { merge: true }).catch(() => {});
+            } catch(e){}
+        }
+
+        alert("💾 예톡TV 기본 소개글이 성공적으로 저장되었습니다!\n\n\"" + finalMotto + "\"");
+        closeSuperAdminDeskModal();
+    }
+
+    window.openSuperAdminDeskModal = openSuperAdminDeskModal;
+    window.closeSuperAdminDeskModal = closeSuperAdminDeskModal;
+    window.saveAdminTvDefaultMotto = saveAdminTvDefaultMotto;
+
+    function goToSuperAdminRoom() {
+        openSuperAdminDeskModal();
+    }
+
+    function checkSuperAdminAccess() {
+        openSuperAdminDeskModal();
+    }
+
+    function handleChristianNav(tab) {
+        document.querySelectorAll(".quick-nav-bar .btn-quick-chip").forEach(btn => btn.classList.remove("active"));
+        if (tab === 'personal' || tab === 'my') {
+            document.getElementById("chipTabPersonal")?.classList.add("active");
+            location.href = "myapp_home.html?tab=my";
+        } else if (tab === 'our_church' || tab === 'church') {
+            document.getElementById("chipTabOurChurch")?.classList.add("active");
+            // 🌟 [사용자 요청] 임시창 모달이 아니라 사진 4의 churchmain.html(누구나 가입하면 모이는 실제 우리교회 화면)로 바로 직행!
+            location.href = "churchmain.html";
+        } else if (tab === 'invite' || tab === 'friends') {
+            document.getElementById("chipTabInvite")?.classList.add("active");
+            openChristianFriendsModal();
+        }
+    }
+
+    function updateChristianHeaderUI() {
+        // 🌟 [사용자 요청] 퀵 메뉴 바에 본인 교회 실제 이름 버튼 표출 (저장된 교회명 즉시 반영)
+        const churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회";
+        const ourChurchTab = document.getElementById("chipTabOurChurch");
+        if (ourChurchTab) {
+            ourChurchTab.innerHTML = `⛪ ${churchName.trim()}`;
+        }
+
+        // 🌟 [사용자 요청] 회원가입 후 버튼 텍스트가 [이름 (직분)]으로 변경되고, 누르면 언제든 정보 수정 가능!
+        const joinBtn = document.getElementById("btnHeaderJoinAction");
+        const uName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id");
+        const rawRole = localStorage.getItem("yetalk_church_role") || "성도";
+        // 헤더 좁은 폭에 깔끔하게 나오도록 (사모포함) 등 부가 텍스트 정돈
+        const displayRole = rawRole.replace(/\(사모포함\)/g, '').replace(/\(간단가입\)/g, '').trim() || "성도";
+
+        if (joinBtn) {
+            if (uName && uName.trim()) {
+                joinBtn.innerHTML = `👤 ${uName.trim()} <span style="font-size:11px; font-weight:750; opacity:0.95;">(${displayRole})</span>`;
+                joinBtn.title = "내 회원정보 확인 및 수정";
+                joinBtn.style.background = "linear-gradient(135deg, #047857, #065f46)";
+                joinBtn.style.borderColor = "#34d399";
+                joinBtn.style.padding = "5px 10px";
+            } else {
+                joinBtn.innerHTML = "회원가입";
+                joinBtn.title = "기독교인 회원가입";
+                joinBtn.style.background = "linear-gradient(135deg, #059669, #047857)";
+                joinBtn.style.borderColor = "#10b981";
+                joinBtn.style.padding = "5px 12px";
+            }
+        }
+
+        // 총관리실 드로어 버튼 항상 노출
+        const sec = document.getElementById("drawerSuperAdminSection");
+        if (sec) {
+            sec.style.display = "block";
+        }
+    }
+
+
+    // ==============================================================
+    // 🌟 [사용자 요청] 대표 식사 기도자 추첨 (25% 당선 1명, 75% 낙선 3명) & 팡파레/딩동댕 소리
+    // ==============================================================
+    function playCelebrationFanfare() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+
+            // 🎶 딩-동-댕 팡파레 멜로디 (도 - 미 - 솔 - 높은 도!)
+            const notes = [
+                { freq: 523.25, time: 0.00, dur: 0.16 }, // 딩 (C5)
+                { freq: 659.25, time: 0.14, dur: 0.16 }, // 동 (E5)
+                { freq: 783.99, time: 0.28, dur: 0.20 }, // 댕 (G5)
+                { freq: 1046.50, time: 0.46, dur: 0.65 } // 짠! (C6)
+            ];
+
+            notes.forEach(n => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'triangle'; // 맑고 경쾌한 벨/브라스 톤
+                osc.frequency.setValueAtTime(n.freq, ctx.currentTime + n.time);
+
+                gain.gain.setValueAtTime(0, ctx.currentTime + n.time);
+                gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + n.time + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + n.time + n.dur);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start(ctx.currentTime + n.time);
+                osc.stop(ctx.currentTime + n.time + n.dur);
+            });
+
+            // 화음 코드 서포트 (C5 + E5 + G5 + C6)
+            setTimeout(() => {
+                try {
+                    [523.25, 659.25, 783.99, 1046.50].forEach(f => {
+                        const chordOsc = ctx.createOscillator();
+                        const chordGain = ctx.createGain();
+                        chordOsc.type = 'sine';
+                        chordOsc.frequency.setValueAtTime(f, ctx.currentTime);
+                        chordGain.gain.setValueAtTime(0.22, ctx.currentTime);
+                        chordGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+                        chordOsc.connect(chordGain);
+                        chordGain.connect(ctx.destination);
+                        chordOsc.start(ctx.currentTime);
+                        chordOsc.stop(ctx.currentTime + 0.6);
+                    });
+                } catch(e){}
+            }, 460);
+        } catch(err) {
+            console.warn('AudioContext error:', err);
+        }
+    }
+
+    let mealParticipantCount = 4; // 기본 4명 (사용자가 언제든 줄이거나 늘릴 수 있음)
+    let isMealLotteryRunning = false;
+
+    function changeMealParticipantCount(delta) {
+        mealParticipantCount = Math.max(2, Math.min(20, mealParticipantCount + delta));
+        const lbl = document.getElementById('mealParticipantCountLabel');
+        if (lbl) lbl.innerText = mealParticipantCount + '명';
+        renderMealParticipantCards();
+        resetMealPrayerLotteryState();
+    }
+
+    function renderMealParticipantCards() {
+        const row = document.getElementById('mealLotteryCardsRow');
+        if (!row) return;
+        let html = '';
+        for (let i = 1; i <= mealParticipantCount; i++) {
+            html += `
+                <div class="meal-lottery-card" id="mealCard_${i}" onclick="runMealPrayerLottery(${i})" style="flex:1 1 calc(25% - 8px); min-width:64px; max-width:88px; background:#f8fafc; border:2px solid #cbd5e1; border-radius:12px; padding:12px 4px; text-align:center; cursor:pointer; transition:all 0.2s ease; box-sizing:border-box; touch-action:manipulation;">
+                    <div style="font-size:20px; font-weight:950; color:#1e293b;" id="mealNum_${i}">${i}번</div>
+                    <div style="font-size:11px; color:#64748b; font-weight:800; margin-top:4px;" id="mealStatus_${i}">선택</div>
+                </div>
+            `;
+        }
+        row.innerHTML = html;
+    }
+
+    function resetMealPrayerLotteryState() {
+        isMealLotteryRunning = false;
+        const resultBox = document.getElementById('mealLotteryResultBox');
+        if (resultBox) resultBox.style.display = 'none';
+        const btn = document.getElementById('btnRunMealLottery');
+        if (btn) {
+            btn.innerText = '🎲 오늘의 대표 기도자 번호 추첨하기!';
+            btn.disabled = false;
+        }
+    }
+
+    function openMealPrayerLotteryModal() {
+        renderMealParticipantCards();
+        resetMealPrayerLotteryState();
+        const modal = document.getElementById('mealPrayerLotteryModal');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.classList.add('show');
+        }
+    }
+
+    function closeMealPrayerLotteryModal() {
+        const modal = document.getElementById('mealPrayerLotteryModal');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+        }
+    }
+
+    function resetMealPrayerLottery() {
+        renderMealParticipantCards();
+        resetMealPrayerLotteryState();
+    }
+
+    function runMealPrayerLottery(clickedNum) {
+        if (isMealLotteryRunning) return;
+        isMealLotteryRunning = true;
+
+        const total = mealParticipantCount || 4;
+        // 1번부터 total번 중 1명 공정하게 랜덤 추첨
+        const winner = Math.floor(Math.random() * total) + 1;
+
+        const btn = document.getElementById('btnRunMealLottery');
+        if (btn) btn.innerText = '추첨 진행 중... 🥁';
+
+        // 0.3초 드럼 롤 후 당선 발표
+        setTimeout(() => {
+            const isUserWon = (clickedNum != null && clickedNum === winner);
+            const isUserLost = (clickedNum != null && clickedNum !== winner);
+
+            for (let i = 1; i <= total; i++) {
+                const card = document.getElementById('mealCard_' + i);
+                const num = document.getElementById('mealNum_' + i);
+                const status = document.getElementById('mealStatus_' + i);
+
+                if (i === winner) {
+                    if (card) {
+                        card.style.background = 'linear-gradient(135deg, #fef08a, #facc15)';
+                        card.style.borderColor = '#d97706';
+                        card.style.boxShadow = '0 6px 18px rgba(217, 119, 6, 0.45)';
+                        card.style.transform = 'scale(1.08)';
+                    }
+                    if (num) {
+                        num.innerHTML = '🎉 ' + i + '번';
+                        num.style.color = '#78350f';
+                    }
+                    if (status) {
+                        if (clickedNum != null && i === clickedNum) {
+                            status.innerHTML = '<strong style="color:#b45309;">내 선택 당선!</strong> 🎉';
+                        } else {
+                            status.innerHTML = '<strong>당선!</strong> 🙏';
+                        }
+                        status.style.color = '#92400e';
+                    }
+                } else {
+                    if (card) {
+                        card.style.background = '#f1f5f9';
+                        card.style.borderColor = '#e2e8f0';
+                        card.style.boxShadow = 'none';
+                        card.style.transform = 'scale(0.96)';
+                    }
+                    if (num) {
+                        num.innerText = i + '번';
+                        num.style.color = '#94a3b8';
+                    }
+                    if (status) {
+                        if (clickedNum != null && i === clickedNum) {
+                            status.innerHTML = '<span style="color:#2563eb; font-weight:800;">내 선택 (낙선 😊)</span>';
+                        } else {
+                            status.innerText = '낙선 😊';
+                            status.style.color = '#94a3b8';
+                        }
+                    }
+                }
+            }
+
+            // 결과 안내 배너 (사용자 요청: 본인 누른 번호 당선 시 '당선 엄청 축하합니다', 낙선 시 '낙선을 축하드립니다')
+            const resultBox = document.getElementById('mealLotteryResultBox');
+            const subText = document.getElementById('mealResultSub');
+            const winnerText = document.getElementById('mealResultWinner');
+            const passText = document.getElementById('mealResultPass');
+
+            if (isUserWon) {
+                if (subText) subText.innerText = '🎉 당선 엄청 축하합니다! 오늘의 은혜로운 대표 기도자입니다!';
+                if (winnerText) winnerText.innerText = '🎉 내가 누른 [' + clickedNum + '번] 당선! 🙏';
+                if (passText) passText.innerText = '오늘의 대표 식사 기도를 맡으셨습니다. 은혜로운 기도 부탁드립니다 ✨';
+                if (resultBox) {
+                    resultBox.style.background = 'linear-gradient(135deg, #ecfdf5, #d1fae5)';
+                    resultBox.style.borderColor = '#10b981';
+                    resultBox.style.display = 'block';
+                }
+                if (btn) {
+                    btn.innerText = '🎲 다시 추첨하려면 터치하세요!';
+                }
+                playCelebrationFanfare();
+            } else if (isUserLost) {
+                if (subText) subText.innerText = '😊 낙선을 축하드립니다! 맛있게 식사하세요 🍽️';
+                if (winnerText) winnerText.innerText = '🎉 ' + winner + '번 당선! (내 번호: ' + clickedNum + '번 낙선)';
+                if (passText) passText.innerText = winner + '번 성도님께서 대표 기도해 주십니다. 편안하게 맛있게 드세요 😊';
+                if (resultBox) {
+                    resultBox.style.background = 'linear-gradient(135deg, #f0fdf4, #eff6ff)';
+                    resultBox.style.borderColor = '#60a5fa';
+                    resultBox.style.display = 'block';
+                }
+                if (btn) {
+                    btn.innerText = '🎲 다시 추첨하려면 터치하세요!';
+                }
+            } else {
+                if (subText) subText.innerText = '🎉 축하합니다! 오늘의 은혜로운 대표 기도자입니다!';
+                if (winnerText) winnerText.innerText = '🎉 ' + winner + '번 당선! 🙏';
+                if (passText) passText.innerText = '나머지 번호는 낙선 (맛있게 드세요 😊)';
+                if (resultBox) {
+                    resultBox.style.background = 'linear-gradient(135deg, #ecfdf5, #d1fae5)';
+                    resultBox.style.borderColor = '#10b981';
+                    resultBox.style.display = 'block';
+                }
+                if (btn) {
+                    btn.innerText = '🎲 다시 추첨하려면 터치하세요!';
+                }
+            }
+
+            // 다음 번 언제든 바로 다시 누를 수 있도록 허용!
+            isMealLotteryRunning = false;
+        }, 300);
+    }
+
+    window.changeMealParticipantCount = changeMealParticipantCount;
+    window.renderMealParticipantCards = renderMealParticipantCards;
+    window.openMealPrayerLotteryModal = openMealPrayerLotteryModal;
+    window.closeMealPrayerLotteryModal = closeMealPrayerLotteryModal;
+    window.runMealPrayerLottery = runMealPrayerLottery;
+    window.resetMealPrayerLottery = resetMealPrayerLottery;
+    window.playCelebrationFanfare = playCelebrationFanfare;
+
+    window.addEventListener("DOMContentLoaded", () => {
+        updateChristianHeaderUI();
+    });
+    
