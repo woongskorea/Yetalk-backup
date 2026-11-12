@@ -12746,29 +12746,23 @@
             }
         });
 
+        // 🌟 [사용자 요청] 가짜/샘플 더미 교우(김요한, 박에스더, 이다윗, 정마리아) 완전 제거 및 정리
+        const dummyNames = ["김요한", "박에스더", "이다윗", "정마리아"];
+        members = members.filter(m => {
+            const name = typeof m === 'string' ? m : (m.nameOrId || m.name || '');
+            return !dummyNames.includes(name);
+        });
+
         // 현재 사용자 본인 포함 보장
         const myName = (localStorage.getItem("yetalk_user_name") || "최베드로").trim();
         const myRole = (localStorage.getItem("yetalk_church_role") || "성도").trim();
 
-        // 🌟 [사용자 요청] 담임목사님(정찬석 목사 등) 및 교우들이 나만 보이지 않고 다 함께 따뜻하게 표출되도록 보장
+        // 🌟 담임목사님(정찬석 목사 등) 포함 보장
         const rawPastor = (localStorage.getItem("yetalk_pastor_name") || (churchMap[churchKey] ? churchMap[churchKey].pastor : "") || "정찬석").trim();
         const pastorClean = rawPastor.replace(/(담임)?목사님?/g, '').trim();
         if (pastorClean && !members.some(m => (m.nameOrId || '').includes(pastorClean))) {
             members.unshift({ nameOrId: pastorClean + " 목사", role: "담임목사" });
         }
-
-        // 기본 등록 교우진 (김요한, 박에스더, 이다윗, 정마리아) 함께 포함하여 혼자가 아닌 교우 명단 구성
-        const defaultFellowship = [
-            { nameOrId: "김요한", role: "성도" },
-            { nameOrId: "박에스더", role: "사무사역자" },
-            { nameOrId: "이다윗", role: "집사" },
-            { nameOrId: "정마리아", role: "권사" }
-        ];
-        defaultFellowship.forEach(df => {
-            if (!members.some(m => m.nameOrId === df.nameOrId)) {
-                members.push(df);
-            }
-        });
 
         if (!members.some(m => m.nameOrId === myName)) {
             members.unshift({ nameOrId: myName, role: myRole });
@@ -12803,39 +12797,35 @@
         const totalCountEl = document.getElementById("txtFriendTotalCount");
         if (totalCountEl) totalCountEl.innerText = `총 ${members.length}명`;
 
-        // 🌟 [사용자 요청] 수십, 수백명도 한 줄로 아래로 시원하게 스크롤되는 리스트 렌더링 + 별표(상단고정) 토글 버튼
+        // 🌟 [사용자 요청] 동그라미(이니셜) 제거, 별표 및 예톡/카톡 버튼 스마트 축소로 본인 이름(최베드로) 끝까지 시원하게 전체 표출
         const row = document.getElementById("christianRegisteredMembersRow");
         if (row) {
             row.innerHTML = members.map((m, idx) => {
-                const initial = (m.nameOrId || "교").substring(0, 1);
                 const isMe = (m.nameOrId === myName);
                 const isStarred = starredFriends.includes(m.nameOrId);
                 return `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:${isStarred ? '#fffbeb' : '#ffffff'}; border:${isStarred ? '1.8px solid #fde047' : '1px solid #e2e8f0'}; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,0.03); transition:all 0.15s ease;">
-                    <div style="display:flex; align-items:center; gap:8px; min-width:0;">
-                        <!-- 🌟 [사용자 요청] 별표 토글 버튼 (누르면 상단 고정 / 해제) -->
-                        <button type="button" onclick="toggleStarChristianFriend('${m.nameOrId}')" title="${isStarred ? '상단 고정 별표 해제' : '최상단 고정 별표 등록'}" style="background:none; border:none; cursor:pointer; font-size:20px; padding:2px 4px; line-height:1; color:${isStarred ? '#f59e0b' : '#cbd5e1'}; flex-shrink:0; transition:transform 0.1s ease;">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; gap:8px; background:${isStarred ? '#fffbeb' : '#ffffff'}; border:${isStarred ? '1.5px solid #fde047' : '1px solid #e2e8f0'}; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.03); transition:all 0.15s ease;">
+                    <div style="display:flex; align-items:center; gap:6px; min-width:0; flex-grow:1;">
+                        <!-- 🌟 별표 토글 버튼 (컴팩트) -->
+                        <button type="button" onclick="toggleStarChristianFriend('${m.nameOrId}')" title="${isStarred ? '상단 고정 별표 해제' : '최상단 고정 별표 등록'}" style="background:none; border:none; cursor:pointer; font-size:16px; padding:0 2px; line-height:1; color:${isStarred ? '#f59e0b' : '#cbd5e1'}; flex-shrink:0;">
                             ${isStarred ? '★' : '☆'}
                         </button>
-                        <div style="width:36px; height:36px; border-radius:50%; background:${isMe ? '#ecfdf5' : '#f0f9ff'}; border:1.5px solid ${isMe ? '#a7f3d0' : '#bae6fd'}; color:${isMe ? '#059669' : '#0284c7'}; display:flex; align-items:center; justify-content:center; font-size:14.5px; font-weight:950; flex-shrink:0;">
-                            ${initial}
-                        </div>
-                        <div style="display:flex; flex-direction:column; min-width:0;">
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                <span style="font-size:15.5px; font-weight:950; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${m.nameOrId}</span>
-                                <span style="font-size:11px; font-weight:800; color:${isMe ? '#059669' : '#0369a1'}; background:${isMe ? '#dcfce7' : '#e0f2fe'}; padding:1px 6px; border-radius:6px; flex-shrink:0;">${isMe ? '나' : (m.role || '성도')}</span>
-                            </div>
+                        <!-- 🌟 동그라미 제거 후 이름과 직분/나 배지 끝까지 잘림 없이 표시 -->
+                        <div style="display:flex; align-items:center; gap:5px; min-width:0; flex-grow:1;">
+                            <span style="font-size:14.5px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:visible;">${m.nameOrId}</span>
+                            <span style="font-size:10.5px; font-weight:800; color:${isMe ? '#059669' : '#0369a1'}; background:${isMe ? '#dcfce7' : '#e0f2fe'}; padding:1.5px 5px; border-radius:5px; flex-shrink:0;">${isMe ? '나' : (m.role || '성도')}</span>
                         </div>
                     </div>
-                    <div style="display:flex; gap:6px; align-items:center; flex-shrink:0;">
-                        <button type="button" onclick="openMemberPrivateChat('${m.nameOrId}', '${m.role || ''}')" style="padding:6px 12px; background:#0284c7; color:#ffffff; border:none; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:0 1.5px 4px rgba(2,132,199,0.25);">
+                    <!-- 🌟 예톡, 카톡, 삭제 버튼 스마트 축소 -->
+                    <div style="display:flex; gap:4px; align-items:center; flex-shrink:0;">
+                        <button type="button" onclick="openMemberPrivateChat('${m.nameOrId}', '${m.role || ''}')" style="padding:4.5px 8px; background:#0284c7; color:#ffffff; border:none; border-radius:6px; font-size:11.5px; font-weight:900; cursor:pointer; display:flex; align-items:center; gap:3px; box-shadow:0 1px 3px rgba(2,132,199,0.2);">
                             <span>예톡</span>
-                            <span style="background:#ef4444; color:#fff; font-size:10px; font-weight:950; padding:1px 5px; border-radius:8px;">1</span>
+                            <span style="background:#ef4444; color:#fff; font-size:9.5px; font-weight:950; padding:1px 4px; border-radius:6px; line-height:1;">1</span>
                         </button>
-                        <button type="button" onclick="shareChristianInviteKakao('${m.nameOrId}')" style="padding:6px 12px; background:#fee500; color:#191919; border:none; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer; box-shadow:0 1.5px 4px rgba(254,229,0,0.3);">
+                        <button type="button" onclick="shareChristianInviteKakao('${m.nameOrId}')" style="padding:4.5px 8px; background:#fee500; color:#191919; border:none; border-radius:6px; font-size:11.5px; font-weight:900; cursor:pointer; box-shadow:0 1px 3px rgba(254,229,0,0.25);">
                             카톡
                         </button>
-                        ${!isMe ? `<button type="button" onclick="deleteChristianFriend('${m.nameOrId}')" title="삭제" style="background:none; border:none; color:#94a3b8; font-size:15px; cursor:pointer; padding:4px 6px; border-radius:4px;">✕</button>` : ''}
+                        ${!isMe ? `<button type="button" onclick="deleteChristianFriend('${m.nameOrId}')" title="삭제" style="background:none; border:none; color:#94a3b8; font-size:13px; cursor:pointer; padding:2px 3px; line-height:1;">✕</button>` : ''}
                     </div>
                 </div>
             `}).join("");
