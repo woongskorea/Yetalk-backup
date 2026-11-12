@@ -5511,12 +5511,18 @@
                 </div>
 
                 <div>
-                    <label class="modal-label" style="font-size:13.5px; font-weight:900; color:#0f172a; margin-bottom:4px; display:block;">4. 직분 / 성도 구분 <span style="color:#dc2626;">*</span></label>
-                    <select id="selRegChurchRole" class="modal-input" onchange="onChurchRoleChange(this.value)" style="height:44px; font-size:14px; font-weight:850; border:1.5px solid #cbd5e1; border-radius:10px; padding:0 10px; width:100%; box-sizing:border-box; background:#ffffff;">
-                        <option value="새신자">새신자 (간단가입)</option>
-                        <option value="성도" selected>성도 (간단가입)</option>
-                        <option value="목회사역자(사모포함)">목회사역자(사모포함) (간단가입)</option>
-                        <option value="사무사역자">사무사역자 (간단가입)</option>
+                    <label class="modal-label" style="font-size:12.5px; font-weight:900; color:#0f172a; margin-bottom:4px; display:block;">4. 직분 / 성도 구분 <span style="color:#dc2626;">*</span></label>
+                    <select id="selRegChurchRole" class="modal-input" onchange="onChurchRoleChange(this.value)" style="height:42px; font-size:13px; font-weight:800; border:1.5px solid #cbd5e1; border-radius:8px; padding:0 10px; width:100%; box-sizing:border-box; background:#ffffff; color:#0f172a; cursor:pointer;">
+                        <option value="새신자">새신자</option>
+                        <option value="성도" selected>성도</option>
+                        <option value="집사">집사</option>
+                        <option value="권사">권사</option>
+                        <option value="안수집사">안수집사</option>
+                        <option value="장로">장로</option>
+                        <option value="사모">사모</option>
+                        <option value="전도사">전도사</option>
+                        <option value="교회사무">교회사무</option>
+                        <option value="부목사">부목사</option>
                         <option value="담임목사">담임목사 (휴대폰 인증 필수 · 교회 공식 인증 및 관리)</option>
                     </select>
                 </div>
@@ -12814,11 +12820,11 @@
             }
         });
 
-        // 🌟 [사용자 요청] 가짜/샘플 더미 교우(김요한, 박에스더, 이다윗, 정마리아) 완전 제거 및 정리
-        const dummyNames = ["김요한", "박에스더", "이다윗", "정마리아"];
+        // 🌟 [사용자 요청] 가짜/샘플 더미 교우(김요한, 박에스더, 이다윗, 정마리아, 정 권사, 김 성도, 박 사무사역 등) 완전 제거 및 정리
+        const dummyNames = ["김요한", "박에스더", "이다윗", "정마리아", "정 권사", "김 성도", "박 사무사역", "정권사", "김성도", "박사무사역"];
         members = members.filter(m => {
             const name = typeof m === 'string' ? m : (m.nameOrId || m.name || '');
-            return !dummyNames.includes(name);
+            return !dummyNames.some(d => name.trim() === d || name.replace(/\s+/g, '') === d.replace(/\s+/g, ''));
         });
 
         // 현재 사용자 본인 포함 보장
@@ -12836,15 +12842,12 @@
             members.unshift({ nameOrId: myName, role: myRole });
         }
 
-        // 🌟 [사용자 요청] 부산제일감리교회 등록 교우진 (담임목사, 권사, 집사, 사무사역, 성도 등) 전체 상호 보장
+        // 🌟 [사용자 요청] 실제 등록/가입된 교우만 표출 (가짜 샘플 완전 배제하고 실제 사용자 본인 최베드로, 사모님 이수미, 담임목사 정찬석 목사 상호 보장)
         if (churchName.includes("부산제일") || churchKey.includes("부산제일")) {
             const busanCoreMembers = [
                 { nameOrId: "정찬석 목사", role: "담임목사" },
-                { nameOrId: "정 권사", role: "권사" },
-                { nameOrId: "이수미 집사", role: "집사" },
-                { nameOrId: "김 성도", role: "성도" },
-                { nameOrId: "박 사무사역", role: "사무사역" },
-                { nameOrId: "최베드로", role: "성도" }
+                { nameOrId: "최베드로", role: "성도" },
+                { nameOrId: "이수미", role: "성도" }
             ];
             busanCoreMembers.forEach(bm => {
                 const bmBase = bm.nameOrId.split(' ')[0].trim();
@@ -12900,19 +12903,19 @@
                         <button type="button" onclick="toggleStarChristianFriend('${m.nameOrId}')" title="${isStarred ? '상단 고정 별표 해제' : '최상단 고정 별표 등록'}" style="background:none; border:none; cursor:pointer; font-size:16px; padding:0 2px; line-height:1; color:${isStarred ? '#f59e0b' : '#cbd5e1'}; flex-shrink:0;">
                             ${isStarred ? '★' : '☆'}
                         </button>
-                        <!-- 🌟 동그라미 제거 후 이름과 직분/나 배지 끝까지 잘림 없이 표시 -->
+                        <!-- 🌟 동그라미 제거 후 이름과 직분/나 배지 끝까지 잘림 없이 표시 (사용자 요청: 글자 크기 조금 축소하여 정돈) -->
                         <div style="display:flex; align-items:center; gap:5px; min-width:0; flex-grow:1;">
-                            <span style="font-size:14.5px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:visible;">${m.nameOrId}</span>
-                            <span style="font-size:10.5px; font-weight:800; color:${isMe ? '#059669' : '#0369a1'}; background:${isMe ? '#dcfce7' : '#e0f2fe'}; padding:1.5px 5px; border-radius:5px; flex-shrink:0;">${isMe ? '나' : (m.role || '성도')}</span>
+                            <span style="font-size:13.5px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:visible;">${m.nameOrId}</span>
+                            <span style="font-size:10px; font-weight:800; color:${isMe ? '#059669' : '#0369a1'}; background:${isMe ? '#dcfce7' : '#e0f2fe'}; padding:1.5px 5px; border-radius:5px; flex-shrink:0;">${isMe ? '나' : (m.role || '성도')}</span>
                         </div>
                     </div>
                     <!-- 🌟 예톡, 카톡, 삭제 버튼 스마트 축소 -->
                     <div style="display:flex; gap:4px; align-items:center; flex-shrink:0;">
-                        <button type="button" onclick="openMemberPrivateChat('${m.nameOrId}', '${m.role || ''}')" style="padding:4.5px 8px; background:#0284c7; color:#ffffff; border:none; border-radius:6px; font-size:11.5px; font-weight:900; cursor:pointer; display:flex; align-items:center; gap:3px; box-shadow:0 1px 3px rgba(2,132,199,0.2);">
+                        <button type="button" onclick="openMemberPrivateChat('${m.nameOrId}', '${m.role || ''}')" style="padding:4px 7px; background:#0284c7; color:#ffffff; border:none; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer; display:flex; align-items:center; gap:3px; box-shadow:0 1px 3px rgba(2,132,199,0.2);">
                             <span>예톡</span>
-                            <span style="background:#ef4444; color:#fff; font-size:9.5px; font-weight:950; padding:1px 4px; border-radius:6px; line-height:1;">1</span>
+                            <span style="background:#ef4444; color:#fff; font-size:9px; font-weight:950; padding:1px 3.5px; border-radius:6px; line-height:1;">1</span>
                         </button>
-                        <button type="button" onclick="shareChristianInviteKakao('${m.nameOrId}')" style="padding:4.5px 8px; background:#fee500; color:#191919; border:none; border-radius:6px; font-size:11.5px; font-weight:900; cursor:pointer; box-shadow:0 1px 3px rgba(254,229,0,0.25);">
+                        <button type="button" onclick="shareChristianInviteKakao('${m.nameOrId}')" style="padding:4px 7px; background:#fee500; color:#191919; border:none; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer; box-shadow:0 1px 3px rgba(254,229,0,0.25);">
                             카톡
                         </button>
                         ${!isMe ? `<button type="button" onclick="deleteChristianFriend('${m.nameOrId}')" title="삭제" style="background:none; border:none; color:#94a3b8; font-size:13px; cursor:pointer; padding:2px 3px; line-height:1;">✕</button>` : ''}
@@ -13890,12 +13893,14 @@
             if (churchKey.includes("부산제일")) {
                 const busanDefaults = [
                     { nameOrId: "정찬석 목사", role: "담임목사" },
-                    { nameOrId: "정 권사", role: "권사" },
-                    { nameOrId: "이수미 집사", role: "집사" },
-                    { nameOrId: "김 성도", role: "성도" },
-                    { nameOrId: "박 사무사역", role: "사무사역" },
-                    { nameOrId: "최베드로", role: "성도" }
+                    { nameOrId: "최베드로", role: "성도" },
+                    { nameOrId: "이수미", role: "성도" }
                 ];
+                // 🌟 [사용자 요청] 진짜 교우만 유지 (가짜/샘플 더미 교우 자동 필터링 및 제거)
+                cloudMembers = cloudMembers.filter(m => {
+                    const name = typeof m === 'string' ? m : (m.nameOrId || m.name || '');
+                    return !["정 권사", "김 성도", "박 사무사역", "정권사", "김성도", "박사무사역", "사무사역"].some(d => name.replace(/\s+/g, '') === d.replace(/\s+/g, ''));
+                });
                 busanDefaults.forEach(bd => {
                     const bdBase = bd.nameOrId.split(' ')[0].trim();
                     if (!cloudMembers.some(m => m.nameOrId === bd.nameOrId || (bdBase.length >= 2 && m.nameOrId.startsWith(bdBase)))) {
@@ -13926,7 +13931,12 @@
             }
             _churchMemberUnsubscribe = onSnapshot(memberDocRef, (snap) => {
                 if (snap.exists() && snap.data() && Array.isArray(snap.data().members)) {
-                    const cloudList = snap.data().members;
+                    let cloudList = snap.data().members;
+                    // 🌟 가짜 샘플 교우 완전 필터링
+                    cloudList = cloudList.filter(m => {
+                        const name = typeof m === 'string' ? m : (m.nameOrId || m.name || '');
+                        return !["정 권사", "김 성도", "박 사무사역", "정권사", "김성도", "박사무사역", "사무사역"].some(d => name.replace(/\s+/g, '') === d.replace(/\s+/g, ''));
+                    });
                     if (cloudList.length > 0) {
                         let churchMap = {};
                         try {
@@ -13948,11 +13958,8 @@
                 } else if (churchKey.includes("부산제일")) {
                     const busanDefaults = [
                         { nameOrId: "정찬석 목사", role: "담임목사" },
-                        { nameOrId: "정 권사", role: "권사" },
-                        { nameOrId: "이수미 집사", role: "집사" },
-                        { nameOrId: "김 성도", role: "성도" },
-                        { nameOrId: "박 사무사역", role: "사무사역" },
-                        { nameOrId: "최베드로", role: "성도" }
+                        { nameOrId: "최베드로", role: "성도" },
+                        { nameOrId: "이수미", role: "성도" }
                     ];
                     setDoc(memberDocRef, {
                         churchKey: churchKey,
