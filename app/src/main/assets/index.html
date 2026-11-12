@@ -14227,6 +14227,95 @@
     }
     window.submitDailyRepentAmenToThanksBoard = submitDailyRepentAmenToThanksBoard;
 
+    // 🌟 [사용자 요청] 매일회개 기도음악 컨트롤러 (총관리자가 기본 음악 지정 + 회원들은 켜기/끄기만 선택)
+    let dailyRepentPrayerAudio = null;
+    const DEFAULT_DAILY_REPENT_BGM_URL = "https://actions.google.com/sounds/v1/ambiences/peaceful_gathering.ogg";
+
+    function getAdminPrayerMusicUrl() {
+        return (localStorage.getItem("yetalk_admin_prayer_music_url") || DEFAULT_DAILY_REPENT_BGM_URL).trim();
+    }
+
+    function toggleDailyRepentPrayerAudio() {
+        const btn = document.getElementById("btnToggleDailyRepentAudio");
+        const statusIcon = document.getElementById("iconDailyRepentAudioStatus");
+        const statusTxt = document.getElementById("txtDailyRepentAudioStatus");
+
+        if (dailyRepentPrayerAudio && !dailyRepentPrayerAudio.paused) {
+            // 재생 중 -> 정지
+            dailyRepentPrayerAudio.pause();
+            if (btn) {
+                btn.style.background = "linear-gradient(135deg, #2563eb, #1d4ed8)";
+                btn.innerHTML = `<span>▶️</span> <span>기도음악 켜기</span>`;
+            }
+            if (statusIcon) statusIcon.innerText = "🎵";
+            if (statusTxt) {
+                statusTxt.innerText = "주님과 깊은 교제를 돕는 배경음악";
+                statusTxt.style.color = "#64748b";
+            }
+            showBibleToast("⏸️ 기도음악이 일시 중지되었습니다.");
+        } else {
+            // 정지 중 -> 재생
+            const musicUrl = getAdminPrayerMusicUrl();
+            if (!dailyRepentPrayerAudio) {
+                dailyRepentPrayerAudio = new Audio(musicUrl);
+                dailyRepentPrayerAudio.loop = true;
+            } else if (dailyRepentPrayerAudio.src !== musicUrl) {
+                dailyRepentPrayerAudio.src = musicUrl;
+                dailyRepentPrayerAudio.loop = true;
+            }
+            dailyRepentPrayerAudio.play().then(() => {
+                if (btn) {
+                    btn.style.background = "linear-gradient(135deg, #059669, #047857)";
+                    btn.innerHTML = `<span>⏸️</span> <span>기도음악 끄기 (재생 중)</span>`;
+                }
+                if (statusIcon) statusIcon.innerText = "🎶";
+                if (statusTxt) {
+                    statusTxt.innerText = "은혜로운 기도음악이 재생 중입니다 ✨";
+                    statusTxt.style.color = "#059669";
+                }
+                showBibleToast("🎵 기도음악이 시작되었습니다. 은혜로운 기도 시간 되세요.");
+            }).catch(e => {
+                console.warn("Audio play issue:", e);
+                showBibleToast("🎵 기도음악 재생을 시작합니다.");
+            });
+        }
+    }
+    window.toggleDailyRepentPrayerAudio = toggleDailyRepentPrayerAudio;
+
+    // 모달 닫을 때 음악 자동 정지
+    function stopDailyRepentPrayerAudio() {
+        if (dailyRepentPrayerAudio) {
+            try {
+                dailyRepentPrayerAudio.pause();
+                dailyRepentPrayerAudio.currentTime = 0;
+            } catch(e){}
+        }
+        const btn = document.getElementById("btnToggleDailyRepentAudio");
+        const statusIcon = document.getElementById("iconDailyRepentAudioStatus");
+        const statusTxt = document.getElementById("txtDailyRepentAudioStatus");
+        if (btn) {
+            btn.style.background = "linear-gradient(135deg, #2563eb, #1d4ed8)";
+            btn.innerHTML = `<span>▶️</span> <span>기도음악 켜기</span>`;
+        }
+        if (statusIcon) statusIcon.innerText = "🎵";
+        if (statusTxt) {
+            statusTxt.innerText = "주님과 깊은 교제를 돕는 배경음악";
+            statusTxt.style.color = "#64748b";
+        }
+    }
+    window.stopDailyRepentPrayerAudio = stopDailyRepentPrayerAudio;
+
+    // 총관리자가 기도음악 주소를 교체/등록할 수 있는 함수
+    function setAdminPrayerMusicUrl(newUrl) {
+        if (!newUrl || !newUrl.trim()) return;
+        localStorage.setItem("yetalk_admin_prayer_music_url", newUrl.trim());
+        if (dailyRepentPrayerAudio) {
+            dailyRepentPrayerAudio.src = newUrl.trim();
+        }
+        showBibleToast("💾 총관리자 기도음악 주소가 저장되었습니다.");
+    }
+    window.setAdminPrayerMusicUrl = setAdminPrayerMusicUrl;
+
     // 🌟 [사용자 요청] '매일회개 & 영적승리' 기도문 모달 열기/닫기
     function openDailyRepentVictoryModal() {
         const modal = document.getElementById("dailyRepentVictoryModal");
@@ -14236,6 +14325,7 @@
     }
 
     function closeDailyRepentVictoryModal() {
+        stopDailyRepentPrayerAudio();
         const modal = document.getElementById("dailyRepentVictoryModal");
         if (!modal) return;
         modal.classList.remove("show");
@@ -14728,17 +14818,31 @@
             <!-- 본문 스크롤 영역: flex: 1; min-height: 0; overflow-y: auto; (사용자 요청: 시원한 무한 스크롤 & 박스 없는 텍스트 단락) -->
             <div style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:22px 20px 24px 20px; display:flex; flex-direction:column; background:#ffffff;">
 
-                                <!-- 대제목: [사용자 요청] 회개와 믿음 선포 기도문 -->
-                <div style="text-align:center; padding-bottom:16px; border-bottom:2px solid #e2e8f0; margin-bottom:22px;">
-                    <div style="font-size:23px; font-weight:950; color:#0f172a; letter-spacing:-0.5px; line-height:1.3;">
-                        🔥 회개와 믿음 선포 기도문
+                                <!-- 대제목: [사용자 요청] 강력한 회개와 믿음 선포 기도문 -->
+                <div style="text-align:center; padding-bottom:14px; border-bottom:2px solid #e2e8f0; margin-bottom:16px;">
+                    <div style="font-size:22px; font-weight:950; color:#0f172a; letter-spacing:-0.5px; line-height:1.3;">
+                        🔥 강력한 회개와 믿음 선포 기도문
                     </div>
-                    <div style="font-size:14.5px; font-weight:850; color:#2563eb; margin-top:6px;">
+                    <div style="font-size:14px; font-weight:850; color:#2563eb; margin-top:5px;">
                         조상의 영적 대물림 끊기 · 날마다 발을 씻는 통회자복 · 성령의 권세 선포
                     </div>
                 </div>
 
-                <!-- 기도문 본문: [사용자 요청] 글자 크기 16.5px로 살짝 크게 확대, 정돈된 단락 구성 -->
+                <!-- 🌟 [사용자 요청] 기도문 제일 앞: 총관리자가 준비한 은혜의 기도음악 켜기/끄기 컨트롤 -->
+                <div style="display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%); border:1.8px solid #bfdbfe; border-radius:14px; padding:10px 14px; margin-bottom:20px; box-shadow:0 2px 8px rgba(37,99,235,0.08);">
+                    <div style="display:flex; align-items:center; gap:9px;">
+                        <span id="iconDailyRepentAudioStatus" style="font-size:22px; line-height:1;">🎵</span>
+                        <div>
+                            <div style="font-size:14px; font-weight:950; color:#1e3a8a;">은혜의 기도 배경음악</div>
+                            <div id="txtDailyRepentAudioStatus" style="font-size:11.5px; font-weight:750; color:#64748b;">주님과 깊은 교제를 돕는 배경음악</div>
+                        </div>
+                    </div>
+                    <button type="button" id="btnToggleDailyRepentAudio" onclick="toggleDailyRepentPrayerAudio()" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); color:#ffffff; border:none; border-radius:10px; padding:8px 14px; font-size:13px; font-weight:950; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(37,99,235,0.28); transition:all 0.15s ease;" title="기도음악 켜기 / 끄기">
+                        <span>▶️</span> <span>기도음악 켜기</span>
+                    </button>
+                </div>
+
+                <!-- 기도문 본문: [사용자 요청] 글자 크기 16.5px, 은혜롭고 선명한 단락 구성 -->
                 <div style="font-size:16.5px; font-weight:800; color:#1e293b; line-height:1.95; word-break:keep-all;">
                     <p style="margin:0 0 20px 0;">
                         만군의 여호와 하나님, 온 우주 만물의 주관자이시며 나의 참된 아버지이신 주님을 찬양합니다! 예수 그리스도께서 십자가 위에서 "다 이루었다" 선포하시며 모든 어둠의 정사와 권세를 완전히 박살 내셨음을 믿고 선포합니다. 오직 주님만이 나의 유일한 구주이시며, 내 영혼과 가정, 일터의 절대적인 인도자 되심을 선포합니다.
@@ -14749,18 +14853,11 @@
                     </p>
 
                     <p style="margin:0 0 20px 0;">
-                        주님, 그러나 조상들의 연약함보다 더 무서운 나의 은밀한 죄와 허물을 이 시간 낱낱이 자백하며 통회자복합니다.<br><br>
-                        내 눈과 마음을 지키지 못하고 틈만 나면 파고들었던 음란과 정욕의 더러운 생각과 죄악들을 주님의 거룩한 보혈로 완전히 씻어내어 주옵소서.<br><br>
-                        입으로는 하나님을 믿는다, 주님을 부른다 하면서도, 막상 삶의 현장과 일상 속에서는 주님을 온전히 신뢰하고 의지하지 않은 채, 내 경험과 내 생각, 내 뜻대로 고집하며 내 힘으로 살아가려 했던 모든 교만의 죄를 용서하여 주옵소서.<br><br>
-                        하나님의 거룩한 말씀과 계명들을 가볍게 여기고 내 편한 대로 살아가며 주의 법도를 지키지 못한 모든 불순종의 죄를 이 시간 십자가 앞에 발고합니다. 하나님보다 돈과 세상의 안락과 성공을 더 사랑했던 우상숭배의 죄와, 주어진 시간과 재능을 영적 나태함으로 허비했던 모든 허물을 불쌍히 여겨 주옵소서.
+                        주님, 그러나 조상들의 연약함보다 더 무서운 나의 은밀한 죄와 허물을 이 시간 낱낱이 자백하며 통회자복합니다. 내 눈과 마음을 지키지 못하고 틈만 나면 파고들었던 음란과 정욕의 더러운 생각과 죄악들을 주님의 거룩한 보혈로 완전히 씻어내어 주옵소서. 입으로는 하나님을 믿는다, 주님을 부른다 하면서도, 막상 삶의 현장과 일상 속에서는 주님을 온전히 신뢰하고 의지하지 않은 채, 내 경험과 내 생각, 내 뜻대로 고집하며 내 힘으로 살아가려 했던 모든 교만의 죄를 용서하여 주옵소서. 하나님의 거룩한 말씀과 계명들을 가볍게 여기고 내 편한 대로 살아가며 주의 법도를 지키지 못한 모든 불순종의 죄를 이 시간 십자가 앞에 애통하며  회개합니다. 하나님보다 돈과 세상의 안락과 성공을 더 사랑했던 우상숭배의 죄와, 주어진 시간과 재능을 영적 나태함으로 허비했던 모든 허물을 불쌍히 여겨 주옵소서.
                     </p>
 
                     <p style="margin:0 0 20px 0;">
                         생각해 보면 이 땅은 영원한 본향인 천국으로 가는 임시 거처요 정류장일 뿐인데, 이 세상에 마음을 빼앗겨 안주하며 살았음을 회개합니다. 예수님께서 제자들의 발을 씻기시며 "발을 씻지 않으면 나와 상관이 없다" 하신 말씀을 기억하오니, 날마다 주님 앞에서 내 영혼의 발을 씻으며 죽을 때까지 깨어 기도하는 겸손한 성도가 되게 하옵소서.
-                    </p>
-
-                    <p style="margin:0 0 20px 0; color:#1e40af; font-weight:850;">
-                        주님, 우리가 이처럼 진심으로 통회자복하며 회개할 때, 예수님의 보혈로 우리의 모든 허물과 죄를 온전히 씻어주시고 '죄 없다' 의롭다 선언하여 주시니 참으로 감사합니다! 이 놀라운 은혜를 힘입어 주님 다시 오실 그날까지 우리의 행실을 정결하게 지키게 하시고, 날마다 자기를 부인하며 자기 십자가를 지고 따르는 십자가의 좋은 군사로 굳건히 서게 하옵소서. 오직 주님께서 입혀주시는 깨끗하고 빛난 세마포 옷을 입고, 기름을 준비한 지혜로운 다섯 처녀와 같이 늘 깨어 신랑 되신 주님을 맞이하는 거룩한 삶을 살아가게 하옵소서!
                     </p>
 
                     <p style="margin:0 0 20px 0; color:#047857; font-weight:900;">
@@ -14776,12 +14873,12 @@
                     </p>
 
                     <p style="margin:0 0 20px 0; color:#0f172a; font-weight:900;">
-                        더 이상 어린아이의 믿음에 머무르지 않고 장성한 분량을 소유한 하나님 나라의 군사요, 예수 그리스도의 증인으로 살아가겠습니다. 이 기도를 드릴 때마다 나의 영이 정결해지고 주님과 깊이 연합되게 하시니 감사합니다!
+                        더 이상 어린아이가 아니라 장성한 믿음의 분량을 소유한 하나님 나라의 군사요, 예수 그리스도의 증인으로 살아가겠습니다. 이 기도를 드릴 때마다 나의 영이 정결해지고 주님과 깊이 연합되게 하시니 감사합니다!
                     </p>
 
-                    <!-- 🌟 [사용자 요청] 감사드리며 예수님의 이름으로 기도합니다.로 끝맺음 -->
-                    <p style="margin:0 0 20px 0; color:#1d4ed8; font-weight:950; font-size:17.5px; text-align:center; padding:12px 0;">
-                        감사드리며 예수님의 이름으로 기도합니다. 아멘!
+                    <!-- 🌟 [사용자 요청] 감사와 권세 있는 끝맺음 -->
+                    <p style="margin:0 0 20px 0; color:#1d4ed8; font-weight:950; font-size:17.5px; text-align:center; padding:12px 0; line-height:1.7;">
+                        이 모든 말씀을 우리를 어둠의 권세에서 완전히 건져내신 우리 구주 예수 그리스도의 이름으로 권세 있게 간절히 선포하며 기도드리옵나이다. 아멘!
                     </p>
                 </div>
 
