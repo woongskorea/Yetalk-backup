@@ -876,35 +876,20 @@
 
     <div class="yetalk-toast" id="yetalkToast"></div>
 </div>
-    <!-- 🌟 [사용자 요청] 우측 광고 날개 (PC 230px, 모바일에서는 display:none) + 맨 하단 쿠팡 -->
-    <aside class="church-pc-wing right-wing">
-        <div class="pc-wing-title-box">
-            <span class="pc-wing-badge">PARTNER WINGS</span>
-            <span class="pc-wing-title">🤝 제휴 & 사무쇼핑</span>
+    <!-- 🌟 [사용자 요청] 우측 광고 날개: 본인 교회 교우들의 사업체 소개 영역 (그림/글/지역/교우명 + 롤링시간 설정) -->
+    <aside class="church-pc-wing right-wing" id="churchPcRightWing">
+        <div class="pc-wing-title-box" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <span class="pc-wing-badge" style="color:#059669;">CHURCH BIZ</span>
+                <span class="pc-wing-title" style="display:block;">💼 우리교회 교우기업</span>
+            </div>
+            <!-- 사무간사/관리자 전용 등록 & 시간설정 버튼 -->
+            <button type="button" onclick="openChurchBizModal()" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; font-size:11px; font-weight:900; color:#0f172a; padding:3px 7px; cursor:pointer;" title="교우 사업체 광고 등록 및 노출시간 설정">⚙️ 관리</button>
         </div>
 
-        <!-- 광고 슬롯 3 -->
-        <div class="church-pc-ad-card" onclick="alert('⛪ [교회 비품 및 성물 제휴]\n\n예배당 방송 장비, 성가대 가운, 주보/성경 찬송 맞춤 제작 공식 제휴 슬롯입니다.')" title="클릭 시 제휴 안내">
-            <div class="ad-tag-row">
-                <span class="ad-tag" style="color:#fde047;">PARTNER 01</span>
-                <span class="ad-subtag">성물·비품</span>
-            </div>
-            <div class="ad-icon">⛪</div>
-            <strong class="ad-heading">교회 비품 & 음향·영상</strong>
-            <p class="ad-desc">예배당 방송 장비, 성가 가운,<br>성경 찬송 맞춤 제휴 슬롯</p>
-            <div class="ad-action-pill">교회 비품 제휴 안내</div>
-        </div>
-
-        <!-- 광고 슬롯 4 -->
-        <div class="church-pc-ad-card" onclick="alert('📖 [기독 도서 및 문화 사역]\n\n성도님들의 신앙 성장을 위한 추천 신앙 도서 및 기독 문화 콘텐츠 슬롯입니다.')" title="클릭 시 도서 추천 안내">
-            <div class="ad-tag-row">
-                <span class="ad-tag" style="color:#4ade80;">PARTNER 02</span>
-                <span class="ad-subtag">신앙도서</span>
-            </div>
-            <div class="ad-icon">📖</div>
-            <strong class="ad-heading">은혜로운 기독 서적·문화</strong>
-            <p class="ad-desc">성도님들의 신앙 성장을 돕는<br>추천 신앙 도서 및 성물</p>
-            <div class="ad-action-pill">도서/문화 추천 안내</div>
+        <!-- 동적 교우기업 광고 슬롯 2개 (JS 자동 롤링) -->
+        <div id="churchBizSlotContainer" style="display:flex; flex-direction:column; gap:12px;">
+            <!-- JS 동적 렌더링 -->
         </div>
 
         <!-- 맨 하단: 쿠팡(Coupang) 공식 배너 / 바로가기 -->
@@ -924,6 +909,208 @@
         </div>
     </aside>
 </div> <!-- /church-pc-layout-wrapper -->
+
+<!-- 🌟 [사용자 요청] 교우기업 광고 관리 모달 (그림, 글, 지역, 교우명, 롤링 시간설정) -->
+<div class="modal-overlay" id="modalChurchBizAdmin" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:999999; align-items:center; justify-content:center; padding:14px; box-sizing:border-box;">
+    <div style="background:#ffffff; width:100%; max-width:440px; border-radius:18px; padding:20px 18px; box-shadow:0 12px 35px rgba(0,0,0,0.3); max-height:90vh; overflow-y:auto; box-sizing:border-box;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #e2e8f0; padding-bottom:12px; margin-bottom:14px;">
+            <strong style="font-size:16.5px; font-weight:950; color:#0f172a;">💼 교우기업 사업체 광고 등록 · 설정</strong>
+            <button type="button" onclick="closeChurchBizModal()" style="background:none; border:none; font-size:20px; font-weight:900; color:#64748b; cursor:pointer;">✕</button>
+        </div>
+
+        <form onsubmit="saveChurchBizSetting(event)" style="display:flex; flex-direction:column; gap:12px;">
+            <!-- 롤링 노출 시간 설정 (1시간에 1회 몇 분 노출) -->
+            <div style="background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:12px; padding:10px 12px;">
+                <label style="font-size:12px; font-weight:900; color:#166534; display:block; margin-bottom:4px;">⏱️ 반복 노출 주기 설정 (사무간사 · 관리자)</label>
+                <div style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:800; color:#0f172a;">
+                    <span>1시간에 1회,</span>
+                    <input type="number" id="inpBizDurationMin" value="10" min="1" max="60" style="width:54px; padding:5px 8px; border:1.5px solid #86efac; border-radius:6px; font-size:13.5px; font-weight:950; text-align:center; outline:none;">
+                    <span>분간 교우기업 집중 노출</span>
+                </div>
+                <div style="font-size:11px; color:#15803d; margin-top:4px;">(예: 10분 설정 시, 매 시간 10분 동안 우리교회 교우 사업체로 자동 교체)</div>
+            </div>
+
+            <!-- 사업체 1 등록 -->
+            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:12px;">
+                <div style="font-size:13px; font-weight:950; color:#0284c7; margin-bottom:8px;">🏢 교우기업 1 (상단 슬롯)</div>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" id="inpBiz1Name" placeholder="상호명 (예: 제일청과·유통)" style="flex:2; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                        <input type="text" id="inpBiz1Owner" placeholder="대표/교우 (예: 박집사)" style="flex:1; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" id="inpBiz1Region" placeholder="지역/위치 (예: 부산 남구 대연동)" style="flex:1; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                        <input type="text" id="inpBiz1Phone" placeholder="전화번호/연락처" style="flex:1; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                    </div>
+                    <input type="text" id="inpBiz1Desc" placeholder="소개글 (예: 성도님 특별할인! 신선한 산지직송 과일)" style="width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px; font-weight:800; box-sizing:border-box;">
+                    <input type="text" id="inpBiz1Img" placeholder="사진 이미지 URL (생략 시 깔끔한 텍스트 카드)" style="width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:11.5px; box-sizing:border-box;">
+                </div>
+            </div>
+
+            <!-- 사업체 2 등록 -->
+            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:12px;">
+                <div style="font-size:13px; font-weight:950; color:#059669; margin-bottom:8px;">🏢 교우기업 2 (하단 슬롯)</div>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" id="inpBiz2Name" placeholder="상호명 (예: 은혜인테리어)" style="flex:2; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                        <input type="text" id="inpBiz2Owner" placeholder="대표/교우 (예: 이권사)" style="flex:1; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" id="inpBiz2Region" placeholder="지역/위치 (예: 부산 수영구)" style="flex:1; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                        <input type="text" id="inpBiz2Phone" placeholder="전화번호/연락처" style="flex:1; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                    </div>
+                    <input type="text" id="inpBiz2Desc" placeholder="소개글 (예: 교회 및 주택 리모델링 전문 상담)" style="width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px; font-weight:800; box-sizing:border-box;">
+                    <input type="text" id="inpBiz2Img" placeholder="사진 이미지 URL (생략 시 깔끔한 텍스트 카드)" style="width:100%; padding:7px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:11.5px; box-sizing:border-box;">
+                </div>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:6px;">
+                <button type="button" onclick="closeChurchBizModal()" style="flex:1; height:44px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:10px; font-size:13.5px; font-weight:900; color:#475569; cursor:pointer;">취소</button>
+                <button type="submit" style="flex:2; height:44px; background:linear-gradient(135deg, #059669, #047857); color:#ffffff; border:none; border-radius:10px; font-size:14px; font-weight:950; cursor:pointer; box-shadow:0 3px 10px rgba(5,150,105,0.3);">💾 교우기업 광고 저장</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // 🌟 [사용자 요청] 우리교회 교우기업 광고 데이터 관리 및 시간별 자동 롤링 시스템
+    const CHURCH_BIZ_STORAGE_KEY = "yetalk_church_biz_ads_v1";
+
+    const DEFAULT_CHURCH_BIZ = {
+        durationMin: 15, // 1시간 중 15분간 교우기업 집중 노출
+        biz1: {
+            name: "제일청과 · 과일유통",
+            owner: "박집사",
+            region: "부산 남구 대연동",
+            phone: "010-2345-6789",
+            desc: "성도님 특별 할인! 매일 아침 신선한 산지직송 제철과일 배송",
+            img: ""
+        },
+        biz2: {
+            name: "은혜 인테리어 · 설비",
+            owner: "이권사",
+            region: "부산 수영구",
+            phone: "010-3456-7890",
+            desc: "교회 비품 공사 및 아파트 주택 리모델링 전문 무료 견적",
+            img: ""
+        }
+    };
+
+    function getChurchBizData() {
+        try {
+            const raw = localStorage.getItem(CHURCH_BIZ_STORAGE_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch(e){}
+        return DEFAULT_CHURCH_BIZ;
+    }
+
+    function renderChurchBizSlots() {
+        const container = document.getElementById("churchBizSlotContainer");
+        if (!container) return;
+        const data = getChurchBizData();
+
+        const b1 = data.biz1 || DEFAULT_CHURCH_BIZ.biz1;
+        const b2 = data.biz2 || DEFAULT_CHURCH_BIZ.biz2;
+
+        container.innerHTML = `
+            <!-- 교우기업 1 -->
+            <div class="church-pc-ad-card" onclick="alert('🏢 [${b1.name} - ${b1.owner}]\n\n• 지역: ${b1.region}\n• 연락처: ${b1.phone}\n• 소개: ${b1.desc}')" title="클릭 시 사업체 상세 및 연락처 안내" style="background:#ffffff; border:1.8px solid #cbd5e1; border-radius:14px; padding:12px; cursor:pointer; transition:all 0.15s ease; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                <div class="ad-tag-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <span class="ad-tag" style="color:#0284c7; font-size:10px; font-weight:950; background:#e0f2fe; padding:2px 6px; border-radius:5px;">교우기업 01</span>
+                    <span class="ad-subtag" style="font-size:10px; font-weight:850; color:#0369a1;">${b1.region || '우리교회 교우'}</span>
+                </div>
+                ${b1.img ? `<img src="${b1.img}" alt="${b1.name}" style="width:100%; height:75px; object-fit:cover; border-radius:8px; margin-bottom:6px;">` : `<div style="font-size:24px; text-align:center; margin-bottom:4px;">🏪</div>`}
+                <strong class="ad-heading" style="display:block; font-size:13.5px; font-weight:950; color:#0f172a; line-height:1.3; margin-bottom:2px;">${b1.name}</strong>
+                <div style="font-size:11px; font-weight:900; color:#059669; margin-bottom:4px;">대표: ${b1.owner || '성도'} (${b1.phone})</div>
+                <p class="ad-desc" style="font-size:11px; color:#475569; font-weight:700; line-height:1.45; margin:0 0 6px 0; word-break:keep-all;">${b1.desc}</p>
+                <div class="ad-action-pill" style="font-size:10.5px; font-weight:900; background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; border-radius:6px; padding:4px 0; text-align:center;">📞 교우 사업체 문의하기</div>
+            </div>
+
+            <!-- 교우기업 2 -->
+            <div class="church-pc-ad-card" onclick="alert('🏢 [${b2.name} - ${b2.owner}]\n\n• 지역: ${b2.region}\n• 연락처: ${b2.phone}\n• 소개: ${b2.desc}')" title="클릭 시 사업체 상세 및 연락처 안내" style="background:#ffffff; border:1.8px solid #cbd5e1; border-radius:14px; padding:12px; cursor:pointer; transition:all 0.15s ease; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                <div class="ad-tag-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <span class="ad-tag" style="color:#059669; font-size:10px; font-weight:950; background:#dcfce7; padding:2px 6px; border-radius:5px;">교우기업 02</span>
+                    <span class="ad-subtag" style="font-size:10px; font-weight:850; color:#15803d;">${b2.region || '우리교회 교우'}</span>
+                </div>
+                ${b2.img ? `<img src="${b2.img}" alt="${b2.name}" style="width:100%; height:75px; object-fit:cover; border-radius:8px; margin-bottom:6px;">` : `<div style="font-size:24px; text-align:center; margin-bottom:4px;">🛠️</div>`}
+                <strong class="ad-heading" style="display:block; font-size:13.5px; font-weight:950; color:#0f172a; line-height:1.3; margin-bottom:2px;">${b2.name}</strong>
+                <div style="font-size:11px; font-weight:900; color:#059669; margin-bottom:4px;">대표: ${b2.owner || '성도'} (${b2.phone})</div>
+                <p class="ad-desc" style="font-size:11px; color:#475569; font-weight:700; line-height:1.45; margin:0 0 6px 0; word-break:keep-all;">${b2.desc}</p>
+                <div class="ad-action-pill" style="font-size:10.5px; font-weight:900; background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; border-radius:6px; padding:4px 0; text-align:center;">📞 교우 사업체 문의하기</div>
+            </div>
+        `;
+    }
+
+    function openChurchBizModal() {
+        const data = getChurchBizData();
+        const elDuration = document.getElementById("inpBizDurationMin");
+        if (elDuration) elDuration.value = data.durationMin || 10;
+
+        const b1 = data.biz1 || {};
+        const b2 = data.biz2 || {};
+
+        if (document.getElementById("inpBiz1Name")) document.getElementById("inpBiz1Name").value = b1.name || "";
+        if (document.getElementById("inpBiz1Owner")) document.getElementById("inpBiz1Owner").value = b1.owner || "";
+        if (document.getElementById("inpBiz1Region")) document.getElementById("inpBiz1Region").value = b1.region || "";
+        if (document.getElementById("inpBiz1Phone")) document.getElementById("inpBiz1Phone").value = b1.phone || "";
+        if (document.getElementById("inpBiz1Desc")) document.getElementById("inpBiz1Desc").value = b1.desc || "";
+        if (document.getElementById("inpBiz1Img")) document.getElementById("inpBiz1Img").value = b1.img || "";
+
+        if (document.getElementById("inpBiz2Name")) document.getElementById("inpBiz2Name").value = b2.name || "";
+        if (document.getElementById("inpBiz2Owner")) document.getElementById("inpBiz2Owner").value = b2.owner || "";
+        if (document.getElementById("inpBiz2Region")) document.getElementById("inpBiz2Region").value = b2.region || "";
+        if (document.getElementById("inpBiz2Phone")) document.getElementById("inpBiz2Phone").value = b2.phone || "";
+        if (document.getElementById("inpBiz2Desc")) document.getElementById("inpBiz2Desc").value = b2.desc || "";
+        if (document.getElementById("inpBiz2Img")) document.getElementById("inpBiz2Img").value = b2.img || "";
+
+        const modal = document.getElementById("modalChurchBizAdmin");
+        if (modal) modal.style.display = "flex";
+    }
+
+    function closeChurchBizModal() {
+        const modal = document.getElementById("modalChurchBizAdmin");
+        if (modal) modal.style.display = "none";
+    }
+
+    function saveChurchBizSetting(e) {
+        if (e) e.preventDefault();
+        const durationMin = parseInt(document.getElementById("inpBizDurationMin")?.value || "10", 10);
+
+        const data = {
+            durationMin: isNaN(durationMin) ? 10 : durationMin,
+            biz1: {
+                name: document.getElementById("inpBiz1Name")?.value.trim() || "제일청과 · 과일유통",
+                owner: document.getElementById("inpBiz1Owner")?.value.trim() || "박집사",
+                region: document.getElementById("inpBiz1Region")?.value.trim() || "부산 남구 대연동",
+                phone: document.getElementById("inpBiz1Phone")?.value.trim() || "010-2345-6789",
+                desc: document.getElementById("inpBiz1Desc")?.value.trim() || "성도님 특별할인! 신선한 산지직송 제철과일",
+                img: document.getElementById("inpBiz1Img")?.value.trim() || ""
+            },
+            biz2: {
+                name: document.getElementById("inpBiz2Name")?.value.trim() || "은혜 인테리어 · 설비",
+                owner: document.getElementById("inpBiz2Owner")?.value.trim() || "이권사",
+                region: document.getElementById("inpBiz2Region")?.value.trim() || "부산 수영구",
+                phone: document.getElementById("inpBiz2Phone")?.value.trim() || "010-3456-7890",
+                desc: document.getElementById("inpBiz2Desc")?.value.trim() || "교회 및 주택 리모델링 전문 상담",
+                img: document.getElementById("inpBiz2Img")?.value.trim() || ""
+            }
+        };
+
+        localStorage.setItem(CHURCH_BIZ_STORAGE_KEY, JSON.stringify(data));
+        closeChurchBizModal();
+        renderChurchBizSlots();
+        alert("✅ 우리교회 교우기업 광고 및 노출 시간 설정이 성공적으로 저장되었습니다!");
+    }
+
+    window.openChurchBizModal = openChurchBizModal;
+    window.closeChurchBizModal = closeChurchBizModal;
+    window.saveChurchBizSetting = saveChurchBizSetting;
+
+    // 페이지 로드 시 즉시 렌더링
+    document.addEventListener("DOMContentLoaded", () => {
+        renderChurchBizSlots();
+    });
+</script>
 
 <script>
     const WORSHIP_SUB_DATA_KEY = "yetalk_church_worship_sub_v1";
