@@ -4947,13 +4947,17 @@
         </article>
 
         <!-- 하단 애드몹 100 겹침 방지 여백 스페이서 -->
-        <!-- 🌟 [사용자 요청] 예톡 홈 하단 서비스 안내 및 이용약관/개인정보/종교고지 푸터 -->
+        <!-- 🌟 [사용자 요청] 예톡 홈 하단 서비스 안내 및 이용약관/개인정보/종교고지 푸터 + 대표 이메일 문의 안내 -->
         <div class="yetalk-home-footer-info" style="text-align:center; padding:18px 14px 20px 14px; margin-top:16px; border-top:1px solid #e2e8f0; color:#64748b; font-size:12px; line-height:1.6;">
             <div style="font-weight:950; color:#0f172a; margin-bottom:3px; font-size:13.5px;">
                 ✨ 예톡 (Yetalk) • 말씀과 사랑으로 소통하는 은혜의 나눔터
             </div>
-            <div style="margin-bottom:8px; font-size:12px; color:#64748b;">
+            <div style="margin-bottom:6px; font-size:12px; color:#64748b;">
                 복음 전파와 성도 및 이웃 섬김을 위한 비영리 무료 플랫폼 (평생 0원)
+            </div>
+            <!-- 🌟 [사용자 요청] 대표 이메일 공식 문의처 추가 -->
+            <div style="margin-bottom:10px; font-size:12px; font-weight:800; color:#334155;">
+                ✉️ 문의 및 제안: <a href="mailto:mm051@naver.com" style="color:#0284c7; text-decoration:none; font-weight:900;">mm051@naver.com</a>
             </div>
             <div style="display:flex; justify-content:center; align-items:center; gap:8px;">
                 <button type="button" onclick="openYetalkTermsModal()" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:850; color:#334155; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
@@ -12896,6 +12900,16 @@
             row.innerHTML = members.map((m, idx) => {
                 const isMe = (m.nameOrId === myName || (myName && m.nameOrId && m.nameOrId.startsWith(myName)));
                 const isStarred = starredFriends.includes(m.nameOrId);
+                // 🌟 [사용자 요청] 교우별 안 읽은 메시지 확인 (처음이거나 안 읽은 메시지가 있으면 NEW 표시, 대화방을 열면 확인 처리)
+                let hasUnread = false;
+                try {
+                    const readKey = "yetalk_chat_read_" + m.nameOrId;
+                    const isRead = localStorage.getItem(readKey);
+                    if (!isRead) {
+                        hasUnread = true;
+                    }
+                } catch(e) {}
+
                 return `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; gap:8px; background:${isStarred ? '#fffbeb' : '#ffffff'}; border:${isStarred ? '1.5px solid #fde047' : '1px solid #e2e8f0'}; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.03); transition:all 0.15s ease;">
                     <div style="display:flex; align-items:center; gap:6px; min-width:0; flex-grow:1;">
@@ -12909,11 +12923,11 @@
                             <span style="font-size:10px; font-weight:800; color:${isMe ? '#059669' : '#0369a1'}; background:${isMe ? '#dcfce7' : '#e0f2fe'}; padding:1.5px 5px; border-radius:5px; flex-shrink:0;">${isMe ? '나' : (m.role || '성도')}</span>
                         </div>
                     </div>
-                    <!-- 🌟 예톡, 카톡, 삭제 버튼 스마트 축소 -->
+                    <!-- 🌟 예톡, 카톡, 삭제 버튼 스마트 축소 + [사용자 요청] NEW 뱃지 실제 작동 -->
                     <div style="display:flex; gap:4px; align-items:center; flex-shrink:0;">
                         <button type="button" onclick="openMemberPrivateChat('${m.nameOrId}', '${m.role || ''}')" style="padding:4px 7px; background:#0284c7; color:#ffffff; border:none; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer; display:flex; align-items:center; gap:3px; box-shadow:0 1px 3px rgba(2,132,199,0.2);">
                             <span>예톡</span>
-                            <span style="background:#ef4444; color:#fff; font-size:9px; font-weight:950; padding:1px 3.5px; border-radius:6px; line-height:1;">1</span>
+                            ${hasUnread ? `<span style="background:#ef4444; color:#fff; font-size:9px; font-weight:950; padding:1px 3.5px; border-radius:6px; line-height:1;">NEW</span>` : ''}
                         </button>
                         <button type="button" onclick="shareChristianInviteKakao('${m.nameOrId}')" style="padding:4px 7px; background:#fee500; color:#191919; border:none; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer; box-shadow:0 1px 3px rgba(254,229,0,0.25);">
                             카톡
@@ -13105,6 +13119,12 @@
     let currentChatPartner = "";
     function openMemberPrivateChat(name, role) {
         currentChatPartner = name;
+
+        // 🌟 [사용자 요청] 대화방에 들어가면 안 읽음(NEW) 확인 완료 처리
+        try {
+            localStorage.setItem("yetalk_chat_read_" + name, "true");
+        } catch(e) {}
+
         closeChristianFriendsModal();
 
         const partnerTitle = document.getElementById("chatPartnerTitle");
