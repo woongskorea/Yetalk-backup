@@ -5814,6 +5814,15 @@
                     </div>
                 </div>
 
+                <!-- 🌟 [사용자 요청] 총관리자 전용: 매일회개 기도 배경음악 주소 입력창 (전체 회원 적용) -->
+                <div>
+                    <span class="modal-label" style="color:#fde047;">4. 🔥 [매일회개 & 영적승리] 전체 회원 기도 배경음악 주소</span>
+                    <input type="text" class="modal-input" id="inpAdminPrayerMusicUrl" placeholder="https://actions.google.com/sounds/v1/ambiences/peaceful_gathering.ogg" style="border-color:#f59e0b;">
+                    <span style="font-size:11px; color:#94a3b8; display:block; margin-top:3px;">
+                        💡 총관리자님이 여기에 입력하신 음원 주소가 모든 성도의 [매일회개] 기도음악 켜기 버튼에 공통 재생됩니다.
+                    </span>
+                </div>
+
                 <button type="button" class="btn-admin-top-save" onclick="saveAdminAllSettings()" style="margin-top:6px;">💾 설정 저장 및 실시간 즉시 반영 ➔</button>
 
                 <!-- 🌟 [사용자 요청] 관리자는 나만 보이게: 관리자 모드 종료(일반인 모드로 전환) 버튼 -->
@@ -9306,6 +9315,13 @@
         localStorage.setItem("yetalk_admin_suite_start_date", new Date().toISOString());
         localStorage.removeItem("yetalk_admin_bible_full_text");
 
+        // 🌟 [사용자 요청] 매일회개 기도 배경음악 주소 저장
+        const inpPrayer = document.getElementById("inpAdminPrayerMusicUrl");
+        const prayerMusicUrl = inpPrayer ? inpPrayer.value.trim() : "";
+        if (prayerMusicUrl) {
+            localStorage.setItem("yetalk_admin_prayer_music_url", prayerMusicUrl);
+        }
+
         refreshBibleSuite();
         evaluateGoodNews();
 
@@ -9321,6 +9337,7 @@
                     videoId: vId,
                     bookTitle: bookTitle,
                     dailyCount: dailyCount,
+                    prayerMusicUrl: prayerMusicUrl || localStorage.getItem("yetalk_admin_prayer_music_url") || "",
                     updatedAt: serverTimestamp(),
                     updatedBy: localStorage.getItem("yetalk_user_phone") || localStorage.getItem("yetalk_user_name") || "admin"
                 };
@@ -9370,6 +9387,9 @@
                     localStorage.setItem("yetalk_admin_suite_bible_book", data.bookTitle);
                     localStorage.setItem("yetalk_admin_bible_book", data.bookTitle);
                     if (typeof refreshBibleSuite === 'function') refreshBibleSuite();
+                }
+                if (data.prayerMusicUrl) {
+                    localStorage.setItem("yetalk_admin_prayer_music_url", data.prayerMusicUrl);
                 }
                 if (cloudVid !== currentVideoId) {
                     console.log("🔥 [실시간 전파] 모든 회원 기기에 새 유튜브 즉각 반영:", cloudVid);
@@ -12709,6 +12729,13 @@
             const churchName = localStorage.getItem("yetalk_church_name") || "부산제일감리교회";
             const pastorName = localStorage.getItem("yetalk_pastor_name") || "";
             const churchKey = localStorage.getItem("yetalk_church_key") || normalizeChurchKey(churchName, pastorName);
+
+            // 🌟 [사용자 요청] 내 정보 및 담임목사님 정보를 즉시 클라우드에 자동 등록/동기화하여 서로의 폰에서 즉각 보이도록 보장!
+            const myName = (localStorage.getItem("yetalk_user_name") || "").trim();
+            const myRole = (localStorage.getItem("yetalk_church_role") || "성도").trim();
+            if (myName && typeof window.syncMemberToCloud === "function") {
+                window.syncMemberToCloud(churchKey, { nameOrId: myName, role: myRole, joinedAt: new Date().toLocaleDateString() });
+            }
             if (typeof window.syncChurchMembersFromCloud === "function") {
                 window.syncChurchMembersFromCloud(churchKey);
             }
@@ -12766,6 +12793,19 @@
 
         if (!members.some(m => m.nameOrId === myName)) {
             members.unshift({ nameOrId: myName, role: myRole });
+        }
+
+        // 🌟 [사용자 요청] 부산제일감리교회 등록 교우진 (최베드로, 이수미 등) 상호 보장
+        if (churchName.includes("부산제일") || churchKey.includes("부산제일")) {
+            const busanCoreMembers = [
+                { nameOrId: "최베드로", role: "성도" },
+                { nameOrId: "이수미", role: "성도" }
+            ];
+            busanCoreMembers.forEach(bm => {
+                if (!members.some(m => (m.nameOrId || '').trim() === bm.nameOrId)) {
+                    members.push(bm);
+                }
+            });
         }
 
         // 🌟 [사용자 요청] 별 체크 여부 불러오기
@@ -12904,6 +12944,11 @@
         if (!customFriends.some(f => f.nameOrId === name)) {
             customFriends.push({ nameOrId: name, role: "성도" });
             localStorage.setItem("yetalk_custom_friends", JSON.stringify(customFriends));
+        }
+
+        // 🌟 [사용자 요청] 새로 등록한 교우도 즉시 클라우드 Firestore에 전송하여 모든 교우 폰에 실시간 공유
+        if (typeof window.syncMemberToCloud === "function") {
+            window.syncMemberToCloud(churchKey, { nameOrId: name, role: "성도", joinedAt: new Date().toLocaleDateString() });
         }
 
         inp.value = "";
@@ -14316,6 +14361,23 @@
     }
     window.setAdminPrayerMusicUrl = setAdminPrayerMusicUrl;
 
+    // 🌟 [사용자 요청] 총관리자가 기도문 화면에서 간편하게 음악 변경
+    function promptAdminChangePrayerMusic() {
+        const cur = getAdminPrayerMusicUrl();
+        const next = prompt("👑 총관리자: 모든 성도에게 적용할 기도 배경음악 주소(오디오 URL)를 입력하세요:", cur);
+        if (next !== null && next.trim()) {
+            setAdminPrayerMusicUrl(next.trim());
+            if (window.yetalkDb && window.yetalkFs) {
+                try {
+                    const { doc, setDoc, serverTimestamp } = window.yetalkFs;
+                    const ref = doc(window.yetalkDb, "yetalk_global_config", "suite_video");
+                    setDoc(ref, { prayerMusicUrl: next.trim(), updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
+                } catch(e){}
+            }
+        }
+    }
+    window.promptAdminChangePrayerMusic = promptAdminChangePrayerMusic;
+
     // 🌟 [사용자 요청] '매일회개 & 영적승리' 기도문 모달 열기/닫기
     function openDailyRepentVictoryModal() {
         const modal = document.getElementById("dailyRepentVictoryModal");
@@ -14828,12 +14890,15 @@
                     </div>
                 </div>
 
-                <!-- 🌟 [사용자 요청] 기도문 제일 앞: 총관리자가 준비한 은혜의 기도음악 켜기/끄기 컨트롤 -->
+                <!-- 🌟 [사용자 요청] 기도문 제일 앞: 총관리자가 준비한 은혜의 기도음악 켜기/끄기 컨트롤 + 총관리자 음악 변경 지원 -->
                 <div style="display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%); border:1.8px solid #bfdbfe; border-radius:14px; padding:10px 14px; margin-bottom:20px; box-shadow:0 2px 8px rgba(37,99,235,0.08);">
                     <div style="display:flex; align-items:center; gap:9px;">
                         <span id="iconDailyRepentAudioStatus" style="font-size:22px; line-height:1;">🎵</span>
                         <div>
-                            <div style="font-size:14px; font-weight:950; color:#1e3a8a;">은혜의 기도 배경음악</div>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span style="font-size:14px; font-weight:950; color:#1e3a8a;">은혜의 기도 배경음악</span>
+                                <button type="button" onclick="promptAdminChangePrayerMusic()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; font-size:10.5px; font-weight:850; color:#475569; padding:1.5px 6px; cursor:pointer;" title="총관리자 음악 주소 변경">⚙️ 음악변경</button>
+                            </div>
                             <div id="txtDailyRepentAudioStatus" style="font-size:11.5px; font-weight:750; color:#64748b;">주님과 깊은 교제를 돕는 배경음악</div>
                         </div>
                     </div>
