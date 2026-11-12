@@ -4636,7 +4636,7 @@
     <nav class="quick-nav-bar" style="padding:6px 12px 8px 12px; margin-top:5px;">
         <button type="button" class="btn-quick-chip" id="chipTabPersonal" onclick="handleChristianNav('personal')" style="font-size:13.5px; font-weight:850; padding:9px 4px; text-align:center;">🏠 내앱</button>
         <button type="button" class="btn-quick-chip btn-quick-ourchurch active" id="chipTabOurChurch" onclick="handleChristianNav('our_church')" style="font-size:15px; font-weight:950; padding:9px 4px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">⛪ 우리교회</button>
-        <button type="button" class="btn-quick-chip" id="chipTabInvite" onclick="handleChristianNav('invite')" style="font-size:13px; font-weight:850; padding:9px 4px; text-align:center;">💌 초청</button>
+        <button type="button" class="btn-quick-chip" id="chipTabInvite" onclick="handleChristianNav('invite')" style="font-size:13px; font-weight:850; padding:9px 4px; text-align:center;">💌 교우초청</button>
     </nav>
 
     <!-- 2-1. 4종류의 앱 바로 밑 한 줄 긴 검색창: [사용자 요청] 본인교회명, 단골의원명, 상점 검색 -->
@@ -5643,15 +5643,16 @@
                 </button>
                 <div style="font-size:16.5px; font-weight:950; color:#0f172a; display:flex; align-items:center; gap:6px;">
                     <span>💌</span>
-                    <span>우리교회 초청 &amp; 교우</span>
+                    <span>우리교회 교우초청 &amp; 명단</span>
                 </div>
                 <button type="button" onclick="closeChristianFriendsModal()" style="width:32px; height:32px; border-radius:50%; background:#f1f5f9; border:none; color:#475569; font-size:16px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
             </div>
 
             <!-- 2) 상단 컴팩트 초청 배너 & 카톡 보내기 & 친구 등록창 (공간 절약) -->
             <div style="background:linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%); padding:12px 16px 10px 16px; border-bottom:1px solid #e2e8f0; flex-shrink:0;">
-                <div id="txtChristianInviteMsg" style="font-size:16px; font-weight:950; color:#0f172a; text-align:center; margin-bottom:10px; line-height:1.4; word-break:keep-all;">
-                    “예톡 우리교회 홈페이지와 앱에 초청합니다.”
+                <div id="txtChristianInviteMsg" style="font-size:15px; font-weight:950; color:#0f172a; text-align:center; margin-bottom:10px; line-height:1.45; word-break:keep-all;">
+                    “예톡 우리교회 홈페이지와 앱에 초청합니다.”<br>
+                    <span style="font-size:13px; color:#0284c7; font-weight:900; display:block; margin-top:3px;">플레이스토어에서 '예톡'을 다운받으세요.</span>
                 </div>
                 <!-- 🌟 [사용자 요청] 링크 복사 후 카톡 보내기 순서로 배치 (링크 복사 먼저, 카톡 보내기 다음) -->
                 <div style="display:flex; gap:8px; margin-bottom:10px;">
@@ -12835,14 +12836,23 @@
             members.unshift({ nameOrId: myName, role: myRole });
         }
 
-        // 🌟 [사용자 요청] 부산제일감리교회 등록 교우진 (최베드로, 이수미 등) 상호 보장
+        // 🌟 [사용자 요청] 부산제일감리교회 등록 교우진 (담임목사, 권사, 집사, 사무사역, 성도 등) 전체 상호 보장
         if (churchName.includes("부산제일") || churchKey.includes("부산제일")) {
             const busanCoreMembers = [
-                { nameOrId: "최베드로", role: "성도" },
-                { nameOrId: "이수미", role: "성도" }
+                { nameOrId: "정찬석 목사", role: "담임목사" },
+                { nameOrId: "정 권사", role: "권사" },
+                { nameOrId: "이수미 집사", role: "집사" },
+                { nameOrId: "김 성도", role: "성도" },
+                { nameOrId: "박 사무사역", role: "사무사역" },
+                { nameOrId: "최베드로", role: "성도" }
             ];
             busanCoreMembers.forEach(bm => {
-                if (!members.some(m => (m.nameOrId || '').trim() === bm.nameOrId)) {
+                const bmBase = bm.nameOrId.split(' ')[0].trim();
+                const exists = members.some(m => {
+                    const mName = (m.nameOrId || '').trim();
+                    return mName === bm.nameOrId || (bmBase.length >= 2 && mName.startsWith(bmBase));
+                });
+                if (!exists) {
                     members.push(bm);
                 }
             });
@@ -12881,7 +12891,7 @@
         const row = document.getElementById("christianRegisteredMembersRow");
         if (row) {
             row.innerHTML = members.map((m, idx) => {
-                const isMe = (m.nameOrId === myName);
+                const isMe = (m.nameOrId === myName || (myName && m.nameOrId && m.nameOrId.startsWith(myName)));
                 const isStarred = starredFriends.includes(m.nameOrId);
                 return `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; gap:8px; background:${isStarred ? '#fffbeb' : '#ffffff'}; border:${isStarred ? '1.5px solid #fde047' : '1px solid #e2e8f0'}; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.03); transition:all 0.15s ease;">
@@ -13030,10 +13040,10 @@
         if (modal) { modal.style.display = "none"; modal.classList.remove("show"); }
     }
 
-    // 🌟 [사용자 요청] alert 없이 초대 문구 즉시 복사 & 버튼 피드백
+    // 🌟 [사용자 요청] alert 없이 초대 문구 즉시 복사 & 버튼 피드백 (기존글에 '플레이스토어에서 예톡을 다운받으세요' 추가)
     function copyChristianInvite() {
-        const churchName = localStorage.getItem("yetalk_church_name") || "";
-        const baseMsg = "예톡 우리교회 홈페이지와 앱에 초청합니다.";
+        const churchName = localStorage.getItem("yetalk_church_name") || "부산제일감리교회";
+        const baseMsg = "예톡 우리교회\n홈페이지와 앱에\n초청합니다.\n\n플레이스토어에서 '예톡'을 다운받으세요.";
         const fullMsg = churchName ? `[${churchName}]\n${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/` : `${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/`;
 
         if (navigator.clipboard) {
@@ -13061,8 +13071,8 @@
     }
 
     function shareChristianInviteKakao(targetMemberName) {
-        const churchName = localStorage.getItem("yetalk_church_name") || "";
-        const baseMsg = "예톡 우리교회 홈페이지와 앱에 초청합니다.";
+        const churchName = localStorage.getItem("yetalk_church_name") || "부산제일감리교회";
+        const baseMsg = "예톡 우리교회\n홈페이지와 앱에\n초청합니다.\n\n플레이스토어에서 '예톡'을 다운받으세요.";
         const fullMsg = churchName ? `[${churchName}]\n${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/` : `${baseMsg}\nhttps://woongskorea.github.io/Yetalk-backup/`;
 
         // 1. AndroidBridge 네이티브 카카오톡 호출
@@ -13877,6 +13887,22 @@
             } else {
                 cloudMembers.push(memberObj);
             }
+            if (churchKey.includes("부산제일")) {
+                const busanDefaults = [
+                    { nameOrId: "정찬석 목사", role: "담임목사" },
+                    { nameOrId: "정 권사", role: "권사" },
+                    { nameOrId: "이수미 집사", role: "집사" },
+                    { nameOrId: "김 성도", role: "성도" },
+                    { nameOrId: "박 사무사역", role: "사무사역" },
+                    { nameOrId: "최베드로", role: "성도" }
+                ];
+                busanDefaults.forEach(bd => {
+                    const bdBase = bd.nameOrId.split(' ')[0].trim();
+                    if (!cloudMembers.some(m => m.nameOrId === bd.nameOrId || (bdBase.length >= 2 && m.nameOrId.startsWith(bdBase)))) {
+                        cloudMembers.push(bd);
+                    }
+                });
+            }
             await setDoc(memberDocRef, {
                 churchKey: churchKey,
                 churchName: localStorage.getItem("yetalk_church_name") || "",
@@ -13919,6 +13945,21 @@
                             window._renderChristianFriendsModalContent();
                         }
                     }
+                } else if (churchKey.includes("부산제일")) {
+                    const busanDefaults = [
+                        { nameOrId: "정찬석 목사", role: "담임목사" },
+                        { nameOrId: "정 권사", role: "권사" },
+                        { nameOrId: "이수미 집사", role: "집사" },
+                        { nameOrId: "김 성도", role: "성도" },
+                        { nameOrId: "박 사무사역", role: "사무사역" },
+                        { nameOrId: "최베드로", role: "성도" }
+                    ];
+                    setDoc(memberDocRef, {
+                        churchKey: churchKey,
+                        churchName: "부산제일감리교회",
+                        updatedAt: new Date().toISOString(),
+                        members: busanDefaults
+                    }, { merge: true }).catch(() => {});
                 }
             });
         } catch(err) {
