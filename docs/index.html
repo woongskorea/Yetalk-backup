@@ -5332,6 +5332,27 @@
                 </button>
             </div>
 
+            <!-- 🌟 [사용자 요청] 매일 회개 기본 기도 영상 1 & 2 등록 (전체 회원 둘 중 선택 가능하도록 배포) -->
+            <div style="background:#eff6ff; border:1.5px solid #93c5fd; border-radius:12px; padding:14px; margin-bottom:14px;">
+                <label style="display:block; color:#1d4ed8; font-size:14px; font-weight:950; margin-bottom:6px;">
+                    📹 매일 회개 기본 영상 1 & 2 등록 (전체 회원 배포)
+                </label>
+                <div style="font-size:12px; color:#475569; line-height:1.45; margin-bottom:10px;">
+                    관리자가 등록한 2개의 유튜브 영상이 모든 회원의 [매일회개 & 영적승리] 화면에서 <strong>음악 1 / 음악 2 둘 중 선택</strong>하여 들을 수 있도록 기본 배포됩니다.
+                </div>
+                <div style="margin-bottom:8px;">
+                    <span style="font-size:12px; font-weight:900; color:#1e3a8a;">🎵 기본 기도음악 1 (예: 잔잔한 묵상 찬양):</span>
+                    <input type="text" id="inpAdminRepentVideoUrl1" style="width:100%; box-sizing:border-box; background:#ffffff; border:1.5px solid #94a3b8; border-radius:8px; color:#0f172a; font-size:13px; font-weight:800; padding:8px 10px; margin-top:3px;" placeholder="유튜브 주소 1 (예: https://youtu.be/...)" />
+                </div>
+                <div style="margin-bottom:10px;">
+                    <span style="font-size:12px; font-weight:900; color:#1e3a8a;">🎶 기본 기도음악 2 (예: 간절한 회개 찬양):</span>
+                    <input type="text" id="inpAdminRepentVideoUrl2" style="width:100%; box-sizing:border-box; background:#ffffff; border:1.5px solid #94a3b8; border-radius:8px; color:#0f172a; font-size:13px; font-weight:800; padding:8px 10px; margin-top:3px;" placeholder="유튜브 주소 2 (예: https://youtu.be/...)" />
+                </div>
+                <button type="button" onclick="saveAdminRepentVideoUrls()" style="width:100%; padding:11px; background:linear-gradient(135deg, #1d4ed8, #1e3a8a); border:none; color:#ffffff; font-size:14.5px; font-weight:950; border-radius:8px; cursor:pointer; box-shadow:0 3px 10px rgba(29,78,216,0.35);">
+                    💾 기본 영상 1 & 2 저장 (전체 회원 배포)
+                </button>
+            </div>
+
             <!-- 관리자 바로가기 링크 버튼들 -->
             <div style="display:flex; flex-direction:column; gap:8px;">
                 <button type="button" onclick="location.href='admin.html'" style="padding:11px 14px; background:#f1f5f9; border:1px solid #cbd5e1; color:#0f172a; font-size:13.5px; font-weight:900; border-radius:8px; cursor:pointer; text-align:left; display:flex; justify-content:space-between; align-items:center;">
@@ -9486,6 +9507,12 @@
                     localStorage.setItem("yetalk_admin_bible_book", data.bookTitle);
                     if (typeof refreshBibleSuite === 'function') refreshBibleSuite();
                 }
+                if (data.prayerMusicUrl_1) {
+                    localStorage.setItem("yetalk_admin_prayer_music_url_1", data.prayerMusicUrl_1);
+                }
+                if (data.prayerMusicUrl_2) {
+                    localStorage.setItem("yetalk_admin_prayer_music_url_2", data.prayerMusicUrl_2);
+                }
                 if (data.prayerMusicUrl) {
                     localStorage.setItem("yetalk_admin_prayer_music_url", data.prayerMusicUrl);
                 }
@@ -13545,12 +13572,20 @@
     }
 
     // 🌟 [사용자 요청] 총관리자만 보는 관리자 버튼 비밀 보안 체크
-    // 🌟 [사용자 요청] 삼각 햄버그 안 총관리실 모달 & 기본 은혜 소개글 편집/저장
+    // 🌟 [사용자 요청] 삼각 햄버그 안 총관리실 모달 & 기본 은혜 소개글 / 매일 회개 기본 영상 1 & 2 편집/저장
     function openSuperAdminDeskModal() {
         const modal = document.getElementById("superAdminDeskModal");
         const mottoInp = document.getElementById("inpAdminTvDefaultMotto");
         if (mottoInp) {
             mottoInp.value = localStorage.getItem("yetalk_global_tv_motto") || "내 안에 계신 하나님을 기쁘시게 하는 인생을 살아갑시다.";
+        }
+        const repentInp1 = document.getElementById("inpAdminRepentVideoUrl1");
+        if (repentInp1) {
+            repentInp1.value = localStorage.getItem("yetalk_admin_prayer_music_url_1") || localStorage.getItem("yetalk_admin_prayer_music_url") || "https://www.youtube.com/watch?v=kJQP7kiw5Fk";
+        }
+        const repentInp2 = document.getElementById("inpAdminRepentVideoUrl2");
+        if (repentInp2) {
+            repentInp2.value = localStorage.getItem("yetalk_admin_prayer_music_url_2") || "https://www.youtube.com/watch?v=s93B_MfqjV8";
         }
         if (modal) {
             modal.style.display = "flex";
@@ -13588,9 +13623,41 @@
         closeSuperAdminDeskModal();
     }
 
+    // 🌟 [사용자 요청] 관리자가 매일 회개 기본 영상 링크 등록 (전체 회원 실시간 배포)
+    function saveAdminRepentVideoUrl() {
+        const inp = document.getElementById("inpAdminRepentVideoUrl");
+        const val = (inp ? inp.value : "").trim();
+        if (!val) {
+            alert("유튜브 영상 주소를 입력해 주세요.");
+            return;
+        }
+
+        localStorage.setItem("yetalk_admin_prayer_music_url", val);
+
+        // Firebase Firestore 실시간 클라우드 동기화 (전체 회원 기기에 실시간 즉시 전파)
+        if (window.yetalkDb && window.yetalkFs) {
+            try {
+                const { doc, setDoc, serverTimestamp } = window.yetalkFs;
+                const payload = {
+                    prayerMusicUrl: val,
+                    repentVideoUrl: val,
+                    updatedAt: serverTimestamp(),
+                    updatedBy: localStorage.getItem("yetalk_user_phone") || localStorage.getItem("yetalk_user_name") || "admin"
+                };
+                setDoc(doc(window.yetalkDb, "yetalk_global_config", "suite_video"), payload, { merge: true }).catch(() => {});
+                setDoc(doc(window.yetalkDb, "yetalk_global_config", "daily_repent"), payload, { merge: true }).catch(() => {});
+            } catch(e){}
+        }
+
+        alert("💾 매일 회개 기본 영상이 성공적으로 저장되었습니다!\n전체 회원의 [매일회개 & 영적승리] 화면에 기본 영상으로 실시간 반영됩니다.");
+        closeSuperAdminDeskModal();
+        try { if (typeof updateDailyRepentVideoPlayer === 'function') updateDailyRepentVideoPlayer(); } catch(e){}
+    }
+
     window.openSuperAdminDeskModal = openSuperAdminDeskModal;
     window.closeSuperAdminDeskModal = closeSuperAdminDeskModal;
     window.saveAdminTvDefaultMotto = saveAdminTvDefaultMotto;
+    window.saveAdminRepentVideoUrl = saveAdminRepentVideoUrl;
 
     function goToSuperAdminRoom() {
         openSuperAdminDeskModal();
@@ -14713,24 +14780,69 @@
     }
     window.submitDailyRepentAmenToThanksBoard = submitDailyRepentAmenToThanksBoard;
 
-    // 🌟 [사용자 요청] 매일회개 기도음악 컨트롤러 (대표님이 기본 음악을 깔아두고, 회원 각자가 원할 때 자유롭게 변경 가능)
+    // 🌟 [사용자 요청] 매일회개 기도음악 2개 트랙 컨트롤러 (기도음악 1 / 기도음악 2 둘 중 선택)
     let dailyRepentPrayerAudio = null;
     let isDailyRepentPlaying = false;
-    // 🌟 대표님께서 깔아두신 기본 은혜 기도 배경음악 (평안을 주는 기도 묵상 찬양)
-    const DEFAULT_DAILY_REPENT_BGM_URL = "https://www.youtube.com/watch?v=kJQP7kiw5Fk";
+    let selectedPrayerTrack = Number(localStorage.getItem("yetalk_selected_prayer_track")) || 1;
+    let modalEditingTrack = 1;
 
-    function getActivePrayerMusicUrl() {
-        // 1순위: 회원 각자가 나만의 음악으로 변경해 둔 주소
-        const myCustom = (localStorage.getItem("yetalk_my_prayer_music_url") || "").trim();
-        if (myCustom) return myCustom;
+    // 🌟 대표님께서 깔아두신 기본 은혜 기도 배경음악 2가지
+    // 트랙 1: 평안과 임재의 기도 묵상 찬양
+    const DEFAULT_DAILY_REPENT_BGM_URL_1 = "https://www.youtube.com/watch?v=kJQP7kiw5Fk";
+    // 트랙 2: 간절한 통회와 성령의 권세 선포 찬양
+    const DEFAULT_DAILY_REPENT_BGM_URL_2 = "https://www.youtube.com/watch?v=s93B_MfqjV8";
 
-        // 2순위: 관리자가 전체 공통으로 설정한 주소
-        const adminGlobal = (localStorage.getItem("yetalk_admin_prayer_music_url") || "").trim();
-        if (adminGlobal) return adminGlobal;
-
-        // 3순위: 대표님이 깔아두신 기본 은혜 기도 음악
-        return DEFAULT_DAILY_REPENT_BGM_URL;
+    function getActivePrayerMusicUrl(trackNum) {
+        const t = trackNum || selectedPrayerTrack;
+        if (t === 2) {
+            const myCustom2 = (localStorage.getItem("yetalk_my_prayer_music_url_2") || "").trim();
+            if (myCustom2) return myCustom2;
+            const adminGlobal2 = (localStorage.getItem("yetalk_admin_prayer_music_url_2") || "").trim();
+            if (adminGlobal2) return adminGlobal2;
+            return DEFAULT_DAILY_REPENT_BGM_URL_2;
+        } else {
+            const myCustom1 = (localStorage.getItem("yetalk_my_prayer_music_url_1") || localStorage.getItem("yetalk_my_prayer_music_url") || "").trim();
+            if (myCustom1) return myCustom1;
+            const adminGlobal1 = (localStorage.getItem("yetalk_admin_prayer_music_url_1") || localStorage.getItem("yetalk_admin_prayer_music_url") || "").trim();
+            if (adminGlobal1) return adminGlobal1;
+            return DEFAULT_DAILY_REPENT_BGM_URL_1;
+        }
     }
+
+    function selectPrayerMusicTrack(trackNum) {
+        selectedPrayerTrack = trackNum;
+        localStorage.setItem("yetalk_selected_prayer_track", trackNum);
+
+        const btn1 = document.getElementById("btnSelectMusicTrack1");
+        const btn2 = document.getElementById("btnSelectMusicTrack2");
+        if (btn1 && btn2) {
+            if (trackNum === 1) {
+                btn1.style.background = "#2563eb";
+                btn1.style.color = "#ffffff";
+                btn1.style.border = "2px solid #2563eb";
+                btn2.style.background = "#ffffff";
+                btn2.style.color = "#475569";
+                btn2.style.border = "1.5px solid #cbd5e1";
+            } else {
+                btn2.style.background = "#2563eb";
+                btn2.style.color = "#ffffff";
+                btn2.style.border = "2px solid #2563eb";
+                btn1.style.background = "#ffffff";
+                btn1.style.color = "#475569";
+                btn1.style.border = "1.5px solid #cbd5e1";
+            }
+        }
+
+        try { updateDailyRepentVideoPlayer(); } catch(e){}
+
+        if (isDailyRepentPlaying) {
+            stopDailyRepentPrayerAudio();
+            toggleDailyRepentPrayerAudio();
+        } else {
+            showBibleToast(trackNum === 1 ? "🎵 [기도음악 1]이 선택되었습니다. [기도음악 켜기]를 누르시면 재생됩니다." : "🎶 [기도음악 2]가 선택되었습니다. [기도음악 켜기]를 누르시면 재생됩니다.");
+        }
+    }
+    window.selectPrayerMusicTrack = selectPrayerMusicTrack;
 
     function extractYouTubeVideoId(url) {
         if (!url) return null;
@@ -14751,7 +14863,7 @@
             stopDailyRepentPrayerAudio();
             showBibleToast("⏸️ 기도음악이 일시 중지되었습니다.");
         } else {
-            const musicUrl = getActivePrayerMusicUrl();
+            const musicUrl = getActivePrayerMusicUrl(selectedPrayerTrack);
             const ytId = extractYouTubeVideoId(musicUrl);
 
             if (ytId) {
@@ -14779,8 +14891,8 @@
                 btn.style.background = "linear-gradient(135deg, #059669, #047857)";
                 btn.innerHTML = `<span>⏹️</span> <span>기도음악 끄기</span>`;
             }
-            if (statusIcon) statusIcon.innerText = "🎶";
-            showBibleToast("🎵 기도음악 재생을 시작합니다.");
+            if (statusIcon) statusIcon.innerText = selectedPrayerTrack === 1 ? "🎵" : "🎶";
+            showBibleToast(`🎶 [기도음악 ${selectedPrayerTrack}] 재생을 시작합니다.`);
         }
     }
     window.toggleDailyRepentPrayerAudio = toggleDailyRepentPrayerAudio;
@@ -14806,25 +14918,81 @@
     }
     window.stopDailyRepentPrayerAudio = stopDailyRepentPrayerAudio;
 
-    // 🌟 [사용자 요청] 회원 각자가 나만의 기도음악 변경 모달 열기
-    function openAdminChangePrayerMusicModal() {
-        const modal = document.getElementById("modalDailyRepentMusicChange");
-        const inp = document.getElementById("inpAdminPrayerMusicInput");
-        const txtCurrent = document.getElementById("txtCurrentPrayerMusicStatus");
-        const myCustom = (localStorage.getItem("yetalk_my_prayer_music_url") || "").trim();
+    function updateDailyRepentVideoPlayer() {
+        const iframe = document.getElementById("dailyRepentVideoIframe");
+        if (!iframe) return;
+        const url = getActivePrayerMusicUrl(selectedPrayerTrack);
+        const ytId = extractYouTubeVideoId(url);
+        if (ytId) {
+            const embedSrc = `https://www.youtube.com/embed/${ytId}?enablejsapi=1&rel=0`;
+            if (iframe.src !== embedSrc) {
+                iframe.src = embedSrc;
+            }
+        }
+    }
+    window.updateDailyRepentVideoPlayer = updateDailyRepentVideoPlayer;
 
-        if (txtCurrent) {
-            if (myCustom) {
-                txtCurrent.innerHTML = "현재: <strong style='color:#2563eb;'>내가 지정한 나만의 기도음악</strong> 사용 중";
+    let isRepentVideoFolded = true;
+    function toggleRepentVideoFold() {
+        const wrap = document.getElementById("dailyRepentPlayerWrap");
+        const btn = document.getElementById("btnToggleRepentVideoFold");
+        if (!wrap) return;
+        isRepentVideoFolded = !isRepentVideoFolded;
+        if (isRepentVideoFolded) {
+            wrap.style.display = "none";
+            if (btn) btn.innerText = "📹 영상보기 ▼";
+        } else {
+            wrap.style.display = "block";
+            if (btn) btn.innerText = "접기 ▲";
+            updateDailyRepentVideoPlayer();
+        }
+    }
+    window.toggleRepentVideoFold = toggleRepentVideoFold;
+
+    // 🌟 [사용자 요청] 기도음악 변경 모달 (음악 1 / 음악 2 탭 전환 지원)
+    function switchModalMusicTrackTab(trackNum) {
+        modalEditingTrack = trackNum;
+        const tab1 = document.getElementById("tabModalMusicTrack1");
+        const tab2 = document.getElementById("tabModalMusicTrack2");
+        const txtCurrent = document.getElementById("txtCurrentPrayerMusicStatus");
+        const inp = document.getElementById("inpAdminPrayerMusicInput");
+
+        if (tab1 && tab2) {
+            if (trackNum === 1) {
+                tab1.style.background = "#2563eb";
+                tab1.style.color = "#ffffff";
+                tab1.style.border = "2px solid #2563eb";
+                tab2.style.background = "#ffffff";
+                tab2.style.color = "#475569";
+                tab2.style.border = "1.5px solid #cbd5e1";
             } else {
-                txtCurrent.innerHTML = "현재: <strong style='color:#059669;'>대표님 추천 기본 은혜 음악</strong> 사용 중";
+                tab2.style.background = "#2563eb";
+                tab2.style.color = "#ffffff";
+                tab2.style.border = "2px solid #2563eb";
+                tab1.style.background = "#ffffff";
+                tab1.style.color = "#475569";
+                tab1.style.border = "1.5px solid #cbd5e1";
             }
         }
 
-        if (inp) {
-            inp.value = ""; // 🌟 클릭하자마자 앞에 것 자동 지움!
-            setTimeout(() => inp.focus(), 120);
+        const myCustom = (localStorage.getItem("yetalk_my_prayer_music_url_" + trackNum) || (trackNum === 1 ? localStorage.getItem("yetalk_my_prayer_music_url") : "") || "").trim();
+        if (txtCurrent) {
+            if (myCustom) {
+                txtCurrent.innerHTML = `[음악 ${trackNum}] 현재: <strong style='color:#2563eb;'>내가 지정한 나만의 기도음악</strong> 사용 중`;
+            } else {
+                txtCurrent.innerHTML = `[음악 ${trackNum}] 현재: <strong style='color:#059669;'>대표님 추천 기본 은혜 음악</strong> 사용 중`;
+            }
         }
+        if (inp) {
+            inp.value = "";
+            inp.placeholder = `[기도음악 ${trackNum}] 유튜브 주소를 붙여넣어 주세요`;
+        }
+    }
+    window.switchModalMusicTrackTab = switchModalMusicTrackTab;
+
+    function openAdminChangePrayerMusicModal() {
+        const modal = document.getElementById("modalDailyRepentMusicChange");
+        switchModalMusicTrackTab(selectedPrayerTrack || 1);
         if (modal) modal.style.display = "flex";
     }
     window.openAdminChangePrayerMusicModal = openAdminChangePrayerMusicModal;
@@ -14835,39 +15003,110 @@
     }
     window.closeAdminChangePrayerMusicModal = closeAdminChangePrayerMusicModal;
 
-    // 🌟 [사용자 요청] 회원 본인만의 기도 음악 저장
+    // 🌟 [사용자 요청] 회원 본인만의 기도 음악 저장 (선택된 트랙에 저장)
     function saveAdminPrayerMusicFromModal(e) {
         if (e) e.preventDefault();
         const inp = document.getElementById("inpAdminPrayerMusicInput");
         const newUrl = (inp ? inp.value : "").trim();
         if (!newUrl) {
-            alert("변경하실 유튜브 주소를 붙여넣어 주세요.");
+            alert(`[기도음악 ${modalEditingTrack}] 변경하실 유튜브 주소를 붙여넣어 주세요.`);
             return;
         }
 
-        // 회원 각자 기기에 개인 맞춤 음악으로 저장
-        localStorage.setItem("yetalk_my_prayer_music_url", newUrl);
+        localStorage.setItem("yetalk_my_prayer_music_url_" + modalEditingTrack, newUrl);
+        if (modalEditingTrack === 1) {
+            localStorage.setItem("yetalk_my_prayer_music_url", newUrl);
+        }
 
         closeAdminChangePrayerMusicModal();
-        showBibleToast("✅ 나만의 기도음악이 등록되었습니다. [기도음악 켜기]를 누르시면 재생됩니다!");
-        if (isDailyRepentPlaying) {
-            stopDailyRepentPrayerAudio();
-            toggleDailyRepentPrayerAudio();
-        }
+        showBibleToast(`✅ [기도음악 ${modalEditingTrack}] 나만의 음악이 등록되었습니다.`);
+        selectPrayerMusicTrack(modalEditingTrack);
     }
     window.saveAdminPrayerMusicFromModal = saveAdminPrayerMusicFromModal;
 
     // 🌟 [사용자 요청] 기본 음악으로 초기화/되돌리기
     function resetToDefaultPrayerMusic() {
-        localStorage.removeItem("yetalk_my_prayer_music_url");
-        closeAdminChangePrayerMusicModal();
-        showBibleToast("🔄 대표님 추천 기본 은혜 음악으로 복원되었습니다!");
-        if (isDailyRepentPlaying) {
-            stopDailyRepentPrayerAudio();
-            toggleDailyRepentPrayerAudio();
+        localStorage.removeItem("yetalk_my_prayer_music_url_" + modalEditingTrack);
+        if (modalEditingTrack === 1) {
+            localStorage.removeItem("yetalk_my_prayer_music_url");
         }
+        closeAdminChangePrayerMusicModal();
+        showBibleToast(`🔄 [기도음악 ${modalEditingTrack}] 기본 은혜 음악으로 복원되었습니다!`);
+        selectPrayerMusicTrack(modalEditingTrack);
     }
     window.resetToDefaultPrayerMusic = resetToDefaultPrayerMusic;
+
+    // 🌟 [사용자 요청] 관리자용: 전체 회원에게 배포
+    function saveAdminPrayerMusicForEveryone() {
+        const inp = document.getElementById("inpAdminPrayerMusicInput");
+        const newUrl = (inp ? inp.value : "").trim();
+        if (!newUrl) {
+            alert(`[기도음악 ${modalEditingTrack}] 전체 회원에게 배포할 유튜브 주소를 입력해 주세요.`);
+            return;
+        }
+
+        localStorage.setItem("yetalk_admin_prayer_music_url_" + modalEditingTrack, newUrl);
+        localStorage.removeItem("yetalk_my_prayer_music_url_" + modalEditingTrack);
+        if (modalEditingTrack === 1) {
+            localStorage.setItem("yetalk_admin_prayer_music_url", newUrl);
+            localStorage.removeItem("yetalk_my_prayer_music_url");
+        }
+
+        if (window.yetalkDb && window.yetalkFs) {
+            try {
+                const { doc, setDoc, serverTimestamp } = window.yetalkFs;
+                const payload = {
+                    ["prayerMusicUrl_" + modalEditingTrack]: newUrl,
+                    prayerMusicUrl: newUrl,
+                    updatedAt: serverTimestamp(),
+                    updatedBy: localStorage.getItem("yetalk_user_name") || "admin"
+                };
+                setDoc(doc(window.yetalkDb, "yetalk_global_config", "suite_video"), payload, { merge: true }).catch(() => {});
+            } catch(e){}
+        }
+
+        closeAdminChangePrayerMusicModal();
+        showBibleToast(`🌐 [기도음악 ${modalEditingTrack}] 전체 회원 기본 영상으로 배포되었습니다!`);
+        selectPrayerMusicTrack(modalEditingTrack);
+    }
+    window.saveAdminPrayerMusicForEveryone = saveAdminPrayerMusicForEveryone;
+
+    // 🌟 [사용자 요청] 관리실에서 음악 1 & 2 모두 저장
+    function saveAdminRepentVideoUrls() {
+        const inp1 = document.getElementById("inpAdminRepentVideoUrl1");
+        const inp2 = document.getElementById("inpAdminRepentVideoUrl2");
+        const val1 = (inp1 ? inp1.value : "").trim();
+        const val2 = (inp2 ? inp2.value : "").trim();
+
+        if (val1) {
+            localStorage.setItem("yetalk_admin_prayer_music_url_1", val1);
+            localStorage.setItem("yetalk_admin_prayer_music_url", val1);
+        }
+        if (val2) {
+            localStorage.setItem("yetalk_admin_prayer_music_url_2", val2);
+        }
+
+        if (window.yetalkDb && window.yetalkFs) {
+            try {
+                const { doc, setDoc, serverTimestamp } = window.yetalkFs;
+                const payload = {
+                    prayerMusicUrl_1: val1 || DEFAULT_DAILY_REPENT_BGM_URL_1,
+                    prayerMusicUrl_2: val2 || DEFAULT_DAILY_REPENT_BGM_URL_2,
+                    prayerMusicUrl: val1 || DEFAULT_DAILY_REPENT_BGM_URL_1,
+                    updatedAt: serverTimestamp(),
+                    updatedBy: localStorage.getItem("yetalk_user_phone") || localStorage.getItem("yetalk_user_name") || "admin"
+                };
+                setDoc(doc(window.yetalkDb, "yetalk_global_config", "suite_video"), payload, { merge: true }).catch(() => {});
+                setDoc(doc(window.yetalkDb, "yetalk_global_config", "daily_repent"), payload, { merge: true }).catch(() => {});
+            } catch(e){}
+        }
+
+        alert("💾 매일 회개 기본 기도영상 1 & 2가 성공적으로 저장되었습니다!\n전체 회원의 [매일회개 & 영적승리] 화면에서 1번, 2번 음악으로 즉시 선택 이용할 수 있습니다.");
+        closeSuperAdminDeskModal();
+        try { updateDailyRepentVideoPlayer(); } catch(e){}
+    }
+    window.saveAdminRepentVideoUrls = saveAdminRepentVideoUrls;
+    window.saveAdminRepentVideoUrl = saveAdminRepentVideoUrls;
 
     // 🌟 [사용자 요청] '매일회개 & 영적승리' 기도문 모달 열기/닫기
     function openDailyRepentVictoryModal() {
@@ -14875,10 +15114,13 @@
         if (!modal) return;
         modal.classList.add("show");
         modal.style.setProperty("display", "flex", "important");
+        selectPrayerMusicTrack(selectedPrayerTrack || 1);
     }
 
     function closeDailyRepentVictoryModal() {
         stopDailyRepentPrayerAudio();
+        const iframe = document.getElementById("dailyRepentVideoIframe");
+        if (iframe) iframe.src = "";
         const modal = document.getElementById("dailyRepentVictoryModal");
         if (!modal) return;
         modal.classList.remove("show");
@@ -15365,8 +15607,15 @@
             </div>
             <div style="padding:20px; display:flex; flex-direction:column; gap:12px;">
                 <p style="margin:0; font-size:13.5px; font-weight:800; color:#334155; line-height:1.5;">
-                    기본으로 대표님 추천 은혜 찬양이 흘러나오며, 원하시는 경우 회원 각자 좋아하는 유튜브 기도음악으로 자유롭게 바꾸실 수 있습니다.
+                    대표님이 깔아두신 기본 찬양 2가지 중 원하는 트랙을 선택해 나만의 유튜브 기도음악으로 자유롭게 바꾸실 수 있습니다.
                 </p>
+
+                <!-- 트랙 1 / 트랙 2 선택 탭 -->
+                <div style="display:flex; gap:6px;">
+                    <button type="button" id="tabModalMusicTrack1" onclick="switchModalMusicTrackTab(1)" style="flex:1; padding:8px 6px; border-radius:8px; border:2px solid #2563eb; background:#2563eb; color:#ffffff; font-size:13px; font-weight:950; cursor:pointer;">🎵 기도음악 1 설정</button>
+                    <button type="button" id="tabModalMusicTrack2" onclick="switchModalMusicTrackTab(2)" style="flex:1; padding:8px 6px; border-radius:8px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; font-size:13px; font-weight:950; cursor:pointer;">🎶 기도음악 2 설정</button>
+                </div>
+
                 <div id="txtCurrentPrayerMusicStatus" style="font-size:12.5px; font-weight:850; color:#0369a1; background:#e0f2fe; padding:7px 12px; border-radius:8px;">
                     현재: <strong style="color:#059669;">대표님 추천 기본 은혜 음악</strong> 사용 중
                 </div>
@@ -15378,9 +15627,12 @@
                     <button type="button" onclick="resetToDefaultPrayerMusic()" style="background:#f1f5f9; border:1px solid #94a3b8; color:#0f172a; font-size:12.5px; font-weight:900; padding:9px 12px; border-radius:9px; cursor:pointer;" title="대표님이 깔아두신 기본 음악으로 되돌리기">
                         🔄 기본 음악 복원
                     </button>
-                    <div style="display:flex; gap:6px;">
+                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                        <button type="button" onclick="saveAdminPrayerMusicForEveryone()" style="background:#eff6ff; border:1.5px solid #93c5fd; color:#1d4ed8; font-size:12.5px; font-weight:950; padding:9px 12px; border-radius:9px; cursor:pointer;" title="관리자용: 모든 전체 회원에게 기본 영상으로 배포">
+                            🌐 전체 회원 기본영상 배포
+                        </button>
                         <button type="button" onclick="closeAdminChangePrayerMusicModal()" style="background:#f8fafc; border:1px solid #cbd5e1; color:#475569; font-size:13px; font-weight:900; padding:9px 14px; border-radius:9px; cursor:pointer;">취소</button>
-                        <button type="button" onclick="saveAdminPrayerMusicFromModal()" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); border:none; color:#ffffff; font-size:13px; font-weight:950; padding:9px 16px; border-radius:9px; cursor:pointer; box-shadow:0 2px 8px rgba(37,99,235,0.35);">💾 저장 및 적용</button>
+                        <button type="button" onclick="saveAdminPrayerMusicFromModal()" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); border:none; color:#ffffff; font-size:13px; font-weight:950; padding:9px 16px; border-radius:9px; cursor:pointer; box-shadow:0 2px 8px rgba(37,99,235,0.35);">💾 나만의 영상 저장</button>
                     </div>
                 </div>
             </div>
@@ -15410,21 +15662,40 @@
                     <div style="font-size:22px; font-weight:950; color:#0f172a; letter-spacing:-0.5px; line-height:1.3;">
                         🔥 강력한 회개와 믿음 선포 기도문
                     </div>
-                    <div style="font-size:14px; font-weight:850; color:#2563eb; margin-top:5px;">
-                        조상의 영적 대물림 끊기 · 날마다 발을 씻는 통회자복 · 성령의 권세 선포
-                    </div>
                 </div>
 
-                <!-- 🌟 [사용자 요청] 기도문 제일 앞: 은혜의 기도음악 켜기/끄기 컨트롤 + 음악변경 모달 (작은글자 제거 및 심플화) -->
-                <div style="display:flex; align-items:center; justify-content:space-between; background:linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%); border:1.8px solid #bfdbfe; border-radius:14px; padding:12px 14px; margin-bottom:20px; box-shadow:0 2px 8px rgba(37,99,235,0.08);">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span id="iconDailyRepentAudioStatus" style="font-size:22px; line-height:1;">🎵</span>
-                        <span style="font-size:15px; font-weight:950; color:#1e3a8a;">은혜의 기도 배경음악</span>
-                        <button type="button" onclick="openAdminChangePrayerMusicModal()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; font-size:11px; font-weight:850; color:#475569; padding:3px 7px; cursor:pointer;" title="음악 주소 변경">⚙️ 변경</button>
+                <!-- 🌟 [사용자 요청] 기도음악 2개 선택 (음악 1 / 음악 2) & 배경음악 재생 컨트롤 바 -->
+                <div style="background:linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%); border:1.8px solid #bfdbfe; border-radius:14px; padding:12px 14px; margin-bottom:18px; box-shadow:0 2px 8px rgba(37,99,235,0.08);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span id="iconDailyRepentAudioStatus" style="font-size:20px; line-height:1;">🎵</span>
+                            <span style="font-size:15px; font-weight:950; color:#1e3a8a;">은혜의 기도 배경음악</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <button type="button" onclick="openAdminChangePrayerMusicModal()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; font-size:11.5px; font-weight:850; color:#475569; padding:4px 8px; cursor:pointer;" title="음악 주소 변경">⚙️ 변경</button>
+                            <button type="button" id="btnToggleRepentVideoFold" onclick="toggleRepentVideoFold()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; font-size:11.5px; font-weight:850; color:#2563eb; padding:4px 8px; cursor:pointer;">📹 영상보기 ▼</button>
+                        </div>
                     </div>
-                    <button type="button" id="btnToggleDailyRepentAudio" onclick="toggleDailyRepentPrayerAudio()" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); color:#ffffff; border:none; border-radius:10px; padding:9px 15px; font-size:13.5px; font-weight:950; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(37,99,235,0.28); transition:all 0.15s ease;" title="기도음악 켜기 / 끄기">
-                        <span>▶️</span> <span>기도음악 켜기</span>
-                    </button>
+
+                    <!-- 🌟 음악 1 / 음악 2 둘 중 선택 버튼 & 기도음악 켜기/끄기 -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+                        <div style="display:flex; gap:6px; flex:1; min-width:180px;">
+                            <button type="button" id="btnSelectMusicTrack1" onclick="selectPrayerMusicTrack(1)" style="flex:1; padding:8px 6px; font-size:13px; font-weight:950; border-radius:8px; border:2px solid #2563eb; background:#2563eb; color:#ffffff; cursor:pointer; text-align:center; transition:all 0.15s ease;">
+                                🎵 기도음악 1
+                            </button>
+                            <button type="button" id="btnSelectMusicTrack2" onclick="selectPrayerMusicTrack(2)" style="flex:1; padding:8px 6px; font-size:13px; font-weight:950; border-radius:8px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; cursor:pointer; text-align:center; transition:all 0.15s ease;">
+                                🎶 기도음악 2
+                            </button>
+                        </div>
+                        <button type="button" id="btnToggleDailyRepentAudio" onclick="toggleDailyRepentPrayerAudio()" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); color:#ffffff; border:none; border-radius:10px; padding:9px 16px; font-size:13.5px; font-weight:950; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(37,99,235,0.28); flex-shrink:0;">
+                            <span>▶️</span> <span>기도음악 켜기</span>
+                        </button>
+                    </div>
+
+                    <!-- 🌟 [선택형 영상 플레이어] 기본 접힘, "📹 영상보기" 누르면 펼쳐짐 -->
+                    <div id="dailyRepentPlayerWrap" style="display:none; position:relative; width:100%; padding-top:56.25%; background:#000; border-radius:10px; overflow:hidden; margin-top:12px; box-shadow:0 3px 10px rgba(0,0,0,0.15);">
+                        <iframe id="dailyRepentVideoIframe" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
                 </div>
 
                 <!-- 🌟 [숨김] 유튜브 영상 오디오 백그라운드 재생용 숨김 아이프레임 -->
