@@ -174,6 +174,26 @@
         <button type="button" class="btn-add-room" onclick="openAddRoomModal()">
             <span>➕</span> <span id="btnAddRoomText">새 선교방 추가하기</span>
         </button>
+
+        <!-- 🌟 [사용자 요청] 선교소식 한줄 리스트 선교게시판 (제목, 선교사이름, 날짜) -->
+        <section class="mission-news-board-card" style="margin-top:14px; background:#111a2f; border:1.8px solid #1e293b; border-radius:14px; padding:14px 13px; display:flex; flex-direction:column; gap:10px; box-shadow:0 4px 16px rgba(0,0,0,0.25);">
+            <!-- 게시판 상단 타이틀 & 글쓰기 버튼 -->
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #1e293b; padding-bottom:10px;">
+                <div style="display:flex; align-items:center; gap:7px;">
+                    <span style="font-size:18px;">📰</span>
+                    <strong style="color:#38bdf8; font-size:15px; font-weight:950;" id="txtMissionBoardHeader">선교 소식 게시판</strong>
+                    <span id="badgeMissionNewsCount" style="background:#0284c7; color:#ffffff; font-size:11px; font-weight:900; padding:2px 7px; border-radius:10px;">0건</span>
+                </div>
+                <button type="button" onclick="openWriteMissionNewsModal()" style="background:linear-gradient(135deg, #0284c7, #0369a1); border:none; color:#ffffff; font-size:12.5px; font-weight:950; padding:6px 13px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(2,132,199,0.35);">
+                    <span>✏️</span> <span>소식 쓰기</span>
+                </button>
+            </div>
+
+            <!-- 선교소식 한줄 리스트 목록 (제목, 선교사이름, 날짜) -->
+            <div id="missionNewsListContainer" style="display:flex; flex-direction:column; gap:6px;">
+                <!-- JS 렌더링 -->
+            </div>
+        </section>
     </main>
 
     <!-- 🌟 [사용자 요청] 하단 고정 100 애드몹 (정규 100 대형 배너 규격 300 × 100) -->
@@ -231,6 +251,69 @@
         <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
             <button type="button" style="background:#334155; color:white; border:none; padding:7px 14px; border-radius:6px; font-size:12px; cursor:pointer;" onclick="closeModal('modalJoinRequest')">취소</button>
             <button type="button" style="background:linear-gradient(135deg, #ef4444, #dc2626); color:white; border:none; padding:7px 18px; border-radius:6px; font-size:12px; font-weight:900; cursor:pointer;" onclick="submitJoinRequest()">신청 전송</button>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 선교 소식 작성 모달 -->
+<div class="modal-overlay" id="modalWriteMissionNews" onclick="closeModal('modalWriteMissionNews')">
+    <div class="modal-card" style="max-width:440px; width:92%; background:#111a2f; border:2px solid #38bdf8; border-radius:16px; padding:18px 16px; color:#f8fafc;" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b; padding-bottom:8px; margin-bottom:12px;">
+            <strong style="color:#38bdf8; font-size:16px; font-weight:950; display:flex; align-items:center; gap:6px;">
+                <span>✍️</span> <span id="modalWriteNewsTitle">선교 소식 및 기도제목 작성</span>
+            </strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('modalWriteMissionNews')">✕</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <div>
+                <label style="font-size:11.5px; color:#facc15; font-weight:800; display:block; margin-bottom:3px;">소식 제목 *</label>
+                <input type="text" class="modal-input" id="inpNewsTitle" placeholder="예: [우간다] 초등학교 우물 파기 사역 완공 소식" style="background:#0f172a; border:1px solid #334155; color:#f8fafc; font-size:13px; padding:9px 10px; border-radius:8px; width:100%; box-sizing:border-box;">
+            </div>
+            <div style="display:flex; gap:8px;">
+                <div style="flex:1;">
+                    <label style="font-size:11.5px; color:#facc15; font-weight:800; display:block; margin-bottom:3px;" id="lblNewsAuthor">선교사 성함 / 직분 *</label>
+                    <input type="text" class="modal-input" id="inpNewsAuthor" placeholder="예: 박바울 선교사" style="background:#0f172a; border:1px solid #334155; color:#f8fafc; font-size:13px; padding:9px 10px; border-radius:8px; width:100%; box-sizing:border-box;">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:11.5px; color:#94a3b8; font-weight:800; display:block; margin-bottom:3px;">사역지 / 국가 (선택)</label>
+                    <input type="text" class="modal-input" id="inpNewsLocation" placeholder="예: 아프리카 우간다" style="background:#0f172a; border:1px solid #334155; color:#f8fafc; font-size:13px; padding:9px 10px; border-radius:8px; width:100%; box-sizing:border-box;">
+                </div>
+            </div>
+            <div>
+                <label style="font-size:11.5px; color:#facc15; font-weight:800; display:block; margin-bottom:3px;">선교 소식 및 기도제목 본문 *</label>
+                <textarea id="inpNewsContent" rows="6" placeholder="선교 현장의 생생한 은혜와 동역자님들의 중보가 필요한 기도제목을 적어주세요..." style="width:100%; box-sizing:border-box; background:#0f172a; border:1px solid #334155; border-radius:8px; color:#f8fafc; font-size:13px; line-height:1.6; padding:10px; resize:none; font-family:inherit;"></textarea>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+                <button type="button" style="background:#334155; color:#e2e8f0; border:none; padding:9px 16px; border-radius:8px; font-size:13px; font-weight:800; cursor:pointer;" onclick="closeModal('modalWriteMissionNews')">취소</button>
+                <button type="button" style="background:linear-gradient(135deg, #0284c7, #0369a1); color:#ffffff; border:none; padding:9px 20px; border-radius:8px; font-size:13px; font-weight:950; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.35);" onclick="saveMissionNewsPost()">소식 등록하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🌟 선교 소식 상세보기 모달 -->
+<div class="modal-overlay" id="modalViewMissionNews" onclick="closeModal('modalViewMissionNews')">
+    <div class="modal-card" style="max-width:440px; width:92%; max-height:85vh; background:#111a2f; border:2px solid #38bdf8; border-radius:16px; padding:18px 16px; color:#f8fafc; display:flex; flex-direction:column; overflow:hidden;" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #1e293b; padding-bottom:10px; margin-bottom:12px; gap:8px; flex-shrink:0;">
+            <div style="min-width:0; flex:1;">
+                <div id="viewNewsLocationTag" style="display:inline-block; font-size:11px; font-weight:900; color:#38bdf8; background:rgba(56,189,248,0.12); padding:2px 7px; border-radius:5px; margin-bottom:4px; border:1px solid rgba(56,189,248,0.3);">우간다</div>
+                <h3 id="viewNewsTitle" style="margin:0; font-size:16px; font-weight:950; color:#ffffff; line-height:1.35; word-break:keep-all;">소식 제목</h3>
+                <div style="display:flex; align-items:center; gap:8px; margin-top:6px; font-size:12px;">
+                    <span id="viewNewsAuthor" style="color:#facc15; font-weight:900;">👤 박바울 선교사</span>
+                    <span style="color:#64748b;">•</span>
+                    <span id="viewNewsDate" style="color:#94a3b8; font-family:monospace;">2026.11.13</span>
+                </div>
+            </div>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer; padding:2px 4px; line-height:1;" onclick="closeModal('modalViewMissionNews')">✕</button>
+        </div>
+
+        <div id="viewNewsContent" style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; font-size:13.5px; color:#e2e8f0; line-height:1.75; white-space:pre-wrap; word-break:keep-all; padding:4px 2px 14px 2px;">
+            <!-- 본문 내용 -->
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #1e293b; padding-top:10px; margin-top:6px; flex-shrink:0;">
+            <button type="button" id="btnDeleteMissionNews" onclick="deleteCurrentMissionNews()" style="background:#7f1d1d; color:#fca5a5; border:1px solid #991b1b; padding:7px 12px; border-radius:8px; font-size:12px; font-weight:900; cursor:pointer;">🗑️ 삭제</button>
+            <button type="button" style="background:#334155; color:#ffffff; border:none; padding:8px 18px; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer;" onclick="closeModal('modalViewMissionNews')">닫기</button>
         </div>
     </div>
 </div>
@@ -316,6 +399,7 @@
         }
 
         saveAllRoomsToStorage();
+        initMissionNews();
         switchCategory("mission");
     }
 
@@ -334,6 +418,7 @@
             addText.innerText = (cat === "mission") ? "새 선교방 추가하기" : "새 전도방 추가하기";
         }
         renderRooms();
+        renderMissionNews();
     }
 
     function renderRooms() {
@@ -518,6 +603,217 @@
         goToChurchHome();
         return true;
     };
+
+    // ==================================================
+    // 🌟 [사용자 요청] 선교소식 한줄 리스트 선교게시판 (제목, 선교사이름, 날짜)
+    // ==================================================
+    const DEFAULT_MISSION_NEWS = [
+        {
+            id: "mnews_1",
+            category: "mission",
+            title: "우간다 캄팔라 현지 초등학교 사랑의 우물 파기 사역 완공 소식",
+            missionary: "박바울 선교사",
+            location: "아프리카 우간다",
+            date: "2026.11.13",
+            content: "할렐루야! 동역자 여러분의 간절한 기도와 후원으로 우간다 캄팔라 외곽 초등학교에 깨끗한 생명수를 공급하는 우물 파기 사역이 하나님의 은혜로 완공되었습니다.\n\n매일 오염된 물을 마시며 수인성 질병에 시달리던 350여 명의 어린이들과 인근 마을 주민들이 이제 맑은 물을 마음껏 마실 수 있게 되었습니다.\n\n[기도제목]\n1. 복음의 생수가 이 우물을 통해 온 마을에 흘러넘치도록\n2. 방과 후 성경학교 교사 양성과 현지 사역자들의 영육간 강건함을 위해"
+        },
+        {
+            id: "mnews_2",
+            category: "mission",
+            title: "필리핀 민다나오 태풍 피해 50가정 긴급 구호 쌀 나눔 완료",
+            missionary: "이모세 선교사",
+            location: "필리핀 민다나오",
+            date: "2026.11.10",
+            content: "지난주 민다나오 지역을 강타한 태풍으로 가옥이 침수되고 생계가 막막해진 현지 빈민가 50가정에 긴급 구호 쌀과 생필품 박스를 무사히 전달하였습니다.\n\n절망 속에 울부짖던 성도들과 주민들이 구호 물품을 받으며 하나님의 크신 위로와 사랑을 경험했습니다.\n\n[기도제목]\n1. 침수된 가정들의 조속한 복구와 질병 예방을 위해\n2. 이 나눔을 계기로 지역 주민들이 교회로 나와 복음을 듣도록"
+        },
+        {
+            id: "mnews_3",
+            category: "mission",
+            title: "몽골 울란바토르 게르 청소년 동계 비전 수련회 기도 요청",
+            missionary: "김에스더 선교사",
+            location: "몽골 울란바토르",
+            date: "2026.11.05",
+            content: "영하 25도를 오르내리는 혹한의 계절이 시작되었습니다. 게르 지역의 갈 곳 없는 청소년 80여 명을 초청하여 3박 4일간 말씀과 찬양으로 채우는 동계 비전 수련회를 준비하고 있습니다.\n\n이 아이들이 세상의 추위를 이기고 하나님의 따뜻한 품을 만나 믿음의 용사로 일어설 수 있도록 동역자님들의 뜨거운 중보 기도를 부탁드립니다.\n\n[기도제목]\n1. 수련회 장소 난방과 안전한 차량 운행을 위해\n2. 80명의 청소년들이 인격적으로 예수 그리스도를 영접하도록"
+        },
+        {
+            id: "enews_1",
+            category: "evangel",
+            title: "역전 지하철역 따뜻한 차 나눔 및 복음 전도 리포트",
+            missionary: "최베드로 장로",
+            location: "부산역 광장",
+            date: "2026.11.12",
+            content: "쌀쌀해진 날씨 속에 역전 광장에서 따뜻한 대추차와 복음 전도지를 나누었습니다. 길을 지나가던 청년 세 명이 복음을 듣고 영접 기도를 드렸습니다."
+        },
+        {
+            id: "enews_2",
+            category: "evangel",
+            title: "우리동네 공원 어르신 섬김 및 실버 전도잔치 소식",
+            missionary: "이수미 권사",
+            location: "중앙공원",
+            date: "2026.11.08",
+            content: "인근 경로당과 공원의 어르신 40여 분을 초청하여 따뜻한 떡국을 대접하고 찬양과 복음 말씀을 전했습니다. 다음 주일 새신자로 등록하시기로 약속하셨습니다."
+        }
+    ];
+
+    let missionNewsList = [];
+    let currentViewingNewsId = null;
+
+    function initMissionNews() {
+        const raw = localStorage.getItem("yetalk_mission_news_list_v1");
+        if (raw) {
+            try {
+                missionNewsList = JSON.parse(raw);
+            } catch(e) {
+                missionNewsList = [...DEFAULT_MISSION_NEWS];
+            }
+        } else {
+            missionNewsList = [...DEFAULT_MISSION_NEWS];
+            localStorage.setItem("yetalk_mission_news_list_v1", JSON.stringify(missionNewsList));
+        }
+    }
+
+    function renderMissionNews() {
+        const host = document.getElementById("missionNewsListContainer");
+        const countBadge = document.getElementById("badgeMissionNewsCount");
+        const headerText = document.getElementById("txtMissionBoardHeader");
+        if (!host) return;
+
+        const isMission = (currentCategory === "mission");
+        if (headerText) {
+            headerText.innerText = isMission ? "선교 소식 게시판" : "전도 소식 게시판";
+        }
+
+        const list = missionNewsList.filter(item => (item.category || "mission") === currentCategory);
+        if (countBadge) {
+            countBadge.innerText = `${list.length}건`;
+        }
+
+        if (list.length === 0) {
+            host.innerHTML = `
+                <div style="text-align:center; padding:16px; color:#64748b; font-size:12.5px; font-weight:800;">
+                    등록된 소식이 없습니다. [소식 쓰기]를 눌러 첫 소식을 남겨보세요!
+                </div>
+            `;
+            return;
+        }
+
+        host.innerHTML = list.map(item => `
+            <div class="mission-news-row" onclick="viewMissionNewsDetail('${item.id}')" style="display:flex; align-items:center; justify-content:space-between; background:#0b1329; border:1px solid #1e293b; border-radius:8px; padding:10px 12px; cursor:pointer; gap:10px; transition:background 0.15s ease;">
+                <!-- 좌측: 제목 (길면 말줄임) -->
+                <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
+                    <span style="color:#38bdf8; font-size:12px; flex-shrink:0;">📌</span>
+                    <span style="color:#f8fafc; font-size:13.5px; font-weight:850; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        ${item.location ? `<span style="color:#38bdf8; font-size:12px; font-weight:900;">[${escapeHtml(item.location)}]</span> ` : ''}${escapeHtml(item.title)}
+                    </span>
+                </div>
+                <!-- 우측: 선교사이름 / 날짜 -->
+                <div style="display:flex; align-items:center; gap:8px; flex-shrink:0; font-size:12px;">
+                    <span style="color:#facc15; font-weight:900; white-space:nowrap;">👤 ${escapeHtml(item.missionary)}</span>
+                    <span style="color:#64748b; font-weight:750; white-space:nowrap; font-family:monospace; font-size:11.5px;">${item.date}</span>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    function openWriteMissionNewsModal() {
+        const isMission = (currentCategory === "mission");
+        const titleLbl = document.getElementById("modalWriteNewsTitle");
+        const authorLbl = document.getElementById("lblNewsAuthor");
+        const authorInp = document.getElementById("inpNewsAuthor");
+        const titleInp = document.getElementById("inpNewsTitle");
+        const locInp = document.getElementById("inpNewsLocation");
+        const contInp = document.getElementById("inpNewsContent");
+
+        if (titleLbl) titleLbl.innerText = isMission ? "선교 소식 및 기도제목 작성" : "전도 소식 및 간증 작성";
+        if (authorLbl) authorLbl.innerText = isMission ? "선교사 성함 / 직분 *" : "전도자 성함 / 직분 *";
+        if (authorInp) {
+            authorInp.value = getCurrentUser() || "";
+            authorInp.placeholder = isMission ? "예: 박바울 선교사" : "예: 최베드로 장로";
+        }
+        if (titleInp) titleInp.value = "";
+        if (locInp) locInp.value = "";
+        if (contInp) contInp.value = "";
+
+        openModal("modalWriteMissionNews");
+    }
+    window.openWriteMissionNewsModal = openWriteMissionNewsModal;
+
+    function saveMissionNewsPost() {
+        const title = (document.getElementById("inpNewsTitle")?.value || "").trim();
+        const author = (document.getElementById("inpNewsAuthor")?.value || "").trim();
+        const location = (document.getElementById("inpNewsLocation")?.value || "").trim();
+        const content = (document.getElementById("inpNewsContent")?.value || "").trim();
+
+        if (!title) {
+            alert("소식 제목을 입력해 주세요.");
+            document.getElementById("inpNewsTitle")?.focus();
+            return;
+        }
+        if (!author) {
+            alert("선교사(작성자) 성함을 입력해 주세요.");
+            document.getElementById("inpNewsAuthor")?.focus();
+            return;
+        }
+        if (!content) {
+            alert("소식 본문 및 기도제목을 입력해 주세요.");
+            document.getElementById("inpNewsContent")?.focus();
+            return;
+        }
+
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+
+        const newPost = {
+            id: "mnews_" + Date.now(),
+            category: currentCategory,
+            title: title,
+            missionary: author,
+            location: location,
+            date: dateStr,
+            content: content
+        };
+
+        missionNewsList.unshift(newPost);
+        localStorage.setItem("yetalk_mission_news_list_v1", JSON.stringify(missionNewsList));
+        closeModal("modalWriteMissionNews");
+        renderMissionNews();
+        showToast("📢 선교 소식이 성공적으로 등록되었습니다!");
+    }
+    window.saveMissionNewsPost = saveMissionNewsPost;
+
+    function viewMissionNewsDetail(id) {
+        const item = missionNewsList.find(n => n.id === id);
+        if (!item) return;
+        currentViewingNewsId = id;
+
+        const tagEl = document.getElementById("viewNewsLocationTag");
+        const titleEl = document.getElementById("viewNewsTitle");
+        const authorEl = document.getElementById("viewNewsAuthor");
+        const dateEl = document.getElementById("viewNewsDate");
+        const contentEl = document.getElementById("viewNewsContent");
+
+        if (tagEl) {
+            tagEl.innerText = item.location || (item.category === "mission" ? "선교현장" : "전도현장");
+        }
+        if (titleEl) titleEl.innerText = item.title;
+        if (authorEl) authorEl.innerText = `👤 ${item.missionary}`;
+        if (dateEl) dateEl.innerText = item.date;
+        if (contentEl) contentEl.innerText = item.content;
+
+        openModal("modalViewMissionNews");
+    }
+    window.viewMissionNewsDetail = viewMissionNewsDetail;
+
+    function deleteCurrentMissionNews() {
+        if (!currentViewingNewsId) return;
+        if (!confirm("이 선교 소식을 삭제하시겠습니까?")) return;
+        missionNewsList = missionNewsList.filter(n => n.id !== currentViewingNewsId);
+        localStorage.setItem("yetalk_mission_news_list_v1", JSON.stringify(missionNewsList));
+        closeModal("modalViewMissionNews");
+        renderMissionNews();
+        showToast("🗑️ 선교 소식이 삭제되었습니다.");
+    }
+    window.deleteCurrentMissionNews = deleteCurrentMissionNews;
 
     document.addEventListener("DOMContentLoaded", initPage);
 </script>
