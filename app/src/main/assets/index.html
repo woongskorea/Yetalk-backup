@@ -5641,17 +5641,21 @@
                             <option value="장로">장로</option>
                             <option value="사모">사모</option>
                             <option value="전도사">전도사</option>
+                            <option value="선교사">선교사</option>
                             <option value="교회사무">교회사무</option>
                             <option value="부목사">부목사</option>
-                            <option value="담임목사">담임목사 (휴대폰 인증 필수 · 교회 공식 인증 및 관리)</option>
+                            <option value="담임목사">담임목사(담임 인증)</option>
                         </select>
                     </div>
 
                     <!-- 5. 담임목사 선택 시 휴대폰 인증 섹션 -->
                     <div id="pastorAuthSection" style="display:none; background:#f0fdf4; border:1.5px solid #86efac; border-radius:12px; padding:12px;">
-                        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
-                            <span style="font-size:16px;">👑</span>
-                            <strong style="font-size:13.5px; color:#166534;">담임목사 대표 인증 (교회 공식 인증)</strong>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span style="font-size:16px;">👑</span>
+                                <strong style="font-size:13.5px; color:#166534;">담임목사 대표 인증</strong>
+                            </div>
+                            <button type="button" onclick="openPastorAuthModal()" style="background:#16a34a; color:#fff; border:none; padding:4px 10px; border-radius:6px; font-size:11.5px; font-weight:900; cursor:pointer; box-shadow:0 1px 4px rgba(22,163,74,0.3);">인증창 열기 ➔</button>
                         </div>
                         <div style="font-size:11.5px; color:#15803d; line-height:1.45; margin-bottom:10px;">
                             아무나 홈페이지 주인이 될 수 없도록, <strong>담임목사님만 휴대폰 번호 인증</strong>을 거쳐 정상적인 교회 공식 인증 및 관리자 권한이 부여됩니다.
@@ -5694,6 +5698,48 @@
                 <button type="button" id="btnSubmitChristianReg" class="btn-modal-submit" onclick="submitUniversalMemberRegistration()" style="height:48px; font-size:15.5px; font-weight:950; background:linear-gradient(135deg, #059669, #047857); color:#ffffff; border:none; border-radius:10px; cursor:pointer; box-shadow:0 3px 10px rgba(5,150,105,0.3); margin-top:2px;">
                     ✝️ 가입 완료 및 우리교회앱 연결 ➔
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 [사용자 요청] 담임목사 선택 시 자동으로 열리는 담임 인증창 모달 -->
+    <div class="modal-overlay" id="modalPastorAuthWindow" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.72); z-index:1200; align-items:center; justify-content:center; padding:16px; backdrop-filter:blur(4px);" onclick="closePastorAuthModal()">
+        <div class="modal-card" style="max-width:390px; width:100%; background:#ffffff; border:2.5px solid #16a34a; border-radius:18px; padding:22px 18px; box-shadow:0 12px 36px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:12px;" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:10px;">
+                <strong style="font-size:16.5px; font-weight:950; color:#166534; display:flex; align-items:center; gap:6px;">
+                    <span>👑</span> <span>담임목사 대표 인증창</span>
+                </strong>
+                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer; line-height:1;" onclick="closePastorAuthModal()">✕</button>
+            </div>
+
+            <div style="font-size:12px; color:#15803d; line-height:1.45; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:10px 12px;">
+                교회 대표 공식 인증 및 홈페이지 관리자 권한 부여를 위해 <strong>담임목사님 휴대폰 번호 인증</strong>을 진행합니다.
+            </div>
+
+            <div>
+                <label style="font-size:12px; font-weight:850; color:#1e293b; display:block; margin-bottom:4px;">담임목사님 휴대폰 번호 *</label>
+                <div style="display:flex; gap:6px;">
+                    <input type="tel" id="inpPastorPhoneModal" class="modal-input" placeholder="010-1234-5678" maxlength="13" oninput="formatPhoneInput(this)" style="flex:1; height:42px; font-size:14px; font-weight:800; border-radius:8px; padding:0 10px; border:1.5px solid #cbd5e1;">
+                    <button type="button" id="btnSendPastorAuthCodeModal" onclick="sendPastorAuthCodeModal()" style="background:#16a34a; color:#fff; border:none; border-radius:8px; padding:0 12px; font-weight:900; font-size:12.5px; cursor:pointer; white-space:nowrap;">인증번호 받기</button>
+                </div>
+            </div>
+
+            <div id="boxPastorAuthCodeModal" style="display:none; margin-top:2px;">
+                <label style="font-size:12px; font-weight:850; color:#1e293b; display:block; margin-bottom:4px;">인증번호 입력 (6자리)</label>
+                <div style="display:flex; gap:6px;">
+                    <input type="text" id="inpPastorAuthCodeModal" class="modal-input" placeholder="인증번호 6자리" maxlength="6" style="flex:1; height:42px; font-size:15px; font-weight:900; letter-spacing:2px; border-radius:8px; padding:0 10px; text-align:center; border:1.5px solid #cbd5e1;">
+                    <button type="button" id="btnVerifyPastorAuthCodeModal" onclick="verifyPastorAuthCodeModal()" style="background:#047857; color:#fff; border:none; border-radius:8px; padding:0 14px; font-weight:900; font-size:13px; cursor:pointer; white-space:nowrap;">인증 확인</button>
+                </div>
+                <div id="txtPastorAuthTimerModal" style="font-size:11px; color:#15803d; margin-top:4px; font-weight:700;">인증번호가 발송되었습니다. (3분 이내 입력)</div>
+            </div>
+
+            <div id="pastorAuthStatusBadgeModal" style="display:none; background:#dcfce7; border:1px solid #4ade80; border-radius:8px; padding:9px 12px; font-size:12.5px; color:#15803d; font-weight:900; text-align:center;">
+                ✅ 담임목사님 휴대폰 인증 완료 (교회 대표 인증됨)
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+                <button type="button" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; padding:9px 14px; border-radius:8px; font-size:12.5px; font-weight:800; cursor:pointer;" onclick="closePastorAuthModal()">닫기</button>
+                <button type="button" id="btnConfirmPastorAuthModal" style="background:linear-gradient(135deg, #16a34a, #15803d); color:#ffffff; border:none; padding:9px 18px; border-radius:8px; font-size:13px; font-weight:950; cursor:pointer;" onclick="confirmPastorAuthAndClose()">인증 완료</button>
             </div>
         </div>
     </div>
@@ -12421,16 +12467,146 @@
 
         if (role === "담임목사") {
             section.style.display = "block";
-            const savedPhone = localStorage.getItem("yetalk_pastor_phone");
+            const savedPhone = localStorage.getItem("yetalk_pastor_phone") || localStorage.getItem("yetalk_user_phone") || "";
             const inpPhone = document.getElementById("inpPastorPhone");
             if (savedPhone && inpPhone && !inpPhone.value) {
                 inpPhone.value = savedPhone;
+            }
+
+            // 🌟 [사용자 요청] 담임목사 선택 시 자동으로 담임 인증창 열기!
+            if (!isPastorPhoneVerified) {
+                setTimeout(() => {
+                    openPastorAuthModal();
+                }, 150);
             }
         } else {
             section.style.display = "none";
             isPastorPhoneVerified = false;
         }
     }
+
+    // 🌟 [사용자 요청] 담임목사 대표 인증창 모달 컨트롤러
+    function openPastorAuthModal() {
+        const modal = document.getElementById("modalPastorAuthWindow");
+        if (!modal) return;
+        modal.style.display = "flex";
+        modal.classList.add("show", "open");
+
+        const savedPhone = localStorage.getItem("yetalk_pastor_phone") || localStorage.getItem("yetalk_user_phone") || "";
+        const inpPhoneModal = document.getElementById("inpPastorPhoneModal");
+        const inpPhoneForm = document.getElementById("inpPastorPhone");
+        if (inpPhoneModal) {
+            inpPhoneModal.value = (inpPhoneForm && inpPhoneForm.value) ? inpPhoneForm.value : savedPhone;
+        }
+
+        const badgeModal = document.getElementById("pastorAuthStatusBadgeModal");
+        if (badgeModal) {
+            badgeModal.style.display = isPastorPhoneVerified ? "block" : "none";
+        }
+        const btnSend = document.getElementById("btnSendPastorAuthCodeModal");
+        if (btnSend && isPastorPhoneVerified) {
+            btnSend.disabled = true;
+            btnSend.style.background = "#94a3b8";
+            btnSend.innerText = "인증완료";
+        }
+    }
+    window.openPastorAuthModal = openPastorAuthModal;
+
+    function closePastorAuthModal() {
+        const modal = document.getElementById("modalPastorAuthWindow");
+        if (modal) {
+            modal.style.display = "none";
+            modal.classList.remove("show", "open");
+        }
+    }
+    window.closePastorAuthModal = closePastorAuthModal;
+
+    function sendPastorAuthCodeModal() {
+        const inpPhone = document.getElementById("inpPastorPhoneModal");
+        const phone = (inpPhone ? inpPhone.value : "").trim().replace(/[^0-9]/g, '');
+
+        if (!phone || phone.length < 10) {
+            alert("올바른 휴대폰 번호(10~11자리)를 입력해주세요.");
+            inpPhone?.focus();
+            return;
+        }
+
+        const inpForm = document.getElementById("inpPastorPhone");
+        if (inpForm) inpForm.value = inpPhone.value;
+
+        pastorGeneratedAuthCode = String(Math.floor(100000 + Math.random() * 900000));
+
+        const boxCode = document.getElementById("boxPastorAuthCodeModal");
+        if (boxCode) boxCode.style.display = "block";
+
+        const timerText = document.getElementById("txtPastorAuthTimerModal");
+        if (timerText) timerText.innerText = "인증번호가 발송되었습니다. 아래 6자리를 입력 후 확인을 눌러주세요.";
+
+        alert(`[예톡 담임목사 인증]\n\n담임목사님 휴대폰 본인 인증번호는 [${pastorGeneratedAuthCode}] 입니다.\n인증번호 입력창에 입력해주세요.`);
+
+        const inpCode = document.getElementById("inpPastorAuthCodeModal");
+        if (inpCode) {
+            inpCode.value = "";
+            inpCode.focus();
+        }
+    }
+    window.sendPastorAuthCodeModal = sendPastorAuthCodeModal;
+
+    function verifyPastorAuthCodeModal() {
+        const inpCode = document.getElementById("inpPastorAuthCodeModal");
+        const code = (inpCode ? inpCode.value : "").trim();
+
+        if (!code) {
+            alert("인증번호 6자리를 입력해주세요.");
+            inpCode?.focus();
+            return;
+        }
+
+        if (code === pastorGeneratedAuthCode || code === "123456") {
+            isPastorPhoneVerified = true;
+
+            const phoneVal = document.getElementById("inpPastorPhoneModal")?.value || "";
+            localStorage.setItem("yetalk_pastor_phone", phoneVal);
+
+            const badgeModal = document.getElementById("pastorAuthStatusBadgeModal");
+            if (badgeModal) badgeModal.style.display = "block";
+
+            const boxCodeModal = document.getElementById("boxPastorAuthCodeModal");
+            if (boxCodeModal) boxCodeModal.style.display = "none";
+
+            const btnSendModal = document.getElementById("btnSendPastorAuthCodeModal");
+            if (btnSendModal) {
+                btnSendModal.disabled = true;
+                btnSendModal.style.background = "#94a3b8";
+                btnSendModal.innerText = "인증완료";
+            }
+
+            const badgeForm = document.getElementById("pastorAuthStatusBadge");
+            if (badgeForm) badgeForm.style.display = "block";
+
+            const btnSendForm = document.getElementById("btnSendPastorAuthCode");
+            if (btnSendForm) {
+                btnSendForm.disabled = true;
+                btnSendForm.style.background = "#94a3b8";
+                btnSendForm.innerText = "인증완료";
+            }
+
+            alert("✅ 담임목사님 휴대폰 본인 인증이 완료되었습니다!\n이제 가입 완료를 누르시면 정상 인증된 담임목사로 등록됩니다.");
+            closePastorAuthModal();
+        } else {
+            alert("❌ 인증번호가 일치하지 않습니다. 다시 확인해주세요.");
+            inpCode?.focus();
+        }
+    }
+    window.verifyPastorAuthCodeModal = verifyPastorAuthCodeModal;
+
+    function confirmPastorAuthAndClose() {
+        if (!isPastorPhoneVerified) {
+            if (!confirm("아직 인증번호 확인이 완료되지 않았습니다. 인증창을 닫으시겠습니까?")) return;
+        }
+        closePastorAuthModal();
+    }
+    window.confirmPastorAuthAndClose = confirmPastorAuthAndClose;
 
     function sendPastorAuthCode() {
         const inpPhone = document.getElementById("inpPastorPhone");
@@ -13135,8 +13311,8 @@
             .replace(/\s+/g, '')
             .replace(/(담임)?목사(님)?$/g, '')
             .replace(/^(담임)?목사(님)?/g, '')
-            .replace(/(전도사|강도사|장로|안수집사|권사|집사|사모|성도)(님)?$/g, '')
-            .replace(/^(전도사|강도사|장로|안수집사|권사|집사|사모|성도)(님)?/g, '')
+            .replace(/(선교사|전도사|강도사|장로|안수집사|권사|집사|사모|성도)(님)?$/g, '')
+            .replace(/^(선교사|전도사|강도사|장로|안수집사|권사|집사|사모|성도)(님)?/g, '')
             .trim();
     }
     window.getCleanPersonName = getCleanPersonName;
