@@ -119,6 +119,22 @@
             background: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #fde047; font-weight: 900;
         }
 
+        /* 🌟 [사용자 요청] 손님모드 전용 상단 퀵 바 (좌측: 예톡홈/예톡TV, 우측: 🤝 친구 맺기/회원가입) */
+        .guest-action-header-bar {
+            display: none;
+            width: 100%;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-bottom: 1.5px solid #334155;
+            padding: 8px 12px;
+            justify-content: space-between;
+            align-items: center;
+            box-sizing: border-box;
+            z-index: 60;
+        }
+        body.is-guest-view .guest-action-header-bar {
+            display: flex !important;
+        }
+
         /* 🌟 [사용자 요청] 손님/회원 방문 시 차별화 (내 소개, 비즈니스, 개인 문의, 예톡결제만 노출 & 수정 기능 원천 차단) */
         body.is-guest-view .owner-only-tab {
             display: none !important;
@@ -2364,6 +2380,24 @@
         <button type="button" class="one-nav-chip chip-pay" id="chip_pay" onclick="switchSection('pay')"><span class="owner-num-prefix">7. </span>예톡 결제 💳</button>
     </nav>
 
+    <!-- 🌟 [사용자 요청] 손님모드 전용 심플 퀵 바: 좌측에 [예톡홈 / 예톡TV], 우측에 [🤝 친구 맺기 (회원가입)] -->
+    <div class="guest-action-header-bar" id="guestActionHeaderBar">
+        <div style="display:flex; align-items:center; gap:6px;">
+            <button type="button" onclick="location.href='index.html'" style="background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.25); color:#ffffff; font-size:12.5px; font-weight:900; padding:6px 12px; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 1px 4px rgba(0,0,0,0.2);">
+                <span>🏠</span>
+                <span>예톡홈</span>
+            </button>
+            <button type="button" onclick="location.href='yetalktv.html'" style="background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.4); color:#fca5a5; font-size:12.5px; font-weight:900; padding:6px 11px; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;">
+                <span>📺</span>
+                <span>예톡TV</span>
+            </button>
+        </div>
+        <button type="button" onclick="openFriendJoinModal()" style="background:linear-gradient(135deg, #7c3aed, #2563eb); border:none; color:#ffffff; font-size:13px; font-weight:950; padding:6px 14px; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 8px rgba(124,58,237,0.45); letter-spacing:-0.2px;">
+            <span>🤝</span>
+            <span>친구 맺기 (회원가입)</span>
+        </button>
+    </div>
+
     <!-- 3층 독립 탭별 세로 스크롤 컨테이너 -->
     <main class="one-content-host">
         
@@ -3115,68 +3149,59 @@
     </div>
 </div>
 
-<!-- 🌟 [사용자 요청] 나의 QR 터치 시: 친구 맺기 및 무료 개인앱 회원가입 모달 -->
+<!-- 🌟 [사용자 요청] 나의 QR 터치 및 손님모드 퀵버튼 클릭 시: 친구 맺기 및 간편 준회원 등록 모달 -->
 <div class="modal-overlay" id="friendJoinModal">
     <div class="modal-card" style="max-width:380px;">
         <div class="modal-header">
-            <strong style="color:#a78bfa; font-size:16px;">🤝 예톡 친구 맺기 & 무료 개인앱</strong>
+            <strong style="color:#a78bfa; font-size:16px;">🤝 예톡 친구 맺기 & 준회원 등록</strong>
             <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('friendJoinModal')">✕</button>
         </div>
 
         <!-- 1단계: 확인 질문 단계 -->
         <div id="boxFriendStepConfirm" style="text-align:center; padding:10px 4px;">
-            <div style="font-size:42px; margin-bottom:8px;">🤝🎁</div>
-            <h3 style="font-size:17.5px; font-weight:950; color:#ffffff; margin-bottom:12px;">나와 친구를 맺으시겠습니까?</h3>
+            <div style="font-size:38px; margin-bottom:8px;">🤝🎁</div>
+            <h3 style="font-size:17.5px; font-weight:950; color:#ffffff; margin-bottom:10px;">나와 친구를 맺으시겠습니까?</h3>
             
-            <div style="background:rgba(124, 58, 237, 0.15); border:1.5px dashed #a78bfa; border-radius:14px; padding:14px 12px; margin-bottom:18px; text-align:left;">
-                <p style="font-size:13.5px; line-height:1.6; color:#f1f5f9; font-weight:700; margin:0;">
-                    🎉 <strong style="color:#fde047;">'예'</strong>를 하시면 <strong style="color:#38bdf8;">개인앱이 무상으로 제공</strong>되며,<br>
-                    또 다른 본인의 사업을 위한 <strong style="color:#a7f3d0;">전문앱이 평생 완전 무료</strong>로 누구에게나 제공됩니다!
+            <div style="background:rgba(124, 58, 237, 0.15); border:1.5px dashed #a78bfa; border-radius:14px; padding:12px; margin-bottom:16px; text-align:left;">
+                <p style="font-size:13px; line-height:1.55; color:#f1f5f9; font-weight:700; margin:0;">
+                    • 이미 예톡 회원이시면 <strong style="color:#38bdf8;">'예 (바로 친구 맺기)'</strong>를 누르시면 됩니다.<br>
+                    • 예톡에 처음 오신 분은 <strong style="color:#fde047;">이름/아이디만 적으면 준회원</strong>으로 등록되며, 무료 개인앱이 선물로 제공됩니다!
                 </p>
             </div>
 
-            <div style="display:flex; gap:10px;">
-                <button type="button" style="flex:1; height:46px; background:#334155; color:#cbd5e1; border:none; border-radius:12px; font-size:14px; font-weight:800; cursor:pointer;" onclick="closeModal('friendJoinModal')">
-                    아니오
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button type="button" id="btnQuickFriendForMember" style="width:100%; height:46px; background:linear-gradient(135deg, #059669, #10b981); color:#ffffff; border:none; border-radius:12px; font-size:14.5px; font-weight:950; cursor:pointer; box-shadow:0 3px 10px rgba(5,150,105,0.35);" onclick="quickFriendForExistingUser()">
+                    ✅ 예 (이미 예톡 회원입니다)
                 </button>
-                <button type="button" style="flex:1.5; height:46px; background:linear-gradient(135deg, #7c3aed, #2563eb); color:#ffffff; border:none; border-radius:12px; font-size:14px; font-weight:950; cursor:pointer; box-shadow:0 4px 14px rgba(124,58,237,0.4);" onclick="goToJoinFormStep()">
-                    예 (무료 앱 받기) 👉
+                <button type="button" style="width:100%; height:46px; background:linear-gradient(135deg, #7c3aed, #2563eb); color:#ffffff; border:none; border-radius:12px; font-size:14.5px; font-weight:950; cursor:pointer; box-shadow:0 3px 10px rgba(124,58,237,0.35);" onclick="goToJoinFormStep()">
+                    🌱 처음 왔어요 (이름만 적고 준회원 등록) 👉
+                </button>
+                <button type="button" style="width:100%; height:38px; background:none; color:#94a3b8; border:none; font-size:13px; font-weight:800; cursor:pointer; margin-top:2px;" onclick="closeModal('friendJoinModal')">
+                    닫기
                 </button>
             </div>
         </div>
 
-        <!-- 2단계: 회원가입 단계 -->
+        <!-- 2단계: 회원가입 단계 (이름 또는 아이디만 적어도 준회원 등록 완료) -->
         <div id="boxFriendStepForm" style="display:none; padding:6px 2px;">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px; border-bottom:1px solid #1f375b; padding-bottom:8px;">
-                <span style="font-size:22px;">📝</span>
+                <span style="font-size:22px;">🌱</span>
                 <div>
-                    <h3 style="font-size:16px; font-weight:950; color:#fde047; margin:0;">예톡 간편 회원가입</h3>
-                    <span style="font-size:11.5px; color:#94a3b8;">가입 즉시 나만의 개인앱이 무상으로 자동 생성됩니다.</span>
+                    <h3 style="font-size:16px; font-weight:950; color:#fde047; margin:0;">간편 준회원 등록</h3>
+                    <span style="font-size:11.5px; color:#94a3b8;">이름(또는 아이디)만 적으시면 즉시 준회원으로 연결됩니다.</span>
                 </div>
             </div>
 
             <div style="display:flex; flex-direction:column; gap:10px;">
                 <div>
-                    <label class="m-label" style="font-size:12px;">이름</label>
-                    <input type="text" class="m-input" id="inpJoinName" placeholder="성함을 입력하세요 (예: 홍길동)">
-                </div>
-                <div>
-                    <label class="m-label" style="font-size:12px;">아이디</label>
-                    <input type="text" class="m-input" id="inpJoinId" placeholder="사용할 아이디 (영문/숫자)">
-                </div>
-                <div>
-                    <label class="m-label" style="font-size:12px;">비밀번호</label>
-                    <input type="password" class="m-input" id="inpJoinPw" placeholder="비밀번호를 입력하세요">
-                </div>
-                <div>
-                    <label class="m-label" style="font-size:12px;">주소 (시군구)</label>
-                    <input type="text" class="m-input" id="inpJoinAddr" placeholder="시·군·구 입력 (예: 서울 강남구, 부산 해운대구)">
+                    <label class="m-label" style="font-size:12.5px; font-weight:900; color:#cbd5e1;">이름 또는 아이디 <span style="color:#ef4444;">*</span> <span style="font-size:11px; color:#38bdf8;">(준회원)</span></label>
+                    <input type="text" class="m-input" id="inpJoinName" placeholder="성함 또는 닉네임을 적어주세요" style="font-size:14px; font-weight:900;">
                 </div>
             </div>
 
-            <div style="background:#0f172a; border-radius:10px; padding:10px; margin-top:12px; border:1px solid #334155; font-size:11px; color:#94a3b8; line-height:1.4;">
-                💡 <strong style="color:#38bdf8;">개인앱이 우선 기본 생성</strong>됩니다.<br>
-                추후 매장 오픈 시 전문앱(의원, 식당, 교회 등)은 필요할 때 손쉽게 무료 추가하실 수 있습니다.
+            <div style="background:#0f172a; border-radius:10px; padding:10px; margin-top:12px; border:1px solid #334155; font-size:11px; color:#94a3b8; line-height:1.45;">
+                💡 <strong style="color:#38bdf8;">이름만 적어도 바로 준회원으로 친구가 맺어집니다.</strong><br>
+                정회원(교회·직분 등록)은 나중에 원하실 때 천천히 하셔도 됩니다.
             </div>
 
             <div style="display:flex; gap:8px; margin-top:14px;">
@@ -3184,7 +3209,7 @@
                     이전
                 </button>
                 <button type="button" style="flex:2; height:46px; background:linear-gradient(135deg, #10b981, #059669); color:#ffffff; border:none; border-radius:12px; font-size:14px; font-weight:950; cursor:pointer; box-shadow:0 4px 14px rgba(16,185,129,0.35);" onclick="completeFriendJoin()">
-                    🎉 가입 완료 & 개인앱 받기
+                    🎉 예 (친구 맺기 완료)
                 </button>
             </div>
         </div>
@@ -3878,24 +3903,57 @@
         });
     }
 
-    /* 🌟 [사용자 요청] 나의 QR 터치 시: 이미 친구일 경우 '친구 맺기' 창 안 뜨게 처리 */
+    /* 🌟 [사용자 요청] 나의 QR 및 손님모드 퀵바: 이미 친구일 경우 '친구 맺기' 창 안 뜨게 처리 */
     function openFriendJoinModal() {
-        const ownerName = (document.getElementById("dispQrCardOwner")?.innerText || "").replace("의 예톡홈", "").trim() || "김예톡";
-        const myName = localStorage.getItem("yetalkUserName") || "김예톡";
+        const ownerName = (document.getElementById("dispQrCardOwner")?.innerText || "").replace("의 예톡홈", "").trim() || "최베드로";
+        const myName = localStorage.getItem("yetalkUserName") || "";
 
-        // 이미 등록된 친구이거나 본인(앱 주인)인 경우 '나의 친구를 맺으시겠습니까?' 모달 생략
-        const isAlreadyFriend = myFriends && myFriends.some(f => f.name === ownerName || f.id === ownerName);
-        const isSelf = (ownerName === myName) || (ownerName === "김예톡");
-
-        if (isAlreadyFriend || isSelf) {
-            showToast(`🤝 이미 친구로 등록되어 있습니다 (${ownerName})`);
-            return;
+        // 이미 가입된 회원일 때 '예' 버튼 텍스트 최적화
+        const btnMember = document.getElementById("btnQuickFriendForMember");
+        if (btnMember) {
+            if (myName) {
+                btnMember.innerText = `✅ 예 (${myName} 성도로 바로 친구 맺기)`;
+                btnMember.style.display = "block";
+            } else {
+                btnMember.innerText = `✅ 예 (이미 예톡 가입 회원입니다)`;
+                btnMember.style.display = "block";
+            }
         }
 
         document.getElementById("boxFriendStepConfirm").style.display = "block";
         document.getElementById("boxFriendStepForm").style.display = "none";
         document.getElementById("friendJoinModal").classList.add("open");
     }
+
+    function quickFriendForExistingUser() {
+        let myName = localStorage.getItem("yetalkUserName");
+        if (!myName) {
+            // 회원가입 단계로 유도
+            goToJoinFormStep();
+            return;
+        }
+
+        const ownerName = (document.getElementById("dispQrCardOwner")?.innerText || "").replace("의 예톡홈", "").trim() || "최베드로";
+
+        // 친구 목록에 추가
+        if (!myFriends.some(f => f.name === ownerName || f.id === ownerName)) {
+            myFriends.push({
+                id: "f_" + Date.now(),
+                name: ownerName,
+                status: "예톡 단골친구 등록 완료 🤝",
+                isFav: true,
+                phone: "",
+                avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+                badge: "NEW"
+            });
+            localStorage.setItem(STORAGE_KEY_FRIENDS, JSON.stringify(myFriends));
+            renderFriendsList();
+        }
+
+        closeModal("friendJoinModal");
+        showToast(`🤝 [${ownerName}] 님과 친구 맺기가 완료되었습니다!`);
+    }
+    window.quickFriendForExistingUser = quickFriendForExistingUser;
 
     function goToJoinFormStep() {
         document.getElementById("boxFriendStepConfirm").style.display = "none";
@@ -3912,36 +3970,28 @@
     }
 
     function completeFriendJoin() {
-        const name = document.getElementById("inpJoinName").value.trim();
-        const id = document.getElementById("inpJoinId").value.trim();
-        const pw = document.getElementById("inpJoinPw").value.trim();
-        const addr = document.getElementById("inpJoinAddr").value.trim();
+        const name = (document.getElementById("inpJoinName")?.value || "").trim();
 
         if (!name) {
-            showToast("⚠️ 성함을 입력해주세요.");
-            return;
-        }
-        if (!id) {
-            showToast("⚠️ 아이디를 입력해주세요.");
-            return;
-        }
-        if (!pw) {
-            showToast("⚠️ 비밀번호를 입력해주세요.");
+            showToast("⚠️ 이름 또는 아이디를 입력해주세요.");
+            document.getElementById("inpJoinName")?.focus();
             return;
         }
 
-        // 신규 회원 정보 로컬 저장 (개인앱 기본 생성)
+        const ownerName = (document.getElementById("dispQrCardOwner")?.innerText || "").replace("의 예톡홈", "").trim() || "최베드로";
+
+        // 준회원 정보 로컬 저장 (이름만으로 간편 준회원 등록 완료)
         localStorage.setItem("yetalkUserName", name);
-        localStorage.setItem("yetalkUserId", id);
-        localStorage.setItem("yetalkUserAddr", addr);
-        localStorage.setItem("yetalkUserStoreName", id);
+        localStorage.setItem("yetalkUserId", name);
+        localStorage.setItem("yetalk_user_grade", "준회원");
+        localStorage.setItem("yetalk_church_role", "준회원");
 
-        // 친구 목록에도 추가하여 이후 모달 중복 노출 방지
-        if (!myFriends.some(f => f.name === name)) {
+        // 친구 목록에 추가
+        if (!myFriends.some(f => f.name === ownerName || f.id === ownerName)) {
             myFriends.push({
-                id: id || ("f_" + Date.now()),
-                name: name,
-                status: "예톡 개인앱 개설 완료 🎉",
+                id: "f_" + Date.now(),
+                name: ownerName,
+                status: "예톡 준회원 친구 등록 🤝",
                 isFav: true,
                 phone: "",
                 avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
@@ -3951,13 +4001,16 @@
             renderFriendsList();
         }
 
-        // UI 즉시 동기화
-        document.getElementById("dispQrCardOwner").innerText = `${name}의 예톡홈`;
-        document.getElementById("dispMyProfileName").innerText = `${name} (나)`;
+        // Firestore 클라우드에도 준회원으로 자동 동기화 (대표님 폰과 실시간 연결)
+        try {
+            const churchKey = localStorage.getItem("yetalk_church_key") || "부산제일감리교회_정찬석";
+            if (typeof window.syncMemberToCloud === "function") {
+                window.syncMemberToCloud(churchKey, { nameOrId: name, role: "준회원", joinedAt: new Date().toLocaleDateString() });
+            }
+        } catch(e){}
 
-        renderQrSection();
         closeModal("friendJoinModal");
-        showToast(`🎉 축하합니다! ${name}님의 무료 개인앱이 개설되었습니다.`);
+        showToast(`🎉 [${name}] 님, 준회원 등록 & 친구 맺기가 완료되었습니다!`);
     }
 
     /* 🌟 [사용자 요청] 친구에게 공지알림(비공개) 보내기 로직 */
