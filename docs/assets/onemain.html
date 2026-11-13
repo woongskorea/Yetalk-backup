@@ -124,7 +124,7 @@
             display: none;
             width: 100%;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            border-bottom: 1.5px solid #334155;
+            border-bottom: 1px solid #1e293b;
             padding: 8px 12px;
             justify-content: space-between;
             align-items: center;
@@ -133,6 +133,61 @@
         }
         body.is-guest-view .guest-action-header-bar {
             display: flex !important;
+        }
+
+        /* 🌟 [사용자 요청] 손님모드 전용 한줄 메모/문의 바 */
+        .guest-quick-memo-container {
+            display: none;
+            width: 100%;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            padding: 2px 10px 10px 10px;
+            box-sizing: border-box;
+            border-bottom: 1.5px solid #334155;
+            z-index: 59;
+        }
+        body.is-guest-view .guest-quick-memo-container {
+            display: block !important;
+        }
+        .guest-quick-memo-inner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 5px 8px 5px 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+            box-sizing: border-box;
+        }
+        .guest-quick-memo-inner input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            background: transparent;
+        }
+        .guest-quick-memo-inner input::placeholder {
+            color: #64748b;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .guest-quick-memo-inner button {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 12.5px;
+            font-weight: 950;
+            cursor: pointer;
+            flex-shrink: 0;
+            box-shadow: 0 1px 4px rgba(2, 132, 199, 0.35);
+            transition: all 0.15s ease;
+        }
+        .guest-quick-memo-inner button:active {
+            transform: scale(0.97);
         }
 
         /* 🌟 [사용자 요청] 손님/회원 방문 시 차별화 (내 소개, 비즈니스, 개인 문의, 예톡결제만 노출 & 수정 기능 원천 차단) */
@@ -2398,6 +2453,15 @@
         </button>
     </div>
 
+    <!-- 🌟 [사용자 요청] 손님모드 전용 한줄 메모/문의 바 (손님이 한줄 메모 작성 시 개인문의에 자동 기록) -->
+    <div class="guest-quick-memo-container" id="guestQuickMemoBar">
+        <div class="guest-quick-memo-inner">
+            <span style="font-size:15px; flex-shrink:0;">✍️</span>
+            <input type="text" id="inpGuestMemoText" placeholder="저에게 한줄 메모나 문의를 남겨주세요..." onkeydown="if(event.key==='Enter') submitGuestQuickMemo()" autocomplete="off">
+            <button type="button" onclick="submitGuestQuickMemo()">전송</button>
+        </div>
+    </div>
+
     <!-- 3층 독립 탭별 세로 스크롤 컨테이너 -->
     <main class="one-content-host">
         
@@ -2807,15 +2871,6 @@
         <!-- 🌟 1. 공지알림 섹션 (기본 첫 화면) -->
         <div class="one-tab-page-container active" id="sec_notice" style="scroll-snap-type:none !important; overflow-y:auto !important; overflow-x:hidden !important; box-sizing:border-box; width:100%; padding-bottom:120px;">
             <div id="page_notice_1" style="padding:10px 10px 20px 10px; overflow-y:visible; overflow-x:hidden; display:flex; flex-direction:column; gap:8px; box-sizing:border-box; width:100%;">
-
-                <!-- 🌟 [사용자 요청] 상단 한줄 빠른 문의 등록창 (작성 즉시 6. 개인문의 메뉴에 자동 저장) -->
-                <div class="quick-inquiry-bar" style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:14px; padding:6px 8px 6px 12px; display:flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04); margin-bottom:2px;">
-                    <span style="font-size:16px;">💬</span>
-                    <input type="text" id="inpQuickInquiryHome" placeholder="궁금한 점이나 메모를 적으세요 (개인문의 자동 기록)" onkeydown="if(event.key==='Enter') submitQuickInquiryFromHome()" style="flex:1; border:none; outline:none; font-size:12.5px; font-weight:800; color:#0f172a; background:transparent;">
-                    <button type="button" onclick="submitQuickInquiryFromHome()" style="height:32px; padding:0 12px; background:linear-gradient(135deg, #0284c7, #0369a1); color:#ffffff; border:none; border-radius:8px; font-size:12px; font-weight:950; cursor:pointer; flex-shrink:0; box-shadow:0 1px 4px rgba(2,132,199,0.3);">
-                        등록
-                    </button>
-                </div>
 
                 <!-- 🌟 [사용자 요청] 슬림한 1줄 모드 전환 바 (좌: 주인모드(전체) / 우: 손님모드(일부)) -->
                 <div class="owner-mode-status-bar" id="ownerModeStatusWrap" style="display:flex; justify-content:space-between; align-items:center; background:#fff5f5; border:1.5px solid #fecaca; border-radius:12px; padding:7px 12px; box-shadow:0 2px 6px rgba(239,68,68,0.08); margin-bottom:2px;">
@@ -3610,6 +3665,13 @@
             if (!GUEST_SECTION_ORDER.includes(currentSectionKey)) {
                 switchSection("photo");
             }
+            try {
+                const ownerName = (document.getElementById("dispQrCardOwner")?.innerText || "").replace("의 예톡홈", "").trim() || "최베드로";
+                const memoInp = document.getElementById("inpGuestMemoText");
+                if (memoInp) {
+                    memoInp.placeholder = `${ownerName}님께 한줄 메모나 문의를 남겨보세요...`;
+                }
+            } catch(e){}
             try { renderInquiriesSection(); } catch(e){}
             showToast("👥 손님 화면으로 전환되었습니다.\n(소개/비즈니스/문의/결제 4개 메뉴만 공개, 수정 차단)");
         } else {
@@ -3643,25 +3705,37 @@
         }
     }
 
-    /* 🌟 [사용자 요청] 첫화면 상단 한줄 빠른 문의 등록 -> 개인문의(6번) 자동 기록 */
-    function submitQuickInquiryFromHome() {
-        const inp = document.getElementById("inpQuickInquiryHome");
+    /* 🌟 [사용자 요청] 손님모드 첫 화면 상단 한줄 메모/문의 등록 -> 6. 개인문의에 자동 저장 */
+    function submitGuestQuickMemo() {
+        const inp = document.getElementById("inpGuestMemoText") || document.getElementById("inpQuickInquiryHome");
         if (!inp) return;
         const text = inp.value.trim();
         if (!text) {
-            showToast("⚠️ 문의나 메모 내용을 입력해주세요.");
+            showToast("⚠️ 한줄 메모나 문의 내용을 입력해주세요.");
             inp.focus();
             return;
         }
 
         const now = new Date();
         const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        const myName = localStorage.getItem("yetalkUserName") || "최베드로";
+        
+        const ownerName = (document.getElementById("dispQrCardOwner")?.innerText || "").replace("의 예톡홈", "").trim() || "최베드로";
+        let guestName = (localStorage.getItem("yetalkGuestName") || localStorage.getItem("yetalkUserName") || "").trim();
+
+        if (!guestName || guestName === ownerName || guestName === "김예톡") {
+            const entered = prompt("성함이나 아이디(닉네임)를 입력해주세요 (주인장에게 함께 전달됩니다):", "");
+            if (entered && entered.trim()) {
+                guestName = entered.trim();
+                localStorage.setItem("yetalkGuestName", guestName);
+            } else {
+                guestName = "방문 손님";
+            }
+        }
 
         const newInq = {
             id: Date.now(),
-            author: myName,
-            phone: localStorage.getItem("yetalkUserPhone") || "",
+            author: guestName,
+            phone: localStorage.getItem("yetalkGuestPhone") || localStorage.getItem("yetalkUserPhone") || "",
             email: "",
             date: dateStr,
             title: text.length > 25 ? text.substring(0, 25) + "..." : text,
@@ -3677,9 +3751,10 @@
 
         inp.value = "";
         try { renderInquiriesSection(); } catch(e){}
-        showToast("📩 [개인 문의] 메뉴에 성공적으로 자동 기록되었습니다!");
+        showToast(`💌 ${guestName}님의 메모가 ${ownerName}님께 전달되었습니다!\n[개인 문의] 탭에서 확인하실 수 있습니다.`);
     }
-    window.submitQuickInquiryFromHome = submitQuickInquiryFromHome;
+    window.submitGuestQuickMemo = submitGuestQuickMemo;
+    window.submitQuickInquiryFromHome = submitGuestQuickMemo;
 
     /* 🌟 [사용자 요청] 햄버그 삼각줄 (☰) 메뉴 드로어 제어 */
     function openOneMainMenuModal() {
