@@ -348,6 +348,20 @@
                         💡 <strong>비공개방 설정 안내:</strong> 비공개 시 성도가 [참여신청]을 하고, 방장이 상단 <strong>[👥 회원 및 승인 관리]</strong> 탭에서 승인해야 입장할 수 있습니다.
                     </div>
                 </div>
+
+                <!-- 🌟 [사용자 요청] 대화방 삭제 (방장 및 관리자 전용) -->
+                <div style="background:#fff1f2; border:1px solid #fecdd3; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:12px; font-weight:900; color:#b91c1c;">4️⃣ 대화방 삭제 (영구 제거)</span>
+                        <span style="font-size:10.5px; font-weight:850; color:#ef4444; background:#fee2e2; padding:2px 6px; border-radius:4px;">방장/관리자 전용</span>
+                    </div>
+                    <div style="font-size:11px; color:#7f1d1d; line-height:1.4;">
+                        대화방을 삭제하면 현재 방과 대화 내용이 완전히 삭제되며 복구할 수 없습니다.
+                    </div>
+                    <button type="button" onclick="deleteCurrentMissionRoom()" style="width:100%; background:#ef4444; color:#ffffff; border:none; border-radius:8px; padding:9px; font-size:12.5px; font-weight:950; cursor:pointer; margin-top:2px;">
+                        🗑️ 이 사역 대화방 삭제하기
+                    </button>
+                </div>
             </div>
 
             <!-- 탭 2 패널: 회원 및 승인 관리 (신규) -->
@@ -735,10 +749,35 @@
         showToast("📌 베스트글 고정이 해제되었습니다.");
     }
 
+    function getCurrentUser() {
+        return (localStorage.getItem("yetalkUserName") || localStorage.getItem("yetalkUserId") || "나").trim();
+    }
+
+    function isUserAdminOrSubAdmin() {
+        const uName = (localStorage.getItem("yetalkUserName") || "").trim();
+        const uRole = (localStorage.getItem("yetalkUserRole") || "").trim();
+        const uGrade = (localStorage.getItem("yetalk_user_grade") || localStorage.getItem("yetalkMemberGrade") || "").trim();
+        const curStatus = (localStorage.getItem("yetalk_current_member_status") || "").trim();
+        if (uName.includes("관리자") || uName.includes("부관리자") || uName.includes("총관리자") || uName.includes("담임목사") || uName === "최예톡" || uName === "최베드로") return true;
+        if (uRole.includes("관리자") || uRole.includes("부관리자") || uRole.includes("총관리자") || uRole.includes("담임목사") || uRole.includes("목사") || uRole.includes("교역자")) return true;
+        if (uGrade === "superadmin" || uGrade === "admin" || uGrade === "subadmin" || uGrade === "관리자" || uGrade === "부관리자") return true;
+        if (curStatus === "관리자" || curStatus === "부관리자" || curStatus === "교역자" || curStatus === "담임목사") return true;
+        return false;
+    }
+
     // 🌟 방장 모달 열기 및 가로 탭 관리
     function openLeaderUnifiedModal() {
         loadCurrentRoomFromStorage();
         const myName = getCurrentUser();
+        const isLeader = (currentMissionLeader && (currentMissionLeader === myName || currentMissionLeader.includes(myName) || myName.includes("선교사") || myName.includes("전도사") || myName.includes("팀장") || myName.includes("방장")));
+        const isAdmin = isUserAdminOrSubAdmin();
+        const isEmptyRoom = (!currentMissionLeader || currentMissionLeader.includes("빈방"));
+
+        if (!isLeader && !isAdmin && !isEmptyRoom) {
+            alert("방장 또는 관리자/부관리자만 방 설정 및 입장 승인을 관리할 수 있습니다.");
+            return;
+        }
+
         document.getElementById("inpLeaderRoomTitle").value = currentMissionRoomName;
         document.getElementById("inpLeaderUserTitle").value = currentMissionLeader || myName;
 
@@ -753,6 +792,35 @@
         switchLeaderModalTab('settings');
 
         document.getElementById("modalLeaderUnified").style.display = "flex";
+    }
+
+    function deleteCurrentMissionRoom() {
+        const myName = getCurrentUser();
+        const isLeader = (currentMissionLeader && (currentMissionLeader === myName || currentMissionLeader.includes(myName) || myName.includes("선교사") || myName.includes("전도사") || myName.includes("팀장") || myName.includes("방장")));
+        const isAdmin = isUserAdminOrSubAdmin();
+        if (!isLeader && !isAdmin) {
+            alert("방장 또는 교회 관리자만 대화방을 삭제할 수 있습니다.");
+            return;
+        }
+        if (!confirm(`정말로 '${currentMissionRoomName}' 대화방을 삭제하시겠습니까?\n삭제 후에는 방과 모든 대화 내용이 완전히 제거됩니다.`)) {
+            return;
+        }
+
+        try {
+            const key = getRoomsListKey();
+            const raw = localStorage.getItem(key);
+            let list = raw ? JSON.parse(raw) : [];
+            list = list.filter(r => r.id !== currentMissionRoomId);
+            localStorage.setItem(key, JSON.stringify(list));
+            localStorage.removeItem(`yetalk_mission_posts_${currentMissionRoomId}`);
+            showToast("🗑️ 대화방이 삭제되었습니다.");
+            setTimeout(() => {
+                location.href = "churchmission.html";
+            }, 600);
+        } catch(e) {
+            console.error(e);
+            alert("삭제 처리 중 오류가 발생했습니다.");
+        }
     }
 
     function closeLeaderUnifiedModal() {
