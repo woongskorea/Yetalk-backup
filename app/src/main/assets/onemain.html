@@ -1704,16 +1704,18 @@
             z-index: 10;
         }
 
-        /* 🌟 [사용자 요청] 개인 문의 카드 컴팩트 & 부드러운 파스텔 스타일 */
+        /* 🌟 [사용자 요청] 개인 문의 카드: 한페이지당 한명씩 뚜렷하고 큼직하며 깔끔한 카드 스타일 */
         .inquiry-card {
             background: #ffffff;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 12px 13px;
+            border: 1.8px solid #cbd5e1;
+            border-radius: 18px;
+            padding: 18px 16px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            margin-bottom: 18px;
+            box-sizing: border-box;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
         .inquiry-content-box {
@@ -3732,15 +3734,21 @@
             }
         }
 
+        const myAuthorKey = getOrCreateInquiryAuthorKey();
+        localStorage.setItem("yetalk_my_inquiry_name", guestName);
+        const guestPhone = localStorage.getItem("yetalkGuestPhone") || localStorage.getItem("yetalkUserPhone") || "";
+
         const newInq = {
-            id: Date.now(),
+            id: "inq_" + Date.now(),
+            authorKey: myAuthorKey,
+            name: guestName,
             author: guestName,
-            phone: localStorage.getItem("yetalkGuestPhone") || localStorage.getItem("yetalkUserPhone") || "",
-            email: "",
-            date: dateStr,
+            phone: guestPhone,
+            category: "한줄 메모/문의",
             title: text.length > 25 ? text.substring(0, 25) + "..." : text,
             content: text,
             status: "대기중",
+            date: dateStr,
             reply: "",
             replyDate: ""
         };
@@ -6531,8 +6539,10 @@
         if (!inq) return false;
         const myKey = getOrCreateInquiryAuthorKey();
         if (inq.authorKey && inq.authorKey === myKey) return true;
-        const myPhone = (localStorage.getItem("yetalk_my_inquiry_phone") || "").replace(/[^0-9]/g, "");
+        const myPhone = (localStorage.getItem("yetalk_my_inquiry_phone") || localStorage.getItem("yetalkGuestPhone") || localStorage.getItem("yetalkUserPhone") || "").replace(/[^0-9]/g, "");
         if (myPhone && inq.phone && inq.phone.replace(/[^0-9]/g, "") === myPhone) return true;
+        const myName = (localStorage.getItem("yetalk_my_inquiry_name") || localStorage.getItem("yetalkGuestName") || localStorage.getItem("yetalkUserName") || "").trim();
+        if (myName && ((inq.name && inq.name === myName) || (inq.author && inq.author === myName))) return true;
         return false;
     }
 
@@ -6547,6 +6557,8 @@
             localStorage.setItem(STORAGE_KEY_INQUIRIES, JSON.stringify(list));
         }
         list.forEach(item => {
+            if (!item.name && item.author) item.name = item.author;
+            if (!item.author && item.name) item.author = item.name;
             if (typeof item.reply === "undefined") item.reply = "";
             if (typeof item.replyDate === "undefined") item.replyDate = "";
             if (item.id === "inq_seed_3" && !item.reply) {
@@ -6684,85 +6696,86 @@
             card.className = "inquiry-card";
             const isDone = inq.status === "답변완료";
 
-            // 상태 배지 (부드러운 파스텔 톤)
+            // 상태 배지 (부드럽고 선명한 톤)
             const statusBadge = isDone
-                ? `<span style="background:#dcfce7; color:#15803d; font-size:10.5px; font-weight:950; padding:2px 7px; border-radius:6px; border:1px solid #bbf7d0; flex-shrink:0;">✓ 답변완료</span>`
-                : `<span style="background:#fef3c7; color:#b45309; font-size:10.5px; font-weight:950; padding:2px 7px; border-radius:6px; border:1px solid #fde68a; flex-shrink:0;">⏳ 대기중</span>`;
+                ? `<span style="background:#dcfce7; color:#15803d; font-size:12px; font-weight:950; padding:3px 10px; border-radius:8px; border:1px solid #bbf7d0; flex-shrink:0;">✓ 답변완료</span>`
+                : `<span style="background:#fef3c7; color:#b45309; font-size:12px; font-weight:950; padding:3px 10px; border-radius:8px; border:1px solid #fde68a; flex-shrink:0;">⏳ 답변 대기중</span>`;
 
+            const dispName = (inq.name || inq.author || (inq.phone ? inq.phone : "손님")).trim();
             const phone = inq.phone || "";
 
-            // 🌟 1단계: 상단 헤더 행 (이름, 연락처, 접수일시 깔끔하게 좌우 배치)
+            // 🌟 1단계: 상단 헤더 행 (이름 큼직하고 뚜렷하게 표출, 연락처 배지, 접수일시)
             let headerHtml = `
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-                    <div style="display:flex; align-items:center; gap:6px; min-width:0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                         ${statusBadge}
-                        <strong style="font-size:14.5px; font-weight:950; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(inq.name)}</strong>
-                        <span style="font-size:12px; font-weight:800; color:#64748b; font-family:monospace; white-space:nowrap; flex-shrink:0;">${phone}</span>
+                        <strong style="font-size:17.5px; font-weight:950; color:#0f172a; word-break:keep-all;">👤 ${escapeHtml(dispName)}</strong>
+                        ${phone ? `<span style="font-size:13px; font-weight:850; color:#2563eb; background:#eff6ff; padding:2px 8px; border-radius:6px; border:1px solid #bfdbfe; font-family:monospace;">📞 ${phone}</span>` : ''}
                     </div>
-                    <span style="font-size:11px; color:#94a3b8; white-space:nowrap; flex-shrink:0;">🕒 ${inq.date || '오늘'}</span>
+                    <span style="font-size:12px; font-weight:800; color:#94a3b8; white-space:nowrap;">🕒 ${inq.date || '오늘'}</span>
                 </div>
             `;
 
-            // 🌟 주인 모드일 때만 4대 통신 버튼 (문자, 전화, 예톡, 카톡) 노출
+            // 🌟 주인 모드일 때만 4대 통신 버튼 (문자, 전화, 예톡, 카톡) 큼직하게 4분할 배치
             let commButtonsHtml = "";
             if (!isGuestViewMode) {
                 commButtonsHtml = `
-                    <div style="display:flex; justify-content:flex-end; align-items:center; gap:4px; padding-top:2px;">
-                        <button type="button" onclick="sendInquirySms('${phone}', '${escapeHtml(inq.name)}')" style="height:26px; padding:0 8px; font-size:11.5px; font-weight:900; background:#f8fafc; color:#334155; border:1px solid #cbd5e1; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:2px;" title="문자 보내기">
-                            <span>✉️</span> 문자
+                    <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin:4px 0 10px 0;">
+                        <button type="button" onclick="sendInquirySms('${phone}', '${escapeHtml(dispName)}')" style="height:38px; font-size:13px; font-weight:950; background:#f8fafc; color:#334155; border:1.5px solid #cbd5e1; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; box-shadow:0 1px 3px rgba(0,0,0,0.04);" title="문자 보내기">
+                            <span>✉️</span> <span>문자</span>
                         </button>
-                        <button type="button" onclick="window.location.href='tel:${phone.replace(/[^0-9]/g, '')}'" style="height:26px; padding:0 8px; font-size:11.5px; font-weight:900; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:2px;" title="전화 걸기">
-                            <span>📞</span> 전화
+                        <button type="button" onclick="window.location.href='tel:${phone.replace(/[^0-9]/g, '')}'" style="height:38px; font-size:13px; font-weight:950; background:#f0fdf4; color:#16a34a; border:1.5px solid #bbf7d0; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; box-shadow:0 1px 3px rgba(16,185,129,0.12);" title="전화 걸기">
+                            <span>📞</span> <span>전화</span>
                         </button>
-                        <button type="button" onclick="openChatFromInquiry('${escapeHtml(inq.name)}', '${phone}')" style="height:26px; padding:0 8px; font-size:11.5px; font-weight:900; background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:2px;" title="예톡 1:1 대화">
-                            <span>💬</span> 예톡
+                        <button type="button" onclick="openChatFromInquiry('${escapeHtml(dispName)}', '${phone}')" style="height:38px; font-size:13px; font-weight:950; background:#e0f2fe; color:#0284c7; border:1.5px solid #bae6fd; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; box-shadow:0 1px 3px rgba(2,132,199,0.15);" title="예톡 1:1 대화">
+                            <span>💬</span> <span>예톡</span>
                         </button>
-                        <button type="button" onclick="openKakaoFromContact('${escapeHtml(inq.name)}', '${phone}')" style="height:26px; padding:0 9px; font-size:12px; font-weight:950; background:#fee500; color:#191919; border:1.2px solid #eab308; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:3px; box-shadow:0 1px 3px rgba(0,0,0,0.12);" title="카카오톡 연결">
-                            <span style="font-size:11px;">🟡</span> 카톡
+                        <button type="button" onclick="openKakaoFromContact('${escapeHtml(dispName)}', '${phone}')" style="height:38px; font-size:13px; font-weight:950; background:#fee500; color:#191919; border:1.5px solid #eab308; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; box-shadow:0 1px 4px rgba(0,0,0,0.12);" title="카카오톡 연결">
+                            <span style="font-size:12px;">🟡</span> <span>카톡</span>
                         </button>
                     </div>
                 `;
             }
 
-            // 🌟 2단계: 컴팩트한 문의 내용 박스 (불필요한 150px 빈 공간 원천 제거!)
-            const formattedContent = escapeHtml(inq.content).replace(/\n/g, '<br>');
+            // 🌟 2단계: 뚜렷하고 큼직한 문의 내용 박스
+            const formattedContent = escapeHtml(inq.content || inq.title || "").replace(/\n/g, '<br>');
             const contentBoxHtml = `
-                <div class="inquiry-content-box">
-                    ${inq.category ? `<div style="font-size:11px; font-weight:900; color:#0284c7; margin-bottom:5px;">📌 [${escapeHtml(inq.category)}]</div>` : ''}
-                    <div style="font-size:13.5px; color:#1e293b; line-height:1.55; word-break:break-word;">${formattedContent}</div>
+                <div style="background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:12px; padding:14px 16px; margin:4px 0 10px 0;">
+                    ${inq.category ? `<div style="font-size:12px; font-weight:950; color:#0284c7; margin-bottom:6px;">📌 [${escapeHtml(inq.category)}]</div>` : ''}
+                    <div style="font-size:15.5px; font-weight:850; color:#1e293b; line-height:1.65; word-break:break-word;">${formattedContent}</div>
                 </div>
             `;
 
-            // 🌟 3단계: [사용자 요청] 바로 밑 간단한 답변글 영역
+            // 🌟 3단계: [사용자 요청] 바로 밑 간단한 답변글 영역 (예톡 채팅 연동 안내)
             let replyBoxHtml = "";
             const hasReply = !!(inq.reply && inq.reply.trim());
 
             if (hasReply) {
                 // 답변이 이미 등록되어 있을 때
                 replyBoxHtml = `
-                    <div style="background:linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border:1.5px solid #a7f3d0; border-radius:10px; padding:10px 12px; margin-top:2px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                            <div style="display:flex; align-items:center; gap:5px;">
-                                <span style="font-size:13px;">💬</span>
-                                <strong style="font-size:12px; font-weight:950; color:#065f46;">주인장 답변</strong>
+                    <div style="background:linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border:1.5px solid #a7f3d0; border-radius:12px; padding:12px 14px; margin:4px 0 10px 0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span style="font-size:14px;">💬</span>
+                                <strong style="font-size:13px; font-weight:950; color:#065f46;">주인장 답변 (예톡 채팅 연동됨)</strong>
                             </div>
                             <div style="display:flex; align-items:center; gap:6px;">
-                                <span style="font-size:10.5px; color:#059669; font-weight:800;">${inq.replyDate || ''}</span>
+                                <span style="font-size:11px; color:#059669; font-weight:800;">${inq.replyDate || ''}</span>
                                 ${!isGuestViewMode ? `
-                                    <button type="button" onclick="toggleEditInquiryReply('${inq.id}')" style="background:#ffffff; border:1px solid #6ee7b7; color:#047857; font-size:11px; font-weight:900; padding:2px 7px; border-radius:5px; cursor:pointer;">수정</button>
-                                    <button type="button" onclick="deleteInquiryReply('${inq.id}')" style="background:#fff1f2; border:1px solid #fecaca; color:#e11d48; font-size:11px; font-weight:900; padding:2px 7px; border-radius:5px; cursor:pointer;">삭제</button>
+                                    <button type="button" onclick="toggleEditInquiryReply('${inq.id}')" style="background:#ffffff; border:1px solid #6ee7b7; color:#047857; font-size:11.5px; font-weight:900; padding:2px 8px; border-radius:6px; cursor:pointer;">수정</button>
+                                    <button type="button" onclick="deleteInquiryReply('${inq.id}')" style="background:#fff1f2; border:1px solid #fecaca; color:#e11d48; font-size:11.5px; font-weight:900; padding:2px 8px; border-radius:6px; cursor:pointer;">삭제</button>
                                 ` : ''}
                             </div>
                         </div>
-                        <div id="replyDisplay_${inq.id}" style="font-size:13px; color:#064e3b; line-height:1.55; word-break:break-word; font-weight:800;">
+                        <div id="replyDisplay_${inq.id}" style="font-size:14.5px; color:#064e3b; line-height:1.6; word-break:break-word; font-weight:850;">
                             ${escapeHtml(inq.reply).replace(/\n/g, '<br>')}
                         </div>
                         ${!isGuestViewMode ? `
                             <div id="replyEditForm_${inq.id}" style="display:none; margin-top:8px;">
-                                <textarea id="inpEditReply_${inq.id}" rows="2" style="width:100%; border:1.5px solid #10b981; border-radius:8px; padding:6px 8px; font-size:12.5px; box-sizing:border-box; outline:none; resize:none; line-height:1.4;">${escapeHtml(inq.reply)}</textarea>
-                                <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:5px;">
-                                    <button type="button" onclick="toggleEditInquiryReply('${inq.id}')" style="background:#f1f5f9; color:#475569; border:none; border-radius:6px; padding:4px 10px; font-size:11px; font-weight:900; cursor:pointer;">취소</button>
-                                    <button type="button" onclick="saveEditedInquiryReply('${inq.id}')" style="background:#10b981; color:#ffffff; border:none; border-radius:6px; padding:4px 12px; font-size:11px; font-weight:950; cursor:pointer;">저장</button>
+                                <textarea id="inpEditReply_${inq.id}" rows="2" style="width:100%; border:1.5px solid #10b981; border-radius:8px; padding:8px 10px; font-size:13.5px; box-sizing:border-box; outline:none; resize:none; line-height:1.45;">${escapeHtml(inq.reply)}</textarea>
+                                <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:6px;">
+                                    <button type="button" onclick="toggleEditInquiryReply('${inq.id}')" style="background:#f1f5f9; color:#475569; border:none; border-radius:6px; padding:5px 12px; font-size:12px; font-weight:900; cursor:pointer;">취소</button>
+                                    <button type="button" onclick="saveEditedInquiryReply('${inq.id}')" style="background:#10b981; color:#ffffff; border:none; border-radius:6px; padding:5px 14px; font-size:12px; font-weight:950; cursor:pointer;">저장</button>
                                 </div>
                             </div>
                         ` : ''}
@@ -6773,24 +6786,24 @@
                 if (!isGuestViewMode) {
                     // 주인장 모드: 바로 밑에 빠른 답변 입력창 제공
                     replyBoxHtml = `
-                        <div style="margin-top:2px; background:#f0fdf4; border:1px dashed #86efac; border-radius:10px; padding:8px 10px;">
-                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:5px;">
-                                <span style="font-size:11.5px; font-weight:950; color:#15803d; display:flex; align-items:center; gap:4px;">
+                        <div style="margin:4px 0 10px 0; background:#f0fdf4; border:1.8px dashed #86efac; border-radius:12px; padding:12px 14px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                                <span style="font-size:13px; font-weight:950; color:#15803d; display:flex; align-items:center; gap:5px;">
                                     <span>💬</span> <span>간단한 답변 바로 작성</span>
                                 </span>
-                                <span style="font-size:10.5px; color:#64748b;">(등록 시 '답변완료' 자동 변경)</span>
+                                <span style="font-size:11.5px; color:#16a34a; font-weight:850;">(등록 시 예톡채팅으로도 함께 전달 ✨)</span>
                             </div>
-                            <div style="display:flex; gap:6px;">
-                                <input type="text" id="inpDirectReply_${inq.id}" placeholder="고객에게 남길 간단한 답변을 입력하세요..." style="flex:1; height:32px; border:1.5px solid #cbd5e1; border-radius:7px; padding:0 10px; font-size:12.5px; outline:none; background:#ffffff; box-sizing:border-box;" onkeydown="if(event.key==='Enter') saveDirectInquiryReply('${inq.id}')">
-                                <button type="button" onclick="saveDirectInquiryReply('${inq.id}')" style="height:32px; padding:0 12px; background:#10b981; color:#ffffff; border:none; border-radius:7px; font-size:12px; font-weight:950; cursor:pointer; flex-shrink:0;">등록</button>
+                            <div style="display:flex; gap:8px;">
+                                <input type="text" id="inpDirectReply_${inq.id}" placeholder="${escapeHtml(dispName)}님께 전할 답변을 입력하세요..." style="flex:1; height:40px; border:1.8px solid #86efac; border-radius:8px; padding:0 12px; font-size:14px; font-weight:800; outline:none; background:#ffffff; box-sizing:border-box;" onkeydown="if(event.key==='Enter') saveDirectInquiryReply('${inq.id}')">
+                                <button type="button" onclick="saveDirectInquiryReply('${inq.id}')" style="height:40px; padding:0 16px; background:linear-gradient(135deg, #10b981, #059669); color:#ffffff; border:none; border-radius:8px; font-size:13.5px; font-weight:950; cursor:pointer; flex-shrink:0; box-shadow:0 2px 6px rgba(16,185,129,0.3);">등록</button>
                             </div>
                         </div>
                     `;
                 } else {
                     // 손님 모드: 대기 안내 표출
                     replyBoxHtml = `
-                        <div style="margin-top:2px; font-size:11.5px; color:#b45309; background:#fffbeb; border:1px dashed #fde68a; border-radius:8px; padding:7px 10px; display:flex; align-items:center; gap:5px;">
-                            <span>⏳</span> <span>주인장이 내용을 확인 중입니다. 빠른 시일 내에 정성껏 답변드리겠습니다.</span>
+                        <div style="margin:4px 0 10px 0; font-size:13px; font-weight:850; color:#b45309; background:#fffbeb; border:1.5px dashed #fde68a; border-radius:10px; padding:10px 14px; display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:16px;">⏳</span> <span>주인장이 내용을 확인 중입니다. 빠른 시일 내에 정성껏 답변드리겠습니다.</span>
                         </div>
                     `;
                 }
@@ -6800,13 +6813,13 @@
             let footerHtml = "";
             if (!isGuestViewMode) {
                 footerHtml = `
-                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#94a3b8; padding-top:4px; border-top:1px dashed #f1f5f9;">
-                        <span>진행 상태: <strong style="color:${isDone ? '#16a34a' : '#d97706'};">${isDone ? '답변완료' : '대기중'}</strong></span>
-                        <div style="display:flex; gap:6px;">
-                            <button type="button" onclick="toggleInquiryStatus('${inq.id}')" style="padding:4px 9px; font-size:11px; font-weight:900; border-radius:6px; border:1px solid ${isDone ? '#cbd5e1' : '#bbf7d0'}; background:${isDone ? '#f8fafc' : '#f0fdf4'}; color:${isDone ? '#64748b' : '#15803d'}; cursor:pointer;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:12.5px; color:#64748b; padding-top:8px; border-top:1px dashed #e2e8f0; margin-top:2px;">
+                        <span>진행 상태: <strong style="color:${isDone ? '#16a34a' : '#d97706'}; font-size:13px;">${isDone ? '답변완료' : '대기중'}</strong></span>
+                        <div style="display:flex; gap:8px;">
+                            <button type="button" onclick="toggleInquiryStatus('${inq.id}')" style="padding:6px 12px; font-size:12px; font-weight:900; border-radius:8px; border:1px solid ${isDone ? '#cbd5e1' : '#bbf7d0'}; background:${isDone ? '#f8fafc' : '#f0fdf4'}; color:${isDone ? '#64748b' : '#15803d'}; cursor:pointer;">
                                 ${isDone ? '↺ 대기중으로 변경' : '✓ 답변 완료로 변경'}
                             </button>
-                            <button type="button" onclick="deleteInquiry('${inq.id}')" style="padding:4px 8px; font-size:11px; font-weight:900; border-radius:6px; border:1px solid #fecaca; background:#fff1f2; color:#ef4444; cursor:pointer;">
+                            <button type="button" onclick="deleteInquiry('${inq.id}')" style="padding:6px 10px; font-size:12px; font-weight:900; border-radius:8px; border:1px solid #fecaca; background:#fff1f2; color:#ef4444; cursor:pointer;">
                                 🗑️ 삭제
                             </button>
                         </div>
@@ -6815,8 +6828,8 @@
             } else {
                 // 손님 모드일 때: 본인이 남긴 문의 삭제 기능 제공
                 footerHtml = `
-                    <div style="display:flex; justify-content:flex-end; align-items:center; font-size:11px; color:#94a3b8; padding-top:2px;">
-                        <button type="button" onclick="deleteInquiry('${inq.id}')" style="padding:3px 8px; font-size:11px; font-weight:900; border-radius:6px; border:1px solid #e2e8f0; background:#f8fafc; color:#94a3b8; cursor:pointer;">
+                    <div style="display:flex; justify-content:flex-end; align-items:center; font-size:12px; color:#94a3b8; padding-top:6px;">
+                        <button type="button" onclick="deleteInquiry('${inq.id}')" style="padding:5px 12px; font-size:12px; font-weight:900; border-radius:8px; border:1px solid #cbd5e1; background:#f8fafc; color:#64748b; cursor:pointer;">
                             문의 취소 / 삭제
                         </button>
                     </div>
@@ -6828,7 +6841,7 @@
         });
     }
 
-    /* 🌟 [사용자 요청] 간단한 답변글 등록 & 수정 & 삭제 핸들러 */
+    /* 🌟 [사용자 요청] 간단한 답변글 등록 & 수정 & 삭제 핸들러 (상대방의 개인앱 내 예톡 채팅방으로도 실시간 전달!) */
     function saveDirectInquiryReply(inqId) {
         const inp = document.getElementById("inpDirectReply_" + inqId);
         const text = (inp ? inp.value : "").trim();
@@ -6837,18 +6850,74 @@
             return;
         }
         let list = getMyInquiries();
-        const item = list.find(i => i.id === inqId);
+        const item = list.find(i => String(i.id) === String(inqId));
         if (!item) return;
 
         const now = new Date();
         const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
         item.reply = text;
         item.replyDate = dateStr;
         item.status = "답변완료";
         saveMyInquiries(list);
+
+        // 🌟 [사용자 요청] 답변 작성 시 -> 상대방의 개인앱 내 예톡 1:1 대화방으로도 글이 들어가도록 연동!
+        const targetName = (item.name || item.author || "문의고객").trim();
+        const targetPhone = (item.phone || "").trim();
+
+        try {
+            let friend = (myFriends || []).find(f => (targetPhone && f.phone === targetPhone) || (targetName && f.name === targetName));
+            if (!friend) {
+                friend = {
+                    id: "inq_friend_" + Date.now(),
+                    name: targetName,
+                    phone: targetPhone,
+                    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+                    status: "개인 문의 고객",
+                    isFav: true,
+                    starLevel: 1
+                };
+                myFriends.unshift(friend);
+                localStorage.setItem(STORAGE_KEY_FRIENDS, JSON.stringify(myFriends));
+                try { renderContactsTab(); } catch(e){}
+            }
+
+            const storageKey = STORAGE_KEY_TALK + friend.id;
+            let msgs = [];
+            try { msgs = JSON.parse(localStorage.getItem(storageKey)) || []; } catch(e){}
+
+            // 1) 상대방의 원 문의 내용이 채팅창에 없으면 먼저 말풍선 추가
+            const hasQuestion = msgs.some(m => m.text && m.text.includes(item.content));
+            if (!hasQuestion && item.content) {
+                msgs.push({
+                    sender: "friend",
+                    text: `[문의 내용] ${item.content}`,
+                    time: (item.date ? item.date.split(" ")[1] : "") || timeStr,
+                    timestamp: Date.now() - 1000
+                });
+            }
+
+            // 2) 주인장의 답변 말풍선 추가
+            msgs.push({
+                sender: "my",
+                text: text,
+                time: timeStr,
+                timestamp: Date.now()
+            });
+            localStorage.setItem(storageKey, JSON.stringify(msgs));
+
+            try { renderStarredFriendChatTab(); } catch(e){}
+            try { renderContactsTab(); } catch(e){}
+            if (openFloatingChatWindows[friend.id]) {
+                renderFloatingChatMessages(friend.id);
+            }
+        } catch(err) {
+            console.warn("Chat sync error:", err);
+        }
+
         renderInquiriesSection();
-        showToast("✔ 답변이 성공적으로 등록되고 [답변완료] 상태로 변경되었습니다.");
+        showToast(`✔ 답변이 저장되었으며, [${targetName}]님의 예톡 채팅방으로도 전달되었습니다!`);
     }
 
     function toggleEditInquiryReply(inqId) {
