@@ -13051,6 +13051,19 @@
         } catch(err) {}
     }
 
+    // 🌟 [사용자 요청] 교우/친구 이름 정규화 (이름 뒤에 붙은 직분 '집사', '권사', '목사' 등 제거하여 순수 성함 추출)
+    function getCleanPersonName(raw) {
+        if (!raw) return "";
+        return String(raw)
+            .replace(/\s+/g, '')
+            .replace(/(담임)?목사(님)?$/g, '')
+            .replace(/^(담임)?목사(님)?/g, '')
+            .replace(/(전도사|강도사|장로|안수집사|권사|집사|사모|성도)(님)?$/g, '')
+            .replace(/^(전도사|강도사|장로|안수집사|권사|집사|사모|성도)(님)?/g, '')
+            .trim();
+    }
+    window.getCleanPersonName = getCleanPersonName;
+
     function _renderChristianFriendsModalContent() {
         window._renderChristianFriendsModalContent = _renderChristianFriendsModalContent;
         const churchName = localStorage.getItem("yetalk_church_name") || "부산제일감리교회";
@@ -13070,58 +13083,86 @@
             customFriends = JSON.parse(localStorage.getItem("yetalk_custom_friends") || "[]");
         } catch(e) { customFriends = []; }
 
-        let members = [];
+        // 삭제된 교우 블랙리스트 불러오기 (X 눌러서 삭제한 사람 다시 안 뜨도록 완벽 차단)
+        let deletedFriends = [];
+        try {
+            deletedFriends = JSON.parse(localStorage.getItem("yetalk_deleted_friends") || "[]");
+        } catch(e) { deletedFriends = []; }
+
+        let rawMembers = [];
         if (churchKey && churchMap[churchKey] && churchMap[churchKey].members && churchMap[churchKey].members.length > 0) {
-            members = [...churchMap[churchKey].members];
+            rawMembers = [...churchMap[churchKey].members];
         }
 
         // customFriends 병합
         customFriends.forEach(cf => {
-            if (!members.some(m => m.nameOrId === cf.nameOrId)) {
-                members.push(cf);
+            if (!rawMembers.some(m => m.nameOrId === cf.nameOrId)) {
+                rawMembers.push(cf);
             }
         });
 
-        // 🌟 [사용자 요청] 가짜/샘플 더미 교우(김요한, 박에스더, 이다윗, 정마리아, 정 권사, 김 성도, 박 사무사역 등) 완전 제거 및 정리
+        // 🌟 [사용자 요청] 가짜/샘플 더미 교우 및 삭제된 인물 완전 제거
         const dummyNames = ["김요한", "박에스더", "이다윗", "정마리아", "정 권사", "김 성도", "박 사무사역", "정권사", "김성도", "박사무사역"];
-        members = members.filter(m => {
-            const name = typeof m === 'string' ? m : (m.nameOrId || m.name || '');
-            return !dummyNames.some(d => name.trim() === d || name.replace(/\s+/g, '') === d.replace(/\s+/g, ''));
+        rawMembers = rawMembers.filter(m => {
+            const raw = typeof m === 'string' ? m : (m.nameOrId || m.name || '');
+            const clean = getCleanPersonName(raw);
+            if (deletedFriends.some(d => d === raw || d === clean || (clean && getCleanPersonName(d) === clean))) {
+                return false; // 삭제된 사람 제외
+            }
+            return !dummyNames.some(d => raw.trim() === d || raw.replace(/\s+/g, '') === d.replace(/\s+/g, ''));
         });
 
         // 현재 사용자 본인 포함 보장
         const myName = (localStorage.getItem("yetalk_user_name") || "최베드로").trim();
         const myRole = (localStorage.getItem("yetalk_church_role") || "성도").trim();
 
-        // 🌟 담임목사님(정찬석 목사 등) 포함 보장
+        // 담임목사님(정찬석 목사 등) 포함 보장
         const rawPastor = (localStorage.getItem("yetalk_pastor_name") || (churchMap[churchKey] ? churchMap[churchKey].pastor : "") || "정찬석").trim();
         const pastorClean = rawPastor.replace(/(담임)?목사님?/g, '').trim();
-        if (pastorClean && !members.some(m => (m.nameOrId || '').includes(pastorClean))) {
-            members.unshift({ nameOrId: pastorClean + " 목사", role: "담임목사" });
+        if (pastorClean && !rawMembers.some(m => (m.nameOrId || '').includes(pastorClean))) {
+            rawMembers.unshift({ nameOrId: pastorClean + " 목사", role: "담임목사" });
         }
 
-        if (!members.some(m => m.nameOrId === myName)) {
-            members.unshift({ nameOrId: myName, role: myRole });
+        if (!rawMembers.some(m => getCleanPersonName(m.nameOrId) === getCleanPersonName(myName))) {
+            rawMembers.unshift({ nameOrId: myName, role: myRole });
         }
 
-        // 🌟 [사용자 요청] 실제 등록/가입된 교우만 표출 (가짜 샘플 완전 배제하고 실제 사용자 본인 최베드로, 사모님 이수미, 담임목사 정찬석 목사 상호 보장)
-        if (churchName.includes("부산제일") || churchKey.includes("부산제일")) {
-            const busanCoreMembers = [
-                { nameOrId: "정찬석 목사", role: "담임목사" },
-                { nameOrId: "최베드로", role: "성도" },
-                { nameOrId: "이수미", role: "성도" }
-            ];
-            busanCoreMembers.forEach(bm => {
-                const bmBase = bm.nameOrId.split(' ')[0].trim();
-                const exists = members.some(m => {
-                    const mName = (m.nameOrId || '').trim();
-                    return mName === bm.nameOrId || (bmBase.length >= 2 && mName.startsWith(bmBase));
-                });
-                if (!exists) {
-                    members.push(bm);
+        // 🌟 [핵심] 동일 인물 중복 병합 (Deduplication):
+        // 예: '이수미'와 '이수미 집사'가 있을 때 ➔ 하나의 '이수미'로 병합하고 가장 최근/구체적인 직분(권사 등) 유지!
+        const memberMap = new Map();
+        rawMembers.forEach(item => {
+            if (!item) return;
+            const rawName = (typeof item === 'string' ? item : (item.nameOrId || item.name || '')).trim();
+            if (!rawName) return;
+            const role = (typeof item === 'object' && item.role) ? item.role.trim() : '성도';
+            const cleanKey = getCleanPersonName(rawName) || rawName;
+
+            // 표시할 표준 이름: 담임목사는 '정찬석 목사', 일반 교우는 '이수미'처럼 순수 성함 우선
+            let displayName = rawName;
+            if (role === '담임목사' || rawName.includes('목사')) {
+                displayName = cleanKey + ' 목사';
+            } else {
+                displayName = cleanKey;
+            }
+
+            if (!memberMap.has(cleanKey)) {
+                memberMap.set(cleanKey, { nameOrId: displayName, role: role });
+            } else {
+                // 이미 존재하는 경우: '성도'보다 '권사', '집사', '장로' 등 구체적인 직분을 우선 채택
+                const existing = memberMap.get(cleanKey);
+                if (role && role !== '성도' && existing.role === '성도') {
+                    existing.role = role;
+                } else if (role && role !== existing.role) {
+                    existing.role = role;
                 }
-            });
-        }
+                // 이름도 더 깔끔한 표시명으로 유지
+                if (displayName.length < existing.nameOrId.length || displayName === cleanKey) {
+                    existing.nameOrId = displayName;
+                }
+            }
+        });
+
+        let members = Array.from(memberMap.values());
 
         // 🌟 [사용자 요청] 별 체크 여부 불러오기
         let starredFriends = [];
@@ -13129,15 +13170,7 @@
             starredFriends = JSON.parse(localStorage.getItem("yetalk_starred_friends") || "[]");
         } catch(e) { starredFriends = []; }
 
-        // 🌟 교우 데이터 정규화 및 null/문자열 안전 필터링
-        members = (members || []).map(m => {
-            if (!m) return null;
-            if (typeof m === 'string') return { nameOrId: m.trim(), role: '성도' };
-            const n = (m.nameOrId || m.name || '').trim();
-            return n ? { nameOrId: n, role: m.role || '성도' } : null;
-        }).filter(Boolean);
-
-        // 🌟 [사용자 요청] 1순위: 별표 체크된 교우가 최상단 / 2순위: 가나다라 순서(이름 오름차순) 정렬!
+        // 🌟 1순위: 별표 체크 교우 최상단 / 2순위: 가나다라 순서 정렬
         members.sort((a, b) => {
             const aName = a ? (a.nameOrId || '') : '';
             const bName = b ? (b.nameOrId || '') : '';
@@ -13152,26 +13185,26 @@
         const totalCountEl = document.getElementById("txtFriendTotalCount");
         if (totalCountEl) totalCountEl.innerText = `총 ${members.length}명`;
 
-        // 🌟 [사용자 요청] 동그라미(이니셜) 제거, 별표 및 예톡/카톡 버튼 스마트 축소로 본인 이름(최베드로) 끝까지 시원하게 전체 표출
+        // 교우 목록 동적 렌더링
         const row = document.getElementById("christianRegisteredMembersRow");
         if (row) {
-            row.innerHTML = members.map((m, idx) => {
-                const isMe = (m.nameOrId === myName || (myName && m.nameOrId && m.nameOrId.startsWith(myName)));
+            row.innerHTML = members.map((m) => {
+                const isMe = (getCleanPersonName(m.nameOrId) === getCleanPersonName(myName));
                 const isStarred = starredFriends.includes(m.nameOrId);
                 return `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 10px; gap:8px; background:${isStarred ? '#fffbeb' : '#ffffff'}; border:${isStarred ? '1.5px solid #fde047' : '1px solid #e2e8f0'}; border-radius:10px; box-shadow:0 1px 3px rgba(0,0,0,0.03); transition:all 0.15s ease;">
                     <div style="display:flex; align-items:center; gap:6px; min-width:0; flex-grow:1;">
-                        <!-- 🌟 별표 토글 버튼 (컴팩트) -->
+                        <!-- 별표 토글 버튼 -->
                         <button type="button" onclick="toggleStarChristianFriend('${m.nameOrId}')" title="${isStarred ? '상단 고정 별표 해제' : '최상단 고정 별표 등록'}" style="background:none; border:none; cursor:pointer; font-size:16px; padding:0 2px; line-height:1; color:${isStarred ? '#f59e0b' : '#cbd5e1'}; flex-shrink:0;">
                             ${isStarred ? '★' : '☆'}
                         </button>
-                        <!-- 🌟 동그라미 제거 후 이름과 직분/나 배지 끝까지 잘림 없이 표시 (사용자 요청: 글자 크기 조금 축소하여 정돈) -->
+                        <!-- 이름과 직분/나 배지 -->
                         <div style="display:flex; align-items:center; gap:5px; min-width:0; flex-grow:1;">
                             <span style="font-size:13.5px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:visible;">${m.nameOrId}</span>
                             <span style="font-size:10px; font-weight:800; color:${isMe ? '#059669' : '#0369a1'}; background:${isMe ? '#dcfce7' : '#e0f2fe'}; padding:1.5px 5px; border-radius:5px; flex-shrink:0;">${isMe ? '나' : (m.role || '성도')}</span>
                         </div>
                     </div>
-                    <!-- 🌟 예톡, 카톡, 삭제 버튼 스마트 축소 -->
+                    <!-- 예톡, 카톡, 삭제 버튼 -->
                     <div style="display:flex; gap:4px; align-items:center; flex-shrink:0;">
                         <button type="button" onclick="openMemberPrivateChat('${m.nameOrId}', '${m.role || ''}')" style="padding:4px 7px; background:#0284c7; color:#ffffff; border:none; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer; display:flex; align-items:center; gap:3px; box-shadow:0 1px 3px rgba(2,132,199,0.2);">
                             <span>예톡</span>
@@ -13180,7 +13213,7 @@
                         <button type="button" onclick="shareChristianInviteKakao('${m.nameOrId}')" style="padding:4px 7px; background:#fee500; color:#191919; border:none; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer; box-shadow:0 1px 3px rgba(254,229,0,0.25);">
                             카톡
                         </button>
-                        ${!isMe ? `<button type="button" onclick="deleteChristianFriend('${m.nameOrId}')" title="삭제" style="background:none; border:none; color:#94a3b8; font-size:13px; cursor:pointer; padding:2px 3px; line-height:1;">✕</button>` : ''}
+                        ${!isMe ? `<button type="button" onclick="deleteChristianFriend('${m.nameOrId}')" title="삭제" style="background:#fee2e2; border:1px solid #fca5a5; color:#dc2626; font-size:12px; font-weight:900; cursor:pointer; padding:3px 7px; border-radius:6px; line-height:1;">✕</button>` : ''}
                     </div>
                 </div>
             `}).join("");
@@ -13242,7 +13275,8 @@
             churchMap[churchKey].members = [];
         }
 
-        const exists = churchMap[churchKey].members.some(m => m.nameOrId === name);
+        const cleanNew = getCleanPersonName(name);
+        const exists = churchMap[churchKey].members.some(m => getCleanPersonName(m.nameOrId) === cleanNew);
         if (!exists) {
             churchMap[churchKey].members.push({
                 nameOrId: name,
@@ -13256,7 +13290,7 @@
         try {
             customFriends = JSON.parse(localStorage.getItem("yetalk_custom_friends") || "[]");
         } catch(e) { customFriends = []; }
-        if (!customFriends.some(f => f.nameOrId === name)) {
+        if (!customFriends.some(f => getCleanPersonName(f.nameOrId) === cleanNew)) {
             customFriends.push({ nameOrId: name, role: "성도" });
             localStorage.setItem("yetalk_custom_friends", JSON.stringify(customFriends));
         }
@@ -13271,34 +13305,82 @@
         openChristianFriendsModal();
     }
 
-    // 🌟 [사용자 요청] 등록된 친구 삭제 함수
-    function deleteChristianFriend(friendName) {
-        if (!confirm(`[${friendName}] 교우/친구를 목록에서 삭제하시겠습니까?`)) return;
+    // 🌟 [사용자 요청] 등록된 친구 확실한 삭제 함수 (Firestore 클라우드 + 로컬 블랙리스트 동시 삭제)
+    async function deleteChristianFriend(friendName) {
+        if (!confirm(`[${friendName}] 교우/친구를 목록에서 완전히 삭제하시겠습니까?`)) return;
 
+        const cleanTarget = getCleanPersonName(friendName);
         const churchName = localStorage.getItem("yetalk_church_name") || "부산제일감리교회";
         const pastorName = localStorage.getItem("yetalk_pastor_name") || "";
         const churchKey = localStorage.getItem("yetalk_church_key") || (churchName + "_" + pastorName).toLowerCase().replace(/\s+/g, '');
 
+        // 1. 삭제자 블랙리스트에 추가 (클라우드에서 다시 내려와도 자동 차단)
+        let deletedFriends = [];
+        try {
+            deletedFriends = JSON.parse(localStorage.getItem("yetalk_deleted_friends") || "[]");
+        } catch(e) { deletedFriends = []; }
+        if (!deletedFriends.includes(friendName)) deletedFriends.push(friendName);
+        if (cleanTarget && !deletedFriends.includes(cleanTarget)) deletedFriends.push(cleanTarget);
+        localStorage.setItem("yetalk_deleted_friends", JSON.stringify(deletedFriends));
+
+        // 2. 로컬 churchMap에서 제거
         let churchMap = {};
         try {
             churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
         } catch(e) { churchMap = {}; }
 
         if (churchMap[churchKey] && churchMap[churchKey].members) {
-            churchMap[churchKey].members = churchMap[churchKey].members.filter(m => m.nameOrId !== friendName);
+            churchMap[churchKey].members = churchMap[churchKey].members.filter(m => {
+                const mClean = getCleanPersonName(m.nameOrId);
+                return m.nameOrId !== friendName && mClean !== cleanTarget;
+            });
             localStorage.setItem("yetalk_registered_churches", JSON.stringify(churchMap));
         }
 
+        // 3. customFriends에서 제거
         let customFriends = [];
         try {
             customFriends = JSON.parse(localStorage.getItem("yetalk_custom_friends") || "[]");
         } catch(e) { customFriends = []; }
-        customFriends = customFriends.filter(f => f.nameOrId !== friendName);
+        customFriends = customFriends.filter(f => {
+            const fClean = getCleanPersonName(f.nameOrId);
+            return f.nameOrId !== friendName && fClean !== cleanTarget;
+        });
         localStorage.setItem("yetalk_custom_friends", JSON.stringify(customFriends));
 
-        showBibleToast(`[${friendName}] 삭제되었습니다.`);
-        openChristianFriendsModal();
+        // 4. 별표 목록에서도 제거
+        let starred = [];
+        try {
+            starred = JSON.parse(localStorage.getItem("yetalk_starred_friends") || "[]");
+        } catch(e) { starred = []; }
+        starred = starred.filter(s => s !== friendName && getCleanPersonName(s) !== cleanTarget);
+        localStorage.setItem("yetalk_starred_friends", JSON.stringify(starred));
+
+        // 5. 🌟 Firestore 클라우드에서도 영구 삭제 반영
+        try {
+            if (window._firebaseDb && window._firebaseDoc && window._firebaseSetDoc && window._firebaseGetDoc) {
+                const memberDocRef = window._firebaseDoc(window._firebaseDb, "yetalk_church_members", churchKey);
+                const snap = await window._firebaseGetDoc(memberDocRef);
+                if (snap.exists() && snap.data() && Array.isArray(snap.data().members)) {
+                    let cloudMembers = snap.data().members.filter(m => {
+                        const mClean = getCleanPersonName(m.nameOrId);
+                        return m.nameOrId !== friendName && mClean !== cleanTarget;
+                    });
+                    await window._firebaseSetDoc(memberDocRef, {
+                        members: cloudMembers,
+                        updatedAt: new Date().toISOString()
+                    }, { merge: true });
+                    console.log("[Firestore] Church member deleted from cloud:", friendName);
+                }
+            }
+        } catch(err) {
+            console.warn("Firestore delete member error:", err);
+        }
+
+        showBibleToast(`✅ [${friendName}] 삭제되었습니다.`);
+        _renderChristianFriendsModalContent();
     }
+    window.deleteChristianFriend = deleteChristianFriend;
 
     function closeChristianFriendsModal() {
         const modal = document.getElementById("christianFriendsModal");
@@ -14631,14 +14713,23 @@
     }
     window.submitDailyRepentAmenToThanksBoard = submitDailyRepentAmenToThanksBoard;
 
-    // 🌟 [사용자 요청] 매일회개 기도음악 컨트롤러 (총관리자가 기본 음악 지정 + 회원들은 켜기/끄기만 선택)
-    // 🌟 [사용자 요청] 유튜브 링크/일반 오디오 모두 지원하는 기도음악 재생기
+    // 🌟 [사용자 요청] 매일회개 기도음악 컨트롤러 (대표님이 기본 음악을 깔아두고, 회원 각자가 원할 때 자유롭게 변경 가능)
     let dailyRepentPrayerAudio = null;
     let isDailyRepentPlaying = false;
-    const DEFAULT_DAILY_REPENT_BGM_URL = "https://actions.google.com/sounds/v1/ambiences/peaceful_gathering.ogg";
+    // 🌟 대표님께서 깔아두신 기본 은혜 기도 배경음악 (평안을 주는 기도 묵상 찬양)
+    const DEFAULT_DAILY_REPENT_BGM_URL = "https://www.youtube.com/watch?v=kJQP7kiw5Fk";
 
-    function getAdminPrayerMusicUrl() {
-        return (localStorage.getItem("yetalk_admin_prayer_music_url") || DEFAULT_DAILY_REPENT_BGM_URL).trim();
+    function getActivePrayerMusicUrl() {
+        // 1순위: 회원 각자가 나만의 음악으로 변경해 둔 주소
+        const myCustom = (localStorage.getItem("yetalk_my_prayer_music_url") || "").trim();
+        if (myCustom) return myCustom;
+
+        // 2순위: 관리자가 전체 공통으로 설정한 주소
+        const adminGlobal = (localStorage.getItem("yetalk_admin_prayer_music_url") || "").trim();
+        if (adminGlobal) return adminGlobal;
+
+        // 3순위: 대표님이 깔아두신 기본 은혜 기도 음악
+        return DEFAULT_DAILY_REPENT_BGM_URL;
     }
 
     function extractYouTubeVideoId(url) {
@@ -14660,7 +14751,7 @@
             stopDailyRepentPrayerAudio();
             showBibleToast("⏸️ 기도음악이 일시 중지되었습니다.");
         } else {
-            const musicUrl = getAdminPrayerMusicUrl();
+            const musicUrl = getActivePrayerMusicUrl();
             const ytId = extractYouTubeVideoId(musicUrl);
 
             if (ytId) {
@@ -14715,17 +14806,21 @@
     }
     window.stopDailyRepentPrayerAudio = stopDailyRepentPrayerAudio;
 
-    function setAdminPrayerMusicUrl(newUrl) {
-        if (!newUrl || !newUrl.trim()) return;
-        localStorage.setItem("yetalk_admin_prayer_music_url", newUrl.trim());
-        showBibleToast("💾 기도음악 주소가 저장되었습니다.");
-    }
-    window.setAdminPrayerMusicUrl = setAdminPrayerMusicUrl;
-
-    // 🌟 [사용자 요청] 유튜브 링크 붙여넣기 모달 열기 (클릭 시 기존 주소 자동 지우기 & 엔터/저장 시 즉시 작동)
+    // 🌟 [사용자 요청] 회원 각자가 나만의 기도음악 변경 모달 열기
     function openAdminChangePrayerMusicModal() {
         const modal = document.getElementById("modalDailyRepentMusicChange");
         const inp = document.getElementById("inpAdminPrayerMusicInput");
+        const txtCurrent = document.getElementById("txtCurrentPrayerMusicStatus");
+        const myCustom = (localStorage.getItem("yetalk_my_prayer_music_url") || "").trim();
+
+        if (txtCurrent) {
+            if (myCustom) {
+                txtCurrent.innerHTML = "현재: <strong style='color:#2563eb;'>내가 지정한 나만의 기도음악</strong> 사용 중";
+            } else {
+                txtCurrent.innerHTML = "현재: <strong style='color:#059669;'>대표님 추천 기본 은혜 음악</strong> 사용 중";
+            }
+        }
+
         if (inp) {
             inp.value = ""; // 🌟 클릭하자마자 앞에 것 자동 지움!
             setTimeout(() => inp.focus(), 120);
@@ -14740,33 +14835,39 @@
     }
     window.closeAdminChangePrayerMusicModal = closeAdminChangePrayerMusicModal;
 
+    // 🌟 [사용자 요청] 회원 본인만의 기도 음악 저장
     function saveAdminPrayerMusicFromModal(e) {
         if (e) e.preventDefault();
         const inp = document.getElementById("inpAdminPrayerMusicInput");
         const newUrl = (inp ? inp.value : "").trim();
         if (!newUrl) {
-            alert("유튜브 주소를 붙여넣어 주세요.");
+            alert("변경하실 유튜브 주소를 붙여넣어 주세요.");
             return;
         }
 
-        setAdminPrayerMusicUrl(newUrl);
-
-        if (window.yetalkDb && window.yetalkFs) {
-            try {
-                const { doc, setDoc, serverTimestamp } = window.yetalkFs;
-                const ref = doc(window.yetalkDb, "yetalk_global_config", "suite_video");
-                setDoc(ref, { prayerMusicUrl: newUrl, updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
-            } catch(err){}
-        }
+        // 회원 각자 기기에 개인 맞춤 음악으로 저장
+        localStorage.setItem("yetalk_my_prayer_music_url", newUrl);
 
         closeAdminChangePrayerMusicModal();
-        showBibleToast("✅ 기도음악이 등록되었습니다. [기도음악 켜기]를 누르시면 바로 재생됩니다!");
+        showBibleToast("✅ 나만의 기도음악이 등록되었습니다. [기도음악 켜기]를 누르시면 재생됩니다!");
         if (isDailyRepentPlaying) {
             stopDailyRepentPrayerAudio();
             toggleDailyRepentPrayerAudio();
         }
     }
     window.saveAdminPrayerMusicFromModal = saveAdminPrayerMusicFromModal;
+
+    // 🌟 [사용자 요청] 기본 음악으로 초기화/되돌리기
+    function resetToDefaultPrayerMusic() {
+        localStorage.removeItem("yetalk_my_prayer_music_url");
+        closeAdminChangePrayerMusicModal();
+        showBibleToast("🔄 대표님 추천 기본 은혜 음악으로 복원되었습니다!");
+        if (isDailyRepentPlaying) {
+            stopDailyRepentPrayerAudio();
+            toggleDailyRepentPrayerAudio();
+        }
+    }
+    window.resetToDefaultPrayerMusic = resetToDefaultPrayerMusic;
 
     // 🌟 [사용자 요청] '매일회개 & 영적승리' 기도문 모달 열기/닫기
     function openDailyRepentVictoryModal() {
@@ -15253,7 +15354,7 @@
         </div>
     </div>
 
-    <!-- 🌟 [사용자 요청] 매일회개 기도음악 유튜브 주소 간편 등록 모달 (클릭 시 자동 비움 & 붙여넣기 편의) -->
+    <!-- 🌟 [사용자 요청] 매일회개 기도음악 유튜브 주소 간편 등록 모달 (기본은 대표님이 깔아두고 회원 각자 변경 가능 & 복원 지원) -->
     <div class="modal-overlay" id="modalDailyRepentMusicChange" style="position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important; background:rgba(0,0,0,0.65) !important; z-index:100000 !important; display:none; align-items:center !important; justify-content:center !important; padding:16px !important; box-sizing:border-box !important;">
         <div style="background:#ffffff; border-radius:20px; width:100%; max-width:440px; box-shadow:0 12px 36px rgba(0,0,0,0.3); overflow:hidden; display:flex; flex-direction:column; box-sizing:border-box;">
             <div style="background:linear-gradient(135deg, #1e3a8a, #2563eb); color:#ffffff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
@@ -15262,17 +15363,25 @@
                 </div>
                 <button type="button" onclick="closeAdminChangePrayerMusicModal()" style="background:transparent; border:none; color:#ffffff; font-size:20px; font-weight:900; cursor:pointer; line-height:1;">✕</button>
             </div>
-            <div style="padding:20px; display:flex; flex-direction:column; gap:14px;">
+            <div style="padding:20px; display:flex; flex-direction:column; gap:12px;">
                 <p style="margin:0; font-size:13.5px; font-weight:800; color:#334155; line-height:1.5;">
-                    유튜브 링크(일반 영상, 쇼츠, 실시간 라이브) 또는 오디오 주소를 붙여넣으시면 기도하실 때 자동으로 흘러나옵니다.
+                    기본으로 대표님 추천 은혜 찬양이 흘러나오며, 원하시는 경우 회원 각자 좋아하는 유튜브 기도음악으로 자유롭게 바꾸실 수 있습니다.
                 </p>
+                <div id="txtCurrentPrayerMusicStatus" style="font-size:12.5px; font-weight:850; color:#0369a1; background:#e0f2fe; padding:7px 12px; border-radius:8px;">
+                    현재: <strong style="color:#059669;">대표님 추천 기본 은혜 음악</strong> 사용 중
+                </div>
                 <div style="position:relative;">
-                    <input type="text" id="inpAdminPrayerMusicInput" placeholder="유튜브 주소를 붙여넣어 주세요" onkeydown="if(event.key==='Enter') saveAdminPrayerMusicFromModal()" style="width:100%; box-sizing:border-box; border:2px solid #3b82f6; border-radius:12px; padding:12px 38px 12px 14px; font-size:14px; font-weight:800; color:#0f172a; outline:none; background:#f8fafc;">
+                    <input type="text" id="inpAdminPrayerMusicInput" placeholder="변경할 유튜브 주소를 붙여넣어 주세요" onkeydown="if(event.key==='Enter') saveAdminPrayerMusicFromModal()" style="width:100%; box-sizing:border-box; border:2px solid #3b82f6; border-radius:12px; padding:12px 38px 12px 14px; font-size:14px; font-weight:800; color:#0f172a; outline:none; background:#f8fafc;">
                     <button type="button" onclick="document.getElementById('inpAdminPrayerMusicInput').value=''; document.getElementById('inpAdminPrayerMusicInput').focus();" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:#94a3b8; font-size:16px; cursor:pointer;" title="내용 지우기">✕</button>
                 </div>
-                <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:6px;">
-                    <button type="button" onclick="closeAdminChangePrayerMusicModal()" style="background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; font-size:13.5px; font-weight:900; padding:10px 18px; border-radius:10px; cursor:pointer;">취소</button>
-                    <button type="button" onclick="saveAdminPrayerMusicFromModal()" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); border:none; color:#ffffff; font-size:13.5px; font-weight:950; padding:10px 20px; border-radius:10px; cursor:pointer; box-shadow:0 2px 8px rgba(37,99,235,0.35);">💾 저장 및 적용</button>
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
+                    <button type="button" onclick="resetToDefaultPrayerMusic()" style="background:#f1f5f9; border:1px solid #94a3b8; color:#0f172a; font-size:12.5px; font-weight:900; padding:9px 12px; border-radius:9px; cursor:pointer;" title="대표님이 깔아두신 기본 음악으로 되돌리기">
+                        🔄 기본 음악 복원
+                    </button>
+                    <div style="display:flex; gap:6px;">
+                        <button type="button" onclick="closeAdminChangePrayerMusicModal()" style="background:#f8fafc; border:1px solid #cbd5e1; color:#475569; font-size:13px; font-weight:900; padding:9px 14px; border-radius:9px; cursor:pointer;">취소</button>
+                        <button type="button" onclick="saveAdminPrayerMusicFromModal()" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); border:none; color:#ffffff; font-size:13px; font-weight:950; padding:9px 16px; border-radius:9px; cursor:pointer; box-shadow:0 2px 8px rgba(37,99,235,0.35);">💾 저장 및 적용</button>
+                    </div>
                 </div>
             </div>
         </div>
