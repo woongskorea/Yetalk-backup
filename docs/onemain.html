@@ -2808,18 +2808,24 @@
         <div class="one-tab-page-container active" id="sec_notice" style="scroll-snap-type:none !important; overflow-y:auto !important; overflow-x:hidden !important; box-sizing:border-box; width:100%; padding-bottom:120px;">
             <div id="page_notice_1" style="padding:10px 10px 20px 10px; overflow-y:visible; overflow-x:hidden; display:flex; flex-direction:column; gap:8px; box-sizing:border-box; width:100%;">
 
-                <!-- 🌟 [사용자 요청] 빨강색 주인모드 (들어가자마자 빨강불 표시, 터치 시 손님모드 토글) -->
-                <div class="owner-mode-status-bar" id="ownerModeStatusWrap" style="display:flex; justify-content:space-between; align-items:center; background:#fff5f5; border:1.5px solid #fecaca; border-radius:14px; padding:8px 12px; box-shadow:0 2px 8px rgba(239,68,68,0.1); margin-bottom:2px;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#ef4444; box-shadow:0 0 10px #ef4444; flex-shrink:0;" id="ownerModeRedLight"></span>
-                        <div>
-                            <strong style="font-size:13.5px; font-weight:950; color:#dc2626;" id="txtOwnerModeLabel">🔴 주인모드 (내앱 관리중)</strong>
-                            <div style="font-size:10.5px; font-weight:700; color:#991b1b;" id="txtOwnerModeSub">나만의 일정 · 친구 · 공지알림 전체 관리</div>
-                        </div>
+                <!-- 🌟 [사용자 요청] 상단 한줄 빠른 문의 등록창 (작성 즉시 6. 개인문의 메뉴에 자동 저장) -->
+                <div class="quick-inquiry-bar" style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:14px; padding:6px 8px 6px 12px; display:flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(0,0,0,0.04); margin-bottom:2px;">
+                    <span style="font-size:16px;">💬</span>
+                    <input type="text" id="inpQuickInquiryHome" placeholder="궁금한 점이나 메모를 적으세요 (개인문의 자동 기록)" onkeydown="if(event.key==='Enter') submitQuickInquiryFromHome()" style="flex:1; border:none; outline:none; font-size:12.5px; font-weight:800; color:#0f172a; background:transparent;">
+                    <button type="button" onclick="submitQuickInquiryFromHome()" style="height:32px; padding:0 12px; background:linear-gradient(135deg, #0284c7, #0369a1); color:#ffffff; border:none; border-radius:8px; font-size:12px; font-weight:950; cursor:pointer; flex-shrink:0; box-shadow:0 1px 4px rgba(2,132,199,0.3);">
+                        등록
+                    </button>
+                </div>
+
+                <!-- 🌟 [사용자 요청] 슬림한 1줄 모드 전환 바 (좌: 주인모드(전체) / 우: 손님모드(일부)) -->
+                <div class="owner-mode-status-bar" id="ownerModeStatusWrap" style="display:flex; justify-content:space-between; align-items:center; background:#fff5f5; border:1.5px solid #fecaca; border-radius:12px; padding:7px 12px; box-shadow:0 2px 6px rgba(239,68,68,0.08); margin-bottom:2px;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ef4444; box-shadow:0 0 8px #ef4444; flex-shrink:0;" id="ownerModeRedLight"></span>
+                        <strong style="font-size:12.5px; font-weight:950; color:#dc2626;" id="txtOwnerModeLabel">주인모드 (전체)</strong>
                     </div>
-                    <button type="button" id="btnToggleGuestView" onclick="toggleGuestViewMode()" title="손님 방문 화면 모드 전환" style="padding:6px 11px; font-size:11.5px; font-weight:900; border-radius:10px; border:1.5px solid #cbd5e1; background:#ffffff; color:#334155; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:all 0.18s ease; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+                    <button type="button" id="btnToggleGuestView" onclick="toggleGuestViewMode()" title="손님 방문 화면 모드 전환" style="padding:4.5px 10px; font-size:11.5px; font-weight:900; border-radius:8px; border:1px solid #cbd5e1; background:#ffffff; color:#334155; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:all 0.18s ease; flex-shrink:0; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
                         <span id="guestViewIcon">👥</span>
-                        <span id="guestViewLabel">손님모드로 보기</span>
+                        <span id="guestViewLabel">손님모드 (일부)</span>
                     </button>
                 </div>
 
@@ -3579,15 +3585,11 @@
             document.body.classList.add("is-guest-view");
             if (redLight) {
                 redLight.style.background = "#0284c7";
-                redLight.style.boxShadow = "0 0 10px #0284c7";
+                redLight.style.boxShadow = "0 0 8px #0284c7";
             }
             if (modeLabel) {
-                modeLabel.innerText = "👥 손님 방문모드 체험중";
+                modeLabel.innerText = "손님모드 (일부)";
                 modeLabel.style.color = "#0284c7";
-            }
-            if (modeSub) {
-                modeSub.innerText = "손님에게 보여지는 4개 공개 메뉴만 노출";
-                modeSub.style.color = "#0369a1";
             }
             if (modeWrap) {
                 modeWrap.style.background = "#f0f9ff";
@@ -3602,7 +3604,7 @@
                 btn.style.fontWeight = "950";
             }
             if (icon) icon.innerText = "🔴";
-            if (label) label.innerText = "주인모드로 복귀";
+            if (label) label.innerText = "주인모드 (전체)";
 
             SECTION_ORDER = GUEST_SECTION_ORDER;
             if (!GUEST_SECTION_ORDER.includes(currentSectionKey)) {
@@ -3614,15 +3616,11 @@
             document.body.classList.remove("is-guest-view");
             if (redLight) {
                 redLight.style.background = "#ef4444";
-                redLight.style.boxShadow = "0 0 10px #ef4444";
+                redLight.style.boxShadow = "0 0 8px #ef4444";
             }
             if (modeLabel) {
-                modeLabel.innerText = "🔴 주인모드 (내앱 관리중)";
+                modeLabel.innerText = "주인모드 (전체)";
                 modeLabel.style.color = "#dc2626";
-            }
-            if (modeSub) {
-                modeSub.innerText = "나만의 일정 · 친구 · 공지알림 전체 관리";
-                modeSub.style.color = "#991b1b";
             }
             if (modeWrap) {
                 modeWrap.style.background = "#fff5f5";
@@ -3637,13 +3635,51 @@
                 btn.style.fontWeight = "900";
             }
             if (icon) icon.innerText = "👥";
-            if (label) label.innerText = "손님모드로 보기";
+            if (label) label.innerText = "손님모드 (일부)";
 
             SECTION_ORDER = OWNER_SECTION_ORDER;
             try { renderInquiriesSection(); } catch(e){}
             showToast("👑 주인 모드로 복귀했습니다.\n(전체 7개 메뉴 및 직접 수정 가능)");
         }
     }
+
+    /* 🌟 [사용자 요청] 첫화면 상단 한줄 빠른 문의 등록 -> 개인문의(6번) 자동 기록 */
+    function submitQuickInquiryFromHome() {
+        const inp = document.getElementById("inpQuickInquiryHome");
+        if (!inp) return;
+        const text = inp.value.trim();
+        if (!text) {
+            showToast("⚠️ 문의나 메모 내용을 입력해주세요.");
+            inp.focus();
+            return;
+        }
+
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        const myName = localStorage.getItem("yetalkUserName") || "최베드로";
+
+        const newInq = {
+            id: Date.now(),
+            author: myName,
+            phone: localStorage.getItem("yetalkUserPhone") || "",
+            email: "",
+            date: dateStr,
+            title: text.length > 25 ? text.substring(0, 25) + "..." : text,
+            content: text,
+            status: "대기중",
+            reply: "",
+            replyDate: ""
+        };
+
+        const list = getMyInquiries();
+        list.unshift(newInq);
+        saveMyInquiries(list);
+
+        inp.value = "";
+        try { renderInquiriesSection(); } catch(e){}
+        showToast("📩 [개인 문의] 메뉴에 성공적으로 자동 기록되었습니다!");
+    }
+    window.submitQuickInquiryFromHome = submitQuickInquiryFromHome;
 
     /* 🌟 [사용자 요청] 햄버그 삼각줄 (☰) 메뉴 드로어 제어 */
     function openOneMainMenuModal() {
