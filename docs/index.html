@@ -5308,59 +5308,109 @@
         </div>
     </div>
 
+    <!-- 🌟 [사용자 요청] 총관리실 모달: 기본은 깔끔하게 제목만 노출, 클릭 시 입력창이 펼쳐지는 접이식(아코디언) UI -->
     <div class="modal-overlay" id="superAdminDeskModal" onclick="closeSuperAdminDeskModal()">
-        <div class="modal-card" style="max-width:440px; width:92%; padding:20px 18px; background:#ffffff; border:2px solid #ef4444; border-radius:16px; box-shadow:0 20px 50px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #e2e8f0; padding-bottom:10px; margin-bottom:14px;">
+        <div class="modal-card" style="max-width:440px; width:92%; max-height:88vh; padding:18px 16px; background:#ffffff; border:2px solid #ef4444; border-radius:18px; box-shadow:0 20px 50px rgba(0,0,0,0.3); display:flex; flex-direction:column; overflow:hidden;" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #e2e8f0; padding-bottom:10px; margin-bottom:12px; flex-shrink:0;">
                 <div style="display:flex; align-items:center; gap:8px;">
                     <span style="font-size:24px;">👑</span>
-                    <strong style="color:#0f172a; font-size:17px; font-weight:950;">예톡 시스템 총관리실</strong>
+                    <div>
+                        <strong style="color:#0f172a; font-size:17px; font-weight:950;">예톡 시스템 총관리실</strong>
+                        <div style="font-size:11px; color:#64748b; font-weight:700;">원하시는 항목을 터치하면 입력창이 열립니다.</div>
+                    </div>
                 </div>
                 <button type="button" style="background:none; border:none; color:#64748b; font-size:24px; cursor:pointer; padding:2px 6px; font-weight:900; line-height:1;" onclick="closeSuperAdminDeskModal()">✕</button>
             </div>
 
-            <!-- 기본 소개글 설정 입력창 -->
-            <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:12px; padding:14px; margin-bottom:14px;">
-                <label style="display:block; color:#dc2626; font-size:14px; font-weight:950; margin-bottom:6px;">
-                    📝 예톡TV 전체 기본 소개글 설정
-                </label>
-                <div style="font-size:12px; color:#64748b; line-height:1.45; margin-bottom:8px;">
-                    성도들이 영상을 올릴 때 소개글을 따로 쓰지 않았을 때, 이 은혜의 문구가 전체 영상 하단에 기본으로 표출됩니다.
+            <!-- 스크롤 가능한 본문 영역 -->
+            <div style="flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-right:2px; display:flex; flex-direction:column; gap:9px;">
+                
+                <!-- 1. 오늘의 찬양 & 추천 성경 통독 설정 -->
+                <div style="border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; background:#ffffff;">
+                    <button type="button" onclick="toggleAdminAccordion('accPraise')" style="width:100%; display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:#f8fafc; border:none; cursor:pointer; text-align:left;">
+                        <span style="font-size:14px; font-weight:950; color:#0f172a; display:flex; align-items:center; gap:7px;">
+                            <span>🎵</span> <span>오늘의 찬양 & 추천 성경 통독</span>
+                        </span>
+                        <span id="arrow_accPraise" style="font-size:12px; color:#64748b; font-weight:900;">▼</span>
+                    </button>
+                    <div id="content_accPraise" style="display:none; padding:12px 14px; background:#ffffff; border-top:1px solid #e2e8f0;">
+                        <div style="font-size:12px; color:#475569; margin-bottom:6px; font-weight:800;">
+                            메인 화면 상단에 재생되는 찬양 유튜브 영상 주소를 입력하세요:
+                        </div>
+                        <input type="text" id="inpSuperAdminTodayYt" style="width:100%; box-sizing:border-box; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:8px; color:#0f172a; font-size:13px; font-weight:800; padding:8px 10px; margin-bottom:8px;" placeholder="유튜브 링크 입력 (예: https://youtu.be/...)" />
+                        
+                        <div style="display:flex; gap:6px; margin-bottom:4px;">
+                            <button type="button" onclick="saveSuperAdminTodayYt()" style="flex:1; padding:9px; background:linear-gradient(135deg, #0284c7, #0369a1); border:none; color:#ffffff; font-size:13px; font-weight:950; border-radius:8px; cursor:pointer;">
+                                💾 찬양 영상 저장·배포
+                            </button>
+                            <button type="button" onclick="openSuiteEditor(); closeSuperAdminDeskModal();" style="padding:9px 12px; background:#f1f5f9; border:1px solid #cbd5e1; color:#334155; font-size:12.5px; font-weight:900; border-radius:8px; cursor:pointer;">
+                                📜 성경 66권 선택 ➔
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <textarea id="inpAdminTvDefaultMotto" rows="3" style="width:100%; box-sizing:border-box; background:#ffffff; border:1.5px solid #94a3b8; border-radius:8px; color:#0f172a; font-size:14px; font-weight:800; padding:10px; resize:none; line-height:1.5;" placeholder="기본 소개글을 입력하세요"></textarea>
-                <button type="button" onclick="saveAdminTvDefaultMotto()" style="width:100%; margin-top:10px; padding:11px; background:linear-gradient(135deg, #dc2626, #b91c1c); border:none; color:#ffffff; font-size:14.5px; font-weight:950; border-radius:8px; cursor:pointer; box-shadow:0 3px 10px rgba(220,38,38,0.35);">
-                    💾 기본 소개글 저장하기
-                </button>
-            </div>
 
-            <!-- 🌟 [사용자 요청] 매일 회개 기본 기도 영상 1 & 2 등록 (전체 회원 둘 중 선택 가능하도록 배포) -->
-            <div style="background:#eff6ff; border:1.5px solid #93c5fd; border-radius:12px; padding:14px; margin-bottom:14px;">
-                <label style="display:block; color:#1d4ed8; font-size:14px; font-weight:950; margin-bottom:6px;">
-                    📹 매일 회개 기본 영상 1 & 2 등록 (전체 회원 배포)
-                </label>
-                <div style="font-size:12px; color:#475569; line-height:1.45; margin-bottom:10px;">
-                    관리자가 등록한 2개의 유튜브 영상이 모든 회원의 [매일회개 & 영적승리] 화면에서 <strong>음악 1 / 음악 2 둘 중 선택</strong>하여 들을 수 있도록 기본 배포됩니다.
+                <!-- 2. 예톡TV 전체 기본 소개글 설정 -->
+                <div style="border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; background:#ffffff;">
+                    <button type="button" onclick="toggleAdminAccordion('accTvMotto')" style="width:100%; display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:#f8fafc; border:none; cursor:pointer; text-align:left;">
+                        <span style="font-size:14px; font-weight:950; color:#0f172a; display:flex; align-items:center; gap:7px;">
+                            <span>📝</span> <span>예톡TV 전체 기본 소개글</span>
+                        </span>
+                        <span id="arrow_accTvMotto" style="font-size:12px; color:#64748b; font-weight:900;">▼</span>
+                    </button>
+                    <div id="content_accTvMotto" style="display:none; padding:12px 14px; background:#ffffff; border-top:1px solid #e2e8f0;">
+                        <div style="font-size:12px; color:#475569; margin-bottom:6px; line-height:1.4;">
+                            성도들이 영상을 올릴 때 소개글이 비어있으면 하단에 기본으로 표출되는 은혜 문구입니다:
+                        </div>
+                        <textarea id="inpAdminTvDefaultMotto" rows="3" style="width:100%; box-sizing:border-box; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:8px; color:#0f172a; font-size:13px; font-weight:800; padding:8px 10px; resize:none; line-height:1.45; margin-bottom:8px;" placeholder="기본 소개글을 입력하세요"></textarea>
+                        <button type="button" onclick="saveAdminTvDefaultMotto()" style="width:100%; padding:9px; background:linear-gradient(135deg, #dc2626, #b91c1c); border:none; color:#ffffff; font-size:13px; font-weight:950; border-radius:8px; cursor:pointer;">
+                            💾 기본 소개글 저장하기
+                        </button>
+                    </div>
                 </div>
-                <div style="margin-bottom:8px;">
-                    <span style="font-size:12px; font-weight:900; color:#1e3a8a;">🎵 기본 기도음악 1 (예: 잔잔한 묵상 찬양):</span>
-                    <input type="text" id="inpAdminRepentVideoUrl1" style="width:100%; box-sizing:border-box; background:#ffffff; border:1.5px solid #94a3b8; border-radius:8px; color:#0f172a; font-size:13px; font-weight:800; padding:8px 10px; margin-top:3px;" placeholder="유튜브 주소 1 (예: https://youtu.be/...)" />
-                </div>
-                <div style="margin-bottom:10px;">
-                    <span style="font-size:12px; font-weight:900; color:#1e3a8a;">🎶 기본 기도음악 2 (예: 간절한 회개 찬양):</span>
-                    <input type="text" id="inpAdminRepentVideoUrl2" style="width:100%; box-sizing:border-box; background:#ffffff; border:1.5px solid #94a3b8; border-radius:8px; color:#0f172a; font-size:13px; font-weight:800; padding:8px 10px; margin-top:3px;" placeholder="유튜브 주소 2 (예: https://youtu.be/...)" />
-                </div>
-                <button type="button" onclick="saveAdminRepentVideoUrls()" style="width:100%; padding:11px; background:linear-gradient(135deg, #1d4ed8, #1e3a8a); border:none; color:#ffffff; font-size:14.5px; font-weight:950; border-radius:8px; cursor:pointer; box-shadow:0 3px 10px rgba(29,78,216,0.35);">
-                    💾 기본 영상 1 & 2 저장 (전체 회원 배포)
-                </button>
-            </div>
 
-            <!-- 관리자 바로가기 링크 버튼들 -->
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <button type="button" onclick="location.href='admin.html'" style="padding:11px 14px; background:#f1f5f9; border:1px solid #cbd5e1; color:#0f172a; font-size:13.5px; font-weight:900; border-radius:8px; cursor:pointer; text-align:left; display:flex; justify-content:space-between; align-items:center;">
-                    <span>⚙️ 웹 전체 관리자 데스크 (admin.html)</span> <span>→</span>
+                <!-- 3. 매일 회개 기본 영상 1 & 2 등록 -->
+                <div style="border:1.5px solid #e2e8f0; border-radius:12px; overflow:hidden; background:#ffffff;">
+                    <button type="button" onclick="toggleAdminAccordion('accRepent')" style="width:100%; display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:#f8fafc; border:none; cursor:pointer; text-align:left;">
+                        <span style="font-size:14px; font-weight:950; color:#0f172a; display:flex; align-items:center; gap:7px;">
+                            <span>🙏</span> <span>매일 회개 기도영상 1 & 2</span>
+                        </span>
+                        <span id="arrow_accRepent" style="font-size:12px; color:#64748b; font-weight:900;">▼</span>
+                    </button>
+                    <div id="content_accRepent" style="display:none; padding:12px 14px; background:#ffffff; border-top:1px solid #e2e8f0;">
+                        <div style="font-size:12px; color:#475569; margin-bottom:8px; line-height:1.4;">
+                            전체 회원이 [매일회개 & 영적승리]에서 선택해 들을 수 있는 2가지 기본 기도 찬양 영상입니다:
+                        </div>
+                        <div style="margin-bottom:6px;">
+                            <span style="font-size:11.5px; font-weight:900; color:#1e3a8a;">🎵 기본 기도음악 1 (평안 묵상):</span>
+                            <input type="text" id="inpAdminRepentVideoUrl1" style="width:100%; box-sizing:border-box; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:8px; color:#0f172a; font-size:12.5px; font-weight:800; padding:7px 9px; margin-top:2px;" placeholder="유튜브 주소 1 (예: https://youtu.be/...)" />
+                        </div>
+                        <div style="margin-bottom:8px;">
+                            <span style="font-size:11.5px; font-weight:900; color:#1e3a8a;">🎶 기본 기도음악 2 (회개 찬양):</span>
+                            <input type="text" id="inpAdminRepentVideoUrl2" style="width:100%; box-sizing:border-box; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:8px; color:#0f172a; font-size:12.5px; font-weight:800; padding:7px 9px; margin-top:2px;" placeholder="유튜브 주소 2 (예: https://youtu.be/...)" />
+                        </div>
+                        <button type="button" onclick="saveAdminRepentVideoUrls()" style="width:100%; padding:9px; background:linear-gradient(135deg, #1d4ed8, #1e3a8a); border:none; color:#ffffff; font-size:13px; font-weight:950; border-radius:8px; cursor:pointer;">
+                            💾 기본 영상 1 & 2 저장 (전체 회원 배포)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. 우리교회 홈 & 성도 관리 -->
+                <button type="button" onclick="location.href='churchmain.html'" style="padding:12px 14px; background:#f8fafc; border:1.5px solid #e2e8f0; color:#0f172a; font-size:13.5px; font-weight:900; border-radius:12px; cursor:pointer; text-align:left; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="display:flex; align-items:center; gap:7px;">
+                        <span>⛪</span> <span>우리교회 홈 관리 & 교우 명단</span>
+                    </span>
+                    <span style="color:#64748b; font-size:13px;">→</span>
                 </button>
-                <button type="button" onclick="location.href='churchmain.html'" style="padding:11px 14px; background:#f1f5f9; border:1px solid #cbd5e1; color:#0f172a; font-size:13.5px; font-weight:900; border-radius:8px; cursor:pointer; text-align:left; display:flex; justify-content:space-between; align-items:center;">
-                    <span>⛪ 우리교회 홈 관리</span> <span>→</span>
+
+                <!-- 5. 웹 전체 관리자 데스크 (admin.html) -->
+                <button type="button" onclick="location.href='admin.html'" style="padding:12px 14px; background:#f8fafc; border:1.5px solid #e2e8f0; color:#0f172a; font-size:13.5px; font-weight:900; border-radius:12px; cursor:pointer; text-align:left; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="display:flex; align-items:center; gap:7px;">
+                        <span>⚙️</span> <span>웹 전체 관리자 데스크 (admin.html)</span>
+                    </span>
+                    <span style="color:#64748b; font-size:13px;">→</span>
                 </button>
+
             </div>
         </div>
     </div>
@@ -13571,10 +13621,34 @@
         renderPrivateChatMessages();
     }
 
-    // 🌟 [사용자 요청] 총관리자만 보는 관리자 버튼 비밀 보안 체크
-    // 🌟 [사용자 요청] 삼각 햄버그 안 총관리실 모달 & 기본 은혜 소개글 / 매일 회개 기본 영상 1 & 2 편집/저장
+    // 🌟 [사용자 요청] 총관리실 아코디언 토글 (원하는 항목 터치 시에만 입력창이 쏙 나오게 접이식 관리)
+    function toggleAdminAccordion(id) {
+        const content = document.getElementById("content_" + id);
+        const arrow = document.getElementById("arrow_" + id);
+        if (!content) return;
+        const isHidden = (content.style.display === "none" || !content.style.display);
+        content.style.display = isHidden ? "block" : "none";
+        if (arrow) arrow.innerText = isHidden ? "▲" : "▼";
+    }
+    window.toggleAdminAccordion = toggleAdminAccordion;
+
+    // 🌟 [사용자 요청] 삼각 햄버그 안 총관리실 모달 (기본은 제목만 깔끔 노출, 클릭 시 입력창 호출)
     function openSuperAdminDeskModal() {
         const modal = document.getElementById("superAdminDeskModal");
+        
+        // 1. 모든 아코디언 기본 접힘 상태로 단정하게 초기화
+        ['accPraise', 'accTvMotto', 'accRepent'].forEach(accId => {
+            const cnt = document.getElementById("content_" + accId);
+            const arr = document.getElementById("arrow_" + accId);
+            if (cnt) cnt.style.display = "none";
+            if (arr) arr.innerText = "▼";
+        });
+
+        // 2. 입력값 불러오기
+        const ytInp = document.getElementById("inpSuperAdminTodayYt");
+        if (ytInp) {
+            ytInp.value = localStorage.getItem("yetalk_admin_yt_url") || "";
+        }
         const mottoInp = document.getElementById("inpAdminTvDefaultMotto");
         if (mottoInp) {
             mottoInp.value = localStorage.getItem("yetalk_global_tv_motto") || "내 안에 계신 하나님을 기쁘시게 하는 인생을 살아갑시다.";
@@ -13587,6 +13661,7 @@
         if (repentInp2) {
             repentInp2.value = localStorage.getItem("yetalk_admin_prayer_music_url_2") || "https://www.youtube.com/watch?v=s93B_MfqjV8";
         }
+
         if (modal) {
             modal.style.display = "flex";
             modal.classList.add("show");
@@ -13600,6 +13675,42 @@
             modal.classList.remove("show");
         }
     }
+
+    // 🌟 [사용자 요청] 총관리실에서 오늘의 찬양 영상 저장 및 실시간 전파
+    function saveSuperAdminTodayYt() {
+        const inp = document.getElementById("inpSuperAdminTodayYt");
+        const url = (inp ? inp.value : "").trim();
+        if (!url) {
+            alert("유튜브 찬양 영상 링크를 입력해 주세요.");
+            return;
+        }
+
+        localStorage.setItem("yetalk_admin_yt_url", url);
+        const vId = extractYouTubeVideoId(url);
+        if (vId) {
+            localStorage.setItem("yetalk_admin_yt_url_vid", vId);
+            localStorage.setItem("yetalkPinnedVideoId", vId);
+            if (typeof changeYouTubeVideo === "function") changeYouTubeVideo(vId);
+        }
+
+        if (window.yetalkDb && window.yetalkFs) {
+            try {
+                const { doc, setDoc, serverTimestamp } = window.yetalkFs;
+                setDoc(doc(window.yetalkDb, "yetalk_global_config", "suite_video"), {
+                    ytUrl: url,
+                    vId: vId || "",
+                    videoId: vId || "",
+                    updatedAt: serverTimestamp(),
+                    updatedBy: localStorage.getItem("yetalk_user_phone") || localStorage.getItem("yetalk_user_name") || "admin"
+                }, { merge: true }).catch(() => {});
+            } catch(e){}
+        }
+
+        alert("💾 오늘의 찬양 영상이 성공적으로 저장되었습니다!\n모든 성도 기기에 실시간으로 전파됩니다.");
+        closeSuperAdminDeskModal();
+        if (typeof refreshBibleSuite === "function") refreshBibleSuite();
+    }
+    window.saveSuperAdminTodayYt = saveSuperAdminTodayYt;
 
     function saveAdminTvDefaultMotto() {
         const mottoInp = document.getElementById("inpAdminTvDefaultMotto");
