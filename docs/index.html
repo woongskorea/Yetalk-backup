@@ -5919,9 +5919,18 @@
                     💡 예톡의 말씀은 성경의 시간대 순환에 맞추어 <strong>3시간마다 새로운 은혜의 말씀</strong>으로 자동 전환됩니다.
                 </div>
             </div>
-            <!-- 닫기 버튼 -->
-            <div style="padding:10px 18px 16px 18px; background:#ffffff; border-top:1px solid #e2e8f0;">
-                <button type="button" onclick="closeBiblicalTimeExplModal()" style="width:100%; height:42px; background:#047857; color:#ffffff; border:none; border-radius:10px; font-size:14.5px; font-weight:950; cursor:pointer;">확인</button>
+            <!-- 🌟 [사용자 요청] 하단 고정 애드몹 슬롯 및 닫기 확인 버튼 -->
+            <div style="padding:10px 18px 14px 18px; background:#f8fafc; border-top:1px solid #e2e8f0; flex-shrink:0; display:flex; flex-direction:column; gap:8px;">
+                <!-- 애드몹 공식 스폰서 슬롯 (고정) -->
+                <div style="width:100%; max-width:320px; height:50px; margin:0 auto; background:#ffffff; border:1px solid #cbd5e1; border-radius:8px; display:flex; flex-direction:column; justify-content:center; align-items:center; box-sizing:border-box;">
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <span style="background:#047857; color:#fff; font-size:10px; font-weight:900; padding:1px 5px; border-radius:3px;">AD</span>
+                        <strong style="font-size:12px; color:#334155;">Google AdMob (320 x 50)</strong>
+                    </div>
+                    <span style="font-size:10.5px; color:#64748b; margin-top:2px;">예톡 성경 기도 & 말씀 묵상 공식 스폰서</span>
+                </div>
+                <!-- 확인 버튼 -->
+                <button type="button" onclick="closeBiblicalTimeExplModal()" style="width:100%; height:40px; background:#047857; color:#ffffff; border:none; border-radius:10px; font-size:14.5px; font-weight:950; cursor:pointer;">확인</button>
             </div>
         </div>
     </div>
@@ -7203,7 +7212,7 @@
     window.getBiblicalTimeInfo = getBiblicalTimeInfo;
 
     // 🌟 [사용자 요청] 성경 시간대 터치 시 참조 성경 말씀 펼쳐짐 (아코디언 토글)
-    let openedBiblicalSlotIndex = -1;
+    let openedBiblicalSlotIndex = -2; // 🌟 -2: 기본은 모두 닫힌 상태 (시간대를 직접 누를 때만 펼쳐짐)
 
     function renderBiblicalTimeSlots() {
         const container = document.getElementById("dispBiblicalSlotsContainer");
@@ -7216,24 +7225,27 @@
 
         container.innerHTML = BIBLICAL_TIME_SLOTS.map((slot, idx) => {
             const isCurrent = (hour >= slot.hourMin && hour < slot.hourMax);
-            const isExpanded = (openedBiblicalSlotIndex === idx) || (openedBiblicalSlotIndex === -1 && isCurrent);
+            const isExpanded = (openedBiblicalSlotIndex === idx);
 
             return `
-            <div onclick="toggleBiblicalSlotScripture(${idx})" style="background:${isCurrent ? '#ecfdf5' : '#f8fafc'}; border:${isCurrent ? '1.5px solid #86efac' : '1px solid #e2e8f0'}; border-radius:10px; padding:10px 12px; cursor:pointer; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-                    <div style="display:flex; align-items:center; gap:6px; min-width:0;">
-                        <strong style="font-size:13.5px; color:${isCurrent ? '#047857' : '#0f172a'}; white-space:nowrap;">${slot.name}</strong>
+            <div onclick="toggleBiblicalSlotScripture(${idx})" style="background:${isCurrent ? '#ecfdf5' : '#f8fafc'}; border:${isCurrent ? '1.5px solid #86efac' : '1px solid #e2e8f0'}; border-radius:12px; padding:11px 14px; cursor:pointer; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.02);">
+                <!-- 🌟 1번째 줄: 시간대 제목 & 펼침 화살표 (절대 겹치지 않게 여유롭게) -->
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        ${isCurrent ? '<span style="font-size:11px; background:#047857; color:#fff; font-weight:900; padding:1px 6px; border-radius:4px;">현재</span>' : ''}
+                        <strong style="font-size:14px; font-weight:950; color:${isCurrent ? '#047857' : '#0f172a'}; letter-spacing:-0.2px;">${slot.name}</strong>
                     </div>
-                    <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
-                        <span style="font-size:12px; color:${isCurrent ? '#047857' : '#475569'}; font-weight:${isCurrent ? '900' : '700'};">${slot.shortDesc}</span>
-                        <span style="font-size:11px; color:${isCurrent ? '#047857' : '#64748b'}; transform:${isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}; transition:transform 0.2s;">▼</span>
-                    </div>
+                    <span style="font-size:12px; color:${isCurrent ? '#047857' : '#64748b'}; transform:${isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}; transition:transform 0.2s;">▼</span>
                 </div>
-                <!-- 🌟 [사용자 요청] 그 시간대를 누르면 옆에 있는 참조 말씀 본문이 즉시 펼쳐지는 영역 -->
+                <!-- 🌟 2번째 줄: 설명 문구 (두 줄 분리로 중첩 완벽 방지) -->
+                <div style="font-size:12.5px; color:${isCurrent ? '#065f46' : '#475569'}; font-weight:${isCurrent ? '900' : '700'}; margin-top:4px; line-height:1.45; word-break:keep-all;">
+                    ${slot.shortDesc}
+                </div>
+                <!-- 🌟 [사용자 요청] 해당 시간대를 누를 때만 옆에 있는 참조 말씀 본문이 즉시 펼쳐지는 영역 -->
                 <div id="slotVerseArea_${idx}" style="display:${isExpanded ? 'block' : 'none'}; margin-top:10px; padding-top:10px; border-top:1px dashed ${isCurrent ? '#86efac' : '#cbd5e1'};">
                     <div style="font-size:11.5px; font-weight:900; color:#047857; margin-bottom:6px;">📖 참조 성경 말씀 본문:</div>
                     ${slot.verses.map(v => `
-                        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:8px 10px; margin-bottom:6px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
+                        <div style="background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; padding:9px 11px; margin-bottom:6px; box-shadow:0 1px 2px rgba(0,0,0,0.03);">
                             <div style="font-size:12px; font-weight:950; color:#065f46; margin-bottom:3px;">📜 ${v.ref}</div>
                             <div style="font-size:13px; color:#1e293b; line-height:1.6; word-break:keep-all; font-weight:600;">“${v.text}”</div>
                         </div>
@@ -7262,7 +7274,7 @@
         const curDesc = document.getElementById("dispBibModalCurDesc");
         if (curTitle) curTitle.innerText = `현재 성경 시간: ${bTime.title}`;
         if (curDesc) curDesc.innerText = `“${bTime.desc}”`;
-        openedBiblicalSlotIndex = -1; // 현재 시간 기본 펼침 상태로 초기화
+        openedBiblicalSlotIndex = -2; // 🌟 기본은 모두 닫힌 상태 (시간대 누를 때만 상세 설명 펼쳐짐)
         renderBiblicalTimeSlots();
 
         if (modal) {
