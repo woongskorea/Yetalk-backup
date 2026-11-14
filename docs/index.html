@@ -11106,20 +11106,28 @@
 
     let currentBoardCategory = '감사게시판';
 
+    function getCurrentUserRole() {
+        return (localStorage.getItem("yetalk_church_role") || 
+                localStorage.getItem("yetalkChurchRole") || 
+                localStorage.getItem("yetalk_user_role") || 
+                localStorage.getItem("yetalkUserRole") || 
+                "성도").replace(/\(사모포함\)/g, '').replace(/\(간단가입\)/g, '').replace(/\(간단등록\)/g, '').trim() || "성도";
+    }
+
     // 🌟 [사용자 요청] 담임목사 인증 여부 확인 (담임목사전용게시판 접근 제어)
     function isCurrentUserPastor() {
-        const role = (localStorage.getItem("yetalk_user_role") || "").trim();
+        const role = getCurrentUserRole();
         const isOwner = localStorage.getItem("yetalk_is_church_owner") === "true";
-        return role === "담임목사" || isOwner;
+        return role === "담임목사" || role.includes("담임목사") || isOwner;
     }
 
     // 🌟 [사용자 요청] 커뮤니티 전면 상단 5대 게시판 (감사, 자유, 나눔토론, 선교보고, 담임목사전용)
     function openFullscreenBoard(boardType = null) {
         cancelAutoSuiteTimer();
         if (boardType === '담임목사전용' && !isCurrentUserPastor()) {
-            const currentRole = (localStorage.getItem("yetalk_user_role") || "성도").trim();
+            const currentRole = getCurrentUserRole();
             alert(`🔒 [담임목사전용 게시판]\n\n이 공간은 담임목사님 전용 게시판입니다.\n담임목사님으로 등록 및 인증된 분만 입장하실 수 있습니다.\n\n(현재 나의 직분: ${currentRole})`);
-            boardType = currentBoardCategory || '감사게시판';
+            return; // 🌟 [버그 수정] 비인가 직분(성도, 장로 등)은 게시판을 열지 않고 현재 화면 유지!
         }
         if (boardType && ['감사게시판', '자유게시판', '나눔토론', '선교보고', '담임목사전용', '예수동행'].indexOf(boardType) >= 0) {
             currentBoardCategory = boardType;
@@ -11131,7 +11139,7 @@
 
     function switchBoardCategory(cat) {
         if (cat === '담임목사전용' && !isCurrentUserPastor()) {
-            const currentRole = (localStorage.getItem("yetalk_user_role") || "성도").trim();
+            const currentRole = getCurrentUserRole();
             alert(`🔒 [담임목사전용 게시판]\n\n이 공간은 담임목사님 전용 게시판입니다.\n담임목사님으로 등록 및 인증된 분만 입장하실 수 있습니다.\n\n(현재 나의 직분: ${currentRole})`);
             return;
         }
@@ -11525,7 +11533,7 @@
 
     function selectCafeCat(el, cat) {
         if (cat === '담임목사전용' && !isCurrentUserPastor()) {
-            const currentRole = (localStorage.getItem("yetalk_user_role") || "성도").trim();
+            const currentRole = getCurrentUserRole();
             alert(`🔒 [담임목사전용 게시판]\n\n담임목사님만 이 카테고리로 글을 작성하실 수 있습니다.\n\n(현재 나의 직분: ${currentRole})`);
             return;
         }
