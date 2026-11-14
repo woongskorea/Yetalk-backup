@@ -6940,7 +6940,66 @@
         return total3HourSlots % totalCount;
     }
 
-    // 🌟 말씀 3시간 자동 순환 평가 (전국 어디서나 누구에게나 똑같은 말씀)
+    // 🌟 [사용자 요청] 3시간마다 바뀌는 성경 시간대 (성경 제1시, 제3시, 제6시, 제9시, 밤 1~4경) 계산
+    function getBiblicalTimeInfo() {
+        const now = new Date();
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+        const kstDate = new Date(utc + (9 * 3600000));
+        const hour = kstDate.getHours();
+
+        if (hour >= 0 && hour < 3) {
+            return {
+                title: "성경 밤 3경 (00~03시)",
+                shortTitle: "밤 3경 (00~03시)",
+                desc: "닭 울 때 파수꾼의 깊은 밤 기도"
+            };
+        } else if (hour >= 3 && hour < 6) {
+            return {
+                title: "성경 밤 4경 (03~06시)",
+                shortTitle: "밤 4경 (03~06시)",
+                desc: "예수님께서 바다 위를 걸어오신 시간 (마 14:25)"
+            };
+        } else if (hour >= 6 && hour < 9) {
+            return {
+                title: "성경 제1시 (06~09시)",
+                shortTitle: "제1시 (06~09시)",
+                desc: "새 아침 해 뜰 때 첫 시간의 감사와 찬양"
+            };
+        } else if (hour >= 9 && hour < 12) {
+            return {
+                title: "성경 제3시 (09~12시)",
+                shortTitle: "제3시 (09~12시)",
+                desc: "오순절 성령 강림의 오전 기도 시간 (행 2:15)"
+            };
+        } else if (hour >= 12 && hour < 15) {
+            return {
+                title: "성경 제6시 (12~15시)",
+                shortTitle: "제6시 (12~15시)",
+                desc: "베드로의 정오 기도 시간 (행 10:9)"
+            };
+        } else if (hour >= 15 && hour < 18) {
+            return {
+                title: "성경 제9시 (15~18시)",
+                shortTitle: "제9시 (15~18시)",
+                desc: "성전 오후 기도 시간 (행 3:1)"
+            };
+        } else if (hour >= 18 && hour < 21) {
+            return {
+                title: "성경 밤 1경 (18~21시)",
+                shortTitle: "밤 1경 (18~21시)",
+                desc: "해 질 때 안식과 저녁 감사 시간"
+            };
+        } else {
+            return {
+                title: "성경 밤 2경 (21~24시)",
+                shortTitle: "밤 2경 (21~24시)",
+                desc: "하루를 마감하는 깊은 밤 평안의 기도"
+            };
+        }
+    }
+    window.getBiblicalTimeInfo = getBiblicalTimeInfo;
+
+    // 🌟 말씀 3시간 자동 순환 평가 (성경 시간대 반영)
     function evaluateGoodNews() {
         const badgeEl = document.getElementById("gnBadge");
         const textEl = document.getElementById("gnText");
@@ -6962,7 +7021,9 @@
             refTarget.innerText = item.ref;
         }
         if (typeTagEl) {
-            typeTagEl.innerText = "전국 공동 묵상";
+            const bTime = getBiblicalTimeInfo();
+            typeTagEl.innerText = `⏳ ${bTime.title}`;
+            typeTagEl.title = `${bTime.title} (${bTime.desc})`;
             typeTagEl.style.color = "#047857";
             typeTagEl.style.background = "#ecfdf5";
             typeTagEl.style.border = "1px solid #a7f3d0";
@@ -9916,7 +9977,11 @@
         if (!modal) return;
 
         // 2. 구절 및 출처 설정
-        if (refBadge) refBadge.innerText = rawRef || `${book} ${ch}장`;
+        if (refBadge) {
+            const bTime = typeof getBiblicalTimeInfo === "function" ? getBiblicalTimeInfo() : null;
+            const timeTag = bTime ? ` <span style="opacity:0.85; font-size:12px; margin-left:4px;">(⏳ ${bTime.shortTitle})</span>` : "";
+            refBadge.innerHTML = `<span>${rawRef || `${book} ${ch}장`}</span>${timeTag}`;
+        }
         if (vText) vText.innerText = verseText ? `“${verseText.replace(/^[\s“"']+|[\s”"']+$/g, '')}”` : "“주님의 말씀은 내 발에 등이요 내 길에 빛이니이다”";
 
         // 3. 사용자가 적어둔 개인 묵상/회개/기도 불러오기
