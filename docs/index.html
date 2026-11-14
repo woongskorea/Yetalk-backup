@@ -15106,38 +15106,83 @@
         }
     }
 
-    function selectPrayerMusicTrack(trackNum) {
-        selectedPrayerTrack = trackNum;
-        localStorage.setItem("yetalk_selected_prayer_track", trackNum);
-
+    function updatePrayerMusicButtonsUI() {
         const btn1 = document.getElementById("btnSelectMusicTrack1");
         const btn2 = document.getElementById("btnSelectMusicTrack2");
+        const statusIcon = document.getElementById("iconDailyRepentAudioStatus");
+
+        const styleInactive = "flex:1; padding:11px 8px; font-size:14px; font-weight:900; border-radius:10px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:inline-flex; align-items:center; justify-content:center; gap:6px;";
+        const styleActiveRed = "flex:1; padding:11px 8px; font-size:14px; font-weight:950; border-radius:10px; border:2px solid #b91c1c; background:#dc2626; color:#ffffff; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 3px 10px rgba(220,38,38,0.35); display:inline-flex; align-items:center; justify-content:center; gap:6px;";
+
         if (btn1 && btn2) {
-            if (trackNum === 1) {
-                btn1.style.background = "#2563eb";
-                btn1.style.color = "#ffffff";
-                btn1.style.border = "2px solid #2563eb";
-                btn2.style.background = "#ffffff";
-                btn2.style.color = "#475569";
-                btn2.style.border = "1.5px solid #cbd5e1";
+            if (isDailyRepentPlaying && selectedPrayerTrack === 1) {
+                btn1.style.cssText = styleActiveRed;
+                btn1.innerHTML = `<span>🎵</span> <span>기도음악 1</span>`;
+                btn2.style.cssText = styleInactive;
+                btn2.innerHTML = `<span>🎶</span> <span>기도음악 2</span>`;
+                if (statusIcon) statusIcon.innerText = "🎵";
+            } else if (isDailyRepentPlaying && selectedPrayerTrack === 2) {
+                btn1.style.cssText = styleInactive;
+                btn1.innerHTML = `<span>🎵</span> <span>기도음악 1</span>`;
+                btn2.style.cssText = styleActiveRed;
+                btn2.innerHTML = `<span>🎶</span> <span>기도음악 2</span>`;
+                if (statusIcon) statusIcon.innerText = "🎶";
             } else {
-                btn2.style.background = "#2563eb";
-                btn2.style.color = "#ffffff";
-                btn2.style.border = "2px solid #2563eb";
-                btn1.style.background = "#ffffff";
-                btn1.style.color = "#475569";
-                btn1.style.border = "1.5px solid #cbd5e1";
+                btn1.style.cssText = styleInactive;
+                btn1.innerHTML = `<span>🎵</span> <span>기도음악 1</span>`;
+                btn2.style.cssText = styleInactive;
+                btn2.innerHTML = `<span>🎶</span> <span>기도음악 2</span>`;
+                if (statusIcon) statusIcon.innerText = "🎵";
             }
         }
+    }
+    window.updatePrayerMusicButtonsUI = updatePrayerMusicButtonsUI;
 
-        try { updateDailyRepentVideoPlayer(); } catch(e){}
-
-        if (isDailyRepentPlaying) {
+    function clickPrayerMusicTrack(trackNum) {
+        if (isDailyRepentPlaying && selectedPrayerTrack === trackNum) {
             stopDailyRepentPrayerAudio();
-            toggleDailyRepentPrayerAudio();
+            showBibleToast(`⏹️ [기도음악 ${trackNum}] 재생이 중지되었습니다.`);
         } else {
-            showBibleToast(trackNum === 1 ? "🎵 [기도음악 1]이 선택되었습니다. [기도음악 켜기]를 누르시면 재생됩니다." : "🎶 [기도음악 2]가 선택되었습니다. [기도음악 켜기]를 누르시면 재생됩니다.");
+            selectedPrayerTrack = trackNum;
+            localStorage.setItem("yetalk_selected_prayer_track", trackNum);
+            playPrayerMusicDirect(trackNum);
+            showBibleToast(`🎶 [기도음악 ${trackNum}] 재생을 시작합니다.`);
         }
+    }
+    window.clickPrayerMusicTrack = clickPrayerMusicTrack;
+
+    function playPrayerMusicDirect(trackNum) {
+        stopDailyRepentPrayerAudio(true);
+        const musicUrl = getActivePrayerMusicUrl(trackNum);
+        const ytId = extractYouTubeVideoId(musicUrl);
+
+        if (ytId) {
+            let ytHost = document.getElementById("dailyRepentYtHost");
+            if (!ytHost) {
+                ytHost = document.createElement("div");
+                ytHost.id = "dailyRepentYtHost";
+                ytHost.style.cssText = "display:none; width:1px; height:1px; position:absolute; left:-9999px;";
+                document.body.appendChild(ytHost);
+            }
+            ytHost.innerHTML = `<iframe id="dailyYtIframe" width="200" height="200" src="https://www.youtube.com/embed/${ytId}?autoplay=1&loop=1&playlist=${ytId}&enablejsapi=1" frameborder="0" allow="autoplay; encrypted-media"></iframe>`;
+        } else {
+            if (!dailyRepentPrayerAudio) {
+                dailyRepentPrayerAudio = new Audio(musicUrl);
+                dailyRepentPrayerAudio.loop = true;
+            } else {
+                dailyRepentPrayerAudio.src = musicUrl;
+                dailyRepentPrayerAudio.loop = true;
+            }
+            dailyRepentPrayerAudio.play().catch(e => console.warn(e));
+        }
+
+        isDailyRepentPlaying = true;
+        updatePrayerMusicButtonsUI();
+    }
+    window.playPrayerMusicDirect = playPrayerMusicDirect;
+
+    function selectPrayerMusicTrack(trackNum) {
+        clickPrayerMusicTrack(trackNum);
     }
     window.selectPrayerMusicTrack = selectPrayerMusicTrack;
 
@@ -15153,48 +15198,11 @@
     }
 
     function toggleDailyRepentPrayerAudio() {
-        const btn = document.getElementById("btnToggleDailyRepentAudio");
-        const statusIcon = document.getElementById("iconDailyRepentAudioStatus");
-
-        if (isDailyRepentPlaying) {
-            stopDailyRepentPrayerAudio();
-            showBibleToast("⏸️ 기도음악이 일시 중지되었습니다.");
-        } else {
-            const musicUrl = getActivePrayerMusicUrl(selectedPrayerTrack);
-            const ytId = extractYouTubeVideoId(musicUrl);
-
-            if (ytId) {
-                let ytHost = document.getElementById("dailyRepentYtHost");
-                if (!ytHost) {
-                    ytHost = document.createElement("div");
-                    ytHost.id = "dailyRepentYtHost";
-                    ytHost.style.cssText = "display:none; width:1px; height:1px; position:absolute; left:-9999px;";
-                    document.body.appendChild(ytHost);
-                }
-                ytHost.innerHTML = `<iframe id="dailyYtIframe" width="200" height="200" src="https://www.youtube.com/embed/${ytId}?autoplay=1&loop=1&playlist=${ytId}&enablejsapi=1" frameborder="0" allow="autoplay; encrypted-media"></iframe>`;
-            } else {
-                if (!dailyRepentPrayerAudio) {
-                    dailyRepentPrayerAudio = new Audio(musicUrl);
-                    dailyRepentPrayerAudio.loop = true;
-                } else if (dailyRepentPrayerAudio.src !== musicUrl) {
-                    dailyRepentPrayerAudio.src = musicUrl;
-                    dailyRepentPrayerAudio.loop = true;
-                }
-                dailyRepentPrayerAudio.play().catch(e => console.warn(e));
-            }
-
-            isDailyRepentPlaying = true;
-            if (btn) {
-                btn.style.background = "linear-gradient(135deg, #059669, #047857)";
-                btn.innerHTML = `<span>⏹️</span> <span>기도음악 끄기</span>`;
-            }
-            if (statusIcon) statusIcon.innerText = selectedPrayerTrack === 1 ? "🎵" : "🎶";
-            showBibleToast(`🎶 [기도음악 ${selectedPrayerTrack}] 재생을 시작합니다.`);
-        }
+        clickPrayerMusicTrack(selectedPrayerTrack || 1);
     }
     window.toggleDailyRepentPrayerAudio = toggleDailyRepentPrayerAudio;
 
-    function stopDailyRepentPrayerAudio() {
+    function stopDailyRepentPrayerAudio(isSwitching) {
         if (dailyRepentPrayerAudio) {
             try {
                 dailyRepentPrayerAudio.pause();
@@ -15204,14 +15212,10 @@
         const ytHost = document.getElementById("dailyRepentYtHost");
         if (ytHost) ytHost.innerHTML = "";
 
-        isDailyRepentPlaying = false;
-        const btn = document.getElementById("btnToggleDailyRepentAudio");
-        const statusIcon = document.getElementById("iconDailyRepentAudioStatus");
-        if (btn) {
-            btn.style.background = "linear-gradient(135deg, #2563eb, #1d4ed8)";
-            btn.innerHTML = `<span>▶️</span> <span>기도음악 켜기</span>`;
+        if (!isSwitching) {
+            isDailyRepentPlaying = false;
+            updatePrayerMusicButtonsUI();
         }
-        if (statusIcon) statusIcon.innerText = "🎵";
     }
     window.stopDailyRepentPrayerAudio = stopDailyRepentPrayerAudio;
 
@@ -15411,7 +15415,7 @@
         if (!modal) return;
         modal.classList.add("show");
         modal.style.setProperty("display", "flex", "important");
-        selectPrayerMusicTrack(selectedPrayerTrack || 1);
+        updatePrayerMusicButtonsUI();
     }
 
     function closeDailyRepentVictoryModal() {
@@ -15961,37 +15965,24 @@
                     </div>
                 </div>
 
-                <!-- 🌟 [사용자 요청] 기도음악 2개 선택 (음악 1 / 음악 2) & 배경음악 재생 컨트롤 바 -->
+                <!-- 🌟 [사용자 요청] 심플한 기도음악 바: '기도음악' & '⚙️ 변경', 밑에 칸에 기도음악 1, 기도음악 2 (선택 시 빨강색) -->
                 <div style="background:linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%); border:1.8px solid #bfdbfe; border-radius:14px; padding:12px 14px; margin-bottom:18px; box-shadow:0 2px 8px rgba(37,99,235,0.08);">
-                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:8px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
                         <div style="display:flex; align-items:center; gap:6px;">
                             <span id="iconDailyRepentAudioStatus" style="font-size:20px; line-height:1;">🎵</span>
-                            <span style="font-size:15px; font-weight:950; color:#1e3a8a;">은혜의 기도 배경음악</span>
+                            <span style="font-size:16px; font-weight:950; color:#1e3a8a;">기도음악</span>
                         </div>
-                        <div style="display:flex; align-items:center; gap:5px;">
-                            <button type="button" onclick="openAdminChangePrayerMusicModal()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; font-size:11.5px; font-weight:850; color:#475569; padding:4px 8px; cursor:pointer;" title="음악 주소 변경">⚙️ 변경</button>
-                            <button type="button" id="btnToggleRepentVideoFold" onclick="toggleRepentVideoFold()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:6px; font-size:11.5px; font-weight:850; color:#2563eb; padding:4px 8px; cursor:pointer;">📹 영상보기 ▼</button>
-                        </div>
+                        <button type="button" onclick="openAdminChangePrayerMusicModal()" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:8px; font-size:12px; font-weight:850; color:#475569; padding:5px 12px; cursor:pointer;" title="음악 주소 변경">⚙️ 변경</button>
                     </div>
 
-                    <!-- 🌟 음악 1 / 음악 2 둘 중 선택 버튼 & 기도음악 켜기/끄기 -->
-                    <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
-                        <div style="display:flex; gap:6px; flex:1; min-width:180px;">
-                            <button type="button" id="btnSelectMusicTrack1" onclick="selectPrayerMusicTrack(1)" style="flex:1; padding:8px 6px; font-size:13px; font-weight:950; border-radius:8px; border:2px solid #2563eb; background:#2563eb; color:#ffffff; cursor:pointer; text-align:center; transition:all 0.15s ease;">
-                                🎵 기도음악 1
-                            </button>
-                            <button type="button" id="btnSelectMusicTrack2" onclick="selectPrayerMusicTrack(2)" style="flex:1; padding:8px 6px; font-size:13px; font-weight:950; border-radius:8px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; cursor:pointer; text-align:center; transition:all 0.15s ease;">
-                                🎶 기도음악 2
-                            </button>
-                        </div>
-                        <button type="button" id="btnToggleDailyRepentAudio" onclick="toggleDailyRepentPrayerAudio()" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); color:#ffffff; border:none; border-radius:10px; padding:9px 16px; font-size:13.5px; font-weight:950; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(37,99,235,0.28); flex-shrink:0;">
-                            <span>▶️</span> <span>기도음악 켜기</span>
+                    <!-- 🌟 [사용자 요청] 기도음악 1 / 기도음악 2 (연하고, 선택/재생 시 빨강색으로 확인, 켜기 버튼 없이 누르면 바로 재생/정지) -->
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" id="btnSelectMusicTrack1" onclick="clickPrayerMusicTrack(1)" style="flex:1; padding:11px 8px; font-size:14px; font-weight:900; border-radius:10px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+                            <span>🎵</span> <span>기도음악 1</span>
                         </button>
-                    </div>
-
-                    <!-- 🌟 [선택형 영상 플레이어] 기본 접힘, "📹 영상보기" 누르면 펼쳐짐 -->
-                    <div id="dailyRepentPlayerWrap" style="display:none; position:relative; width:100%; padding-top:56.25%; background:#000; border-radius:10px; overflow:hidden; margin-top:12px; box-shadow:0 3px 10px rgba(0,0,0,0.15);">
-                        <iframe id="dailyRepentVideoIframe" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        <button type="button" id="btnSelectMusicTrack2" onclick="clickPrayerMusicTrack(2)" style="flex:1; padding:11px 8px; font-size:14px; font-weight:900; border-radius:10px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+                            <span>🎶</span> <span>기도음악 2</span>
+                        </button>
                     </div>
                 </div>
 
@@ -16001,7 +15992,7 @@
                 <!-- 기도문 본문: [사용자 요청] 새로 수정·추가해주신 강력한 회개기도문 전문 완벽 반영 -->
                 <div style="font-size:16.5px; font-weight:800; color:#1e293b; line-height:1.95; word-break:keep-all;">
                     <p style="margin:0 0 20px 0;">
-                        만군의 여호와 하나님, 온 우주 만물의 주관자이시며 나의 참된 아버지이신 주님을 찬양합니다! 예수 그리스도께서 십자가 위에서 "다 이루었다" 선포하시며 모든 어둠의 정사와 권세를 완전히 박살 내셨음을 믿고 선포합니다. 오직 주님만이 나의 유일한 구주이시며, 내 영혼과 가정, 일터의 절대적인 인도자 되심을 선포합니다.
+                        만군의 여호와 하나님, 온 우주 만물의 주관자이시며 나의 참된 아버지이신 주님을 찬양합니다! 예수 그리스도께서 십자가 위에서 "다 이루었다" 선포하시며 모든 어둠의 정사와 권세를 완전히 박살 내셨음을 믿고 선포합니다. 오직 주님만이 나의 유일한 구주이시며, 내 영혼과 가정, 일터의 절대적인 인도자 되심을 감사합니다.
                     </p>
 
                     <p style="margin:0 0 20px 0;">
