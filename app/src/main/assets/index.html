@@ -328,7 +328,7 @@
             flex: 1 1 0%;
             min-height: 0;
             overflow-y: auto;
-            padding: 8px 12px 90px 12px !important;
+            padding: 8px 12px 16px 12px !important;
             background: #ffffff;
             display: flex;
             flex-direction: column;
@@ -430,7 +430,7 @@
             max-width: 480px;
             margin: 0 auto;
             background: #f8fafc;
-            z-index: 10000;
+            z-index: 99999 !important;
             display: none;
             flex-direction: column;
             overflow: hidden;
@@ -438,7 +438,7 @@
             height: 100%;
         }
         .board-fullscreen-overlay.show {
-            display: flex;
+            display: flex !important;
         }
         .board-fullscreen-header {
             background: #ffffff;
@@ -3004,23 +3004,21 @@
             margin-top: 2px;
         }
 
-        /* 포털 홈 최하단 애드몹 100 고정 배너: [사용자 요청] 항상 화면 최하단 고정 노출(position: fixed) 및 안짤리게 여백 확보 */
+        /* 포털 홈 최하단 애드몹 100 고정 배너: 항상 화면 최하단 고정 노출(flex-shrink: 0) 및 안짤리게 여백 확보 */
         .bottom-admob-100-portal {
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
             width: 100% !important;
             max-width: 480px !important;
-            min-height: 68px;
+            min-height: 64px;
             height: auto;
             background: #ffffff;
             border-top: 1.5px solid #cbd5e1;
             display: flex !important;
             align-items: center;
             justify-content: center;
-            padding: 6px 12px max(calc(var(--safe-bottom) + 10px), 38px) 12px;
-            z-index: 9999 !important;
+            padding: 6px 12px max(calc(var(--safe-bottom) + 8px), 28px) 12px !important;
+            flex-shrink: 0 !important;
+            position: relative !important;
+            z-index: 99 !important;
             box-sizing: border-box;
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
         }
@@ -4661,6 +4659,7 @@
             .bottom-admob-100-portal {
                 max-width: 860px !important;
                 display: flex !important;
+                flex-shrink: 0 !important;
             }
             .admob-pill-portal {
                 display: flex !important;
@@ -5030,7 +5029,7 @@
             </div>
         </div>
 
-        <div style="height: 120px; flex-shrink: 0;"></div>
+        <div style="height: 16px; flex-shrink: 0;"></div>
 
     </main>
 
@@ -8170,10 +8169,11 @@
     function formatBoardAuthorId(author) {
         const myName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id") || "최베드로";
         if (!author) return myName;
-        if (author.startsWith("user_") || author.includes("최웅식") || author.includes("최용식") || author.includes("최예톡") || author === "예톡회원") {
+        const s = String(author);
+        if (s.startsWith("user_") || s.includes("최웅식") || s.includes("최용식") || s.includes("최예톡") || s === "예톡회원") {
             return myName;
         }
-        return author;
+        return s;
     }
 
     // 🌟 [사용자 요청] 며칠 전 작성한 글이 항상 '방금 전'으로 고정되던 문제 해결: 실제 경과 시간 동적 계산 함수
@@ -11846,7 +11846,7 @@
 
     // 🌟 [사용자 요청] 커뮤니티 전면 상단 5대 게시판 (감사, 자유, 나눔토론, 선교보고, 담임목사전용)
     function openFullscreenBoard(boardType = null) {
-        cancelAutoSuiteTimer();
+        try { if (typeof cancelAutoSuiteTimer === 'function') cancelAutoSuiteTimer(); } catch(e){}
         if (boardType === '담임목사전용' && !isCurrentUserPastor()) {
             const currentRole = getCurrentUserRole();
             alert(`🔒 [담임목사전용 게시판]\n\n이 공간은 담임목사님 전용 게시판입니다.\n담임목사님으로 등록 및 인증된 분만 입장하실 수 있습니다.\n\n(현재 나의 직분: ${currentRole})`);
@@ -11855,9 +11855,17 @@
         if (boardType && ['감사게시판', '자유게시판', '나눔토론', '선교보고', '담임목사전용', '예수동행'].indexOf(boardType) >= 0) {
             currentBoardCategory = boardType;
         }
-        switchBoardCategory(currentBoardCategory);
         const overlay = document.getElementById("boardFullscreenOverlay");
-        if (overlay) overlay.classList.add("show");
+        if (overlay) {
+            overlay.style.removeProperty("display");
+            overlay.style.setProperty("display", "flex", "important");
+            overlay.classList.add("show");
+        }
+        try {
+            switchBoardCategory(currentBoardCategory);
+        } catch(e) {
+            console.error("switchBoardCategory error:", e);
+        }
     }
 
     function switchBoardCategory(cat) {
@@ -11899,12 +11907,19 @@
             if (subEl) subEl.innerText = "오직 담임목사님만을 위한 나눔과 목회 공간";
         }
 
-        renderFullscreenBoard();
+        try {
+            renderFullscreenBoard();
+        } catch(e) {
+            console.error("renderFullscreenBoard error:", e);
+        }
     }
 
     function closeFullscreenBoard() {
         const overlay = document.getElementById("boardFullscreenOverlay");
-        if (overlay) overlay.classList.remove("show");
+        if (overlay) {
+            overlay.classList.remove("show");
+            overlay.style.setProperty("display", "none", "important");
+        }
     }
 
     function toggleBoardDropPanel() {
@@ -12079,20 +12094,29 @@
 
     // 🌟 [사용자 요청] 최신 글이 제일 위에 올라오도록 시간 역순(최신순) 엄격 정렬
     function getLoadedBoardPosts() {
-        let posts = [...DEFAULT_BOARD_POSTS];
+        let posts = Array.isArray(DEFAULT_BOARD_POSTS) ? [...DEFAULT_BOARD_POSTS] : [];
         try {
-            const saved = JSON.parse(localStorage.getItem("yetalk_unified_board_posts") || "[]");
-            if (Array.isArray(saved) && saved.length > 0) {
-                const savedIds = new Set(saved.map(s => String(s.id)));
-                const remainingDefaults = DEFAULT_BOARD_POSTS.filter(d => !savedIds.has(String(d.id)));
-                posts = [...saved, ...remainingDefaults];
+            const raw = localStorage.getItem("yetalk_unified_board_posts");
+            if (raw) {
+                const saved = JSON.parse(raw);
+                if (Array.isArray(saved) && saved.length > 0) {
+                    const validSaved = saved.filter(s => s && s.id);
+                    const savedIds = new Set(validSaved.map(s => String(s.id)));
+                    const remainingDefaults = posts.filter(d => d && d.id && !savedIds.has(String(d.id)));
+                    posts = [...validSaved, ...remainingDefaults];
+                }
             }
-        } catch(e) {}
+        } catch(e) {
+            console.error("getLoadedBoardPosts error:", e);
+        }
+        posts = posts.filter(p => p && typeof p === 'object');
         posts.forEach(p => {
             if (!Array.isArray(p.comments)) p.comments = [];
             if (p.hearts == null) p.hearts = p.views || 0;
         });
-        posts.sort((a, b) => getPostTimestamp(b) - getPostTimestamp(a));
+        try {
+            posts.sort((a, b) => (getPostTimestamp(b) || 0) - (getPostTimestamp(a) || 0));
+        } catch(e) {}
         return posts;
     }
 
