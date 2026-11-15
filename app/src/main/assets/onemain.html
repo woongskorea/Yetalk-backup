@@ -2770,7 +2770,7 @@
                 <div class="calendar-card-wrap">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                         <div class="v-page-header-tag" style="position:static;">2. 내일정 - 달력</div>
-                        <button type="button" class="btn-privacy-pill" id="btnCalPrivacy1" onclick="toggleSchedulePrivacy()">🔒 나만 보기 (비공개)</button>
+                        <button type="button" class="btn-privacy-pill" id="btnCalPrivacy1" onclick="toggleSchedulePrivacy()" title="개인 하루 일정은 사생활 보호를 위해 무조건 나만 보기(비공개)로 안전하게 보호됩니다." style="background:#f1f5f9; border:1.5px solid #cbd5e1; color:#334155; font-weight:900;">🔒 나만 보기 (비공개)</button>
                     </div>
                     
                     <div class="calendar-header-bar">
@@ -4114,9 +4114,10 @@
         showToast("🔒 이 개인앱은 회원님만의 소중한 비밀 공간입니다. 나의 QR만 외부에 공개됩니다.");
     }
 
-    /* 🌟 [사용자 요청] 2. 내 모습 (기본: 공개) & 3. 하루 일정 (기본: 비공개) 공개/비공개 토글 */
+    /* 🌟 [사용자 요청] 2. 내 모습 (기본: 공개) & 3. 하루 일정 (무조건: 비공개 / 전체 공개 불가) */
     let isAppearancePublic = localStorage.getItem("yetalk_privacy_my_appearance") !== "private";
-    let isSchedulePublic = localStorage.getItem("yetalk_privacy_my_schedule") === "public"; // 기본: 비공개
+    let isSchedulePublic = false; // 🌟 [사용자 요청] 하루 일정은 무조건 비공개(나만 보기)
+    localStorage.setItem("yetalk_privacy_my_schedule", "private");
 
     function toggleAppearancePrivacy() {
         if (isGuestViewMode) {
@@ -4130,30 +4131,26 @@
     }
 
     function toggleSchedulePrivacy() {
-        if (isGuestViewMode) {
-            alert("회원은 전체개인메뉴를 못보고 다만 손님모드 메뉴만 볼수 있습니다.");
-            return;
-        }
-        isSchedulePublic = !isSchedulePublic;
-        localStorage.setItem("yetalk_privacy_my_schedule", isSchedulePublic ? "public" : "private");
+        // 🌟 [사용자 요청] 하루 일정은 전체 공개할 이유가 없으므로 무조건 비공개 유지
+        isSchedulePublic = false;
+        localStorage.setItem("yetalk_privacy_my_schedule", "private");
         updateSchedulePrivacyUI();
-        showToast(isSchedulePublic ? "🌐 [하루 일정]이 전체 공개로 설정되었습니다." : "🔒 [하루 일정]이 비공개(나만 보기)로 설정되었습니다.");
+        showToast("🔒 개인 하루 일정은 사생활 보호를 위해 무조건 '나만 보기(비공개)'로 안전하게 보관됩니다.");
     }
 
     function updateSchedulePrivacyUI() {
-        const text = isSchedulePublic ? "🌐 전체 공개" : "🔒 나만 보기 (비공개)";
-        const bg = isSchedulePublic ? "rgba(5, 150, 105, 0.9)" : "rgba(30, 41, 59, 0.95)";
-        const border = isSchedulePublic ? "1.5px solid #34d399" : "1.5px solid #64748b";
-        const color = isSchedulePublic ? "#34d399" : "#cbd5e1";
-
+        isSchedulePublic = false;
+        localStorage.setItem("yetalk_privacy_my_schedule", "private");
         const btn1 = document.getElementById("btnCalPrivacy1");
         const btn2 = document.getElementById("btnCalPrivacy2");
         [btn1, btn2].forEach(btn => {
             if (btn) {
-                btn.innerText = text;
-                btn.style.background = bg;
-                btn.style.border = border;
-                btn.style.color = color;
+                btn.innerText = "🔒 나만 보기 (비공개)";
+                btn.style.background = "#f1f5f9";
+                btn.style.border = "1.5px solid #cbd5e1";
+                btn.style.color = "#334155";
+                btn.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
+                btn.title = "개인 하루 일정은 사생활 보호를 위해 무조건 나만 보기(비공개)로 안전하게 보호됩니다.";
             }
         });
     }
