@@ -2675,6 +2675,9 @@
             letter-spacing: -0.4px;
             transition: all 0.15s ease;
             -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            -webkit-touch-callout: none !important;
         }
         /* 🌟 [사용자 요청] 터치 스크롤 시 연한 분홍색이 뜨던 hover 효과 완전 삭제 (모바일 터치 드래그 시 색 변동 없음) */
 
@@ -8412,7 +8415,13 @@
             copySelectedVerses.clear();
             updateVerseCopyModeUI(true);
         } else {
-            exitVerseCopyMode();
+            // 🌟 [사용자 요청] 선택된 구절이 있을 때 버튼을 눌러도 즉시 복사 완료!
+            const selectedEls = document.querySelectorAll(".bible-verse-item.highlight-copy-selected");
+            if (copySelectedVerses.size > 0 || selectedEls.length > 0) {
+                executeCopySelectedVerses();
+            } else {
+                exitVerseCopyMode();
+            }
         }
     }
 
@@ -8430,17 +8439,29 @@
         const txt = document.getElementById("txtVerseCopyBtn");
         if (btn && txt) {
             if (active) {
-                btn.style.background = "#047857";
-                btn.style.borderColor = "#047857";
-                btn.style.color = "#ffffff";
-                btn.style.boxShadow = "0 2px 8px rgba(4,120,87,0.35)";
-                txt.textContent = "복사 취소";
+                const selCount = copySelectedVerses.size;
+                if (selCount > 0) {
+                    btn.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+                    btn.style.borderColor = "#34d399";
+                    btn.style.color = "#ffffff";
+                    btn.style.boxShadow = "0 2px 8px rgba(16,185,129,0.35)";
+                    txt.textContent = `복사완료 (${selCount}절)`;
+                    btn.title = "터치하거나 구절을 꾹 누르면 복사 완료됩니다";
+                } else {
+                    btn.style.background = "#047857";
+                    btn.style.borderColor = "#047857";
+                    btn.style.color = "#ffffff";
+                    btn.style.boxShadow = "0 2px 8px rgba(4,120,87,0.35)";
+                    txt.textContent = "복사 취소";
+                    btn.title = "구절들을 선택 후 꾹 누르거나 이 버튼을 눌러 복사하세요";
+                }
             } else {
                 btn.style.background = "#f0fdf4";
                 btn.style.borderColor = "#86efac";
                 btn.style.color = "#15803d";
                 btn.style.boxShadow = "0 1.5px 4px rgba(22,163,74,0.15)";
                 txt.textContent = "말씀 복사";
+                btn.title = "말씀 복사 모드 (터치하여 선택 후 꾹 눌러 복사)";
             }
         }
     }
@@ -8465,6 +8486,7 @@
         // 🌟 [사용자 요청] 오직 말씀 복사 모드일 때만 꾹 누름(롱프레스)으로 복사 동작 수행!
         if (!isVerseCopyModeActive) return;
 
+        // 🌟 400ms로 단축하여 모바일에서 쾌적하게 즉각 롱프레스 감지!
         _versePressTimer = setTimeout(() => {
             if (_isScrolling) return;
             _isLongPress = true;
@@ -8473,7 +8495,7 @@
                 el.classList.add("highlight-copy-selected");
             }
             executeCopySelectedVerses();
-        }, 650);
+        }, 400);
     }
 
     function handleVersePressMove(event) {
@@ -8534,6 +8556,7 @@
                 copySelectedVerses.add(verseKey);
                 el.classList.add("highlight-copy-selected");
             }
+            updateVerseCopyModeUI(true);
             return;
         }
 
@@ -8542,37 +8565,52 @@
     }
 
     function executeCopySelectedVerses() {
-        if (copySelectedVerses.size === 0) return;
+        // 🌟 DOM에서 선택된 모든 구절 실시간 100% 직접 추출
+        const selectedEls = Array.from(document.querySelectorAll(".bible-verse-item.highlight-copy-selected"));
+        if (copySelectedVerses.size === 0 && selectedEls.length === 0) return;
 
         const book = currentUserBibleBook || '성경';
         const ch = currentUserBibleCh || 1;
-        const item = getBibleChapterItem(book, ch);
-        const lines = (item.text || '').split('\n');
+        const subTitle = document.getElementById("bbrChapterSubtitle")?.innerText.trim() || `${book} ${ch}장`;
 
-        let targetVerses = [];
-        lines.forEach((line, idx) => {
-            const trimmed = line.trim();
-            if (!trimmed) return;
-            const m = trimmed.match(/^(\d+)[.\s]\s*(.*)$/);
-            if (m) {
-                const vNum = parseInt(m[1], 10);
-                const vKey = `${book}_${ch}_${m[1]}`;
-                if (copySelectedVerses.has(vKey)) {
-                    targetVerses.push({ num: vNum, text: `${m[1]}. ${m[2]}` });
+        let targetLines = [];
+        if (selectedEls.length > 0) {
+            targetLines = selectedEls.map(el => {
+                const num = el.querySelector(".bible-verse-num")?.innerText.trim() || "";
+                const body = el.querySelector(".bible-verse-body")?.innerText.trim() || el.innerText.trim();
+                return num ? `${num} ${body}` : body;
+            });
+        }
+
+        if (targetLines.length === 0) {
+            const item = getBibleChapterItem(book, ch);
+            const lines = (item.text || '').split('\n');
+            let targetVerses = [];
+            lines.forEach((line, idx) => {
+                const trimmed = line.trim();
+                if (!trimmed) return;
+                const m = trimmed.match(/^(\d+)[.\s]\s*(.*)$/);
+                if (m) {
+                    const vNum = parseInt(m[1], 10);
+                    const vKey = `${book}_${ch}_${m[1]}`;
+                    if (copySelectedVerses.has(vKey)) {
+                        targetVerses.push({ num: vNum, text: `${m[1]}. ${m[2]}` });
+                    }
+                } else {
+                    const lKey = `${book}_${ch}_L${idx}`;
+                    if (copySelectedVerses.has(lKey)) {
+                        targetVerses.push({ num: idx + 1, text: trimmed });
+                    }
                 }
-            } else {
-                const lKey = `${book}_${ch}_L${idx}`;
-                if (copySelectedVerses.has(lKey)) {
-                    targetVerses.push({ num: idx + 1, text: trimmed });
-                }
-            }
-        });
+            });
+            targetVerses.sort((a, b) => a.num - b.num);
+            targetLines = targetVerses.map(v => v.text);
+        }
 
-        if (targetVerses.length === 0) return;
+        if (targetLines.length === 0) return;
 
-        targetVerses.sort((a, b) => a.num - b.num);
-        const copyBody = targetVerses.map(v => v.text).join('\n');
-        const fullText = `[${book} ${ch}장 말씀]\n${copyBody}\n\n- 예톡 성경 (yetalk.cc)`;
+        const copyBody = targetLines.join('\n');
+        const fullText = `[${subTitle} 말씀]\n${copyBody}\n\n- 예톡 성경 (yetalk.cc)`;
 
         let copied = false;
         if (window.AndroidBridge && window.AndroidBridge.copyToClipboard) {
@@ -8617,7 +8655,7 @@
             if (!toast) {
                 toast = document.createElement("div");
                 toast.id = "yetalkSimpleToast";
-                toast.style.cssText = "position:fixed; bottom:120px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.92); color:#ffffff; padding:9px 24px; border-radius:24px; font-size:14px; font-weight:900; z-index:999999; box-shadow:0 4px 16px rgba(0,0,0,0.35); pointer-events:none; transition:opacity 0.2s ease; opacity:0; text-align:center;";
+                toast.style.cssText = "position:fixed; bottom:140px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.95); color:#ffffff; padding:10px 24px; border-radius:24px; font-size:15px; font-weight:950; z-index:999999; box-shadow:0 4px 18px rgba(0,0,0,0.4); pointer-events:none; transition:opacity 0.2s ease; opacity:0; text-align:center; letter-spacing:-0.2px;";
                 document.body.appendChild(toast);
             }
             toast.textContent = msg;
@@ -8625,7 +8663,7 @@
             if (window._yetalkSimpleToastTimer) clearTimeout(window._yetalkSimpleToastTimer);
             window._yetalkSimpleToastTimer = setTimeout(() => {
                 if (toast) toast.style.opacity = "0";
-            }, 1400);
+            }, 1500);
         } catch (e) {
             console.log("Toast:", msg);
         }
