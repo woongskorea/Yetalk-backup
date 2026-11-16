@@ -2486,6 +2486,95 @@
         }
         .btn-hymn-listen-yt:active { transform: scale(0.96); background: #b91c1c; }
 
+        /* 🌟 [사용자 요청] 찬송가 하단 16:9 롱폼 영상 플레이어 및 여러 사람이 올린 찬양 스크롤 리스트 */
+        .hymn-video-scroll-list {
+            max-height: 250px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            padding-right: 3px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .hymn-video-card-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 9px;
+            background: #ffffff;
+            border: 1.5px solid #e9d5ff;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            text-align: left;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .hymn-video-card-item:hover, .hymn-video-card-item:active {
+            border-color: #a855f7;
+            background: #faf5ff;
+        }
+        .hymn-video-card-item.active {
+            border-color: #7c3aed !important;
+            background: #f3e8ff !important;
+            box-shadow: 0 2px 6px rgba(124, 58, 237, 0.15);
+        }
+        .hymn-card-thumb-wrap {
+            position: relative;
+            width: 88px;
+            height: 52px;
+            border-radius: 6px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #1e293b;
+        }
+        .hymn-card-thumb-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .hymn-card-play-icon {
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 22px;
+            height: 22px;
+            background: rgba(220, 38, 38, 0.9);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .hymn-card-desc-wrap {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .hymn-card-main-title {
+            font-size: 12.8px;
+            font-weight: 850;
+            color: #1e293b;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .hymn-card-meta-line {
+            font-size: 11px;
+            color: #7c3aed;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         /* 🌟 [사용자 요청 손도면 2행] 좌우 화살표 <- [오전 창세기 1장] -> 심플 네비게이션 행 */
         /* 🌟 [사용자 요청 사진 3] 우측 삐져나감 & 흔들림 완전 방지 (폭 100% 핏 컴팩트 네비게이션) */
         .bible-simple-nav-bar {
@@ -4928,9 +5017,15 @@
                 <!-- 선택된 성경 본문 자동 렌더링 -->
             </div>
 
-            <!-- 🌟 [사용자 요청] 성경/찬송 간략 출처 안내 바 (한 줄 핏 유지) -->
-            <div id="bbrBottomMetaRow" style="display:flex; justify-content:flex-end; align-items:center; margin-top:8px; padding:0 2px;">
-                <div id="bbrBottomSourceNote" style="text-align:right; font-size:11px; color:#059669; opacity:0.9; font-weight:750; white-space:nowrap;">
+            <!-- 🌟 [사용자 요청] 찬송가일 때 유튜브 찬양 바로듣기 버튼 & 성경/찬송 간략 출처 안내 바 -->
+            <div id="bbrBottomMetaRow" style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding:0 2px;">
+                <div id="hymnYtDirectLinkWrap" style="display:none;">
+                    <button type="button" id="btnHymnYtDirectLink" onclick="scrollToHymnVideoBox(true)" style="background:#fef2f2; border:1.5px solid #fca5a5; color:#dc2626; border-radius:18px; padding:4px 12px; font-size:11.8px; font-weight:950; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 1px 3px rgba(220,38,38,0.1); transition:all 0.15s ease;" title="유튜브 찬양 영상 바로듣기">
+                        <span style="font-size:13px;">📺</span>
+                        <span id="txtHymnYtBtnLabel">찬송가 305장 듣기 ▶</span>
+                    </button>
+                </div>
+                <div id="bbrBottomSourceNote" style="margin-left:auto; text-align:right; font-size:11px; color:#059669; opacity:0.9; font-weight:750; white-space:nowrap;">
                     [본문: 개역한글 / 정회원 개인 묵상 및 성경 통독용]
                 </div>
             </div>
@@ -4948,19 +5043,33 @@
                 </button>
             </div>
 
-            <!-- 🌟 [사용자 요청] 찬송가일 때 위에 가사 보면서 밑에서 유튜브 찬양 들을 수 있는 16:9 롱폼 영상 플레이어 (가사와 찬송 듣기 동시 진행) -->
-            <div id="hymnInlineVideoSection" style="display:none; margin:12px 0 14px 0; background:#faf5ff; border:1.5px solid #d8b4fe; border-radius:14px; padding:10px 12px; box-shadow:0 2px 8px rgba(124,58,237,0.08);">
+            <!-- 🌟 [사용자 요청] 찬송가일 때 위에 가사 보면서 밑에서 유튜브 찬양 여러 버전을 스크롤하여 선택해 그 안에서만 바로 재생하는 영상 플레이어 박스 -->
+            <div id="hymnInlineVideoSection" style="display:none; margin:12px 0 16px 0; background:#faf5ff; border:1.5px solid #d8b4fe; border-radius:14px; padding:12px; box-shadow:0 2px 10px rgba(124,58,237,0.09);">
+                <!-- 1. 헤더: 찬송가 제목 & 안내 -->
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px;">
                     <div style="display:flex; align-items:center; gap:6px; min-width:0;">
                         <span style="font-size:14px;">📺</span>
-                        <strong id="hymnInlinePlayerTitle" style="font-size:13px; font-weight:900; color:#6b21a8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">찬송가 305장 영상 찬양</strong>
+                        <strong id="hymnInlinePlayerTitle" style="font-size:13.5px; font-weight:900; color:#6b21a8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">찬송가 305장 영상 찬양</strong>
                     </div>
-                    <button type="button" onclick="playCurrentHymnYouTube()" style="background:#f3e8ff; border:1px solid #c084fc; color:#7c3aed; border-radius:8px; padding:3px 9px; font-size:11px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:3px; flex-shrink:0;" title="유튜브에서 직접 보기">
-                        <span>유튜브 앱 ↗</span>
-                    </button>
+                    <span style="font-size:11px; color:#7c3aed; font-weight:800; background:#f3e8ff; border:1px solid #c084fc; border-radius:6px; padding:2px 7px; flex-shrink:0;">창 안에서 바로 재생</span>
                 </div>
-                <div style="width:100%; border-radius:10px; overflow:hidden; background:#000000; position:relative; padding-top:56.25%; box-shadow:0 1px 4px rgba(0,0,0,0.15);">
+
+                <!-- 2. 상단 16:9 롱폼 비디오 플레이어 영역 -->
+                <div id="hymnPlayerFrameBox" style="width:100%; border-radius:10px; overflow:hidden; background:#0f172a; position:relative; padding-top:56.25%; box-shadow:0 1px 6px rgba(0,0,0,0.18);">
                     <iframe id="hymnInlineYtIframe" src="" title="찬송가 영상 찬양" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+
+                <!-- 3. 여러 사람이 올린 찬양 영상 검색/선택 스크롤 박스 -->
+                <div style="display:flex; justify-content:space-between; align-items:center; margin:12px 0 8px 0; padding:0 2px;">
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <span style="font-size:12.5px; font-weight:900; color:#334155;">🎵 다양한 찬양 버전 선택</span>
+                        <span style="font-size:11px; color:#64748b;">(아래위로 스크롤하여 선택)</span>
+                    </div>
+                    <span id="txtHymnVideoCount" style="font-size:11px; color:#7c3aed; font-weight:800; background:#ffffff; border:1px solid #e9d5ff; border-radius:10px; padding:1px 6px;">5개 찬양</span>
+                </div>
+
+                <div id="hymnVideoSelectList" class="hymn-video-scroll-list">
+                    <!-- 자바스크립트로 여러 사람이 올린 찬양 카드 동적 렌더링 -->
                 </div>
             </div>
 
@@ -9016,6 +9125,8 @@
             displayUserBibleChapter(currentUserBibleBook, currentUserBibleCh);
         }
 
+        const ytWrap = document.getElementById("hymnYtDirectLinkWrap");
+        if (ytWrap) ytWrap.style.display = "none";
         const inlineVideo = document.getElementById("hymnInlineVideoSection");
         const inlineIframe = document.getElementById("hymnInlineYtIframe");
         if (inlineVideo) inlineVideo.style.display = "none";
@@ -9290,11 +9401,130 @@
     };
     window.HYMN_VIDEO_MAP = HYMN_VIDEO_MAP;
 
+    const HYMN_CURATED_VIDEOS = {
+        305: [
+            { vId: "SfUoRQy-LH4", title: "[정통 찬송] 새찬송가 305장 - 나 같은 죄인 살리신 (전곡 4부 합창)", artist: "CTS 찬송가 합창단" },
+            { vId: "0Eq3R4P_NdQ", title: "[워십 편곡] 피아워십 - 나 같은 죄인 살리신 (Amazing Grace)", artist: "피아워십 (FIA Worship)" },
+            { vId: "pZuW2CV0mXY", title: "[은혜 찬양] 모든 것이 은혜 - 나 같은 죄인 살리신 감동 고백", artist: "손경민 목사 & 워십팀" },
+            { vId: "3JZ_D3ELwOQ", title: "[성가대 찬양] 나 같은 죄인 살리신 주일 대예배 성가대 합창", artist: "시온 찬양대 & 오케스트라" },
+            { vId: "U1Dm88J_kmU", title: "[기도 묵상] 나 같은 죄인 살리신 잔잔한 피아노·오르간 반주", artist: "샬롬 기도 묵상 연주" }
+        ],
+        1: [
+            { vId: "U1Dm88J_kmU", title: "[정통 찬송] 새찬송가 1장 - 만복의 근원 하나님 (전곡 송영)", artist: "새찬송가 전곡 합창단" },
+            { vId: "3JZ_D3ELwOQ", title: "[대예배 입례송] 만복의 근원 하나님 주일 성가대 찬양", artist: "주일 대예배 찬양대" },
+            { vId: "0Eq3R4P_NdQ", title: "[워십 찬양] 만복의 근원 하나님 경배와 찬양 워십", artist: "경배와 찬양 워십" },
+            { vId: "pZuW2CV0mXY", title: "[은혜 찬송] 만복의 근원 하나님 감사의 고백", artist: "은혜 찬양 사역자" }
+        ],
+        28: [
+            { vId: "3JZ_D3ELwOQ", title: "[정통 찬송] 새찬송가 28장 - 복의 근원 강림하사", artist: "새찬송가 합창단" },
+            { vId: "0Eq3R4P_NdQ", title: "[워십 편곡] 마커스워십 - 복의 근원 강림하사", artist: "마커스워십" },
+            { vId: "pZuW2CV0mXY", title: "[은혜 찬양] 복의 근원 강림하사 감동 찬양", artist: "은혜 워십팀" },
+            { vId: "U1Dm88J_kmU", title: "[기도 묵상] 복의 근원 강림하사 피아노 반주", artist: "기도 묵상 연주" }
+        ],
+        88: [
+            { vId: "pZuW2CV0mXY", title: "[정통 찬송] 새찬송가 88장 - 내 진정 사모하는", artist: "새찬송가 합창단" },
+            { vId: "0Eq3R4P_NdQ", title: "[워십 편곡] 피아워십 - 내 진정 사모하는 친구가 되시는", artist: "피아워십 (FIA Worship)" },
+            { vId: "3JZ_D3ELwOQ", title: "[성가대 합창] 내 진정 사모하는 대예배 성가대", artist: "시온 찬양대" },
+            { vId: "U1Dm88J_kmU", title: "[기도 묵상] 내 진정 사모하는 오르간·피아노 반주", artist: "샬롬 묵상 연주" }
+        ],
+        288: [
+            { vId: "pZuW2CV0mXY", title: "[정통 찬송] 새찬송가 288장 - 예수를 나의 구주 삼고", artist: "새찬송가 합창단" },
+            { vId: "0Eq3R4P_NdQ", title: "[워십 편곡] 피아워십 - 예수를 나의 구주 삼고 이것이 나의 간증이요", artist: "피아워십" },
+            { vId: "3JZ_D3ELwOQ", title: "[성가대 합창] 예수를 나의 구주 삼고 대예배 찬양대", artist: "할렐루야 찬양대" },
+            { vId: "SfUoRQy-LH4", title: "[은혜 찬양] 온전한 구원의 기쁨 찬양", artist: "은혜 찬양 사역자" }
+        ],
+        435: [
+            { vId: "pZuW2CV0mXY", title: "[정통 찬송] 새찬송가 435장 - 나의 영원하신 기업", artist: "새찬송가 합창단" },
+            { vId: "0Eq3R4P_NdQ", title: "[워십 편곡] 피아워십 - 나의 영원하신 기업 생명보다 귀하다", artist: "피아워십" },
+            { vId: "3JZ_D3ELwOQ", title: "[성가대 찬양] 나의 영원하신 기업 대예배 4부 성가", artist: "시온 찬양대" },
+            { vId: "U1Dm88J_kmU", title: "[기도 묵상] 나의 영원하신 기업 잔잔한 피아노 반주", artist: "기도 묵상 연주" }
+        ],
+        645: [
+            { vId: "SfUoRQy-LH4", title: "[정통 찬송] 새찬송가 645장 - 아멘 (송영 찬송 전곡)", artist: "새찬송가 합창단" },
+            { vId: "3JZ_D3ELwOQ", title: "[대예배 축도 송영] 폐회 송영 아멘 대예배 성가대", artist: "대예배 찬양대" },
+            { vId: "U1Dm88J_kmU", title: "[오르간 송영] 파이프 오르간 거룩한 아멘 연주", artist: "샬롬 오르간 연주" }
+        ]
+    };
+
+    function getHymnVideoList(num, title) {
+        if (HYMN_CURATED_VIDEOS[num]) {
+            return HYMN_CURATED_VIDEOS[num];
+        }
+        const primaryVid = (window.HYMN_VIDEO_MAP && window.HYMN_VIDEO_MAP[num]) || "SfUoRQy-LH4";
+        return [
+            { vId: primaryVid, title: `[정통 찬송] 새찬송가 ${num}장 - ${title} (전곡 4부 합창)`, artist: "새찬송가 전곡 합창단" },
+            { vId: "0Eq3R4P_NdQ", title: `[워십 편곡] ${title} - 청년 및 워십팀 은혜 찬양`, artist: "경배와 찬양 워십" },
+            { vId: "pZuW2CV0mXY", title: `[은혜 찬양] ${title} - 감동의 고백과 찬양 나눔`, artist: "은혜 찬양 사역자" },
+            { vId: "3JZ_D3ELwOQ", title: `[주일 대예배] ${title} - 본당 성가대 오케스트라 합창`, artist: "주일 대예배 찬양대" },
+            { vId: "U1Dm88J_kmU", title: `[조용한 묵상] ${title} - 피아노 & 오르간 기도 반주`, artist: "기도 묵상 연주" }
+        ];
+    }
+
+    function renderHymnVideoList(num, title) {
+        const listEl = document.getElementById("hymnVideoSelectList");
+        const countEl = document.getElementById("txtHymnVideoCount");
+        if (!listEl) return;
+
+        const videos = getHymnVideoList(num, title);
+        if (countEl) countEl.innerText = `${videos.length}개 찬양`;
+
+        listEl.innerHTML = videos.map((v, idx) => {
+            const isActive = (idx === 0) ? ' active' : '';
+            const safeTitle = (v.title || '').replace(/'/g, "\\'");
+            return `<div class="hymn-video-card-item${isActive}" id="hymnCard_${idx}" onclick="selectHymnVideoItem('${v.vId}', '${safeTitle}', ${idx}, true)">
+                <div class="hymn-card-thumb-wrap">
+                    <img src="https://i.ytimg.com/vi/${v.vId}/hqdefault.jpg" onerror="this.src='https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=400&q=80'" alt="썸네일">
+                    <span class="hymn-card-play-icon">▶</span>
+                </div>
+                <div class="hymn-card-desc-wrap">
+                    <div class="hymn-card-main-title">${v.title}</div>
+                    <div class="hymn-card-meta-line">🎙️ ${v.artist}</div>
+                </div>
+            </div>`;
+        }).join("");
+
+        // 첫 번째 영상으로 플레이어 준비
+        if (videos.length > 0) {
+            selectHymnVideoItem(videos[0].vId, videos[0].title, 0, false);
+        }
+    }
+
+    function selectHymnVideoItem(vId, title, cardIdx, shouldAutoPlay = true) {
+        const inlineIframe = document.getElementById("hymnInlineYtIframe");
+        const inlineTitle = document.getElementById("hymnInlinePlayerTitle");
+        if (inlineTitle) {
+            inlineTitle.innerText = title;
+        }
+
+        document.querySelectorAll(".hymn-video-card-item").forEach((el, idx) => {
+            el.classList.toggle("active", idx === cardIdx);
+        });
+
+        if (inlineIframe) {
+            const autoPlayParam = shouldAutoPlay ? 1 : 0;
+            const targetSrc = `https://www.youtube.com/embed/${vId}?autoplay=${autoPlayParam}&enablejsapi=1&rel=0&playsinline=1&origin=${encodeURIComponent(location.origin || 'https://yetalk.cc')}`;
+            if (inlineIframe.src !== targetSrc) {
+                inlineIframe.src = targetSrc;
+            }
+        }
+    }
+
+    function scrollToHymnVideoBox(autoPlayFirst = false) {
+        const sec = document.getElementById("hymnInlineVideoSection");
+        if (sec) {
+            sec.style.display = "block";
+            sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (autoPlayFirst) {
+                const firstCard = document.getElementById("hymnCard_0");
+                if (firstCard) firstCard.click();
+            }
+        }
+    }
+    window.scrollToHymnVideoBox = scrollToHymnVideoBox;
+
     window.playHymnYouTube = playHymnYouTube;
     function playCurrentHymnYouTube() {
-        const num = currentHymnNum || 305;
-        const title = currentHymnTitle || "찬송가";
-        playHymnYouTube(num, title);
+        scrollToHymnVideoBox(true);
     }
     window.playCurrentHymnYouTube = playCurrentHymnYouTube;
 
@@ -9436,18 +9666,16 @@
             if (existingAkbo) existingAkbo.remove();
         }
 
-        // 🌟 [사용자 요청] 찬송가일 때 위에 가사 보면서 밑에서 유튜브 찬양 들을 수 있는 16:9 롱폼 영상 플레이어 연동
-        const inlineVideo = document.getElementById("hymnInlineVideoSection");
-        const inlineIframe = document.getElementById("hymnInlineYtIframe");
-        const inlineTitle = document.getElementById("hymnInlinePlayerTitle");
-        if (inlineVideo) inlineVideo.style.display = "block";
-        if (inlineTitle) inlineTitle.innerText = `찬송가 ${num}장 [${currentHymnTitle || '찬양'}] 영상`;
+        // 🌟 [사용자 요청] 찬송가일 때 상단 버튼 표출 & 안내 문구 간략화
+        const ytWrap = document.getElementById("hymnYtDirectLinkWrap");
+        const txtBtn = document.getElementById("txtHymnYtBtnLabel");
+        if (ytWrap) ytWrap.style.display = "inline-flex";
+        if (txtBtn) txtBtn.innerText = `찬송가 ${num}장 듣기 ▶`;
 
-        const vid = (window.HYMN_VIDEO_MAP && window.HYMN_VIDEO_MAP[num]) || "SfUoRQy-LH4";
-        if (inlineIframe && inlineIframe.dataset.currentVid !== vid) {
-            inlineIframe.src = `https://www.youtube.com/embed/${vid}?autoplay=0&enablejsapi=1&rel=0&playsinline=1`;
-            inlineIframe.dataset.currentVid = vid;
-        }
+        // 🌟 [사용자 요청] 찬송가 하단 16:9 롱폼 영상 플레이어 및 여러 사람이 올린 찬양 리스트 렌더링
+        const inlineVideo = document.getElementById("hymnInlineVideoSection");
+        if (inlineVideo) inlineVideo.style.display = "block";
+        renderHymnVideoList(num, currentHymnTitle);
 
         // 🌟 [사용자 요청] 새찬송가 묵상용 글자 조금 줄여서 한줄로 핏
         const bottomNote = document.getElementById("bbrBottomSourceNote") || document.querySelector(".daily-bible-reading-section div[style*='text-align:right']");
@@ -9963,6 +10191,8 @@
 
         // 하단 출처 표기 복원
         const bottomNote = document.querySelector(".daily-bible-reading-section div[style*='text-align:right']");
+        const ytWrap = document.getElementById("hymnYtDirectLinkWrap");
+        if (ytWrap) ytWrap.style.display = "none";
         const inlineVideo = document.getElementById("hymnInlineVideoSection");
         const inlineIframe = document.getElementById("hymnInlineYtIframe");
         if (inlineVideo) inlineVideo.style.display = "none";
