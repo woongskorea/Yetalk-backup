@@ -5026,7 +5026,7 @@
                     </button>
                 </div>
                 <div id="bbrBottomSourceNote" style="margin-left:auto; text-align:right; font-size:11px; color:#059669; opacity:0.9; font-weight:750; white-space:nowrap;">
-                    [본문: 개역한글 / 정회원 개인 묵상 및 성경 통독용]
+                    [본문: 개역한글 + (없음) 킹제임스 참조 / 정회원 묵상용]
                 </div>
             </div>
 
@@ -5045,18 +5045,40 @@
 
             <!-- 🌟 [사용자 요청] 찬송가일 때 위에 가사 보면서 밑에서 유튜브 찬양 여러 버전을 스크롤하여 선택해 그 안에서만 바로 재생하는 영상 플레이어 박스 -->
             <div id="hymnInlineVideoSection" style="display:none; margin:12px 0 16px 0; background:#faf5ff; border:1.5px solid #d8b4fe; border-radius:14px; padding:12px; box-shadow:0 2px 10px rgba(124,58,237,0.09);">
-                <!-- 1. 헤더: 찬송가 제목 & 안내 -->
+                <!-- 1. 헤더: 찬송가 제목 & 안내 & 유튜브 앱 ↗ 버튼 -->
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px;">
                     <div style="display:flex; align-items:center; gap:6px; min-width:0;">
                         <span style="font-size:14px;">📺</span>
                         <strong id="hymnInlinePlayerTitle" style="font-size:13.5px; font-weight:900; color:#6b21a8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">찬송가 305장 영상 찬양</strong>
                     </div>
-                    <span style="font-size:11px; color:#7c3aed; font-weight:800; background:#f3e8ff; border:1px solid #c084fc; border-radius:6px; padding:2px 7px; flex-shrink:0;">창 안에서 바로 재생</span>
+                    <button type="button" onclick="openCurrentHymnInYtApp()" style="display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:800; color:#7c3aed; background:#ffffff; border:1px solid #c084fc; border-radius:6px; padding:3px 8px; cursor:pointer; flex-shrink:0;">
+                        <span>📺</span> 유튜브 앱 ↗
+                    </button>
                 </div>
 
-                <!-- 2. 상단 16:9 롱폼 비디오 플레이어 영역 -->
-                <div id="hymnPlayerFrameBox" style="width:100%; border-radius:10px; overflow:hidden; background:#0f172a; position:relative; padding-top:56.25%; box-shadow:0 1px 6px rgba(0,0,0,0.18);">
-                    <iframe id="hymnInlineYtIframe" src="" title="찬송가 영상 찬양" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <!-- 2. 상단 16:9 롱폼 비디오 플레이어 영역 (포스터 터치 시 즉시 재생 & 인라인 iframe 재생) -->
+                <div id="hymnPlayerFrameBox" onclick="toggleHymnVideoPlayback()" style="width:100%; border-radius:10px; overflow:hidden; background:#0f172a; position:relative; padding-top:56.25%; box-shadow:0 1px 6px rgba(0,0,0,0.18); cursor:pointer;">
+                    <div id="hymnPlayerPoster" style="position:absolute; inset:0; background:#0f172a; cursor:pointer; z-index:5; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                        <img id="hymnPosterImg" src="https://i.ytimg.com/vi/SfUoRQy-LH4/hqdefault.jpg" onerror="this.src='https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80'" style="width:100%; height:100%; object-fit:cover; opacity:0.88;" alt="찬양 썸네일">
+                        <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%);"></div>
+                        <div id="hymnPosterPlayBtn" style="position:absolute; width:58px; height:58px; background:rgba(220,38,38,0.95); border:2.5px solid #ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:22px; padding-left:4px; box-shadow:0 4px 16px rgba(0,0,0,0.5); z-index:6;">
+                            ▶
+                        </div>
+                        <div id="hymnPosterTitle" style="position:absolute; bottom:8px; left:12px; right:12px; color:#ffffff; font-size:12.5px; font-weight:800; text-shadow:0 1px 3px rgba(0,0,0,0.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; z-index:6;">
+                            찬송가 영상 찬양
+                        </div>
+                    </div>
+                    <iframe id="hymnInlineYtIframe" src="about:blank" title="찬송가 영상 찬양" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none; z-index:2;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                </div>
+
+                <!-- 빠른 재생 및 유튜브 앱 열기 액션 바 -->
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <button type="button" id="btnHymnPlayToggle" onclick="event.stopPropagation(); startCurrentHymnVideo();" style="flex:1; background:linear-gradient(135deg, #7c3aed, #9333ea); color:#ffffff; border:none; border-radius:8px; padding:9px 12px; font-size:13.5px; font-weight:900; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(124,58,237,0.3); cursor:pointer;">
+                        <span>▶</span> <span id="txtHymnPlayAction">찬양 영상 재생하기</span>
+                    </button>
+                    <button type="button" onclick="event.stopPropagation(); openCurrentHymnInYtApp();" style="background:#ffffff; color:#dc2626; border:1.5px solid #fca5a5; border-radius:8px; padding:9px 12px; font-size:12.5px; font-weight:850; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; flex-shrink:0;">
+                        <span style="color:#ef4444;">📺</span> 유튜브 앱
+                    </button>
                 </div>
 
                 <!-- 3. 여러 사람이 올린 찬양 영상 검색/선택 스크롤 박스 -->
@@ -8868,6 +8890,26 @@
         }
     }
 
+    // 🌟 [사용자 요청] 개역한글 '없음' 구절에 대한 킹제임스성경(KJV) 공인 한글 번역 구절 괄호 참조 매핑
+    const KJV_MISSING_VERSES = {
+        "마태복음_17_21": "기도와 금식이 아니면 이런 유가 나가지 아니하느니라",
+        "마태복음_18_11": "인자의 온 것은 잃은 자를 구원하려 함이니라",
+        "마태복음_23_14": "화 있을진저 외식하는 서기관들과 바리새인들이여 너희는 과부의 집을 삼키며 외식으로 길게 기도하나니 그러므로 너희가 더 큰 심판을 받으리라",
+        "마가복음_9_44": "거기서는 그들의 구더기도 죽지 않고 불도 꺼지지 아니하느니라",
+        "마가복음_9_46": "거기서는 그들의 구더기도 죽지 않고 불도 꺼지지 아니하느니라",
+        "마가복음_11_26": "만일 너희가 용서하지 아니하면 하늘에 계신 너희 아버지께서도 너희 죄를 용서하지 아니하시리라",
+        "마가복음_15_28": "그리하여 ‘그가 범죄자들과 함께 헤아림을 받았다’ 한 성경 기록이 이루어졌느니라",
+        "누가복음_17_36": "두 남자가 밭에 있으매 하나는 데려가고 하나는 버려둠을 당하리라",
+        "누가복음_23_17": "명절에는 그들에게 반드시 죄수 하나를 놓아 주어야 하더라",
+        "요한복음_5_4": "이는 천사가 가끔 못에 내려와 물을 움직이게 하는데 물이 움직인 후에 먼저 들어가는 자는 어떤 병에 걸렸든지 낫게 됨이러라",
+        "사도행전_8_37": "빌립이 이르되 만일 당신이 마음을 다하여 믿으면 가하니라 하매 그가 대답하여 이르되 내가 예수 그리스도께서 하나님의 아들이심을 믿노라 하니라",
+        "사도행전_15_34": "그러나 실라는 거기 유하는 것을 좋게 여기니라",
+        "사도행전_24_7": "그러나 천부장 루시아가 와서 큰 폭력으로 그를 우리 손에서 빼앗아 갔나이다",
+        "사도행전_28_29": "그가 이 말을 마치매 유대인들이 물러가니 저희 사이에 큰 변론이 있더라",
+        "로마서_16_24": "우리 주 예수 그리스도의 은혜가 너희 모두와 함께 있을지어다 아멘"
+    };
+    window.KJV_MISSING_VERSES = KJV_MISSING_VERSES;
+
     function formatBibleVersesHtml(rawText, book, ch) {
         if (!rawText) return "";
         const bookName = book || currentUserBibleBook || "성경";
@@ -8888,8 +8930,18 @@
             const m = trimmed.match(/^(\d+)[.\s]\s*(.*)$/);
             if (m) {
                 const verseNum = m[1];
-                const verseBody = m[2];
+                let verseBody = m[2];
                 const verseKey = `${bookName}_${chNum}_${verseNum}`;
+
+                // 🌟 [사용자 요청] 개역한글 '없음' 구절에 킹제임스성경 참조 괄호 병기 표출
+                const kjvText = KJV_MISSING_VERSES[verseKey];
+                const isNone = verseBody.includes("없음") || !verseBody.trim();
+                if (kjvText && isNone) {
+                    verseBody = `<span style="color:#64748b; font-weight:600;">[없음]</span> <span class="kjv-missing-badge" style="color:#b45309; font-weight:750; font-size:15px; background:#fef3c7; border:1px solid #fde68a; border-radius:6px; padding:2px 7px; display:inline-block; margin-left:4px; line-height:1.5; word-break:keep-all;">(킹제임스성경 참조: &ldquo;${kjvText}&rdquo;)</span>`;
+                } else if (isNone) {
+                    verseBody = `<span style="color:#64748b; font-weight:600;">[없음]</span>`;
+                }
+
                 const hlVal = highlights[verseKey];
                 let hlClass = "";
                 if (hlVal === "yellow") hlClass = "highlight-yellow";
@@ -8900,6 +8952,15 @@
                 html += `<div class="bible-verse-item ${hlClass}" data-verse-key="${verseKey}" onclick="handleBibleVerseClick(event, this, '${verseKey}')" ontouchstart="handleVersePressStart(event, this, '${verseKey}')" ontouchmove="handleVersePressMove(event)" ontouchend="handleVersePressEnd(event, this, '${verseKey}')" ontouchcancel="handleVersePressEnd(event, this, '${verseKey}')" onmousedown="handleVersePressStart(event, this, '${verseKey}')" onmouseup="handleVersePressEnd(event, this, '${verseKey}')" oncontextmenu="event.preventDefault(); return false;" title="터치: 형광펜 강조색 (분홍/노랑/파랑/진분홍/회색)"><span class="bible-verse-num">${verseNum}.</span><span class="bible-verse-body">${verseBody}</span></div>`;
             } else {
                 const lineKey = `${bookName}_${chNum}_L${idx}`;
+                let lineBody = trimmed;
+                if (lineBody.includes("없음")) {
+                    for (const vk in KJV_MISSING_VERSES) {
+                        if (vk.startsWith(`${bookName}_${chNum}_`)) {
+                            lineBody = `<span style="color:#64748b; font-weight:600;">[없음]</span> <span class="kjv-missing-badge" style="color:#b45309; font-weight:750; font-size:15px; background:#fef3c7; border:1px solid #fde68a; border-radius:6px; padding:2px 7px; display:inline-block; margin-left:4px; line-height:1.5; word-break:keep-all;">(킹제임스성경 참조: &ldquo;${KJV_MISSING_VERSES[vk]}&rdquo;)</span>`;
+                            break;
+                        }
+                    }
+                }
                 const hlLineVal = highlights[lineKey];
                 let hlLineClass = "";
                 if (hlLineVal === "yellow") hlLineClass = "highlight-yellow";
@@ -8907,7 +8968,7 @@
                 else if (hlLineVal === "deeppink") hlLineClass = "highlight-deeppink";
                 else if (hlLineVal === "grey") hlLineClass = "highlight-grey";
                 else if (hlLineVal === "pink" || hlLineVal === true) hlLineClass = "highlight-pink";
-                html += `<div class="bible-verse-item ${hlLineClass}" data-verse-key="${lineKey}" onclick="handleBibleVerseClick(event, this, '${lineKey}')" ontouchstart="handleVersePressStart(event, this, '${lineKey}')" ontouchmove="handleVersePressMove(event)" ontouchend="handleVersePressEnd(event, this, '${lineKey}')" ontouchcancel="handleVersePressEnd(event, this, '${lineKey}')" onmousedown="handleVersePressStart(event, this, '${lineKey}')" onmouseup="handleVersePressEnd(event, this, '${lineKey}')" oncontextmenu="event.preventDefault(); return false;" title="터치: 형광펜 강조색 (분홍/노랑/파랑/진분홍/회색)">${trimmed}</div>`;
+                html += `<div class="bible-verse-item ${hlLineClass}" data-verse-key="${lineKey}" onclick="handleBibleVerseClick(event, this, '${lineKey}')" ontouchstart="handleVersePressStart(event, this, '${lineKey}')" ontouchmove="handleVersePressMove(event)" ontouchend="handleVersePressEnd(event, this, '${lineKey}')" ontouchcancel="handleVersePressEnd(event, this, '${lineKey}')" onmousedown="handleVersePressStart(event, this, '${lineKey}')" onmouseup="handleVersePressEnd(event, this, '${lineKey}')" oncontextmenu="event.preventDefault(); return false;" title="터치: 형광펜 강조색 (분홍/노랑/파랑/진분홍/회색)">${lineBody}</div>`;
             }
         });
         return html;
@@ -9128,12 +9189,13 @@
         const ytWrap = document.getElementById("hymnYtDirectLinkWrap");
         if (ytWrap) ytWrap.style.display = "none";
         const inlineVideo = document.getElementById("hymnInlineVideoSection");
-        const playerBox = document.getElementById("hymnPlayerFrameBox");
+        const hymnIfr = document.getElementById("hymnInlineYtIframe");
         if (inlineVideo) inlineVideo.style.display = "none";
-        if (playerBox) playerBox.innerHTML = "";
+        if (hymnIfr) hymnIfr.src = "about:blank";
+        isHymnInlinePlaying = false;
 
         if (bottomNote) {
-            bottomNote.innerText = "[본문: 개역한글 / 정회원 개인 묵상 및 성경 통독용]";
+            bottomNote.innerText = "[본문: 개역한글 + (없음) 킹제임스 참조 / 정회원 묵상용]";
             bottomNote.style.color = "#059669";
             bottomNote.style.fontSize = "11px";
             bottomNote.style.whiteSpace = "nowrap";
@@ -9487,60 +9549,122 @@
     }
 
     let currentHymnSelectedVid = "SfUoRQy-LH4";
+    let isHymnInlinePlaying = false;
+
+    function openCurrentHymnInYtApp() {
+        const vid = currentHymnSelectedVid || (window.HYMN_VIDEO_MAP && window.HYMN_VIDEO_MAP[currentHymnNum]) || "SfUoRQy-LH4";
+        const ytUrl = `https://www.youtube.com/watch?v=${vid}`;
+        if (window.AndroidBridge && typeof window.AndroidBridge.openBrowser === 'function') {
+            window.AndroidBridge.openBrowser(ytUrl);
+        } else {
+            window.open(ytUrl, '_blank');
+        }
+    }
+    window.openCurrentHymnInYtApp = openCurrentHymnInYtApp;
+
+    function toggleHymnVideoPlayback() {
+        const poster = document.getElementById("hymnPlayerPoster");
+        const iframe = document.getElementById("hymnInlineYtIframe");
+        if (poster && poster.style.display !== "none") {
+            startCurrentHymnVideo();
+            return;
+        }
+        if (iframe && iframe.contentWindow) {
+            try {
+                if (isHymnInlinePlaying) {
+                    iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*');
+                    isHymnInlinePlaying = false;
+                    const txt = document.getElementById("txtHymnPlayAction");
+                    if (txt) txt.innerText = "찬양 영상 다시 재생";
+                } else {
+                    iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
+                    iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+                    isHymnInlinePlaying = true;
+                    const txt = document.getElementById("txtHymnPlayAction");
+                    if (txt) txt.innerText = "찬양 일시 정지";
+                }
+            } catch(e) {}
+        }
+    }
+    window.toggleHymnVideoPlayback = toggleHymnVideoPlayback;
 
     function selectHymnVideoItem(vId, title, cardIdx, shouldAutoPlay = true) {
         currentHymnSelectedVid = vId;
         const inlineTitle = document.getElementById("hymnInlinePlayerTitle");
-        if (inlineTitle) {
-            inlineTitle.innerText = title;
-        }
+        if (inlineTitle) inlineTitle.innerText = title;
 
         document.querySelectorAll(".hymn-video-card-item").forEach((el, idx) => {
             el.classList.toggle("active", idx === cardIdx);
         });
 
+        let poster = document.getElementById("hymnPlayerPoster");
+        let iframe = document.getElementById("hymnInlineYtIframe");
         const playerBox = document.getElementById("hymnPlayerFrameBox");
-        if (!playerBox) return;
 
-        if (shouldAutoPlay) {
-            // 사용자 클릭 시 즉시 16:9 모니터 안에서 재생 (검은 화면 및 로딩 정체 방지)
-            playerBox.innerHTML = `<iframe id="hymnInlineYtIframe" 
-                src="https://www.youtube.com/embed/${vId}?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&enablejsapi=1" 
-                title="찬송가 영상 찬양" 
-                style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                allowfullscreen></iframe>`;
-
-            setTimeout(() => {
-                const ifr = document.getElementById("hymnInlineYtIframe");
-                if (ifr && ifr.contentWindow) {
-                    try {
-                        ifr.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
-                    } catch(e) {}
-                }
-            }, 500);
-        } else {
-            // 초기 대기 상태: 검은 화면 대신 선명한 찬양 썸네일과 큰 재생 버튼 표출!
+        if (playerBox && (!poster || !iframe)) {
             playerBox.innerHTML = `
-                <div id="hymnPlayerPoster" onclick="startCurrentHymnVideo()" style="position:absolute; inset:0; background:#0f172a; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                    <img src="https://i.ytimg.com/vi/${vId}/hqdefault.jpg" onerror="this.src='https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80'" style="width:100%; height:100%; object-fit:cover; opacity:0.88;" alt="찬양 썸네일">
-                    <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%);"></div>
-                    <div style="position:absolute; width:58px; height:58px; background:rgba(220,38,38,0.95); border:2.5px solid #ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:22px; padding-left:4px; box-shadow:0 4px 16px rgba(0,0,0,0.5); z-index:12;">
+                <div id="hymnPlayerPoster" style="position:absolute; inset:0; background:#0f172a; cursor:pointer; z-index:5; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                    <img id="hymnPosterImg" src="https://i.ytimg.com/vi/${vId}/hqdefault.jpg" onerror="this.src='https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80'" style="width:100%; height:100%; object-fit:cover; opacity:0.88;" alt="찬양 썸네일">
+                    <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%);"></div>
+                    <div id="hymnPosterPlayBtn" style="position:absolute; width:58px; height:58px; background:rgba(220,38,38,0.95); border:2.5px solid #ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:22px; padding-left:4px; box-shadow:0 4px 16px rgba(0,0,0,0.5); z-index:6;">
                         ▶
                     </div>
-                    <div style="position:absolute; bottom:8px; left:12px; right:12px; color:#ffffff; font-size:12.5px; font-weight:800; text-shadow:0 1px 3px rgba(0,0,0,0.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; z-index:12;">
+                    <div id="hymnPosterTitle" style="position:absolute; bottom:8px; left:12px; right:12px; color:#ffffff; font-size:12.5px; font-weight:800; text-shadow:0 1px 3px rgba(0,0,0,0.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; z-index:6;">
                         ${title}
                     </div>
                 </div>
-                <iframe id="hymnInlineYtIframe" src="" title="찬송가 영상 찬양" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                <iframe id="hymnInlineYtIframe" src="about:blank" title="찬송가 영상 찬양" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none; z-index:2;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
             `;
+            poster = document.getElementById("hymnPlayerPoster");
+            iframe = document.getElementById("hymnInlineYtIframe");
+        }
+
+        const posterImg = document.getElementById("hymnPosterImg");
+        if (posterImg) posterImg.src = `https://i.ytimg.com/vi/${vId}/hqdefault.jpg`;
+        const posterTitle = document.getElementById("hymnPosterTitle");
+        if (posterTitle) posterTitle.innerText = title;
+
+        const txtAction = document.getElementById("txtHymnPlayAction");
+        const originStr = encodeURIComponent(window.location.origin && window.location.origin !== "null" ? window.location.origin : "https://yetalk.cc");
+        const embedUrl = `https://www.youtube.com/embed/${vId}?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&loop=1&playlist=${vId}&enablejsapi=1&origin=${originStr}`;
+
+        if (shouldAutoPlay) {
+            if (poster) poster.style.display = "none";
+            if (iframe) {
+                iframe.src = embedUrl;
+                isHymnInlinePlaying = true;
+            }
+            if (txtAction) txtAction.innerText = "찬양 일시 정지";
+
+            [300, 700, 1200, 2000].forEach(delay => {
+                setTimeout(() => {
+                    if (iframe && iframe.contentWindow) {
+                        try {
+                            iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute', args: [] }), '*');
+                            iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+                        } catch(e) {}
+                    }
+                }, delay);
+            });
+        } else {
+            if (poster) poster.style.display = "flex";
+            if (iframe && (!iframe.src || iframe.src === "about:blank")) {
+                iframe.src = `https://www.youtube.com/embed/${vId}?playsinline=1&controls=1&rel=0&loop=1&playlist=${vId}&enablejsapi=1&origin=${originStr}`;
+            }
+            if (txtAction) txtAction.innerText = "찬양 영상 재생하기";
+            isHymnInlinePlaying = false;
         }
     }
 
     function startCurrentHymnVideo() {
         const vid = currentHymnSelectedVid || "SfUoRQy-LH4";
         const title = (document.getElementById("hymnInlinePlayerTitle")?.innerText) || "찬송가 영상 찬양";
-        selectHymnVideoItem(vid, title, 0, true);
+        const poster = document.getElementById("hymnPlayerPoster");
+        if (poster && poster.style.display !== "none") {
+            selectHymnVideoItem(vid, title, 0, true);
+        } else {
+            toggleHymnVideoPlayback();
+        }
     }
     window.startCurrentHymnVideo = startCurrentHymnVideo;
 
@@ -10228,12 +10352,13 @@
         const ytWrap = document.getElementById("hymnYtDirectLinkWrap");
         if (ytWrap) ytWrap.style.display = "none";
         const inlineVideo = document.getElementById("hymnInlineVideoSection");
-        const playerBox = document.getElementById("hymnPlayerFrameBox");
+        const hymnIfr = document.getElementById("hymnInlineYtIframe");
         if (inlineVideo) inlineVideo.style.display = "none";
-        if (playerBox) playerBox.innerHTML = "";
+        if (hymnIfr) hymnIfr.src = "about:blank";
+        isHymnInlinePlaying = false;
 
         if (bottomNote) {
-            bottomNote.innerText = "[본문: 개역한글 / 정회원 개인 묵상 및 성경 통독용]";
+            bottomNote.innerText = "[본문: 개역한글 + (없음) 킹제임스 참조 / 정회원 묵상용]";
             bottomNote.style.color = "#059669";
             bottomNote.style.fontSize = "11px";
             bottomNote.style.whiteSpace = "nowrap";
