@@ -150,17 +150,94 @@
         .hero-greeting-box::-webkit-scrollbar { width: 3px; }
         .hero-greeting-box::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 3px; }
 
-        /* 🌟 담임목사 전용: 1페이지 전면 사진 & 2페이지 소개글 레이아웃 */
+        /* 🌟 담임목사 전용: [사용자 요청] 배경화면 꽉 채우고(거룩한 성전과 빛), 담임목사님은 좌측 하단에 겸손하게 배치 */
         .pastor-fullscreen-photo-card {
             width: 100%; height: calc(var(--view-h) - 80px);
             display: flex; flex-direction: column; gap: 8px; justify-content: space-between;
         }
-        .pastor-hero-img-box {
-            width: 100%; flex: 1; min-height: 240px; border-radius: 14px; overflow: hidden;
-            border: 1.5px solid #38bdf8; background: #0c1322; box-shadow: 0 6px 24px rgba(0,0,0,0.45);
+        .pastor-scenery-container {
+            position: relative;
+            width: 100%;
+            flex: 1;
+            min-height: 260px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1.5px solid rgba(56, 189, 248, 0.45);
+            background: #080d1a;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
         }
-        .pastor-hero-img-box img {
-            width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block;
+        .pastor-scenery-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; object-position: center; display: block;
+            filter: brightness(0.97) saturate(1.08);
+        }
+        .pastor-scenery-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(8, 13, 26, 0.2) 0%,
+                rgba(8, 13, 26, 0.05) 35%,
+                rgba(8, 13, 26, 0.5) 65%,
+                rgba(8, 13, 26, 0.94) 100%
+            );
+            pointer-events: none;
+        }
+        .pastor-scenery-top-badge {
+            position: absolute; top: 12px; right: 12px;
+            background: rgba(15, 23, 42, 0.72);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(250, 204, 21, 0.45);
+            border-radius: 20px;
+            padding: 5px 11px;
+            font-size: 11px;
+            font-weight: 850;
+            color: #fde047;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+            z-index: 2;
+        }
+        .pastor-humble-profile-dock {
+            position: absolute;
+            left: 12px; bottom: 12px; right: 12px;
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(15, 23, 42, 0.78);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1.2px solid rgba(56, 189, 248, 0.35);
+            border-radius: 14px;
+            padding: 9px 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+            z-index: 2;
+        }
+        .pastor-humble-avatar {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2.5px solid #38bdf8;
+            background: #1e293b;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+        .pastor-humble-avatar img {
+            width: 100%; height: 100%;
+            object-fit: cover; object-position: top center; display: block;
+        }
+        .pastor-humble-details {
+            flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;
+        }
+        .pastor-humble-tag {
+            font-size: 10.5px; font-weight: 900; color: #38bdf8; letter-spacing: -0.2px;
+        }
+        .pastor-humble-name {
+            margin: 0; font-size: 16.5px; font-weight: 950; color: #ffffff;
+            white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;
+            line-height: 1.25; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+        .pastor-humble-role {
+            font-size: 11.5px; font-weight: 750; color: #cbd5e1;
+            white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis;
+            line-height: 1.3;
         }
         .pastor-page-flow-hint {
             background: rgba(2, 132, 199, 0.15); border: 1px dashed #38bdf8; border-radius: 8px;
@@ -478,6 +555,25 @@
                 <input type="file" id="inpServantFileNative" accept="image/*" style="display:none;" onchange="handleServantImgFile(event)">
             </div>
         </div>
+        <!-- 🌟 [사용자 요청] 담임목사 배경 전경 사진(교회·하늘빛 전경) 설정 -->
+        <div id="boxPastorBgSettings" style="display:none;">
+            <span class="m-lbl">배경 전경 사진 (생략 시 기본 거룩한 성전 전경)</span>
+            <div style="display:flex; align-items:center; gap:8px; background:#162238; border:1px dashed #38bdf8; border-radius:8px; padding:8px 12px;">
+                <img id="prevPastorBgThumb" style="width:52px; height:52px; border-radius:6px; object-fit:cover; border:1px solid #38bdf8; display:none;" src="" alt="배경 미리보기">
+                <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
+                    <div style="display:flex; gap:6px;">
+                        <label for="inpPastorBgFileNative" style="background:#0284c7; color:#fff; font-size:12px; font-weight:900; padding:6px 12px; border-radius:6px; cursor:pointer;">
+                            📁 배경 사진 선택
+                        </label>
+                        <button type="button" id="btnRemovePastorBg" style="display:none; background:#dc2626; color:#fff; border:none; font-size:11px; font-weight:800; padding:4px 8px; border-radius:6px; cursor:pointer;" onclick="removePastorBgAttachedImg()">
+                            기본배경 복원
+                        </button>
+                    </div>
+                    <input type="text" class="m-input" id="inpPastorBgImg" placeholder="또는 배경 이미지 URL (생략 가능)" style="padding:6px 8px; font-size:12px;">
+                </div>
+                <input type="file" id="inpPastorBgFileNative" accept="image/*" style="display:none;" onchange="handlePastorBgImgFile(event)">
+            </div>
+        </div>
         <div>
             <span class="m-lbl">사역 소개 / 약력</span>
             <textarea class="m-input" id="inpServantDesc" style="height:90px; resize:vertical;" placeholder="소개 및 약력을 입력하세요."></textarea>
@@ -563,6 +659,7 @@
             badge: "담임목사",
             title: "최남수 담임목사",
             role: "담임목회 및 강단 말씀",
+            bgImg: "images/church_hero_heaven.jpg",
             img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&auto=format&fit=crop&q=80",
             body: "“오직 기도와 말씀으로 무장하여 세상을 변화시키는 영적 용사를 세우겠습니다.”\n\n할렐루야! 예톡행복한교회 담임목사 최남수입니다.\n우리 교회는 모든 성도가 성령의 충만함을 입어 삶의 자리에서 예수 그리스도의 살아계심을 증거하는 거룩한 비전 공동체입니다.\n\n날마다 새벽을 깨우며 눈물로 기도하고, 진리의 말씀으로 영혼을 치유하며 열방을 향해 복음의 빛을 비추는 사명에 온 성도가 함께 동역하고 있습니다.\n\n여러분의 귀한 가정이 믿음 위에 굳건히 세워지고, 자녀들이 다음 세대의 다니엘과 요셉으로 성장하도록 늘 기도와 사랑으로 섬기겠습니다.\n\n• 약력: 총신대학교 신학대학원(M.Div) 졸업\n• 목회철학: 오직 성경, 오직 기도, 영혼 구원과 제자 훈련\n• 저서: 「기도가 전부다」, 「말씀으로 일어서는 사람」"
         },
@@ -671,6 +768,7 @@
 
         if (!churchSections.welcome) churchSections.welcome = JSON.parse(JSON.stringify(DEFAULT_DATA.welcome));
         if (!churchSections.pastor) churchSections.pastor = JSON.parse(JSON.stringify(DEFAULT_DATA.pastor));
+        if (churchSections.pastor && !churchSections.pastor.bgImg) churchSections.pastor.bgImg = "images/church_hero_heaven.jpg";
         if (!churchSections.assistant_pastors || !Array.isArray(churchSections.assistant_pastors) || churchSections.assistant_pastors.length === 0) {
             churchSections.assistant_pastors = JSON.parse(JSON.stringify(DEFAULT_DATA.assistant_pastors));
         }
@@ -740,10 +838,12 @@
             appendSnapSection("sec_welcome", 0, html);
         }
 
-        // 2. 담임목사 (Tab 1) - 🌟 [사용자 요청] 1페이지: 전면 사진 한장 / 2페이지: 전체 소개와 인사말 (1페이지 넘지 않는 박스)
+        // 2. 담임목사 (Tab 1) - 🌟 [사용자 요청] 1페이지: 배경 화면 꽉 채우고(거룩한 성전 전경과 빛), 담임목사님은 좌측 하단에 겸손하게 배치 / 2페이지: 전체 소개와 인사말
         {
             const p = churchSections.pastor;
-            // 2-1. 1페이지: 전면 사진 한장
+            const bgImage = p.bgImg || 'images/church_hero_heaven.jpg';
+            const pastorPhoto = p.img || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800';
+            // 2-1. 1페이지: 배경화면 꽉 채움 + 목사님 좌측 하단 겸손 배치
             let photoPageHtml = `
                 <div class="section-header-row">
                     <div style="flex:1; min-width:0;">
@@ -756,8 +856,32 @@
                     </div>
                 </div>
                 <div class="pastor-fullscreen-photo-card">
-                    <div class="pastor-hero-img-box">
-                        <img src="${p.img || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800'}" alt="${p.title}">
+                    <div class="pastor-scenery-container">
+                        <!-- 1. 거룩한 교회 & 하늘의 빛 배경 꽉 채움 -->
+                        <img class="pastor-scenery-bg" src="${bgImage}" alt="거룩한 성전 전경" onerror="this.onerror=null; this.src='images/church_hero_heaven.jpg';">
+                        
+                        <!-- 2. 성스러운 그라데이션 오버레이 -->
+                        <div class="pastor-scenery-overlay"></div>
+
+                        <!-- 3. 우측 상단 솔리 데오 글로리아 문구 -->
+                        <div class="pastor-scenery-top-badge">
+                            ✨ Soli Deo Gloria · 오직 주께 영광
+                        </div>
+
+                        <!-- 4. [사용자 요청] 좌측 하단에 겸손하게 배치된 담임목사님 사진과 프로필 -->
+                        <div class="pastor-humble-profile-dock">
+                            <div class="pastor-humble-avatar">
+                                <img src="${pastorPhoto}" alt="${p.title || '담임목사'}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800';">
+                            </div>
+                            <div class="pastor-humble-details">
+                                <span class="pastor-humble-tag">✝️ 주님의 청지기 · 섬기는 종</span>
+                                <h3 class="pastor-humble-name">${p.title || '최남수 담임목사'}</h3>
+                                <div class="pastor-humble-role">${p.role || '담임목회 및 강단 말씀'}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pastor-page-flow-hint">
+                        ⬇️ 아래로 화면을 넘기시면 목회 인사말과 비전을 보실 수 있습니다
                     </div>
                 </div>
             `;
@@ -1181,11 +1305,29 @@
         let title = "";
         let canDelete = false;
 
+        const boxBg = document.getElementById("boxPastorBgSettings");
         if (type === 'pastor') {
             item = churchSections.pastor;
             title = "✏️ 담임목사 정보 수정";
             canDelete = false;
-        } else if (type === 'assistant') {
+            if (boxBg) boxBg.style.display = "block";
+            const bgVal = item.bgImg || "images/church_hero_heaven.jpg";
+            document.getElementById("inpPastorBgImg").value = item.bgImg || "";
+            const bgThumb = document.getElementById("prevPastorBgThumb");
+            const btnRemoveBg = document.getElementById("btnRemovePastorBg");
+            if (bgVal) {
+                bgThumb.src = bgVal;
+                bgThumb.style.display = "block";
+                btnRemoveBg.style.display = "block";
+            } else {
+                bgThumb.style.display = "none";
+                btnRemoveBg.style.display = "none";
+            }
+        } else {
+            if (boxBg) boxBg.style.display = "none";
+        }
+
+        if (type === 'assistant') {
             item = churchSections.assistant_pastors[idx];
             title = `✏️ [${item?.name || '부목사'}] 부목사 정보 수정`;
             canDelete = true;
@@ -1235,6 +1377,9 @@
         else if (type === 'missionary') title = "파송선교사";
         else if (type === 'secretary') title = "간사";
 
+        const boxBg = document.getElementById("boxPastorBgSettings");
+        if (boxBg) boxBg.style.display = "none";
+
         document.getElementById("lblServantModalTitle").innerText = `➕ 새 ${title} 추가`;
         document.getElementById("inpServantName").value = "";
         document.getElementById("inpServantRole").value = "";
@@ -1280,6 +1425,41 @@
         showToast("사역자 사진이 제거되었습니다.");
     }
 
+    function handlePastorBgImgFile(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                let w = img.width, h = img.height;
+                if (w > 1200) { h = Math.round((h * 1200) / w); w = 1200; }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+                const base64 = canvas.toDataURL("image/jpeg", 0.88);
+                document.getElementById("inpPastorBgImg").value = base64;
+                const thumb = document.getElementById("prevPastorBgThumb");
+                thumb.src = base64;
+                thumb.style.display = "block";
+                document.getElementById("btnRemovePastorBg").style.display = "block";
+                showToast("📷 성전 배경 사진이 선택되었습니다.");
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removePastorBgAttachedImg() {
+        document.getElementById("inpPastorBgImg").value = "images/church_hero_heaven.jpg";
+        const thumb = document.getElementById("prevPastorBgThumb");
+        thumb.src = "images/church_hero_heaven.jpg";
+        thumb.style.display = "block";
+        const fileInp = document.getElementById("inpPastorBgFileNative");
+        if (fileInp) fileInp.value = "";
+        showToast("기본 거룩한 성전 전경으로 복원되었습니다.");
+    }
+
     function saveServantData() {
         if (!activeLeaderContext) return;
         const name = document.getElementById("inpServantName").value.trim();
@@ -1296,6 +1476,8 @@
             churchSections.pastor.role = role;
             churchSections.pastor.body = desc;
             churchSections.pastor.img = img;
+            const bgVal = document.getElementById("inpPastorBgImg") ? document.getElementById("inpPastorBgImg").value.trim() : "";
+            churchSections.pastor.bgImg = bgVal || "images/church_hero_heaven.jpg";
         } else if (type === 'assistant') {
             const item = { badge: "부목사", name, role, body: desc, desc, img };
             if (idx >= 0 && idx < churchSections.assistant_pastors.length) {
