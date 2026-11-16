@@ -9128,12 +9128,9 @@
         const ytWrap = document.getElementById("hymnYtDirectLinkWrap");
         if (ytWrap) ytWrap.style.display = "none";
         const inlineVideo = document.getElementById("hymnInlineVideoSection");
-        const inlineIframe = document.getElementById("hymnInlineYtIframe");
+        const playerBox = document.getElementById("hymnPlayerFrameBox");
         if (inlineVideo) inlineVideo.style.display = "none";
-        if (inlineIframe) {
-            inlineIframe.src = "about:blank";
-            inlineIframe.dataset.currentVid = "";
-        }
+        if (playerBox) playerBox.innerHTML = "";
 
         if (bottomNote) {
             bottomNote.innerText = "[본문: 개역한글 / 정회원 개인 묵상 및 성경 통독용]";
@@ -9489,8 +9486,10 @@
         }
     }
 
+    let currentHymnSelectedVid = "SfUoRQy-LH4";
+
     function selectHymnVideoItem(vId, title, cardIdx, shouldAutoPlay = true) {
-        const inlineIframe = document.getElementById("hymnInlineYtIframe");
+        currentHymnSelectedVid = vId;
         const inlineTitle = document.getElementById("hymnInlinePlayerTitle");
         if (inlineTitle) {
             inlineTitle.innerText = title;
@@ -9500,14 +9499,50 @@
             el.classList.toggle("active", idx === cardIdx);
         });
 
-        if (inlineIframe) {
-            const autoPlayParam = shouldAutoPlay ? 1 : 0;
-            const targetSrc = `https://www.youtube.com/embed/${vId}?autoplay=${autoPlayParam}&enablejsapi=1&rel=0&playsinline=1&origin=${encodeURIComponent(location.origin || 'https://yetalk.cc')}`;
-            if (inlineIframe.src !== targetSrc) {
-                inlineIframe.src = targetSrc;
-            }
+        const playerBox = document.getElementById("hymnPlayerFrameBox");
+        if (!playerBox) return;
+
+        if (shouldAutoPlay) {
+            // 사용자 클릭 시 즉시 16:9 모니터 안에서 재생 (검은 화면 및 로딩 정체 방지)
+            playerBox.innerHTML = `<iframe id="hymnInlineYtIframe" 
+                src="https://www.youtube.com/embed/${vId}?autoplay=1&mute=0&playsinline=1&controls=1&rel=0&enablejsapi=1" 
+                title="찬송가 영상 찬양" 
+                style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowfullscreen></iframe>`;
+
+            setTimeout(() => {
+                const ifr = document.getElementById("hymnInlineYtIframe");
+                if (ifr && ifr.contentWindow) {
+                    try {
+                        ifr.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+                    } catch(e) {}
+                }
+            }, 500);
+        } else {
+            // 초기 대기 상태: 검은 화면 대신 선명한 찬양 썸네일과 큰 재생 버튼 표출!
+            playerBox.innerHTML = `
+                <div id="hymnPlayerPoster" onclick="startCurrentHymnVideo()" style="position:absolute; inset:0; background:#0f172a; cursor:pointer; z-index:10; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                    <img src="https://i.ytimg.com/vi/${vId}/hqdefault.jpg" onerror="this.src='https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80'" style="width:100%; height:100%; object-fit:cover; opacity:0.88;" alt="찬양 썸네일">
+                    <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%);"></div>
+                    <div style="position:absolute; width:58px; height:58px; background:rgba(220,38,38,0.95); border:2.5px solid #ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:22px; padding-left:4px; box-shadow:0 4px 16px rgba(0,0,0,0.5); z-index:12;">
+                        ▶
+                    </div>
+                    <div style="position:absolute; bottom:8px; left:12px; right:12px; color:#ffffff; font-size:12.5px; font-weight:800; text-shadow:0 1px 3px rgba(0,0,0,0.8); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; z-index:12;">
+                        ${title}
+                    </div>
+                </div>
+                <iframe id="hymnInlineYtIframe" src="" title="찬송가 영상 찬양" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            `;
         }
     }
+
+    function startCurrentHymnVideo() {
+        const vid = currentHymnSelectedVid || "SfUoRQy-LH4";
+        const title = (document.getElementById("hymnInlinePlayerTitle")?.innerText) || "찬송가 영상 찬양";
+        selectHymnVideoItem(vid, title, 0, true);
+    }
+    window.startCurrentHymnVideo = startCurrentHymnVideo;
 
     function scrollToHymnVideoBox(autoPlayFirst = false) {
         const sec = document.getElementById("hymnInlineVideoSection");
@@ -9515,8 +9550,7 @@
             sec.style.display = "block";
             sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
             if (autoPlayFirst) {
-                const firstCard = document.getElementById("hymnCard_0");
-                if (firstCard) firstCard.click();
+                startCurrentHymnVideo();
             }
         }
     }
@@ -10194,12 +10228,9 @@
         const ytWrap = document.getElementById("hymnYtDirectLinkWrap");
         if (ytWrap) ytWrap.style.display = "none";
         const inlineVideo = document.getElementById("hymnInlineVideoSection");
-        const inlineIframe = document.getElementById("hymnInlineYtIframe");
+        const playerBox = document.getElementById("hymnPlayerFrameBox");
         if (inlineVideo) inlineVideo.style.display = "none";
-        if (inlineIframe) {
-            inlineIframe.src = "about:blank";
-            inlineIframe.dataset.currentVid = "";
-        }
+        if (playerBox) playerBox.innerHTML = "";
 
         if (bottomNote) {
             bottomNote.innerText = "[본문: 개역한글 / 정회원 개인 묵상 및 성경 통독용]";
