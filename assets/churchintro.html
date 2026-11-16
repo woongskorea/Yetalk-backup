@@ -438,17 +438,18 @@
             .clean-leader-grid { grid-template-columns: repeat(4, 1fr); gap: 14px; }
         }
 
-        body[data-theme="white"] { background: #fbf9f4 !important; color: #1e293b !important; }
-        body[data-theme="white"] .intro-shell { background: #fbf9f4 !important; }
-        body[data-theme="white"] .intro-header { background: #ffffff !important; border-bottom: 1.5px solid #e2e8f0 !important; }
+        body[data-theme="white"] { background: linear-gradient(180deg, #f0fdf4 0%, #f8fafc 40%, #f1f5f9 100%) !important; color: #1e293b !important; }
+        body[data-theme="white"] .intro-shell { background: transparent !important; }
+        body[data-theme="white"] .intro-header { background: rgba(255, 255, 255, 0.95) !important; backdrop-filter: blur(8px); border-bottom: 1.5px solid #e2e8f0 !important; }
         body[data-theme="white"] .header-title-text { color: #0f172a !important; }
-        body[data-theme="white"] .intro-tabs { background: #ffffff !important; border-bottom: 1.5px solid #e2e8f0 !important; }
-        body[data-theme="white"] .intro-tab { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #475569 !important; }
-        body[data-theme="white"] .intro-tab.active { background: #0284c7 !important; border-color: #0284c7 !important; color: #ffffff !important; }
-        body[data-theme="white"] .snap-page-section { background: #ffffff !important; border-color: #e2e8f0 !important; box-shadow: 0 4px 20px rgba(0,0,0,0.06) !important; }
-        body[data-theme="white"] .article-main-title { color: #0f172a !important; }
-        body[data-theme="white"] .article-text-body { color: #1e293b !important; }
-        body[data-theme="white"] .bullet-point-line { color: #334155 !important; }
+        body[data-theme="white"] .intro-tabs { background: rgba(255, 255, 255, 0.95) !important; backdrop-filter: blur(8px); border-bottom: 1.5px solid #e2e8f0 !important; }
+        body[data-theme="white"] .intro-tab { background: #f8fafc !important; border-color: #cbd5e1 !important; color: #475569 !important; }
+        body[data-theme="white"] .intro-tab.active { background: linear-gradient(135deg, #0284c7, #0369a1) !important; border-color: #0284c7 !important; color: #ffffff !important; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35) !important; }
+        body[data-theme="white"] .snap-page-section { background: rgba(255, 255, 255, 0.96) !important; border: 1.2px solid #e2e8f0 !important; box-shadow: 0 6px 24px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04) !important; }
+        body[data-theme="white"] .article-main-title { color: #0f172a !important; font-weight: 950 !important; }
+        body[data-theme="white"] .article-text-body { color: #334155 !important; line-height: 1.8 !important; }
+        body[data-theme="white"] .bullet-point-line { color: #1e293b !important; font-weight: 750 !important; }
+        body[data-theme="white"] .bullet-point-line::before { color: #0284c7 !important; }
         body[data-theme="white"] .clean-leader-card { background: #f8fafc !important; border-color: #e2e8f0 !important; }
         body[data-theme="white"] .clean-leader-name { color: #0f172a !important; }
         body[data-theme="white"] .clean-leader-desc { color: #64748b !important; }
@@ -780,6 +781,16 @@
         } else {
             churchSections = JSON.parse(JSON.stringify(DEFAULT_DATA));
         }
+
+        // 🌟 [안전 마이그레이션] 기본 데이터의 항목(환영인사, 비전, 부서사역 등)에 bullets가 있지만
+        // 기존 localStorage 캐시에 bullets가 누락된 채 body만 저장되어 있던 경우 안전하게 결합
+        ['welcome', 'vision', 'ministry'].forEach(k => {
+            if (churchSections[k] && (!churchSections[k].bullets || churchSections[k].bullets.length === 0)) {
+                if (DEFAULT_DATA[k] && DEFAULT_DATA[k].bullets) {
+                    churchSections[k].bullets = JSON.parse(JSON.stringify(DEFAULT_DATA[k].bullets));
+                }
+            }
+        });
 
         if (!churchSections.welcome) churchSections.welcome = JSON.parse(JSON.stringify(DEFAULT_DATA.welcome));
         if (!churchSections.pastor) churchSections.pastor = JSON.parse(JSON.stringify(DEFAULT_DATA.pastor));
