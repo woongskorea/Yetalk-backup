@@ -355,13 +355,13 @@
         .secretary-role { font-size: 12px; font-weight: 850; color: #38bdf8; }
         .secretary-desc { font-size: 12.5px; color: #cbd5e1; line-height: 1.5; white-space: pre-line; font-weight: 600; }
 
-        /* 🌟 [사용자 요청] 시무장로 한줄 리스트 뷰 */
+        /* 🌟 [사용자 요청] 시무장로 한줄 리스트 뷰 (이름 + 한줄 인사글) */
         .elder-list-container {
             display: flex;
             flex-direction: column;
             gap: 8px;
             width: 100%;
-            margin-top: 6px;
+            margin-top: 8px;
             max-height: calc(var(--view-h) - 130px);
             overflow-y: auto;
             padding-right: 2px;
@@ -369,70 +369,76 @@
         .elder-row-item {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             background: #0c1322;
             border: 1.2px solid #1e3a5f;
             border-radius: 12px;
-            padding: 9px 12px;
-            gap: 10px;
+            padding: 11px 14px;
+            gap: 8px;
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
             transition: all 0.2s ease;
+            cursor: pointer;
+            user-select: none;
         }
-        .elder-row-item:hover {
+        .elder-row-item:hover, .elder-row-item:active {
             border-color: #38bdf8;
             background: #111c33;
+            transform: translateY(-1px);
+        }
+        .elder-row-item.can-edit {
+            border-color: rgba(56, 189, 248, 0.55);
         }
         .elder-col-profile {
             display: flex;
             align-items: center;
-            gap: 7px;
             flex-shrink: 0;
-            min-width: 120px;
-        }
-        .elder-role-pill {
-            font-size: 10px;
-            font-weight: 900;
-            padding: 2px 6px;
-            border-radius: 9999px;
-            background: #0284c7;
-            color: #ffffff;
             white-space: nowrap;
-        }
-        .elder-role-pill.retired {
-            background: #475569;
         }
         .elder-name-text {
-            font-size: 14.5px;
+            font-size: 15px;
             font-weight: 950;
-            color: #ffffff;
+            color: #38bdf8;
             white-space: nowrap;
+        }
+        .elder-divider {
+            color: #64748b;
+            font-weight: 700;
+            margin: 0 4px;
         }
         .elder-greeting-text {
             flex: 1;
-            font-size: 12.5px;
+            min-width: 0;
+            font-size: 13.5px;
             font-weight: 700;
-            color: #cbd5e1;
+            color: #f1f5f9;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            padding: 0 4px;
+            line-height: 1.4;
         }
-        .elder-actions {
-            display: flex;
-            align-items: center;
-            gap: 4px;
+        .elder-edit-indicator {
+            font-size: 13px;
+            color: #38bdf8;
             flex-shrink: 0;
+            opacity: 0.85;
+            padding-left: 4px;
         }
         body[data-theme="white"] .elder-row-item {
-            background: #f8fafc !important;
-            border-color: #e2e8f0 !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+            background: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+        }
+        body[data-theme="white"] .elder-row-item:hover, body[data-theme="white"] .elder-row-item:active {
+            border-color: #0284c7 !important;
+            background: #f0f9ff !important;
         }
         body[data-theme="white"] .elder-name-text {
-            color: #0f172a !important;
+            color: #0369a1 !important;
         }
         body[data-theme="white"] .elder-greeting-text {
-            color: #475569 !important;
+            color: #1e293b !important;
+        }
+        body[data-theme="white"] .elder-divider {
+            color: #94a3b8 !important;
         }
 
         /* 교회역사 타임라인 - 🌟 [사용자 요청] 마지막 1998년 및 하단 내용 팅김 방지 최적화 */
@@ -879,16 +885,6 @@
                 name: "최베드로 장로",
                 role: "시무장로",
                 greeting: "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다."
-            },
-            {
-                name: "김바나바 장로",
-                role: "시무장로",
-                greeting: "기도와 헌신으로 성도님들과 늘 동행하겠습니다."
-            },
-            {
-                name: "박야고보 장로",
-                role: "시무장로",
-                greeting: "빛과 소금 되어 하나님 나라를 확장해 가겠습니다."
             }
         ],
         vision: {
@@ -1033,7 +1029,7 @@
                         });
                         modified = true;
                     }
-                } else if (mRole === "시무장로" || mRole === "은퇴장로" || mRole === "장로") {
+                } else if (mRole === "장로(시무장로)" || mRole === "시무장로" || mRole === "은퇴장로" || mRole === "장로") {
                     if (!Array.isArray(churchSections.elders)) churchSections.elders = [];
                     if (!churchSections.elders.some(el => (el.name || "").includes(clean))) {
                         const eRole = mRole.includes("은퇴") ? "은퇴장로" : "시무장로";
@@ -1053,6 +1049,29 @@
         } catch(err) {
             console.warn("syncChurchMembersFromRegistered error:", err);
         }
+    }
+
+    // 🌟 [사용자 요청] 담임목사/관리자 여부 검사
+    function isChurchAdmin() {
+        const isOwner = localStorage.getItem("yetalk_is_church_owner") === "true";
+        const myRole = (localStorage.getItem("yetalk_church_role") || "").trim();
+        return isOwner || myRole === "담임목사";
+    }
+
+    // 🌟 [사용자 요청] 본인 또는 담임목사님에게만 본인 항목 수정 권한 부여
+    function canEditLeader(targetName) {
+        if (isChurchAdmin()) return true;
+
+        const myName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserId") || "").trim();
+        if (!myName || !targetName) return false;
+
+        const cleanMy = myName.replace(/\s+/g, '').replace(/(담임)?목사(님)?/g, '').replace(/(선교사|전도사|강도사|시무장로|은퇴장로|장로|안수집사|권사|집사|간사|사모|교회사무|성도)(님)?/g, '').trim();
+        const cleanTarget = targetName.replace(/\s+/g, '').replace(/(담임)?목사(님)?/g, '').replace(/(선교사|전도사|강도사|시무장로|은퇴장로|장로|안수집사|권사|집사|간사|사모|교회사무|성도)(님)?/g, '').trim();
+
+        if (cleanMy && cleanTarget && (cleanTarget.includes(cleanMy) || cleanMy.includes(cleanTarget))) {
+            return true;
+        }
+        return false;
     }
 
     function loadSections() {
@@ -1098,6 +1117,11 @@
         }
         if (!churchSections.secretaries || !Array.isArray(churchSections.secretaries) || churchSections.secretaries.length === 0) {
             churchSections.secretaries = JSON.parse(JSON.stringify(DEFAULT_DATA.secretaries));
+        }
+
+        // 🌟 [사용자 요청] 가짜 샘플 장로(김바나바, 박야고보) 제거 및 실제 시무장로만 유지
+        if (churchSections.elders && Array.isArray(churchSections.elders)) {
+            churchSections.elders = churchSections.elders.filter(e => !e.name.includes("김바나바") && !e.name.includes("박야고보"));
         }
         if (!churchSections.elders || !Array.isArray(churchSections.elders) || churchSections.elders.length === 0) {
             churchSections.elders = JSON.parse(JSON.stringify(DEFAULT_DATA.elders));
@@ -1338,50 +1362,54 @@
             }
         }
 
-        // 7. 시무장로 (Tab 6) - 🌟 [사용자 요청] 간사와 교회비젼 사이에 시무 장로 메뉴 (딱 한줄로 이름과 인사말 리스트)
+        // 7. 시무장로 (Tab 6) - 🌟 [사용자 요청] 시무장로만 한줄로 이름과 인사글 (클릭 시 본인 수정)
         {
-            const eldersList = churchSections.elders || [];
+            const eldersList = (churchSections.elders || []).filter(e => !e.role || !e.role.includes("은퇴"));
             let itemsHtml = "";
             if (eldersList.length === 0) {
                 itemsHtml = `
                     <div style="text-align:center; padding:30px 16px; color:#94a3b8; font-size:13px; font-weight:700; background:rgba(15,23,42,0.4); border-radius:12px; border:1px dashed #334155;">
-                        등록된 장로님이 없습니다.<br>우측 상단의 [➕ 장로추가] 버튼으로 등록해 주세요.
+                        등록된 시무장로님이 없습니다.<br>회원가입 시 시무장로를 선택하시면 자동으로 등재됩니다.
                     </div>
                 `;
             } else {
                 itemsHtml = `<div class="elder-list-container">`;
                 eldersList.forEach((elder, eIdx) => {
-                    const isRetired = (elder.role && elder.role.includes("은퇴"));
+                    const canEdit = canEditLeader(elder.name);
                     itemsHtml += `
-                        <div class="elder-row-item">
+                        <div class="elder-row-item ${canEdit ? 'can-edit' : ''}" onclick="handleElderItemClick(${eIdx})" title="${canEdit ? '터치하여 나의 한줄 인사말 수정' : ''}">
                             <div class="elder-col-profile">
-                                <span class="elder-role-pill ${isRetired ? 'retired' : ''}">${elder.role || '시무장로'}</span>
                                 <strong class="elder-name-text">${elder.name}</strong>
+                                <span class="elder-divider">·</span>
                             </div>
                             <div class="elder-greeting-text" title="${elder.greeting || ''}">
-                                “${elder.greeting || '주님의 몸 된 교회를 온 맘 다해 섬기겠습니다.'}”
+                                “${elder.greeting || '주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다.'}”
                             </div>
-                            <div class="elder-actions">
-                                <button type="button" class="btn-action-pill edit" style="padding:3px 7px; font-size:10.5px;" onclick="openElderEdit(${eIdx})" title="수정">✏️</button>
-                                <button type="button" class="btn-action-pill delete" style="padding:3px 7px; font-size:10.5px;" onclick="deleteElderDirect(${eIdx})" title="삭제">🗑️</button>
+                            ${canEdit ? `
+                            <div class="elder-edit-indicator" title="수정 가능">
+                                ✏️
                             </div>
+                            ` : ``}
                         </div>
                     `;
                 });
                 itemsHtml += `</div>`;
             }
 
+            const canAdd = isChurchAdmin();
             let html = `
                 <div class="section-header-row">
                     <div style="flex:1; min-width:0;">
                         <span class="badge-pill">시무장로</span>
-                        <h2 class="article-main-title" style="white-space:nowrap !important;">교회와 성도를 섬기는 장로회</h2>
+                        <h2 class="article-main-title" style="white-space:nowrap !important;">교회와 성도를 섬기는 시무장로</h2>
                     </div>
+                    ${canAdd ? `
                     <div class="leader-top-btn-group">
                         <button type="button" class="btn-action-pill add" onclick="openElderAdd()" title="장로 추가">➕ 장로추가</button>
                     </div>
+                    ` : ``}
                 </div>
-                <p style="font-size:12.5px; color:#94a3b8; font-weight:700; margin-bottom:6px;">기도와 헌신으로 목회에 협력하며 교회와 성도를 섬기는 장로님들입니다.</p>
+                <p style="font-size:12.5px; color:#94a3b8; font-weight:700; margin-bottom:6px;">기도와 헌신으로 목회에 협력하는 시무장로님들입니다. (본인 성함을 누르면 인사말을 수정할 수 있습니다)</p>
                 ${itemsHtml}
             `;
             appendSnapSection("sec_elders", 6, html);
@@ -1551,7 +1579,19 @@
         else if (currentActiveTabIdx === 3) openLeaderEdit("evangelist", 0);
         else if (currentActiveTabIdx === 4) openLeaderEdit("missionary", 0);
         else if (currentActiveTabIdx === 5) openLeaderEdit("secretary", 0);
-        else if (currentActiveTabIdx === 6) openElderAdd();
+        else if (currentActiveTabIdx === 6) {
+            const eldersList = churchSections.elders || [];
+            const myName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserId") || "").trim();
+            const cleanMy = myName.replace(/\s+/g, '').replace(/(시무|은퇴)?장로(님)?/g, '').trim();
+            const myElderIdx = cleanMy ? eldersList.findIndex(e => e.name && e.name.replace(/\s+/g, '').includes(cleanMy)) : -1;
+            if (myElderIdx >= 0) {
+                openElderEdit(myElderIdx);
+            } else if (isChurchAdmin()) {
+                openElderAdd();
+            } else {
+                showToast("💡 본인 성함을 터치하여 나의 인사말을 수정하실 수 있습니다.");
+            }
+        }
         else if (currentActiveTabIdx === 7) triggerGeneralEdit("vision");
         else if (currentActiveTabIdx === 8) triggerGeneralEdit("ministry");
         else if (currentActiveTabIdx === 9) triggerGeneralEdit("history");
@@ -1714,8 +1754,13 @@
 
         if (!item) return;
 
+        if (!canEditLeader(item.name || item.title)) {
+            showToast(`💡 [${item.name || item.title}] 님 본인 또는 담임목사님만 수정 권한이 있습니다.`);
+            return;
+        }
+
         document.getElementById("lblServantModalTitle").innerText = title;
-        document.getElementById("btnDeleteServant").style.display = canDelete ? "block" : "none";
+        document.getElementById("btnDeleteServant").style.display = (canDelete && isChurchAdmin()) ? "block" : "none";
 
         if (type === 'pastor') {
             const rawName = item.name || item.title || "";
@@ -1742,6 +1787,10 @@
     }
 
     function openLeaderAdd(type) {
+        if (!isChurchAdmin()) {
+            showToast("💡 담임목사님 또는 교회 관리자만 사역자를 새로 추가할 수 있습니다.");
+            return;
+        }
         activeLeaderContext = { type, idx: -1 };
         let title = "사역자";
         if (type === 'assistant') title = "부목사";
@@ -1959,7 +2008,22 @@
 
     // 🌟 [사용자 요청] 시무장로 한줄 등록/수정/삭제 로직
     let activeElderIdx = -1;
+
+    function handleElderItemClick(idx) {
+        const elder = (churchSections.elders || [])[idx];
+        if (!elder) return;
+        if (canEditLeader(elder.name)) {
+            openElderEdit(idx);
+        } else {
+            showToast(`💡 [${elder.name}] 님 본인 또는 담임목사님만 수정 권한이 있습니다.`);
+        }
+    }
+
     function openElderAdd() {
+        if (!isChurchAdmin()) {
+            showToast("💡 담임목사님 또는 교회 관리자만 장로를 새로 추가할 수 있습니다.\n(가입하신 장로님은 자동으로 등록됩니다.)");
+            return;
+        }
         activeElderIdx = -1;
         document.getElementById("lblElderModalTitle").innerText = "➕ 시무장로 등록";
         document.getElementById("inpElderName").value = "";
@@ -1973,7 +2037,11 @@
         activeElderIdx = idx;
         const elder = (churchSections.elders || [])[idx];
         if (!elder) return;
-        document.getElementById("lblElderModalTitle").innerText = `✏️ [${elder.name}] 정보 및 한줄 인사말 수정`;
+        if (!canEditLeader(elder.name)) {
+            showToast(`💡 [${elder.name}] 님 본인 또는 담임목사님만 수정 권한이 있습니다.`);
+            return;
+        }
+        document.getElementById("lblElderModalTitle").innerText = `✏️ [${elder.name}] 나의 한줄 인사말 수정`;
         document.getElementById("inpElderName").value = elder.name || "";
         const isRetired = (elder.role && elder.role.includes("은퇴"));
         if (isRetired) {
@@ -1982,7 +2050,7 @@
             document.getElementById("elderTypeSimu").checked = true;
         }
         document.getElementById("inpElderGreeting").value = elder.greeting || "";
-        document.getElementById("btnDeleteElder").style.display = "block";
+        document.getElementById("btnDeleteElder").style.display = isChurchAdmin() ? "block" : "none";
         openModal("elderEditModal");
     }
 
