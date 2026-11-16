@@ -554,8 +554,25 @@
             <span class="m-lbl">담당 사역 / 교구</span>
             <input type="text" class="m-input" id="inpServantRole" placeholder="예: 담임목회 및 강단 말씀, 1교구 / 미디어">
         </div>
-        <div>
-            <span class="m-lbl">사역자 사진 (파일 선택 또는 이미지 링크)</span>
+        <!-- 🌟 [사용자 요청] 담임목사 사진 옵션 (독립 사진 또는 교회와 하나로 된 통합 배경 사진) -->
+        <div id="boxPastorDisplayMode" style="display:none; background:#1e293b; border:1px solid #38bdf8; border-radius:10px; padding:10px 12px;">
+            <span class="m-lbl" style="margin-bottom:6px;">담임목사 화면 표시 방식</span>
+            <div style="display:flex; gap:14px; font-size:13px; font-weight:800; color:#e2e8f0;">
+                <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
+                    <input type="radio" name="pastorLayoutMode" value="dual" id="modePastorDual" checked onchange="togglePastorLayoutInputMode()">
+                    <span>사진 + 교회전경 분리 표시</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
+                    <input type="radio" name="pastorLayoutMode" value="single" id="modePastorSingle" onchange="togglePastorLayoutInputMode()">
+                    <span>목사님+교회 하나로 된 통합 사진만 표시</span>
+                </label>
+            </div>
+            <div style="font-size:11px; color:#94a3b8; margin-top:4px;">
+                * '통합 사진' 선택 시 배경 화면 전체에 업로드하신 사진만 단독으로 꽉 채워집니다.
+            </div>
+        </div>
+        <div id="boxPastorAvatarWrap">
+            <span class="m-lbl">담임목사님 단독 프로필 사진</span>
             <div style="display:flex; align-items:center; gap:8px; background:#162238; border:1px dashed #38bdf8; border-radius:8px; padding:8px 12px;">
                 <img id="prevServantImgThumb" style="width:52px; height:52px; border-radius:6px; object-fit:cover; border:1px solid #38bdf8; display:none;" src="" alt="미리보기">
                 <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
@@ -574,13 +591,13 @@
         </div>
         <!-- 🌟 [사용자 요청] 담임목사 배경 전경 사진(교회·하늘빛 전경) 설정 -->
         <div id="boxPastorBgSettings" style="display:none;">
-            <span class="m-lbl">배경 전경 사진 (생략 시 기본 거룩한 성전 전경)</span>
+            <span class="m-lbl" id="lblPastorBgTitle">배경 전경 사진 (생략 시 기본 거룩한 성전 전경)</span>
             <div style="display:flex; align-items:center; gap:8px; background:#162238; border:1px dashed #38bdf8; border-radius:8px; padding:8px 12px;">
                 <img id="prevPastorBgThumb" style="width:52px; height:52px; border-radius:6px; object-fit:cover; border:1px solid #38bdf8; display:none;" src="" alt="배경 미리보기">
                 <div style="flex:1; display:flex; flex-direction:column; gap:4px;">
                     <div style="display:flex; gap:6px;">
                         <label for="inpPastorBgFileNative" style="background:#0284c7; color:#fff; font-size:12px; font-weight:900; padding:6px 12px; border-radius:6px; cursor:pointer;">
-                            📁 배경 사진 선택
+                            📁 배경/통합 사진 선택
                         </label>
                         <button type="button" id="btnRemovePastorBg" style="display:none; background:#dc2626; color:#fff; border:none; font-size:11px; font-weight:800; padding:4px 8px; border-radius:6px; cursor:pointer;" onclick="removePastorBgAttachedImg()">
                             기본배경 복원
@@ -890,23 +907,26 @@
             appendSnapSection("sec_welcome", 0, html);
         }
 
-        // 2. 담임목사 (Tab 1) - 🌟 [사용자 요청] 담임목사 얼굴 + 우측 교회 전경 + 하단 텍스트 (하단 박스 없이 단일 뷰 완성)
+        // 2. 담임목사 (Tab 1) - 🌟 [사용자 요청] 담임목사 단독/통합 선택 지원 + 화면 밑부분 텍스트
         {
             const p = churchSections.pastor || {};
             const bgImage = p.bgImg || 'images/church_hero_heaven.jpg';
-            const pastorPhoto = p.img || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800';
+            const pastorPhoto = p.img || '';
+            const isSingleMode = (p.layoutMode === 'single') || (!pastorPhoto && bgImage);
             const pastorName = (p.title && !p.title.includes('최남수')) ? p.title : getEffectivePastorName();
             let pastorCardHtml = `
                 <div class="pastor-integrated-card">
                     <div class="pastor-hero-banner">
-                        <img class="pastor-hero-bg" src="${bgImage}" alt="교회 전경" onerror="this.onerror=null; this.src='images/church_hero_heaven.jpg';">
+                        <img class="pastor-hero-bg" src="${bgImage}" alt="담임목사 및 교회 전경" onerror="this.onerror=null; this.src='images/church_hero_heaven.jpg';">
                         <div class="pastor-hero-overlay"></div>
                         
-                        <!-- 1. 상단: 좌측 담임목사님 얼굴 + 우측 수정 버튼 & 뱃지 -->
+                        <!-- 1. 상단: 좌측 담임목사님 얼굴(통합사진 모드가 아닐 때만 표시) + 우측 수정 버튼 & 뱃지 -->
                         <div class="pastor-top-row">
+                            ${!isSingleMode && pastorPhoto ? `
                             <div class="pastor-hero-avatar-box">
-                                <img src="${pastorPhoto}" alt="${pastorName}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800';">
+                                <img src="${pastorPhoto}" alt="${pastorName}" onerror="this.onerror=null; this.src='images/church_hero_heaven.jpg';">
                             </div>
+                            ` : `<div></div>`}
                             <div class="pastor-hero-top-actions">
                                 <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('pastor', 0)" title="수정" style="padding:5px 11px; font-size:12px;">✏️ 수정</button>
                                 <span class="badge-pill" style="margin-bottom:0; background:rgba(15,23,42,0.7); border-color:#fde047; color:#fde047; padding:4px 10px;">✨ 솔리 데오 글로리아</span>
@@ -1316,6 +1336,19 @@
         showToast("✨ 수정 내용이 안전하게 저장되었습니다.");
     }
 
+    function togglePastorLayoutInputMode() {
+        const isSingle = document.getElementById("modePastorSingle")?.checked;
+        const avatarWrap = document.getElementById("boxPastorAvatarWrap");
+        const bgLabel = document.getElementById("lblPastorBgTitle");
+        if (isSingle) {
+            if (avatarWrap) avatarWrap.style.display = "none";
+            if (bgLabel) bgLabel.innerText = "목사님+교회 하나로 된 통합 사진";
+        } else {
+            if (avatarWrap) avatarWrap.style.display = "block";
+            if (bgLabel) bgLabel.innerText = "배경 전경 사진 (생략 시 기본 거룩한 성전 전경)";
+        }
+    }
+
     // 🌟 사역자 (담임목사, 부목사, 전도사, 선교사, 간사) 개별 수정 / 추가 로직
     function openLeaderEdit(type, idx) {
         activeLeaderContext = { type, idx };
@@ -1323,12 +1356,20 @@
         let title = "";
         let canDelete = false;
 
+        const boxMode = document.getElementById("boxPastorDisplayMode");
         const boxBg = document.getElementById("boxPastorBgSettings");
+        const avatarWrap = document.getElementById("boxPastorAvatarWrap");
         if (type === 'pastor') {
             item = churchSections.pastor;
-            title = "✏️ 담임목사 정보 수정";
+            title = "✏️ 담임목사 정보 및 사진 수정";
             canDelete = false;
+            if (boxMode) boxMode.style.display = "block";
             if (boxBg) boxBg.style.display = "block";
+            const isSingle = (item.layoutMode === 'single');
+            if (document.getElementById("modePastorSingle")) document.getElementById("modePastorSingle").checked = isSingle;
+            if (document.getElementById("modePastorDual")) document.getElementById("modePastorDual").checked = !isSingle;
+            togglePastorLayoutInputMode();
+
             const bgVal = item.bgImg || "images/church_hero_heaven.jpg";
             document.getElementById("inpPastorBgImg").value = item.bgImg || "";
             const bgThumb = document.getElementById("prevPastorBgThumb");
@@ -1342,7 +1383,9 @@
                 btnRemoveBg.style.display = "none";
             }
         } else {
+            if (boxMode) boxMode.style.display = "none";
             if (boxBg) boxBg.style.display = "none";
+            if (avatarWrap) avatarWrap.style.display = "block";
         }
 
         if (type === 'assistant') {
@@ -1496,6 +1539,8 @@
             churchSections.pastor.img = img;
             const bgVal = document.getElementById("inpPastorBgImg") ? document.getElementById("inpPastorBgImg").value.trim() : "";
             churchSections.pastor.bgImg = bgVal || "images/church_hero_heaven.jpg";
+            const isSingle = document.getElementById("modePastorSingle")?.checked;
+            churchSections.pastor.layoutMode = isSingle ? 'single' : 'dual';
         } else if (type === 'assistant') {
             const item = { badge: "부목사", name, role, body: desc, desc, img };
             if (idx >= 0 && idx < churchSections.assistant_pastors.length) {
