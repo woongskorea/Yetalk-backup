@@ -4928,15 +4928,9 @@
                 <!-- 선택된 성경 본문 자동 렌더링 -->
             </div>
 
-            <!-- 🌟 [사용자 요청] 찬송가일 때 유튜브 찬양 바로듣기 버튼 & 성경/찬송 간략 출처 안내 바 -->
-            <div id="bbrBottomMetaRow" style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding:0 2px;">
-                <div id="hymnYtDirectLinkWrap" style="display:none;">
-                    <button type="button" id="btnHymnYtDirectLink" onclick="playCurrentHymnYouTube()" style="background:#fef2f2; border:1.5px solid #fca5a5; color:#dc2626; border-radius:18px; padding:4px 12px; font-size:11.8px; font-weight:950; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 1px 3px rgba(220,38,38,0.1); transition:all 0.15s ease;" title="유튜브에서 해당 찬양 바로듣기">
-                        <span style="font-size:13px;">📺</span>
-                        <span id="txtHymnYtBtnLabel">유튜브 찬양 듣기 ▶</span>
-                    </button>
-                </div>
-                <div id="bbrBottomSourceNote" style="margin-left:auto; text-align:right; font-size:11.5px; color:#059669; opacity:0.9; font-weight:750;">
+            <!-- 🌟 [사용자 요청] 성경/찬송 간략 출처 안내 바 (한 줄 핏 유지) -->
+            <div id="bbrBottomMetaRow" style="display:flex; justify-content:flex-end; align-items:center; margin-top:8px; padding:0 2px;">
+                <div id="bbrBottomSourceNote" style="text-align:right; font-size:11px; color:#059669; opacity:0.9; font-weight:750; white-space:nowrap;">
                     [본문: 개역한글 / 정회원 개인 묵상 및 성경 통독용]
                 </div>
             </div>
@@ -4952,6 +4946,22 @@
                 <button type="button" onclick="navBottomBibleChapter(1)" style="padding:9px 20px; background:#ffffff; border:1.5px solid #10b981; border-radius:10px; font-size:16px; font-weight:950; color:#047857; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.08); touch-action:manipulation;" title="다음 장">
                     <span>▶</span>
                 </button>
+            </div>
+
+            <!-- 🌟 [사용자 요청] 찬송가일 때 위에 가사 보면서 밑에서 유튜브 찬양 들을 수 있는 16:9 롱폼 영상 플레이어 (가사와 찬송 듣기 동시 진행) -->
+            <div id="hymnInlineVideoSection" style="display:none; margin:12px 0 14px 0; background:#faf5ff; border:1.5px solid #d8b4fe; border-radius:14px; padding:10px 12px; box-shadow:0 2px 8px rgba(124,58,237,0.08);">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:6px; min-width:0;">
+                        <span style="font-size:14px;">📺</span>
+                        <strong id="hymnInlinePlayerTitle" style="font-size:13px; font-weight:900; color:#6b21a8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">찬송가 305장 영상 찬양</strong>
+                    </div>
+                    <button type="button" onclick="playCurrentHymnYouTube()" style="background:#f3e8ff; border:1px solid #c084fc; color:#7c3aed; border-radius:8px; padding:3px 9px; font-size:11px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:3px; flex-shrink:0;" title="유튜브에서 직접 보기">
+                        <span>유튜브 앱 ↗</span>
+                    </button>
+                </div>
+                <div style="width:100%; border-radius:10px; overflow:hidden; background:#000000; position:relative; padding-top:56.25%; box-shadow:0 1px 4px rgba(0,0,0,0.15);">
+                    <iframe id="hymnInlineYtIframe" src="" title="찬송가 영상 찬양" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
             </div>
 
             <!-- 🌟 [사용자 요청] 감사 고백 창 널찍하게 확대 & '아멘' 버튼 삐져나오지 않도록 밑으로 배치 (전체 너비 100%) -->
@@ -9006,12 +9016,19 @@
             displayUserBibleChapter(currentUserBibleBook, currentUserBibleCh);
         }
 
-        const ytWrap = document.getElementById("hymnYtDirectLinkWrap");
-        if (ytWrap) ytWrap.style.display = "none";
+        const inlineVideo = document.getElementById("hymnInlineVideoSection");
+        const inlineIframe = document.getElementById("hymnInlineYtIframe");
+        if (inlineVideo) inlineVideo.style.display = "none";
+        if (inlineIframe) {
+            inlineIframe.src = "about:blank";
+            inlineIframe.dataset.currentVid = "";
+        }
 
         if (bottomNote) {
             bottomNote.innerText = "[본문: 개역한글 / 정회원 개인 묵상 및 성경 통독용]";
             bottomNote.style.color = "#059669";
+            bottomNote.style.fontSize = "11px";
+            bottomNote.style.whiteSpace = "nowrap";
         }
     }
 
@@ -9255,6 +9272,24 @@
             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
+    const HYMN_VIDEO_MAP = {
+        1: "U1Dm88J_kmU",
+        28: "3JZ_D3ELwOQ",
+        79: "0Eq3R4P_NdQ",
+        88: "pZuW2CV0mXY",
+        93: "pZuW2CV0mXY",
+        150: "SfUoRQy-LH4",
+        288: "pZuW2CV0mXY",
+        305: "SfUoRQy-LH4",
+        310: "pZuW2CV0mXY",
+        405: "0Eq3R4P_NdQ",
+        412: "0Eq3R4P_NdQ",
+        435: "pZuW2CV0mXY",
+        545: "SfUoRQy-LH4",
+        645: "SfUoRQy-LH4"
+    };
+    window.HYMN_VIDEO_MAP = HYMN_VIDEO_MAP;
+
     window.playHymnYouTube = playHymnYouTube;
     function playCurrentHymnYouTube() {
         const num = currentHymnNum || 305;
@@ -9401,16 +9436,26 @@
             if (existingAkbo) existingAkbo.remove();
         }
 
-        // 🌟 [사용자 요청] 찬송가일 때 유튜브 찬양 바로듣기 버튼 표출 & 안내 문구 간략화
-        const ytWrap = document.getElementById("hymnYtDirectLinkWrap");
-        const txtBtn = document.getElementById("txtHymnYtBtnLabel");
-        if (ytWrap) ytWrap.style.display = "inline-flex";
-        if (txtBtn) txtBtn.innerText = `찬송가 ${num}장 듣기 ▶`;
+        // 🌟 [사용자 요청] 찬송가일 때 위에 가사 보면서 밑에서 유튜브 찬양 들을 수 있는 16:9 롱폼 영상 플레이어 연동
+        const inlineVideo = document.getElementById("hymnInlineVideoSection");
+        const inlineIframe = document.getElementById("hymnInlineYtIframe");
+        const inlineTitle = document.getElementById("hymnInlinePlayerTitle");
+        if (inlineVideo) inlineVideo.style.display = "block";
+        if (inlineTitle) inlineTitle.innerText = `찬송가 ${num}장 [${currentHymnTitle || '찬양'}] 영상`;
 
+        const vid = (window.HYMN_VIDEO_MAP && window.HYMN_VIDEO_MAP[num]) || "SfUoRQy-LH4";
+        if (inlineIframe && inlineIframe.dataset.currentVid !== vid) {
+            inlineIframe.src = `https://www.youtube.com/embed/${vid}?autoplay=0&enablejsapi=1&rel=0&playsinline=1`;
+            inlineIframe.dataset.currentVid = vid;
+        }
+
+        // 🌟 [사용자 요청] 새찬송가 묵상용 글자 조금 줄여서 한줄로 핏
         const bottomNote = document.getElementById("bbrBottomSourceNote") || document.querySelector(".daily-bible-reading-section div[style*='text-align:right']");
         if (bottomNote) {
-            bottomNote.innerText = "[새찬송가 645장 가사 / 묵상용]";
+            bottomNote.innerText = "[새찬송가 645장 / 묵상용]";
             bottomNote.style.color = "#7c3aed";
+            bottomNote.style.fontSize = "11px";
+            bottomNote.style.whiteSpace = "nowrap";
         }
     }
 
@@ -9918,12 +9963,19 @@
 
         // 하단 출처 표기 복원
         const bottomNote = document.querySelector(".daily-bible-reading-section div[style*='text-align:right']");
-        const ytWrap = document.getElementById("hymnYtDirectLinkWrap");
-        if (ytWrap) ytWrap.style.display = "none";
+        const inlineVideo = document.getElementById("hymnInlineVideoSection");
+        const inlineIframe = document.getElementById("hymnInlineYtIframe");
+        if (inlineVideo) inlineVideo.style.display = "none";
+        if (inlineIframe) {
+            inlineIframe.src = "about:blank";
+            inlineIframe.dataset.currentVid = "";
+        }
 
         if (bottomNote) {
             bottomNote.innerText = "[본문: 개역한글 / 정회원 개인 묵상 및 성경 통독용]";
             bottomNote.style.color = "#059669";
+            bottomNote.style.fontSize = "11px";
+            bottomNote.style.whiteSpace = "nowrap";
         }
 
         // 하단 감사 고백 한줄창 시간대 갱신
