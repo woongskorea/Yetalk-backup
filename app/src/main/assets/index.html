@@ -6244,10 +6244,13 @@
                             <option value="집사">집사</option>
                             <option value="권사">권사</option>
                             <option value="안수집사">안수집사</option>
+                            <option value="시무장로">시무장로</option>
+                            <option value="은퇴장로">은퇴장로</option>
                             <option value="장로">장로</option>
                             <option value="사모">사모</option>
+                            <option value="간사">간사</option>
                             <option value="전도사">전도사</option>
-                            <option value="선교사">선교사</option>
+                            <option value="선교사">파송선교사</option>
                             <option value="교회사무">교회사무</option>
                             <option value="부목사">부목사</option>
                             <option value="담임목사">담임목사(담임 인증)</option>
@@ -15216,6 +15219,91 @@
         }
     }
 
+    // 🌟 [사용자 요청] 회원 가입 시 교회 이름과 담임목사가 동일하면 자동으로 부목사, 전도사, 간사, 선교사, 교회사무, 장로 이름 동기화
+    function syncMemberToChurchIntroData(cName, pName, memberName, memberRole) {
+        try {
+            const STORAGE_KEY = "yetalk_church_intro_custom_sections_v5";
+            let sections = {};
+            const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("yetalk_church_intro_custom_sections_v4");
+            if (raw) {
+                try { sections = JSON.parse(raw); } catch(e) { sections = {}; }
+            }
+            if (!sections || typeof sections !== "object") sections = {};
+
+            const cleanName = (memberName || "").replace(/\s+/g, '').replace(/(담임)?목사(님)?/g, '').replace(/(선교사|전도사|강도사|시무장로|은퇴장로|장로|안수집사|권사|집사|간사|사모|교회사무|성도)(님)?/g, '').trim();
+            if (!cleanName) return;
+
+            let changed = false;
+            if (memberRole === "부목사") {
+                if (!Array.isArray(sections.assistant_pastors)) sections.assistant_pastors = [];
+                if (!sections.assistant_pastors.some(a => (a.name || "").includes(cleanName))) {
+                    sections.assistant_pastors.push({
+                        badge: "부목사",
+                        name: cleanName + " 부목사",
+                        role: "교구 목양 및 목회행정",
+                        img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
+                        body: `“성도님 한 분 한 분을 주님의 심장으로 섬기며 따뜻한 사랑으로 동행하겠습니다.”\n\n할렐루야! ${cName} ${cleanName} 부목사입니다.\n교회와 성도님들의 삶의 자리에 주님의 은혜와 평강이 넘쳐나도록 기도와 말씀으로 섬기겠습니다.`
+                    });
+                    changed = true;
+                }
+            } else if (memberRole === "전도사") {
+                if (!Array.isArray(sections.evangelists)) sections.evangelists = [];
+                if (!sections.evangelists.some(e => (e.name || "").includes(cleanName))) {
+                    sections.evangelists.push({
+                        badge: "전도사",
+                        name: cleanName + " 전도사",
+                        role: "교회학교 및 다음세대 사역",
+                        img: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&auto=format&fit=crop&q=80",
+                        body: `“다음 세대의 영혼들을 깨우며 말씀 위에 굳건히 서도록 사랑으로 섬기겠습니다.”\n\n할렐루야! ${cleanName} 전도사입니다.`
+                    });
+                    changed = true;
+                }
+            } else if (memberRole === "선교사" || memberRole === "파송선교사") {
+                if (!Array.isArray(sections.missionaries)) sections.missionaries = [];
+                if (!sections.missionaries.some(m => (m.name || m.title || "").includes(cleanName))) {
+                    sections.missionaries.push({
+                        badge: "파송선교사",
+                        name: cleanName + " 선교사",
+                        role: "해외 선교 및 복음화 사역",
+                        img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
+                        body: `“땅끝까지 이르러 내 증인이 되리라.”\n\n열방을 향해 십자가 복음을 전하는 ${cleanName} 선교사입니다.`
+                    });
+                    changed = true;
+                }
+            } else if (memberRole === "간사" || memberRole === "사모" || memberRole === "교회사무") {
+                if (!Array.isArray(sections.secretaries)) sections.secretaries = [];
+                if (!sections.secretaries.some(s => (s.name || "").includes(cleanName))) {
+                    const sRole = (memberRole === "사모") ? "목회 협력 및 중보기도" : ((memberRole === "교회사무") ? "교회 행정 및 재무 사무" : "교회 행정 및 사역 지원");
+                    const sName = cleanName + " " + (memberRole === "사모" ? "사모" : (memberRole === "교회사무" ? "행정간사" : "간사"));
+                    sections.secretaries.push({
+                        name: sName,
+                        role: sRole,
+                        img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80",
+                        desc: `“성도님들을 기쁨과 감사의 마음으로 섬기겠습니다.”`
+                    });
+                    changed = true;
+                }
+            } else if (memberRole === "시무장로" || memberRole === "은퇴장로" || memberRole === "장로") {
+                if (!Array.isArray(sections.elders)) sections.elders = [];
+                if (!sections.elders.some(el => (el.name || "").includes(cleanName))) {
+                    const eRole = memberRole.includes("은퇴") ? "은퇴장로" : "시무장로";
+                    sections.elders.push({
+                        name: cleanName + " 장로",
+                        role: eRole,
+                        greeting: "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다."
+                    });
+                    changed = true;
+                }
+            }
+
+            if (changed) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(sections));
+            }
+        } catch(err) {
+            console.warn("syncMemberToChurchIntroData error:", err);
+        }
+    }
+
     function submitChristianRegistration() {
         try {
             const nameOrId = (document.getElementById("inpRegNameOrId")?.value || "").trim();
@@ -15373,6 +15461,11 @@
                 localStorage.removeItem("yetalk_is_church_owner");
             }
 
+            // 🌟 [사용자 요청] 회원 가입 정보 교회 소개(churchintro.html) 사역자/장로 목록에 자동 실시간 반영
+            try {
+                syncMemberToChurchIntroData(churchName, pastorName, nameOrId, role);
+            } catch(e) { console.warn("syncMemberToChurchIntroData call error:", e); }
+
             // 🌟 [사용자 요청] 저장 즉시 버튼이 화사한 에메랄드 초록색 '✅ 저장 완료! ✓'로 즉각 반응!
             const submitBtn = document.getElementById("btnSubmitChristianReg");
             if (submitBtn) {
@@ -15512,8 +15605,8 @@
             .replace(/\s+/g, '')
             .replace(/(담임)?목사(님)?$/g, '')
             .replace(/^(담임)?목사(님)?/g, '')
-            .replace(/(선교사|전도사|강도사|장로|안수집사|권사|집사|사모|성도)(님)?$/g, '')
-            .replace(/^(선교사|전도사|강도사|장로|안수집사|권사|집사|사모|성도)(님)?/g, '')
+            .replace(/(선교사|전도사|강도사|시무장로|은퇴장로|장로|안수집사|권사|집사|간사|사모|교회사무|성도)(님)?$/g, '')
+            .replace(/^(선교사|전도사|강도사|시무장로|은퇴장로|장로|안수집사|권사|집사|간사|사모|교회사무|성도)(님)?/g, '')
             .trim();
     }
     window.getCleanPersonName = getCleanPersonName;

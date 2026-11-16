@@ -355,6 +355,86 @@
         .secretary-role { font-size: 12px; font-weight: 850; color: #38bdf8; }
         .secretary-desc { font-size: 12.5px; color: #cbd5e1; line-height: 1.5; white-space: pre-line; font-weight: 600; }
 
+        /* 🌟 [사용자 요청] 시무장로 한줄 리스트 뷰 */
+        .elder-list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+            margin-top: 6px;
+            max-height: calc(var(--view-h) - 130px);
+            overflow-y: auto;
+            padding-right: 2px;
+        }
+        .elder-row-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #0c1322;
+            border: 1.2px solid #1e3a5f;
+            border-radius: 12px;
+            padding: 9px 12px;
+            gap: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+            transition: all 0.2s ease;
+        }
+        .elder-row-item:hover {
+            border-color: #38bdf8;
+            background: #111c33;
+        }
+        .elder-col-profile {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-shrink: 0;
+            min-width: 120px;
+        }
+        .elder-role-pill {
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 6px;
+            border-radius: 9999px;
+            background: #0284c7;
+            color: #ffffff;
+            white-space: nowrap;
+        }
+        .elder-role-pill.retired {
+            background: #475569;
+        }
+        .elder-name-text {
+            font-size: 14.5px;
+            font-weight: 950;
+            color: #ffffff;
+            white-space: nowrap;
+        }
+        .elder-greeting-text {
+            flex: 1;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #cbd5e1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 4px;
+        }
+        .elder-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        body[data-theme="white"] .elder-row-item {
+            background: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+        }
+        body[data-theme="white"] .elder-name-text {
+            color: #0f172a !important;
+        }
+        body[data-theme="white"] .elder-greeting-text {
+            color: #475569 !important;
+        }
+
         /* 교회역사 타임라인 - 🌟 [사용자 요청] 마지막 1998년 및 하단 내용 팅김 방지 최적화 */
         .clean-timeline-box {
             display: flex; flex-direction: column; gap: 10px; position: relative;
@@ -507,7 +587,7 @@
         </div>
     </header>
 
-    <!-- 2층 가로 롤링 칩 메뉴 (담임목사, 부목사, 전도사, 파송선교사, 간사 독립 탭 분리 보장) -->
+    <!-- 2층 가로 롤링 칩 메뉴 (담임목사, 부목사, 전도사, 파송선교사, 간사, 시무장로 독립 탭 분리 보장) -->
     <nav class="intro-tabs" id="introTabNav">
         <button type="button" class="intro-tab active" onclick="scrollToTab(0)">환영인사</button>
         <button type="button" class="intro-tab" onclick="scrollToTab(1)">담임목사</button>
@@ -515,9 +595,10 @@
         <button type="button" class="intro-tab" onclick="scrollToTab(3)">전도사</button>
         <button type="button" class="intro-tab" onclick="scrollToTab(4)">파송선교사</button>
         <button type="button" class="intro-tab" onclick="scrollToTab(5)">간사</button>
-        <button type="button" class="intro-tab" onclick="scrollToTab(6)">교회비전</button>
-        <button type="button" class="intro-tab" onclick="scrollToTab(7)">부서사역</button>
-        <button type="button" class="intro-tab" onclick="scrollToTab(8)">교회역사</button>
+        <button type="button" class="intro-tab" onclick="scrollToTab(6)">시무장로</button>
+        <button type="button" class="intro-tab" onclick="scrollToTab(7)">교회비전</button>
+        <button type="button" class="intro-tab" onclick="scrollToTab(8)">부서사역</button>
+        <button type="button" class="intro-tab" onclick="scrollToTab(9)">교회역사</button>
     </nav>
 
     <!-- 3층 세로 스냅 뷰포트 (상단 이미지 카드 없이 바로 본문 시작) -->
@@ -672,11 +753,49 @@
     </div>
 </div>
 
+<!-- 🌟 [사용자 요청] 시무장로 한줄 등록/수정 모달 -->
+<div class="edit-modal-overlay" id="elderEditModal" onclick="closeModal('elderEditModal')">
+    <div class="edit-modal-card" onclick="event.stopPropagation()" style="max-width:440px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:8px;">
+            <strong style="font-size:16px; color:#38bdf8;" id="lblElderModalTitle">✏️ 장로 정보 및 한줄 인사말</strong>
+            <button type="button" style="background:none; border:none; font-size:24px; color:#64748b; cursor:pointer;" onclick="closeModal('elderEditModal')">✕</button>
+        </div>
+        <div>
+            <span class="m-lbl">장로 성함</span>
+            <input type="text" class="m-input" id="inpElderName" placeholder="예: 최베드로 장로">
+        </div>
+        <div>
+            <span class="m-lbl">직분 구분</span>
+            <div style="display:flex; gap:16px; font-size:13px; font-weight:800; color:#e2e8f0; margin-top:4px;">
+                <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
+                    <input type="radio" name="elderTypeRadio" id="elderTypeSimu" value="시무장로" checked>
+                    <span>시무장로</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
+                    <input type="radio" name="elderTypeRadio" id="elderTypeRetired" value="은퇴장로">
+                    <span>은퇴장로</span>
+                </label>
+            </div>
+        </div>
+        <div>
+            <span class="m-lbl">한줄 인사말 / 다짐</span>
+            <input type="text" class="m-input" id="inpElderGreeting" placeholder="예: 주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다.">
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+            <button type="button" id="btnDeleteElder" style="background:#dc2626; color:white; border:none; padding:8px 14px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:none;" onclick="deleteCurrentElder()">🗑️ 삭제</button>
+            <div style="display:flex; gap:8px; margin-left:auto;">
+                <button type="button" style="padding:8px 16px; background:#475569; color:white; border:none; border-radius:8px; font-weight:800; cursor:pointer;" onclick="closeModal('elderEditModal')">취소</button>
+                <button type="button" style="padding:8px 20px; background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; border-radius:8px; font-weight:950; cursor:pointer; box-shadow:0 3px 12px rgba(2,132,199,0.4);" onclick="saveElderData()">저장하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     const STORAGE_KEY = "yetalk_church_intro_custom_sections_v5";
 
-    // 9대 탭 정의 (환영인사, 담임목사, 부목사, 전도사, 파송선교사, 간사, 교회비전, 부서사역, 교회역사)
-    const TAB_NAMES = ["환영인사", "담임목사", "부목사", "전도사", "파송선교사", "간사", "교회비전", "부서사역", "교회역사"];
+    // 10대 탭 정의 (환영인사, 담임목사, 부목사, 전도사, 파송선교사, 간사, 시무장로, 교회비전, 부서사역, 교회역사)
+    const TAB_NAMES = ["환영인사", "담임목사", "부목사", "전도사", "파송선교사", "간사", "시무장로", "교회비전", "부서사역", "교회역사"];
 
     const DEFAULT_DATA = {
         welcome: {
@@ -755,6 +874,23 @@
                 desc: "“예배와 미디어 사역의 모든 현장을 온 정성으로 보조하며 하나님 나라 확장에 헌신하겠습니다.”\n• 예배 영상/음향 송출 및 주보 전산 지원\n• 교회 행정 사무 및 교인 등록 관리"
             }
         ],
+        elders: [
+            {
+                name: "최베드로 장로",
+                role: "시무장로",
+                greeting: "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다."
+            },
+            {
+                name: "김바나바 장로",
+                role: "시무장로",
+                greeting: "기도와 헌신으로 성도님들과 늘 동행하겠습니다."
+            },
+            {
+                name: "박야고보 장로",
+                role: "시무장로",
+                greeting: "빛과 소금 되어 하나님 나라를 확장해 가겠습니다."
+            }
+        ],
         vision: {
             tabName: "교회비전",
             badge: "교회비전",
@@ -808,6 +944,117 @@
         return "정찬석 담임목사";
     }
 
+    // 🌟 [사용자 요청] 회원 가입 시 교회 이름과 담임목사가 같으면 자동으로 부목사, 전도사, 간사, 선교사, 교회사무, 장로 이름 동기화
+    function syncChurchMembersFromRegistered() {
+        try {
+            const churchName = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "").trim();
+            const pastorName = (localStorage.getItem("yetalk_pastor_name") || "").trim();
+            if (!churchName) return;
+
+            let churchKey = (churchName + "_" + pastorName).replace(/\s+/g, '').toLowerCase();
+            let churchMap = {};
+            try {
+                churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+            } catch(e) { churchMap = {}; }
+
+            let matchedMembers = [];
+            if (churchMap[churchKey] && Array.isArray(churchMap[churchKey].members)) {
+                matchedMembers = churchMap[churchKey].members;
+            } else {
+                const cleanC = churchName.replace(/\s+/g, '').toLowerCase();
+                for (const k in churchMap) {
+                    if (k.includes(cleanC) && Array.isArray(churchMap[k].members)) {
+                        matchedMembers = churchMap[k].members;
+                        break;
+                    }
+                }
+            }
+
+            const myName = (localStorage.getItem("yetalk_user_name") || "").trim();
+            const myRole = (localStorage.getItem("yetalk_church_role") || "").trim();
+            if (myName && myRole && !matchedMembers.some(m => (m.nameOrId || m.name) === myName)) {
+                matchedMembers = [...matchedMembers, { nameOrId: myName, role: myRole }];
+            }
+
+            let modified = false;
+            matchedMembers.forEach(m => {
+                const mName = m.nameOrId || m.name;
+                const mRole = m.role || "";
+                if (!mName) return;
+                const clean = mName.replace(/\s+/g, '').replace(/(담임)?목사(님)?/g, '').replace(/(선교사|전도사|강도사|시무장로|은퇴장로|장로|안수집사|권사|집사|간사|사모|교회사무|성도)(님)?/g, '').trim();
+                if (!clean) return;
+
+                if (mRole === "부목사") {
+                    if (!Array.isArray(churchSections.assistant_pastors)) churchSections.assistant_pastors = [];
+                    if (!churchSections.assistant_pastors.some(a => (a.name || "").includes(clean))) {
+                        churchSections.assistant_pastors.push({
+                            badge: "부목사",
+                            name: clean + " 부목사",
+                            role: "교구 목양 및 목회행정",
+                            img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
+                            body: `“성도님 한 분 한 분을 주님의 심장으로 섬기며 따뜻한 사랑으로 동행하겠습니다.”\n\n할렐루야! ${churchName} ${clean} 부목사입니다.\n교회와 성도님들의 삶의 자리에 주님의 은혜와 평강이 넘쳐나도록 기도와 말씀으로 섬기겠습니다.`
+                        });
+                        modified = true;
+                    }
+                } else if (mRole === "전도사") {
+                    if (!Array.isArray(churchSections.evangelists)) churchSections.evangelists = [];
+                    if (!churchSections.evangelists.some(e => (e.name || "").includes(clean))) {
+                        churchSections.evangelists.push({
+                            badge: "전도사",
+                            name: clean + " 전도사",
+                            role: "교회학교 및 다음세대 사역",
+                            img: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&auto=format&fit=crop&q=80",
+                            body: `“다음 세대의 영혼들을 깨우며 말씀 위에 굳건히 서도록 사랑으로 섬기겠습니다.”\n\n할렐루야! ${clean} 전도사입니다.`
+                        });
+                        modified = true;
+                    }
+                } else if (mRole === "선교사" || mRole === "파송선교사") {
+                    if (!Array.isArray(churchSections.missionaries)) churchSections.missionaries = [];
+                    if (!churchSections.missionaries.some(ms => (ms.name || ms.title || "").includes(clean))) {
+                        churchSections.missionaries.push({
+                            badge: "파송선교사",
+                            name: clean + " 선교사",
+                            role: "해외 선교 및 복음화 사역",
+                            img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
+                            body: `“땅끝까지 이르러 내 증인이 되리라.”\n\n열방을 향해 십자가 복음을 전하는 ${clean} 선교사입니다.`
+                        });
+                        modified = true;
+                    }
+                } else if (mRole === "간사" || mRole === "사모" || mRole === "교회사무") {
+                    if (!Array.isArray(churchSections.secretaries)) churchSections.secretaries = [];
+                    if (!churchSections.secretaries.some(s => (s.name || "").includes(clean))) {
+                        const sRole = (mRole === "사모") ? "목회 협력 및 중보기도" : ((mRole === "교회사무") ? "교회 행정 및 재무 사무" : "교회 행정 및 사역 지원");
+                        const sName = clean + " " + (mRole === "사모" ? "사모" : (mRole === "교회사무" ? "행정간사" : "간사"));
+                        churchSections.secretaries.push({
+                            name: sName,
+                            role: sRole,
+                            img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&auto=format&fit=crop&q=80",
+                            desc: `“성도님들을 기쁨과 감사의 마음으로 섬기겠습니다.”`
+                        });
+                        modified = true;
+                    }
+                } else if (mRole === "시무장로" || mRole === "은퇴장로" || mRole === "장로") {
+                    if (!Array.isArray(churchSections.elders)) churchSections.elders = [];
+                    if (!churchSections.elders.some(el => (el.name || "").includes(clean))) {
+                        const eRole = mRole.includes("은퇴") ? "은퇴장로" : "시무장로";
+                        churchSections.elders.push({
+                            name: clean + " 장로",
+                            role: eRole,
+                            greeting: "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다."
+                        });
+                        modified = true;
+                    }
+                }
+            });
+
+            if (modified) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+            }
+        } catch(err) {
+            console.warn("syncChurchMembersFromRegistered error:", err);
+        }
+    }
+
     function loadSections() {
         const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("yetalk_church_intro_custom_sections_v4");
         if (raw) {
@@ -852,9 +1099,15 @@
         if (!churchSections.secretaries || !Array.isArray(churchSections.secretaries) || churchSections.secretaries.length === 0) {
             churchSections.secretaries = JSON.parse(JSON.stringify(DEFAULT_DATA.secretaries));
         }
+        if (!churchSections.elders || !Array.isArray(churchSections.elders) || churchSections.elders.length === 0) {
+            churchSections.elders = JSON.parse(JSON.stringify(DEFAULT_DATA.elders));
+        }
         if (!churchSections.vision) churchSections.vision = JSON.parse(JSON.stringify(DEFAULT_DATA.vision));
         if (!churchSections.ministry) churchSections.ministry = JSON.parse(JSON.stringify(DEFAULT_DATA.ministry));
         if (!churchSections.history) churchSections.history = JSON.parse(JSON.stringify(DEFAULT_DATA.history));
+
+        // 🌟 [사용자 요청] 등록된 교우 자동 동기화 적용
+        syncChurchMembersFromRegistered();
 
         renderViewport();
     }
@@ -1085,7 +1338,56 @@
             }
         }
 
-        // 7. 교회비전 (Tab 6)
+        // 7. 시무장로 (Tab 6) - 🌟 [사용자 요청] 간사와 교회비젼 사이에 시무 장로 메뉴 (딱 한줄로 이름과 인사말 리스트)
+        {
+            const eldersList = churchSections.elders || [];
+            let itemsHtml = "";
+            if (eldersList.length === 0) {
+                itemsHtml = `
+                    <div style="text-align:center; padding:30px 16px; color:#94a3b8; font-size:13px; font-weight:700; background:rgba(15,23,42,0.4); border-radius:12px; border:1px dashed #334155;">
+                        등록된 장로님이 없습니다.<br>우측 상단의 [➕ 장로추가] 버튼으로 등록해 주세요.
+                    </div>
+                `;
+            } else {
+                itemsHtml = `<div class="elder-list-container">`;
+                eldersList.forEach((elder, eIdx) => {
+                    const isRetired = (elder.role && elder.role.includes("은퇴"));
+                    itemsHtml += `
+                        <div class="elder-row-item">
+                            <div class="elder-col-profile">
+                                <span class="elder-role-pill ${isRetired ? 'retired' : ''}">${elder.role || '시무장로'}</span>
+                                <strong class="elder-name-text">${elder.name}</strong>
+                            </div>
+                            <div class="elder-greeting-text" title="${elder.greeting || ''}">
+                                “${elder.greeting || '주님의 몸 된 교회를 온 맘 다해 섬기겠습니다.'}”
+                            </div>
+                            <div class="elder-actions">
+                                <button type="button" class="btn-action-pill edit" style="padding:3px 7px; font-size:10.5px;" onclick="openElderEdit(${eIdx})" title="수정">✏️</button>
+                                <button type="button" class="btn-action-pill delete" style="padding:3px 7px; font-size:10.5px;" onclick="deleteElderDirect(${eIdx})" title="삭제">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                itemsHtml += `</div>`;
+            }
+
+            let html = `
+                <div class="section-header-row">
+                    <div style="flex:1; min-width:0;">
+                        <span class="badge-pill">시무장로</span>
+                        <h2 class="article-main-title" style="white-space:nowrap !important;">교회와 성도를 섬기는 장로회</h2>
+                    </div>
+                    <div class="leader-top-btn-group">
+                        <button type="button" class="btn-action-pill add" onclick="openElderAdd()" title="장로 추가">➕ 장로추가</button>
+                    </div>
+                </div>
+                <p style="font-size:12.5px; color:#94a3b8; font-weight:700; margin-bottom:6px;">기도와 헌신으로 목회에 협력하며 교회와 성도를 섬기는 장로님들입니다.</p>
+                ${itemsHtml}
+            `;
+            appendSnapSection("sec_elders", 6, html);
+        }
+
+        // 8. 교회비전 (Tab 7)
         {
             const v = churchSections.vision;
             let bodyHtml = renderFormattedBody(getCombinedBody(v), false);
@@ -1100,10 +1402,10 @@
             `;
             if (v.img) html += `<div class="attached-photo-wrap"><img src="${v.img}" alt="${v.title}"></div>`;
             html += bodyHtml;
-            appendSnapSection("sec_vision", 6, html);
+            appendSnapSection("sec_vision", 7, html);
         }
 
-        // 8. 부서사역 (Tab 7)
+        // 9. 부서사역 (Tab 8)
         {
             const min = churchSections.ministry;
             let bodyHtml = renderFormattedBody(getCombinedBody(min), false);
@@ -1118,10 +1420,10 @@
             `;
             if (min.img) html += `<div class="attached-photo-wrap"><img src="${min.img}" alt="${min.title}"></div>`;
             html += bodyHtml;
-            appendSnapSection("sec_ministry", 7, html);
+            appendSnapSection("sec_ministry", 8, html);
         }
 
-        // 9. 교회역사 (Tab 8)
+        // 10. 교회역사 (Tab 9)
         {
             const h = churchSections.history;
             let bodyHtml = renderFormattedBody(h.body, true);
@@ -1136,7 +1438,7 @@
             `;
             if (h.img) html += `<div class="attached-photo-wrap"><img src="${h.img}" alt="${h.title}"></div>`;
             html += bodyHtml;
-            appendSnapSection("sec_history", 8, html);
+            appendSnapSection("sec_history", 9, html);
         }
 
         // 🌟 [사용자 요청] 맨 하단 100 애드몹에 의해 교회역사 내용이 잘리거나 끊기지 않도록 여유 있는 하단 완충 여백 추가 (팅김 방지 scroll-snap-align 적용)
@@ -1249,9 +1551,10 @@
         else if (currentActiveTabIdx === 3) openLeaderEdit("evangelist", 0);
         else if (currentActiveTabIdx === 4) openLeaderEdit("missionary", 0);
         else if (currentActiveTabIdx === 5) openLeaderEdit("secretary", 0);
-        else if (currentActiveTabIdx === 6) triggerGeneralEdit("vision");
-        else if (currentActiveTabIdx === 7) triggerGeneralEdit("ministry");
-        else if (currentActiveTabIdx === 8) triggerGeneralEdit("history");
+        else if (currentActiveTabIdx === 6) openElderAdd();
+        else if (currentActiveTabIdx === 7) triggerGeneralEdit("vision");
+        else if (currentActiveTabIdx === 8) triggerGeneralEdit("ministry");
+        else if (currentActiveTabIdx === 9) triggerGeneralEdit("history");
     }
 
     let currentGeneralEditKey = "welcome";
@@ -1654,6 +1957,81 @@
         closeModal("servantEditModal");
     }
 
+    // 🌟 [사용자 요청] 시무장로 한줄 등록/수정/삭제 로직
+    let activeElderIdx = -1;
+    function openElderAdd() {
+        activeElderIdx = -1;
+        document.getElementById("lblElderModalTitle").innerText = "➕ 시무장로 등록";
+        document.getElementById("inpElderName").value = "";
+        document.getElementById("elderTypeSimu").checked = true;
+        document.getElementById("inpElderGreeting").value = "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다.";
+        document.getElementById("btnDeleteElder").style.display = "none";
+        openModal("elderEditModal");
+    }
+
+    function openElderEdit(idx) {
+        activeElderIdx = idx;
+        const elder = (churchSections.elders || [])[idx];
+        if (!elder) return;
+        document.getElementById("lblElderModalTitle").innerText = `✏️ [${elder.name}] 정보 및 한줄 인사말 수정`;
+        document.getElementById("inpElderName").value = elder.name || "";
+        const isRetired = (elder.role && elder.role.includes("은퇴"));
+        if (isRetired) {
+            document.getElementById("elderTypeRetired").checked = true;
+        } else {
+            document.getElementById("elderTypeSimu").checked = true;
+        }
+        document.getElementById("inpElderGreeting").value = elder.greeting || "";
+        document.getElementById("btnDeleteElder").style.display = "block";
+        openModal("elderEditModal");
+    }
+
+    function saveElderData() {
+        const name = (document.getElementById("inpElderName").value || "").trim();
+        const greeting = (document.getElementById("inpElderGreeting").value || "").trim();
+        const role = document.getElementById("elderTypeRetired").checked ? "은퇴장로" : "시무장로";
+
+        if (!name) { alert("장로 성함을 입력해 주세요."); return; }
+
+        if (!Array.isArray(churchSections.elders)) churchSections.elders = [];
+
+        const clean = name.replace(/\s+/g, '').replace(/(시무|은퇴)?장로(님)?/g, '').trim();
+        const elderObj = {
+            name: (clean ? clean + " 장로" : name),
+            role: role,
+            greeting: greeting || "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다."
+        };
+
+        if (activeElderIdx >= 0 && activeElderIdx < churchSections.elders.length) {
+            churchSections.elders[activeElderIdx] = elderObj;
+        } else {
+            churchSections.elders.push(elderObj);
+        }
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        renderViewport();
+        scrollToTab(6);
+        closeModal("elderEditModal");
+        showToast("✨ 장로 정보가 안전하게 저장되었습니다.");
+    }
+
+    function deleteElderDirect(idx) {
+        if (!Array.isArray(churchSections.elders) || !churchSections.elders[idx]) return;
+        const name = churchSections.elders[idx].name;
+        if (!confirm(`정말 [${name}] 님을 목록에서 삭제하시겠습니까?`)) return;
+        churchSections.elders.splice(idx, 1);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        renderViewport();
+        scrollToTab(6);
+        showToast(`🗑️ [${name}] 님이 삭제되었습니다.`);
+    }
+
+    function deleteCurrentElder() {
+        if (activeElderIdx < 0) return;
+        deleteElderDirect(activeElderIdx);
+        closeModal("elderEditModal");
+    }
+
     function openModal(id) { document.getElementById(id)?.classList.add("show"); }
     function closeModal(id) { document.getElementById(id)?.classList.remove("show"); }
 
@@ -1679,6 +2057,10 @@
         }
         if (document.getElementById("servantEditModal")?.classList.contains("show")) {
             closeModal("servantEditModal");
+            return true;
+        }
+        if (document.getElementById("elderEditModal")?.classList.contains("show")) {
+            closeModal("elderEditModal");
             return true;
         }
         goBackToChurchHome();
