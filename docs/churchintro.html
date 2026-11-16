@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -422,6 +422,40 @@
             opacity: 0.85;
             padding-left: 4px;
         }
+        /* 🌟 [사용자 요청] 장로/부목사/전도사 순서 변경 버튼 */
+        .btn-reorder-pill {
+            background: #1e293b;
+            border: 1px solid #475569;
+            color: #94a3b8;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 900;
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            padding: 0;
+            line-height: 1;
+        }
+        .btn-reorder-pill:hover:not(:disabled) {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #38bdf8;
+            transform: translateY(-1px);
+        }
+        body[data-theme="white"] .btn-reorder-pill {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #475569;
+        }
+        body[data-theme="white"] .btn-reorder-pill:hover:not(:disabled) {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #0284c7;
+        }
         body[data-theme="white"] .elder-row-item {
             background: #ffffff !important;
             border-color: #cbd5e1 !important;
@@ -702,6 +736,14 @@
             <span class="m-lbl">사역 소개 / 약력</span>
             <textarea class="m-input" id="inpServantDesc" style="height:90px; resize:vertical;" placeholder="소개 및 약력을 입력하세요."></textarea>
         </div>
+        <!-- 🌟 사역자 순서 이동 (선임 / 후임 순서 맞추기) -->
+        <div id="boxServantReorder" style="display:none; background:rgba(30,41,59,0.7); border:1px solid #334155; border-radius:10px; padding:10px 12px; margin-top:2px;">
+            <span class="m-lbl" style="margin-bottom:6px;">사역자 순서 변경 (선임 / 후임 순서 맞추기)</span>
+            <div style="display:flex; gap:8px;">
+                <button type="button" class="btn-action-pill" style="flex:1; padding:7px 10px; font-size:12px;" onclick="moveActiveServantDirect(-1)">▲ 앞(선임)으로 이동</button>
+                <button type="button" class="btn-action-pill" style="flex:1; padding:7px 10px; font-size:12px;" onclick="moveActiveServantDirect(1)">▼ 뒤(후임)으로 이동</button>
+            </div>
+        </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
             <button type="button" id="btnDeleteServant" style="padding:10px 16px; background:#dc2626; color:white; border:none; border-radius:8px; font-weight:850; cursor:pointer;" onclick="deleteCurrentServant()">🗑️ 사역자 삭제</button>
             <div style="display:flex; gap:8px;">
@@ -786,6 +828,14 @@
         <div>
             <span class="m-lbl">한줄 인사말 / 다짐</span>
             <input type="text" class="m-input" id="inpElderGreeting" placeholder="예: 주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다.">
+        </div>
+        <!-- 🌟 장로 순서 이동 (수석 / 신참 장로 순서 맞추기) -->
+        <div style="background:rgba(30,41,59,0.7); border:1px solid #334155; border-radius:10px; padding:10px 12px; margin-top:2px;">
+            <span class="m-lbl" style="margin-bottom:6px;">장로 순서 변경 (수석 / 신참 장로 순서 맞추기)</span>
+            <div style="display:flex; gap:8px;">
+                <button type="button" class="btn-action-pill" style="flex:1; padding:7px 10px; font-size:12px;" onclick="moveActiveElderDirect(-1)">▲ 위(수석)로 순서 올리기</button>
+                <button type="button" class="btn-action-pill" style="flex:1; padding:7px 10px; font-size:12px;" onclick="moveActiveElderDirect(1)">▼ 아래(신참)로 순서 내리기</button>
+            </div>
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
             <button type="button" id="btnDeleteElder" style="background:#dc2626; color:white; border:none; padding:8px 14px; border-radius:8px; font-size:12px; font-weight:850; cursor:pointer; display:none;" onclick="deleteCurrentElder()">🗑️ 삭제</button>
@@ -1133,6 +1183,7 @@
         // 🌟 [사용자 요청] 등록된 교우 자동 동기화 적용
         syncChurchMembersFromRegistered();
 
+        renderTabNav();
         renderViewport();
     }
 
@@ -1146,6 +1197,73 @@
             }
         }
         return text;
+    }
+
+    // 🌟 [사용자 요청] 직분 탭 순서 모드 (장로 ➡️ 부목사 ➡️ 전도사 vs 부목사 ➡️ 전도사 ➡️ 장로)
+    function getStaffOrderMode() {
+        return localStorage.getItem("yetalk_staff_order_mode") || "elder_first";
+    }
+
+    function getTabDefs() {
+        const mode = getStaffOrderMode();
+        if (mode === "pastor_first") {
+            return [
+                { key: "welcome", label: "환영인사" },
+                { key: "pastor", label: "담임목사" },
+                { key: "assistant", label: "부목사" },
+                { key: "evangelist", label: "전도사" },
+                { key: "missionary", label: "파송선교사" },
+                { key: "secretary", label: "간사" },
+                { key: "elders", label: "시무장로" },
+                { key: "vision", label: "교회비전" },
+                { key: "ministry", label: "부서사역" },
+                { key: "history", label: "교회역사" }
+            ];
+        } else {
+            // 기본값: 장로 ➡️ 부목사 ➡️ 전도사
+            return [
+                { key: "welcome", label: "환영인사" },
+                { key: "pastor", label: "담임목사" },
+                { key: "elders", label: "시무장로" },
+                { key: "assistant", label: "부목사" },
+                { key: "evangelist", label: "전도사" },
+                { key: "missionary", label: "파송선교사" },
+                { key: "secretary", label: "간사" },
+                { key: "vision", label: "교회비전" },
+                { key: "ministry", label: "부서사역" },
+                { key: "history", label: "교회역사" }
+            ];
+        }
+    }
+
+    function renderTabNav() {
+        const nav = document.getElementById("introTabNav");
+        if (!nav) return;
+        const tabs = getTabDefs();
+        nav.innerHTML = tabs.map((t, idx) => `
+            <button type="button" class="intro-tab ${idx === currentActiveTabIdx ? 'active' : ''}" onclick="scrollToTab(${idx})">${t.label}</button>
+        `).join("");
+    }
+
+    function toggleStaffOrderMode() {
+        const cur = getStaffOrderMode();
+        const next = (cur === "elder_first") ? "pastor_first" : "elder_first";
+        localStorage.setItem("yetalk_staff_order_mode", next);
+        renderTabNav();
+        renderViewport();
+        if (next === "elder_first") {
+            scrollToTabKey("elders");
+            showToast("✨ 직분 순서: [시무장로 ➡️ 부목사 ➡️ 전도사]로 변경되었습니다.");
+        } else {
+            scrollToTabKey("assistant");
+            showToast("✨ 직분 순서: [부목사 ➡️ 전도사 ➡️ 시무장로]로 변경되었습니다.");
+        }
+    }
+
+    function scrollToTabKey(key) {
+        const tabs = getTabDefs();
+        const idx = tabs.findIndex(t => t.key === key);
+        if (idx !== -1) scrollToTab(idx);
     }
 
     function renderViewport() {
@@ -1167,309 +1285,302 @@
             secCounter++;
         }
 
-        // 1. 환영인사 (Tab 0)
-        {
-            const w = churchSections.welcome;
-            let bodyHtml = renderFormattedBody(getCombinedBody(w), false);
-            let html = `
-                <div class="section-header-row">
-                    <div>
-                        <span class="badge-pill">${w.badge || '환영인사'}</span>
-                        <h2 class="article-main-title">${w.title}</h2>
+        const tabs = getTabDefs();
+        tabs.forEach((tab, tabIdx) => {
+            if (tab.key === "welcome") {
+                const w = churchSections.welcome;
+                let bodyHtml = renderFormattedBody(getCombinedBody(w), false);
+                let html = `
+                    <div class="section-header-row">
+                        <div>
+                            <span class="badge-pill">${w.badge || '환영인사'}</span>
+                            <h2 class="article-main-title">${w.title}</h2>
+                        </div>
+                        <button type="button" class="btn-admin-edit" onclick="triggerGeneralEdit('welcome')" title="수정">수정 ✏️</button>
                     </div>
-                    <button type="button" class="btn-admin-edit" onclick="triggerGeneralEdit('welcome')" title="수정">수정 ✏️</button>
-                </div>
-            `;
-            if (w.img) {
-                html += `<div class="attached-photo-wrap"><img src="${w.img}" alt="${w.title}"></div>`;
+                `;
+                if (w.img) {
+                    html += `<div class="attached-photo-wrap"><img src="${w.img}" alt="${w.title}"></div>`;
+                }
+                html += bodyHtml;
+                appendSnapSection("sec_welcome", tabIdx, html);
             }
-            html += bodyHtml;
-            appendSnapSection("sec_welcome", 0, html);
-        }
-
-        // 2. 담임목사 (Tab 1) - 🌟 [사용자 요청] 담임목사 단독/통합 선택 지원 + 화면 밑부분 텍스트
-        {
-            const p = churchSections.pastor || {};
-            const bgImage = p.bgImg || 'images/church_hero_heaven.jpg';
-            const pastorPhoto = p.img || '';
-            const isSingleMode = (p.layoutMode === 'single') || (!pastorPhoto && bgImage);
-            const pastorName = (p.title && !p.title.includes('최남수')) ? p.title : getEffectivePastorName();
-            let pastorCardHtml = `
-                <div class="pastor-integrated-card">
-                    <div class="pastor-hero-banner">
-                        <img class="pastor-hero-bg" src="${bgImage}" alt="담임목사 및 교회 전경" onerror="this.onerror=null; this.src='images/church_hero_heaven.jpg';">
-                        <div class="pastor-hero-overlay"></div>
-                        
-                        <!-- 1. 상단: 좌측 담임목사님 얼굴(통합사진 모드가 아닐 때만 표시) + 우측 수정 버튼 & 뱃지 -->
-                        <div class="pastor-top-row">
-                            ${!isSingleMode && pastorPhoto ? `
-                            <div class="pastor-hero-avatar-box">
-                                <img src="${pastorPhoto}" alt="${pastorName}" onerror="this.onerror=null; this.src='images/church_hero_heaven.jpg';">
-                            </div>
-                            ` : `<div></div>`}
-                            <div class="pastor-hero-top-actions">
-                                <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('pastor', 0)" title="수정" style="padding:5px 11px; font-size:12px;">✏️ 수정</button>
-                                <span class="badge-pill" style="margin-bottom:0; background:rgba(15,23,42,0.7); border-color:#fde047; color:#fde047; padding:4px 10px;">✨ 솔리 데오 글로리아</span>
-                            </div>
-                        </div>
-
-                        <!-- 2. 하단: [사용자 요청] 화면 밑부분에 올라오는 담임목사 성함과 목회 안내 -->
-                        <div class="pastor-bottom-info-block">
-                            <span class="pastor-hero-tag">✝️ 주님의 청지기 · 섬기는 종</span>
-                            <h2 class="pastor-hero-name">${pastorName}</h2>
-                            <div class="pastor-hero-role">${p.role || '담임목회 및 강단 말씀'}</div>
-                            <div class="pastor-hero-quote">“오직 성경, 오직 기도, 영혼 구원과 섬김에 헌신합니다”</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            appendSnapSection("sec_pastor_integrated", 1, pastorCardHtml);
-        }
-
-        // 3. 부목사 (Tab 2) - 🌟 [사용자 요청] 한페이지에 얼굴과 글을 다 채워 1페이지로 완결
-        {
-            const asList = churchSections.assistant_pastors || [];
-            asList.forEach((ap, idx) => {
-                let html = `
-                    <div class="compact-leader-card">
-                        <div class="compact-profile-top-row">
-                            <div class="compact-avatar-box">
-                                <img src="${ap.img || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800'}" alt="${ap.name}">
-                            </div>
-                            <div class="compact-profile-meta">
-                                <span class="badge-pill" style="margin-bottom:0; width:fit-content;">${ap.badge || '부목사'}</span>
-                                <h2 class="compact-leader-name">${ap.name}</h2>
-                                <div class="compact-leader-role">${ap.role || '교구 목양 및 목회행정'}</div>
-                                <div class="compact-action-row">
-                                    <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('assistant', ${idx})" title="수정">✏️ 수정</button>
-                                    <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('assistant')" title="부목사 추가">➕ 추가</button>
-                                    <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('assistant', ${idx})" title="부목사 삭제">🗑️ 삭제</button>
+            else if (tab.key === "pastor") {
+                const p = churchSections.pastor || {};
+                const bgImage = p.bgImg || 'images/church_hero_heaven.jpg';
+                const pastorPhoto = p.img || '';
+                const isSingleMode = (p.layoutMode === 'single') || (!pastorPhoto && bgImage);
+                const pastorName = (p.title && !p.title.includes('최남수')) ? p.title : getEffectivePastorName();
+                let pastorCardHtml = `
+                    <div class="pastor-integrated-card">
+                        <div class="pastor-hero-banner">
+                            <img class="pastor-hero-bg" src="${bgImage}" alt="담임목사 및 교회 전경" onerror="this.onerror=null; this.src='images/church_hero_heaven.jpg';">
+                            <div class="pastor-hero-overlay"></div>
+                            
+                            <!-- 1. 상단: 좌측 담임목사님 얼굴(통합사진 모드가 아닐 때만 표시) + 우측 수정 버튼 & 뱃지 -->
+                            <div class="pastor-top-row">
+                                ${!isSingleMode && pastorPhoto ? `
+                                <div class="pastor-hero-avatar-box">
+                                    <img src="${pastorPhoto}" alt="${pastorName}" onerror="this.onerror=null; this.src='images/church_hero_heaven.jpg';">
+                                </div>
+                                ` : `<div></div>`}
+                                <div class="pastor-hero-top-actions">
+                                    <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('pastor', 0)" title="수정" style="padding:5px 11px; font-size:12px;">✏️ 수정</button>
+                                    <span class="badge-pill" style="margin-bottom:0; background:rgba(15,23,42,0.7); border-color:#fde047; color:#fde047; padding:4px 10px;">✨ 솔리 데오 글로리아</span>
                                 </div>
                             </div>
-                        </div>
-                        <div class="compact-greeting-scrollbox">
-                            ${renderFormattedBody(ap.body || ap.desc, false)}
+
+                            <!-- 2. 하단: [사용자 요청] 화면 밑부분에 올라오는 담임목사 성함과 목회 안내 -->
+                            <div class="pastor-bottom-info-block">
+                                <span class="pastor-hero-tag">✝️ 주님의 청지기 · 섬기는 종</span>
+                                <h2 class="pastor-hero-name">${pastorName}</h2>
+                                <div class="pastor-hero-role">${p.role || '담임목회 및 강단 말씀'}</div>
+                                <div class="pastor-hero-quote">“오직 성경, 오직 기도, 영혼 구원과 섬김에 헌신합니다”</div>
+                            </div>
                         </div>
                     </div>
                 `;
-                appendSnapSection(`sec_assistant_${idx}`, 2, html);
-            });
-        }
-
-        // 4. 전도사 (Tab 3) - 🌟 [사용자 요청] 한페이지에 얼굴과 글을 다 채워 1페이지로 완결
-        {
-            const evList = churchSections.evangelists || [];
-            evList.forEach((ev, idx) => {
-                let html = `
-                    <div class="compact-leader-card">
-                        <div class="compact-profile-top-row">
-                            <div class="compact-avatar-box">
-                                <img src="${ev.img || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800'}" alt="${ev.name}">
-                            </div>
-                            <div class="compact-profile-meta">
-                                <span class="badge-pill" style="margin-bottom:0; width:fit-content;">${ev.badge || '전도사'}</span>
-                                <h2 class="compact-leader-name">${ev.name}</h2>
-                                <div class="compact-leader-role">${ev.role || '교회학교 및 다음세대 사역'}</div>
-                                <div class="compact-action-row">
-                                    <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('evangelist', ${idx})" title="수정">✏️ 수정</button>
-                                    <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('evangelist')" title="전도사 추가">➕ 추가</button>
-                                    <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('evangelist', ${idx})" title="전도사 삭제">🗑️ 삭제</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="compact-greeting-scrollbox">
-                            ${renderFormattedBody(ev.body || ev.desc, false)}
-                        </div>
-                    </div>
-                `;
-                appendSnapSection(`sec_evangelist_${idx}`, 3, html);
-            });
-        }
-
-        // 5. 파송선교사 (Tab 4) - 🌟 [사용자 요청] 한페이지에 얼굴과 글을 다 채워 1페이지로 완결
-        {
-            const misList = churchSections.missionaries || [];
-            misList.forEach((m, idx) => {
-                const sName = m.name || m.title || '박바울 선교사';
-                let html = `
-                    <div class="compact-leader-card">
-                        <div class="compact-profile-top-row">
-                            <div class="compact-avatar-box">
-                                <img src="${m.img || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800'}" alt="${sName}">
-                            </div>
-                            <div class="compact-profile-meta">
-                                <span class="badge-pill" style="margin-bottom:0; width:fit-content;">${m.badge || '파송선교사'}</span>
-                                <h2 class="compact-leader-name">${sName}</h2>
-                                <div class="compact-leader-role">${m.role || '열방 파송 선교 사역'}</div>
-                                <div class="compact-action-row">
-                                    <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('missionary', ${idx})" title="수정">✏️ 수정</button>
-                                    <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('missionary')" title="선교사 추가">➕ 추가</button>
-                                    <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('missionary', ${idx})" title="선교사 삭제">🗑️ 삭제</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="compact-greeting-scrollbox">
-                            ${renderFormattedBody(m.body || m.desc, false)}
-                        </div>
-                    </div>
-                `;
-                appendSnapSection(`sec_missionary_${idx}`, 4, html);
-            });
-        }
-
-        // 6. 간사 (Tab 5) - 간사는 2명씩 또는 단독 배치 (수정, 추가, 삭제 완벽 지원)
-        {
-            const secs = churchSections.secretaries || [];
-            const pagesCount = Math.max(1, Math.ceil(secs.length / 2));
-            for (let p = 0; p < pagesCount; p++) {
-                const pair = secs.slice(p * 2, p * 2 + 2);
-                let pairHtml = `<div class="secretary-pair-grid">`;
-                pair.forEach((secItem, pairIdx) => {
-                    const globalIdx = p * 2 + pairIdx;
-                    pairHtml += `
-                        <div class="secretary-card">
-                            <img class="secretary-avatar" src="${secItem.img || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400'}" alt="${secItem.name}">
-                            <div class="secretary-info">
-                                <div style="display:flex; justify-content:space-between; align-items:center;">
-                                    <div class="secretary-name" style="white-space:nowrap !important;">${secItem.name}</div>
-                                    <div style="display:flex; gap:4px;">
-                                        <button type="button" class="btn-action-pill edit" style="padding:3px 7px; font-size:10.5px;" onclick="openLeaderEdit('secretary', ${globalIdx})">✏️ 수정</button>
-                                        <button type="button" class="btn-action-pill delete" style="padding:3px 7px; font-size:10.5px;" onclick="deleteLeaderDirect('secretary', ${globalIdx})">🗑️ 삭제</button>
-                                    </div>
-                                </div>
-                                <div class="secretary-role">${secItem.role}</div>
-                                <div class="secretary-desc" style="max-height:68px; overflow-y:auto;">${secItem.desc || ''}</div>
-                            </div>
+                appendSnapSection("sec_pastor_integrated", tabIdx, pastorCardHtml);
+            }
+            else if (tab.key === "elders") {
+                const eldersList = (churchSections.elders || []).filter(e => !e.role || !e.role.includes("은퇴"));
+                let itemsHtml = "";
+                if (eldersList.length === 0) {
+                    itemsHtml = `
+                        <div style="text-align:center; padding:30px 16px; color:#94a3b8; font-size:13px; font-weight:700; background:rgba(15,23,42,0.4); border-radius:12px; border:1px dashed #334155;">
+                            등록된 시무장로님이 없습니다.<br>회원가입 시 시무장로를 선택하시면 자동으로 등재됩니다.
                         </div>
                     `;
-                });
-                pairHtml += `</div>`;
+                } else {
+                    itemsHtml = `<div class="elder-list-container">`;
+                    eldersList.forEach((elder, eIdx) => {
+                        const canEdit = canEditLeader(elder.name);
+                        itemsHtml += `
+                            <div class="elder-row-item ${canEdit ? 'can-edit' : ''}" onclick="handleElderItemClick(${eIdx})" title="${canEdit ? '터치하여 나의 한줄 인사말 수정' : ''}">
+                                <div class="elder-col-profile">
+                                    <strong class="elder-name-text">${elder.name}</strong>
+                                    <span class="elder-divider">·</span>
+                                </div>
+                                <div class="elder-greeting-text" title="${elder.greeting || ''}">
+                                    “${elder.greeting || '주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다.'}”
+                                </div>
+                                <div class="elder-reorder-group" onclick="event.stopPropagation();" style="display:inline-flex; align-items:center; gap:2px; flex-shrink:0;">
+                                    <button type="button" class="btn-reorder-pill" onclick="moveElderDirect(${eIdx}, -1, event)" title="위로 순서 올리기 (수석장로 방향)" ${eIdx === 0 ? 'disabled style="opacity:0.25; cursor:default;"' : ''}>▲</button>
+                                    <button type="button" class="btn-reorder-pill" onclick="moveElderDirect(${eIdx}, 1, event)" title="아래로 순서 내리기 (신참장로 방향)" ${eIdx === eldersList.length - 1 ? 'disabled style="opacity:0.25; cursor:default;"' : ''}>▼</button>
+                                    ${canEdit ? `<span class="elder-edit-indicator" title="수정 가능">✏️</span>` : ``}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    itemsHtml += `</div>`;
+                }
 
+                const canAdd = isChurchAdmin();
                 let html = `
                     <div class="section-header-row">
                         <div style="flex:1; min-width:0;">
-                            <span class="badge-pill">사역간사</span>
-                            <h2 class="article-main-title" style="white-space:nowrap !important;">교회를 섬기는 사역 간사</h2>
+                            <span class="badge-pill">시무장로</span>
+                            <h2 class="article-main-title" style="white-space:nowrap !important;">교회와 성도를 섬기는 시무장로</h2>
                         </div>
-                        <div class="leader-top-btn-group">
-                            <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('secretary')" title="간사 추가">➕ 간사추가</button>
-                        </div>
-                    </div>
-                    <p style="font-size:12.5px; color:#94a3b8; font-weight:700;">묵묵히 헌신하며 예배와 공동체를 돌보는 신실한 사역자들입니다.</p>
-                    ${pairHtml}
-                `;
-                appendSnapSection(`sec_secretary_page_${p}`, 5, html);
-            }
-        }
-
-        // 7. 시무장로 (Tab 6) - 🌟 [사용자 요청] 시무장로만 한줄로 이름과 인사글 (클릭 시 본인 수정)
-        {
-            const eldersList = (churchSections.elders || []).filter(e => !e.role || !e.role.includes("은퇴"));
-            let itemsHtml = "";
-            if (eldersList.length === 0) {
-                itemsHtml = `
-                    <div style="text-align:center; padding:30px 16px; color:#94a3b8; font-size:13px; font-weight:700; background:rgba(15,23,42,0.4); border-radius:12px; border:1px dashed #334155;">
-                        등록된 시무장로님이 없습니다.<br>회원가입 시 시무장로를 선택하시면 자동으로 등재됩니다.
-                    </div>
-                `;
-            } else {
-                itemsHtml = `<div class="elder-list-container">`;
-                eldersList.forEach((elder, eIdx) => {
-                    const canEdit = canEditLeader(elder.name);
-                    itemsHtml += `
-                        <div class="elder-row-item ${canEdit ? 'can-edit' : ''}" onclick="handleElderItemClick(${eIdx})" title="${canEdit ? '터치하여 나의 한줄 인사말 수정' : ''}">
-                            <div class="elder-col-profile">
-                                <strong class="elder-name-text">${elder.name}</strong>
-                                <span class="elder-divider">·</span>
-                            </div>
-                            <div class="elder-greeting-text" title="${elder.greeting || ''}">
-                                “${elder.greeting || '주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다.'}”
-                            </div>
-                            ${canEdit ? `
-                            <div class="elder-edit-indicator" title="수정 가능">
-                                ✏️
-                            </div>
+                        <div class="leader-top-btn-group" style="display:flex; align-items:center; gap:6px;">
+                            <button type="button" class="btn-action-pill" onclick="toggleStaffOrderMode()" style="background:#0284c7; color:#fff; border-color:#38bdf8; font-size:11px; padding:3px 8px;" title="장로 ➡️ 부목사 ➡️ 전도사 ⮀ 부목사 ➡️ 전도사 ➡️ 장로 순서 전환">🔄 탭순서 변경</button>
+                            ${canAdd ? `
+                            <button type="button" class="btn-action-pill add" onclick="openElderAdd()" title="장로 추가">➕ 장로추가</button>
                             ` : ``}
                         </div>
-                    `;
-                });
-                itemsHtml += `</div>`;
+                    </div>
+                    <p style="font-size:12.5px; color:#94a3b8; font-weight:700; margin-bottom:6px;">기도와 헌신으로 목회에 협력하는 시무장로님들입니다. (▲▼로 수석·신참 순서 조정, 성함 클릭 시 수정)</p>
+                    ${itemsHtml}
+                `;
+                appendSnapSection("sec_elders", tabIdx, html);
             }
+            else if (tab.key === "assistant") {
+                const asList = churchSections.assistant_pastors || [];
+                asList.forEach((ap, idx) => {
+                    let html = `
+                        <div class="compact-leader-card">
+                            <div class="compact-profile-top-row">
+                                <div class="compact-avatar-box">
+                                    <img src="${ap.img || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800'}" alt="${ap.name}">
+                                </div>
+                                <div class="compact-profile-meta">
+                                    <span class="badge-pill" style="margin-bottom:0; width:fit-content;">${ap.badge || '부목사'}</span>
+                                    <h2 class="compact-leader-name">${ap.name}</h2>
+                                    <div class="compact-leader-role">${ap.role || '교구 목양 및 목회행정'}</div>
+                                    <div class="compact-action-row">
+                                        <button type="button" class="btn-action-pill" onclick="moveLeaderDirect('assistant', ${idx}, -1, event)" title="선임(위)으로 순서 이동" ${idx === 0 ? 'disabled style="opacity:0.35;"' : ''}>▲ 앞</button>
+                                        <button type="button" class="btn-action-pill" onclick="moveLeaderDirect('assistant', ${idx}, 1, event)" title="후임(아래)으로 순서 이동" ${idx === asList.length - 1 ? 'disabled style="opacity:0.35;"' : ''}>▼ 뒤</button>
+                                        <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('assistant', ${idx})" title="수정">✏️ 수정</button>
+                                        <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('assistant')" title="부목사 추가">➕ 추가</button>
+                                        <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('assistant', ${idx})" title="부목사 삭제">🗑️ 삭제</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="compact-greeting-scrollbox">
+                                ${renderFormattedBody(ap.body || ap.desc, false)}
+                            </div>
+                        </div>
+                    `;
+                    appendSnapSection(`sec_assistant_${idx}`, tabIdx, html);
+                });
+            }
+            else if (tab.key === "evangelist") {
+                const evList = churchSections.evangelists || [];
+                evList.forEach((ev, idx) => {
+                    let html = `
+                        <div class="compact-leader-card">
+                            <div class="compact-profile-top-row">
+                                <div class="compact-avatar-box">
+                                    <img src="${ev.img || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800'}" alt="${ev.name}">
+                                </div>
+                                <div class="compact-profile-meta">
+                                    <span class="badge-pill" style="margin-bottom:0; width:fit-content;">${ev.badge || '전도사'}</span>
+                                    <h2 class="compact-leader-name">${ev.name}</h2>
+                                    <div class="compact-leader-role">${ev.role || '교회학교 및 다음세대 사역'}</div>
+                                    <div class="compact-action-row">
+                                        <button type="button" class="btn-action-pill" onclick="moveLeaderDirect('evangelist', ${idx}, -1, event)" title="선임(위)으로 순서 이동" ${idx === 0 ? 'disabled style="opacity:0.35;"' : ''}>▲ 앞</button>
+                                        <button type="button" class="btn-action-pill" onclick="moveLeaderDirect('evangelist', ${idx}, 1, event)" title="후임(아래)으로 순서 이동" ${idx === evList.length - 1 ? 'disabled style="opacity:0.35;"' : ''}>▼ 뒤</button>
+                                        <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('evangelist', ${idx})" title="수정">✏️ 수정</button>
+                                        <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('evangelist')" title="전도사 추가">➕ 추가</button>
+                                        <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('evangelist', ${idx})" title="전도사 삭제">🗑️ 삭제</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="compact-greeting-scrollbox">
+                                ${renderFormattedBody(ev.body || ev.desc, false)}
+                            </div>
+                        </div>
+                    `;
+                    appendSnapSection(`sec_evangelist_${idx}`, tabIdx, html);
+                });
+            }
+            else if (tab.key === "missionary") {
+                const misList = churchSections.missionaries || [];
+                misList.forEach((m, idx) => {
+                    const sName = m.name || m.title || '박바울 선교사';
+                    let html = `
+                        <div class="compact-leader-card">
+                            <div class="compact-profile-top-row">
+                                <div class="compact-avatar-box">
+                                    <img src="${m.img || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800'}" alt="${sName}">
+                                </div>
+                                <div class="compact-profile-meta">
+                                    <span class="badge-pill" style="margin-bottom:0; width:fit-content;">${m.badge || '파송선교사'}</span>
+                                    <h2 class="compact-leader-name">${sName}</h2>
+                                    <div class="compact-leader-role">${m.role || '열방 파송 선교 사역'}</div>
+                                    <div class="compact-action-row">
+                                        <button type="button" class="btn-action-pill" onclick="moveLeaderDirect('missionary', ${idx}, -1, event)" title="순서 올리기" ${idx === 0 ? 'disabled style="opacity:0.35;"' : ''}>▲</button>
+                                        <button type="button" class="btn-action-pill" onclick="moveLeaderDirect('missionary', ${idx}, 1, event)" title="순서 내리기" ${idx === misList.length - 1 ? 'disabled style="opacity:0.35;"' : ''}>▼</button>
+                                        <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('missionary', ${idx})" title="수정">✏️ 수정</button>
+                                        <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('missionary')" title="선교사 추가">➕ 추가</button>
+                                        <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('missionary', ${idx})" title="선교사 삭제">🗑️ 삭제</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="compact-greeting-scrollbox">
+                                ${renderFormattedBody(m.body || m.desc, false)}
+                            </div>
+                        </div>
+                    `;
+                    appendSnapSection(`sec_missionary_${idx}`, tabIdx, html);
+                });
+            }
+            else if (tab.key === "secretary") {
+                const secs = churchSections.secretaries || [];
+                const pagesCount = Math.max(1, Math.ceil(secs.length / 2));
+                for (let p = 0; p < pagesCount; p++) {
+                    const pair = secs.slice(p * 2, p * 2 + 2);
+                    let pairHtml = `<div class="secretary-pair-grid">`;
+                    pair.forEach((secItem, pairIdx) => {
+                        const globalIdx = p * 2 + pairIdx;
+                        pairHtml += `
+                            <div class="secretary-card">
+                                <img class="secretary-avatar" src="${secItem.img || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400'}" alt="${secItem.name}">
+                                <div class="secretary-info">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <div class="secretary-name" style="white-space:nowrap !important;">${secItem.name}</div>
+                                        <div style="display:flex; gap:3px;">
+                                            <button type="button" class="btn-action-pill" style="padding:3px 6px; font-size:10px;" onclick="moveLeaderDirect('secretary', ${globalIdx}, -1, event)" title="앞으로">▲</button>
+                                            <button type="button" class="btn-action-pill" style="padding:3px 6px; font-size:10px;" onclick="moveLeaderDirect('secretary', ${globalIdx}, 1, event)" title="뒤로">▼</button>
+                                            <button type="button" class="btn-action-pill edit" style="padding:3px 7px; font-size:10.5px;" onclick="openLeaderEdit('secretary', ${globalIdx})">✏️</button>
+                                            <button type="button" class="btn-action-pill delete" style="padding:3px 7px; font-size:10.5px;" onclick="deleteLeaderDirect('secretary', ${globalIdx})">🗑️</button>
+                                        </div>
+                                    </div>
+                                    <div class="secretary-role">${secItem.role}</div>
+                                    <div class="secretary-desc" style="max-height:68px; overflow-y:auto;">${secItem.desc || ''}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    pairHtml += `</div>`;
 
-            const canAdd = isChurchAdmin();
-            let html = `
-                <div class="section-header-row">
-                    <div style="flex:1; min-width:0;">
-                        <span class="badge-pill">시무장로</span>
-                        <h2 class="article-main-title" style="white-space:nowrap !important;">교회와 성도를 섬기는 시무장로</h2>
+                    let html = `
+                        <div class="section-header-row">
+                            <div style="flex:1; min-width:0;">
+                                <span class="badge-pill">사역간사</span>
+                                <h2 class="article-main-title" style="white-space:nowrap !important;">교회를 섬기는 사역 간사</h2>
+                            </div>
+                            <div class="leader-top-btn-group">
+                                <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('secretary')" title="간사 추가">➕ 간사추가</button>
+                            </div>
+                        </div>
+                        <p style="font-size:12.5px; color:#94a3b8; font-weight:700;">묵묵히 헌신하며 예배와 공동체를 돌보는 신실한 사역자들입니다.</p>
+                        ${pairHtml}
+                    `;
+                    appendSnapSection(`sec_secretary_page_${p}`, tabIdx, html);
+                }
+            }
+            else if (tab.key === "vision") {
+                const v = churchSections.vision;
+                let bodyHtml = renderFormattedBody(getCombinedBody(v), false);
+                let html = `
+                    <div class="section-header-row">
+                        <div>
+                            <span class="badge-pill">${v.badge || '교회비전'}</span>
+                            <h2 class="article-main-title">${v.title}</h2>
+                        </div>
+                        <button type="button" class="btn-admin-edit" onclick="triggerGeneralEdit('vision')" title="수정">수정 ✏️</button>
                     </div>
-                    ${canAdd ? `
-                    <div class="leader-top-btn-group">
-                        <button type="button" class="btn-action-pill add" onclick="openElderAdd()" title="장로 추가">➕ 장로추가</button>
+                `;
+                if (v.img) html += `<div class="attached-photo-wrap"><img src="${v.img}" alt="${v.title}"></div>`;
+                html += bodyHtml;
+                appendSnapSection("sec_vision", tabIdx, html);
+            }
+            else if (tab.key === "ministry") {
+                const m = churchSections.ministry;
+                let bodyHtml = renderFormattedBody(getCombinedBody(m), false);
+                let html = `
+                    <div class="section-header-row">
+                        <div>
+                            <span class="badge-pill">${m.badge || '부서사역'}</span>
+                            <h2 class="article-main-title">${m.title}</h2>
+                        </div>
+                        <button type="button" class="btn-admin-edit" onclick="triggerGeneralEdit('ministry')" title="수정">수정 ✏️</button>
                     </div>
-                    ` : ``}
-                </div>
-                <p style="font-size:12.5px; color:#94a3b8; font-weight:700; margin-bottom:6px;">기도와 헌신으로 목회에 협력하는 시무장로님들입니다. (본인 성함을 누르면 인사말을 수정할 수 있습니다)</p>
-                ${itemsHtml}
-            `;
-            appendSnapSection("sec_elders", 6, html);
-        }
+                `;
+                if (m.img) html += `<div class="attached-photo-wrap"><img src="${m.img}" alt="${m.title}"></div>`;
+                html += bodyHtml;
+                appendSnapSection("sec_ministry", tabIdx, html);
+            }
+            else if (tab.key === "history") {
+                const h = churchSections.history;
+                let bodyHtml = renderFormattedBody(h.body, true);
+                let html = `
+                    <div class="section-header-row">
+                        <div>
+                            <span class="badge-pill">${h.badge || '교회역사'}</span>
+                            <h2 class="article-main-title">${h.title}</h2>
+                        </div>
+                        <button type="button" class="btn-admin-edit" onclick="triggerGeneralEdit('history')" title="수정">수정 ✏️</button>
+                    </div>
+                `;
+                if (h.img) html += `<div class="attached-photo-wrap"><img src="${h.img}" alt="${h.title}"></div>`;
+                html += bodyHtml;
+                appendSnapSection("sec_history", tabIdx, html);
+            }
+        });
 
-        // 8. 교회비전 (Tab 7)
-        {
-            const v = churchSections.vision;
-            let bodyHtml = renderFormattedBody(getCombinedBody(v), false);
-            let html = `
-                <div class="section-header-row">
-                    <div>
-                        <span class="badge-pill">${v.badge || '교회비전'}</span>
-                        <h2 class="article-main-title">${v.title}</h2>
-                    </div>
-                    <button type="button" class="btn-admin-edit" onclick="triggerGeneralEdit('vision')" title="수정">수정 ✏️</button>
-                </div>
-            `;
-            if (v.img) html += `<div class="attached-photo-wrap"><img src="${v.img}" alt="${v.title}"></div>`;
-            html += bodyHtml;
-            appendSnapSection("sec_vision", 7, html);
-        }
-
-        // 9. 부서사역 (Tab 8)
-        {
-            const min = churchSections.ministry;
-            let bodyHtml = renderFormattedBody(getCombinedBody(min), false);
-            let html = `
-                <div class="section-header-row">
-                    <div>
-                        <span class="badge-pill">${min.badge || '부서사역'}</span>
-                        <h2 class="article-main-title">${min.title}</h2>
-                    </div>
-                    <button type="button" class="btn-admin-edit" onclick="triggerGeneralEdit('ministry')" title="수정">수정 ✏️</button>
-                </div>
-            `;
-            if (min.img) html += `<div class="attached-photo-wrap"><img src="${min.img}" alt="${min.title}"></div>`;
-            html += bodyHtml;
-            appendSnapSection("sec_ministry", 8, html);
-        }
-
-        // 10. 교회역사 (Tab 9)
-        {
-            const h = churchSections.history;
-            let bodyHtml = renderFormattedBody(h.body, true);
-            let html = `
-                <div class="section-header-row">
-                    <div>
-                        <span class="badge-pill">${h.badge || '교회역사'}</span>
-                        <h2 class="article-main-title">${h.title}</h2>
-                    </div>
-                    <button type="button" class="btn-admin-edit" onclick="triggerGeneralEdit('history')" title="수정">수정 ✏️</button>
-                </div>
-            `;
-            if (h.img) html += `<div class="attached-photo-wrap"><img src="${h.img}" alt="${h.title}"></div>`;
-            html += bodyHtml;
-            appendSnapSection("sec_history", 9, html);
-        }
-
-        // 🌟 [사용자 요청] 맨 하단 100 애드몹에 의해 교회역사 내용이 잘리거나 끊기지 않도록 여유 있는 하단 완충 여백 추가 (팅김 방지 scroll-snap-align 적용)
+        // 🌟 [사용자 요청] 맨 하단 100 애드몹에 의해 내용이 잘리거나 끊기지 않도록 여유 있는 하단 완충 여백 추가
         const bottomSpacer = document.createElement("div");
         bottomSpacer.className = "intro-bottom-spacer";
         bottomSpacer.style.cssText = "height: 30px; width: 100%; flex-shrink: 0; pointer-events: none; scroll-snap-align: end;";
@@ -1573,13 +1684,15 @@
 
     // 🌟 상단 "화면수정 ▶" 버튼 클릭 시 현재 활성화된 탭의 내용 수정
     function triggerCurrentTabEdit() {
-        if (currentActiveTabIdx === 0) triggerGeneralEdit("welcome");
-        else if (currentActiveTabIdx === 1) openLeaderEdit("pastor", 0);
-        else if (currentActiveTabIdx === 2) openLeaderEdit("assistant", 0);
-        else if (currentActiveTabIdx === 3) openLeaderEdit("evangelist", 0);
-        else if (currentActiveTabIdx === 4) openLeaderEdit("missionary", 0);
-        else if (currentActiveTabIdx === 5) openLeaderEdit("secretary", 0);
-        else if (currentActiveTabIdx === 6) {
+        const tabs = getTabDefs();
+        const tabKey = tabs[currentActiveTabIdx]?.key || "welcome";
+        if (tabKey === "welcome") triggerGeneralEdit("welcome");
+        else if (tabKey === "pastor") openLeaderEdit("pastor", 0);
+        else if (tabKey === "assistant") openLeaderEdit("assistant", 0);
+        else if (tabKey === "evangelist") openLeaderEdit("evangelist", 0);
+        else if (tabKey === "missionary") openLeaderEdit("missionary", 0);
+        else if (tabKey === "secretary") openLeaderEdit("secretary", 0);
+        else if (tabKey === "elders") {
             const eldersList = churchSections.elders || [];
             const myName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserId") || "").trim();
             const cleanMy = myName.replace(/\s+/g, '').replace(/(시무|은퇴)?장로(님)?/g, '').trim();
@@ -1592,12 +1705,12 @@
                 showToast("💡 본인 성함을 터치하여 나의 인사말을 수정하실 수 있습니다.");
             }
         }
-        else if (currentActiveTabIdx === 7) triggerGeneralEdit("vision");
-        else if (currentActiveTabIdx === 8) triggerGeneralEdit("ministry");
-        else if (currentActiveTabIdx === 9) triggerGeneralEdit("history");
+        else if (tabKey === "vision") triggerGeneralEdit("vision");
+        else if (tabKey === "ministry") triggerGeneralEdit("ministry");
+        else if (tabKey === "history") triggerGeneralEdit("history");
     }
 
-    let currentGeneralEditKey = "welcome";
+        let currentGeneralEditKey = "welcome";
     function triggerGeneralEdit(key) {
         currentGeneralEditKey = key;
         const item = churchSections[key] || DEFAULT_DATA[key];
@@ -1800,6 +1913,8 @@
 
         const boxBg = document.getElementById("boxPastorBgSettings");
         if (boxBg) boxBg.style.display = "none";
+        const boxReorder = document.getElementById("boxServantReorder");
+        if (boxReorder) boxReorder.style.display = "none";
 
         document.getElementById("lblServantModalTitle").innerText = `➕ 새 ${title} 추가`;
         document.getElementById("inpServantName").value = "";
@@ -2078,7 +2193,7 @@
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
         renderViewport();
-        scrollToTab(6);
+        scrollToTabKey('elders');
         closeModal("elderEditModal");
         showToast("✨ 장로 정보가 안전하게 저장되었습니다.");
     }
@@ -2090,7 +2205,7 @@
         churchSections.elders.splice(idx, 1);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
         renderViewport();
-        scrollToTab(6);
+        scrollToTabKey('elders');
         showToast(`🗑️ [${name}] 님이 삭제되었습니다.`);
     }
 
@@ -2103,7 +2218,97 @@
     function openModal(id) { document.getElementById(id)?.classList.add("show"); }
     function closeModal(id) { document.getElementById(id)?.classList.remove("show"); }
 
-    function showToast(msg) {
+    // 🌟 [사용자 요청] 장로 순서 이동 (수석 장로 ⬆️ / 신참 장로 ⬇️)
+    function moveElderDirect(idx, dir, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        if (!Array.isArray(churchSections.elders)) return;
+        const targetIdx = idx + dir;
+        if (targetIdx < 0 || targetIdx >= churchSections.elders.length) return;
+        const temp = churchSections.elders[idx];
+        churchSections.elders[idx] = churchSections.elders[targetIdx];
+        churchSections.elders[targetIdx] = temp;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        renderViewport();
+        scrollToTabKey("elders");
+        showToast(`🔄 [${temp.name}] 순서가 변경되었습니다.`);
+    }
+
+    function moveActiveElderDirect(dir) {
+        if (activeElderIdx < 0 || !Array.isArray(churchSections.elders)) return;
+        const targetIdx = activeElderIdx + dir;
+        if (targetIdx < 0 || targetIdx >= churchSections.elders.length) {
+            showToast(dir < 0 ? "첫 번째(맨 위) 장로님입니다." : "마지막(맨 아래) 장로님입니다.");
+            return;
+        }
+        const temp = churchSections.elders[activeElderIdx];
+        churchSections.elders[activeElderIdx] = churchSections.elders[targetIdx];
+        churchSections.elders[targetIdx] = temp;
+        activeElderIdx = targetIdx;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        renderViewport();
+        scrollToTabKey("elders");
+        showToast(`🔄 [${temp.name}] 순서가 이동되었습니다.`);
+    }
+
+    // 🌟 [사용자 요청] 부목사, 전도사, 선교사, 간사 순서 이동 (선임 ⬆️ / 후임 ⬇️)
+    function moveLeaderDirect(category, idx, dir, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        let listKey = "";
+        if (category === "assistant") listKey = "assistant_pastors";
+        else if (category === "evangelist") listKey = "evangelists";
+        else if (category === "missionary") listKey = "missionaries";
+        else if (category === "secretary") listKey = "secretaries";
+        if (!listKey || !Array.isArray(churchSections[listKey])) return;
+
+        const targetIdx = idx + dir;
+        if (targetIdx < 0 || targetIdx >= churchSections[listKey].length) return;
+
+        const temp = churchSections[listKey][idx];
+        churchSections[listKey][idx] = churchSections[listKey][targetIdx];
+        churchSections[listKey][targetIdx] = temp;
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        renderViewport();
+        scrollToTabKey(category);
+        showToast(`🔄 [${temp.name || temp.title}] 순서가 변경되었습니다.`);
+    }
+
+    function moveActiveServantDirect(dir) {
+        if (!activeLeaderContext || activeLeaderContext.type === "pastor") return;
+        const type = activeLeaderContext.type;
+        let listKey = "";
+        if (type === "assistant") listKey = "assistant_pastors";
+        else if (type === "evangelist") listKey = "evangelists";
+        else if (type === "missionary") listKey = "missionaries";
+        else if (type === "secretary") listKey = "secretaries";
+        if (!listKey || !Array.isArray(churchSections[listKey]) || activeLeaderContext.idx < 0) return;
+
+        const curIdx = activeLeaderContext.idx;
+        const targetIdx = curIdx + dir;
+        if (targetIdx < 0 || targetIdx >= churchSections[listKey].length) {
+            showToast(dir < 0 ? "맨 앞(선임)의 사역자입니다." : "맨 뒤(후임)의 사역자입니다.");
+            return;
+        }
+
+        const temp = churchSections[listKey][curIdx];
+        churchSections[listKey][curIdx] = churchSections[listKey][targetIdx];
+        churchSections[listKey][targetIdx] = temp;
+        activeLeaderContext.idx = targetIdx;
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        renderViewport();
+        scrollToTabKey(type);
+        showToast(`🔄 [${temp.name || temp.title}] 순서가 이동되었습니다.`);
+    }
+
+
+        function showToast(msg) {
         const t = document.getElementById("yetalkToast");
         if (!t) return;
         t.innerText = msg;
