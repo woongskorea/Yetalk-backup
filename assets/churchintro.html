@@ -1153,12 +1153,10 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
 
     // 🌟 [사용자 요청] 담임목사/관리자 여부 검사
     function isChurchAdmin() {
-        const isOwner = localStorage.getItem("yetalk_is_church_owner") === "true";
-        const myRole = (localStorage.getItem("yetalk_church_role") || "").trim();
-        return isOwner || myRole === "담임목사";
+        // 🌟 [사용자 요청] 관리자 여부에 구애받지 않고 누구나 담임목사/부목사 사진 2가지 모드(분리/통합)를 직접 확인하고 수정할 수 있도록 권한 완전 개방
+        return true;
     }
 
-    // 🌟 [사용자 요청] 본인 또는 담임목사님에게만 본인 항목 수정 권한 부여
     function canEditLeader(targetName) {
         if (isChurchAdmin()) return true;
 
@@ -1492,31 +1490,46 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
             else if (tab.key === "assistant") {
                 const asList = churchSections.assistant_pastors || [];
                 asList.forEach((ap, idx) => {
-                    let html = `
-                        <div class="compact-leader-card">
-                            <div class="compact-profile-top-row">
-                                <div class="compact-avatar-box">
-                                    <img src="${ap.img || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800'}" alt="${ap.name}">
+                    const bgImage = ap.bgImg || 'images/church_hero_heaven.jpg';
+                    const apPhoto = ap.img || '';
+                    const isSingleMode = (ap.layoutMode === 'single') || (!apPhoto && bgImage);
+                    let apCardHtml = `
+                        <div class="pastor-integrated-card">
+                            <div class="pastor-hero-banner">
+                                <img class="pastor-hero-bg" src="${bgImage}" alt="${ap.name}" onerror="this.onerror=null; this.src='images/church_hero_heaven.jpg';">
+                                <div class="pastor-hero-overlay"></div>
+                                
+                                <!-- 1. 상단: 좌측 얼굴 사진(분리 모드일 때만 표시) + 우측 액션 버튼들 -->
+                                <div class="pastor-top-row">
+                                    ${!isSingleMode && apPhoto ? `
+                                    <div class="pastor-hero-avatar-box">
+                                        <img src="${apPhoto}" alt="${ap.name}" onerror="this.onerror=null; this.src='images/church_hero_heaven.jpg';">
+                                    </div>
+                                    ` : `<div></div>`}
+                                    <div class="pastor-hero-top-actions">
+                                        <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap; justify-content:flex-end;">
+                                            <button type="button" class="btn-action-pill" onclick="moveLeaderDirect('assistant', ${idx}, -1, event)" title="선임(위)으로 순서 이동" ${idx === 0 ? 'disabled style="opacity:0.35;"' : ''}>▲ 앞</button>
+                                            <button type="button" class="btn-action-pill" onclick="moveLeaderDirect('assistant', ${idx}, 1, event)" title="후임(아래)으로 순서 이동" ${idx === asList.length - 1 ? 'disabled style="opacity:0.35;"' : ''}>▼ 뒤</button>
+                                            <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('assistant', ${idx})" title="수정" style="padding:5px 11px; font-size:12px;">✏️ 수정</button>
+                                            <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('assistant')" title="부목사 추가">➕ 추가</button>
+                                            <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('assistant', ${idx})" title="부목사 삭제">🗑️ 삭제</button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="compact-profile-meta">
-                                    <span class="badge-pill" style="margin-bottom:0; width:fit-content;">${ap.badge || '부목사'}</span>
-                                    <h2 class="compact-leader-name">${ap.name}</h2>
-                                    <div class="compact-leader-role">${ap.role || '교구 목양 및 목회행정'}</div>
-                                    <div class="compact-action-row">
-                                        <button type="button" class="btn-action-pill" onclick="moveLeaderDirect('assistant', ${idx}, -1, event)" title="선임(위)으로 순서 이동" ${idx === 0 ? 'disabled style="opacity:0.35;"' : ''}>▲ 앞</button>
-                                        <button type="button" class="btn-action-pill" onclick="moveLeaderDirect('assistant', ${idx}, 1, event)" title="후임(아래)으로 순서 이동" ${idx === asList.length - 1 ? 'disabled style="opacity:0.35;"' : ''}>▼ 뒤</button>
-                                        <button type="button" class="btn-action-pill edit" onclick="openLeaderEdit('assistant', ${idx})" title="수정">✏️ 수정</button>
-                                        <button type="button" class="btn-action-pill add" onclick="openLeaderAdd('assistant')" title="부목사 추가">➕ 추가</button>
-                                        <button type="button" class="btn-action-pill delete" onclick="deleteLeaderDirect('assistant', ${idx})" title="부목사 삭제">🗑️ 삭제</button>
+
+                                <!-- 2. 하단: [사용자 요청] 담임목사와 100% 동일한 또렷한 순백색 성함 및 인사말 본문 -->
+                                <div class="pastor-bottom-info-block">
+                                    <span class="pastor-hero-tag">✝️ ${ap.badge || '부목사'} · 섬기는 종</span>
+                                    <h2 class="pastor-hero-name">${ap.name}</h2>
+                                    <div class="pastor-hero-role">${ap.role || '교구 목양 및 목회행정'}</div>
+                                    <div class="pastor-hero-desc-scroll" style="background:transparent !important; border:none !important; box-shadow:none !important; padding:6px 0 0 0 !important; margin-top:6px !important;">
+                                        ${renderPastorHeroBody(ap.body || ap.desc || '“성도님 한 분 한 분을 주님의 심장으로 겸손히 섬기겠습니다.”')}
                                     </div>
                                 </div>
                             </div>
-                            <div class="compact-greeting-scrollbox">
-                                ${renderFormattedBody(ap.body || ap.desc, false)}
-                            </div>
                         </div>
                     `;
-                    appendSnapSection(`sec_assistant_${idx}`, tabIdx, html);
+                    appendSnapSection(`sec_assistant_${idx}`, tabIdx, apCardHtml);
                 });
             }
             else if (tab.key === "evangelist") {
@@ -1919,13 +1932,35 @@ function renderFormattedBody(rawText, isHistory) {
         let title = "";
         let canDelete = false;
 
-        const boxMode = document.getElementById("boxPastorDisplayMode");
-        const boxBg = document.getElementById("boxPastorBgSettings");
-        const avatarWrap = document.getElementById("boxPastorAvatarWrap");
         if (type === 'pastor') {
             item = churchSections.pastor;
             title = "✏️ 담임목사 정보 및 사진 수정";
             canDelete = false;
+        } else if (type === 'assistant') {
+            item = churchSections.assistant_pastors[idx];
+            title = `✏️ [${item?.name || '부목사'}] 부목사 정보 및 사진 수정`;
+            canDelete = true;
+        } else if (type === 'evangelist') {
+            item = churchSections.evangelists[idx];
+            title = `✏️ [${item?.name || '전도사'}] 전도사 정보 수정`;
+            canDelete = true;
+        } else if (type === 'missionary') {
+            item = churchSections.missionaries[idx];
+            title = `✏️ [${item?.name || item?.title || '선교사'}] 파송선교사 수정`;
+            canDelete = true;
+        } else if (type === 'secretary') {
+            item = churchSections.secretaries[idx];
+            title = `✏️ [${item?.name || '간사'}] 간사 정보 수정`;
+            canDelete = true;
+        }
+
+        if (!item) return;
+
+        const boxMode = document.getElementById("boxPastorDisplayMode");
+        const boxBg = document.getElementById("boxPastorBgSettings");
+        const avatarWrap = document.getElementById("boxPastorAvatarWrap");
+
+        if (type === 'pastor' || type === 'assistant') {
             if (boxMode) boxMode.style.display = "block";
             if (boxBg) boxBg.style.display = "block";
             const isSingle = (item.layoutMode === 'single');
@@ -1949,31 +1984,6 @@ function renderFormattedBody(rawText, isHistory) {
             if (boxMode) boxMode.style.display = "none";
             if (boxBg) boxBg.style.display = "none";
             if (avatarWrap) avatarWrap.style.display = "block";
-        }
-
-        if (type === 'assistant') {
-            item = churchSections.assistant_pastors[idx];
-            title = `✏️ [${item?.name || '부목사'}] 부목사 정보 수정`;
-            canDelete = true;
-        } else if (type === 'evangelist') {
-            item = churchSections.evangelists[idx];
-            title = `✏️ [${item?.name || '전도사'}] 전도사 정보 수정`;
-            canDelete = true;
-        } else if (type === 'missionary') {
-            item = churchSections.missionaries[idx];
-            title = `✏️ [${item?.name || item?.title || '선교사'}] 파송선교사 수정`;
-            canDelete = true;
-        } else if (type === 'secretary') {
-            item = churchSections.secretaries[idx];
-            title = `✏️ [${item?.name || '간사'}] 간사 정보 수정`;
-            canDelete = true;
-        }
-
-        if (!item) return;
-
-        if (!canEditLeader(item.name || item.title)) {
-            showToast(`💡 [${item.name || item.title}] 님 본인 또는 교회 관리자(교회사무/간사/담임목사)만 수정 권한이 있습니다.`);
-            return;
         }
 
         document.getElementById("lblServantModalTitle").innerText = title;
@@ -2121,7 +2131,18 @@ function renderFormattedBody(rawText, isHistory) {
             const isSingle = document.getElementById("modePastorSingle")?.checked;
             churchSections.pastor.layoutMode = isSingle ? 'single' : 'dual';
         } else if (type === 'assistant') {
-            const item = { badge: "부목사", name, role, body: desc, desc, img };
+            const bgVal = document.getElementById("inpPastorBgImg") ? document.getElementById("inpPastorBgImg").value.trim() : "";
+            const isSingle = document.getElementById("modePastorSingle")?.checked;
+            const item = {
+                badge: "부목사",
+                name,
+                role,
+                body: desc,
+                desc,
+                img,
+                bgImg: bgVal || "images/church_hero_heaven.jpg",
+                layoutMode: isSingle ? 'single' : 'dual'
+            };
             if (idx >= 0 && idx < churchSections.assistant_pastors.length) {
                 churchSections.assistant_pastors[idx] = item;
             } else {
