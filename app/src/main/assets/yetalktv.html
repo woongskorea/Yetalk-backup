@@ -11,6 +11,11 @@
     <link rel="preconnect" href="https://i.ytimg.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://www.youtube.com">
+    <link rel="dns-prefetch" href="https://i.ytimg.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+    <link rel="dns-prefetch" href="https://googlevideo.com">
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;800;900&display=swap" rel="stylesheet">
     <script src="https://www.youtube.com/iframe_api" async></script>
     <style>
@@ -5737,7 +5742,10 @@
                 <div class="touch-overlay" onclick="handleFeedTouch('${feed.id}')"></div>
             `;
             container.appendChild(card);
-            setupHighResPoster(feed.id, feed.videoId);
+            // 🌟 [속도 최적화] 시작 시 1번 영상만 고화질 포스터를 적용하여 30개 동시 이미지 다운로드로 인한 네트워크 지연 원천 차단
+            if (idx === 0) {
+                setupHighResPoster(feed.id, feed.videoId);
+            }
         });
 
         setupFeedScrollListener();
@@ -5789,14 +5797,8 @@
 
     function initAllFeedPlayers() {
         const feeds = loadSavedFeeds();
-        // 1번 영상 즉시 최우선 초기화 & 고화질 자동재생
+        // 🌟 [속도 최적화] 1번 영상만 즉각 최우선 초기화하여 네트워크 및 CPU 전폭 집중 (검은 화면/로딩 지연 원천 제거)
         initFeedPlayerAt(0, feeds);
-        // 다음 영상들은 첫 영상 로딩에 간섭 없도록 순차 지연 초기화
-        setTimeout(() => {
-            for (let i = 1; i < feeds.length; i++) {
-                initFeedPlayerAt(i, feeds);
-            }
-        }, 500);
     }
 
     function initFeedPlayerAt(idx, feeds) {
@@ -5831,9 +5833,6 @@
                 playerVars: playerVars,
                 events: {
                     onReady: (event) => {
-                        try {
-                            event.target.setPlaybackQuality('hd1080');
-                        } catch(e){}
                         if (idx === currentFeedIndex) {
                             try {
                                 event.target.unMute();
@@ -5845,9 +5844,13 @@
                                     event.target.playVideo();
                                 } catch(err){}
                             }
-                            // 🌟 [사용자 요청] 최대한 영상 빠르게 재생: 검은 화면/딜레이 없이 즉시 포스터 전환
-                            const poster = document.getElementById(`poster_${feed.id}`);
-                            if (poster) poster.classList.add("loaded");
+                            // 🌟 안전장치: PLAYING 이벤트 지연 시 최대 2.5초 후 포스터 자동 페이드아웃
+                            setTimeout(() => {
+                                const poster = document.getElementById(`poster_${feed.id}`);
+                                if (poster && !poster.classList.contains("loaded")) {
+                                    poster.classList.add("loaded");
+                                }
+                            }, 2500);
                         } else {
                             try {
                                 event.target.pauseVideo();
@@ -5925,18 +5928,33 @@
                 return;
             }
 
-            // 🌟 [사용자 요청] 영상이 실제 재생 시작된 순간 딜레이 없이 즉시 썸네일에서 영상으로 전환 (검은 화면 0초 노출)
+            // 🌟 [핵심] 실제 첫 프레임 재생이 시작된 순간 썸네일 포스터를 부드럽게 걷어내어
+            // 검은 화면이나 로딩 동그라미(버퍼링 링)가 단 0.1초도 노출되지 않도록 완벽 전환!
             const poster = document.getElementById(`poster_${feedId}`);
             if (poster && !poster.classList.contains("loaded")) {
                 poster.classList.add("loaded");
             }
+            // 🌟 확실한 음소거 해제 및 볼륨 100% 보장
             try {
-                event.target.setPlaybackQuality('hd1080');
+                event.target.unMute();
+                event.target.setVolume(100);
+            } catch(e){}
+            // 🌟 [사용자 요청] 플레이 후 동그라미 돌아가는 문제 원천 제거:
+            // setPlaybackQuality('hd1080')를 호출하면 버퍼를 버리고 재버퍼링 링을 띄우므로 절대 호출하지 않고 자동 고화질 스트리밍 유지!
+            try {
                 if (typeof event.target.setPlaybackRate === "function") {
                     const currentRate = SPEED_LEVELS[currentSpeedIndex]?.rate || 1.0;
                     event.target.setPlaybackRate(currentRate);
                 }
             } catch(e){}
+            // 🌟 1번 영상이 안정적으로 재생 중일 때 다음 영상 1개만 부드럽게 사전 준비
+            const allFeeds = loadSavedFeeds();
+            const nextPreloadIdx = currentFeedIndex + 1;
+            if (nextPreloadIdx < allFeeds.length && !ytPlayerMap[allFeeds[nextPreloadIdx].id]) {
+                setTimeout(() => {
+                    initFeedPlayerAt(nextPreloadIdx, allFeeds);
+                }, 2000);
+            }
             if (!admobReplayTimer) {
                 const overlay = document.getElementById("admob250Overlay");
                 if (overlay) {
@@ -6064,8 +6082,8 @@
         const p = ytPlayerMap[feedId];
         if (p && typeof p.seekTo === 'function') {
             p.seekTo(0, true);
+            try { p.unMute(); p.setVolume(100); } catch(e){}
             p.playVideo();
-            try { p.setPlaybackQuality('hd1080'); } catch(e){}
             isVideoPaused = false;
             updatePlaybackUiState('playing');
         }
@@ -6194,18 +6212,26 @@
         currentFeedIndex = nextIdx;
         updatePcFeedListHighlight(nextIdx);
         if (curFeed) {
+            setupHighResPoster(curFeed.id, curFeed.videoId);
             updateBottomInfo(curFeed);
             renderPcCommentsForCurrentVideo(curFeed); // 🌟 실시간 영상 댓글 동적 연동
             if (ytPlayerMap[curFeed.id]) {
                 try {
                     ytPlayerMap[curFeed.id].unMute();
+                    ytPlayerMap[curFeed.id].setVolume(100);
                     ytPlayerMap[curFeed.id].playVideo();
-                    ytPlayerMap[curFeed.id].setPlaybackQuality('hd1080');
                     isVideoPaused = false;
                     setControlsVisibility(false);
                 } catch(e){}
             } else {
                 initFeedPlayerAt(nextIdx, feeds);
+            }
+            // 🌟 다음 영상 1개만 부드럽게 사전 준비
+            const nextPreloadIdx = nextIdx + 1;
+            if (nextPreloadIdx < feeds.length && !ytPlayerMap[feeds[nextPreloadIdx].id]) {
+                setTimeout(() => {
+                    initFeedPlayerAt(nextPreloadIdx, feeds);
+                }, 1500);
             }
         }
     }
@@ -8215,8 +8241,8 @@ https://yetalk.cc`;
         if (firstFeed && ytPlayerMap[firstFeed.id]) {
             try {
                 ytPlayerMap[firstFeed.id].unMute();
+                ytPlayerMap[firstFeed.id].setVolume(100);
                 ytPlayerMap[firstFeed.id].playVideo();
-                ytPlayerMap[firstFeed.id].setPlaybackQuality('hd1080');
                 isVideoPaused = false;
             } catch(e){}
         }

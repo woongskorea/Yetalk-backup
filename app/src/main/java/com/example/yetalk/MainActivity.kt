@@ -284,8 +284,8 @@ class MainActivity : AppCompatActivity() {
         // 🌟 [핵심 2] 그래픽 하드웨어 가속 강제 활성화 (렌더링 렉 제거)
         webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
 
-        // 🌟 [핵심 3] 캐시 및 고속 로딩 모드 설정 (앱 자산 갱신 시 구버전 캐시 방지)
-        settings.cacheMode = WebSettings.LOAD_NO_CACHE
+        // 🌟 [핵심 3] 캐시 및 고속 로딩 모드: 외부 리소스(유튜브 플레이어 스크립트 등)는 캐시하여 고속 재생, 로컬 자산은 즉시 반영
+        settings.cacheMode = WebSettings.LOAD_DEFAULT
 
         // 🌟 [핵심 4] 화면 깜빡임 방지를 위한 배경 투명화
         webView.setBackgroundColor(Color.TRANSPARENT)
@@ -318,9 +318,18 @@ class MainActivity : AppCompatActivity() {
         webView.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
                 val url = request?.url ?: return null
-                return assetLoaderYetalkCc.shouldInterceptRequest(url)
+                val resp = assetLoaderYetalkCc.shouldInterceptRequest(url)
                     ?: assetLoaderYetalk.shouldInterceptRequest(url)
                     ?: assetLoaderDefault.shouldInterceptRequest(url)
+                if (resp != null) {
+                    val headers = (resp.responseHeaders?.toMutableMap() ?: mutableMapOf())
+                    headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+                    headers["Pragma"] = "no-cache"
+                    headers["Expires"] = "0"
+                    resp.responseHeaders = headers
+                    return resp
+                }
+                return null
             }
 
             override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
