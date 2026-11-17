@@ -6467,7 +6467,7 @@
             <!-- 3) 등록 교우 & 초청 명단 서브 헤더 -->
             <div style="padding:10px 16px 6px 16px; display:flex; justify-content:space-between; align-items:center; flex-shrink:0;">
                 <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:14.5px; font-weight:950; color:#0f172a;">👥 등록 교우 &amp; 초청 명단</span>
+                    <span style="font-size:14.5px; font-weight:950; color:#0f172a;">👥 등록 교우</span>
                     <span id="txtFriendTotalCount" style="font-size:12px; font-weight:900; color:#059669; background:#dcfce7; padding:2px 8px; border-radius:10px;">총 0명</span>
                 </div>
                 <span id="txtFriendChurchNameBadge" style="font-size:12px; font-weight:800; color:#0369a1; background:#e0f2fe; padding:3px 10px; border-radius:10px;">부산제일감리교회</span>
@@ -15611,10 +15611,11 @@
         if (!raw) return "";
         return String(raw)
             .replace(/\s+/g, '')
+            .replace(/\([^)]*\)/g, '')
             .replace(/(담임)?목사(님)?$/g, '')
             .replace(/^(담임)?목사(님)?/g, '')
-            .replace(/(선교사|전도사|강도사|시무장로|은퇴장로|장로|안수집사|권사|집사|간사|사모|교회사무|성도)(님)?$/g, '')
-            .replace(/^(선교사|전도사|강도사|시무장로|은퇴장로|장로|안수집사|권사|집사|간사|사모|교회사무|성도)(님)?/g, '')
+            .replace(/(파송선교사|선교사|부목사|전도사|강도사|시무장로|은퇴장로|장로|안수집사|권사|집사|간사|사모|교회사무|새신자|성도)(님)?$/g, '')
+            .replace(/^(파송선교사|선교사|부목사|전도사|강도사|시무장로|은퇴장로|장로|안수집사|권사|집사|간사|사모|교회사무|새신자|성도)(님)?/g, '')
             .trim();
     }
     window.getCleanPersonName = getCleanPersonName;
@@ -15689,29 +15690,28 @@
             if (!item) return;
             const rawName = (typeof item === 'string' ? item : (item.nameOrId || item.name || '')).trim();
             if (!rawName) return;
-            const role = (typeof item === 'object' && item.role) ? item.role.trim() : '성도';
-            const cleanKey = getCleanPersonName(rawName) || rawName;
+            let role = (typeof item === 'object' && item.role) ? item.role.trim() : '성도';
+            if (role.includes('장로')) role = '장로'; // 🌟 시무/은퇴 상관없이 '장로'로 통일 표기
+            const pureClean = getCleanPersonName(rawName) || rawName;
+            const dedupeKey = pureClean.toLowerCase(); // 🌟 대소문자 무관 중복 통합 (FURAHA 3명 -> 1명 자동 병합)
 
-            // 표시할 표준 이름: 담임목사는 '정찬석 목사', 일반 교우는 '이수미'처럼 순수 성함 우선
-            let displayName = rawName;
+            // 표시할 표준 이름: 담임목사는 '정찬석 목사', 일반 교우는 'FURAHA' / '이수미'처럼 성함 우선
+            let displayName = pureClean;
             if (role === '담임목사' || rawName.includes('목사')) {
-                displayName = cleanKey + ' 목사';
+                displayName = pureClean + ' 목사';
             } else {
-                displayName = cleanKey;
+                displayName = pureClean;
             }
 
-            if (!memberMap.has(cleanKey)) {
-                memberMap.set(cleanKey, { nameOrId: displayName, role: role });
+            if (!memberMap.has(dedupeKey)) {
+                memberMap.set(dedupeKey, { nameOrId: displayName, role: role });
             } else {
-                // 이미 존재하는 경우: '성도'보다 '권사', '집사', '장로' 등 구체적인 직분을 우선 채택
-                const existing = memberMap.get(cleanKey);
-                if (role && role !== '성도' && existing.role === '성도') {
-                    existing.role = role;
-                } else if (role && role !== existing.role) {
-                    existing.role = role;
+                // 이미 존재하는 경우: 직분 및 최적 이름 갱신
+                const existing = memberMap.get(dedupeKey);
+                if (role && role !== '성도') {
+                    existing.role = (role.includes('장로') ? '장로' : role);
                 }
-                // 이름도 더 깔끔한 표시명으로 유지
-                if (displayName.length < existing.nameOrId.length || displayName === cleanKey) {
+                if (displayName && (displayName.length <= existing.nameOrId.length || displayName === pureClean)) {
                     existing.nameOrId = displayName;
                 }
             }
@@ -15757,7 +15757,7 @@
                         <div style="display:flex; align-items:center; gap:5px; min-width:0; flex-grow:1;">
                             <span style="font-size:13.5px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:visible;">${m.nameOrId}</span>
                             <button type="button" onclick="${!isMe ? `openEditChristianRoleModal('${m.nameOrId}', '${m.role || '성도'}')` : ''}" title="${isMe ? '나' : '터치하여 직분 변경 (선교사/전도사/장로/권사 등)'}" style="font-size:10px; font-weight:900; color:${isMe ? '#059669' : '#0369a1'}; background:${isMe ? '#dcfce7' : '#e0f2fe'}; border:1px solid ${isMe ? '#86efac' : '#bae6fd'}; padding:1.5px 6px; border-radius:5px; flex-shrink:0; cursor:${isMe ? 'default' : 'pointer'}; display:inline-flex; align-items:center; gap:2px;">
-                                <span>${isMe ? '나' : (m.role || '성도')}</span>
+                                <span>${isMe ? '나' : ((m.role && m.role.includes('장로')) ? '장로' : (m.role || '성도'))}</span>
                                 ${!isMe ? '<span style="font-size:8px; opacity:0.8; margin-left:1px;">✎</span>' : ''}
                             </button>
                         </div>
@@ -15771,7 +15771,6 @@
                         <button type="button" onclick="shareChristianInviteKakao('${m.nameOrId}')" style="padding:4px 7px; background:#fee500; color:#191919; border:none; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer; box-shadow:0 1px 3px rgba(254,229,0,0.25);">
                             카톡
                         </button>
-                        ${!isMe ? `<button type="button" onclick="deleteChristianFriend('${m.nameOrId}')" title="삭제" style="background:#fee2e2; border:1px solid #fca5a5; color:#dc2626; font-size:12px; font-weight:900; cursor:pointer; padding:3px 7px; border-radius:6px; line-height:1;">✕</button>` : ''}
                     </div>
                 </div>
             `}).join("");
