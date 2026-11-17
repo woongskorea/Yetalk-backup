@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -1343,20 +1343,32 @@
                 appendSnapSection("sec_pastor_integrated", tabIdx, pastorCardHtml);
             }
             else if (tab.key === "elders") {
-                const eldersList = (churchSections.elders || []).filter(e => !e.role || !e.role.includes("은퇴"));
-                let itemsHtml = "";
-                if (eldersList.length === 0) {
-                    itemsHtml = `
-                        <div style="text-align:center; padding:30px 16px; color:#94a3b8; font-size:13px; font-weight:700; background:rgba(15,23,42,0.4); border-radius:12px; border:1px dashed #334155;">
-                            등록된 시무장로님이 없습니다.<br>회원가입 시 시무장로를 선택하시면 자동으로 등재됩니다.
-                        </div>
-                    `;
-                } else {
-                    itemsHtml = `<div class="elder-list-container">`;
-                    eldersList.forEach((elder, eIdx) => {
+                const allElders = churchSections.elders || [];
+                const simuElders = allElders.filter(e => !e.role || !e.role.includes("은퇴"));
+                const retiredElders = allElders.filter(e => e.role && e.role.includes("은퇴"));
+                const canManageOrder = isChurchAdmin();
+                const canAdd = isChurchAdmin();
+
+                function renderElderGroupHtml(groupList, groupTitle, groupBadge, emptyText) {
+                    if (groupList.length === 0) {
+                        return `
+                            <div style="margin-bottom:18px;">
+                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                                    <span class="badge-pill" style="margin-bottom:0;">${groupBadge}</span>
+                                    <strong style="font-size:14px; color:#f8fafc; font-weight:800;">${groupTitle}</strong>
+                                </div>
+                                <div style="text-align:center; padding:20px 14px; color:#94a3b8; font-size:12.5px; font-weight:700; background:rgba(15,23,42,0.4); border-radius:12px; border:1px dashed #334155;">
+                                    ${emptyText}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    let rowsHtml = `<div class="elder-list-container">`;
+                    groupList.forEach((elder, gIdx) => {
+                        const globalIdx = allElders.indexOf(elder);
                         const canEdit = canEditLeader(elder.name);
-                        itemsHtml += `
-                            <div class="elder-row-item ${canEdit ? 'can-edit' : ''}" onclick="handleElderItemClick(${eIdx})" title="${canEdit ? '터치하여 나의 한줄 인사말 수정' : ''}">
+                        rowsHtml += `
+                            <div class="elder-row-item ${canEdit ? 'can-edit' : ''}" onclick="handleElderItemClick(${globalIdx})" title="${canEdit ? '터치하여 나의 한줄 인사말 수정' : ''}">
                                 <div class="elder-col-profile">
                                     <strong class="elder-name-text">${elder.name}</strong>
                                     <span class="elder-divider">·</span>
@@ -1365,32 +1377,50 @@
                                     “${elder.greeting || '주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다.'}”
                                 </div>
                                 <div class="elder-reorder-group" onclick="event.stopPropagation();" style="display:inline-flex; align-items:center; gap:2px; flex-shrink:0;">
-                                    <button type="button" class="btn-reorder-pill" onclick="moveElderDirect(${eIdx}, -1, event)" title="위로 순서 올리기 (수석장로 방향)" ${eIdx === 0 ? 'disabled style="opacity:0.25; cursor:default;"' : ''}>▲</button>
-                                    <button type="button" class="btn-reorder-pill" onclick="moveElderDirect(${eIdx}, 1, event)" title="아래로 순서 내리기 (신참장로 방향)" ${eIdx === eldersList.length - 1 ? 'disabled style="opacity:0.25; cursor:default;"' : ''}>▼</button>
+                                    ${canManageOrder ? `
+                                    <button type="button" class="btn-reorder-pill" onclick="moveElderInGroup(${globalIdx}, -1, event)" title="순서 올리기 (수석장로 방향)" ${gIdx === 0 ? 'disabled style="opacity:0.25; cursor:default;"' : ''}>▲</button>
+                                    <button type="button" class="btn-reorder-pill" onclick="moveElderInGroup(${globalIdx}, 1, event)" title="순서 내리기 (신참장로 방향)" ${gIdx === groupList.length - 1 ? 'disabled style="opacity:0.25; cursor:default;"' : ''}>▼</button>
+                                    ` : ``}
                                     ${canEdit ? `<span class="elder-edit-indicator" title="수정 가능">✏️</span>` : ``}
                                 </div>
                             </div>
                         `;
                     });
-                    itemsHtml += `</div>`;
+                    rowsHtml += `</div>`;
+                    return `
+                        <div style="margin-bottom:20px;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <span class="badge-pill" style="margin-bottom:0;">${groupBadge}</span>
+                                    <strong style="font-size:14.5px; color:#f8fafc; font-weight:850;">${groupTitle}</strong>
+                                    <span style="font-size:12px; color:#38bdf8; font-weight:800;">(${groupList.length}명)</span>
+                                </div>
+                            </div>
+                            ${rowsHtml}
+                        </div>
+                    `;
                 }
 
-                const canAdd = isChurchAdmin();
+                const simuHtml = renderElderGroupHtml(simuElders, "시무장로", "✨ 시무장로", "등록된 시무장로님이 없습니다.<br>회원가입 시 '장로(시무장로)'를 선택하시면 자동으로 등재됩니다.");
+                const retiredHtml = renderElderGroupHtml(retiredElders, "은퇴장로", "🌿 은퇴장로", "등록된 은퇴장로님이 없습니다.<br>회원가입 시 '장로(은퇴장로)'를 선택하시면 자동으로 등재됩니다.");
+
                 let html = `
                     <div class="section-header-row">
                         <div style="flex:1; min-width:0;">
-                            <span class="badge-pill">시무장로</span>
-                            <h2 class="article-main-title" style="white-space:nowrap !important;">교회와 성도를 섬기는 시무장로</h2>
+                            <span class="badge-pill">장로</span>
+                            <h2 class="article-main-title" style="white-space:nowrap !important;">교회와 성도를 섬기는 장로회</h2>
                         </div>
                         <div class="leader-top-btn-group" style="display:flex; align-items:center; gap:6px;">
-                            <button type="button" class="btn-action-pill" onclick="toggleStaffOrderMode()" style="background:#0284c7; color:#fff; border-color:#38bdf8; font-size:11px; padding:3px 8px;" title="장로 ➡️ 부목사 ➡️ 전도사 ⮀ 부목사 ➡️ 전도사 ➡️ 장로 순서 전환">🔄 탭순서 변경</button>
                             ${canAdd ? `
                             <button type="button" class="btn-action-pill add" onclick="openElderAdd()" title="장로 추가">➕ 장로추가</button>
                             ` : ``}
                         </div>
                     </div>
-                    <p style="font-size:12.5px; color:#94a3b8; font-weight:700; margin-bottom:6px;">기도와 헌신으로 목회에 협력하는 시무장로님들입니다. (▲▼로 수석·신참 순서 조정, 성함 클릭 시 수정)</p>
-                    ${itemsHtml}
+                    <p style="font-size:12.5px; color:#94a3b8; font-weight:700; margin-bottom:14px;">
+                        ${canManageOrder ? '기도와 헌신으로 목회에 협력하는 장로님들입니다. (관리자: ▲▼ 버튼으로 수석·신참 순서 조정, 성함 클릭 시 수정)' : '기도와 헌신으로 목회에 협력하는 장로님들입니다. (성함 클릭 시 본인 한줄 인사말 수정)'}
+                    </p>
+                    ${simuHtml}
+                    ${retiredHtml}
                 `;
                 appendSnapSection("sec_elders", tabIdx, html);
             }
@@ -1868,7 +1898,7 @@
         if (!item) return;
 
         if (!canEditLeader(item.name || item.title)) {
-            showToast(`💡 [${item.name || item.title}] 님 본인 또는 담임목사님만 수정 권한이 있습니다.`);
+            showToast(`💡 [${item.name || item.title}] 님 본인 또는 교회 관리자(교회사무/간사/담임목사)만 수정 권한이 있습니다.`);
             return;
         }
 
