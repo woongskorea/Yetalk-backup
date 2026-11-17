@@ -10462,18 +10462,45 @@
         const totalCh = meta.totalCh || 50;
         let nextCh = currentUserBibleCh + delta;
 
-        // 🌟 [사용자 요청] 10장씩 이동(더블 삼각형) 시 범위 클램핑 및 순환 지원
+        // 🌟 [핵심 개선] 요한일서(5장), 요한이서(1장), 요한삼서(1장), 유다서(1장) 등 단권 및 경계에서 다음/이전 성경 책으로 끊김 없이 자동 연속 통독!
         if (Math.abs(delta) >= 10) {
             if (delta < 0) {
+                if (currentUserBibleCh <= 1) {
+                    const curIdx = BIBLE_66_BOOKS.findIndex(b => b.name === meta.name);
+                    const prevIdx = (curIdx - 1 + BIBLE_66_BOOKS.length) % BIBLE_66_BOOKS.length;
+                    const prevMeta = BIBLE_66_BOOKS[prevIdx];
+                    currentUserBibleBook = prevMeta.name;
+                    displayUserBibleChapter(prevMeta.name, prevMeta.totalCh);
+                    return;
+                }
                 nextCh = Math.max(1, currentUserBibleCh + delta);
-                if (currentUserBibleCh === 1 && nextCh === 1) nextCh = totalCh;
             } else {
+                if (currentUserBibleCh >= totalCh) {
+                    const curIdx = BIBLE_66_BOOKS.findIndex(b => b.name === meta.name);
+                    const nextIdx = (curIdx + 1) % BIBLE_66_BOOKS.length;
+                    const nextMeta = BIBLE_66_BOOKS[nextIdx];
+                    currentUserBibleBook = nextMeta.name;
+                    displayUserBibleChapter(nextMeta.name, 1);
+                    return;
+                }
                 nextCh = Math.min(totalCh, currentUserBibleCh + delta);
-                if (currentUserBibleCh === totalCh && nextCh === totalCh) nextCh = 1;
             }
         } else {
-            if (nextCh < 1) nextCh = totalCh;
-            if (nextCh > totalCh) nextCh = 1;
+            if (delta > 0 && nextCh > totalCh) {
+                const curIdx = BIBLE_66_BOOKS.findIndex(b => b.name === meta.name);
+                const nextIdx = (curIdx + 1) % BIBLE_66_BOOKS.length;
+                const nextMeta = BIBLE_66_BOOKS[nextIdx];
+                currentUserBibleBook = nextMeta.name;
+                displayUserBibleChapter(nextMeta.name, 1);
+                return;
+            } else if (delta < 0 && nextCh < 1) {
+                const curIdx = BIBLE_66_BOOKS.findIndex(b => b.name === meta.name);
+                const prevIdx = (curIdx - 1 + BIBLE_66_BOOKS.length) % BIBLE_66_BOOKS.length;
+                const prevMeta = BIBLE_66_BOOKS[prevIdx];
+                currentUserBibleBook = prevMeta.name;
+                displayUserBibleChapter(prevMeta.name, prevMeta.totalCh);
+                return;
+            }
         }
         displayUserBibleChapter(currentUserBibleBook, nextCh);
     }
@@ -10481,6 +10508,19 @@
     function displayUserBibleChapter(book, chNum) {
         currentUserBibleBook = book || currentUserBibleBook;
         currentUserBibleCh = parseInt(chNum, 10) || 1;
+
+        // 🌟 구약/신약 교차 이동 시 상단 탭 활성화 자동 동기화
+        const metaInfo = getBibleBookMeta(currentUserBibleBook);
+        if (metaInfo && metaInfo.type && currentHomeTestament !== 'HYMN') {
+            const isOT = (metaInfo.type === 'OT');
+            const tabOT = document.getElementById("tabHomeOT");
+            const tabNT = document.getElementById("tabHomeNT");
+            if (tabOT && tabNT) {
+                tabOT.classList.toggle("active", isOT);
+                tabNT.classList.toggle("active", !isOT);
+                currentHomeTestament = metaInfo.type;
+            }
+        }
 
         // 시간대 버튼 갱신
         updateAutoTimeSlotButtonUI();
@@ -11830,9 +11870,21 @@
         const meta = (typeof getBibleBookMeta === 'function') ? getBibleBookMeta(currentGnBook) : { totalCh: 50 };
         const totalCh = meta.totalCh || 50;
         let nextCh = (currentGnCh || 1) + delta;
-        if (nextCh < 1) nextCh = totalCh;
-        if (nextCh > totalCh) nextCh = 1;
-        currentGnCh = nextCh;
+        if (delta > 0 && nextCh > totalCh) {
+            const curIdx = BIBLE_66_BOOKS.findIndex(b => b.name === meta.name);
+            const nextIdx = (curIdx + 1) % BIBLE_66_BOOKS.length;
+            const nextMeta = BIBLE_66_BOOKS[nextIdx];
+            currentGnBook = nextMeta.name;
+            currentGnCh = 1;
+        } else if (delta < 0 && nextCh < 1) {
+            const curIdx = BIBLE_66_BOOKS.findIndex(b => b.name === meta.name);
+            const prevIdx = (curIdx - 1 + BIBLE_66_BOOKS.length) % BIBLE_66_BOOKS.length;
+            const prevMeta = BIBLE_66_BOOKS[prevIdx];
+            currentGnBook = prevMeta.name;
+            currentGnCh = prevMeta.totalCh;
+        } else {
+            currentGnCh = nextCh;
+        }
         renderGoodnewsModalChapter(currentGnBook, currentGnCh);
     }
 
