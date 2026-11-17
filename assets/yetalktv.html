@@ -4795,6 +4795,8 @@
     function extractYouTubeVideoId(input) {
         if (!input) return "";
         let str = input.trim();
+        try { str = decodeURIComponent(str); } catch(e){}
+        str = str.replace(/[\r\n\t]/g, " ").trim();
         if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return str;
         let m = str.match(/shorts\/([a-zA-Z0-9_-]{11})/i);
         if (m && m[1]) return m[1];
@@ -4805,6 +4807,10 @@
         m = str.match(/live\/([a-zA-Z0-9_-]{11})/i);
         if (m && m[1]) return m[1];
         m = str.match(/embed\/([a-zA-Z0-9_-]{11})/i);
+        if (m && m[1]) return m[1];
+        m = str.match(/watch\/([a-zA-Z0-9_-]{11})/i);
+        if (m && m[1]) return m[1];
+        m = str.match(/(?:vi?\/|v=|\/v\/|youtu\.be\/|\/embed\/|\/shorts\/|\/live\/)([a-zA-Z0-9_-]{11})/i);
         if (m && m[1]) return m[1];
         return "";
     }
@@ -5024,10 +5030,32 @@
             list = unifiedList;
         } else if (currentTvChannel && CHANNEL_PRESETS[currentTvChannel]) {
             let channelItems = CHANNEL_PRESETS[currentTvChannel];
-            // 해당 채널로 등록된 맞춤 영상만 상단에 표출하고 타 채널 영상 침범 방지
+            // 해당 채널로 등록된 맞춤 영상 상단 표출 (채널명 일치 또는 관련 키워드 포함)
             let matchingCustom = customList.filter(f => {
-                return (f.channel && f.channel === currentTvChannel);
+                if (f.channel && f.channel === currentTvChannel) return true;
+                if (currentTvChannel === '말씀' && (f.channel === '말씀TV' || f.channel === '설교')) return true;
+                if (currentTvChannel === '기도' && (f.channel === '기도' || (f.channel && f.channel.includes('기도')) || (!f.channel && ((f.title && f.title.includes('기도')) || (f.shortAd && f.shortAd.includes('기도')))))) return true;
+                if (currentTvChannel === '회개' && (f.channel === '회개' || (f.channel && f.channel.includes('회개')))) return true;
+                if (currentTvChannel === '찬양' && (!f.channel || f.channel === '찬양' || f.channel.includes('찬양'))) return true;
+                return false;
             });
+
+            // 🌟 만약 현재 채널이 핀으로 고정된 영상의 채널이거나, 최신 대표 영상(yetalkPinnedVideoId)이 현재 채널용으로 등록된 경우 최우선 1번에 확실히 배치!
+            const pinnedVideoId = localStorage.getItem("yetalkPinnedVideoId");
+            const pinnedChannel = localStorage.getItem("yetalkPinnedChannel");
+            if (pinnedVideoId && (pinnedChannel === currentTvChannel || (!pinnedChannel && currentTvChannel === '기도'))) {
+                const pIdx = matchingCustom.findIndex(f => f.videoId === pinnedVideoId);
+                if (pIdx > 0) {
+                    const [pItem] = matchingCustom.splice(pIdx, 1);
+                    matchingCustom.unshift(pItem);
+                } else if (pIdx < 0) {
+                    const foundInCustom = customList.find(f => f.videoId === pinnedVideoId);
+                    if (foundInCustom) {
+                        foundInCustom.channel = currentTvChannel;
+                        matchingCustom.unshift(foundInCustom);
+                    }
+                }
+            }
             list = [...matchingCustom, ...channelItems];
         }
 
@@ -5706,7 +5734,7 @@
                 <div class="yt-player-frame-box">
                     <div id="player_slot_${feed.id}"></div>
                 </div>
-                <div class="touch-overlay" onclick="handleFeedTouch(${feed.id})"></div>
+                <div class="touch-overlay" onclick="handleFeedTouch('${feed.id}')"></div>
             `;
             container.appendChild(card);
             setupHighResPoster(feed.id, feed.videoId);
@@ -6343,7 +6371,7 @@
             const authorHtml = isNotice
                 ? `<span style="color:#fde047; font-size:12px; font-weight:600;">${escapeHtml(c.author)}</span> <span style="font-size:9px; background:rgba(234,179,8,0.2); color:#fde047; border:1px solid rgba(234,179,8,0.4); padding:1px 5px; border-radius:4px; font-weight:500;">공식안내</span>`
                 : `<span class="pc-comment-author-name" style="font-weight:550;">${escapeHtml(c.author || '익명 성도')}</span>`;
-            const deleteBtn = isNotice ? '' : `<button type="button" class="btn-pc-comment-del" onclick="deletePcVideoComment(${feed.id}, ${c.id})" title="댓글 삭제">✕</button>`;
+            const deleteBtn = isNotice ? '' : `<button type="button" class="btn-pc-comment-del" onclick="deletePcVideoComment('${feed.id}', '${c.id}')" title="댓글 삭제">✕</button>`;
             const cardBorder = isNotice ? 'border-color:rgba(245, 158, 11, 0.35); background:rgba(245, 158, 11, 0.05);' : '';
 
             return `
@@ -6442,7 +6470,7 @@
             const authorHtml = isNotice
                 ? `<span style="color:#fde047; font-size:12px; font-weight:600;">${escapeHtml(c.author)}</span> <span style="font-size:9px; background:rgba(234,179,8,0.2); color:#fde047; border:1px solid rgba(234,179,8,0.4); padding:1px 5px; border-radius:4px; font-weight:500;">공식안내</span>`
                 : `<span class="pc-comment-author-name" style="font-weight:550;">${escapeHtml(c.author || '익명 성도')}</span>`;
-            const deleteBtn = isNotice ? '' : `<button type="button" class="btn-pc-comment-del" onclick="deleteMobileVideoComment(${feed.id}, ${c.id})" title="댓글 삭제">✕</button>`;
+            const deleteBtn = isNotice ? '' : `<button type="button" class="btn-pc-comment-del" onclick="deleteMobileVideoComment('${feed.id}', '${c.id}')" title="댓글 삭제">✕</button>`;
             const cardBorder = isNotice ? 'border-color:rgba(245, 158, 11, 0.35); background:rgba(245, 158, 11, 0.05);' : '';
 
             return `
@@ -6567,7 +6595,7 @@
             const authorHtml = isNotice
                 ? `<div class="split-item-author-wrap"><span class="split-item-notice-author">📢 ${escapeHtml(c.author)}</span><span class="split-item-notice-badge">공식안내</span></div>`
                 : `<div class="split-item-author-wrap"><span class="split-item-author">${escapeHtml(c.author || '익명 성도')}</span></div>`;
-            const deleteBtn = isNotice ? '' : `<button type="button" class="btn-split-del" onclick="deleteSplitComment(${feed.id}, ${c.id})" title="삭제">✕</button>`;
+            const deleteBtn = isNotice ? '' : `<button type="button" class="btn-split-del" onclick="deleteSplitComment('${feed.id}', '${c.id}')" title="삭제">✕</button>`;
             const textClass = isNotice ? 'split-item-notice-text' : 'split-item-text';
 
             return `
@@ -7593,12 +7621,14 @@
         if (window.yetalkDb && window.yetalkFs) {
             try {
                 const { doc, setDoc, serverTimestamp } = window.yetalkFs;
+                localStorage.setItem("yetalkPinnedChannel", uploadChannel);
                 const tvPayload = {
                     ytUrl: url,
                     vId: videoId,
                     videoId: videoId,
                     title: promoText,
                     bizName: chosenBiz,
+                    channel: uploadChannel,
                     updatedAt: serverTimestamp(),
                     updatedBy: localStorage.getItem("yetalkUserName") || "admin"
                 };
@@ -7630,25 +7660,24 @@
                 if (!isMaster) {
                     const checkQ = query(
                         collection(window.yetalkDb, "yetalk_videos"),
-                        where("bizName", "==", chosenBiz),
-                        orderBy("createdAt", "asc")
+                        where("bizName", "==", chosenBiz)
                     );
 
                     getDocs(checkQ).then(snap => {
                         if (snap && snap.size >= maxSlots) {
-                            const docsToDelete = [];
-                            let countToDelete = snap.size - (maxSlots - 1);
+                            const docsList = [];
                             snap.forEach(d => {
                                 const dData = d.data();
                                 const isProtectedMaster = dData && (dData.isMasterAdmin === true || dData.author === '최웅식' || (dData.author && dData.author.includes('관리자')));
-                                if (countToDelete > 0 && !isProtectedMaster) {
-                                    docsToDelete.push(d.id);
-                                    countToDelete--;
+                                if (!isProtectedMaster) {
+                                    docsList.push({ id: d.id, time: (dData.createdAt && dData.createdAt.toMillis) ? dData.createdAt.toMillis() : (dData.timestamp || 0) });
                                 }
                             });
-                            docsToDelete.forEach(docId => {
-                                deleteDoc(doc(window.yetalkDb, "yetalk_videos", docId)).catch(() => {});
-                            });
+                            docsList.sort((a,b) => a.time - b.time);
+                            let countToDelete = snap.size - (maxSlots - 1);
+                            for (let i = 0; i < Math.min(countToDelete, docsList.length); i++) {
+                                deleteDoc(doc(window.yetalkDb, "yetalk_videos", docsList[i].id)).catch(() => {});
+                            }
                         }
                     }).catch(e => {});
                 }
@@ -7929,6 +7958,7 @@
                             <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
                                 <span style="font-size:11px; color:#38bdf8; font-weight:800;">📅 ${date}</span>
                                 <span style="font-size:10.5px; color:#a7f3d0; background:#064e3b; padding:1px 5px; border-radius:4px; font-weight:800;">@${biz}</span>
+                                <span style="font-size:10.5px; color:#38bdf8; background:#0f2b48; border:1px solid #1e40af; padding:1px 6px; border-radius:4px; font-weight:800;">📺 ${feed.channel || '기도'}</span>
                                 ${isTop ? '<span style="color:#fde047; font-size:10.5px; background:rgba(250,204,21,0.25); border:1px solid #eab308; padding:1px 6px; border-radius:4px; font-weight:900;">★ 1번 대표 영상</span>' : ''}
                             </div>
                             <div style="font-size:12.5px; color:#f1f5f9; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px;">${title}</div>
@@ -7962,6 +7992,7 @@
 
         // 대표 꽂기 ID 저장
         localStorage.setItem("yetalkPinnedVideoId", targetItem.videoId);
+        localStorage.setItem("yetalkPinnedChannel", targetItem.channel || currentTvChannel || "기도");
         if (targetItem.bizName) {
             localStorage.setItem("yetalkPinnedBizName", targetItem.bizName);
             localStorage.setItem("yetalkUserStoreName", targetItem.bizName);
@@ -10334,18 +10365,22 @@ https://yetalk.cc`;
                         feeds = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]");
                     } catch(e) { feeds = []; }
 
+                    const targetCh = cloudData.channel || "기도";
+                    localStorage.setItem("yetalkPinnedChannel", targetCh);
                     const existingIdx = feeds.findIndex(f => f.videoId === topVid);
-                    if (existingIdx > 0) {
+                    if (existingIdx >= 0) {
                         const item = feeds.splice(existingIdx, 1)[0];
+                        if (targetCh) item.channel = targetCh;
                         feeds.unshift(item);
-                    } else if (existingIdx < 0) {
+                    } else {
                         feeds.unshift({
                             id: Date.now(),
                             videoId: topVid,
-                            title: cloudData.title || "추천 찬양 말씀",
+                            title: cloudData.title || "은혜의 영상",
                             bizName: cloudData.bizName || "예톡TV",
                             shortAd: cloudData.title || "",
                             targetUrl: "churchmain.html",
+                            channel: targetCh,
                             format: (cloudData.ytUrl && cloudData.ytUrl.includes("shorts")) ? "shorts" : "16:9",
                             views: 120,
                             likes: 7,
@@ -10404,7 +10439,13 @@ https://yetalk.cc`;
                     });
 
                     cloudList.reverse().forEach(cv => {
-                        if (!existingVideoIds.has(cv.videoId)) {
+                        const existing = localFeeds.find(f => f.videoId === cv.videoId);
+                        if (existing) {
+                            if (cv.channel) existing.channel = cv.channel;
+                            if (cv.title && !existing.title) existing.title = cv.title;
+                            if (cv.shortAd && !existing.shortAd) existing.shortAd = cv.shortAd;
+                            if (cv.bizName) existing.bizName = cv.bizName;
+                        } else {
                             localFeeds.unshift(cv);
                             existingVideoIds.add(cv.videoId);
                             newCount++;
