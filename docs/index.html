@@ -2981,6 +2981,31 @@
             color: #94a3b8 !important;
         }
 
+        /* 🌟 [사용자 요청] 터치 6회: KJV 영문 성경 그 자리 즉시 표시 UI */
+        .bible-verse-item.highlight-kjv {
+            background: #f0f9ff !important;
+            border-left: 3.5px solid #0284c7 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 1.5px 6px rgba(2, 132, 199, 0.2) !important;
+            padding: 6px 10px !important;
+            transition: background 0.15s ease, border-left 0.15s ease;
+        }
+        .bible-verse-item.highlight-kjv .bible-verse-num {
+            color: #0284c7 !important;
+            font-weight: 800 !important;
+        }
+        body.theme-dark .bible-verse-item.highlight-kjv {
+            background: rgba(2, 132, 199, 0.22) !important;
+            border-left: 3.5px solid #38bdf8 !important;
+            color: #e0f2fe !important;
+        }
+        body.theme-dark .bible-verse-item.highlight-kjv .bible-verse-num {
+            color: #38bdf8 !important;
+        }
+        body.theme-dark .bible-verse-item.highlight-kjv .kjv-verse-en {
+            color: #bae6fd !important;
+        }
+
         /* 🌟 [사용자 요청] 말씀 복사 모드에서 터치하여 선택된 구절: 짙은 회색 선택 상태 */
         .bible-verse-item.highlight-copy-selected {
             background: #475569 !important;
@@ -7572,6 +7597,7 @@
 <script src="bible_john.js"></script>
 <script src="bible_data.js"></script>
 <script src="bible_66_data.js"></script>
+<script src="kjv_66_data.js"></script>
 <script src="hymn_data.js?v=20261107_645"></script>
 <script>
     let isRegistered = false;
@@ -9210,6 +9236,99 @@
         }
     }
 
+    function parseVerseKey(verseKey) {
+        if (!verseKey) return null;
+        const parts = verseKey.split('_');
+        if (parts.length >= 3) {
+            return {
+                book: parts[0],
+                ch: parseInt(parts[1]),
+                verse: parseInt(parts[2])
+            };
+        }
+        return null;
+    }
+
+    function getKjvVerseText(bookName, chNum, verseNum) {
+        try {
+            if (window.KJV_66_DATA && window.KJV_66_DATA[bookName]) {
+                const chIdx = parseInt(chNum) - 1;
+                const vIdx = parseInt(verseNum) - 1;
+                const chVerses = window.KJV_66_DATA[bookName][chIdx];
+                if (chVerses) {
+                    if (vIdx < chVerses.length) {
+                        return chVerses[vIdx];
+                    } else if (chVerses.length > 0) {
+                        return chVerses[chVerses.length - 1];
+                    }
+                }
+            }
+        } catch(e) {}
+        return null;
+    }
+
+    function getKoreanVerseText(bookName, chNum, verseNum) {
+        try {
+            if (window.BIBLE_66_DATA && window.BIBLE_66_DATA[bookName]) {
+                const chIdx = parseInt(chNum) - 1;
+                const vIdx = parseInt(verseNum) - 1;
+                const chVerses = window.BIBLE_66_DATA[bookName][chIdx];
+                if (chVerses && chVerses[vIdx]) {
+                    return chVerses[vIdx];
+                }
+            }
+        } catch(e) {}
+        return null;
+    }
+
+    function applyKjvToVerseElement(el, verseKey) {
+        if (!el || !verseKey) return;
+        const p = parseVerseKey(verseKey);
+        if (!p) return;
+        const kjvText = getKjvVerseText(p.book, p.ch, p.verse);
+        if (!kjvText) return;
+
+        const bodyEl = el.querySelector(".bible-verse-body");
+        const kjvBadge = `<span class="kjv-verse-tag" style="background:#0284c7; color:#ffffff; font-size:11px; font-weight:800; padding:1px 6px; border-radius:4px; margin-right:6px; letter-spacing:0.5px; vertical-align:middle; display:inline-block;">KJV</span>`;
+        const kjvContent = `${kjvBadge}<span class="kjv-verse-en" style="font-family:'Segoe UI',Roboto,Helvetica,sans-serif; color:#0369a1; font-style:italic; font-weight:600; letter-spacing:-0.1px;">${kjvText}</span>`;
+
+        if (bodyEl) {
+            if (!el.dataset.koreanOriginal) {
+                el.dataset.koreanOriginal = bodyEl.innerHTML;
+            }
+            bodyEl.innerHTML = kjvContent;
+        } else {
+            if (!el.dataset.koreanOriginal) {
+                el.dataset.koreanOriginal = el.innerHTML;
+            }
+            el.innerHTML = `<span class="bible-verse-num" style="font-weight:700; margin-right:5px; color:#0284c7;">${p.verse}.</span>${kjvContent}`;
+        }
+    }
+
+    function restoreKoreanToVerseElement(el, verseKey) {
+        if (!el) return;
+        const bodyEl = el.querySelector(".bible-verse-body");
+        if (el.dataset.koreanOriginal) {
+            if (bodyEl) {
+                bodyEl.innerHTML = el.dataset.koreanOriginal;
+            } else {
+                el.innerHTML = el.dataset.koreanOriginal;
+            }
+        } else if (verseKey) {
+            const p = parseVerseKey(verseKey);
+            if (p) {
+                const krText = getKoreanVerseText(p.book, p.ch, p.verse);
+                if (krText) {
+                    if (bodyEl) {
+                        bodyEl.innerHTML = krText;
+                    } else {
+                        el.innerHTML = `<span class="bible-verse-num" style="font-weight:700; margin-right:5px;">${p.verse}.</span><span class="bible-verse-body">${krText}</span>`;
+                    }
+                }
+            }
+        }
+    }
+
     function toggleBibleVerseHighlight(el, verseKey) {
         if (!verseKey || !el) return;
         let highlights = {};
@@ -9218,8 +9337,8 @@
         } catch(e) { highlights = {}; }
 
         const currentVal = highlights[verseKey];
-        // 🌟 [사용자 요청] 분홍 -> 노랑 -> 파랑 -> 진한분홍 -> 회색 -> 없음 (단순 강조색 순환, 어떠한 복사/안내창 없음!)
-        el.classList.remove("highlight-pink", "highlight-yellow", "highlight-blue", "highlight-deeppink", "highlight-grey");
+        // 🌟 [사용자 요청] 분홍 -> 노랑 -> 파랑 -> 청록 -> 회색 -> KJV 영어 -> 없음 (단순 강조색 및 영어 전환!)
+        el.classList.remove("highlight-pink", "highlight-yellow", "highlight-blue", "highlight-deeppink", "highlight-grey", "highlight-kjv");
 
         if (!currentVal) {
             highlights[verseKey] = "pink";
@@ -9236,8 +9355,13 @@
         } else if (currentVal === "deeppink") {
             highlights[verseKey] = "grey";
             el.classList.add("highlight-grey");
+        } else if (currentVal === "grey") {
+            highlights[verseKey] = "kjv";
+            el.classList.add("highlight-kjv");
+            applyKjvToVerseElement(el, verseKey);
         } else {
             delete highlights[verseKey];
+            restoreKoreanToVerseElement(el, verseKey);
         }
 
         try {
@@ -9344,7 +9468,15 @@
                 else if (hlVal === "deeppink") hlClass = "highlight-deeppink";
                 else if (hlVal === "grey") hlClass = "highlight-grey";
                 else if (hlVal === "pink" || hlVal === true) hlClass = "highlight-pink";
-                html += `<div class="bible-verse-item ${hlClass}" data-verse-key="${verseKey}" onclick="handleBibleVerseClick(event, this, '${verseKey}')" ontouchstart="handleVersePressStart(event, this, '${verseKey}')" ontouchmove="handleVersePressMove(event)" ontouchend="handleVersePressEnd(event, this, '${verseKey}')" ontouchcancel="handleVersePressEnd(event, this, '${verseKey}')" onmousedown="handleVersePressStart(event, this, '${verseKey}')" onmouseup="handleVersePressEnd(event, this, '${verseKey}')" oncontextmenu="event.preventDefault(); return false;" title="터치: 형광펜 강조색 (분홍/노랑/파랑/청록(민트)/회색)"><span class="bible-verse-num">${verseNum}.</span><span class="bible-verse-body">${verseBody}</span></div>`;
+                else if (hlVal === "kjv") {
+                    hlClass = "highlight-kjv";
+                    const kjvText = getKjvVerseText(bookName, chNum, verseNum);
+                    if (kjvText) {
+                        const kjvBadge = `<span class="kjv-verse-tag" style="background:#0284c7; color:#ffffff; font-size:11px; font-weight:800; padding:1px 6px; border-radius:4px; margin-right:6px; letter-spacing:0.5px; vertical-align:middle; display:inline-block;">KJV</span>`;
+                        verseBody = `${kjvBadge}<span class="kjv-verse-en" style="font-family:'Segoe UI',Roboto,Helvetica,sans-serif; color:#0369a1; font-style:italic; font-weight:600; letter-spacing:-0.1px;">${kjvText}</span>`;
+                    }
+                }
+                html += `<div class="bible-verse-item ${hlClass}" data-verse-key="${verseKey}" onclick="handleBibleVerseClick(event, this, '${verseKey}')" ontouchstart="handleVersePressStart(event, this, '${verseKey}')" ontouchmove="handleVersePressMove(event)" ontouchend="handleVersePressEnd(event, this, '${verseKey}')" ontouchcancel="handleVersePressEnd(event, this, '${verseKey}')" onmousedown="handleVersePressStart(event, this, '${verseKey}')" onmouseup="handleVersePressEnd(event, this, '${verseKey}')" oncontextmenu="event.preventDefault(); return false;" title="터치: 형광펜(분홍/노랑/파랑/청록/회색) 및 KJV 영어 전환"><span class="bible-verse-num">${verseNum}.</span><span class="bible-verse-body">${verseBody}</span></div>`;
             } else {
                 const lineKey = `${bookName}_${chNum}_L${idx}`;
                 let lineBody = trimmed;
@@ -9364,7 +9496,8 @@
                 else if (hlLineVal === "deeppink") hlLineClass = "highlight-deeppink";
                 else if (hlLineVal === "grey") hlLineClass = "highlight-grey";
                 else if (hlLineVal === "pink" || hlLineVal === true) hlLineClass = "highlight-pink";
-                html += `<div class="bible-verse-item ${hlLineClass}" data-verse-key="${lineKey}" onclick="handleBibleVerseClick(event, this, '${lineKey}')" ontouchstart="handleVersePressStart(event, this, '${lineKey}')" ontouchmove="handleVersePressMove(event)" ontouchend="handleVersePressEnd(event, this, '${lineKey}')" ontouchcancel="handleVersePressEnd(event, this, '${lineKey}')" onmousedown="handleVersePressStart(event, this, '${lineKey}')" onmouseup="handleVersePressEnd(event, this, '${lineKey}')" oncontextmenu="event.preventDefault(); return false;" title="터치: 형광펜 강조색 (분홍/노랑/파랑/청록(민트)/회색)">${lineBody}</div>`;
+                else if (hlLineVal === "kjv") hlLineClass = "highlight-kjv";
+                html += `<div class="bible-verse-item ${hlLineClass}" data-verse-key="${lineKey}" onclick="handleBibleVerseClick(event, this, '${lineKey}')" ontouchstart="handleVersePressStart(event, this, '${lineKey}')" ontouchmove="handleVersePressMove(event)" ontouchend="handleVersePressEnd(event, this, '${lineKey}')" ontouchcancel="handleVersePressEnd(event, this, '${lineKey}')" onmousedown="handleVersePressStart(event, this, '${lineKey}')" onmouseup="handleVersePressEnd(event, this, '${lineKey}')" oncontextmenu="event.preventDefault(); return false;" title="터치: 형광펜(분홍/노랑/파랑/청록/회색) 및 KJV 영어 전환">${lineBody}</div>`;
             }
         });
         return html;
