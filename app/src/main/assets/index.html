@@ -5135,7 +5135,7 @@
             <div class="bible-simple-nav-bar">
                 <button type="button" class="btn-simple-arrow-nav btn-double-prev" onclick="navUserBibleChapter(-10)" title="10장 이전" style="font-weight:950; letter-spacing:-2px; padding:0 6px;">◀◀</button>
                 <button type="button" class="btn-simple-arrow-nav" onclick="navUserBibleChapter(-1)" title="1장 이전">◀</button>
-                <button type="button" class="btn-simple-chapter-center" id="btnAutoTimeSlot" onclick="jumpToCurrentTimeSlot()" title="현재 시간대 말씀으로 이동">
+                <button type="button" class="btn-simple-chapter-center" id="btnAutoTimeSlot" onclick="toggleBibleBooksFromCenterBtn()" title="성경 목록 열기 / 닫기 (토글)">
                     <span id="txtAutoTimeSlot">오전 창세기 1장</span>
                 </button>
                 <button type="button" class="btn-simple-arrow-nav" onclick="navUserBibleChapter(1)" title="1장 다음">▶</button>
@@ -5849,7 +5849,7 @@
     <div class="modal-overlay" id="goodnewsMeditationModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.75); z-index:99999; justify-content:center; align-items:stretch; padding:0; overflow:hidden;" onclick="closeGoodnewsMeditationModal()">
         <div class="goodnews-modal-card" style="background:#ffffff; width:100%; max-width:540px; height:100%; max-height:100%; margin:0 auto; overflow:hidden; display:flex; flex-direction:column; animation:fadeInUpModal 0.25s ease-out; box-shadow:0 25px 60px rgba(0,0,0,0.35); position:relative;" onclick="event.stopPropagation()">
             <!-- 1. 상단 고정 헤더 바 (뒤로가기 & 닫기) -->
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; background:#ffffff; border-bottom:1.5px solid #e2e8f0; flex-shrink:0; z-index:10;">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:max(calc(env(safe-area-inset-top, 0px) + 14px), 32px) 18px 12px 18px; background:#ffffff; border-bottom:1.5px solid #e2e8f0; flex-shrink:0; z-index:10;">
                 <button type="button" onclick="closeGoodnewsMeditationModal()" style="background:none; border:none; font-size:18px; font-weight:900; color:#475569; cursor:pointer; display:flex; align-items:center; gap:4px; padding:0;">
                     <span style="font-size:20px; line-height:1;">&larr;</span>
                     <span style="font-size:13.5px; font-weight:800;">뒤로</span>
@@ -9372,6 +9372,12 @@
 
     let isHomeBibleBooksFolded = true; // [사용자 요청] 기본적으로 시간대별 말씀에 집중하도록 접어둠
 
+    function isBibleBooksListOpen() {
+        const wrapper = document.getElementById("bibleBooksUnfoldedWrapper");
+        if (!wrapper) return false;
+        return (wrapper.style.display === "flex" || wrapper.style.display === "block") && !isHomeBibleBooksFolded;
+    }
+
     function foldHomeBibleBooks() {
         isHomeBibleBooksFolded = true;
         const wrapper = document.getElementById("bibleBooksUnfoldedWrapper");
@@ -9394,6 +9400,35 @@
         populateHomeBibleBookSelect();
         renderHomeBibleBookChips();
     }
+
+    // 🌟 [사용자 요청] 가운데 성경 버튼(예: 히브리서 3~4장) 클릭 시에도 성경 목록 열렸다 닫혔다 토글!
+    function toggleBibleBooksFromCenterBtn() {
+        if (currentHomeTestament === 'HYMN') {
+            displayHymn(305);
+            return;
+        }
+
+        const isOpen = isBibleBooksListOpen();
+        if (isOpen) {
+            foldHomeBibleBooks();
+        } else {
+            const meta = getBibleBookMeta(currentUserBibleBook);
+            const targetType = (meta && meta.type === 'OT') ? 'OT' : 'NT';
+            unfoldHomeBibleBooks(targetType);
+            renderHomeBibleBookChips();
+            setTimeout(() => {
+                const listEl = document.getElementById("userBibleBookChipsList");
+                if (listEl) {
+                    const activeChip = listEl.querySelector(".btn-user-book-chip.active");
+                    if (activeChip) {
+                        activeChip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    }
+                }
+            }, 50);
+        }
+    }
+    window.toggleBibleBooksFromCenterBtn = toggleBibleBooksFromCenterBtn;
+    window.jumpToCurrentTimeSlot = toggleBibleBooksFromCenterBtn;
 
                     // 🌟 [사용자 요청] 통독 버튼 단일화 및 실시간 UI 갱신 함수 (구약/신약 관계없이 단 1개만 일관되게 표시)
         // 🌟 [사용자 요청] 토스트 알림 함수 정의 (showBibleToast 미정의 오류 방지 및 안내 피드백)
@@ -9558,8 +9593,8 @@
         if (hymnBar) hymnBar.style.display = "none";
         if (tabHymn) tabHymn.classList.remove("active");
 
-        // 🌟 [사용자 요청] 구약이나 신약 버튼을 한번 더 누르면 리스트 닫기 (토글)
-        const isCurrentlyOpen = wrapper && wrapper.style.display !== "none" && !isHomeBibleBooksFolded;
+        // 🌟 [사용자 요청] 구약이나 신약 버튼을 한번 더 누르면 리스트 닫기 (완벽한 열렸다 닫혔다 토글)
+        const isCurrentlyOpen = isBibleBooksListOpen();
         const isSameTab = (currentHomeTestament === type);
 
         if (isCurrentlyOpen && isSameTab) {
