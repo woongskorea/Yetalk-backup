@@ -4656,6 +4656,26 @@
             display: none !important;
         }
 
+        
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .board-fullscreen-overlay,
+            .board-post-detail-modal,
+            .cafe-write-modal {
+                max-width: 720px !important;
+                width: 92% !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+                border-radius: 16px !important;
+                box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18) !important;
+            }
+            .bottom-admob-100-portal,
+            [class*="admob"],
+            [id*="admob"] {
+                display: none !important;
+            }
+        }
+
         @media (min-width: 1024px) {
             body {
                 background: #f1f5f9 !important;
@@ -4860,14 +4880,51 @@
                 box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
             }
 
-            /* 🌟 [사용자 요청] PC 환경에서도 하단 고정 애드몹 안정적 노출 유지 */
-            .bottom-admob-100-portal {
-                max-width: 860px !important;
-                display: flex !important;
-                flex-shrink: 0 !important;
+            /* 🌟 [사용자 요청] PC/컴퓨터 환경에서는 애드몹 배너 완전 숨김 (모바일 앱 전용) */
+            .bottom-admob-100-portal,
+            .admob-pill-portal,
+            .suite-video-bottom-admob,
+            .bible-section-bottom-admob,
+            .goodnews-fixed-admob-footer,
+            .board-fullscreen-bottom-admob,
+            .post-detail-bottom-admob,
+            .heaven-admob-100-wrap,
+            [class*="admob"],
+            [id*="admob"],
+            .admob-pill,
+            .admob-pill-250 {
+                display: none !important;
+                height: 0 !important;
+                min-height: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border: none !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
             }
-            .admob-pill-portal {
-                display: flex !important;
+
+            /* 🌟 [사용자 요청] PC 화면에서 커뮤니티(게시판), 상세글 읽기, 글쓰기 창을 메인 카드 폭(860px)에 맞춰 시원하고 크게 확장 */
+            .board-fullscreen-overlay,
+            .board-post-detail-modal,
+            .cafe-write-modal {
+                max-width: 860px !important;
+                width: 860px !important;
+                left: 50% !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+                height: calc(100vh - 20px) !important;
+                top: 10px !important;
+                bottom: 10px !important;
+                border-radius: 18px !important;
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: 0 20px 60px rgba(15, 23, 42, 0.25) !important;
+            }
+            .btn-medigate-fab-write {
+                right: 32px !important;
+                bottom: 28px !important;
+                width: 54px !important;
+                height: 54px !important;
+                font-size: 28px !important;
             }
         }
 
@@ -12548,6 +12605,10 @@
 
         if (panelNotice.style.display === "none" || !panelNotice.style.display) {
             renderUnifiedNotices();
+        if (window.innerWidth >= 768) {
+            const portalAd = document.querySelector('.bottom-admob-100-portal');
+            if (portalAd) portalAd.style.setProperty('display', 'none', 'important');
+        }
             panelNotice.style.display = "flex";
             panelBoard.style.display = "none";
             if (btnNotice) btnNotice.classList.add("active");
@@ -12657,7 +12718,11 @@
         const admob = document.querySelector(".bottom-admob-100-portal");
         if (admob) {
             admob.style.removeProperty("display");
-            admob.style.setProperty("display", "flex", "important");
+            if (window.innerWidth < 768) {
+                admob.style.setProperty("display", "flex", "important");
+            } else {
+                admob.style.setProperty("display", "none", "important");
+            }
         }
     }
 
@@ -13769,6 +13834,10 @@
             openedNoticeIds.add(id);
         }
         renderUnifiedNotices();
+        if (window.innerWidth >= 768) {
+            const portalAd = document.querySelector('.bottom-admob-100-portal');
+            if (portalAd) portalAd.style.setProperty('display', 'none', 'important');
+        }
     }
 
     let selectedNoticeWriteTag = { type: 'church', text: '교회' };
@@ -13857,6 +13926,10 @@
 
         openedNoticeIds.add(newNotice.id);
         renderUnifiedNotices();
+        if (window.innerWidth >= 768) {
+            const portalAd = document.querySelector('.bottom-admob-100-portal');
+            if (portalAd) portalAd.style.setProperty('display', 'none', 'important');
+        }
 
         alert("📢 새로운 공지알림이 성공적으로 등록되었습니다!\n전체 회원에게 실시간으로 노출됩니다.");
     }
@@ -13869,6 +13942,10 @@
             localStorage.setItem("yetalk_my_personal_notices", JSON.stringify(userNotices));
             openedNoticeIds.delete(noticeId);
             renderUnifiedNotices();
+        if (window.innerWidth >= 768) {
+            const portalAd = document.querySelector('.bottom-admob-100-portal');
+            if (portalAd) portalAd.style.setProperty('display', 'none', 'important');
+        }
             alert("공지알림이 삭제되었습니다.");
         } catch(e) {
             console.error(e);
@@ -13946,12 +14023,9 @@
 
         const headerTitle = churchName ? `🔔 [${churchName}] 공지알림` : `🔔 출석교회 공지알림`;
         const headerHtml = `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 4px 10px 4px; border-bottom:1.5px solid #e2e8f0; margin-bottom:8px;">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:14.5px; font-weight:950; color:#0f172a;">${headerTitle}</span>
-                    <span style="background:#059669; color:#fff; font-size:11px; font-weight:900; padding:1px 7px; border-radius:10px;">${notices.length}</span>
-                </div>
-                <span style="font-size:11.5px; color:#64748b; font-weight:800;">터치 시 교회 공지글로 직행 ➔</span>
+            <div style="display:flex; align-items:center; gap:6px; padding:6px 4px 10px 4px; border-bottom:1.5px solid #e2e8f0; margin-bottom:8px;">
+                <span style="font-size:14.5px; font-weight:950; color:#0f172a; white-space:nowrap;">${headerTitle}</span>
+                <span style="background:#059669; color:#fff; font-size:11px; font-weight:900; padding:1px 7px; border-radius:10px;">${notices.length}</span>
             </div>
         `;
 
@@ -14423,7 +14497,11 @@
         const admob = document.querySelector(".bottom-admob-100-portal");
         if (admob) {
             admob.style.removeProperty("display");
-            admob.style.setProperty("display", "flex", "important");
+            if (window.innerWidth < 768) {
+                admob.style.setProperty("display", "flex", "important");
+            } else {
+                admob.style.setProperty("display", "none", "important");
+            }
         }
         const container = document.getElementById("suiteScrollContainer");
         if (container) container.scrollTop = 0;
@@ -14671,6 +14749,10 @@
 
         // 🌟 [사용자 요청] 최근 1주일간 온 공지알림 & 자유게시판 통 렌더링
         renderUnifiedNotices();
+        if (window.innerWidth >= 768) {
+            const portalAd = document.querySelector('.bottom-admob-100-portal');
+            if (portalAd) portalAd.style.setProperty('display', 'none', 'important');
+        }
         renderFullscreenBoard();
 
         // 🌟 [사용자 요청] 1주일간 매일 오전 5시 이후 첫 접속 시 플레이스토어 업데이트 & 소감(리뷰) 안내 팝업 (우선 노출)
