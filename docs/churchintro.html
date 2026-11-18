@@ -981,14 +981,14 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
         ],
         elders: [
             {
-                name: "최베드로 장로",
-                role: "시무장로",
-                greeting: "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다."
-            },
-            {
                 name: "곽성은 장로",
                 role: "시무장로",
                 greeting: "기도와 말씀으로 교회를 든든히 세워가겠습니다."
+            },
+            {
+                name: "최베드로 장로",
+                role: "시무장로",
+                greeting: "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다."
             },
             {
                 name: "김선경 장로",
@@ -1106,8 +1106,8 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
             // 3. 부산제일감리교회 기본 시무장로 5인 보장 (최베드로, 곽성은, 김선경, 김이삭, 남영준)
             if (churchName.includes("부산제일") || churchName.includes("감리교회")) {
                 const busanElders = [
-                    { name: "최베드로 장로", role: "시무장로", greeting: "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다." },
                     { name: "곽성은 장로", role: "시무장로", greeting: "기도와 말씀으로 교회를 든든히 세워가겠습니다." },
+                    { name: "최베드로 장로", role: "시무장로", greeting: "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다." },
                     { name: "김선경 장로", role: "시무장로", greeting: "성도님들을 사랑과 온유함으로 섬기겠습니다." },
                     { name: "김이삭 장로", role: "시무장로", greeting: "다음 세대를 품고 주님의 사랑을 전하겠습니다." },
                     { name: "남영준 장로", role: "시무장로", greeting: "겸손과 헌신으로 복음의 통로가 되겠습니다." }
@@ -1119,6 +1119,14 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
                         churchSections.elders.push(be);
                     }
                 });
+
+                // 🌟 [사용자 요청] 곽성은 장로님이 수석장로이므로 최상단(1순위)으로 고정 배치
+                const kwakIdx = churchSections.elders.findIndex(el => (el.name || "").replace(/\s+/g, '').includes("곽성은"));
+                if (kwakIdx > 0) {
+                    const kwakObj = churchSections.elders.splice(kwakIdx, 1)[0];
+                    churchSections.elders.unshift(kwakObj);
+                    modified = true;
+                }
             }
 
             const myName = (localStorage.getItem("yetalk_user_name") || "").trim();
@@ -2402,22 +2410,44 @@ function renderFormattedBody(rawText, isHistory) {
     function closeModal(id) { document.getElementById(id)?.classList.remove("show"); }
 
     // 🌟 [사용자 요청] 장로 순서 이동 (수석 장로 ⬆️ / 신참 장로 ⬇️)
-    function moveElderDirect(idx, dir, event) {
+    function moveElderInGroup(globalIdx, dir, event) {
         if (event) {
             event.stopPropagation();
             event.preventDefault();
         }
         if (!Array.isArray(churchSections.elders)) return;
-        const targetIdx = idx + dir;
-        if (targetIdx < 0 || targetIdx >= churchSections.elders.length) return;
-        const temp = churchSections.elders[idx];
-        churchSections.elders[idx] = churchSections.elders[targetIdx];
-        churchSections.elders[targetIdx] = temp;
+        const currentElder = churchSections.elders[globalIdx];
+        if (!currentElder) return;
+
+        const isRetired = (currentElder.role && currentElder.role.includes("은퇴"));
+        const sameGroupIndices = [];
+        churchSections.elders.forEach((el, idx) => {
+            const elRetired = (el.role && el.role.includes("은퇴"));
+            if (elRetired === isRetired) {
+                sameGroupIndices.push(idx);
+            }
+        });
+
+        const posInGroup = sameGroupIndices.indexOf(globalIdx);
+        if (posInGroup < 0) return;
+        const targetPosInGroup = posInGroup + dir;
+        if (targetPosInGroup < 0 || targetPosInGroup >= sameGroupIndices.length) {
+            showToast(dir < 0 ? "맨 위(수석 장로) 순서입니다." : "맨 아래 순서입니다.");
+            return;
+        }
+
+        const targetGlobalIdx = sameGroupIndices[targetPosInGroup];
+        const temp = churchSections.elders[globalIdx];
+        churchSections.elders[globalIdx] = churchSections.elders[targetGlobalIdx];
+        churchSections.elders[targetGlobalIdx] = temp;
+
         localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
         renderViewport();
         scrollToTabKey("elders");
         showToast(`🔄 [${temp.name}] 순서가 변경되었습니다.`);
     }
+    window.moveElderInGroup = moveElderInGroup;
+    window.moveElderDirect = moveElderInGroup;
 
     function moveActiveElderDirect(dir) {
         if (activeElderIdx < 0 || !Array.isArray(churchSections.elders)) return;
