@@ -15991,6 +15991,9 @@
         if (typeof window.syncMemberToCloud === "function") {
             window.syncMemberToCloud(churchKey, { nameOrId: targetRoleMemberName, role: newRole });
         }
+        try {
+            syncMemberToChurchIntroData(churchName, pastorName, targetRoleMemberName, newRole);
+        } catch(e) {}
 
         closeEditChristianRoleModal();
         showBibleToast(`✅ [${targetRoleMemberName}] 님의 직분이 [${newRole}]로 변경되었습니다.`);
@@ -17223,6 +17226,13 @@ https://woongskorea.github.io/Yetalk-backup/`;
                             if (!churchMap[churchKey].members.some(m => m.nameOrId === cm.nameOrId)) {
                                 churchMap[churchKey].members.push(cm);
                             }
+                            try {
+                                const cmRole = cm.role || "";
+                                const cmName = cm.nameOrId || cm.name || "";
+                                if (cmRole && cmName) {
+                                    syncMemberToChurchIntroData(churchName, pastorName, cmName, cmRole);
+                                }
+                            } catch(e) {}
                         });
                         localStorage.setItem("yetalk_registered_churches", JSON.stringify(churchMap));
                         if (typeof window._renderChristianFriendsModalContent === "function") {

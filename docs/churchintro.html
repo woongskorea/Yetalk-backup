@@ -514,6 +514,9 @@
         body[data-theme="white"] .elder-divider {
             color: #94a3b8 !important;
         }
+        body[data-theme="white"] .group-title-text {
+            color: #0f172a !important;
+        }
 
         /* 교회역사 타임라인 - 🌟 [사용자 요청] 마지막 1998년 및 하단 내용 팅김 방지 최적화 */
         .clean-timeline-box {
@@ -981,6 +984,26 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
                 name: "최베드로 장로",
                 role: "시무장로",
                 greeting: "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다."
+            },
+            {
+                name: "곽성은 장로",
+                role: "시무장로",
+                greeting: "기도와 말씀으로 교회를 든든히 세워가겠습니다."
+            },
+            {
+                name: "김선경 장로",
+                role: "시무장로",
+                greeting: "성도님들을 사랑과 온유함으로 섬기겠습니다."
+            },
+            {
+                name: "김이삭 장로",
+                role: "시무장로",
+                greeting: "다음 세대를 품고 주님의 사랑을 전하겠습니다."
+            },
+            {
+                name: "남영준 장로",
+                role: "시무장로",
+                greeting: "겸손과 헌신으로 복음의 통로가 되겠습니다."
             }
         ],
         vision: {
@@ -1043,27 +1066,59 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
     // 🌟 [사용자 요청] 회원 가입 시 교회 이름과 담임목사가 같으면 자동으로 부목사, 전도사, 간사, 선교사, 교회사무, 장로 이름 동기화
     function syncChurchMembersFromRegistered() {
         try {
-            const churchName = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "").trim();
+            const churchName = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회").trim();
             const pastorName = (localStorage.getItem("yetalk_pastor_name") || "").trim();
-            if (!churchName) return;
 
-            let churchKey = (churchName + "_" + pastorName).replace(/\s+/g, '').toLowerCase();
+            let matchedMembers = [];
+
+            // 1. yetalk_custom_friends (교우명단) 에서 불러오기
+            try {
+                const customFriends = JSON.parse(localStorage.getItem("yetalk_custom_friends") || "[]");
+                if (Array.isArray(customFriends)) {
+                    customFriends.forEach(cf => {
+                        if (cf && cf.nameOrId && !matchedMembers.some(m => (m.nameOrId || m.name) === cf.nameOrId)) {
+                            matchedMembers.push(cf);
+                        }
+                    });
+                }
+            } catch(e) {}
+
+            // 2. yetalk_registered_churches (등록 교회 전체 맵) 확인
             let churchMap = {};
             try {
                 churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
             } catch(e) { churchMap = {}; }
 
-            let matchedMembers = [];
-            if (churchMap[churchKey] && Array.isArray(churchMap[churchKey].members)) {
-                matchedMembers = churchMap[churchKey].members;
-            } else {
-                const cleanC = churchName.replace(/\s+/g, '').toLowerCase();
-                for (const k in churchMap) {
-                    if (k.includes(cleanC) && Array.isArray(churchMap[k].members)) {
-                        matchedMembers = churchMap[k].members;
-                        break;
+            const cleanC = churchName.replace(/\s+/g, '').toLowerCase();
+            for (const k in churchMap) {
+                if (k.includes(cleanC) || !cleanC || cleanC.includes("부산제일")) {
+                    const cObj = churchMap[k];
+                    if (cObj && Array.isArray(cObj.members)) {
+                        cObj.members.forEach(cm => {
+                            if (cm && cm.nameOrId && !matchedMembers.some(m => (m.nameOrId || m.name) === cm.nameOrId)) {
+                                matchedMembers.push(cm);
+                            }
+                        });
                     }
                 }
+            }
+
+            // 3. 부산제일감리교회 기본 시무장로 5인 보장 (최베드로, 곽성은, 김선경, 김이삭, 남영준)
+            if (churchName.includes("부산제일") || churchName.includes("감리교회")) {
+                const busanElders = [
+                    { name: "최베드로 장로", role: "시무장로", greeting: "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다." },
+                    { name: "곽성은 장로", role: "시무장로", greeting: "기도와 말씀으로 교회를 든든히 세워가겠습니다." },
+                    { name: "김선경 장로", role: "시무장로", greeting: "성도님들을 사랑과 온유함으로 섬기겠습니다." },
+                    { name: "김이삭 장로", role: "시무장로", greeting: "다음 세대를 품고 주님의 사랑을 전하겠습니다." },
+                    { name: "남영준 장로", role: "시무장로", greeting: "겸손과 헌신으로 복음의 통로가 되겠습니다." }
+                ];
+                if (!Array.isArray(churchSections.elders)) churchSections.elders = [];
+                busanElders.forEach(be => {
+                    const cleanBe = be.name.replace(/\s+/g, '').replace(/장로/g, '');
+                    if (!churchSections.elders.some(el => (el.name || "").replace(/\s+/g, '').includes(cleanBe))) {
+                        churchSections.elders.push(be);
+                    }
+                });
             }
 
             const myName = (localStorage.getItem("yetalk_user_name") || "").trim();
@@ -1415,13 +1470,16 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
                 function renderElderGroupHtml(groupList, groupTitle, groupBadge, emptyText) {
                     if (groupList.length === 0) {
                         return `
-                            <div style="margin-bottom:18px;">
-                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-                                    <span class="badge-pill" style="margin-bottom:0;">${groupBadge}</span>
-                                    <strong style="font-size:14px; color:#f8fafc; font-weight:800;">${groupTitle}</strong>
+                            <div style="margin-bottom:20px;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                                    <div style="display:flex; align-items:center; gap:6px;">
+                                        <span class="badge-pill" style="margin-bottom:0;">${groupBadge}</span>
+                                        <strong class="group-title-text" style="font-size:14.5px; font-weight:850;">${groupTitle}</strong>
+                                        <span style="font-size:12px; color:#0284c7; font-weight:800;">(0명)</span>
+                                    </div>
                                 </div>
-                                <div style="text-align:center; padding:20px 14px; color:#94a3b8; font-size:12.5px; font-weight:700; background:rgba(15,23,42,0.4); border-radius:12px; border:1px dashed #334155;">
-                                    ${emptyText}
+                                <div class="elder-row-item" style="justify-content:center; padding:14px 16px; cursor:default; border-style:dashed;">
+                                    <span style="font-size:13px; font-weight:800; color:#64748b;">${emptyText}</span>
                                 </div>
                             </div>
                         `;
@@ -1455,7 +1513,7 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
                             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
                                 <div style="display:flex; align-items:center; gap:6px;">
                                     <span class="badge-pill" style="margin-bottom:0;">${groupBadge}</span>
-                                    <strong style="font-size:14.5px; color:#f8fafc; font-weight:850;">${groupTitle}</strong>
+                                    <strong class="group-title-text" style="font-size:14.5px; font-weight:850;">${groupTitle}</strong>
                                     <span style="font-size:12px; color:#38bdf8; font-weight:800;">(${groupList.length}명)</span>
                                 </div>
                             </div>
