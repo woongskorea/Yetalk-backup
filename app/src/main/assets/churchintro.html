@@ -922,7 +922,7 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
             role: "담임목회 및 강단 말씀",
             bgImg: "images/church_hero_heaven.jpg",
             img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&auto=format&fit=crop&q=80",
-            body: "“오직 성경, 오직 기도, 영혼 구원과 섬김에 헌신합니다.”\n\n할렐루야! 예톡행복한교회 담임목사 정찬석입니다.\n성도님들의 삶의 자리에 주님의 은혜와 평강이 넘쳐나도록 사랑과 기도로 늘 함께 동행하겠습니다."
+            body: "“오직 성경, 오직 기도, 영혼 구원과 섬김에 헌신합니다.”\n\n할렐루야! 부산제일감리교회 담임목사 정찬석입니다.\n성도님들의 삶의 자리에 주님의 은혜와 평강이 넘쳐나도록 사랑과 기도로 늘 함께 동행하겠습니다."
         },
         assistant_pastors: [
             {
@@ -1785,6 +1785,10 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
     
     function renderPastorHeroBody(text) {
         if (!text) return '';
+        const currentChurch = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalkMyChurchName') || '부산제일감리교회').trim();
+        if (currentChurch) {
+            text = text.replace(/예톡행복한교회/g, currentChurch);
+        }
         return text.split('\n')
             .map(l => l.trim())
             .filter(l => l)
@@ -2102,7 +2106,12 @@ function renderFormattedBody(rawText, isHistory) {
             document.getElementById("inpServantName").value = item.name || item.title || "";
         }
         document.getElementById("inpServantRole").value = item.role || "";
-        document.getElementById("inpServantDesc").value = item.body || item.desc || "";
+        let leaderDesc = item.body || item.desc || "";
+        if (type === 'pastor') {
+            const curChurch = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalkMyChurchName') || '부산제일감리교회').trim();
+            if (curChurch) leaderDesc = leaderDesc.replace(/예톡행복한교회/g, curChurch);
+        }
+        document.getElementById("inpServantDesc").value = leaderDesc;
         document.getElementById("inpServantImg").value = item.img || "";
 
         const thumb = document.getElementById("prevServantImgThumb");
@@ -2597,10 +2606,14 @@ function renderFormattedBody(rawText, isHistory) {
         const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
         document.body.setAttribute('data-theme', savedTheme);
 
-        let churchName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
-        if (!churchName || churchName.includes("움직이는") || churchName.includes("김예톡") || churchName.includes("최예톡")) {
-            churchName = "예톡행복한교회";
-            localStorage.setItem("yetalkChurchName", "예톡행복한교회");
+        let churchName = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalkMyChurchName') || '부산제일감리교회').trim();
+        if (!churchName || churchName.includes('움직이는') || churchName.includes('김예톡') || churchName.includes('최예톡') || churchName === '우리교회') {
+            churchName = '부산제일감리교회';
+        }
+        localStorage.setItem('yetalkChurchName', churchName);
+        localStorage.setItem('yetalk_church_name', churchName);
+        if (churchSections.pastor && churchSections.pastor.body) {
+            churchSections.pastor.body = churchSections.pastor.body.replace(/예톡행복한교회/g, churchName);
         }
         const titleEl = document.getElementById("introHeaderTitle");
         if (titleEl) titleEl.innerText = churchName;

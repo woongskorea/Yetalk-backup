@@ -443,7 +443,7 @@
         .board-fullscreen-header {
             background: #ffffff;
             border-bottom: 1.5px solid #e2e8f0;
-            padding: calc(var(--safe-top) + 10px) 14px 12px 14px;
+            padding: max(calc(env(safe-area-inset-top, 0px) + 8px), 16px) 14px 10px 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -759,7 +759,7 @@
         .cafe-write-header {
             background: #ffffff;
             border-bottom: 1.5px solid #e2e8f0;
-            padding: calc(var(--safe-top) + 10px) 14px 12px 14px;
+            padding: max(calc(env(safe-area-inset-top, 0px) + 8px), 16px) 14px 10px 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -922,7 +922,7 @@
         .post-detail-header {
             background: #ffffff;
             border-bottom: 1.5px solid #e2e8f0;
-            padding: calc(var(--safe-top) + 10px) 14px 12px 14px;
+            padding: max(calc(env(safe-area-inset-top, 0px) + 8px), 16px) 14px 10px 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -5418,6 +5418,11 @@
                     <span>🔑</span> <span>비밀번호 변경 <small style="font-size:11px; color:#64748b; font-weight:700;">(기본: 7777)</small></span>
                 </a>
 
+                <!-- 2-1. 🌟 [사용자 요청] 로그아웃 (PC 및 스마트폰 로그인 해제 및 안전 로그아웃) -->
+                <a href="javascript:void(0)" class="drawer-item" onclick="handleUserLogout();" style="color:#dc2626; font-weight:900; padding:8px 12px;">
+                    <span>🚪</span> <span>로그아웃 <small style="font-size:11px; color:#ef4444; font-weight:700;">(계정 해제)</small></span>
+                </a>
+
                 <!-- 3. 🌟 [사용자 요청] 예톡 간단 이용안내 -->
                 <a href="javascript:void(0)" class="drawer-item" onclick="openYetalkGuideModal(); closeDrawer();" style="color:#16a34a; font-weight:900; padding:8px 12px;">
                     <span>💡</span> <span>예톡 간단 이용안내</span>
@@ -6185,7 +6190,7 @@
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <button type="button" onclick="changeMealParticipantCount(-1)" style="width:36px; height:36px; border-radius:10px; background:#ffffff; border:1.5px solid #cbd5e1; font-size:18px; font-weight:950; color:#1e293b; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.08); touch-action:manipulation;">−</button>
-                        <span id="mealParticipantCountLabel" style="font-size:18px; font-weight:950; color:#b45309; min-width:44px; text-align:center;">4명</span>
+                        <span id="mealParticipantCountLabel" style="font-size:18px; font-weight:950; color:#b45309; min-width:44px; text-align:center;">3명</span>
                         <button type="button" onclick="changeMealParticipantCount(1)" style="width:36px; height:36px; border-radius:10px; background:#ffffff; border:1.5px solid #cbd5e1; font-size:18px; font-weight:950; color:#1e293b; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.08); touch-action:manipulation;">＋</button>
                     </div>
                 </div>
@@ -14332,6 +14337,41 @@
         closeChangePasswordModal();
     }
 
+    
+    // 🌟 [사용자 요청] PC/컴퓨터 및 스마트폰 안전 로그아웃 및 계정 연결 해제
+    function handleUserLogout() {
+        const uName = (localStorage.getItem('yetalk_user_name') || localStorage.getItem('yetalkUserName') || '성도').trim();
+        if (!confirm(`[${uName}] 님, 정말 로그아웃 하시겠습니까?\n\n로그아웃하시면 현재 기기에서의 자동 로그인이 안전하게 해제되며, 언제든 다시 로그인하실 수 있습니다.`)) {
+            return;
+        }
+
+        try {
+            localStorage.removeItem('yetalk_logged_in');
+            localStorage.removeItem('yetalk_is_registered');
+            localStorage.removeItem('yetalk_user_id');
+            localStorage.removeItem('yetalkUserId');
+            localStorage.removeItem('yetalk_user_name');
+            localStorage.removeItem('yetalkUserName');
+            localStorage.removeItem('yetalk_user_phone');
+            localStorage.removeItem('yetalkUserPhone');
+            localStorage.removeItem('yetalkUserPw');
+            localStorage.removeItem('yetalk_user_pw');
+            localStorage.removeItem('yetalk_church_role');
+            localStorage.removeItem('yetalkChurchRole');
+            localStorage.removeItem('yetalk_user_role');
+            localStorage.removeItem('yetalk_admin_auth');
+            localStorage.removeItem('yetalk_is_admin');
+            localStorage.removeItem('yetalk_is_church_owner');
+            localStorage.removeItem('yetalk_church_admin_auth');
+            sessionStorage.clear();
+        } catch(e) {}
+
+        closeDrawer();
+        alert('🚪 안전하게 로그아웃 되었습니다.\n다시 이용하시려면 언제든 로그인해 주세요.');
+        location.reload();
+    }
+    window.handleUserLogout = handleUserLogout;
+
     window.openChangePasswordModal = openChangePasswordModal;
     window.closeChangePasswordModal = closeChangePasswordModal;
     window.submitChangePassword = submitChangePassword;
@@ -14614,11 +14654,15 @@
             });
         }
 
-        if (localStorage.getItem("yetalk_is_registered") === "true") {
+        const savedAutoName = (localStorage.getItem('yetalk_user_name') || localStorage.getItem('yetalkUserName') || '').trim();
+        const savedAutoId = (localStorage.getItem('yetalk_user_id') || localStorage.getItem('yetalkUserId') || '').trim();
+        if (localStorage.getItem('yetalk_is_registered') === 'true' || (savedAutoName && savedAutoName !== '성도') || savedAutoId) {
             isRegistered = true;
-            isChristianUser = localStorage.getItem("yetalk_is_christian") !== "false";
-            const authBtn = document.getElementById("authBtnLabel");
-            if (authBtn) authBtn.innerText = "내정보";
+            isChristianUser = localStorage.getItem('yetalk_is_christian') !== 'false';
+            localStorage.setItem('yetalk_is_registered', 'true');
+            localStorage.setItem('yetalk_logged_in', 'true');
+            const authBtn = document.getElementById('authBtnLabel');
+            if (authBtn) authBtn.innerText = '내정보';
         }
 
         // 🌟 [사용자 요청] 과거 시편 23편 등 수동 입력 캐시 완전 제거 & 전자동 성경 통독 초기화
@@ -16656,7 +16700,7 @@ https://woongskorea.github.io/Yetalk-backup/`;
         }
     }
 
-    let mealParticipantCount = 4; // 기본 4명 (사용자가 언제든 줄이거나 늘릴 수 있음)
+    let mealParticipantCount = 3; // 기본 3명 (사용자가 언제든 줄이거나 늘릴 수 있음)
     let isMealLotteryRunning = false;
 
     function changeMealParticipantCount(delta) {
@@ -16674,7 +16718,7 @@ https://woongskorea.github.io/Yetalk-backup/`;
         let html = '';
         for (let i = 1; i <= mealParticipantCount; i++) {
             html += `
-                <div class="meal-lottery-card" id="mealCard_${i}" onclick="runMealPrayerLottery(${i})" style="flex:1 1 calc(25% - 8px); min-width:64px; max-width:88px; background:#f8fafc; border:2px solid #cbd5e1; border-radius:12px; padding:12px 4px; text-align:center; cursor:pointer; transition:all 0.2s ease; box-sizing:border-box; touch-action:manipulation;">
+                <div class="meal-lottery-card" id="mealCard_${i}" onclick="runMealPrayerLottery(${i})" style="flex:1 1 calc(33.333% - 8px); min-width:64px; max-width:110px; background:#f8fafc; border:2px solid #cbd5e1; border-radius:12px; padding:12px 4px; text-align:center; cursor:pointer; transition:all 0.2s ease; box-sizing:border-box; touch-action:manipulation;">
                     <div style="font-size:20px; font-weight:950; color:#1e293b;" id="mealNum_${i}">${i}번</div>
                     <div style="font-size:11px; color:#64748b; font-weight:800; margin-top:4px;" id="mealStatus_${i}">선택</div>
                 </div>
@@ -17024,7 +17068,7 @@ https://woongskorea.github.io/Yetalk-backup/`;
         if (isMealLotteryRunning) return;
         isMealLotteryRunning = true;
 
-        const total = mealParticipantCount || 4;
+        const total = mealParticipantCount || 3;
         // 1번부터 total번 중 1명 공정하게 랜덤 추첨
         const winner = Math.floor(Math.random() * total) + 1;
 
