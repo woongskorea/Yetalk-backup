@@ -1297,6 +1297,15 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
         if (!churchSections.vision) churchSections.vision = JSON.parse(JSON.stringify(DEFAULT_DATA.vision));
         if (!churchSections.ministry) churchSections.ministry = JSON.parse(JSON.stringify(DEFAULT_DATA.ministry));
         if (!churchSections.history) churchSections.history = JSON.parse(JSON.stringify(DEFAULT_DATA.history));
+        if (churchSections.history && churchSections.history.body) {
+            churchSections.history.body = churchSections.history.body
+                .split('\n')
+                .filter(l => {
+                    const t = l.trim();
+                    return t !== '.' && t !== '·' && t !== '..' && t !== '...';
+                })
+                .join('\n');
+        }
 
         // 🌟 [사용자 요청] 등록된 교우 자동 동기화 적용
         // 🌟 [사용자 요청] 기존 사용자 기기에 저장되어 있던 긴 글(스크롤 생기던 장문)을 컴팩트한 2~3줄 한 페이지 텍스트로 자동 슬림화
@@ -1758,6 +1767,8 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
                 `;
                 if (h.img) html += `<div class="attached-photo-wrap"><img src="${h.img}" alt="${h.title}"></div>`;
                 html += bodyHtml;
+                // 🌟 [사용자 요청] 마지막 1998년 및 연혁이 하단 애드몹 배너에 가려지거나 답답하지 않도록 70px 넉넉한 완충 여백 추가
+                html += `<div style="height:70px; flex-shrink:0;"></div>`;
                 appendSnapSection("sec_history", tabIdx, html);
             }
         });
@@ -1783,13 +1794,22 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
 function renderFormattedBody(rawText, isHistory) {
         if (!rawText) return "";
         const lines = rawText.split("\n");
-        let formatted = "";
+        let topFormatted = "";
+        let bottomFormatted = "";
         let timelineRows = "";
         let hasTimeline = false;
 
         lines.forEach(line => {
             const tr = line.trim();
             if (!tr) return;
+
+            // 🌟 [사용자 요청] 여백용으로 입력된 점(.)이나 중간점(·) 줄은 literal 점을 출력하지 않고 투명 여백으로 처리
+            if (tr === "." || tr === "·" || tr === ".." || tr === "...") {
+                if (isHistory && hasTimeline) {
+                    bottomFormatted += `<div style="height:16px;"></div>`;
+                }
+                return;
+            }
 
             const timelineMatch = tr.match(/^(?:[•\-\*]\s*)?((?:19|20)\d{2}년?)\s*[:：\-]\s*(.+)$/);
             if (isHistory && timelineMatch) {
@@ -1801,16 +1821,28 @@ function renderFormattedBody(rawText, isHistory) {
                     </div>
                 `;
             } else if (tr.startsWith("•") || tr.startsWith("-") || tr.startsWith("*")) {
-                formatted += `<div class="bullet-point-line">${tr.replace(/^[•\-\*]\s*/, '')}</div>`;
+                const bHtml = `<div class="bullet-point-line">${tr.replace(/^[•\-\*]\s*/, '')}</div>`;
+                if (isHistory && hasTimeline) {
+                    bottomFormatted += bHtml;
+                } else {
+                    topFormatted += bHtml;
+                }
             } else {
-                formatted += `<p class="article-text-body" style="margin-bottom:8px;">${tr}</p>`;
+                const pHtml = `<p class="article-text-body" style="margin-bottom:8px;">${tr}</p>`;
+                if (isHistory && hasTimeline) {
+                    bottomFormatted += pHtml;
+                } else {
+                    topFormatted += pHtml;
+                }
             }
         });
 
+        let result = topFormatted;
         if (isHistory && hasTimeline) {
-            formatted += `<div class="clean-timeline-box" style="margin-top:10px;">${timelineRows}</div>`;
+            result += `<div class="clean-timeline-box" style="margin-top:10px; margin-bottom:12px;">${timelineRows}</div>`;
         }
-        return formatted;
+        result += bottomFormatted;
+        return result;
     }
 
     // 🌟 화면 중앙과 가장 가까운 카드를 정밀 감지하여 8대 가로 칩 메뉴와 1:1 오차 없이 동기화!
