@@ -1606,7 +1606,7 @@
             z-index: 20000; align-items: center; justify-content: center; padding: 14px;
             backdrop-filter: blur(6px);
         }
-        .modal-overlay.show { display: flex; }
+        .modal-overlay.show { display: flex !important; }
         .modal-card {
             width: 100%; max-width: 440px; background: #0f172a; border: 1.5px solid #38bdf8;
             border-radius: 16px; padding: 20px 18px; color: #f8fafc; display: flex; flex-direction: column; gap: 11px;
@@ -3399,6 +3399,25 @@
             border-color: #60a5fa;
             box-shadow: 0 2px 8px rgba(2, 132, 199, 0.45);
         }
+        .tv-header-delete-btn {
+            padding: 4px 8px;
+            background: rgba(239, 68, 68, 0.22);
+            border: 1.2px solid #ef4444;
+            border-radius: 8px;
+            color: #fca5a5;
+            font-size: 11.5px;
+            font-weight: 900;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            white-space: nowrap;
+            transition: all 0.15s ease;
+        }
+        .tv-header-delete-btn:active {
+            background: rgba(239, 68, 68, 0.45);
+            transform: scale(0.95);
+        }
         /* 🌟 유튜브 밖으로 나가지 못하게 상단 타이틀/로고 영역 방패 쉴드 */
         .yt-shield-top {
             position: absolute;
@@ -4734,14 +4753,14 @@
 
     
     <!-- 👑 [대표님 전용] 슬롯 유튜브 영상 고정 수정 모달 -->
-    <div class="modal-overlay" id="adminSlotEditModal" style="display:none; z-index:11000;" onclick="closeModal('adminSlotEditModal')">
+    <div class="modal-overlay" id="adminSlotEditModal" style="display:none; z-index:25000;" onclick="closeAdminSlotEditModal()">
         <div class="modal-card" style="padding:18px; max-width:440px; background:#0f172a; border:2px solid #ef4444; border-radius:18px;" onclick="event.stopPropagation()">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:8px; margin-bottom:12px;">
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:20px;">👑</span>
                     <strong style="color:#ef4444; font-size:16px;" id="adminSlotEditModalHeader">슬롯 영상 수정 (대표님 고정)</strong>
                 </div>
-                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('adminSlotEditModal')">✕</button>
+                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeAdminSlotEditModal()">✕</button>
             </div>
             
             <div style="font-size:12.5px; color:#cbd5e1; margin-bottom:12px; line-height:1.45; background:#1e293b; padding:8px 10px; border-radius:8px;">
@@ -4764,7 +4783,7 @@
             </div>
 
             <div style="display:flex; gap:8px;">
-                <button type="button" onclick="closeModal('adminSlotEditModal')" style="flex:1; padding:10px; background:#1e293b; border:1px solid #475569; color:#94a3b8; border-radius:10px; font-size:13px; font-weight:800; cursor:pointer;">닫기</button>
+                <button type="button" onclick="closeAdminSlotEditModal()" style="flex:1; padding:10px; background:#1e293b; border:1px solid #475569; color:#94a3b8; border-radius:10px; font-size:13px; font-weight:800; cursor:pointer;">닫기</button>
                 <button type="button" onclick="saveAdminSlotEdit()" style="flex:2; padding:10px; background:linear-gradient(135deg, #10b981, #059669); border:none; color:#ffffff; border-radius:10px; font-size:14px; font-weight:900; cursor:pointer;">✨ 이 영상으로 고정 저장</button>
             </div>
         </div>
@@ -11269,15 +11288,18 @@ function initYetalkTvVerticalAccordion() {
                 </div>
                 <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
                     ${k !== '성도마음껏 참여TV' ? `
-                    <button type="button" class="tv-header-upload-btn" onclick="event.stopPropagation(); handleAdminSlotEditClick('${k}', activeSlotIndexes['${k}'] || 0)" title="이 채널 유튜브 링크 등록/변경">
+                    <button type="button" class="tv-header-upload-btn" onclick="event.stopPropagation(); handleAdminSlotEditClick('${k}', activeSlotIndexes['${k}'] || 0)" title="이 슬롯 영상 링크 등록/변경">
                         <span>👑 영상+</span>
+                    </button>
+                    <button type="button" class="tv-header-delete-btn" onclick="event.stopPropagation(); handleAdminSlotDeleteClick('${k}', activeSlotIndexes['${k}'] || 0)" title="현재 영상 삭제/초기화 (대표님 전용)">
+                        <span>🗑️ 삭제</span>
                     </button>
                     ` : `
                     <button type="button" class="tv-header-upload-btn community" onclick="event.stopPropagation(); openStudioModal()" title="성도 은혜 영상 올리기">
                         <span>🎬 영상+</span>
                     </button>
                     `}
-                    <div class="tv-channel-arrow" id="arrow_${k}">${isActive ? '▼ 열림' : '▶ 클릭하여 열기'}</div>
+                    <div class="tv-channel-arrow" id="arrow_${k}">${isActive ? '▼' : '▶'}</div>
                 </div>
             </div>
             <div class="tv-channel-content" id="channelContent_${k}" style="display:${isActive ? 'flex' : 'none'};">
@@ -11312,7 +11334,7 @@ function selectChannelAccordion(chKey) {
         if (k === chKey) {
             if (card) card.classList.add('active');
             if (content) content.style.display = 'flex';
-            if (arrow) arrow.innerText = '▼ 열림';
+            if (arrow) arrow.innerText = '▼';
             renderChannelContent(k, activeSlotIndexes[k] || 0);
             setTimeout(() => {
                 if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -11323,7 +11345,7 @@ function selectChannelAccordion(chKey) {
                 content.style.display = 'none';
                 content.innerHTML = ''; // 플레이어 정지
             }
-            if (arrow) arrow.innerText = '▶ 클릭하여 열기';
+            if (arrow) arrow.innerText = '▶';
         }
     });
 }
@@ -11609,13 +11631,24 @@ function playCommunityVideoDirect(vid, title) {
     showToast(`📺 '${title}' 영상을 재생합니다.`);
 }
 
-/* 👑 [대표님 전용] 슬롯 영상 수정 모달 열기 & 저장 */
+/* 👑 [대표님 전용] 슬롯 영상 수정 모달 열기 & 닫기 & 저장 & 삭제 */
+function closeAdminSlotEditModal() {
+    const modal = document.getElementById('adminSlotEditModal');
+    if (modal) {
+        modal.style.setProperty('display', 'none', 'important');
+        modal.classList.remove('show');
+    }
+}
+
 function openAdminSlotEditModal(chKey, slotIdx) {
+    if (!fixedChannelsData) loadFixedChannelsData();
+    if (typeof slotIdx !== 'number' || isNaN(slotIdx)) slotIdx = 0;
     currentEditingSlot = { chKey, slotIdx };
     const ch = fixedChannelsData[chKey];
     if (!ch || !ch.slots || !ch.slots[slotIdx]) return;
     const slot = ch.slots[slotIdx];
 
+    const modal = document.getElementById('adminSlotEditModal');
     const modalTitle = document.getElementById('adminSlotEditModalHeader');
     const inpLabel = document.getElementById('inpAdminSlotLabel');
     const inpUrl = document.getElementById('inpAdminSlotYtUrl');
@@ -11626,7 +11659,47 @@ function openAdminSlotEditModal(chKey, slotIdx) {
     if (inpUrl) inpUrl.value = slot.videoId ? `https://youtu.be/${slot.videoId}` : '';
     if (inpTitle) inpTitle.value = slot.title || '';
 
-    openModal('adminSlotEditModal');
+    if (modal) {
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.classList.add('show');
+    }
+}
+
+function handleAdminSlotDeleteClick(chKey, slotIdx) {
+    if (!fixedChannelsData) loadFixedChannelsData();
+    if (typeof slotIdx !== 'number' || isNaN(slotIdx)) slotIdx = 0;
+    const ch = fixedChannelsData[chKey];
+    if (!ch || !ch.slots || !ch.slots[slotIdx]) return;
+    const slot = ch.slots[slotIdx];
+
+    const defCh = DEFAULT_FIXED_CHANNELS[chKey];
+    const defSlot = (defCh && defCh.slots) ? defCh.slots[slotIdx] : null;
+
+    if (!confirm(`👑 [대표님 전용 영상 삭제]\n\n[${ch.title}] '${slot.label}' 영상을 삭제하시겠습니까?\n\n(확인 시 기본 영상으로 초기화됩니다)`)) {
+        return;
+    }
+
+    if (defSlot) {
+        slot.videoId = defSlot.videoId;
+        slot.title = defSlot.title;
+        slot.label = defSlot.label;
+    } else {
+        slot.videoId = 'pZuW2CV0mXY';
+        slot.title = '은혜의 찬양';
+    }
+
+    localStorage.setItem('yetalk_fixed_tv_v12', JSON.stringify(fixedChannelsData));
+
+    if (window.yetalkDb && window.yetalkFs) {
+        try {
+            const { doc, setDoc } = window.yetalkFs;
+            const ref = doc(window.yetalkDb, 'yetalk_tv_config', 'fixed_channels');
+            setDoc(ref, { channels: fixedChannelsData, updatedAt: new Date().toISOString() }, { merge: true });
+        } catch(e){}
+    }
+
+    showToast(`🗑️ [${ch.title}] '${slot.label}' 영상이 삭제되었습니다.`);
+    renderChannelContent(chKey, slotIdx);
 }
 
 function saveAdminSlotEdit() {
