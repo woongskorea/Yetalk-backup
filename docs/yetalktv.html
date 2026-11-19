@@ -3771,7 +3771,7 @@
             overflow-y: auto !important;
             -webkit-overflow-scrolling: touch !important;
             background: #ffffff !important;
-            padding: calc(env(safe-area-inset-top, 0px) + 52px) 10px 10px 10px !important;
+            padding: calc(env(safe-area-inset-top, 0px) + 86px) 10px 10px 10px !important;
             box-sizing: border-box !important;
             z-index: 100 !important;
         }
@@ -3865,7 +3865,7 @@
         /* 🌟 쇼츠 풀스크린 컨테이너 (박스 없이 통화면 & 위로 스크롤 연속 재생) */
         .tv-shorts-feed-container {
             position: fixed !important;
-            top: 0 !important;
+            top: calc(env(safe-area-inset-top, 0px) + 38px) !important;
             left: 0 !important;
             right: 0 !important;
             bottom: 116px !important; /* 애드몹 100 바로 위 */
@@ -3895,6 +3895,10 @@
             width: 100%;
             height: 100%;
             position: relative;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #000000;
         }
         .tv-shorts-video-box iframe {
             width: 100%;
@@ -11755,16 +11759,21 @@ function setShortsMode(targetIndex) {
     const header = document.getElementById('topHeaderWrapper');
 
     if (catView) catView.style.display = 'none';
-    if (header) header.style.setProperty('display', 'none', 'important'); // 🌟 [대표님 요청] 상단 나의앱 예톡부터 싹 다 없앰!
+    if (header) header.style.setProperty('display', 'none', 'important'); // 🌟 상단 나의앱 예톡부터 싹 다 없앰
     if (shortsView) shortsView.style.display = 'block';
 
-    renderShortsSlides();
-
     if (typeof targetIndex !== 'number' || targetIndex < 0) targetIndex = 0;
+
+    // 슬라이드 DOM이 아직 없거나 개수가 다르면 최초 1회만 생성 (초고속 즉시 전환)
+    const wrap = document.getElementById('tvShortsSlidesWrap');
+    if (!wrap || wrap.children.length !== shortsFeedList.length) {
+        renderShortsSlides();
+    }
+
     jumpToShortsSlide(targetIndex);
 }
 
-// 🌟 슬롯 버튼 클릭 시 쇼츠 풀스크린 즉시 시작
+// 🌟 슬롯 버튼 클릭 시 쇼츠 풀스크린 즉시 시작 (지체 없이 즉각 반응)
 function startShortsFromSlot(chKey, slotIdx) {
     buildShortsFeedList();
     let foundIdx = shortsFeedList.findIndex(item => item.chKey === chKey && item.slotIdx === slotIdx);
@@ -11789,7 +11798,7 @@ function returnToCategoryList() {
     renderCategoryListView();
 }
 
-// 🌟 쇼츠 슬라이드 렌더링
+// 🌟 쇼츠 슬라이드 렌더링 (각 슬라이드에 0초 즉각 썸네일 포스터 미리 세팅!)
 function renderShortsSlides() {
     const wrap = document.getElementById('tvShortsSlidesWrap');
     if (!wrap) return;
@@ -11801,9 +11810,11 @@ function renderShortsSlides() {
 
     let html = '';
     shortsFeedList.forEach((item, idx) => {
+        const vid = item.videoId || 'pZuW2CV0mXY';
+        const posterUrl = `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`;
         html += `
         <div class="tv-shorts-slide" id="shortsSlide_${idx}" data-index="${idx}">
-            <div class="tv-shorts-video-box" id="shortsVideoBox_${idx}">
+            <div class="tv-shorts-video-box" id="shortsVideoBox_${idx}" style="background-image:url('${posterUrl}');">
                 <!-- 활성화 시 동적 iframe 생성 -->
             </div>
             <!-- 유튜브 앱 이탈 100% 방지 투명 터치 방패 -->
@@ -11815,7 +11826,7 @@ function renderShortsSlides() {
     wrap.innerHTML = html;
 }
 
-// 🌟 특정 슬라이드로 점프 & 자동 재생
+// 🌟 특정 슬라이드로 점프 & 초고속 즉각 재생
 function jumpToShortsSlide(idx) {
     if (idx < 0 || idx >= shortsFeedList.length) idx = 0;
     currentShortsIndex = idx;
@@ -11836,7 +11847,7 @@ function activateShortsSlide(idx) {
     currentShortsSlotIndex = item.slotIdx;
     currentEditingSlot = { chKey: item.chKey, slotIdx: item.slotIdx };
 
-    // 하단 정보 업데이트
+    // 하단 정보 즉시 업데이트
     const iconEl = document.getElementById('shortsChIcon');
     const chTitleEl = document.getElementById('shortsChTitle');
     const slotTitleEl = document.getElementById('shortsSlotTitle');
@@ -11845,10 +11856,20 @@ function activateShortsSlide(idx) {
     if (chTitleEl) chTitleEl.innerText = item.chTitle || '';
     if (slotTitleEl) slotTitleEl.innerText = `${item.slotLabel} - ${item.slotTitle}`;
 
-    // 인접 슬라이드 포함 iframe 로드 (현재 슬라이드 재생)
+    // 🌟 [지체 완전 제거] 현재 영상만 100% 우선순위로 즉각 로드 및 자동재생!
     loadShortsPlayerAt(idx, true);
-    if (idx > 0) loadShortsPlayerAt(idx - 1, false);
-    if (idx < shortsFeedList.length - 1) loadShortsPlayerAt(idx + 1, false);
+
+    // 🌟 인접 영상은 2.5초 뒤 메인 영상 버퍼링이 끝난 후 유휴 시간에 조용히 준비 (대역폭 독점 방지)
+    setTimeout(() => {
+        if (currentTvMode === 'shorts' && currentShortsIndex === idx) {
+            if (idx + 1 < shortsFeedList.length) {
+                const nextBox = document.getElementById(`shortsVideoBox_${idx + 1}`);
+                if (nextBox && !nextBox.hasChildNodes()) {
+                    loadShortsPlayerAt(idx + 1, false);
+                }
+            }
+        }
+    }, 2500);
 }
 
 function loadShortsPlayerAt(idx, shouldAutoplay) {
@@ -11861,6 +11882,7 @@ function loadShortsPlayerAt(idx, shouldAutoplay) {
     const cfg = SHORTS_ZOOM_CONFIGS[currentShortsZoomIdx];
     const isCover = cfg && cfg.isCover;
 
+    // 🌟 즉각 재생 iframe 코드
     const iframeHtml = `
         <iframe id="ytIframe_${idx}"
             src="https://www.youtube.com/embed/${vid}?autoplay=${shouldAutoplay ? 1 : 0}&loop=1&playlist=${vid}&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&disablekb=1&fs=0&iv_load_policy=3"
@@ -11869,12 +11891,7 @@ function loadShortsPlayerAt(idx, shouldAutoplay) {
         </iframe>
     `;
 
-    // 현재 슬라이드이거나 비어있을 때 삽입
-    if (shouldAutoplay) {
-        box.innerHTML = iframeHtml;
-    } else if (!box.hasChildNodes()) {
-        box.innerHTML = iframeHtml;
-    }
+    box.innerHTML = iframeHtml;
 }
 
 function stopAllShortsPlayers() {
@@ -11882,7 +11899,6 @@ function stopAllShortsPlayers() {
     boxes.forEach(b => b.innerHTML = '');
 }
 
-// 🌟 [대표님 요청] 위로 스크롤하면 영상을 몇 개라도 순차 연결해서 볼 수 있게 스냅 감지
 function setupShortsFeedScrollListener() {
     const container = document.getElementById('tvShortsFeedContainer');
     if (!container) return;
