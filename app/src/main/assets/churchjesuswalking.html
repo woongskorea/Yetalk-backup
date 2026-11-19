@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -1529,13 +1529,13 @@
         closePastorEditModal();
 
         const now = new Date();
-        if (now.getHours() >= 11) {
+        if (now.getHours() >= 10) {
             // 오전 11시 이후 수정된 경우 즉시 수정된 내용으로 단골내앱과 개인앱에 자동 재발송!
             syncMeditationToNotices(true);
             localStorage.setItem("yetalk_pastor_dispatched_date", currentWordData.date || now.toISOString().slice(0, 10));
             showToast("🎉 수정된 말씀이 단골내앱 및 개인앱에 즉시 재발송되었습니다!");
         } else {
-            showToast("💾 말씀이 수정되었습니다. 오전 11시에 수정된 내용으로 단골내앱 및 개인앱에 자동 발송됩니다!");
+            showToast("💾 말씀이 수정되었습니다. 담임목사님께서 10시 이전 수정하신 새글로 오전 10시에 성도님들께 자동 발송됩니다!");
         }
     }
 
@@ -1589,7 +1589,13 @@
                 category: "목사님의 예수동행",
                 title: `[예수동행] ${currentWordData.scripture.slice(0, 32)}...`,
                 content: `“${currentWordData.scripture}”\n\n${currentWordData.meditation}`,
-                author: "최남수 담임목사",
+                author: (function() {
+                const sp = (localStorage.getItem("yetalk_pastor_name") || "").trim();
+                if (sp) return sp.includes("목사") ? sp : (sp + " 담임목사");
+                const cn = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "").trim();
+                if (cn.includes("부산제일") || cn.includes("감리교회")) return "정찬석 담임목사";
+                return "최남수 담임목사";
+            })(),
                 time: "방금",
                 views: currentWordData.views || 28,
                 img: currentWordData.img
