@@ -11509,9 +11509,9 @@ const DEFAULT_FIXED_CHANNELS = {
         verseRef: '마태복음 7:21',
         verseText: '나더러 주여 주여 하는 자마다 다 천국에 들어갈 것이 아니요 다만 하늘에 계신 내 아버지의 뜻대로 행하는 자라야 들어가리라',
         slots: [
-            { id: 1, label: '간증 1', title: '새롭게하소서 이지선 교수 감동 간증 - 지선아 사랑해', videoId: 'fy7S6WOYJiE' },
-            { id: 2, label: '간증 2', title: '눈물의 회개와 참된 회복의 은혜', videoId: 'AQyJfzLSv2M' },
-            { id: 3, label: '간증 3', title: '새롭게하소서 참된 회개와 구원의 길', videoId: 'SI9qVsTpMUM' }
+            { id: 1, label: '회개간증 1', title: '새롭게하소서 이지선 교수 감동 간증 - 지선아 사랑해', videoId: 'fy7S6WOYJiE' },
+            { id: 2, label: '회개간증 2', title: '눈물의 회개와 참된 회복의 은혜', videoId: 'AQyJfzLSv2M' },
+            { id: 3, label: '회개간증 3', title: '새롭게하소서 참된 회개와 구원의 길', videoId: 'SI9qVsTpMUM' }
         ]
     },
     '말씀': {
@@ -11697,10 +11697,27 @@ function renderCategoryListView() {
                 <div class="tv-compact-slots-row">
                     ${ch.slots.map((s, sIdx) => {
                         const isRedSlot = (k === '방언기도' && sIdx === 0);
-                        const redStyle = isRedSlot ? 'color:#dc2626 !important; font-weight:950 !important; background:#fff1f2 !important; border:1.4px solid #fca5a5 !important;' : '';
+                        const isChurchSermonSlot = (k === '말씀' && sIdx === 0);
+
+                        let slotCustomStyle = '';
+                        if (isRedSlot) {
+                            slotCustomStyle = 'color:#dc2626 !important; font-weight:950 !important; background:#fff1f2 !important; border:1.4px solid #fca5a5 !important;';
+                        } else if (isChurchSermonSlot) {
+                            // 🌟 [사용자 요청] 우리교회 설교: 진하고 선명한 로열블루 하이라이트 글자 스타일
+                            slotCustomStyle = 'color:#0369a1 !important; font-weight:950 !important; background:#f0f9ff !important; border:1.4px solid #38bdf8 !important; box-shadow:0 1.5px 4px rgba(2,132,199,0.18) !important;';
+                        }
+
+                        // 🌟 [사용자 요청] 회개 TV 밑 슬롯 명칭: 회개간증 1, 회개간증 2, 회개간증 3
+                        let dispLabel = s.label || '';
+                        if (k === '회개') {
+                            dispLabel = dispLabel.replace('간증 1', '회개간증 1').replace('간증 2', '회개간증 2').replace('간증 3', '회개간증 3')
+                                                 .replace('간증1', '회개간증 1').replace('간증2', '회개간증 2').replace('간증3', '회개간증 3');
+                            if (dispLabel === '간증') dispLabel = '회개간증 ' + (sIdx + 1);
+                        }
+
                         return `
-                        <button type="button" class="tv-compact-slot-btn" style="${redStyle}" onclick="startShortsFromSlot('${k}', ${sIdx})">
-                            <span>${s.label}</span>
+                        <button type="button" class="tv-compact-slot-btn" style="${slotCustomStyle}" onclick="startShortsFromSlot('${k}', ${sIdx})">
+                            <span>${dispLabel}</span>
                         </button>
                         `;
                     }).join('')}
