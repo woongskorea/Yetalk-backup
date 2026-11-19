@@ -3883,6 +3883,58 @@
             z-index: 20000 !important;
         }
         .tv-shorts-feed-container::-webkit-scrollbar { display: none; }
+
+        /* 🌟 [총관리자 전용] 영상 최상단 노출 광고 / 우리의원 링크 배너 */
+        .tv-shorts-top-ad-banner {
+            position: absolute;
+            top: 10px;
+            left: 12px;
+            right: 12px;
+            z-index: 20100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 7px 12px;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1.5px solid #38bdf8;
+            border-radius: 18px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+        .tv-shorts-top-ad-banner:active {
+            transform: scale(0.98);
+            background: rgba(15, 23, 42, 1);
+        }
+        .top-ad-badge {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 5px;
+            border-radius: 4px;
+            flex-shrink: 0;
+            letter-spacing: 0.5px;
+        }
+        .top-ad-text {
+            font-size: 12.5px;
+            font-weight: 850;
+            color: #f8fafc;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+        .top-ad-arrow {
+            color: #38bdf8;
+            font-size: 16px;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
         .tv-shorts-slide {
             width: 100%;
             height: 100%;
@@ -4690,6 +4742,15 @@
 
     <!-- 🌟 [화면 2] 쇼츠 스타일 풀스크린 플레이어 (영상 클릭 시 통화면 전체 노출 & 위로 스크롤 연속 재생) -->
     <div class="tv-shorts-feed-container" id="tvShortsFeedContainer" style="display:none;">
+        <!-- 🌟 [총관리자 전용] 영상 최상단 노출 광고 / 우리의원 링크 배너 (설정 시에만 표시, 미설정 시 완전 숨김) -->
+        <div class="tv-shorts-top-ad-banner" id="tvShortsTopAdBanner" style="display:none;" onclick="handleTopAdBannerClick()">
+            <div style="display:flex; align-items:center; gap:6px; overflow:hidden; flex:1;">
+                <span class="top-ad-badge">AD</span>
+                <span class="top-ad-text" id="dispTvShortsTopAdText"></span>
+            </div>
+            <span class="top-ad-arrow">›</span>
+        </div>
+
         <div id="tvShortsSlidesWrap" style="width:100%; height:100%;">
             <!-- JS dynamic generation: vertical snap scroll slides -->
         </div>
@@ -11684,26 +11745,42 @@ function buildShortsFeedList() {
         });
     });
 
-    // 성도참여 영상들
+    // 성도참여 영상들 (총관리자 1번 꽂기 최우선 배치)
     try {
+        let feeds = [];
         const raw = localStorage.getItem('yetalkSavedCustomFeeds');
         if (raw) {
-            const feeds = JSON.parse(raw);
-            if (Array.isArray(feeds)) {
-                feeds.forEach((f, cIdx) => {
-                    const vid = f.videoId || extractYouTubeVideoId(f.youtubeUrl || '') || 'pZuW2CV0mXY';
-                    shortsFeedList.push({
-                        chKey: '성도마음껏 참여TV',
-                        slotIdx: cIdx,
-                        icon: '🎬',
-                        chTitle: '성도마음껏 참여TV',
-                        slotLabel: f.authorName ? `${f.authorName} 성도` : '성도 은혜',
-                        slotTitle: f.title || '성도 은혜 영상',
-                        videoId: vid
-                    });
-                });
-            }
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) feeds = parsed;
         }
+
+        // 🌟 [총관리자 1번 꽂기 영상 최우선 1번 삽입]
+        const pinnedRaw = localStorage.getItem('yetalkPinnedCommunityVideo');
+        if (pinnedRaw) {
+            try {
+                const pinnedItem = JSON.parse(pinnedRaw);
+                if (pinnedItem && pinnedItem.videoId) {
+                    feeds = feeds.filter(f => f.videoId !== pinnedItem.videoId && f.id !== 'pinned_admin_master');
+                    feeds.unshift(pinnedItem);
+                }
+            } catch(e){}
+        }
+
+        feeds.forEach((f, cIdx) => {
+            const vid = f.videoId || extractYouTubeVideoId(f.youtubeUrl || '') || 'pZuW2CV0mXY';
+            const isPinned = f.isPinnedByAdmin || (f.id === 'pinned_admin_master');
+            shortsFeedList.push({
+                chKey: '성도마음껏 참여TV',
+                slotIdx: cIdx,
+                videoSubIdx: 0,
+                icon: isPinned ? '👑' : '🎬',
+                chTitle: '성도마음껏 참여TV',
+                slotLabel: isPinned ? `👑 [대표추천] ${f.bizName || '우리의원'}` : (f.authorName ? `${f.authorName} 성도` : '성도 은혜'),
+                slotTitle: f.title || (isPinned ? `${f.bizName} 대표 영상` : '성도 은혜 영상'),
+                videoId: vid,
+                targetUrl: f.targetUrl || ''
+            });
+        });
     } catch(e){}
 }
 
@@ -11932,6 +12009,12 @@ function activateShortsSlide(idx) {
     if (iconEl) iconEl.innerText = item.icon || '📺';
     if (chTitleEl) chTitleEl.innerText = item.chTitle || '';
     if (slotTitleEl) slotTitleEl.innerText = `${item.slotLabel} - ${item.slotTitle}`;
+
+    // 🌟 [총관리자 전용] 상단 광고 배너 렌더링 (설정 시에만 표시)
+    renderShortsTopAdBanner();
+
+    // 🌟 [총관리자 전용] 상단 광고 배너 렌더링 (설정 시에만 표시)
+    renderShortsTopAdBanner();
 
     // 🌟 [사용자 요청] 성도마음껏TV 재생 시: 성도영상+ 녹색 버튼 & 성도가 마음껏 올리는 공간
     const isCommTv = (item.chKey === '성도마음껏 참여TV' || (item.chKey && item.chKey.includes('성도')));
@@ -12558,6 +12641,34 @@ function saveAdminSlotEdit() {
     }
 }
 
+function renderShortsTopAdBanner() {
+    const banner = document.getElementById('tvShortsTopAdBanner');
+    const textEl = document.getElementById('dispTvShortsTopAdText');
+    if (!banner) return;
+
+    const adText = (localStorage.getItem('yetalkVideoPlayingAd') || '').trim();
+    if (adText && adText.length > 0) {
+        if (textEl) textEl.innerText = adText;
+        banner.style.display = 'flex';
+    } else {
+        banner.style.display = 'none';
+    }
+}
+
+function handleTopAdBannerClick() {
+    const adUrl = (localStorage.getItem('yetalkVideoPlayingAdUrl') || '').trim();
+    if (adUrl && adUrl.length > 0) {
+        if (adUrl.startsWith('http://') || adUrl.startsWith('https://') || adUrl.startsWith('tel:')) {
+            window.open(adUrl, '_blank');
+        } else {
+            location.href = adUrl;
+        }
+    } else {
+        const bizUrl = localStorage.getItem('yetalkMyBizAppUrl') || 'doctormain.html';
+        location.href = bizUrl;
+    }
+}
+
 function syncFixedChannelsFromCloud() {
     if (!window.yetalkDb || !window.yetalkFs) {
         setTimeout(syncFixedChannelsFromCloud, 1000);
@@ -12576,6 +12687,41 @@ function syncFixedChannelsFromCloud() {
                     if (currentTvMode === 'category') {
                         renderCategoryListView();
                     }
+                }
+            }
+        });
+
+        // 🌟 상단 배너 광고 실시간 구독
+        const adRef = doc(window.yetalkDb, 'yetalk_tv_config', 'top_banner_ad');
+        onSnapshot(adRef, (snap) => {
+            if (snap && snap.exists()) {
+                const d = snap.data();
+                if (d && d.text) {
+                    localStorage.setItem('yetalkVideoPlayingAd', d.text);
+                    if (d.url) localStorage.setItem('yetalkVideoPlayingAdUrl', d.url);
+                } else {
+                    localStorage.removeItem('yetalkVideoPlayingAd');
+                    localStorage.removeItem('yetalkVideoPlayingAdUrl');
+                }
+                renderShortsTopAdBanner();
+            } else {
+                renderShortsTopAdBanner();
+            }
+        });
+
+        // 🌟 성도마음껏TV 1번 꽂기 실시간 구독
+        const pinRef = doc(window.yetalkDb, 'yetalk_tv_config', 'pinned_community_video');
+        onSnapshot(pinRef, (snap) => {
+            if (snap && snap.exists()) {
+                const d = snap.data();
+                if (d && d.videoId) {
+                    localStorage.setItem('yetalkPinnedCommunityVideo', JSON.stringify(d));
+                } else {
+                    localStorage.removeItem('yetalkPinnedCommunityVideo');
+                }
+                buildShortsFeedList();
+                if (currentTvMode === 'category') {
+                    renderCategoryListView();
                 }
             }
         });
