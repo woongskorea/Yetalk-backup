@@ -4007,6 +4007,14 @@
             background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
             color: #ffffff;
             border: 1px solid #f87171;
+            transition: all 0.2s ease;
+        }
+        /* 🌟 [사용자 요청] 성도마음껏TV 재생 시: 녹색 성도영상+ 버튼 */
+        .btn-shorts-upload.community-mode {
+            background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+            border-color: #6ee7b7 !important;
+            color: #ffffff !important;
+            box-shadow: 0 3px 12px rgba(16, 185, 129, 0.5) !important;
         }
         .btn-shorts-delete {
             flex: 1;
@@ -4665,14 +4673,7 @@
                     <span class="brand-highlight" style="color:#10b981;">예톡<span class="leaf-icon">🌿</span></span>
                 </div>
             </div>
-            <div style="display:flex; align-items:center; gap:6px;">
-                <button type="button" class="btn-master-admin" id="btnHeaderMasterAdmin" onclick="openSuperAdminDeskModal()" title="총관리실 열기" style="display:inline-flex; font-size:11.5px; font-weight:900; padding:4px 9px; background:linear-gradient(135deg, #dc2626, #b91c1c); border:1.5px solid #fecaca; color:#ffffff; border-radius:14px; cursor:pointer;">
-                    👑 총관리실
-                </button>
-                <button type="button" class="btn-top-profile-pill" onclick="openProfileModal()" title="무료 회원가입 / 내 정보" style="background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.3); color:#f8fafc; border-radius:14px; padding:4px 9px; font-size:11.5px; font-weight:850; cursor:pointer;">
-                    <span>👤 내정보</span>
-                </button>
-            </div>
+
         </div>
 
         <!-- 🌟 [사용자 요청] 예톡TV 12대 소메뉴 (1줄: 찬양, 자유, 말씀TV, 간증, 천국 / 2줄: 기도, 회개, 우리교회, 성경, 애국 / 3줄 크게: 예수님, 전체예톡TV, 깨어납시다) -->
@@ -4731,8 +4732,8 @@
                 <button type="button" class="shorts-action-btn btn-shorts-home" onclick="returnToCategoryList()" title="예톡홈 (분류 목록으로 돌아가기)">
                     <span>🏠 예톡홈</span>
                 </button>
-                <button type="button" class="shorts-action-btn btn-shorts-upload" onclick="handleCurrentShortsEdit()" title="영상 등록/변경 (대표님 전용)">
-                    <span>👑 영상+</span>
+                <button type="button" class="shorts-action-btn btn-shorts-upload" id="btnShortsAddAction" onclick="handleCurrentShortsEdit()" title="영상 등록/변경">
+                    <span id="dispShortsAddBtnText">👑 영상+</span>
                 </button>
                 <button type="button" class="shorts-action-btn btn-shorts-delete" onclick="handleCurrentShortsDelete()" title="영상 삭제/초기화 (대표님 전용)">
                     <span>🗑️ 삭제</span>
@@ -4981,8 +4982,8 @@
             </div>
 
             <div class="form-group-line">
-                <label class="form-label-title">鍮꾨?踰덊샇 (?レ옄 4?먮━ ?꾩닔 쨌 愿由ъ옄 ?묒냽 諛?怨꾩젙 蹂댄샇)</label>
-                <input type="password" id="inpMyPw" class="modal-input" placeholder="?レ옄 4?먮━ ?낅젰 (?? 7777)" maxlength="4" pattern="[0-9]*" inputmode="numeric" style="letter-spacing:3px;" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4)">
+                <label class="form-label-title">비밀번호 (숫자 4자리 필수 · 관리자 접속 및 계정 보호)</label>
+                <input type="password" id="inpMyPw" class="modal-input" placeholder="숫자 4자리 입력 (예: 7777)" maxlength="4" pattern="[0-9]*" inputmode="numeric" style="letter-spacing:3px;" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4)">
             </div>
 
             <div class="form-group-line">
@@ -11885,6 +11886,22 @@ function activateShortsSlide(idx) {
     if (chTitleEl) chTitleEl.innerText = item.chTitle || '';
     if (slotTitleEl) slotTitleEl.innerText = `${item.slotLabel} - ${item.slotTitle}`;
 
+    // 🌟 [사용자 요청] 성도마음껏TV 재생 시: 성도영상+ 녹색 버튼 & 성도가 마음껏 올리는 공간
+    const isCommTv = (item.chKey === '성도마음껏 참여TV' || (item.chKey && item.chKey.includes('성도')));
+    const btnAddEl = document.getElementById('btnShortsAddAction');
+    const textAddEl = document.getElementById('dispShortsAddBtnText');
+    if (btnAddEl) {
+        if (isCommTv) {
+            btnAddEl.classList.add('community-mode');
+            if (textAddEl) textAddEl.innerText = '🎬 성도영상+';
+            btnAddEl.title = '성도 은혜 영상 올리기 (누구나 자유 업로드)';
+        } else {
+            btnAddEl.classList.remove('community-mode');
+            if (textAddEl) textAddEl.innerText = '👑 영상+';
+            btnAddEl.title = '영상 등록/변경 (대표님 전용)';
+        }
+    }
+
     // 🌟 [지체 완전 제거] 현재 영상만 100% 우선순위로 즉각 로드 및 자동재생!
     loadShortsPlayerAt(idx, true);
 
@@ -12030,11 +12047,31 @@ function toggleShortsScrollLock() {
 
 // 🌟 [대표님 전용] 현재 쇼츠 영상 등록/수정 모달 열기
 function handleCurrentShortsEdit() {
+    if (currentShortsChannelKey === '성도마음껏 참여TV' || (currentShortsChannelKey && currentShortsChannelKey.includes('성도'))) {
+        // 🌟 성도가 마음껏 올리는 스튜디오 모달 즉시 실행!
+        openStudioModal();
+        return;
+    }
     openAdminSlotEditModal(currentShortsChannelKey, currentShortsSlotIndex);
 }
 
 // 🌟 [대표님 전용] 현재 쇼츠 영상 초기화/삭제
 function handleCurrentShortsDelete() {
+    if (currentShortsChannelKey === '성도마음껏 참여TV' || (currentShortsChannelKey && currentShortsChannelKey.includes('성도'))) {
+        const item = shortsFeedList[currentShortsIndex];
+        if (!item) return;
+        if (!confirm('이 성도 은혜 영상을 목록에서 삭제하시겠습니까?')) return;
+        try {
+            let feeds = JSON.parse(localStorage.getItem('yetalkSavedCustomFeeds') || '[]');
+            feeds = feeds.filter((f, idx) => idx !== item.slotIdx && f.videoId !== item.videoId);
+            localStorage.setItem('yetalkSavedCustomFeeds', JSON.stringify(feeds));
+            alert('성도 참여 영상이 삭제되었습니다.');
+            buildShortsFeedList();
+            renderCategoryListView();
+            returnToCategoryList();
+        } catch(e) { console.error(e); }
+        return;
+    }
     handleAdminSlotDeleteClick(currentShortsChannelKey, currentShortsSlotIndex);
 }
 
