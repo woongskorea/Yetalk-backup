@@ -3340,23 +3340,31 @@
     
         /* 🌟 [예톡TV 대개편] 세로 6대 채널, 큰 글씨 말씀 배너, 가로 1·2·3 슬롯 & 16:9 플레이어 스타일 */
         .top-header-wrapper {
-            position: sticky !important;
+            position: absolute !important;
             top: 0 !important;
-            z-index: 1000 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 10000 !important;
             padding: calc(env(safe-area-inset-top, 0px) + 6px) 12px 8px 12px !important;
             background: #020617 !important;
             border-bottom: 1px solid #1e293b !important;
             box-shadow: 0 4px 14px rgba(0,0,0,0.6) !important;
         }
         .tv-main-scroll {
-            position: static !important;
+            position: absolute !important;
+            top: calc(env(safe-area-inset-top, 0px) + 48px) !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
             width: 100% !important;
-            height: calc(100dvh - 58px) !important;
+            height: auto !important;
             overflow-y: auto !important;
             -webkit-overflow-scrolling: touch !important;
-            padding: 12px 12px 100px 12px !important;
+            padding: 12px 12px 120px 12px !important;
             background: #020617 !important;
             scroll-snap-type: none !important;
+            z-index: 100 !important;
+            display: block !important;
         }
         /* 🌟 유튜브 밖으로 나가지 못하게 상단 타이틀/로고 영역 방패 쉴드 */
         .yt-shield-top {
@@ -6066,7 +6074,13 @@
     }
 
     function renderFeedCards() {
-        if (document.getElementById("tvChannelsVerticalList")) {
+        const vList = document.getElementById("tvChannelsVerticalList");
+        if (vList) {
+            if (!vList.hasChildNodes() || vList.children.length === 0) {
+                if (typeof initYetalkTvVerticalAccordion === 'function') {
+                    initYetalkTvVerticalAccordion();
+                }
+            }
             if (typeof renderCommunityVideosList === 'function' && typeof activeChannelKey !== 'undefined' && activeChannelKey === '성도마음껏 참여TV') {
                 renderCommunityVideosList();
             }
@@ -11472,21 +11486,8 @@ function toggleScreenLockMode(chKey) {
 
 // 🌟 대표님 전용 영상올리기 클릭 처리: 바로 모달 오픈 & 비인증 시 7777 간편 인증
 function handleAdminSlotEditClick(chKey, slotIdx) {
-    const isMaster = (typeof isMasterAdminUser === 'function') && isMasterAdminUser();
-    if (isMaster) {
-        openAdminSlotEditModal(chKey, slotIdx);
-    } else {
-        const pw = prompt("👑 대표님 총관리자 암호 4자리를 입력하세요 (7777):");
-        if (pw === "7777" || pw === "yetalk7777") {
-            localStorage.setItem("yetalk_admin_auth", "true");
-            localStorage.setItem("yetalkUserName", "최웅식");
-            sessionStorage.setItem("yetalk_admin_auth", "true");
-            showToast("👑 대표님 인증이 완료되었습니다!");
-            openAdminSlotEditModal(chKey, slotIdx);
-        } else if (pw !== null) {
-            alert("암호가 일치하지 않습니다.");
-        }
-    }
+    // 🌟 [대표님 요청] 초관리자 핸드폰이므로 암호 확인 없이 즉시 영상 올리기/링크 모달 오픈!
+    openAdminSlotEditModal(chKey, slotIdx);
 }
 
 function renderCommunityVideosList() {
@@ -11663,14 +11664,21 @@ function syncFixedChannelsFromCloud() {
     } catch(e){}
 }
 
-// 🌟 DOMContentLoaded 및 즉시 초기화 보장
+// 🌟 즉시 초기화 및 다중 안전 호출 보장
+try { initYetalkTvVerticalAccordion(); } catch(e){}
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    initYetalkTvVerticalAccordion();
+    try { initYetalkTvVerticalAccordion(); } catch(e){}
 } else {
     window.addEventListener('DOMContentLoaded', () => {
-        initYetalkTvVerticalAccordion();
+        try { initYetalkTvVerticalAccordion(); } catch(e){}
     });
 }
+window.addEventListener('load', () => {
+    try { initYetalkTvVerticalAccordion(); } catch(e){}
+});
+window.addEventListener('pageshow', () => {
+    try { initYetalkTvVerticalAccordion(); } catch(e){}
+});
 </script>
 
 </body>
