@@ -4711,14 +4711,26 @@
                 const dailyNoticeId = "church_daily_word_" + todayStr;
 
                 if (!list.some(n => n.id === dailyNoticeId)) {
+                    const churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회";
+                    const isPastorUpdated = (updateDate === todayStr);
+                    const noticeSender = isPastorUpdated ? (function(){
+                        const sp = (localStorage.getItem("yetalk_pastor_name") || "").trim();
+                        if (sp) return sp.includes("목사") ? sp : `${sp} 담임목사`;
+                        if (churchName.includes("부산제일") || churchName.includes("감리교회")) return "정찬석 담임목사";
+                        return "최남수 담임목사";
+                    })() : (churchName ? `[${churchName}] 예수동행` : "우리교회 예수동행");
+                    const noticeTitle = isPastorUpdated ? `🕊️ [목사님의 예수동행] ${wordObj.verseRef || '오늘의 말씀'}` : `🕊️ [오늘의 예수동행] ${wordObj.verseRef || '오늘의 말씀'}`;
+                    const medHead = isPastorUpdated ? "🕊️ 담임목사 권면 묵상:" : "🕊️ 오늘의 은혜 묵상:";
+                    const guideText = "\n\n────────────────────\n\n💡 안내: 담임목사님께서 교회앱 [예수동행] 메뉴에서 10시 이전 당일의 새글 수정하시면 담임목사님 이름으로 발송되며, 수정이 없을 시 교회 공식 은혜의 말씀으로 매일 오전 10시에 자동 발송됩니다.";
+
                     const dailyNoticeItem = {
                         id: dailyNoticeId,
-                        sender: "예톡행복한교회",
+                        sender: noticeSender,
                         senderType: "church",
                         isChurchNotice: true,
                         isDailyWordNotice: true,
-                        title: `🕊️ [목사님의 예수동행] ${wordObj.verseRef || '오늘의 말씀'}`,
-                        content: `“${wordObj.verseText}”\n\n🕊️ 목사님의 묵상:\n${wordObj.meditation}`,
+                        title: noticeTitle,
+                        content: `“${wordObj.verseText}”\n\n${medHead}\n${wordObj.meditation}${guideText}`,
                         date: `${todayStr} 10:00`,
                         isToday: true,
                         targetUrl: "churchmain.html?sec=6"
