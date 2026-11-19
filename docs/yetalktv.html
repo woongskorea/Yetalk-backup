@@ -5404,7 +5404,7 @@
             });
 
             // 🌟 만약 현재 채널이 핀으로 고정된 영상의 채널이거나, 최신 대표 영상(yetalkPinnedVideoId)이 현재 채널용으로 등록된 경우 최우선 1번에 확실히 배치!
-            const pinnedVideoId = localStorage.getItem("yetalkPinnedVideoId");
+            // pinnedVideoId already declared above
             const pinnedChannel = localStorage.getItem("yetalkPinnedChannel");
             if (pinnedVideoId && (pinnedChannel === currentTvChannel || (!pinnedChannel && currentTvChannel === '기도'))) {
                 const pIdx = matchingCustom.findIndex(f => f.videoId === pinnedVideoId);
@@ -8296,7 +8296,7 @@
         const urlInp = document.getElementById("ytInpUrl");
         const titleInp = document.getElementById("ytInpTitle");
         const chLabel = document.getElementById("currentUploadChannelLabel");
-        const chSelect = document.getElementById("ytInpChannelSelect");
+        if (!chSelect) chSelect = document.getElementById("ytInpChannelSelect");
         if (urlInp) urlInp.value = "";
         if (titleInp) titleInp.value = "";
         const defaultCh = (currentTvChannel === '전체예톡TV' ? '찬양' : currentTvChannel) || '찬양';
@@ -11337,29 +11337,34 @@ function renderChannelContent(chKey, slotIdx) {
         // 🌟 [사용자 요청] 영상 밑 '현재 선택된 영상' 텍스트는 빼고!
         // [ ❤️ ] [ ✝️ ] [ 확대 1 ] [ 속도 1 ] [ 화면고정 ] [ 👑 영상올리기 ] 한 줄 완성 배치!
         innerHtml += `
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:5px; width:100%; margin-top:8px; padding:6px 8px; background:rgba(15,23,42,0.85); border:1.2px solid rgba(255,255,255,0.1); border-radius:12px;">
-            <div style="display:flex; gap:5px; align-items:center;">
-                <button type="button" class="mini-tool-pill mini-heart-pill" onclick="spawnHeartSwarmFX()" title="사랑의 하트">
+        <!-- 🌟 1줄: [ ❤️ ] [ ✝️ ] [ 확대 1 ] [ 속도 1 ] [ 화면고정 ] 여유롭고 시원한 5대 컨트롤 -->
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; width:100%; margin-top:8px; padding:8px 10px; background:rgba(15,23,42,0.9); border:1.2px solid rgba(255,255,255,0.12); border-radius:12px;">
+            <div style="display:flex; gap:6px; align-items:center;">
+                <button type="button" class="mini-tool-pill mini-heart-pill" onclick="spawnHeartSwarmFX()" title="사랑의 하트" style="padding:6px 10px; font-size:16px;">
                     <span>❤️</span>
                 </button>
-                <button type="button" class="mini-tool-pill mini-cross-pill" onclick="spawnCrossFormationFX()" title="은혜의 십자가">
+                <button type="button" class="mini-tool-pill mini-cross-pill" onclick="spawnCrossFormationFX()" title="은혜의 십자가" style="padding:6px 10px; font-size:16px;">
                     <span style="color:#ffffff;">✝️</span>
                 </button>
-                <button type="button" class="mini-tool-pill" id="btnActiveZoom_${chKey}" onclick="cycleVideoZoomLevel('${chKey}')" title="화면확대 (100% / 125% / 155% / 세로쇼츠풀 / 85%)">
+            </div>
+            <div style="display:flex; gap:6px; align-items:center; flex:1; justify-content:flex-end;">
+                <button type="button" class="mini-tool-pill" id="btnActiveZoom_${chKey}" onclick="cycleVideoZoomLevel('${chKey}')" title="화면확대 (100% / 125% / 155% / 세로쇼츠풀 / 85%)" style="flex:1; max-width:80px; padding:7px 8px; font-size:12px; font-weight:800; justify-content:center;">
                     <span id="zoomTextSpan_${chKey}">${ZOOM_CONFIGS[currentZoomIdx].label}</span>
                 </button>
-                <button type="button" class="mini-tool-pill" id="btnActiveSpeed_${chKey}" onclick="cycleVideoSpeed('${chKey}')" title="음성속도 (1.0x / 1.25x / 1.5x / 2.0x)">
+                <button type="button" class="mini-tool-pill" id="btnActiveSpeed_${chKey}" onclick="cycleVideoSpeed('${chKey}')" title="음성속도 (1.0x / 1.25x / 1.5x / 2.0x)" style="flex:1; max-width:80px; padding:7px 8px; font-size:12px; font-weight:800; justify-content:center;">
                     <span id="speedTextSpan_${chKey}">${SPEED_CONFIGS[currentSpeedIdx].label}</span>
                 </button>
-                <button type="button" class="mini-tool-pill ${isTvScreenLocked ? 'locked' : ''}" id="btnActiveLock_${chKey}" onclick="toggleScreenLockMode('${chKey}')" title="화면고정">
+                <button type="button" class="mini-tool-pill ${isTvScreenLocked ? 'locked' : ''}" id="btnActiveLock_${chKey}" onclick="toggleScreenLockMode('${chKey}')" title="화면고정" style="flex:1; max-width:90px; padding:7px 8px; font-size:12px; font-weight:800; justify-content:center;">
                     <span id="lockTextSpan_${chKey}">${isTvScreenLocked ? '🔒고정ON' : '화면고정'}</span>
                 </button>
             </div>
+        </div>
 
-            <!-- 우측 대표님 전용: 영상올리기 버튼 (클릭 시 즉시 링크 입력 모달 오픈) -->
-            <button type="button" onclick="handleAdminSlotEditClick('${chKey}', ${slotIdx})" title="이 슬롯 유튜브 링크 등록/변경" style="padding:6px 11px; background:linear-gradient(135deg, #dc2626 0%, #991b1b 100%); border:1.2px solid #f87171; border-radius:10px; color:#ffffff; font-size:12.5px; font-weight:900; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 8px rgba(220,38,38,0.45); white-space:nowrap;">
-                <span>👑</span>
-                <span>영상올리기</span>
+        <!-- 🌟 2줄: [대표님 요청] 밑에 줄에 단독으로 여유있게 배치된 [ 👑 영상올리기 ] 버튼 -->
+        <div style="width:100%; margin-top:6px;">
+            <button type="button" onclick="handleAdminSlotEditClick('${chKey}', ${slotIdx})" title="이 슬롯 유튜브 링크 등록/변경" style="width:100%; padding:9px 12px; background:linear-gradient(135deg, rgba(220,38,38,0.92) 0%, rgba(153,27,27,0.92) 100%); border:1.3px solid #f87171; border-radius:10px; color:#ffffff; font-size:13px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 3px 10px rgba(220,38,38,0.35);">
+                <span style="font-size:14px;">👑</span>
+                <span>[${curSlot.label}] 유튜브 영상 등록·수정 (나만 올리기)</span>
             </button>
         </div>
         `;
@@ -11411,7 +11416,6 @@ function switchChannelSlot(chKey, slotIdx) {
         }
     }
     renderChannelContent(chKey, slotIdx);
-    const ch = fixedChannelsData[chKey];
     if (ch && ch.slots && ch.slots[slotIdx]) {
         showToast(`📺 [${ch.title}] '${ch.slots[slotIdx].label}' 영상을 재생합니다.`);
     }
