@@ -661,18 +661,19 @@
                 • 선택하신 <b>보물창고 분류</b>로 자동 저장되어 언제든 다시 열람할 수 있습니다.
             </div>
 
-            <!-- 🌟 보물창고 8대 분류 선택 칩 -->
+            <!-- 🌟 보물창고 분류 선택 칩 (주보 & 예수동행 포함) -->
             <div class="archive-select-wrap">
                 <span class="archive-select-title">📁 공지 & 보물창고 분류 선택:</span>
                 <div class="archive-chips" id="archiveChipsContainer">
-                    <button type="button" class="chip-arch" onclick="selectArchiveCat('목사님의 예수동행', this)">목사님의 예수동행</button>
+                    <button type="button" class="chip-arch" onclick="selectArchiveCat('예수동행', this)">예수동행</button>
                     <button type="button" class="chip-arch active" onclick="selectArchiveCat('주일예배', this)">주일예배</button>
+                    <button type="button" class="chip-arch" onclick="selectArchiveCat('주보', this)">주보</button>
                     <button type="button" class="chip-arch" onclick="selectArchiveCat('마을(셀,목장)나눔지', this)">마을(셀,목장)나눔지</button>
                     <button type="button" class="chip-arch" onclick="selectArchiveCat('가정예배문', this)">가정예배문</button>
+                    <button type="button" class="chip-arch" onclick="selectArchiveCat('행사사진첩', this)">행사사진첩</button>
                     <button type="button" class="chip-arch" onclick="selectArchiveCat('수요예배', this)">수요예배</button>
                     <button type="button" class="chip-arch" onclick="selectArchiveCat('금요기도회', this)">금요기도회</button>
                     <button type="button" class="chip-arch" onclick="selectArchiveCat('특별예배', this)">특별예배</button>
-                    <button type="button" class="chip-arch" onclick="selectArchiveCat('행사사진첩', this)">행사사진첩</button>
                 </div>
             </div>
 
@@ -1340,7 +1341,7 @@
         } else {
             editingNoticeId = null;
             document.getElementById("writeModalHeaderTitle").innerText = "교회 공식 공지알림 작성";
-            document.getElementById("inpNoticeTitle").value = "";
+            document.getElementById("inpNoticeTitle").value = getAutoNoticeDateWeekTitle("주일예배");
             document.getElementById("inpNoticeContent").value = "";
             selectedArchiveCategory = "주일예배";
             attachedNoticeImg = null;
@@ -1362,10 +1363,33 @@
         document.getElementById("writeModal").classList.remove("open");
     }
 
+    function getAutoNoticeDateWeekTitle(catName) {
+        const now = new Date();
+        const m = now.getMonth() + 1;
+        const d = now.getDate();
+        const weekNum = Math.min(5, Math.max(1, Math.ceil(d / 7)));
+        let label = catName || "주일 대예배";
+        if (label.includes("주일예배")) label = "주일 대예배 말씀";
+        else if (label.includes("주보")) label = "주간 주보";
+        else if (label.includes("마을") || label.includes("나눔지")) label = "소모임 나눔지";
+        else if (label.includes("가정")) label = "가정예배 순서지";
+        else if (label.includes("수요")) label = "수요예배 강해";
+        else if (label.includes("금요")) label = "금요기도회 말씀";
+        else if (label.includes("특별")) label = "특별예배 나눔";
+        else if (label.includes("사진")) label = "교회 행사사진첩";
+        else if (label.includes("예수동행")) label = "예수동행 은혜 나눔";
+        return `${m}월 ${weekNum}주차 ${label}`;
+    }
+
     function selectArchiveCat(cat, btn) {
         selectedArchiveCategory = cat;
         document.querySelectorAll("#archiveChipsContainer .chip-arch").forEach(c => c.classList.remove("active"));
         btn.classList.add("active");
+
+        const titleInp = document.getElementById("inpNoticeTitle");
+        if (titleInp && (!titleInp.value || titleInp.value.includes("주차") || titleInp.value.includes("예배") || titleInp.value.includes("주보"))) {
+            titleInp.value = getAutoNoticeDateWeekTitle(cat);
+        }
     }
 
     function handleNoticeImage(input) {
@@ -1491,6 +1515,20 @@
                 fileData: attachedNoticeFileData
             });
             localStorage.setItem(ARCHIVE_STORAGE_KEY, JSON.stringify(archiveList));
+
+            // 🌟 [사용자 요청] 주보 공지 등록 시 주보 메뉴(churchjubo.html) 데이터와도 즉시 자동 동기화
+            if (selectedArchiveCategory === "주보") {
+                try {
+                    let juboPages = [];
+                    const rawJubo = localStorage.getItem("yetalk_church_jubo_data_v3");
+                    if (rawJubo) juboPages = JSON.parse(rawJubo);
+                    if (juboPages && Array.isArray(juboPages) && juboPages.length > 0) {
+                        if (attachedNoticeImg) juboPages[0].paperImg = attachedNoticeImg;
+                        if (content) juboPages[0].body = content;
+                        localStorage.setItem("yetalk_church_jubo_data_v3", JSON.stringify(juboPages));
+                    }
+                } catch(e){}
+            }
 
             alert(`🎉 공지등록 완료!\n\n• [전 성도 발송]: 성도들에게 공지알림이 전달되었습니다.\n• [보물창고 (${selectedArchiveCategory})]: 자동으로 영구 보관되었습니다.`);
         }
