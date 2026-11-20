@@ -21,15 +21,15 @@
 
         html, body {
             width: 100%; height: 100%;
-            background: #060b14;
+            background: #060b14 !important;
             font-family: "Pretendard", -apple-system, sans-serif;
-            color: #ffffff;
+            color: #ffffff !important;
             overflow: hidden;
         }
 
         .worship-shell {
             width: 100%; max-width: 520px; height: 100dvh;
-            margin: 0 auto; background: #0b1120;
+            margin: 0 auto; background: #060b14;
             display: flex; flex-direction: column; position: relative;
             box-shadow: 0 0 40px rgba(0, 0, 0, 0.9);
             overflow: hidden;
@@ -96,7 +96,7 @@
             background: #0284c7;
         }
 
-        /* 🌟 전체 스크롤 뷰포트 (플레이어 + 2줄 컨트롤 바 + 이번 주/지난 주 설교 피드) */
+        /* 🌟 전체 스크롤 컨테이너 */
         .worship-scroll-container {
             flex: 1;
             width: 100%;
@@ -104,8 +104,9 @@
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             padding-top: var(--header-h);
-            padding-bottom: calc(var(--admob-h) + 20px);
+            padding-bottom: calc(var(--admob-h) + 12px);
             position: relative;
+            background: #060b14;
         }
         .worship-scroll-container::-webkit-scrollbar { display: none; }
         .worship-scroll-container.locked-scroll {
@@ -113,7 +114,20 @@
             touch-action: none !important;
         }
 
-        /* 🌟 유튜브 플레이어 박스: 예톡TV와 100% 동일한 16:9 와이드 & 확대 대비 위로 여유(-26px) */
+        /* 🌟 [사용자 요청] 1페이지 단독 뷰: 영상 + 검은 바탕색 2줄 메뉴만 첫 화면에 가득 채움! 피드는 첫 화면에 절대 안보임 */
+        .worship-first-page-view {
+            width: 100%;
+            min-height: calc(100dvh - var(--header-h) - var(--admob-h));
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #000000;
+            flex-shrink: 0;
+            box-sizing: border-box;
+            padding-bottom: 10px;
+        }
+
+        /* 🌟 유튜브 플레이어 박스: 16:9 와이드 & 확대 대비 위로 여유(-26px) */
         .yt-player-box {
             width: 100%;
             aspect-ratio: 16 / 9;
@@ -123,12 +137,13 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.8);
             border-bottom: 1.5px solid #1e293b;
             flex-shrink: 0;
+            margin: auto 0;
         }
         .yt-player-inner {
             width: 100%;
             height: 100%;
             position: relative;
-            transform: translateY(-26px); /* 🌟 [사용자 요청] 확대 시 하단 자막이 짤리지 않도록 예톡TV와 동일하게 살짝 위로 여유 */
+            transform: translateY(-26px); /* 🌟 확대 시 하단 자막 짤림 방지 */
             transition: transform 0.25s ease;
         }
         .yt-player-inner iframe {
@@ -150,87 +165,105 @@
             background: transparent;
         }
 
-        /* 🌟 영상 바로 밑 컨트롤 영역 (예톡TV와 100% 동일한 구조) */
-        .worship-controls-wrapper {
-            padding: 8px 12px 10px 12px;
+        /* 🌟 [사용자 요청] 예톡TV와 100% 동일한 검은 바탕색 2줄 메뉴 */
+        .worship-two-row-controls {
+            padding: 0 12px;
             display: flex;
             flex-direction: column;
             gap: 7px;
-            background: #0b1325;
-            border-bottom: 1.5px solid #1e293b;
+            background: transparent;
+            width: 100%;
+            box-sizing: border-box;
         }
 
-        /* 🌟 [사용자 요청] 한줄 예배 정보 알약: 클릭 시 설교 상세 모달 팝업 */
-        .sermon-info-pill {
-            background: rgba(15, 23, 42, 0.95);
-            border: 1.2px solid rgba(56, 189, 248, 0.4);
-            border-radius: 12px;
-            padding: 8px 12px;
-            color: #ffffff;
-            font-size: 13px;
-            font-weight: 850;
+        /* 🌟 1번째 줄: 실제 설교 제목 + 날짜/담임목사 연한 글씨 + 오른쪽 작은 [⚙️ 관리] 버튼 */
+        .controls-row-info {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(15, 23, 42, 0.94);
+            border: 1.2px solid rgba(255, 255, 255, 0.16);
+            border-radius: 12px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        }
+        .info-content-left {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            overflow: hidden;
+            flex: 1;
+            text-align: left;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-            transition: all 0.15s ease;
         }
-        .sermon-info-pill:active {
-            transform: scale(0.98);
-            background: #0f1f3a;
-            border-color: #38bdf8;
-        }
-        .sermon-info-pill-left {
+        .info-line-title {
             display: flex;
             align-items: center;
             gap: 6px;
             overflow: hidden;
-            text-overflow: ellipsis;
             white-space: nowrap;
-            flex: 1;
         }
-        .sermon-badge {
+        .worship-kind-tag {
             background: linear-gradient(135deg, #0284c7, #2563eb);
             color: #ffffff;
             font-size: 11px;
             font-weight: 900;
-            padding: 2px 7px;
-            border-radius: 6px;
+            padding: 2.5px 7px;
+            border-radius: 5px;
             flex-shrink: 0;
         }
-        .sermon-title-preview {
-            color: #f8fafc;
-            font-size: 13px;
-            font-weight: 850;
+        .sermon-main-title {
+            color: #ffffff;
+            font-size: 14.5px;
+            font-weight: 950;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            letter-spacing: -0.3px;
+        }
+        .info-line-sub {
+            color: #94a3b8;
+            font-size: 11px;
+            font-weight: 750;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .sermon-info-pill-right {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            color: #38bdf8;
-            font-size: 11px;
+
+        /* 오른쪽 작은 [⚙️ 관리] 버튼 */
+        .btn-compact-admin {
+            background: #1e293b;
+            color: #fde047;
+            border: 1.2px solid #ca8a04;
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 11.5px;
             font-weight: 900;
+            cursor: pointer;
             flex-shrink: 0;
-            background: rgba(2, 132, 199, 0.2);
-            padding: 3px 7px;
-            border-radius: 6px;
-            border: 1px solid rgba(56, 189, 248, 0.3);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .btn-compact-admin:active {
+            transform: scale(0.95);
+            background: #ca8a04;
+            color: #0f172a;
         }
 
-        /* 🌟 [1번째 줄 도구바]: [❤️] [✝️] | [확대 1] [속도 1] [화면고정(빨간 테두리)] [보내기] */
-        .controls-row-1 {
+        /* 🌟 2번째 줄: 도구 버튼 바 [❤️] [✝️] [확대 1] [속도 1] [화면고정] [보내기] */
+        .controls-row-tools {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 5px;
             width: 100%;
             padding: 5px 8px;
-            background: rgba(15, 23, 42, 0.92);
-            border: 1.2px solid rgba(255, 255, 255, 0.15);
+            background: rgba(15, 23, 42, 0.94);
+            border: 1.2px solid rgba(255, 255, 255, 0.16);
             border-radius: 11px;
             box-sizing: border-box;
             box-shadow: 0 4px 16px rgba(0,0,0,0.6);
@@ -295,59 +328,25 @@
             color: #ffffff;
         }
 
-        /* 🌟 [2번째 줄 도구바]: [⛪ 교회홈] [📺 예톡TV] [⚙️ 관리] */
-        .controls-row-2 {
-            display: flex;
-            gap: 6px;
-            width: 100%;
-            background: rgba(15, 23, 42, 0.98);
-            border: 1.2px solid rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 4px;
-            box-sizing: border-box;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.7);
-        }
-        .worship-action-btn {
-            flex: 1;
-            padding: 9px 8px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 900;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            border: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-            user-select: none;
-            transition: transform 0.15s ease;
-        }
-        .worship-action-btn:active {
-            transform: scale(0.96);
-        }
-        .btn-act-church-home {
-            background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
-            color: #ffffff;
-            border: 1px solid #60a5fa;
-        }
-        .btn-act-yetalk-tv {
-            background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-            color: #ffffff;
-            border: 1px solid #a78bfa;
-        }
-        .btn-act-admin {
-            background: #1e293b;
-            color: #fde047;
-            border: 1.2px solid #eab308;
-        }
-
-        /* 🌟 [사용자 요청] 스크롤 시 나타나는 피드 섹션: [📅 이번 주 설교 영상] & [📁 지난 주 설교 영상] */
+        /* 🌟 [사용자 요청] 스크롤 시 아래에서 나타나는 피드 섹션 (첫 화면에는 절대 안보임!) */
         .sermon-feed-section {
-            padding: 14px 12px 18px 12px;
+            padding: 20px 12px 24px 12px;
             display: flex;
             flex-direction: column;
             gap: 12px;
+            background: #060b14;
+            border-top: 2px solid #1e293b;
+        }
+        .feed-scroll-guide {
+            text-align: center;
+            padding: 6px 0 10px 0;
+            color: #38bdf8;
+            font-size: 11.5px;
+            font-weight: 850;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
         .feed-section-header {
             display: flex;
@@ -467,7 +466,7 @@
             white-space: nowrap;
         }
 
-        /* 🌟 예배 선택 드롭다운/시트 모달 */
+        /* 🌟 예배 선택 드롭다운 모달 */
         .dropdown-modal-overlay {
             display: none;
             position: fixed;
@@ -599,7 +598,7 @@
             word-break: keep-all;
         }
 
-        /* 🌟 관리실 풀스크린 모달 (설교 수정/삭제) */
+        /* 🌟 [관리실 풀스크린 모달] 설교 수정/삭제 */
         .admin-modal-overlay {
             display: none;
             position: fixed;
@@ -668,7 +667,7 @@
             white-space: nowrap;
         }
 
-        /* 🌟 [사용자 요청] 사랑의 하트 드론 & 은혜의 십자가 드론 애니메이션 FX */
+        /* 🌟 사랑의 하트 드론 & 은혜의 십자가 드론 애니메이션 FX */
         .particle-swarm-overlay {
             position: fixed;
             inset: 0;
@@ -803,18 +802,6 @@
                 max-width: 800px !important;
             }
         }
-
-        /* 🌟 화이트 테마 대응 */
-        body[data-theme="white"] { background: #fbf9f4 !important; color: #0f172a !important; }
-        body[data-theme="white"] .worship-shell { background: #fbf9f4 !important; }
-        body[data-theme="white"] .worship-controls-wrapper { background: #ffffff !important; border-color: #cbd5e1 !important; }
-        body[data-theme="white"] .sermon-info-pill { background: #ffffff !important; border-color: #cbd5e1 !important; }
-        body[data-theme="white"] .sermon-title-preview { color: #0f172a !important; }
-        body[data-theme="white"] .controls-row-1 { background: #f8fafc !important; border-color: #cbd5e1 !important; }
-        body[data-theme="white"] .mini-tool-pill { background: #ffffff !important; border-color: #cbd5e1 !important; color: #0f172a !important; }
-        body[data-theme="white"] .sermon-video-card { background: #ffffff !important; border-color: #e2e8f0 !important; }
-        body[data-theme="white"] .card-title-text { color: #0f172a !important; }
-        body[data-theme="white"] .feed-section-header { border-color: #cbd5e1 !important; }
     </style>
 </head>
 <body>
@@ -835,74 +822,75 @@
     <!-- 🌟 메인 스크롤 영역 -->
     <main class="worship-scroll-container" id="worshipScrollContainer">
 
-        <!-- 1. 유튜브 플레이어 박스: 16:9 와이드 & 확대 대비 위로 여유(-26px) -->
-        <div class="yt-player-box" id="ytPlayerBox">
-            <div class="yt-player-inner" id="ytPlayerInner">
-                <iframe id="mainWorshipIframe"
-                    src="https://www.youtube.com/embed/92oktJl3-Fo?autoplay=0&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    sandbox="allow-scripts allow-same-origin allow-presentation">
-                </iframe>
-            </div>
-            <div class="yt-touch-shield" id="ytTouchShield" onclick="handleVideoTouch()"></div>
-        </div>
+        <!-- 🌟 1. 첫 페이지 단독 뷰: 영상과 2줄 메뉴만 화면 전체에 꽉 채워 배치 (피드가 첫 화면에 절대 보이지 않음) -->
+        <div class="worship-first-page-view" id="worshipFirstPageView">
 
-        <!-- 2. 영상 바로 밑 컨트롤 영역 -->
-        <div class="worship-controls-wrapper">
-
-            <!-- 🌟 [사용자 요청] 한줄 예배 정보 알약: 클릭 시 설교 상세 모달 팝업 -->
-            <div class="sermon-info-pill" onclick="openSermonModal()" title="설교 상세 정보 보기">
-                <div class="sermon-info-pill-left">
-                    <span class="sermon-badge" id="pillBadgeText">🎙️ 주일예배</span>
-                    <span class="sermon-title-preview" id="pillTitleText">하나님의 언약을 굳게 붙들라</span>
+            <!-- 유튜브 플레이어 박스: 16:9 와이드 & 확대 대비 위로 여유(-26px) -->
+            <div class="yt-player-box" id="ytPlayerBox">
+                <div class="yt-player-inner" id="ytPlayerInner">
+                    <iframe id="mainWorshipIframe"
+                        src="https://www.youtube.com/embed/92oktJl3-Fo?autoplay=0&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        sandbox="allow-scripts allow-same-origin allow-presentation">
+                    </iframe>
                 </div>
-                <div class="sermon-info-pill-right">
-                    <span>ℹ️ 상세정보</span>
-                </div>
+                <div class="yt-touch-shield" id="ytTouchShield" onclick="handleVideoTouch()"></div>
             </div>
 
-            <!-- 🌟 1번째 줄 도구바: [❤️] [✝️] [확대 1] [속도 1] [화면고정(빨강 테두리)] [보내기] -->
-            <div class="controls-row-1">
-                <div style="display:flex; gap:5px; align-items:center;">
-                    <button type="button" class="mini-tool-pill mini-heart-pill" onclick="spawnHeartSwarmFX()" title="사랑의 하트">
-                        <span>❤️</span>
-                    </button>
-                    <button type="button" class="mini-tool-pill mini-cross-pill" onclick="spawnCrossFormationFX()" title="은혜의 십자가">
-                        <span style="color:#ffffff;">✝️</span>
-                    </button>
-                </div>
-                <div style="display:flex; gap:5px; align-items:center; flex:1; justify-content:flex-end;">
-                    <button type="button" class="mini-tool-pill" id="btnZoom" onclick="cycleWorshipZoom()" title="화면확대">
-                        <span id="zoomTextSpan">확대 1</span>
-                    </button>
-                    <button type="button" class="mini-tool-pill" id="btnSpeed" onclick="cycleWorshipSpeed()" title="재생속도">
-                        <span id="speedTextSpan">속도 1</span>
-                    </button>
-                    <button type="button" class="mini-tool-pill" id="btnLock" onclick="toggleScreenLock()" title="화면고정 (터치 및 스크롤 차단)">
-                        <span id="lockTextSpan">화면고정</span>
-                    </button>
-                    <button type="button" class="mini-tool-pill" id="btnShare" onclick="shareCurrentWorshipVideo()" title="영상 카톡으로 보내기 및 공유">
-                        <span>보내기</span>
-                    </button>
-                </div>
-            </div>
+            <!-- 🌟 [사용자 요청] 예톡TV와 동일한 검은 바탕색에 두줄 메뉴 -->
+            <div class="worship-two-row-controls">
 
-            <!-- 🌟 2번째 줄 버튼: [⛪ 교회홈] [📺 예톡TV] [⚙️ 관리] -->
-            <div class="controls-row-2">
-                <button type="button" class="worship-action-btn btn-act-church-home" onclick="goBackToMain()" title="교회 메인으로 이동">
-                    <span>⛪ 교회홈</span>
-                </button>
-                <button type="button" class="worship-action-btn btn-act-yetalk-tv" onclick="location.href='yetalktv.html'" title="예톡TV로 이동">
-                    <span>📺 예톡TV</span>
-                </button>
-                <button type="button" class="worship-action-btn btn-act-admin" onclick="openAdminModal()" title="예배 등록 및 관리실">
-                    <span>⚙️ 관리</span>
-                </button>
+                <!-- 1번째 줄: 실제 설교 제목 + 날짜/담임목사 연한 글씨 + 오른쪽 작은 [⚙️ 관리] 버튼 -->
+                <div class="controls-row-info">
+                    <div class="info-content-left" onclick="openSermonModal()" title="설교 상세 정보 보기 (터치)">
+                        <div class="info-line-title">
+                            <span class="worship-kind-tag" id="sermonKindBadge">🎙️ 주일예배</span>
+                            <strong class="sermon-main-title" id="sermonRealTitle">하나님의 언약을 굳게 붙들라</strong>
+                        </div>
+                        <div class="info-line-sub" id="sermonSubDetail">
+                            11월 17일 (11월 3주 주일) • 정찬석 담임목사 • 요한복음 3:16~18
+                        </div>
+                    </div>
+                    <button type="button" class="btn-compact-admin" onclick="openAdminModal()" title="예배 관리실">
+                        ⚙️ 관리
+                    </button>
+                </div>
+
+                <!-- 2번째 줄: 도구 버튼 바 [❤️] [✝️] [확대 1] [속도 1] [화면고정(빨강 테두리)] [보내기] -->
+                <div class="controls-row-tools">
+                    <div style="display:flex; gap:5px; align-items:center;">
+                        <button type="button" class="mini-tool-pill mini-heart-pill" onclick="spawnHeartSwarmFX()" title="사랑의 하트">
+                            <span>❤️</span>
+                        </button>
+                        <button type="button" class="mini-tool-pill mini-cross-pill" onclick="spawnCrossFormationFX()" title="은혜의 십자가">
+                            <span style="color:#ffffff;">✝️</span>
+                        </button>
+                    </div>
+                    <div style="display:flex; gap:5px; align-items:center; flex:1; justify-content:flex-end;">
+                        <button type="button" class="mini-tool-pill" id="btnZoom" onclick="cycleWorshipZoom()" title="화면확대">
+                            <span id="zoomTextSpan">확대 1</span>
+                        </button>
+                        <button type="button" class="mini-tool-pill" id="btnSpeed" onclick="cycleWorshipSpeed()" title="재생속도">
+                            <span id="speedTextSpan">속도 1</span>
+                        </button>
+                        <button type="button" class="mini-tool-pill" id="btnLock" onclick="toggleScreenLock()" title="화면고정 (터치 및 스크롤 차단)">
+                            <span id="lockTextSpan">화면고정</span>
+                        </button>
+                        <button type="button" class="mini-tool-pill" id="btnShare" onclick="shareCurrentWorshipVideo()" title="영상 카톡으로 보내기 및 공유">
+                            <span>보내기</span>
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <!-- 3. [사용자 요청] 스크롤 시 나타나는 피드 섹션: [📅 이번 주 설교 영상] & [📁 지난 주 설교 영상] -->
-        <section class="sermon-feed-section">
+        <!-- 🌟 2. 아래로 스크롤할 때 비로소 나타나는 이번 주 / 지난 주 설교 영상 피드 -->
+        <section class="sermon-feed-section" id="sermonFeedSection">
+
+            <div class="feed-scroll-guide">
+                <span>▼</span> <span>아래로 스크롤하여 예배 및 설교 목록을 확인하세요</span> <span>▼</span>
+            </div>
 
             <!-- 이번 주 설교 영상 -->
             <div class="feed-section-header">
@@ -912,25 +900,25 @@
                 <div class="feed-section-desc">터치 시 즉시 상단 재생</div>
             </div>
             <div id="thisWeekFeedList" style="display:flex; flex-direction:column; gap:8px;">
-                <!-- JS 동적 렌더링: 주일예배, 수요예배, 금요기도회, 새벽기도회 등 순서대로 배치 -->
+                <!-- JS 동적 렌더링 -->
             </div>
 
             <!-- 지난 주 설교 영상 (그 전주까지만 올라가며 보배창고 자동 저장) -->
-            <div class="feed-section-header" style="margin-top:14px;">
+            <div class="feed-section-header" style="margin-top:16px;">
                 <div class="feed-section-title" style="color:#a78bfa;">
                     <span>📁</span> 지난 주 예배 및 설교
                 </div>
                 <div class="feed-section-desc">보배창고 자동보관</div>
             </div>
             <div id="pastWeekFeedList" style="display:flex; flex-direction:column; gap:8px;">
-                <!-- JS 동적 렌더링: 지난 주 설교 목록 -->
+                <!-- JS 동적 렌더링 -->
             </div>
 
         </section>
 
     </main>
 
-    <!-- 4. 하단 고정 100 애드몹 배너 -->
+    <!-- 🌟 하단 고정 100 애드몹 배너 -->
     <footer class="bottom-fixed-admob-footer">
         <div class="admob-safety-bar">
             <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
@@ -982,7 +970,11 @@
             </div>
             <div class="sermon-modal-row">
                 <span class="sermon-modal-label">✝️ 설 교 자</span>
-                <span class="sermon-modal-value" id="modalSermonPreacher">이은혜 담임목사</span>
+                <span class="sermon-modal-value" id="modalSermonPreacher">정찬석 담임목사</span>
+            </div>
+            <div class="sermon-modal-row">
+                <span class="sermon-modal-label">📅 예배 날짜</span>
+                <span class="sermon-modal-value" id="modalSermonDate" style="color:#10b981; font-weight:900;">11월 17일 (11월 3주 주일)</span>
             </div>
         </div>
         <button type="button" style="background:#0284c7; color:#ffffff; border:none; border-radius:10px; padding:10px; font-size:14px; font-weight:900; cursor:pointer; margin-top:6px;" onclick="closeSermonModal()">
@@ -1000,23 +992,28 @@
         </div>
 
         <div class="admin-input-group">
-            <label class="admin-input-label">1. 설교 제목</label>
+            <label class="admin-input-label">1. 설교 제목 (필수)</label>
             <input type="text" class="admin-input-text" id="inpAdminTitle" placeholder="예: 하나님의 언약을 굳게 붙들라">
         </div>
 
         <div class="admin-input-group">
-            <label class="admin-input-label">2. 성경 본문</label>
+            <label class="admin-input-label">2. 성경 본문 (필수)</label>
             <input type="text" class="admin-input-text" id="inpAdminBible" placeholder="예: 요한복음 3장 16절 ~ 18절">
         </div>
 
         <div class="admin-input-group">
-            <label class="admin-input-label">3. 설교자</label>
-            <input type="text" class="admin-input-text" id="inpAdminPreacher" placeholder="예: 담임목사">
+            <label class="admin-input-label">3. 설교자 (기본: 본 교회 담임목사, 수정 가능)</label>
+            <input type="text" class="admin-input-text" id="inpAdminPreacher" placeholder="예: 정찬석 담임목사">
+        </div>
+
+        <div class="admin-input-group">
+            <label class="admin-input-label" style="color:#a78bfa;">4. 예배 날짜 (자동 계산 / 직접 수정 가능)</label>
+            <input type="text" class="admin-input-text" id="inpAdminDate" placeholder="예: 11월 17일 (11월 3주 주일)">
         </div>
 
         <div class="admin-input-group">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <label class="admin-input-label" style="color:#38bdf8;">4. 유튜브 영상 주소</label>
+                <label class="admin-input-label" style="color:#38bdf8;">5. 유튜브 영상 주소</label>
                 <span style="font-size:10.5px; color:#fde047;">★ 터치 시 전체선택</span>
             </div>
             <div class="yt-input-row">
@@ -1052,20 +1049,64 @@
     const TREASURE_ARCHIVE_KEY = "yetalk_church_treasure_sermons_v1";
     const WORSHIP_KEYS = ["sunday", "wednesday", "friday", "dawn", "special", "praise"];
 
+    function getChurchPastor() {
+        let p = localStorage.getItem("yetalk_church_pastor_name") || "정찬석 담임목사";
+        if (!p || p.includes("이은혜") || p === "담임목사") {
+            p = "정찬석 담임목사";
+        }
+        return p;
+    }
+
+    function getAutoWorshipDate(key) {
+        const now = new Date();
+        const month = now.getMonth() + 1;
+        const date = now.getDate();
+        const day = now.getDay(); // 0: 일, 1: 월, 3: 수, 5: 금, 6: 토
+
+        if (key === "sunday") {
+            const sunDate = new Date(now);
+            sunDate.setDate(date - day);
+            const sMonth = sunDate.getMonth() + 1;
+            const sDay = sunDate.getDate();
+            const weekNum = Math.ceil(sDay / 7);
+            return `${sMonth}월 ${sDay}일 (${sMonth}월 ${weekNum}주 주일)`;
+        } else if (key === "wednesday") {
+            const wedDate = new Date(now);
+            const diff = (day >= 3) ? (day - 3) : (day + 4);
+            wedDate.setDate(date - diff);
+            const wMonth = wedDate.getMonth() + 1;
+            const wDay = wedDate.getDate();
+            return `${wMonth}월 ${wDay}일 (수요예배)`;
+        } else if (key === "friday") {
+            const friDate = new Date(now);
+            const diff = (day >= 5) ? (day - 5) : (day + 2);
+            friDate.setDate(date - diff);
+            const fMonth = friDate.getMonth() + 1;
+            const fDay = friDate.getDate();
+            return `${fMonth}월 ${fDay}일 (금요기도회)`;
+        } else if (key === "dawn") {
+            return `${month}월 ${date}일 (새벽기도회)`;
+        } else if (key === "special") {
+            return `${month}월 특별예배`;
+        } else {
+            return `${month}월 찬양모음`;
+        }
+    }
+
     const DEFAULT_DATA = {
-        sunday: { tabName: "주일예배", title: "하나님의 언약을 굳게 붙들라", bible: "요한복음 3장 16절 ~ 18절", preacher: "이은혜 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 17일" },
-        wednesday: { tabName: "수요예배", title: "믿음으로 순종하는 삶", bible: "창세기 12장 1절 ~ 4절", preacher: "이은혜 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 20일" },
-        friday: { tabName: "금요기도회", title: "성령의 임재와 회복의 은혜", bible: "사도행전 1장 8절", preacher: "이은혜 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 15일" },
-        dawn: { tabName: "새벽기도회", title: "주의 인도하심을 따라", bible: "시편 23편 1절 ~ 6절", preacher: "교구목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 20일" },
-        special: { tabName: "특별예배", title: "복음의 능력으로 부흥하는 교회", bible: "에베소서 4장 11절 ~ 16절", preacher: "초청강사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 10일" },
-        praise: { tabName: "찬양모음", title: "온 맘 다해 주 찬양하라", bible: "시편 150편 1절 ~ 6절", preacher: "할렐루야 찬양대", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 17일" }
+        sunday: { tabName: "주일예배", title: "하나님의 언약을 굳게 붙들라", bible: "요한복음 3장 16절 ~ 18절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "" },
+        wednesday: { tabName: "수요예배", title: "믿음으로 순종하는 삶", bible: "창세기 12장 1절 ~ 4절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "" },
+        friday: { tabName: "금요기도회", title: "성령의 임재와 회복의 은혜", bible: "사도행전 1장 8절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "" },
+        dawn: { tabName: "새벽기도회", title: "주의 인도하심을 따라", bible: "시편 23편 1절 ~ 6절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "" },
+        special: { tabName: "특별예배", title: "복음의 능력으로 부흥하는 교회", bible: "에베소서 4장 11절 ~ 16절", preacher: "초청강사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "" },
+        praise: { tabName: "찬양모음", title: "온 맘 다해 주 찬양하라", bible: "시편 150편 1절 ~ 6절", preacher: "할렐루야 찬양대", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "" }
     };
 
     // 지난 주 기본 설교 데이터
     const PAST_DEFAULT_DATA = [
-        { tabName: "주일예배", title: "오직 믿음으로 살리라", bible: "로마서 1장 16절 ~ 17절", preacher: "이은혜 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 10일" },
-        { tabName: "수요예배", title: "기도의 능력과 응답의 확신", bible: "예레미야 33장 3절", preacher: "이은혜 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 13일" },
-        { tabName: "금요기도회", title: "성령의 불길 타오르게 하소서", bible: "누가복음 12장 49절", preacher: "이은혜 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 8일" }
+        { tabName: "주일예배", title: "오직 믿음으로 살리라", bible: "로마서 1장 16절 ~ 17절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 10일 (11월 2주 주일)" },
+        { tabName: "수요예배", title: "기도의 능력과 응답의 확신", bible: "예레미야 33장 3절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 13일 (수요예배)" },
+        { tabName: "금요기도회", title: "성령의 불길 타오르게 하소서", bible: "누가복음 12장 49절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 8일 (금요기도회)" }
     ];
 
     let activeWorshipIndex = 0;
@@ -1187,10 +1228,11 @@
         const item = worshipData[key] || DEFAULT_DATA[key];
         const ytId = extractYoutubeVideoId(item.yt);
         const church = getChurchName();
+        const dateStr = item.date || getAutoWorshipDate(key);
+        const preacher = item.preacher || getChurchPastor();
 
-        const shareText = `[${church} ${item.tabName}]\n"${item.title}"\n설교: ${item.preacher} (본문: ${item.bible})\n\n▶ 예배 영상 바로보기:\nhttps://youtu.be/${ytId}\n\n🌿 예수님과 함께 걷는 나의 예톡 바로가기:\nhttps://yetalk.cc`;
+        const shareText = `[${church} ${item.tabName}]\n"${item.title}"\n일시: ${dateStr}\n설교: ${preacher} (본문: ${item.bible})\n\n▶ 예배 영상 바로보기:\nhttps://youtu.be/${ytId}\n\n🌿 예수님과 함께 걷는 나의 예톡 바로가기:\nhttps://yetalk.cc`;
 
-        // 클립보드 복사
         let copied = false;
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(shareText).then(() => { copied = true; }).catch(() => {});
@@ -1211,7 +1253,6 @@
 
         showToast("📋 예배 영상 및 예톡 링크가 복사되었습니다!");
 
-        // 네이티브 공유 / 카카오톡 연결
         setTimeout(() => {
             if (navigator.share) {
                 navigator.share({
@@ -1231,41 +1272,47 @@
         const key = WORSHIP_KEYS[idx];
         const item = worshipData[key] || DEFAULT_DATA[key];
         const ytId = extractYoutubeVideoId(item.yt);
+        const dateStr = item.date || getAutoWorshipDate(key);
+        const preacher = item.preacher || getChurchPastor();
 
-        // 상단 헤더 배지 업데이트
+        // 1. 상단 플로팅 헤더 배지
         const headerBadge = document.getElementById("headerWorshipKindBadge");
         if (headerBadge) headerBadge.innerText = `🎙️ ${item.tabName}`;
 
-        // 플레이어 iframe 소스 변경
+        // 2. 플레이어 iframe
         const iframe = document.getElementById("mainWorshipIframe");
         if (iframe) {
             iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3`;
         }
 
-        // 알약 텍스트 업데이트
-        const pillBadge = document.getElementById("pillBadgeText");
-        const pillTitle = document.getElementById("pillTitleText");
-        if (pillBadge) pillBadge.innerText = `🎙️ ${item.tabName}`;
-        if (pillTitle) pillTitle.innerText = item.title;
+        // 3. 1번째 줄 알약 정보 (설교제목 + 연한 날짜/담임목사/본문)
+        const kindBadge = document.getElementById("sermonKindBadge");
+        const realTitle = document.getElementById("sermonRealTitle");
+        const subDetail = document.getElementById("sermonSubDetail");
+        if (kindBadge) kindBadge.innerText = `🎙️ ${item.tabName}`;
+        if (realTitle) realTitle.innerText = item.title;
+        if (subDetail) subDetail.innerText = `${dateStr} • ${preacher} • ${item.bible}`;
 
-        // 모달 데이터 준비
+        // 4. 모달 데이터 준비
         const modalHeader = document.getElementById("modalHeaderBadge");
         const modalTitle = document.getElementById("modalSermonTitle");
         const modalBible = document.getElementById("modalSermonBible");
         const modalPreacher = document.getElementById("modalSermonPreacher");
         const modalChurch = document.getElementById("modalChurchName");
+        const modalDate = document.getElementById("modalSermonDate");
         if (modalHeader) modalHeader.innerText = `🎙️ ${item.tabName}`;
         if (modalTitle) modalTitle.innerText = item.title;
         if (modalBible) modalBible.innerText = item.bible;
-        if (modalPreacher) modalPreacher.innerText = item.preacher;
+        if (modalPreacher) modalPreacher.innerText = preacher;
         if (modalChurch) modalChurch.innerText = getChurchName();
+        if (modalDate) modalDate.innerText = dateStr;
 
-        // 피드 리스트 활성 강조 업데이트
+        // 5. 피드 리스트 활성 강조 업데이트
         document.querySelectorAll(".sermon-video-card").forEach(c => {
             c.classList.toggle("active-playing", c.dataset.key === key);
         });
 
-        // 상단으로 부드럽게 스크롤
+        // 6. 상단으로 부드럽게 스크롤
         const container = document.getElementById("worshipScrollContainer");
         if (container) container.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -1300,11 +1347,15 @@
     function openSermonModal() {
         const key = WORSHIP_KEYS[activeWorshipIndex];
         const item = worshipData[key] || DEFAULT_DATA[key];
+        const dateStr = item.date || getAutoWorshipDate(key);
+        const preacher = item.preacher || getChurchPastor();
+
         document.getElementById("modalHeaderBadge").innerText = `🎙️ ${item.tabName}`;
         document.getElementById("modalChurchName").innerText = getChurchName();
         document.getElementById("modalSermonTitle").innerText = item.title;
         document.getElementById("modalSermonBible").innerText = item.bible;
-        document.getElementById("modalSermonPreacher").innerText = item.preacher;
+        document.getElementById("modalSermonPreacher").innerText = preacher;
+        document.getElementById("modalSermonDate").innerText = dateStr;
         document.getElementById("sermonModal").classList.add("open");
     }
     function closeSermonModal() {
@@ -1322,6 +1373,9 @@
         WORSHIP_KEYS.forEach((k, idx) => {
             const itm = worshipData[k] || DEFAULT_DATA[k];
             const ytId = extractYoutubeVideoId(itm.yt);
+            const dateStr = itm.date || getAutoWorshipDate(k);
+            const preacher = itm.preacher || getChurchPastor();
+
             const card = document.createElement("div");
             card.className = `sermon-video-card ${idx === activeWorshipIndex ? 'active-playing' : ''}`;
             card.dataset.key = k;
@@ -1334,10 +1388,10 @@
                 <div class="card-info-wrap">
                     <div class="card-badge-row">
                         <span class="card-kind-badge">${itm.tabName}</span>
-                        <span class="card-date-badge">${itm.date || '이번 주'}</span>
+                        <span class="card-date-badge">${dateStr}</span>
                     </div>
                     <div class="card-title-text">${itm.title}</div>
-                    <div class="card-sub-text">설교: ${itm.preacher} • ${itm.bible}</div>
+                    <div class="card-sub-text">설교: ${preacher} • ${itm.bible}</div>
                 </div>
             `;
             thisList.appendChild(card);
@@ -1361,8 +1415,12 @@
                 if (iframe) {
                     iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3`;
                 }
-                document.getElementById("pillBadgeText").innerText = `📁 ${itm.tabName} (지난 주)`;
-                document.getElementById("pillTitleText").innerText = itm.title;
+                const kindBadge = document.getElementById("sermonKindBadge");
+                const realTitle = document.getElementById("sermonRealTitle");
+                const subDetail = document.getElementById("sermonSubDetail");
+                if (kindBadge) kindBadge.innerText = `📁 ${itm.tabName}`;
+                if (realTitle) realTitle.innerText = itm.title;
+                if (subDetail) subDetail.innerText = `${itm.date || '지난 주'} • ${itm.preacher} • ${itm.bible}`;
                 document.getElementById("headerWorshipKindBadge").innerText = `📁 ${itm.tabName}`;
                 showToast(`📁 지난 주 [${itm.tabName}] 영상을 재생합니다.`);
                 const container = document.getElementById("worshipScrollContainer");
@@ -1390,10 +1448,14 @@
     function openAdminModal() {
         const key = WORSHIP_KEYS[activeWorshipIndex];
         const item = worshipData[key] || DEFAULT_DATA[key];
+        const dateStr = item.date || getAutoWorshipDate(key);
+        const preacher = item.preacher || getChurchPastor();
+
         document.getElementById("adminModalTitle").innerText = `예배 관리실 - ${item.tabName}`;
-        document.getElementById("inpAdminTitle").value = item.title || "";
-        document.getElementById("inpAdminBible").value = item.bible || "";
-        document.getElementById("inpAdminPreacher").value = item.preacher || "";
+        document.getElementById("inpAdminTitle").value = (item.title && item.title !== "주일 대예배 실황") ? item.title : "하나님의 언약을 굳게 붙들라";
+        document.getElementById("inpAdminBible").value = item.bible || "요한복음 3장 16절 ~ 18절";
+        document.getElementById("inpAdminPreacher").value = preacher;
+        document.getElementById("inpAdminDate").value = dateStr;
         document.getElementById("inpAdminYt").value = item.yt || "";
         document.getElementById("adminModal").classList.add("open");
     }
@@ -1419,6 +1481,7 @@
         const title = document.getElementById("inpAdminTitle").value.trim();
         const bible = document.getElementById("inpAdminBible").value.trim();
         const preacher = document.getElementById("inpAdminPreacher").value.trim();
+        const dateVal = document.getElementById("inpAdminDate").value.trim();
         let yt = document.getElementById("inpAdminYt").value.trim();
 
         if (!title) { alert("설교 제목을 입력해주세요."); return; }
@@ -1435,7 +1498,7 @@
             bible: bible,
             preacher: preacher,
             yt: yt,
-            date: "오늘 업데이트"
+            date: dateVal || getAutoWorshipDate(key)
         };
         localStorage.setItem(SHARED_WORSHIP_KEY, JSON.stringify(worshipData));
         showToast("✅ 설교 영상 정보가 저장되고 보배창고에 등록되었습니다!");
@@ -1447,7 +1510,10 @@
     function deleteCurrentWorshipVideo() {
         if (!confirm("현재 예배 영상을 삭제하고 기본 샘플로 초기화하시겠습니까?")) return;
         const key = WORSHIP_KEYS[activeWorshipIndex];
-        worshipData[key] = DEFAULT_DATA[key];
+        worshipData[key] = Object.assign({}, DEFAULT_DATA[key], {
+            preacher: getChurchPastor(),
+            date: getAutoWorshipDate(key)
+        });
         localStorage.setItem(SHARED_WORSHIP_KEY, JSON.stringify(worshipData));
         showToast("🗑️ 영상이 삭제되고 초기화되었습니다.");
         switchWorship(activeWorshipIndex);
@@ -1464,9 +1530,9 @@
                 tabName: currentItem.tabName,
                 title: currentItem.title,
                 bible: currentItem.bible,
-                preacher: currentItem.preacher,
+                preacher: currentItem.preacher || getChurchPastor(),
                 yt: currentItem.yt,
-                date: currentItem.date || "지난 주"
+                date: currentItem.date || getAutoWorshipDate(key)
             });
             if (list.length > 20) list = list.slice(0, 20);
             localStorage.setItem(TREASURE_ARCHIVE_KEY, JSON.stringify(list));
@@ -1481,7 +1547,7 @@
         setTimeout(() => t.classList.remove("show"), 2200);
     }
 
-    /* 🌟 [사용자 요청] 사랑의 하트 드론 애니메이션 FX */
+    /* 🌟 사랑의 하트 드론 애니메이션 FX */
     function spawnHeartSwarmFX() {
         const overlay = document.createElement("div");
         overlay.className = "particle-swarm-overlay";
@@ -1519,7 +1585,7 @@
         }, 2500);
     }
 
-    /* 🌟 [사용자 요청] 은혜의 십자가 드론 애니메이션 FX */
+    /* 🌟 은혜의 십자가 드론 애니메이션 FX */
     function spawnCrossFormationFX() {
         const overlay = document.createElement("div");
         overlay.className = "particle-swarm-overlay";
@@ -1563,15 +1629,41 @@
 
     function initPage() {
         const saved = localStorage.getItem(SHARED_WORSHIP_KEY);
+        const pastor = getChurchPastor();
         if (saved) {
             try {
                 worshipData = JSON.parse(saved);
+                let changed = false;
                 WORSHIP_KEYS.forEach(k => {
-                    if (!worshipData[k] || !worshipData[k].title) worshipData[k] = DEFAULT_DATA[k];
+                    if (!worshipData[k] || !worshipData[k].title || worshipData[k].title === "주일 대예배 실황") {
+                        worshipData[k] = Object.assign({}, DEFAULT_DATA[k]);
+                        changed = true;
+                    }
+                    if (!worshipData[k].preacher || worshipData[k].preacher.includes("이은혜") || worshipData[k].preacher === "담임목사") {
+                        worshipData[k].preacher = pastor;
+                        changed = true;
+                    }
+                    if (!worshipData[k].date) {
+                        worshipData[k].date = getAutoWorshipDate(k);
+                        changed = true;
+                    }
                 });
-            } catch(e) { worshipData = DEFAULT_DATA; }
+                if (changed) {
+                    localStorage.setItem(SHARED_WORSHIP_KEY, JSON.stringify(worshipData));
+                }
+            } catch(e) {
+                worshipData = DEFAULT_DATA;
+                WORSHIP_KEYS.forEach(k => {
+                    worshipData[k].preacher = pastor;
+                    worshipData[k].date = getAutoWorshipDate(k);
+                });
+            }
         } else {
             worshipData = DEFAULT_DATA;
+            WORSHIP_KEYS.forEach(k => {
+                worshipData[k].preacher = pastor;
+                worshipData[k].date = getAutoWorshipDate(k);
+            });
             localStorage.setItem(SHARED_WORSHIP_KEY, JSON.stringify(worshipData));
         }
 
@@ -1580,8 +1672,6 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-        const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
-        document.body.setAttribute('data-theme', savedTheme);
         initPage();
     });
 </script>
