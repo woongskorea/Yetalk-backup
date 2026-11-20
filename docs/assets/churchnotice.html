@@ -90,6 +90,12 @@
         .post-card-meta-line {
             display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: #64748b; font-weight: 700;
         }
+        .post-meta-author {
+            color: #94a3b8; font-weight: 750;
+        }
+        body[data-theme="white"] .post-meta-author {
+            color: #475569 !important;
+        }
 
         .badge-cat {
             font-size: 10.5px; font-weight: 850; padding: 2px 6px; border-radius: 4px;
@@ -545,7 +551,8 @@
             </div>
             <input type="file" id="fileDetailImgDirect" style="display:none;" accept="image/*" onchange="handleDirectDetailImage(this)">
 
-            <div>
+            <!-- 🌟 [사용자 요청] 불필요한 카테고리 파란 박스 제거로 공간 절약 -->
+            <div style="display:none;">
                 <span class="badge-cat" id="detailCatBadge">주일예배</span>
             </div>
             <div class="detail-title" id="detailTitleText"></div>
@@ -950,7 +957,8 @@
             let medHeaderNotice = isTodayUpdatedNotice ? "🕊️ 담임목사 권면 묵상:" : "🕊️ 오늘의 은혜 묵상:";
             const noticeGuideNotice = "\n\n────────────────────\n\n💡 안내: 담임목사님께서 교회앱 [예수동행] 메뉴에서 10시 이전 당일의 새글 수정하시면 담임목사님 이름으로 발송되며, 수정이 없을 시 교회 공식 은혜의 말씀으로 매일 오전 10시에 자동 발송됩니다.";
 
-            loaded = loaded.filter(item => item && item.id !== dailyWordNoticeId);
+            // 🌟 중복 방지: 동일 날짜 또는 예수동행 제목 중복 항목 깔끔히 필터링
+            loaded = loaded.filter(item => item && item.id !== dailyWordNoticeId && !String(item.title || "").includes("[오늘의 예수동행]") && !String(item.title || "").includes("[목사님의 예수동행]"));
             loaded.unshift({
                 id: dailyWordNoticeId,
                 category: catNotice,
@@ -1056,20 +1064,15 @@
 
             const hasImgBadge = n.img ? `<span style="font-size:10px; color:#facc15; background:rgba(250,204,21,0.15); border:1px solid rgba(250,204,21,0.4); padding:2px 5px; border-radius:4px; font-weight:900; margin-left:4px;">📷 사진</span>` : "";
             const hasFileBadge = n.fileName ? `<span style="font-size:10px; color:#38bdf8; background:rgba(2,132,199,0.2); border:1px solid rgba(56,189,248,0.4); padding:2px 5px; border-radius:4px; font-weight:900; margin-left:4px;">📁 첨부</span>` : "";
-            const catBadge = `<span class="badge-cat">${n.category || '주일예배'}</span>`;
-
+            // 🌟 [사용자 요청] 상단 파란 카테고리 박스 제거로 공간 절약 및 중복 방지 (작성자 · 일시 하단 메타 일원화)
             card.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                    ${catBadge}
-                    <span style="font-size:11.5px; color:#64748b; font-weight:700;">${n.time}</span>
-                </div>
                 <div class="post-card-title">
                     <span style="color:#f43f5e; font-weight:900;">[공지]</span> ${n.title} ${hasImgBadge} ${hasFileBadge}
                 </div>
                 <!-- 이미지는 숨기고 글 요약만 2줄로 시원하게 표시 -->
                 <div class="post-card-preview-2lines">${n.content}</div>
                 <div class="post-card-meta-line">
-                    <span style="color:#cbd5e1; font-weight:800;">${n.author || '교회사무실'}</span>
+                    <span class="post-meta-author">${n.author || '교회사무실'} · ${n.time}</span>
                     <span style="color:#f43f5e; font-weight:800;">❤️ ${(n.views || 10).toLocaleString()}</span>
                 </div>
             `;
