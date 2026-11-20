@@ -13191,20 +13191,6 @@
             comments: [
                 { id: "cm_1", author: "다윗청년", text: "귀한 선교 사역을 응원하며 기도하겠습니다! 선교사님 영육간에 강건하세요 🙏", date: "3시간 전" }
             ]
-        },
-        { 
-            id: "default_pastor_1", 
-            author: "정찬석목사", 
-            tag: "담임목사전용", 
-            board: "담임목사전용",
-            title: "[목회 나눔] 주일 설교 준비와 성도들을 위한 중보기도", 
-            text: "한 주간의 목회와 주일 강단을 준비하며 성도님들의 가정과 건강, 믿음의 승리를 위해 간절히 기도합니다.\n동역하는 모든 목회자님들께 주님의 위로와 능력이 함께하시길 소망합니다.", 
-            date: "오늘", 
-            hearts: 88,
-            views: 88, 
-            photo: "", 
-            link: "",
-            comments: []
         }
     ];
 
@@ -13270,7 +13256,18 @@
         } catch(e) {
             console.error("getLoadedBoardPosts error:", e);
         }
-        posts = posts.filter(p => p && typeof p === 'object');
+        // 🌟 [사용자 요청] 시스템 임의 생성글 제거 및 실제 등록글만 표시
+        posts = posts.filter(p => p && typeof p === 'object' && p.id !== 'default_pastor_1');
+        try {
+            const rawStored = localStorage.getItem('yetalk_unified_board_posts');
+            if (rawStored && rawStored.includes('default_pastor_1')) {
+                const parsedStored = JSON.parse(rawStored);
+                if (Array.isArray(parsedStored)) {
+                    const cleanStored = parsedStored.filter(s => s && s.id !== 'default_pastor_1');
+                    localStorage.setItem('yetalk_unified_board_posts', JSON.stringify(cleanStored));
+                }
+            }
+        } catch(e){}
         posts.forEach(p => {
             if (!Array.isArray(p.comments)) p.comments = [];
             if (p.hearts == null) p.hearts = p.views || 0;
