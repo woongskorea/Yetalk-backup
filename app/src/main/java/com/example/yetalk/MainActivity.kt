@@ -200,12 +200,14 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     val currentUrl = webView.url ?: ""
-                    val isAtHome = currentUrl.endsWith("/assets/index.html") ||
-                                   currentUrl.endsWith("/index.html") ||
-                                   currentUrl == "https://yetalk.cc" ||
-                                   currentUrl == "https://yetalk.cc/" ||
-                                   currentUrl == "https://yetalk.cc/assets/" ||
-                                   currentUrl.isEmpty()
+                    val cleanUrl = currentUrl.substringBefore('?').substringBefore('#')
+                    val isAtHome = cleanUrl.endsWith("/assets/index.html") ||
+                                   cleanUrl.endsWith("/index.html") ||
+                                   cleanUrl == "https://yetalk.cc" ||
+                                   cleanUrl == "https://yetalk.cc/" ||
+                                   cleanUrl == "https://yetalk.cc/assets" ||
+                                   cleanUrl == "https://yetalk.cc/assets/" ||
+                                   cleanUrl.isEmpty()
 
                     // 🌟 [사용자 요청] 서브 화면(예톡TV, 우리교회, 개인홈 등)에서는 뒤로가기 시 반드시 예톡 홈을 먼저 거침!
                     if (!isAtHome) {

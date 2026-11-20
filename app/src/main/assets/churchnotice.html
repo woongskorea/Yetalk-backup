@@ -513,7 +513,7 @@
     </aside>
 <div class="notice-app-shell">
     <header class="med-header">
-        <div class="med-logo" onclick="goToStoreAppHome()">
+        <div class="med-logo" onclick="goBackToYetalkHome()" style="cursor:pointer;" title="예톡 메인홈 공지 리스트로 복귀">
             <span style="font-size:20px; font-weight:900; margin-right:4px;">‹</span> <span id="noticeHeaderTitle">✝ 예톡행복한교회 공지알림</span>
         </div>
         <div class="dual-admin-btn-group">
@@ -569,6 +569,20 @@
 
             <!-- 본문 내용 -->
             <div class="detail-content" id="detailContentText"></div>
+
+            <!-- 🌟 [사용자 요청] 공지알림 글 바로 밑: 교회앱 바로가기 버튼 (클릭 시에만 교회앱으로 이동) -->
+            <div class="detail-church-shortcut-box" id="detailChurchShortcutBox" style="margin:16px 0 12px 0; text-align:center;">
+                <button type="button" class="btn-goto-church-app" onclick="goToChurchApp()" style="width:100%; max-width:320px; padding:12.5px 16px; background:linear-gradient(135deg, #0284c7 0%, #2563eb 100%); color:#ffffff; border:none; border-radius:12px; font-size:14.5px; font-weight:900; letter-spacing:-0.3px; cursor:pointer; box-shadow:0 3.5px 12px rgba(2, 132, 199, 0.35); display:inline-flex; align-items:center; justify-content:center; gap:8px; transition:transform 0.15s ease, box-shadow 0.15s ease;">
+                    <span style="font-size:16px;">⛪</span>
+                    <span id="btnGotoChurchLabel">우리교회 바로가기</span>
+                    <span style="font-size:13px; opacity:0.9;">➔</span>
+                </button>
+            </div>
+
+            <!-- 🌟 안내 가이드 텍스트 (본문 하단 안내문이 있을 때 분리 표시) -->
+            <div id="detailNoticeGuideBox" style="display:none; margin:0 0 16px 0; padding:11px 13px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:11px; font-size:11.8px; font-weight:700; color:#475569; line-height:1.55; text-align:left; word-break:keep-all;">
+                <span id="detailNoticeGuideText"></span>
+            </div>
 
             <!-- 하단 3대 네비게이션 버튼 바 -->
             <div class="detail-nav-tripod-bar">
@@ -1105,7 +1119,36 @@
         document.getElementById("detailCatBadge").innerText = n.category || "주일예배";
         document.getElementById("detailTitleText").innerText = n.title;
         document.getElementById("detailMetaText").innerText = `${n.author || '교회사무실'} · ${n.time}`;
-        document.getElementById("detailContentText").innerText = n.content;
+
+        // 🌟 [사용자 요청] 공지 본문 밑에 교회앱 바로가기 버튼 동적 교회명 연동
+        let churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "우리교회";
+        if (!churchName || churchName.includes("움직이는") || churchName.includes("김예톡") || churchName.includes("최예톡")) {
+            churchName = "우리교회";
+        }
+        const churchBtnLabel = document.getElementById("btnGotoChurchLabel");
+        if (churchBtnLabel) {
+            churchBtnLabel.innerText = `${churchName} 바로가기`;
+        }
+
+        // 🌟 본문과 💡 안내 가이드 분리 표시 (버튼이 말씀 직하단에 오도록 배치)
+        let contentText = n.content || "";
+        const guideMarker = "💡 안내:";
+        const guideBox = document.getElementById("detailNoticeGuideBox");
+        const guideTextEl = document.getElementById("detailNoticeGuideText");
+
+        if (contentText.includes(guideMarker)) {
+            let mainPart = contentText.substring(0, contentText.indexOf(guideMarker)).replace(/────────────────────\s*$/, "").trim();
+            let guidePart = contentText.substring(contentText.indexOf(guideMarker)).trim();
+            document.getElementById("detailContentText").innerText = mainPart;
+            if (guideBox && guideTextEl) {
+                guideTextEl.innerText = guidePart;
+                guideBox.style.display = "block";
+            }
+        } else {
+            document.getElementById("detailContentText").innerText = contentText;
+            if (guideBox) guideBox.style.display = "none";
+        }
+
         document.getElementById("detailViewsCount").innerText = (n.views || 10).toLocaleString();
 
         const imgBox = document.getElementById("detailImgBox");
@@ -1241,19 +1284,28 @@
         location.href = "churchmain.html?card=3";
     }
 
+    // 🌟 [사용자 요청] 공지알림 글 밑 교회앱 바로가기 버튼 전용 함수
+    function goToChurchApp() {
+        location.href = "churchmain.html";
+    }
+
+    // 🌟 [사용자 요청] 예톡 메인홈의 공지 리스트로 복귀
+    function goBackToYetalkHome() {
+        location.href = "index.html?view=notice";
+    }
+
     // 🌟 안드로이드 하드웨어 / 제스처 백키 전용 핸들러 (MainActivity.kt 연동)
     window.handleAppBackPress = function() {
-        const detailModal = document.getElementById("detailModal");
-        if (detailModal && detailModal.style.display === "flex") {
-            closeDetailModal();
-            return true;
-        }
         const writeModal = document.getElementById("cafeWriteScreen");
-        if (writeModal && writeModal.classList.contains("open")) {
+        if (writeModal && (writeModal.classList.contains("open") || writeModal.style.display === "flex")) {
             closeWriteModal();
             return true;
         }
-        goToStoreAppHome();
+
+        // 🌟 [사용자 요청] 화면 밑 뒤로가기 누를 시:
+        // 교회앱(churchmain.html)으로 자동 이동하지 않고, 바로 예톡홈(index.html) 공지 리스트로 복귀!
+        // 그 후 예톡홈에서 한 번 더 누르면 앱이 정상 종료되도록 처리
+        goBackToYetalkHome();
         return true;
     };
 
