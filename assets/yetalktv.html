@@ -4782,10 +4782,10 @@
                     <button type="button" class="mini-tool-pill" id="btnShortsSpeed" onclick="cycleShortsSpeed()" title="재생속도">
                         <span id="shortsSpeedSpan">속도 1</span>
                     </button>
-                    <button type="button" class="mini-tool-pill" id="btnShortsLock" onclick="toggleShortsScrollLock()" title="화면고정">
+                    <button type="button" class="mini-tool-pill" id="btnShortsLock" onclick="toggleShortsScrollLock()" title="화면고정" style="border:1.6px solid #ef4444 !important; color:#fca5a5 !important; background:rgba(239,68,68,0.15) !important; font-weight:900 !important;">
                         <span id="shortsLockSpan">화면고정</span>
                     </button>
-                    <button type="button" class="mini-tool-pill" id="btnShortsShare" onclick="shareCurrentShortsVideo()" title="영상 링크 복사 및 카톡 공유" style="background:#0284c7; color:#ffffff; border-color:#38bdf8;">
+                    <button type="button" class="mini-tool-pill" id="btnShortsShare" onclick="shareCurrentShortsVideo()" title="영상 링크 복사 및 카톡 공유" style="background:#1e293b; color:#cbd5e1; border:1px solid #475569;">
                         <span>🔗 복사</span>
                     </button>
                 </div>
@@ -12096,6 +12096,12 @@ function setupShortsFeedScrollListener() {
         }
     }, { passive: false });
 
+    window.addEventListener('touchmove', (e) => {
+        if (isTvScreenLocked && currentTvMode === 'shorts') {
+            e.preventDefault();
+        }
+    }, { passive: false });
+
     container.addEventListener('wheel', (e) => {
         if (isTvScreenLocked) {
             e.preventDefault();
@@ -12190,7 +12196,7 @@ function shareCurrentShortsVideo() {
 
     const vidUrl = `https://youtu.be/${item.videoId}`;
     const title = item.slotTitle || item.slotLabel || '예톡TV 은혜 영상';
-    const shareText = `[예톡TV 은혜 나눔]\n${title}\n▶ 바로보기: ${vidUrl}`;
+    const shareText = `[예톡TV 은혜 나눔]\n${title}\n▶ 영상 바로보기: ${vidUrl}\n\n🌿 예수님과 함께 걷는 나의 예톡 바로가기:\nhttps://yetalk.cc`;
 
     // 1. 클립보드에 링크 자동 복사 (즉각 성공 보장)
     let copied = false;
@@ -12239,10 +12245,12 @@ function toggleShortsScrollLock() {
             btn.style.setProperty('background', '#dc2626', 'important');
             btn.style.setProperty('color', '#ffffff', 'important');
             btn.style.setProperty('border-color', '#f87171', 'important');
+            btn.style.setProperty('box-shadow', '0 0 10px rgba(220,38,38,0.7)', 'important');
         } else {
-            btn.style.removeProperty('background');
-            btn.style.removeProperty('color');
-            btn.style.removeProperty('border-color');
+            btn.style.setProperty('background', 'rgba(239,68,68,0.15)', 'important');
+            btn.style.setProperty('color', '#fca5a5', 'important');
+            btn.style.setProperty('border-color', '#ef4444', 'important');
+            btn.style.removeProperty('box-shadow');
         }
     }
 
@@ -12296,23 +12304,35 @@ function handleCurrentShortsDelete() {
     const subIdx = (item && typeof item.videoSubIdx === 'number') ? item.videoSubIdx : 0;
     const vList = ensureSlotVideos(slot);
 
-    if (vList.length > 1) {
-        if (!confirm(`👑 [대표님 전용 영상 삭제]\n\n[${ch.title}] '${slot.label}'의 ${subIdx + 1}번째 영상('${item.slotTitle}')을 삭제하시겠습니까?`)) {
-            return;
-        }
-        vList.splice(subIdx, 1);
-        slot.videoId = vList[0].videoId;
-        slot.title = vList[0].title;
-        saveFixedChannelsToStorageAndCloud();
-        showToast(`🗑️ [${ch.title}] '${slot.label}' 영상이 삭제되었습니다.`);
-        buildShortsFeedList();
-        renderCategoryListView();
-        if (currentShortsIndex >= shortsFeedList.length) currentShortsIndex = shortsFeedList.length - 1;
-        activateShortsSlide(currentShortsIndex);
+    if (!confirm(`👑 [대표님 전용 영상 삭제]\n\n[${ch.title}] '${item.slotTitle || slot.label}' 영상을 삭제하시겠습니까?`)) {
         return;
     }
 
-    handleAdminSlotDeleteClick(currentShortsChannelKey, currentShortsSlotIndex);
+    if (subIdx >= 0 && subIdx < vList.length) {
+        vList.splice(subIdx, 1);
+    } else if (vList.length > 0) {
+        vList.splice(0, 1);
+    }
+
+    if (vList.length === 0) {
+        slot.videoId = '';
+        slot.title = '';
+    } else {
+        slot.videoId = vList[0].videoId;
+        slot.title = vList[0].title;
+    }
+
+    saveFixedChannelsToStorageAndCloud();
+    showToast(`🗑️ [${ch.title}] '${slot.label}' 영상이 완전히 삭제되었습니다.`);
+    buildShortsFeedList();
+    renderCategoryListView();
+
+    if (!shortsFeedList || shortsFeedList.length === 0) {
+        returnToCategoryList();
+    } else {
+        if (currentShortsIndex >= shortsFeedList.length) currentShortsIndex = shortsFeedList.length - 1;
+        activateShortsSlide(currentShortsIndex);
+    }
 }
 
 // 🌟 말씀 모달
@@ -12681,37 +12701,25 @@ function handleAdminSlotDeleteClick(chKey, slotIdx) {
     if (!ch || !ch.slots || !ch.slots[slotIdx]) return;
     const slot = ch.slots[slotIdx];
 
-    const defCh = DEFAULT_FIXED_CHANNELS[chKey];
-    const defSlot = (defCh && defCh.slots) ? defCh.slots[slotIdx] : null;
-
-    if (!confirm(`👑 [대표님 전용 영상 삭제]\n\n[${ch.title}] '${slot.label}' 영상을 삭제하시겠습니까?\n\n(확인 시 기본 영상으로 초기화됩니다)`)) {
+    if (!confirm(`👑 [대표님 전용 슬롯 영상 전체 삭제]\n\n[${ch.title}] '${slot.label}' 슬롯에 등록된 모든 영상을 삭제하시겠습니까?`)) {
         return;
     }
 
-    if (defSlot) {
-        slot.videoId = defSlot.videoId;
-        slot.title = defSlot.title;
-        slot.label = defSlot.label;
-    } else {
-        slot.videoId = 'pZuW2CV0mXY';
-        slot.title = '은혜의 찬양';
-    }
+    slot.videos = [];
+    slot.videoId = '';
+    slot.title = '';
 
-    localStorage.setItem('yetalk_fixed_tv_v12', JSON.stringify(fixedChannelsData));
-
-    if (window.yetalkDb && window.yetalkFs) {
-        try {
-            const { doc, setDoc } = window.yetalkFs;
-            const ref = doc(window.yetalkDb, 'yetalk_tv_config', 'fixed_channels');
-            setDoc(ref, { channels: fixedChannelsData, updatedAt: new Date().toISOString() }, { merge: true });
-        } catch(e){}
-    }
-
-    showToast(`🗑️ [${ch.title}] '${slot.label}' 영상이 삭제되었습니다.`);
+    saveFixedChannelsToStorageAndCloud();
+    showToast(`🗑️ [${ch.title}] '${slot.label}' 슬롯 영상이 완전히 삭제되었습니다.`);
     buildShortsFeedList();
     renderCategoryListView();
     if (currentTvMode === 'shorts') {
-        activateShortsSlide(currentShortsIndex);
+        if (!shortsFeedList || shortsFeedList.length === 0) {
+            returnToCategoryList();
+        } else {
+            if (currentShortsIndex >= shortsFeedList.length) currentShortsIndex = shortsFeedList.length - 1;
+            activateShortsSlide(currentShortsIndex);
+        }
     }
 }
 
