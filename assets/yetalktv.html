@@ -3771,11 +3771,10 @@
            ======================================================== */
         /* 상단 헤더: 카테고리 모드 시 깨끗한 라이트 스타일 */
         body.mode-category-active #topHeaderWrapper {
-            display: flex !important;
-            background: #ffffff !important;
-            border-bottom: 1.2px solid #e2e8f0 !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
-            padding: calc(env(safe-area-inset-top, 0px) + 5px) 12px 5px 12px !important;
+            display: none !important;
+        }
+        #topHeaderWrapper {
+            display: none !important;
         }
         body.mode-category-active .header-logo-title {
             color: #0f172a !important;
@@ -3802,7 +3801,7 @@
             overflow-y: auto !important;
             -webkit-overflow-scrolling: touch !important;
             background: #ffffff !important;
-            padding: calc(env(safe-area-inset-top, 0px) + 52px) 10px 8px 10px !important;
+            padding: calc(env(safe-area-inset-top, 0px) + 6px) 8px 8px 8px !important;
             box-sizing: border-box !important;
             z-index: 100 !important;
         }
@@ -3844,8 +3843,8 @@
             width: 100%;
         }
         .tv-compact-slot-btn {
-            padding: 5px 1px;
-            font-size: 11.5px;
+            padding: 5.5px 1px;
+            font-size: 12.5px;
             font-weight: 850;
             letter-spacing: -0.4px;
             border-radius: 7px;
@@ -3868,18 +3867,18 @@
         }
         @media (max-width: 360px) {
             .tv-compact-slot-btn {
-                font-size: 10.5px;
+                font-size: 11.5px;
                 letter-spacing: -0.6px;
                 padding: 4.5px 0.5px;
             }
         }
         .btn-compact-admin {
-            padding: 4px 9.5px;
+            padding: 4.5px 10px;
             background: linear-gradient(135deg, #dc2626, #b91c1c);
             color: #ffffff;
             border: 1px solid #f87171;
             border-radius: 7px;
-            font-size: 12.5px;
+            font-size: 13.5px;
             font-weight: 900;
             cursor: pointer;
             box-shadow: 0 1px 4px rgba(220, 38, 38, 0.35);
@@ -5244,10 +5243,7 @@
                 <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer; flex-shrink:0;" onclick="closeAdminSlotEditModal()">✕</button>
             </div>
             
-            <div style="font-size:12px; color:#cbd5e1; margin-bottom:10px; line-height:1.45; background:#1e293b; padding:8px 10px; border-radius:8px;">
-                💡 대표님께서 설정하신 유튜브 영상이 해당 슬롯에 <strong>연속 추가·저장</strong>되어 모든 성도에게 동일하게 보여집니다.<br>
-                <span style="color:#38bdf8; font-weight:800;">슬롯당 1개뿐만 아니라 여러 개 영상을 계속 추가하실 수 있습니다!</span>
-            </div>
+
 
             <!-- 🌟 슬롯 선택 탭 (기도 1 / 기도 2 / 기도 3 등) -->
             <div id="adminSlotTabsContainer" style="display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:2px;"></div>
@@ -11764,37 +11760,52 @@ const SHORTS_SPEED_CONFIGS = [
 ];
 let currentShortsSpeedIdx = 0;
 
+// 🌟 [사용자 요청] 6개 채널 및 4개 슬롯 완벽 보정 헬퍼 (클라우드/로컬 모두 적용)
+function sanitizeAndMigrateChannelsData(input) {
+    let channels = input;
+    if (!channels || typeof channels !== 'object') {
+        channels = JSON.parse(JSON.stringify(DEFAULT_FIXED_CHANNELS));
+    }
+    const fixedKeys = ['찬양', '회개', '말씀', '방언기도', '기도음악'];
+    fixedKeys.forEach(k => {
+        if (!channels[k]) {
+            channels[k] = JSON.parse(JSON.stringify(DEFAULT_FIXED_CHANNELS[k]));
+        } else {
+            if (!Array.isArray(channels[k].slots)) {
+                channels[k].slots = JSON.parse(JSON.stringify(DEFAULT_FIXED_CHANNELS[k].slots));
+            } else if (channels[k].slots.length < 4 && DEFAULT_FIXED_CHANNELS[k] && DEFAULT_FIXED_CHANNELS[k].slots[3]) {
+                channels[k].slots.push(JSON.parse(JSON.stringify(DEFAULT_FIXED_CHANNELS[k].slots[3])));
+            }
+        }
+    });
+
+    if (!channels['ENGLISH TV']) {
+        channels['ENGLISH TV'] = JSON.parse(JSON.stringify(DEFAULT_FIXED_CHANNELS['ENGLISH TV']));
+    } else {
+        if (!Array.isArray(channels['ENGLISH TV'].slots) || channels['ENGLISH TV'].slots.length < 4) {
+            channels['ENGLISH TV'].slots = JSON.parse(JSON.stringify(DEFAULT_FIXED_CHANNELS['ENGLISH TV'].slots));
+        }
+    }
+
+    if (channels['말씀']) {
+        channels['말씀'].verseRef = '시편 119:97';
+        channels['말씀'].verseText = '내가 주의 법을 어찌 그리 사랑하는지요 내가 그것을 종일 묵상하나이다';
+    }
+
+    return channels;
+}
+
 function loadFixedChannelsData() {
     try {
         const raw = localStorage.getItem('yetalk_fixed_tv_v12');
         if (raw) {
             const parsed = JSON.parse(raw);
-            fixedChannelsData = Object.assign({}, DEFAULT_FIXED_CHANNELS, parsed);
+            fixedChannelsData = sanitizeAndMigrateChannelsData(parsed);
         } else {
             fixedChannelsData = JSON.parse(JSON.stringify(DEFAULT_FIXED_CHANNELS));
         }
     } catch(e) {
         fixedChannelsData = JSON.parse(JSON.stringify(DEFAULT_FIXED_CHANNELS));
-    }
-
-    // 🌟 [사용자 요청] 찬양~기도음악 4번째 슬롯(영어 영상) 및 ENGLISH TV 채널 자동 보정 & 동기화
-    ['찬양', '회개', '말씀', '방언기도', '기도음악'].forEach(k => {
-        if (fixedChannelsData[k] && fixedChannelsData[k].slots) {
-            if (fixedChannelsData[k].slots.length < 4 && DEFAULT_FIXED_CHANNELS[k] && DEFAULT_FIXED_CHANNELS[k].slots[3]) {
-                fixedChannelsData[k].slots.push(JSON.parse(JSON.stringify(DEFAULT_FIXED_CHANNELS[k].slots[3])));
-            }
-        }
-    });
-    if (!fixedChannelsData['ENGLISH TV']) {
-        fixedChannelsData['ENGLISH TV'] = JSON.parse(JSON.stringify(DEFAULT_FIXED_CHANNELS['ENGLISH TV']));
-    }
-    if (fixedChannelsData['ENGLISH TV'] && (!fixedChannelsData['ENGLISH TV'].slots || fixedChannelsData['ENGLISH TV'].slots.length < 4)) {
-        fixedChannelsData['ENGLISH TV'].slots = JSON.parse(JSON.stringify(DEFAULT_FIXED_CHANNELS['ENGLISH TV'].slots));
-    }
-
-    if (fixedChannelsData['말씀']) {
-        fixedChannelsData['말씀'].verseRef = '시편 119:97';
-        fixedChannelsData['말씀'].verseText = '내가 주의 법을 어찌 그리 사랑하는지요 내가 그것을 종일 묵상하나이다';
     }
     return fixedChannelsData;
 }
@@ -11921,9 +11932,6 @@ function renderCategoryListView() {
                         <button type="button" class="btn-compact-admin" onclick="openAdminSlotEditModal('${k}', 0)" title="이 채널 영상 등록/변경">
                             <span>👑+</span>
                         </button>
-                        <button type="button" class="btn-compact-del" onclick="handleAdminSlotDeleteClick('${k}', 0)" title="이 채널 영상 초기화">
-                            <span>🗑️</span>
-                        </button>
                         ` : ''}
                     </div>
                 </div>
@@ -11992,9 +12000,12 @@ function renderCategoryListView() {
                         </button>
                     </div>
                 </div>
-                <div class="tv-compact-slots-row" style="grid-template-columns: 1fr;">
-                    <button type="button" class="tv-compact-slot-btn" style="background:#0284c7; color:#ffffff; border-color:#0284c7; font-weight:900; padding:7px;" onclick="startShortsFromCommunity()">
+                <div style="display:flex; gap:6px; width:100%;">
+                    <button type="button" class="tv-compact-slot-btn" style="flex:2; background:#0284c7; color:#ffffff; border-color:#0284c7; font-weight:900; font-size:12.5px; padding:7.5px 4px;" onclick="startShortsFromCommunity()">
                         <span>🎬 성도 은혜 영상 보기 ${commCount > 0 ? `(${commCount}개)` : ''}</span>
+                    </button>
+                    <button type="button" class="tv-compact-slot-btn" style="flex:1; background:#0f172a; color:#ffffff; border-color:#334155; font-weight:900; font-size:12.5px; padding:7.5px 4px;" onclick="location.href='index.html'" title="예톡 메인홈으로 이동">
+                        <span>🏠 예톡홈</span>
                     </button>
                 </div>
             </div>
@@ -12020,7 +12031,7 @@ function setCategoryMode() {
         shortsView.style.display = 'none';
         stopAllShortsPlayers();
     }
-    if (header) header.style.setProperty('display', 'flex', 'important');
+    if (header) header.style.setProperty('display', 'none', 'important');
 }
 
 // 🌟 [대표님 요청] 영상 모드 활성화 (쇼츠 풀스크린 통화면 & 상단 헤더 싹 숨김 & 위로 스크롤 연속 재생)
@@ -12623,10 +12634,11 @@ function renderAdminSlotTabs() {
         const vList = ensureSlotVideos(s);
         const countStr = vList.length > 0 ? ` (${vList.length})` : '';
         const bg = isActive ? 'linear-gradient(135deg, #dc2626, #b91c1c)' : '#1e293b';
-        const color = isActive ? '#ffffff' : '#94a3b8';
-        const border = isActive ? '1.5px solid #f87171' : '1px solid #475569';
+        const color = isActive ? '#ffffff' : '#cbd5e1';
+        const border = isActive ? '2px solid #f87171' : '1.2px solid #475569';
+        const shadow = isActive ? 'box-shadow:0 2px 8px rgba(220, 38, 38, 0.45);' : '';
         return `
-            <button type="button" onclick="switchAdminSlotTab(${idx})" style="flex:1; min-width:80px; padding:6px 10px; background:${bg}; color:${color}; border:${border}; border-radius:8px; font-size:12px; font-weight:900; cursor:pointer; white-space:nowrap;">
+            <button type="button" onclick="switchAdminSlotTab(${idx})" style="flex:1; min-width:76px; padding:8px 6px; background:${bg}; color:${color}; border:${border}; border-radius:8px; font-size:12.5px; font-weight:900; cursor:pointer; white-space:nowrap; ${shadow}">
                 ${s.label}${countStr}
             </button>
         `;
@@ -12981,8 +12993,28 @@ function syncFixedChannelsFromCloud() {
             if (snap && snap.exists()) {
                 const data = snap.data();
                 if (data && data.channels) {
-                    fixedChannelsData = Object.assign({}, DEFAULT_FIXED_CHANNELS, data.channels);
+                    let needsCloudUpdate = false;
+                    ['찬양', '회개', '말씀', '방언기도', '기도음악'].forEach(k => {
+                        if (data.channels[k] && Array.isArray(data.channels[k].slots) && data.channels[k].slots.length < 4) {
+                            needsCloudUpdate = true;
+                        }
+                    });
+                    if (!data.channels['ENGLISH TV']) needsCloudUpdate = true;
+
+                    fixedChannelsData = sanitizeAndMigrateChannelsData(data.channels);
                     localStorage.setItem('yetalk_fixed_tv_v12', JSON.stringify(fixedChannelsData));
+
+                    // 클라우드에 4번째 슬롯 누락 시 자동 영구 보정
+                    if (needsCloudUpdate && isMasterAdminUser()) {
+                        try {
+                            setDoc(ref, {
+                                channels: fixedChannelsData,
+                                updatedAt: new Date().toISOString(),
+                                updatedBy: '시스템 4슬롯 자동 보정'
+                            }, { merge: true }).catch(() => {});
+                        } catch(e){}
+                    }
+
                     buildShortsFeedList();
                     if (currentTvMode === 'category') {
                         renderCategoryListView();
