@@ -462,7 +462,7 @@
     <!-- ================= 1. 로비 화면 (한 줄 심플 헤더) ================= -->
     <div class="lobby-shell" id="lobbyView">
         <header class="lobby-header-singleline">
-            <button type="button" class="btn-header-back" onclick="goToChurchHome()">‹</button>
+            <button type="button" class="btn-header-back" onclick="goToChurchHome()" style="font-size:24px; font-weight:900; line-height:1;" title="교회 메인으로 돌아가기">←</button>
             <div class="header-tabs-group">
                 <button type="button" class="tab-btn active" id="tab_intercess" onclick="switchCategory('intercess')">🙏 상시 중보기도</button>
                 <button type="button" class="tab-btn" id="tab_special" onclick="switchCategory('special')">🔥 특별 작정기도</button>
@@ -470,6 +470,53 @@
         </header>
 
         <main class="main-scroll-content">
+            <!-- 🌟 [사용자 요청] 1. 이번 주의 기도 (교회 · 나라 · 성도 3대 메뉴 & 대형 텍스트 & 매주 수정) - 상단 배치 -->
+            <section class="weekly-three-pray-card" style="background:#ffffff; border:1.8px solid #bae6fd; border-radius:15px; padding:15px 14px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 16px rgba(2,132,199,0.08); margin-bottom:18px;">
+                <!-- 상단 헤더: 제목 + 관리자 수정 버튼 -->
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:7px;">
+                        <span style="font-size:20px;">🙏</span>
+                        <strong style="color:#0284c7; font-size:16px; font-weight:950;">이번 주의 기도</strong>
+                        <span id="badgeWeeklyPrayDate" style="background:#e0f2fe; color:#0369a1; font-size:11px; font-weight:900; padding:2px 7px; border-radius:8px;">금주 기도제목</span>
+                    </div>
+                    <button type="button" onclick="openWeeklyPrayEditModal()" style="background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; font-size:12px; font-weight:950; padding:6px 12px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(2,132,199,0.25);">
+                        <span>✏️</span> <span>기도제목 수정</span>
+                    </button>
+                </div>
+
+                <!-- 🌟 [사용자 요청] 3대 카테고리 메뉴 탭: [교회] [나라] [성도] -->
+                <div class="weekly-pray-tab-row" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px;">
+                    <button type="button" class="btn-pray-cat active" id="btnPrayCat_church" onclick="switchWeeklyPrayCat('church')" style="padding:10px 4px; border-radius:10px; font-size:14px; font-weight:950; cursor:pointer; border:1.5px solid #0284c7; background:#0284c7; color:#ffffff; transition:all 0.15s ease;">
+                        ⛪ 교회
+                    </button>
+                    <button type="button" class="btn-pray-cat" id="btnPrayCat_nation" onclick="switchWeeklyPrayCat('nation')" style="padding:10px 4px; border-radius:10px; font-size:14px; font-weight:950; cursor:pointer; border:1.5px solid #cbd5e1; background:#f8fafc; color:#475569; transition:all 0.15s ease;">
+                        🇰🇷 나라
+                    </button>
+                    <button type="button" class="btn-pray-cat" id="btnPrayCat_saints" onclick="switchWeeklyPrayCat('saints')" style="padding:10px 4px; border-radius:10px; font-size:14px; font-weight:950; cursor:pointer; border:1.5px solid #cbd5e1; background:#f8fafc; color:#475569; transition:all 0.15s ease;">
+                        👥 성도
+                    </button>
+                </div>
+
+                <!-- 🌟 [사용자 요청] 바로 펼쳐지는 넓은 창 & 글자 크게 표시되는 기도 본문 영역 -->
+                <div class="weekly-pray-content-box" style="background:linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%); border:1.5px solid #e0f2fe; border-radius:12px; padding:16px 15px; box-sizing:border-box;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #bae6fd;">
+                        <span id="txtWeeklyPrayTopicTitle" style="font-size:14.5px; font-weight:950; color:#0369a1; display:flex; align-items:center; gap:5px;">
+                            <span>⛪</span> <span>교회를 위한 기도제목</span>
+                        </span>
+                        <span style="font-size:11px; font-weight:800; color:#64748b;">매주 업데이트</span>
+                    </div>
+                    <!-- 대형 텍스트 기도 내용 본문 -->
+                    <div id="txtWeeklyPrayBody" style="font-size:16.5px; font-weight:750; color:#1e293b; line-height:1.75; word-break:keep-all; white-space:pre-wrap; min-height:100px;">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 🌟 [사용자 요청] 2. 실시간 중보기도방 리스트 (기도제목 아래로 이동) -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 4px 10px 4px;">
+                <strong style="font-size:15px; font-weight:950; color:#0f172a;">🙏 실시간 중보기도방</strong>
+                <span style="font-size:11.5px; color:#0284c7; font-weight:800;">터치 시 즉시 입장</span>
+            </div>
+
             <!-- 기도방 카드 리스트 -->
             <div class="room-grid-list" id="roomListContainer"></div>
 
@@ -477,25 +524,6 @@
             <button type="button" class="btn-add-room" onclick="openAddRoomModal()">
                 <span>➕</span> <span id="btnAddRoomText">새 중보기도방 추가하기</span>
             </button>
-
-            <!-- 🌟 [사용자 요청] 이번 주 교회와 나라를 위한 기도제목 한줄 리스트 게시판 -->
-            <section class="pray-news-board-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:10px;">
-                    <div style="display:flex; align-items:center; gap:7px;">
-                        <span style="font-size:18px;">🙏</span>
-                        <strong style="color:#0284c7; font-size:15px; font-weight:950;" id="txtPrayBoardHeader">이번 주 교회와 나라를 위한 기도</strong>
-                        <span id="badgePrayNewsCount" style="background:#0284c7; color:#ffffff; font-size:11px; font-weight:900; padding:2px 7px; border-radius:10px;">0건</span>
-                    </div>
-                    <button type="button" onclick="openWritePrayNewsModal()" style="background:linear-gradient(135deg, #0284c7, #0369a1); border:none; color:#ffffff; font-size:12.5px; font-weight:950; padding:6px 13px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(2,132,199,0.25);">
-                        <span>✏️</span> <span>기도제목 쓰기</span>
-                    </button>
-                </div>
-
-                <!-- 기도제목 한줄 리스트 목록 (제목, 작성자, 날짜) -->
-                <div id="prayNewsListContainer" style="display:flex; flex-direction:column; gap:6px;">
-                    <!-- JS 렌더링 -->
-                </div>
-            </section>
         </main>
 
         <!-- 🌟 [사용자 요청] 하단 고정 100 애드몹 (정규 100 대형 배너 규격 300 × 100) -->
@@ -510,11 +538,48 @@
         </aside>
     </div>
 
+    <!-- 🌟 [사용자 요청] 이번 주의 기도 수정 모달 (교회 / 나라 / 성도) -->
+    <div class="modal-overlay" id="modalWeeklyPrayEdit" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:900; align-items:center; justify-content:center; padding:16px;">
+        <div style="background:#ffffff; border-radius:16px; width:100%; max-width:440px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1.5px solid #f1f5f9;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:18px;">✍️</span>
+                    <strong style="color:#0f172a; font-size:16px; font-weight:950;">이번 주 기도제목 수정</strong>
+                </div>
+                <button type="button" onclick="closeWeeklyPrayEditModal()" style="background:none; border:none; font-size:22px; color:#64748b; cursor:pointer;">✕</button>
+            </div>
+            <div style="padding:16px 18px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px;">
+                <div>
+                    <label style="font-size:13px; font-weight:900; color:#0284c7; display:flex; align-items:center; gap:4px; margin-bottom:6px;">
+                        <span>⛪</span> <span>1. 교회를 위한 기도제목</span>
+                    </label>
+                    <textarea id="inpWeeklyPray_church" rows="4" style="width:100%; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px 12px; font-size:14px; font-weight:700; line-height:1.6; resize:vertical; box-sizing:border-box; outline:none; font-family:inherit;" placeholder="교회 기도제목을 입력하세요"></textarea>
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:900; color:#0284c7; display:flex; align-items:center; gap:4px; margin-bottom:6px;">
+                        <span>🇰🇷</span> <span>2. 나라와 민족을 위한 기도제목</span>
+                    </label>
+                    <textarea id="inpWeeklyPray_nation" rows="4" style="width:100%; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px 12px; font-size:14px; font-weight:700; line-height:1.6; resize:vertical; box-sizing:border-box; outline:none; font-family:inherit;" placeholder="나라와 민족 기도제목을 입력하세요"></textarea>
+                </div>
+                <div>
+                    <label style="font-size:13px; font-weight:900; color:#0284c7; display:flex; align-items:center; gap:4px; margin-bottom:6px;">
+                        <span>👥</span> <span>3. 성도와 환우를 위한 기도제목</span>
+                    </label>
+                    <textarea id="inpWeeklyPray_saints" rows="4" style="width:100%; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px 12px; font-size:14px; font-weight:700; line-height:1.6; resize:vertical; box-sizing:border-box; outline:none; font-family:inherit;" placeholder="성도와 환우 기도제목을 입력하세요"></textarea>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; padding:12px 18px; border-top:1.5px solid #f1f5f9; background:#f8fafc;">
+                <button type="button" onclick="closeWeeklyPrayEditModal()" style="padding:9px 16px; background:#e2e8f0; color:#475569; border:none; border-radius:9px; font-size:13px; font-weight:850; cursor:pointer;">취소</button>
+                <button type="button" onclick="saveWeeklyPrayEdit()" style="padding:9px 20px; background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; border:none; border-radius:9px; font-size:13px; font-weight:950; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.3);">💾 저장하기</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 🌟 [사용자 요청] 이번 주 기도제목 작성 (풀스크린 에디터) -->
     <div class="full-write-overlay" id="modalWritePrayNews">
         <header class="write-header-bar">
             <button type="button" class="btn-write-back" onclick="closeModal('modalWritePrayNews')">
-                ‹ 뒤로
+                ← 뒤로
             </button>
             <strong class="write-header-title">✍️ 이번 주 기도제목 작성</strong>
             <button type="button" class="btn-write-submit" onclick="savePrayNewsPost()">
@@ -598,7 +663,7 @@
     <div class="full-write-overlay" id="modalViewPrayNews">
         <header class="write-header-bar">
             <button type="button" class="btn-write-back" onclick="closeModal('modalViewPrayNews')">
-                ‹ 목록으로
+                ← 목록으로
             </button>
             <strong class="write-header-title">🙏 기도제목 상세</strong>
             <button type="button" id="btnDeletePrayNews" onclick="deleteCurrentPrayNews()" style="background:#fee2e2; border:1px solid #fecaca; color:#dc2626; font-size:12.5px; font-weight:900; padding:6px 12px; border-radius:8px; cursor:pointer;">
@@ -649,7 +714,7 @@
     <div class="chat-room-shell" id="chatRoomView">
         <header class="chat-room-header">
             <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
-                <button type="button" class="btn-chat-back" onclick="exitChatRoomToLobby()" title="기도방 목록으로">‹</button>
+                <button type="button" class="btn-chat-back" onclick="exitChatRoomToLobby()" style="font-size:24px; font-weight:900; line-height:1;" title="기도방 목록으로">←</button>
                 <strong class="chat-room-title" id="dispChatRoomTitle">다니엘 중보기도방</strong>
             </div>
             <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
@@ -1025,6 +1090,7 @@
         specialRooms = savedS ? JSON.parse(savedS).map(sanitizeRoom) : DEFAULT_SPECIAL_ROOMS.map(sanitizeRoom);
 
         saveAllRoomsToStorage();
+        initWeeklyPray();
         initPrayNews();
         switchCategory("intercess");
         setupPrayChatKeyboard();
@@ -1872,7 +1938,107 @@
     }
 
     // =========================================================================
-    // 🌟 [사용자 요청] 이번 주 교회와 나라를 위한 기도 게시판 (한줄 리스트 & 글/사진/파일)
+    // 🌟 [사용자 요청] 이번 주의 기도 (교회 · 나라 · 성도 3대 메뉴 & 대형 텍스트 & 매주 수정)
+    // =========================================================================
+    const WEEKLY_PRAY_STORAGE_KEY = 'yetalk_weekly_pray_topics_v2';
+    const DEFAULT_WEEKLY_PRAY = {
+        church: `1. 우리 교회가 오직 복음과 성령의 능력으로 충만하여 영혼을 구원하는 생명의 방주가 되게 하소서.
+2. 담임목사님과 모든 교역자들에게 영육 간의 강건함과 하늘의 지혜, 영적 리더십을 충만히 부어주소서.
+3. 모든 공예배(주일, 수요, 금요, 새벽)와 속회·구역(셀, 목장) 모임마다 살아계신 주님의 임재와 치유의 역사가 넘쳐나게 하소서.
+4. 다음세대 자녀들과 모든 성도들의 가정이 믿음의 반석 위에 굳건히 서서 축복의 통로가 되게 하소서.`,
+        nation: `1. 대한민국이 하나님을 경외하는 거룩한 제사장 나라가 되게 하시고 복음적 평화 통일을 허락하소서.
+2. 대통령과 모든 위정자들에게 정직과 공의, 하늘의 지혜를 주시어 국민을 섬기는 올바른 정치를 펴게 하소서.
+3. 경제적 위기와 사회적 갈등, 분열이 치유되고 모든 일터와 소상공인, 기업에 회복과 도약의 은혜를 주소서.
+4. 전 세계 열방 가운데 파송된 선교사님들과 디아스포라 한인 교회들을 성령의 권능으로 안전하게 지켜주소서.`,
+        saints: `1. 육신의 질병과 암, 수술, 투병 가운데 있는 환우 성도님들에게 여호와 라파 치료의 광선을 비추어 깨끗이 낫게 하소서.
+2. 경제적 어려움과 사업, 직장, 생업의 위기 속에 있는 가정마다 까마귀를 통한 엘리야의 공급하심이 임하게 하소서.
+3. 취업과 진로, 결혼과 출산, 자녀 양육을 앞두고 기도하는 성도들에게 가장 좋은 길을 예비하여 주소서.
+4. 삶의 무거운 짐으로 지치고 낙심한 성도들의 마음에 성령의 위로와 하늘의 참 평안을 넘치도록 채워주소서.`
+    };
+
+    let currentWeeklyPrayCat = 'church';
+    let weeklyPrayData = null;
+
+    function initWeeklyPray() {
+        try {
+            const raw = localStorage.getItem(WEEKLY_PRAY_STORAGE_KEY);
+            if (raw) weeklyPrayData = JSON.parse(raw);
+        } catch(e) {}
+        if (!weeklyPrayData || !weeklyPrayData.church) {
+            weeklyPrayData = { ...DEFAULT_WEEKLY_PRAY };
+            localStorage.setItem(WEEKLY_PRAY_STORAGE_KEY, JSON.stringify(weeklyPrayData));
+        }
+        renderWeeklyPray();
+    }
+
+    function renderWeeklyPray() {
+        const bodyEl = document.getElementById('txtWeeklyPrayBody');
+        const titleEl = document.getElementById('txtWeeklyPrayTopicTitle');
+        if (!bodyEl) return;
+
+        const catTitles = {
+            church: '<span>⛪</span> <span>교회를 위한 기도제목</span>',
+            nation: '<span>🇰🇷</span> <span>나라와 민족을 위한 기도제목</span>',
+            saints: '<span>👥</span> <span>성도와 환우를 위한 기도제목</span>'
+        };
+
+        if (titleEl) titleEl.innerHTML = catTitles[currentWeeklyPrayCat] || catTitles.church;
+        bodyEl.innerText = (weeklyPrayData && weeklyPrayData[currentWeeklyPrayCat]) || DEFAULT_WEEKLY_PRAY[currentWeeklyPrayCat] || '';
+
+        ['church', 'nation', 'saints'].forEach(cat => {
+            const btn = document.getElementById('btnPrayCat_' + cat);
+            if (btn) {
+                if (cat === currentWeeklyPrayCat) {
+                    btn.style.background = '#0284c7';
+                    btn.style.borderColor = '#0284c7';
+                    btn.style.color = '#ffffff';
+                } else {
+                    btn.style.background = '#f8fafc';
+                    btn.style.borderColor = '#cbd5e1';
+                    btn.style.color = '#475569';
+                }
+            }
+        });
+    }
+
+    function switchWeeklyPrayCat(cat) {
+        currentWeeklyPrayCat = cat;
+        renderWeeklyPray();
+    }
+
+    function openWeeklyPrayEditModal() {
+        const modal = document.getElementById('modalWeeklyPrayEdit');
+        if (!modal) return;
+        const d = weeklyPrayData || DEFAULT_WEEKLY_PRAY;
+        document.getElementById('inpWeeklyPray_church').value = d.church || '';
+        document.getElementById('inpWeeklyPray_nation').value = d.nation || '';
+        document.getElementById('inpWeeklyPray_saints').value = d.saints || '';
+        modal.style.display = 'flex';
+    }
+
+    function closeWeeklyPrayEditModal() {
+        const modal = document.getElementById('modalWeeklyPrayEdit');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function saveWeeklyPrayEdit() {
+        const ch = document.getElementById('inpWeeklyPray_church').value.trim();
+        const na = document.getElementById('inpWeeklyPray_nation').value.trim();
+        const sa = document.getElementById('inpWeeklyPray_saints').value.trim();
+        weeklyPrayData = {
+            church: ch || DEFAULT_WEEKLY_PRAY.church,
+            nation: na || DEFAULT_WEEKLY_PRAY.nation,
+            saints: sa || DEFAULT_WEEKLY_PRAY.saints,
+            updatedAt: new Date().toLocaleDateString('ko-KR')
+        };
+        localStorage.setItem(WEEKLY_PRAY_STORAGE_KEY, JSON.stringify(weeklyPrayData));
+        closeWeeklyPrayEditModal();
+        renderWeeklyPray();
+        alert('이번 주 기도제목이 성공적으로 저장/업데이트되었습니다! ✔');
+    }
+
+    // =========================================================================
+    // 🌟 이번 주 교회와 나라를 위한 기도 게시판 (한줄 리스트 & 글/사진/파일)
     // =========================================================================
     const DEFAULT_PRAY_NEWS = [
         {

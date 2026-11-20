@@ -514,6 +514,9 @@
         body[data-theme="white"] .elder-divider {
             color: #94a3b8 !important;
         }
+        body[data-theme="white"] .group-title-text {
+            color: #0f172a !important;
+        }
 
         /* 교회역사 타임라인 - 🌟 [사용자 요청] 마지막 1998년 및 하단 내용 팅김 방지 최적화 */
         .clean-timeline-box {
@@ -669,7 +672,7 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
     <!-- 1층 헤더 -->
     <header class="intro-header">
         <div class="header-left-box">
-            <button type="button" class="btn-back" onclick="goBackToChurchHome()" title="교회 메인으로 복귀">‹</button>
+            <button type="button" class="btn-back" onclick="goBackToChurchHome()" style="font-size:24px; font-weight:900; line-height:1;" title="교회 메인으로 복귀">←</button>
             <span class="header-title-text" id="introHeaderTitle">예톡행복한교회</span>
         </div>
         <div class="dual-admin-btn-group">
@@ -919,7 +922,7 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
             role: "담임목회 및 강단 말씀",
             bgImg: "images/church_hero_heaven.jpg",
             img: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&auto=format&fit=crop&q=80",
-            body: "“오직 성경, 오직 기도, 영혼 구원과 섬김에 헌신합니다.”\n\n할렐루야! 예톡행복한교회 담임목사 정찬석입니다.\n성도님들의 삶의 자리에 주님의 은혜와 평강이 넘쳐나도록 사랑과 기도로 늘 함께 동행하겠습니다."
+            body: "“오직 성경, 오직 기도, 영혼 구원과 섬김에 헌신합니다.”\n\n할렐루야! 부산제일감리교회 담임목사 정찬석입니다.\n성도님들의 삶의 자리에 주님의 은혜와 평강이 넘쳐나도록 사랑과 기도로 늘 함께 동행하겠습니다."
         },
         assistant_pastors: [
             {
@@ -978,9 +981,29 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
         ],
         elders: [
             {
+                name: "곽성은 장로",
+                role: "시무장로",
+                greeting: "기도와 말씀으로 교회를 든든히 세워가겠습니다."
+            },
+            {
                 name: "최베드로 장로",
                 role: "시무장로",
                 greeting: "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다."
+            },
+            {
+                name: "김선경 장로",
+                role: "시무장로",
+                greeting: "성도님들을 사랑과 온유함으로 섬기겠습니다."
+            },
+            {
+                name: "김이삭 장로",
+                role: "은퇴장로",
+                greeting: "다음 세대를 품고 주님의 사랑을 전하겠습니다."
+            },
+            {
+                name: "남영준 장로",
+                role: "시무장로",
+                greeting: "겸손과 헌신으로 복음의 통로가 되겠습니다."
             }
         ],
         vision: {
@@ -1043,26 +1066,73 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
     // 🌟 [사용자 요청] 회원 가입 시 교회 이름과 담임목사가 같으면 자동으로 부목사, 전도사, 간사, 선교사, 교회사무, 장로 이름 동기화
     function syncChurchMembersFromRegistered() {
         try {
-            const churchName = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "").trim();
+            const churchName = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회").trim();
             const pastorName = (localStorage.getItem("yetalk_pastor_name") || "").trim();
-            if (!churchName) return;
 
-            let churchKey = (churchName + "_" + pastorName).replace(/\s+/g, '').toLowerCase();
+            let matchedMembers = [];
+
+            // 1. yetalk_custom_friends (교우명단) 에서 불러오기
+            try {
+                const customFriends = JSON.parse(localStorage.getItem("yetalk_custom_friends") || "[]");
+                if (Array.isArray(customFriends)) {
+                    customFriends.forEach(cf => {
+                        if (cf && cf.nameOrId && !matchedMembers.some(m => (m.nameOrId || m.name) === cf.nameOrId)) {
+                            matchedMembers.push(cf);
+                        }
+                    });
+                }
+            } catch(e) {}
+
+            // 2. yetalk_registered_churches (등록 교회 전체 맵) 확인
             let churchMap = {};
             try {
                 churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
             } catch(e) { churchMap = {}; }
 
-            let matchedMembers = [];
-            if (churchMap[churchKey] && Array.isArray(churchMap[churchKey].members)) {
-                matchedMembers = churchMap[churchKey].members;
-            } else {
-                const cleanC = churchName.replace(/\s+/g, '').toLowerCase();
-                for (const k in churchMap) {
-                    if (k.includes(cleanC) && Array.isArray(churchMap[k].members)) {
-                        matchedMembers = churchMap[k].members;
-                        break;
+            const cleanC = churchName.replace(/\s+/g, '').toLowerCase();
+            for (const k in churchMap) {
+                if (k.includes(cleanC) || !cleanC || cleanC.includes("부산제일")) {
+                    const cObj = churchMap[k];
+                    if (cObj && Array.isArray(cObj.members)) {
+                        cObj.members.forEach(cm => {
+                            if (cm && cm.nameOrId && !matchedMembers.some(m => (m.nameOrId || m.name) === cm.nameOrId)) {
+                                matchedMembers.push(cm);
+                            }
+                        });
                     }
+                }
+            }
+
+            // 3. 부산제일감리교회 기본 시무장로 5인 보장 (최베드로, 곽성은, 김선경, 김이삭, 남영준)
+            if (churchName.includes("부산제일") || churchName.includes("감리교회")) {
+                const busanElders = [
+                    { name: "곽성은 장로", role: "시무장로", greeting: "기도와 말씀으로 교회를 든든히 세워가겠습니다." },
+                    { name: "최베드로 장로", role: "시무장로", greeting: "주님의 몸 된 교회를 온 맘 다해 겸손히 섬기겠습니다." },
+                    { name: "김선경 장로", role: "시무장로", greeting: "성도님들을 사랑과 온유함으로 섬기겠습니다." },
+                    { name: "남영준 장로", role: "시무장로", greeting: "겸손과 헌신으로 복음의 통로가 되겠습니다." },
+                    { name: "김이삭 장로", role: "은퇴장로", greeting: "다음 세대를 품고 주님의 사랑을 전하겠습니다." }
+                ];
+                if (!Array.isArray(churchSections.elders)) churchSections.elders = [];
+                busanElders.forEach(be => {
+                    const cleanBe = be.name.replace(/\s+/g, '').replace(/장로/g, '');
+                    if (!churchSections.elders.some(el => (el.name || "").replace(/\s+/g, '').includes(cleanBe))) {
+                        churchSections.elders.push(be);
+                    }
+                });
+
+                // 🌟 [사용자 요청] 곽성은 장로님이 수석장로이므로 최상단(1순위)으로 고정 배치
+                const kwakIdx = churchSections.elders.findIndex(el => (el.name || "").replace(/\s+/g, '').includes("곽성은"));
+                if (kwakIdx > 0) {
+                    const kwakObj = churchSections.elders.splice(kwakIdx, 1)[0];
+                    churchSections.elders.unshift(kwakObj);
+                    modified = true;
+                }
+
+                // 🌟 [사용자 요청] 김이삭 장로님은 은퇴장로로 설정
+                const isaacObj = churchSections.elders.find(el => (el.name || "").replace(/\s+/g, '').includes("김이삭"));
+                if (isaacObj && isaacObj.role !== "은퇴장로") {
+                    isaacObj.role = "은퇴장로";
+                    modified = true;
                 }
             }
 
@@ -1227,6 +1297,15 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
         if (!churchSections.vision) churchSections.vision = JSON.parse(JSON.stringify(DEFAULT_DATA.vision));
         if (!churchSections.ministry) churchSections.ministry = JSON.parse(JSON.stringify(DEFAULT_DATA.ministry));
         if (!churchSections.history) churchSections.history = JSON.parse(JSON.stringify(DEFAULT_DATA.history));
+        if (churchSections.history && churchSections.history.body) {
+            churchSections.history.body = churchSections.history.body
+                .split('\n')
+                .filter(l => {
+                    const t = l.trim();
+                    return t !== '.' && t !== '·' && t !== '..' && t !== '...';
+                })
+                .join('\n');
+        }
 
         // 🌟 [사용자 요청] 등록된 교우 자동 동기화 적용
         // 🌟 [사용자 요청] 기존 사용자 기기에 저장되어 있던 긴 글(스크롤 생기던 장문)을 컴팩트한 2~3줄 한 페이지 텍스트로 자동 슬림화
@@ -1415,13 +1494,16 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
                 function renderElderGroupHtml(groupList, groupTitle, groupBadge, emptyText) {
                     if (groupList.length === 0) {
                         return `
-                            <div style="margin-bottom:18px;">
-                                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
-                                    <span class="badge-pill" style="margin-bottom:0;">${groupBadge}</span>
-                                    <strong style="font-size:14px; color:#f8fafc; font-weight:800;">${groupTitle}</strong>
+                            <div style="margin-bottom:20px;">
+                                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+                                    <div style="display:flex; align-items:center; gap:6px;">
+                                        <span class="badge-pill" style="margin-bottom:0;">${groupBadge}</span>
+                                        <strong class="group-title-text" style="font-size:14.5px; font-weight:850;">${groupTitle}</strong>
+                                        <span style="font-size:12px; color:#0284c7; font-weight:800;">(0명)</span>
+                                    </div>
                                 </div>
-                                <div style="text-align:center; padding:20px 14px; color:#94a3b8; font-size:12.5px; font-weight:700; background:rgba(15,23,42,0.4); border-radius:12px; border:1px dashed #334155;">
-                                    ${emptyText}
+                                <div class="elder-row-item" style="justify-content:center; padding:14px 16px; cursor:default; border-style:dashed;">
+                                    <span style="font-size:13px; font-weight:800; color:#64748b;">${emptyText}</span>
                                 </div>
                             </div>
                         `;
@@ -1455,7 +1537,7 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
                             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
                                 <div style="display:flex; align-items:center; gap:6px;">
                                     <span class="badge-pill" style="margin-bottom:0;">${groupBadge}</span>
-                                    <strong style="font-size:14.5px; color:#f8fafc; font-weight:850;">${groupTitle}</strong>
+                                    <strong class="group-title-text" style="font-size:14.5px; font-weight:850;">${groupTitle}</strong>
                                     <span style="font-size:12px; color:#38bdf8; font-weight:800;">(${groupList.length}명)</span>
                                 </div>
                             </div>
@@ -1484,6 +1566,7 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
                     </p>
                     ${simuHtml}
                     ${retiredHtml}
+                    <div style="height:40px; flex-shrink:0;"></div>
                 `;
                 appendSnapSection("sec_elders", tabIdx, html);
             }
@@ -1684,6 +1767,8 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
                 `;
                 if (h.img) html += `<div class="attached-photo-wrap"><img src="${h.img}" alt="${h.title}"></div>`;
                 html += bodyHtml;
+                // 🌟 [사용자 요청] 마지막 1998년 및 연혁이 하단 애드몹 배너에 가려지거나 답답하지 않도록 70px 넉넉한 완충 여백 추가
+                html += `<div style="height:70px; flex-shrink:0;"></div>`;
                 appendSnapSection("sec_history", tabIdx, html);
             }
         });
@@ -1700,6 +1785,10 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
     
     function renderPastorHeroBody(text) {
         if (!text) return '';
+        const currentChurch = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalkMyChurchName') || '부산제일감리교회').trim();
+        if (currentChurch) {
+            text = text.replace(/예톡행복한교회/g, currentChurch);
+        }
         return text.split('\n')
             .map(l => l.trim())
             .filter(l => l)
@@ -1709,13 +1798,22 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
 function renderFormattedBody(rawText, isHistory) {
         if (!rawText) return "";
         const lines = rawText.split("\n");
-        let formatted = "";
+        let topFormatted = "";
+        let bottomFormatted = "";
         let timelineRows = "";
         let hasTimeline = false;
 
         lines.forEach(line => {
             const tr = line.trim();
             if (!tr) return;
+
+            // 🌟 [사용자 요청] 여백용으로 입력된 점(.)이나 중간점(·) 줄은 literal 점을 출력하지 않고 투명 여백으로 처리
+            if (tr === "." || tr === "·" || tr === ".." || tr === "...") {
+                if (isHistory && hasTimeline) {
+                    bottomFormatted += `<div style="height:16px;"></div>`;
+                }
+                return;
+            }
 
             const timelineMatch = tr.match(/^(?:[•\-\*]\s*)?((?:19|20)\d{2}년?)\s*[:：\-]\s*(.+)$/);
             if (isHistory && timelineMatch) {
@@ -1727,16 +1825,28 @@ function renderFormattedBody(rawText, isHistory) {
                     </div>
                 `;
             } else if (tr.startsWith("•") || tr.startsWith("-") || tr.startsWith("*")) {
-                formatted += `<div class="bullet-point-line">${tr.replace(/^[•\-\*]\s*/, '')}</div>`;
+                const bHtml = `<div class="bullet-point-line">${tr.replace(/^[•\-\*]\s*/, '')}</div>`;
+                if (isHistory && hasTimeline) {
+                    bottomFormatted += bHtml;
+                } else {
+                    topFormatted += bHtml;
+                }
             } else {
-                formatted += `<p class="article-text-body" style="margin-bottom:8px;">${tr}</p>`;
+                const pHtml = `<p class="article-text-body" style="margin-bottom:8px;">${tr}</p>`;
+                if (isHistory && hasTimeline) {
+                    bottomFormatted += pHtml;
+                } else {
+                    topFormatted += pHtml;
+                }
             }
         });
 
+        let result = topFormatted;
         if (isHistory && hasTimeline) {
-            formatted += `<div class="clean-timeline-box" style="margin-top:10px;">${timelineRows}</div>`;
+            result += `<div class="clean-timeline-box" style="margin-top:10px; margin-bottom:12px;">${timelineRows}</div>`;
         }
-        return formatted;
+        result += bottomFormatted;
+        return result;
     }
 
     // 🌟 화면 중앙과 가장 가까운 카드를 정밀 감지하여 8대 가로 칩 메뉴와 1:1 오차 없이 동기화!
@@ -1996,7 +2106,12 @@ function renderFormattedBody(rawText, isHistory) {
             document.getElementById("inpServantName").value = item.name || item.title || "";
         }
         document.getElementById("inpServantRole").value = item.role || "";
-        document.getElementById("inpServantDesc").value = item.body || item.desc || "";
+        let leaderDesc = item.body || item.desc || "";
+        if (type === 'pastor') {
+            const curChurch = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalkMyChurchName') || '부산제일감리교회').trim();
+            if (curChurch) leaderDesc = leaderDesc.replace(/예톡행복한교회/g, curChurch);
+        }
+        document.getElementById("inpServantDesc").value = leaderDesc;
         document.getElementById("inpServantImg").value = item.img || "";
 
         const thumb = document.getElementById("prevServantImgThumb");
@@ -2344,22 +2459,44 @@ function renderFormattedBody(rawText, isHistory) {
     function closeModal(id) { document.getElementById(id)?.classList.remove("show"); }
 
     // 🌟 [사용자 요청] 장로 순서 이동 (수석 장로 ⬆️ / 신참 장로 ⬇️)
-    function moveElderDirect(idx, dir, event) {
+    function moveElderInGroup(globalIdx, dir, event) {
         if (event) {
             event.stopPropagation();
             event.preventDefault();
         }
         if (!Array.isArray(churchSections.elders)) return;
-        const targetIdx = idx + dir;
-        if (targetIdx < 0 || targetIdx >= churchSections.elders.length) return;
-        const temp = churchSections.elders[idx];
-        churchSections.elders[idx] = churchSections.elders[targetIdx];
-        churchSections.elders[targetIdx] = temp;
+        const currentElder = churchSections.elders[globalIdx];
+        if (!currentElder) return;
+
+        const isRetired = (currentElder.role && currentElder.role.includes("은퇴"));
+        const sameGroupIndices = [];
+        churchSections.elders.forEach((el, idx) => {
+            const elRetired = (el.role && el.role.includes("은퇴"));
+            if (elRetired === isRetired) {
+                sameGroupIndices.push(idx);
+            }
+        });
+
+        const posInGroup = sameGroupIndices.indexOf(globalIdx);
+        if (posInGroup < 0) return;
+        const targetPosInGroup = posInGroup + dir;
+        if (targetPosInGroup < 0 || targetPosInGroup >= sameGroupIndices.length) {
+            showToast(dir < 0 ? "맨 위(수석 장로) 순서입니다." : "맨 아래 순서입니다.");
+            return;
+        }
+
+        const targetGlobalIdx = sameGroupIndices[targetPosInGroup];
+        const temp = churchSections.elders[globalIdx];
+        churchSections.elders[globalIdx] = churchSections.elders[targetGlobalIdx];
+        churchSections.elders[targetGlobalIdx] = temp;
+
         localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
         renderViewport();
         scrollToTabKey("elders");
         showToast(`🔄 [${temp.name}] 순서가 변경되었습니다.`);
     }
+    window.moveElderInGroup = moveElderInGroup;
+    window.moveElderDirect = moveElderInGroup;
 
     function moveActiveElderDirect(dir) {
         if (activeElderIdx < 0 || !Array.isArray(churchSections.elders)) return;
@@ -2469,10 +2606,14 @@ function renderFormattedBody(rawText, isHistory) {
         const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
         document.body.setAttribute('data-theme', savedTheme);
 
-        let churchName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
-        if (!churchName || churchName.includes("움직이는") || churchName.includes("김예톡") || churchName.includes("최예톡")) {
-            churchName = "예톡행복한교회";
-            localStorage.setItem("yetalkChurchName", "예톡행복한교회");
+        let churchName = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalkMyChurchName') || '부산제일감리교회').trim();
+        if (!churchName || churchName.includes('움직이는') || churchName.includes('김예톡') || churchName.includes('최예톡') || churchName === '우리교회') {
+            churchName = '부산제일감리교회';
+        }
+        localStorage.setItem('yetalkChurchName', churchName);
+        localStorage.setItem('yetalk_church_name', churchName);
+        if (churchSections.pastor && churchSections.pastor.body) {
+            churchSections.pastor.body = churchSections.pastor.body.replace(/예톡행복한교회/g, churchName);
         }
         const titleEl = document.getElementById("introHeaderTitle");
         if (titleEl) titleEl.innerText = churchName;
