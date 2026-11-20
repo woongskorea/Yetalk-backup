@@ -4785,6 +4785,9 @@
                     <button type="button" class="mini-tool-pill" id="btnShortsLock" onclick="toggleShortsScrollLock()" title="화면고정">
                         <span id="shortsLockSpan">화면고정</span>
                     </button>
+                    <button type="button" class="mini-tool-pill" id="btnShortsShare" onclick="shareCurrentShortsVideo()" title="영상 링크 복사 및 카톡 공유" style="background:#0284c7; color:#ffffff; border-color:#38bdf8;">
+                        <span>🔗 복사</span>
+                    </button>
                 </div>
             </div>
 
@@ -5169,11 +5172,11 @@
     <div class="modal-overlay" id="adminSlotEditModal" style="display:none; z-index:25000;" onclick="closeAdminSlotEditModal()">
         <div class="modal-card" style="padding:18px; max-width:440px; background:#0f172a; border:2px solid #ef4444; border-radius:18px; max-height:90vh; overflow-y:auto; box-sizing:border-box;" onclick="event.stopPropagation()">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:8px; margin-bottom:10px;">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:20px;">👑</span>
-                    <strong style="color:#ef4444; font-size:16px;" id="adminSlotEditModalHeader">슬롯 영상 관리 및 추가</strong>
+                <div style="display:flex; align-items:center; gap:6px; overflow:hidden; flex:1; margin-right:8px;">
+                    <span style="font-size:20px; flex-shrink:0;">👑</span>
+                    <strong style="color:#ef4444; font-size:15px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="adminSlotEditModalHeader">슬롯 영상 관리 및 추가</strong>
                 </div>
-                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeAdminSlotEditModal()">✕</button>
+                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer; flex-shrink:0;" onclick="closeAdminSlotEditModal()">✕</button>
             </div>
             
             <div style="font-size:12px; color:#cbd5e1; margin-bottom:10px; line-height:1.45; background:#1e293b; padding:8px 10px; border-radius:8px;">
@@ -5209,14 +5212,15 @@
                 <input type="text" id="inpAdminSlotTitle" class="modal-input" placeholder="성도들에게 표시될 영상 제목" style="width:100%; padding:8px 12px; font-size:13.5px; font-weight:800; background:#1e293b; color:#ffffff; border:1.5px solid #475569; border-radius:8px; box-sizing:border-box;">
             </div>
 
-            <!-- 🌟 [사용자 요청] 추가하기 버튼을 메인으로! -->
+            <!-- 🌟 [사용자 요청] 추가하기 버튼 및 1번 꽂기 / 덮어쓰기 버튼 -->
             <div style="display:flex; flex-direction:column; gap:7px;">
-                <button type="button" onclick="addAdminSlotVideo()" style="width:100%; padding:11px; background:linear-gradient(135deg, #10b981, #059669); border:none; color:#ffffff; border-radius:10px; font-size:14.5px; font-weight:900; cursor:pointer; box-shadow:0 3px 10px rgba(16,185,129,0.35);">
-                    ➕ 이 슬롯에 새 영상 추가하기
+                <button type="button" onclick="addAdminSlotVideo(false)" style="width:100%; padding:11px; background:linear-gradient(135deg, #10b981, #059669); border:none; color:#ffffff; border-radius:10px; font-size:14.5px; font-weight:900; cursor:pointer; box-shadow:0 3px 10px rgba(16,185,129,0.35);">
+                    ➕ 맨 뒤에 새 영상 추가 (2번, 3번...)
                 </button>
                 <div style="display:flex; gap:6px;">
                     <button type="button" onclick="closeAdminSlotEditModal()" style="flex:1; padding:9px; background:#1e293b; border:1px solid #475569; color:#94a3b8; border-radius:10px; font-size:12px; font-weight:800; cursor:pointer;">닫기</button>
-                    <button type="button" onclick="replaceAdminSlotVideo()" style="flex:1.7; padding:9px; background:#0284c7; border:none; color:#ffffff; border-radius:10px; font-size:12px; font-weight:850; cursor:pointer;">🔄 1번 영상 교체(덮어쓰기)</button>
+                    <button type="button" onclick="addAdminSlotVideo(true)" style="flex:1.8; padding:9px; background:#0284c7; border:none; color:#ffffff; border-radius:10px; font-size:12px; font-weight:850; cursor:pointer;" title="새 영상을 1번에 넣고 기존 영상은 2번으로 아래로 밀림">🔝 1번에 꽂기 (기존은 2번으로)</button>
+                    <button type="button" id="btnReplaceLoadedSlotVideo" onclick="replaceLoadedSlotVideo()" style="display:none; flex:1.4; padding:9px; background:#f59e0b; border:none; color:#ffffff; border-radius:10px; font-size:12px; font-weight:850; cursor:pointer;">✏️ 덮어쓰기</button>
                 </div>
             </div>
         </div>
@@ -11830,12 +11834,15 @@ function renderCategoryListView() {
                             slotCustomStyle = 'color:#0369a1 !important; font-weight:950 !important; background:#f0f9ff !important; border:1.4px solid #38bdf8 !important; box-shadow:0 1.5px 4px rgba(2,132,199,0.18) !important;';
                         }
 
-                        // 🌟 [사용자 요청] 회개 TV 밑 슬롯 명칭: 회개간증 1, 회개간증 2, 회개간증 3
+                        // 🌟 [사용자 요청] 회개 TV 밑 슬롯 명칭: 회개간증 1, 회개간증 2, 회개간증 3 (중복 완벽 방지)
                         let dispLabel = s.label || '';
                         if (k === '회개') {
-                            dispLabel = dispLabel.replace('간증 1', '회개간증 1').replace('간증 2', '회개간증 2').replace('간증 3', '회개간증 3')
-                                                 .replace('간증1', '회개간증 1').replace('간증2', '회개간증 2').replace('간증3', '회개간증 3');
-                            if (dispLabel === '간증') dispLabel = '회개간증 ' + (sIdx + 1);
+                            let clean = dispLabel.replace(/회개/g, '').trim();
+                            if (!clean || clean.startsWith('간증') || clean.startsWith('회개')) {
+                                dispLabel = '회개간증 ' + (sIdx + 1);
+                            } else {
+                                dispLabel = '회개 ' + clean;
+                            }
                         }
 
                         const vList = ensureSlotVideos(s);
@@ -12080,6 +12087,23 @@ function setupShortsFeedScrollListener() {
     if (!container) return;
     let scrollTimer = null;
 
+    // 🌟 [화면고정 방패] 화면고정 ON 시 스마트폰 터치 드래그 및 휠 원천 차단
+    container.addEventListener('touchmove', (e) => {
+        if (isTvScreenLocked) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, { passive: false });
+
+    container.addEventListener('wheel', (e) => {
+        if (isTvScreenLocked) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, { passive: false });
+
     container.addEventListener('scroll', () => {
         clearTimeout(scrollTimer);
         scrollTimer = setTimeout(() => {
@@ -12152,6 +12176,55 @@ function cycleShortsSpeed() {
     showToast(cfg.toast);
 }
 
+// 🌟 [사용자 요청] 영상 링크 자동 복사 & 카톡/공유창 열기
+function shareCurrentShortsVideo() {
+    if (!shortsFeedList || shortsFeedList.length === 0) {
+        showToast('공유할 영상이 없습니다.');
+        return;
+    }
+    const item = shortsFeedList[currentShortsIndex];
+    if (!item || !item.videoId) {
+        showToast('영상 정보를 찾을 수 없습니다.');
+        return;
+    }
+
+    const vidUrl = `https://youtu.be/${item.videoId}`;
+    const title = item.slotTitle || item.slotLabel || '예톡TV 은혜 영상';
+    const shareText = `[예톡TV 은혜 나눔]\n${title}\n▶ 바로보기: ${vidUrl}`;
+
+    // 1. 클립보드에 링크 자동 복사 (즉각 성공 보장)
+    let copied = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareText).then(() => { copied = true; }).catch(() => {});
+    }
+    if (!copied) {
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = shareText;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            copied = true;
+        } catch(e){}
+    }
+
+    showToast('📋 영상 링크가 복사되었습니다! 카톡으로 은혜를 나눠보세요.');
+
+    // 2. 모바일 네이티브 공유창 (카카오톡, 메시지 등 선택창) 즉시 호출
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: shareText,
+            url: vidUrl
+        }).catch(err => {
+            // 사용자 취소 시 무시
+        });
+    }
+}
+
 // 🌟 화면 고정
 function toggleShortsScrollLock() {
     isTvScreenLocked = !isTvScreenLocked;
@@ -12160,16 +12233,29 @@ function toggleShortsScrollLock() {
     const btn = document.getElementById('btnShortsLock');
 
     if (span) span.innerText = isTvScreenLocked ? '🔒고정ON' : '화면고정';
-    if (btn) btn.classList.toggle('locked', isTvScreenLocked);
+    if (btn) {
+        btn.classList.toggle('locked', isTvScreenLocked);
+        if (isTvScreenLocked) {
+            btn.style.setProperty('background', '#dc2626', 'important');
+            btn.style.setProperty('color', '#ffffff', 'important');
+            btn.style.setProperty('border-color', '#f87171', 'important');
+        } else {
+            btn.style.removeProperty('background');
+            btn.style.removeProperty('color');
+            btn.style.removeProperty('border-color');
+        }
+    }
 
     if (container) {
         if (isTvScreenLocked) {
-            container.style.overflowY = 'hidden';
-            container.style.touchAction = 'none';
-            showToast('🔒 화면 스크롤이 완전 고정되었습니다! (터치해도 넘어가지 않습니다)');
+            container.style.setProperty('overflow-y', 'hidden', 'important');
+            container.style.setProperty('touch-action', 'none', 'important');
+            container.style.setProperty('scroll-snap-type', 'none', 'important');
+            showToast('🔒 화면이 완전 고정되었습니다! (터치해도 다음 영상으로 넘어가지 않습니다)');
         } else {
-            container.style.overflowY = 'scroll';
-            container.style.touchAction = 'auto';
+            container.style.setProperty('overflow-y', 'scroll', 'important');
+            container.style.setProperty('touch-action', 'auto', 'important');
+            container.style.setProperty('scroll-snap-type', 'y mandatory', 'important');
             showToast('🔓 화면 고정이 해제되었습니다. (자유롭게 스크롤 가능)');
         }
     }
@@ -12314,7 +12400,15 @@ function openAdminSlotEditModal(chKey, slotIdx) {
     const inpUrl = document.getElementById('inpAdminSlotYtUrl');
     const inpTitle = document.getElementById('inpAdminSlotTitle');
 
-    if (modalTitle) modalTitle.innerText = `👑 [${ch.title}] ${slot.label} 영상 추가/관리`;
+    // 회개회개 등 중복 명칭 자동 청소
+    if (slot.label && slot.label.includes('회개회개')) {
+        slot.label = slot.label.replace(/회개+/g, '회개');
+    }
+    loadedSlotVideoIdx = null;
+    const btnRep = document.getElementById('btnReplaceLoadedSlotVideo');
+    if (btnRep) btnRep.style.display = 'none';
+
+    if (modalTitle) modalTitle.innerText = `[${ch.title}] ${slot.label} 관리`;
     if (inpLabel) inpLabel.value = slot.label || '';
     if (inpUrl) inpUrl.value = '';
     if (inpTitle) inpTitle.value = '';
@@ -12400,14 +12494,22 @@ function loadVideoToForm(idx) {
     if (idx < 0 || idx >= vList.length) return;
 
     const item = vList[idx];
+    loadedSlotVideoIdx = idx;
     const inpUrl = document.getElementById('inpAdminSlotYtUrl');
     const inpTitle = document.getElementById('inpAdminSlotTitle');
     if (inpUrl) inpUrl.value = item.videoId ? `https://youtu.be/${item.videoId}` : '';
     if (inpTitle) inpTitle.value = item.title || '';
-    showToast(`📝 #${idx + 1} 영상 정보가 입력창에 세팅되었습니다.`);
+    const btnRep = document.getElementById('btnReplaceLoadedSlotVideo');
+    if (btnRep) {
+        btnRep.style.display = 'block';
+        btnRep.innerText = `✏️ #${idx + 1} 덮어쓰기`;
+    }
+    showToast(`📝 #${idx + 1} 영상 정보가 입력창에 세팅되었습니다. 수정 후 '덮어쓰기' 또는 새 영상으로 추가하실 수 있습니다.`);
 }
 
-function addAdminSlotVideo() {
+let loadedSlotVideoIdx = null;
+
+function addAdminSlotVideo(isInsertAtTop) {
     if (!currentEditingSlot) return;
     const { chKey, slotIdx } = currentEditingSlot;
     const ch = fixedChannelsData[chKey];
@@ -12436,17 +12538,27 @@ function addAdminSlotVideo() {
 
     slot.label = label;
     const vList = ensureSlotVideos(slot);
-    vList.push({ videoId: vid, title: title });
+
+    if (isInsertAtTop) {
+        // 🌟 [사용자 요청] 새 영상을 1번으로 꽂고 기존 1번은 2번으로 아래로 밀려남!
+        vList.unshift({ videoId: vid, title: title });
+        showToast(`🔝 [${ch.title}] '${label}' 1번 대표 영상으로 꽂혔습니다! (기존 1번은 2번으로 이동)`);
+    } else {
+        // 🌟 맨 뒤에 새 영상 추가
+        vList.push({ videoId: vid, title: title });
+        showToast(`🎉 [${ch.title}] '${label}' 맨 뒤에 새 영상이 추가되었습니다! (총 ${vList.length}개)`);
+    }
 
     slot.videoId = vList[0].videoId;
     slot.title = vList[0].title;
 
     saveFixedChannelsToStorageAndCloud();
 
-    showToast(`🎉 [${ch.title}] '${label}'에 새 영상이 추가되었습니다! (총 ${vList.length}개)`);
-
     if (inpUrl) inpUrl.value = '';
     if (inpTitle) inpTitle.value = '';
+    loadedSlotVideoIdx = null;
+    const btnRep = document.getElementById('btnReplaceLoadedSlotVideo');
+    if (btnRep) btnRep.style.display = 'none';
 
     renderAdminSlotTabs();
     renderAdminSlotVideosList();
@@ -12457,12 +12569,18 @@ function addAdminSlotVideo() {
     }
 }
 
-function replaceAdminSlotVideo() {
+function replaceLoadedSlotVideo() {
     if (!currentEditingSlot) return;
     const { chKey, slotIdx } = currentEditingSlot;
     const ch = fixedChannelsData[chKey];
     if (!ch || !ch.slots || !ch.slots[slotIdx]) return;
     const slot = ch.slots[slotIdx];
+    const vList = ensureSlotVideos(slot);
+
+    if (loadedSlotVideoIdx === null || loadedSlotVideoIdx < 0 || loadedSlotVideoIdx >= vList.length) {
+        alert('수정(덮어쓰기)할 영상을 목록에서 먼저 [불러오기] 해주세요.');
+        return;
+    }
 
     const inpLabel = document.getElementById('inpAdminSlotLabel');
     const inpUrl = document.getElementById('inpAdminSlotYtUrl');
@@ -12483,17 +12601,20 @@ function replaceAdminSlotVideo() {
     }
 
     slot.label = label;
-    const vList = ensureSlotVideos(slot);
-    if (vList.length === 0) {
-        vList.push({ videoId: vid, title: title });
-    } else {
-        vList[0] = { videoId: vid, title: title };
+    vList[loadedSlotVideoIdx] = { videoId: vid, title: title };
+    if (loadedSlotVideoIdx === 0) {
+        slot.videoId = vid;
+        slot.title = title;
     }
-    slot.videoId = vList[0].videoId;
-    slot.title = vList[0].title;
 
     saveFixedChannelsToStorageAndCloud();
-    showToast(`✨ [${ch.title}] '${label}' 1번 영상이 교체되었습니다.`);
+    showToast(`✏️ #${loadedSlotVideoIdx + 1} 영상 정보가 수정(덮어쓰기)되었습니다.`);
+
+    loadedSlotVideoIdx = null;
+    const btnRep = document.getElementById('btnReplaceLoadedSlotVideo');
+    if (btnRep) btnRep.style.display = 'none';
+    if (inpUrl) inpUrl.value = '';
+    if (inpTitle) inpTitle.value = '';
 
     renderAdminSlotTabs();
     renderAdminSlotVideosList();
@@ -12502,6 +12623,10 @@ function replaceAdminSlotVideo() {
     if (currentTvMode === 'shorts') {
         activateShortsSlide(currentShortsIndex);
     }
+}
+
+function replaceAdminSlotVideo() {
+    addAdminSlotVideo(true);
 }
 
 function deleteAdminSlotVideo(vIdx) {
@@ -12515,26 +12640,26 @@ function deleteAdminSlotVideo(vIdx) {
     if (vIdx < 0 || vIdx >= vList.length) return;
     const targetTitle = vList[vIdx].title || slot.label;
 
-    if (!confirm(`'${targetTitle}' 영상을 이 슬롯 목록에서 삭제하시겠습니까?`)) {
+    if (!confirm(`'${targetTitle}' 영상을 이 슬롯 목록에서 완전히 삭제하시겠습니까?`)) {
         return;
     }
 
+    // 🌟 [사용자 요청] 기본 영상으로 자동 부활하지 않고 완전히 삭제됨!
     vList.splice(vIdx, 1);
     if (vList.length === 0) {
-        const defCh = DEFAULT_FIXED_CHANNELS[chKey];
-        const defSlot = (defCh && defCh.slots) ? defCh.slots[slotIdx] : null;
-        if (defSlot) {
-            vList.push({ videoId: defSlot.videoId, title: defSlot.title });
-        } else {
-            vList.push({ videoId: 'pZuW2CV0mXY', title: '은혜의 찬양' });
-        }
+        slot.videoId = '';
+        slot.title = '';
+    } else {
+        slot.videoId = vList[0].videoId;
+        slot.title = vList[0].title;
     }
 
-    slot.videoId = vList[0].videoId;
-    slot.title = vList[0].title;
-
     saveFixedChannelsToStorageAndCloud();
-    showToast(`🗑️ 영상이 삭제되었습니다.`);
+    showToast(`🗑️ 영상이 완전히 삭제되었습니다. (남은 영상: ${vList.length}개)`);
+
+    loadedSlotVideoIdx = null;
+    const btnRep = document.getElementById('btnReplaceLoadedSlotVideo');
+    if (btnRep) btnRep.style.display = 'none';
 
     renderAdminSlotTabs();
     renderAdminSlotVideosList();
