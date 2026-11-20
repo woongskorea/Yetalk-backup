@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>예배 공간 - 예톡행복한교회</title>
+    <title>예배 공간 - 예톡교회</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;800;900&display=swap" rel="stylesheet">
@@ -11,11 +11,9 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         :root {
-            --safe-top: max(env(safe-area-inset-top, 0px), 24px);
-            --header-h: calc(42px + var(--safe-top));
-            --tabs-h: 38px;
+            --safe-top: max(env(safe-area-inset-top, 0px), 16px);
+            --header-h: calc(44px + var(--safe-top));
             --admob-h: calc(100px + max(env(safe-area-inset-bottom, 0px), 8px));
-            --view-h: calc(100dvh - var(--header-h) - var(--tabs-h) - var(--admob-h));
             --primary: #0284c7;
         }
 
@@ -37,20 +35,26 @@
             overflow: hidden;
         }
 
-        /* 🌟 1층 헤더: 오직 깔끔한 ← 화살표만 단독 배치 (뒤로가기 글자, 타이틀, 버튼 일체 삭제) */
-        .worship-header {
+        /* 🌟 상단 플로팅 헤더 (뒤로가기 + 예배 선택 드롭다운 알약) */
+        .worship-top-floating-bar {
+            position: absolute;
+            top: 0; left: 0; right: 0;
             height: var(--header-h);
-            background: transparent;
-            border: none;
+            padding: var(--safe-top) 12px 6px 12px;
             display: flex;
             align-items: center;
-            justify-content: flex-start;
-            padding: var(--safe-top) 12px 6px 12px;
-            flex-shrink: 0;
-            z-index: 100;
+            justify-content: space-between;
+            z-index: 12000;
+            background: linear-gradient(180deg, rgba(6, 11, 20, 0.95) 0%, rgba(6, 11, 20, 0.6) 80%, transparent 100%);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            pointer-events: none;
+        }
+        .worship-top-floating-bar > * {
+            pointer-events: auto;
         }
         .btn-clean-back {
-            background: rgba(15, 23, 42, 0.75);
+            background: rgba(15, 23, 42, 0.85);
             border: 1.2px solid rgba(255, 255, 255, 0.25);
             color: #ffffff;
             font-size: 20px;
@@ -62,11 +66,9 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            transition: all 0.15s ease;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
             line-height: 1;
+            transition: all 0.15s ease;
         }
         .btn-clean-back:active {
             transform: scale(0.9);
@@ -74,138 +76,599 @@
             border-color: #38bdf8;
         }
 
-        /* 🌟 2층 가로 롤링 칩 메뉴 (실제 6대 예배 탭 구성) */
-        .worship-tabs-bar {
-            height: var(--tabs-h); background: #0c1424;
-            border-bottom: 1.5px solid #1e293b;
-            display: flex; gap: 6px; overflow-x: auto; white-space: nowrap;
-            padding: 0 10px; align-items: center; flex-shrink: 0;
-            z-index: 99; scrollbar-width: none;
+        .worship-selector-pill {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1.2px solid #38bdf8;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 6px 14px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(2, 132, 199, 0.35);
+            transition: all 0.15s ease;
         }
-        .worship-tabs-bar::-webkit-scrollbar { display: none; }
-        .w-tab-chip {
-            background: #1a263c; border: 1px solid #334155; color: #94a3b8;
-            font-size: 12.5px; font-weight: 850; padding: 5px 12px; border-radius: 16px;
-            cursor: pointer; flex-shrink: 0; transition: all 0.2s;
-            display: inline-flex; align-items: center; gap: 4px;
-        }
-        .w-tab-chip.active {
-            background: linear-gradient(135deg, #0284c7, #0ea5e9);
-            color: #ffffff; border-color: #38bdf8; font-weight: 950;
-            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.45);
-        }
-        .live-dot-pulse {
-            color: #ef4444; font-size: 11px; line-height: 1;
-            animation: dotFlicker 0.8s infinite alternate;
-        }
-        @keyframes dotFlicker {
-            from { opacity: 1; }
-            to { opacity: 0.25; }
+        .worship-selector-pill:active {
+            transform: scale(0.96);
+            background: #0284c7;
         }
 
-        /* 3층 세로 스냅 뷰포트 */
-        .worship-viewport {
-            flex: 1; height: var(--view-h);
-            overflow-y: scroll; scroll-snap-type: y mandatory;
-            scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
+        /* 🌟 전체 스크롤 뷰포트 (플레이어 + 2줄 컨트롤 바 + 이번 주/지난 주 설교 피드) */
+        .worship-scroll-container {
+            flex: 1;
+            width: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding-top: var(--header-h);
+            padding-bottom: calc(var(--admob-h) + 20px);
             position: relative;
         }
-        .worship-viewport::-webkit-scrollbar { display: none; }
-        .worship-viewport.locked-scroll {
-            overflow-y: hidden !important; scroll-snap-type: none !important; touch-action: none !important;
+        .worship-scroll-container::-webkit-scrollbar { display: none; }
+        .worship-scroll-container.locked-scroll {
+            overflow-y: hidden !important;
+            touch-action: none !important;
         }
 
-        .worship-touch-guard {
-            display: none; position: fixed; inset: 0;
-            z-index: 250000; background: rgba(0, 0, 0, 0.05);
-            touch-action: none;
-        }
-
-        .worship-snap-section {
-            width: 100%; min-height: var(--view-h);
-            background: #0b1325;
-            padding: 8px 10px 20px 10px;
-            display: flex; flex-direction: column; gap: 8px;
-        }
-        .worship-snap-section::-webkit-scrollbar { display: none; }
-
-        /* 영상 바로 위 예배종류 표시 */
-        .worship-kind-header-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 2px 4px;
-        }
-        .worship-kind-badge {
-            display: inline-flex; align-items: center; gap: 5px;
-            font-size: 13.5px; font-weight: 850; color: #38bdf8;
-        }
-        .worship-live-tag {
-            font-size: 10.5px; font-weight: 900; background: #dc2626; color: #fff;
-            padding: 2px 7px; border-radius: 6px;
-            animation: livePulse 1.2s infinite ease-in-out;
-        }
-        @keyframes livePulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
-        /* 유튜브 플레이어 박스: 1:1 화면 비율 기본 및 부드러운 순환 확대/축소 지원 */
+        /* 🌟 유튜브 플레이어 박스: 예톡TV와 100% 동일한 16:9 와이드 & 확대 대비 위로 여유(-26px) */
         .yt-player-box {
             width: 100%;
-            aspect-ratio: 1 / 1;
-            max-height: 440px;
-            background: #000000; border-radius: 12px;
-            overflow: hidden; border: 1.5px solid #1e3a5f;
-            box-shadow: 0 4px 18px rgba(0,0,0,0.6);
-            flex-shrink: 0; position: relative;
-            margin: 0 auto;
+            aspect-ratio: 16 / 9;
+            background: #000000;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+            border-bottom: 1.5px solid #1e293b;
+            flex-shrink: 0;
         }
-        .yt-player-box iframe {
+        .yt-player-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform: translateY(-26px); /* 🌟 [사용자 요청] 확대 시 하단 자막이 짤리지 않도록 예톡TV와 동일하게 살짝 위로 여유 */
+            transition: transform 0.25s ease;
+        }
+        .yt-player-inner iframe {
             width: 100%;
             height: 100%;
             border: none;
             display: block;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(var(--yt-zoom, 1));
+            transform: scale(var(--yt-zoom, 1));
+            transform-origin: center center;
             transition: transform 0.25s ease;
         }
-        .yt-inapp-guard-top {
-            position: absolute; top: 0; left: 0; right: 0; height: 38px;
-            background: transparent; z-index: 5; cursor: default;
+        .yt-touch-shield {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            cursor: pointer;
+            background: transparent;
         }
 
-        /* 🌟 영상 바로 밑 4대 컨트롤 버튼 바: [확대 100%] [속도 100%] [화면고정] [관리 ON/OFF] */
-        .worship-ctrl-bar-under-video {
-            display: flex; justify-content: space-between; align-items: center;
-            gap: 5px; padding: 6px 0 3px 0; flex-shrink: 0;
-            position: relative; z-index: 260000; width: 100%;
+        /* 🌟 영상 바로 밑 컨트롤 영역 (예톡TV와 100% 동일한 구조) */
+        .worship-controls-wrapper {
+            padding: 8px 12px 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            background: #0b1325;
+            border-bottom: 1.5px solid #1e293b;
         }
-        .btn-worship-ctrl {
-            flex: 1; height: 38px; min-width: 0;
-            background: #131f37; border: 1.2px solid rgba(56, 189, 248, 0.35);
-            color: #ffffff; font-size: 11.5px; font-weight: 850;
-            border-radius: 8px; cursor: pointer; display: inline-flex;
-            align-items: center; justify-content: center; gap: 0;
-            padding: 0 4px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+
+        /* 🌟 [사용자 요청] 한줄 예배 정보 알약: 클릭 시 설교 상세 모달 팝업 */
+        .sermon-info-pill {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1.2px solid rgba(56, 189, 248, 0.4);
+            border-radius: 12px;
+            padding: 8px 12px;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 850;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
             transition: all 0.15s ease;
+        }
+        .sermon-info-pill:active {
+            transform: scale(0.98);
+            background: #0f1f3a;
+            border-color: #38bdf8;
+        }
+        .sermon-info-pill-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+        }
+        .sermon-badge {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            color: #ffffff;
+            font-size: 11px;
+            font-weight: 900;
+            padding: 2px 7px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+        .sermon-title-preview {
+            color: #f8fafc;
+            font-size: 13px;
+            font-weight: 850;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
         }
-        .btn-worship-ctrl:active {
-            transform: scale(0.96); background: #0284c7;
-        }
-        .btn-worship-ctrl.zoomed {
-            background: #0284c7 !important;
-            border-color: #38bdf8 !important;
-            color: #ffffff !important;
-        }
-        .btn-worship-ctrl.locked {
-            background: #dc2626 !important; border-color: #ef4444 !important;
-            color: #ffffff !important; box-shadow: 0 0 12px rgba(239, 68, 68, 0.7) !important;
+        .sermon-info-pill-right {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #38bdf8;
+            font-size: 11px;
+            font-weight: 900;
+            flex-shrink: 0;
+            background: rgba(2, 132, 199, 0.2);
+            padding: 3px 7px;
+            border-radius: 6px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
         }
 
-        /* 🌟 [사용자 요청] 포털 자유게시판 & 매일성경읽기와 100% 동일한 하트 & 십자가 드론 편대 비행 애니메이션 FX */
+        /* 🌟 [1번째 줄 도구바]: [❤️] [✝️] | [확대 1] [속도 1] [화면고정(빨간 테두리)] [보내기] */
+        .controls-row-1 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 5px;
+            width: 100%;
+            padding: 5px 8px;
+            background: rgba(15, 23, 42, 0.92);
+            border: 1.2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 11px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+        }
+        .mini-tool-pill {
+            background: rgba(15, 23, 42, 0.80);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: #f1f5f9;
+            padding: 6px 10px;
+            min-height: 35px;
+            border-radius: 17px;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            transition: all 0.15s ease;
+            outline: none;
+            white-space: nowrap;
+        }
+        .mini-tool-pill:active {
+            transform: scale(0.95);
+            background: rgba(30, 41, 59, 0.90);
+        }
+        .mini-heart-pill, .mini-cross-pill {
+            padding: 5px 9px !important;
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        /* 🌟 [사용자 요청] 화면고정 버튼: 빨간색 테두리로 특별 강조 */
+        #btnLock {
+            border: 1.6px solid #ef4444 !important;
+            color: #fca5a5 !important;
+            background: rgba(239, 68, 68, 0.15) !important;
+            font-weight: 900 !important;
+        }
+        #btnLock.locked {
+            border: 2px solid #ef4444 !important;
+            background: #dc2626 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 14px rgba(239, 68, 68, 0.8) !important;
+            animation: lockPulse 1.2s infinite ease-in-out;
+        }
+        @keyframes lockPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+
+        /* 🌟 [사용자 요청] 보내기 버튼 (글자수 감안하여 이모티콘 없이 깔끔하게 '보내기') */
+        #btnShare {
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #475569;
+            font-weight: 850;
+            padding: 6px 11px;
+        }
+        #btnShare:active {
+            background: #0284c7;
+            color: #ffffff;
+        }
+
+        /* 🌟 [2번째 줄 도구바]: [⛪ 교회홈] [📺 예톡TV] [⚙️ 관리] */
+        .controls-row-2 {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.98);
+            border: 1.2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            padding: 4px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.7);
+        }
+        .worship-action-btn {
+            flex: 1;
+            padding: 9px 8px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            user-select: none;
+            transition: transform 0.15s ease;
+        }
+        .worship-action-btn:active {
+            transform: scale(0.96);
+        }
+        .btn-act-church-home {
+            background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
+            color: #ffffff;
+            border: 1px solid #60a5fa;
+        }
+        .btn-act-yetalk-tv {
+            background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+            color: #ffffff;
+            border: 1px solid #a78bfa;
+        }
+        .btn-act-admin {
+            background: #1e293b;
+            color: #fde047;
+            border: 1.2px solid #eab308;
+        }
+
+        /* 🌟 [사용자 요청] 스크롤 시 나타나는 피드 섹션: [📅 이번 주 설교 영상] & [📁 지난 주 설교 영상] */
+        .sermon-feed-section {
+            padding: 14px 12px 18px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .feed-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 6px;
+            border-bottom: 1.5px solid #1e293b;
+        }
+        .feed-section-title {
+            font-size: 14.5px;
+            font-weight: 950;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .feed-section-desc {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: 700;
+        }
+
+        /* 설교 영상 카드 */
+        .sermon-video-card {
+            background: #0f172a;
+            border: 1.2px solid #1e293b;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            gap: 10px;
+            padding: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            transition: all 0.15s ease;
+            align-items: center;
+        }
+        .sermon-video-card:active {
+            transform: scale(0.98);
+            border-color: #38bdf8;
+            background: #13223f;
+        }
+        .sermon-video-card.active-playing {
+            border-color: #38bdf8;
+            background: #0c1c38;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+        }
+        .card-thumb-wrap {
+            position: relative;
+            width: 110px;
+            height: 66px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000000;
+            flex-shrink: 0;
+        }
+        .card-thumb-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .card-play-icon {
+            position: absolute;
+            inset: 0;
+            margin: auto;
+            width: 26px;
+            height: 26px;
+            background: rgba(220, 38, 38, 0.85);
+            color: #ffffff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+        }
+        .card-info-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            overflow: hidden;
+            text-align: left;
+        }
+        .card-badge-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .card-kind-badge {
+            font-size: 10px;
+            font-weight: 900;
+            background: #0284c7;
+            color: #ffffff;
+            padding: 1.5px 6px;
+            border-radius: 4px;
+        }
+        .card-date-badge {
+            font-size: 10.5px;
+            color: #64748b;
+            font-weight: 700;
+        }
+        .card-title-text {
+            font-size: 13.5px;
+            font-weight: 900;
+            color: #f8fafc;
+            line-height: 1.3;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .card-sub-text {
+            font-size: 11.5px;
+            color: #94a3b8;
+            font-weight: 750;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* 🌟 예배 선택 드롭다운/시트 모달 */
+        .dropdown-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 50000;
+            backdrop-filter: blur(6px);
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: calc(var(--header-h) + 6px);
+        }
+        .dropdown-modal-overlay.open { display: flex; }
+        .dropdown-card {
+            width: calc(100% - 32px);
+            max-width: 420px;
+            background: #0f172a;
+            border: 1.5px solid #38bdf8;
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .dropdown-item-btn {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #f1f5f9;
+            padding: 11px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 850;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.15s ease;
+        }
+        .dropdown-item-btn:active {
+            transform: scale(0.98);
+            background: #0284c7;
+            border-color: #38bdf8;
+            color: #ffffff;
+        }
+        .dropdown-item-btn.selected {
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            border-color: #38bdf8;
+            color: #ffffff;
+            font-weight: 950;
+        }
+
+        /* 🌟 설교 상세 모달 (클릭 시 팝업, 누르면 닫힘) */
+        .sermon-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 60000;
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .sermon-modal-overlay.open { display: flex; }
+        .sermon-modal-card {
+            width: 100%;
+            max-width: 400px;
+            background: #ffffff;
+            color: #0f172a;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            text-align: left;
+            position: relative;
+        }
+        .sermon-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1.5px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        .sermon-modal-title {
+            font-size: 16.5px;
+            font-weight: 950;
+            color: #0284c7;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sermon-modal-close-btn {
+            background: #f1f5f9;
+            border: none;
+            color: #64748b;
+            font-size: 18px;
+            font-weight: 900;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sermon-modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 4px 0;
+        }
+        .sermon-modal-row {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .sermon-modal-label {
+            font-size: 12px;
+            font-weight: 850;
+            color: #64748b;
+        }
+        .sermon-modal-value {
+            font-size: 15px;
+            font-weight: 900;
+            color: #0f172a;
+            line-height: 1.4;
+            word-break: keep-all;
+        }
+
+        /* 🌟 관리실 풀스크린 모달 (설교 수정/삭제) */
+        .admin-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 70000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+            padding: 0;
+        }
+        .admin-modal-overlay.open { display: flex; }
+        .admin-modal-card {
+            width: 100%;
+            max-width: 500px;
+            height: 100dvh;
+            background: #0b1325;
+            padding: calc(var(--safe-top) + 12px) 18px calc(env(safe-area-inset-bottom, 0px) + 18px) 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto;
+            text-align: left;
+            box-sizing: border-box;
+        }
+        .admin-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .admin-input-label {
+            font-size: 12.5px;
+            color: #facc15;
+            font-weight: 850;
+        }
+        .admin-input-text {
+            width: 100%;
+            background: #162238;
+            border: 1.2px solid #334155;
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #ffffff;
+            font-size: 13.5px;
+            font-weight: 700;
+            outline: none;
+            font-family: inherit;
+        }
+        .admin-input-text:focus {
+            border-color: #38bdf8;
+        }
+        .yt-input-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .btn-paste-clipboard {
+            height: 40px;
+            padding: 0 12px;
+            background: #0284c7;
+            color: #ffffff;
+            border: 1px solid #38bdf8;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        /* 🌟 [사용자 요청] 사랑의 하트 드론 & 은혜의 십자가 드론 애니메이션 FX */
         .particle-swarm-overlay {
             position: fixed;
             inset: 0;
@@ -258,335 +721,216 @@
             100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
         }
 
-        /* 🌟 재생 중 풀스크린 몰입 모드 (재생 중 메뉴 숨김, 중지 시 복구) */
-        body.is-playing-mode .worship-header,
-        body.is-playing-mode .worship-tabs-bar,
-        body.is-playing-mode .worship-kind-header-row,
-        body.is-playing-mode .past-worship-header-btn,
-        body.is-playing-mode .past-worship-text-list {
-            display: none !important;
-        }
-        /* 🌟 [사용자 요청] 영상을 풀스크린으로 해도 밑에 애드몹 100은 그대로 유지 */
-        body.is-playing-mode .bottom-fixed-admob-footer {
-            display: flex !important;
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 0 !important;
-            right: 0 !important;
-            z-index: 100000 !important;
-        }
-        body.is-playing-mode .sermon-info-card {
-            display: flex !important;
-            position: fixed !important;
-            bottom: calc(var(--admob-h) + 14px) !important;
-            left: 14px !important;
-            right: 14px !important;
-            z-index: 99990 !important;
-            background: rgba(14, 22, 40, 0.82) !important;
-            backdrop-filter: blur(8px) !important;
-            -webkit-backdrop-filter: blur(8px) !important;
-            border: 1.2px solid rgba(56, 189, 248, 0.45) !important;
-            border-radius: 12px !important;
-            padding: 10px 14px !important;
-            margin: 0 !important;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.6) !important;
-            pointer-events: none !important;
-        }
-        body.is-playing-mode .worship-shell {
-            background: #000000 !important;
-        }
-        body.is-playing-mode .worship-viewport {
-            height: calc(100dvh - var(--admob-h)) !important;
-            min-height: calc(100dvh - var(--admob-h)) !important;
-            max-height: calc(100dvh - var(--admob-h)) !important;
-            padding: 0 !important;
+        /* 🌟 하단 고정 애드몹 100 */
+        .bottom-fixed-admob-footer {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: var(--admob-h);
+            background: #080d1a;
+            border-top: 1.5px solid #1e3a5f;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            overflow: hidden !important;
+            justify-content: flex-start;
+            padding-top: 6px;
+            z-index: 10000;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.9);
         }
-        body.is-playing-mode .worship-snap-section {
-            min-height: calc(100dvh - var(--admob-h)) !important;
-            height: calc(100dvh - var(--admob-h)) !important;
-            max-height: calc(100dvh - var(--admob-h)) !important;
-            padding: 0 !important;
-            justify-content: center;
-            background: #000000 !important;
-            gap: 0 !important;
-            overflow: hidden !important;
-        }
-        body.is-playing-mode .yt-player-box {
-            width: 100% !important;
-            height: 100% !important;
-            max-height: calc(100dvh - var(--admob-h)) !important;
-            border: none !important;
-            border-radius: 0 !important;
-            aspect-ratio: unset !important;
-        }
-        body.is-playing-mode .worship-ctrl-bar-under-video {
-            position: fixed !important;
-            bottom: calc(var(--admob-h) + 8px) !important;
-            left: 14px !important;
-            right: 14px !important;
-            opacity: 0.15;
-            transition: opacity 0.25s ease;
-            z-index: 99999 !important;
-        }
-        body.is-playing-mode .worship-ctrl-bar-under-video:hover,
-        body.is-playing-mode .worship-ctrl-bar-under-video:active {
-            opacity: 1;
-        }
-
-        /* 풀스크린 해제 플로팅 버튼 */
-        .btn-exit-fullscreen {
-            display: none;
-            position: fixed;
-            top: max(env(safe-area-inset-top, 0px) + 10px, 14px);
-            right: 14px;
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            color: #ffffff;
-            font-size: 11.5px;
+        .admob-safety-bar {
+            font-size: 9.5px;
+            color: #64748b;
             font-weight: 850;
-            padding: 5px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            z-index: 100000;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-        body.is-playing-mode .btn-exit-fullscreen {
-            display: inline-flex;
+            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+            display: flex;
             align-items: center;
             gap: 4px;
         }
-
-        /* 🌟 설교 핵심 카드 (글자가 너무 과하게 강조되지 않도록 단정하고 차분하게 정돈 / 본문과 설교자 선명한 검은색) */
-        .sermon-info-card {
-            background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 12px;
-            padding: 14px 16px; display: flex; flex-direction: column; gap: 7px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.06); flex-shrink: 0; text-align: left;
-            margin-top: 2px;
-        }
-        .sermon-title-main {
-            font-size: 16px; font-weight: 950; color: #000000; line-height: 1.4; word-break: keep-all;
-            letter-spacing: -0.3px;
-        }
-        .sermon-detail-row {
-            display: flex; flex-direction: column; gap: 6px;
-            padding-top: 6px; border-top: 1.5px solid #e2e8f0;
-        }
-        .detail-line {
-            display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 900; color: #000000;
-        }
-        .detail-tag {
-            color: #0f172a; font-weight: 950; font-size: 13px; min-width: 68px; flex-shrink: 0;
-        }
-        .detail-val {
-            color: #000000; font-weight: 900; word-break: keep-all;
-        }
-
-        /* 지난 예배 리스트 */
-        .past-worship-header-btn {
-            background: none; border: none; width: 100%; display: flex; align-items: center; justify-content: space-between;
-            padding: 8px 4px 6px 4px; cursor: pointer; outline: none; border-bottom: 1.5px solid #1e293b;
-            flex-shrink: 0; margin-top: 4px;
-        }
-        .past-header-left { display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 850; color: #38bdf8; }
-        .red-triangle { color: #ef4444; font-size: 12px; }
-
-        .past-worship-text-list { display: none; flex-direction: column; padding: 4px 6px; margin-top: 2px; text-align: left; }
-        .past-worship-text-list.open { display: flex; }
-        .past-text-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 9px 4px; border-bottom: 1px dashed #1e293b; cursor: pointer;
-        }
-        .past-text-row:last-child { border-bottom: none; }
-        .row-title { font-size: 12.5px; font-weight: 750; color: #f1f5f9; display: flex; align-items: center; gap: 6px; }
-        .row-title::before { content: "•"; color: #38bdf8; font-weight: 900; }
-        .row-date { font-size: 11px; color: #64748b; font-weight: 600; flex-shrink: 0; }
-
-        /* 하단 고정 100 애드몹 */
-        .bottom-fixed-admob-footer {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            height: var(--admob-h); background: #080d1a;
-            border-top: 1.5px solid #1e3a5f;
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-            padding-top: 6px; z-index: 1000; box-shadow: 0 -4px 20px rgba(0,0,0,0.9);
-        }
-        .admob-safety-bar {
-            font-size: 9.5px; color: #64748b; font-weight: 850; letter-spacing: 0.5px;
-            margin-bottom: 2px; display: flex; align-items: center; gap: 4px;
-        }
         .admob-display-slot {
-            width: calc(100% - 20px); max-width: 400px; height: 75px;
-            background: #0b1326; border: 1.2px solid #1e293b; border-radius: 10px;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.8); gap: 2px;
+            width: calc(100% - 20px);
+            max-width: 400px;
+            height: 75px;
+            background: #0b1326;
+            border: 1.2px solid #1e293b;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+            gap: 2px;
         }
 
-        /* 🌟 [사용자 요청] 컴퓨터(PC) 환경: 애드몹 전면 숨김 및 예배 화면 전체 확장 */
+        /* 토스트 알림 */
+        .yetalk-toast {
+            position: fixed;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: rgba(15, 23, 42, 0.95);
+            color: #facc15;
+            border: 1px solid #facc15;
+            padding: 9px 18px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 900;
+            z-index: 900000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+        .yetalk-toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* 🌟 PC 환경 최적화 */
         @media (min-width: 768px) {
             :root {
                 --admob-h: 0px !important;
-                --view-h: calc(100dvh - var(--header-h) - var(--tabs-h)) !important;
             }
-            .bottom-fixed-admob-footer,
-            .admob-safety-bar,
-            .admob-display-slot,
-            [class*="admob"],
-            [id*="admob"] {
+            .bottom-fixed-admob-footer {
                 display: none !important;
-                height: 0 !important;
-                overflow: hidden !important;
+            }
+            .worship-scroll-container {
+                padding-bottom: 30px !important;
             }
         }
-
         @media (min-width: 1024px) {
             .worship-shell {
-                max-width: 1240px !important;
-            }
-            .worship-snap-section {
-                max-width: 1100px;
-                margin: 0 auto;
-                padding: 14px 24px 30px 24px;
-            }
-            .worship-kind-header-row,
-            .worship-ctrl-bar-under-video,
-            .sermon-info-card,
-            .past-worship-header-btn,
-            .past-worship-text-list {
-                max-width: 1000px;
-                margin-left: auto;
-                margin-right: auto;
-                width: 100%;
-            }
-            /* 🌟 모니터에서는 1.5 또는 2배 영상 크게 (예톡홈같이) */
-            .yt-player-box {
-                max-width: 1000px;
-                margin: 0 auto;
+                max-width: 800px !important;
             }
         }
 
+        /* 🌟 화이트 테마 대응 */
         body[data-theme="white"] { background: #fbf9f4 !important; color: #0f172a !important; }
         body[data-theme="white"] .worship-shell { background: #fbf9f4 !important; }
-        body[data-theme="white"] .worship-snap-section { background: #fbf9f4 !important; }
-        body[data-theme="white"] .worship-tabs-bar { background: #ffffff !important; border-bottom: 1.5px solid #cbd5e1 !important; }
-        body[data-theme="white"] .w-tab-chip { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #0f172a !important; font-weight: 850 !important; }
-        body[data-theme="white"] .w-tab-chip.active { background: #0284c7 !important; color: #ffffff !important; border-color: #0284c7 !important; font-weight: 950 !important; }
-        body[data-theme="white"] .w-tab-chip.is-live-chip { background: #ef4444 !important; color: #ffffff !important; border-color: #dc2626 !important; font-weight: 950 !important; }
-        body[data-theme="white"] .sermon-info-card { background: #ffffff !important; border-color: #cbd5e1 !important; box-shadow: 0 4px 16px rgba(0,0,0,0.06) !important; }
-        body[data-theme="white"] .sermon-title-text, body[data-theme="white"] .sermon-title-main { color: #000000 !important; font-weight: 950 !important; }
-        body[data-theme="white"] .sermon-meta-text { color: #000000 !important; font-weight: 850 !important; }
-        body[data-theme="white"] .detail-line { color: #000000 !important; font-weight: 900 !important; }
-        body[data-theme="white"] .detail-tag { color: #0f172a !important; font-weight: 950 !important; }
-        body[data-theme="white"] .detail-val { color: #000000 !important; font-weight: 900 !important; }
-        body[data-theme="white"] .past-worship-header-btn { background: #f1f5f9 !important; border-color: #cbd5e1 !important; color: #0f172a !important; font-weight: 900 !important; }
-        body[data-theme="white"] .past-worship-item { background: #ffffff !important; border-color: #e2e8f0 !important; }
-        body[data-theme="white"] .past-item-title { color: #0f172a !important; font-weight: 850 !important; }
-        body[data-theme="white"] .btn-worship-ctrl { background: #ffffff !important; border-color: #cbd5e1 !important; color: #0f172a !important; font-weight: 900 !important; }
-
-        /* 🌟 관리실 풀스크린 모달 (상단~하단 가득 채우는 풀 스크린) */
-        .modal-overlay {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            z-index: 2000000; align-items: center; justify-content: center; padding: 0;
-            backdrop-filter: blur(8px);
-        }
-        .modal-overlay.open { display: flex; }
-        .modal-card {
-            width: 100%; max-width: 500px; height: 100dvh; background: #0b1325;
-            border: none; border-radius: 0;
-            padding: calc(env(safe-area-inset-top, 0px) + 16px) 18px calc(env(safe-area-inset-bottom, 0px) + 20px) 18px;
-            display: flex; flex-direction: column; gap: 12px;
-            overflow-y: auto; text-align: left; box-sizing: border-box;
-            box-shadow: none;
-        }
-        .modal-input {
-            width: 100%; background: #162238; border: 1.2px solid #334155; border-radius: 8px;
-            padding: 10px 12px; color: #ffffff; font-size: 13.5px; font-weight: 700; outline: none; font-family: inherit;
-            box-sizing: border-box;
-        }
-        .modal-input:focus { border-color: #38bdf8; }
-
-        .yt-url-input-wrap {
-            display: flex; gap: 6px; align-items: center; position: relative;
-        }
-        .modal-input-yt {
-            flex: 1; background: #0c1a2e !important; border: 1.5px solid #0284c7 !important;
-            border-radius: 8px; padding: 10px 12px; color: #ffffff !important;
-            font-size: 13.5px !important; font-weight: 750 !important; outline: none; font-family: inherit;
-            box-sizing: border-box;
-        }
-        .modal-input-yt:focus {
-            border-color: #38bdf8 !important; box-shadow: 0 0 8px rgba(56, 189, 248, 0.5) !important;
-        }
-        .btn-quick-paste {
-            height: 40px; padding: 0 12px; background: #0284c7; color: #ffffff;
-            border: 1px solid #38bdf8; border-radius: 8px; font-size: 12px; font-weight: 900;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
-        }
-        .btn-quick-paste:active { transform: scale(0.95); }
-
-        /* 예톡TV 자동 업로드 선택 바 */
-        .admin-tv-toggle-box {
-            background: #141f33; border: 1.5px solid #1e3a5f; border-radius: 12px;
-            padding: 12px 14px; display: flex; justify-content: space-between; align-items: center;
-        }
-        .admin-tv-title { font-size: 13px; font-weight: 900; color: #fde047; }
-        .admin-tv-btn-group { display: flex; gap: 6px; }
-        .btn-tv-opt {
-            padding: 6px 16px; border-radius: 8px; font-size: 13px; font-weight: 900;
-            border: 1px solid #475569; background: #1e293b; color: #94a3b8; cursor: pointer;
-            transition: all 0.15s ease;
-        }
-        .btn-tv-opt.active {
-            background: linear-gradient(135deg, #0284c7, #2563eb); color: #ffffff;
-            border-color: #38bdf8; box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
-        }
-
-        .yetalk-toast {
-            position: fixed; bottom: 120px; left: 50%; transform: translateX(-50%) translateY(20px);
-            background: rgba(15, 23, 42, 0.95); color: #facc15; border: 1px solid #facc15;
-            padding: 9px 18px; border-radius: 20px; font-size: 12px; font-weight: 900;
-            z-index: 2000005; opacity: 0; visibility: hidden; transition: all 0.25s ease; white-space: nowrap;
-        }
-        .yetalk-toast.show { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+        body[data-theme="white"] .worship-controls-wrapper { background: #ffffff !important; border-color: #cbd5e1 !important; }
+        body[data-theme="white"] .sermon-info-pill { background: #ffffff !important; border-color: #cbd5e1 !important; }
+        body[data-theme="white"] .sermon-title-preview { color: #0f172a !important; }
+        body[data-theme="white"] .controls-row-1 { background: #f8fafc !important; border-color: #cbd5e1 !important; }
+        body[data-theme="white"] .mini-tool-pill { background: #ffffff !important; border-color: #cbd5e1 !important; color: #0f172a !important; }
+        body[data-theme="white"] .sermon-video-card { background: #ffffff !important; border-color: #e2e8f0 !important; }
+        body[data-theme="white"] .card-title-text { color: #0f172a !important; }
+        body[data-theme="white"] .feed-section-header { border-color: #cbd5e1 !important; }
     </style>
 </head>
 <body>
 
 <div class="worship-shell">
 
-    <!-- 1층 헤더: 오직 깔끔한 ← 뒤로가기 화살표만 단독 배치 (사용자 요청 100% 반영) -->
-    <header class="worship-header" id="worshipHeader">
-        <button type="button" class="btn-clean-back" onclick="goBackToMain()" title="교회 메인으로 이동">
+    <!-- 🌟 상단 플로팅 헤더 (뒤로가기 화살표 + 예배 종류 선택 알약) -->
+    <header class="worship-top-floating-bar">
+        <button type="button" class="btn-clean-back" onclick="goBackToMain()" title="교회 메인으로 돌아가기">
             ←
+        </button>
+        <button type="button" class="worship-selector-pill" onclick="openDropdownModal()" title="예배 종류 선택">
+            <span id="headerWorshipKindBadge">🎙️ 주일예배</span>
+            <span style="font-size:10px; color:#38bdf8;">▼</span>
         </button>
     </header>
 
-    <!-- 풀스크린 시 해제 플로팅 버튼 -->
-    <button type="button" class="btn-exit-fullscreen" id="btnExitFullscreen" onclick="setPlaybackMode(false)">
-        ✕ 메뉴보기
-    </button>
+    <!-- 🌟 메인 스크롤 영역 -->
+    <main class="worship-scroll-container" id="worshipScrollContainer">
 
-    <!-- 2층 가로 롤링 칩 메뉴 (실제 6대 예배 탭 구성) -->
-    <nav class="worship-tabs-bar" id="worshipTabsBar">
-        <button type="button" class="w-tab-chip active" id="wchip_0" onclick="switchWorshipTab(0)">주일예배</button>
-        <button type="button" class="w-tab-chip" id="wchip_1" onclick="switchWorshipTab(1)">수요예배</button>
-        <button type="button" class="w-tab-chip" id="wchip_2" onclick="switchWorshipTab(2)">금요기도회</button>
-        <button type="button" class="w-tab-chip" id="wchip_3" onclick="switchWorshipTab(3)">새벽기도회</button>
-        <button type="button" class="w-tab-chip" id="wchip_4" onclick="switchWorshipTab(4)">특별예배</button>
-        <button type="button" class="w-tab-chip" id="wchip_5" onclick="switchWorshipTab(5)">찬양모음</button>
-    </nav>
+        <!-- 1. 유튜브 플레이어 박스: 16:9 와이드 & 확대 대비 위로 여유(-26px) -->
+        <div class="yt-player-box" id="ytPlayerBox">
+            <div class="yt-player-inner" id="ytPlayerInner">
+                <iframe id="mainWorshipIframe"
+                    src="https://www.youtube.com/embed/92oktJl3-Fo?autoplay=0&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    sandbox="allow-scripts allow-same-origin allow-presentation">
+                </iframe>
+            </div>
+            <div class="yt-touch-shield" id="ytTouchShield" onclick="handleVideoTouch()"></div>
+        </div>
 
-    <!-- 3층 세로 스냅 뷰포트 -->
-    <main class="worship-viewport" id="worshipViewport">
-        <div class="worship-touch-guard" id="worshipTouchGuard" onclick="showLockedAlert()"></div>
+        <!-- 2. 영상 바로 밑 컨트롤 영역 -->
+        <div class="worship-controls-wrapper">
+
+            <!-- 🌟 [사용자 요청] 한줄 예배 정보 알약: 클릭 시 설교 상세 모달 팝업 -->
+            <div class="sermon-info-pill" onclick="openSermonModal()" title="설교 상세 정보 보기">
+                <div class="sermon-info-pill-left">
+                    <span class="sermon-badge" id="pillBadgeText">🎙️ 주일예배</span>
+                    <span class="sermon-title-preview" id="pillTitleText">하나님의 언약을 굳게 붙들라</span>
+                </div>
+                <div class="sermon-info-pill-right">
+                    <span>ℹ️ 상세정보</span>
+                </div>
+            </div>
+
+            <!-- 🌟 1번째 줄 도구바: [❤️] [✝️] [확대 1] [속도 1] [화면고정(빨강 테두리)] [보내기] -->
+            <div class="controls-row-1">
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <button type="button" class="mini-tool-pill mini-heart-pill" onclick="spawnHeartSwarmFX()" title="사랑의 하트">
+                        <span>❤️</span>
+                    </button>
+                    <button type="button" class="mini-tool-pill mini-cross-pill" onclick="spawnCrossFormationFX()" title="은혜의 십자가">
+                        <span style="color:#ffffff;">✝️</span>
+                    </button>
+                </div>
+                <div style="display:flex; gap:5px; align-items:center; flex:1; justify-content:flex-end;">
+                    <button type="button" class="mini-tool-pill" id="btnZoom" onclick="cycleWorshipZoom()" title="화면확대">
+                        <span id="zoomTextSpan">확대 1</span>
+                    </button>
+                    <button type="button" class="mini-tool-pill" id="btnSpeed" onclick="cycleWorshipSpeed()" title="재생속도">
+                        <span id="speedTextSpan">속도 1</span>
+                    </button>
+                    <button type="button" class="mini-tool-pill" id="btnLock" onclick="toggleScreenLock()" title="화면고정 (터치 및 스크롤 차단)">
+                        <span id="lockTextSpan">화면고정</span>
+                    </button>
+                    <button type="button" class="mini-tool-pill" id="btnShare" onclick="shareCurrentWorshipVideo()" title="영상 카톡으로 보내기 및 공유">
+                        <span>보내기</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 🌟 2번째 줄 버튼: [⛪ 교회홈] [📺 예톡TV] [⚙️ 관리] -->
+            <div class="controls-row-2">
+                <button type="button" class="worship-action-btn btn-act-church-home" onclick="goBackToMain()" title="교회 메인으로 이동">
+                    <span>⛪ 교회홈</span>
+                </button>
+                <button type="button" class="worship-action-btn btn-act-yetalk-tv" onclick="location.href='yetalktv.html'" title="예톡TV로 이동">
+                    <span>📺 예톡TV</span>
+                </button>
+                <button type="button" class="worship-action-btn btn-act-admin" onclick="openAdminModal()" title="예배 등록 및 관리실">
+                    <span>⚙️ 관리</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. [사용자 요청] 스크롤 시 나타나는 피드 섹션: [📅 이번 주 설교 영상] & [📁 지난 주 설교 영상] -->
+        <section class="sermon-feed-section">
+
+            <!-- 이번 주 설교 영상 -->
+            <div class="feed-section-header">
+                <div class="feed-section-title">
+                    <span>📅</span> 이번 주 예배 및 설교
+                </div>
+                <div class="feed-section-desc">터치 시 즉시 상단 재생</div>
+            </div>
+            <div id="thisWeekFeedList" style="display:flex; flex-direction:column; gap:8px;">
+                <!-- JS 동적 렌더링: 주일예배, 수요예배, 금요기도회, 새벽기도회 등 순서대로 배치 -->
+            </div>
+
+            <!-- 지난 주 설교 영상 (그 전주까지만 올라가며 보배창고 자동 저장) -->
+            <div class="feed-section-header" style="margin-top:14px;">
+                <div class="feed-section-title" style="color:#a78bfa;">
+                    <span>📁</span> 지난 주 예배 및 설교
+                </div>
+                <div class="feed-section-desc">보배창고 자동보관</div>
+            </div>
+            <div id="pastWeekFeedList" style="display:flex; flex-direction:column; gap:8px;">
+                <!-- JS 동적 렌더링: 지난 주 설교 목록 -->
+            </div>
+
+        </section>
+
     </main>
 
-    <!-- 4층 하단 고정: 100 애드몹만 단독 고정 -->
+    <!-- 4. 하단 고정 100 애드몹 배너 -->
     <footer class="bottom-fixed-admob-footer">
         <div class="admob-safety-bar">
             <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (300 × 100)</span>
@@ -600,236 +944,151 @@
     <div class="yetalk-toast" id="worshipToast"></div>
 </div>
 
-<!-- 🌟 [관리실 풀스크린 모달] 설교제목, 본문, 설교자, 유튜브링크, 예톡TV 자동 업로드 (예/아니오) -->
-<div class="modal-overlay" id="adminModal">
-    <div class="modal-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #1e3a5f; padding-bottom:12px;">
-            <strong style="color:#38bdf8; font-size:17px; font-weight:950;" id="modalWorshipEditTitle">🏛️ 예배 정보 및 영상 관리실</strong>
-            <button type="button" style="background:#1e293b; border:1px solid #334155; color:#94a3b8; font-size:18px; width:34px; height:34px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center;" onclick="closeAdminModal()">✕</button>
+<!-- 🌟 예배 종류 선택 드롭다운 모달 -->
+<div class="dropdown-modal-overlay" id="dropdownModal" onclick="closeDropdownModal()">
+    <div class="dropdown-card" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #1e3a5f; padding-bottom:8px; margin-bottom:4px;">
+            <strong style="color:#38bdf8; font-size:15px; font-weight:950;">예배 종류 선택</strong>
+            <button type="button" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;" onclick="closeDropdownModal()">✕</button>
         </div>
-
-        <!-- 1. 설교 제목 -->
-        <div>
-            <label style="font-size:12.5px; color:#facc15; font-weight:850; display:block; margin-bottom:4px;">1. 설교 제목 (필수)</label>
-            <input type="text" class="modal-input" id="inpTitle" placeholder="예: 하나님의 언약을 굳게 붙들라">
+        <div id="dropdownButtonsList" style="display:flex; flex-direction:column; gap:6px;">
+            <!-- JS 동적 생성 -->
         </div>
+    </div>
+</div>
 
-        <!-- 2. 성경 본문 -->
-        <div>
-            <label style="font-size:12.5px; color:#facc15; font-weight:850; display:block; margin-bottom:4px;">2. 성경 본문 (필수)</label>
-            <input type="text" class="modal-input" id="inpBible" placeholder="예: 요한복음 3장 16절 ~ 18절">
-        </div>
-
-        <!-- 3. 설교자 -->
-        <div>
-            <label style="font-size:12.5px; color:#facc15; font-weight:850; display:block; margin-bottom:4px;">3. 설교자 (필수)</label>
-            <input type="text" class="modal-input" id="inpPreacher" placeholder="예: 담임목사">
-        </div>
-
-        <!-- 4. 유튜브 영상 주소 -->
-        <div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <label style="font-size:12.5px; color:#38bdf8; font-weight:850;">4. 유튜브 영상 주소</label>
-                <span style="font-size:10.5px; color:#fde047; font-weight:800;">★ 터치 시 전체선택</span>
+<!-- 🌟 설교 상세 모달 (클릭 시 설교제목, 본문, 설교자 상세 정보 노출) -->
+<div class="sermon-modal-overlay" id="sermonModal" onclick="closeSermonModal()">
+    <div class="sermon-modal-card" onclick="event.stopPropagation()">
+        <div class="sermon-modal-header">
+            <div class="sermon-modal-title">
+                <span id="modalHeaderBadge">🎙️ 주일예배</span>
+                <span style="font-size:13px; color:#64748b; font-weight:800;">상세 정보</span>
             </div>
-            <div class="yt-url-input-wrap">
-                <input type="text" class="modal-input modal-input-yt" id="inpYt"
-                       placeholder="https://youtube.com/live/... 또는 youtu.be/..."
-                       onfocus="handleYtInputFocus(this)"
-                       onclick="handleYtInputFocus(this)">
-                <button type="button" class="btn-quick-paste" onclick="quickPasteClipboardToYt()">
+            <button type="button" class="sermon-modal-close-btn" onclick="closeSermonModal()">✕</button>
+        </div>
+        <div class="sermon-modal-body">
+            <div class="sermon-modal-row">
+                <span class="sermon-modal-label">⛪ 교 회 명</span>
+                <span class="sermon-modal-value" id="modalChurchName" style="color:#0284c7; font-weight:950;">부산제일감리교회</span>
+            </div>
+            <div class="sermon-modal-row">
+                <span class="sermon-modal-label">🎙️ 설교 제목</span>
+                <span class="sermon-modal-value" id="modalSermonTitle" style="font-size:16.5px; font-weight:950;">하나님의 언약을 굳게 붙들라</span>
+            </div>
+            <div class="sermon-modal-row">
+                <span class="sermon-modal-label">📖 성경 본문</span>
+                <span class="sermon-modal-value" id="modalSermonBible">요한복음 3장 16절 ~ 18절</span>
+            </div>
+            <div class="sermon-modal-row">
+                <span class="sermon-modal-label">✝️ 설 교 자</span>
+                <span class="sermon-modal-value" id="modalSermonPreacher">이은혜 담임목사</span>
+            </div>
+        </div>
+        <button type="button" style="background:#0284c7; color:#ffffff; border:none; border-radius:10px; padding:10px; font-size:14px; font-weight:900; cursor:pointer; margin-top:6px;" onclick="closeSermonModal()">
+            닫기
+        </button>
+    </div>
+</div>
+
+<!-- 🌟 [관리실 풀스크린 모달] 설교 수정, 유튜브 링크 변경, 영상 삭제/초기화 -->
+<div class="admin-modal-overlay" id="adminModal">
+    <div class="admin-modal-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #1e3a5f; padding-bottom:12px;">
+            <strong style="color:#38bdf8; font-size:17px; font-weight:950;" id="adminModalTitle">예배 관리실 - 주일예배</strong>
+            <button type="button" style="background:none; border:none; color:#cbd5e1; font-size:22px; cursor:pointer;" onclick="closeAdminModal()">✕</button>
+        </div>
+
+        <div class="admin-input-group">
+            <label class="admin-input-label">1. 설교 제목</label>
+            <input type="text" class="admin-input-text" id="inpAdminTitle" placeholder="예: 하나님의 언약을 굳게 붙들라">
+        </div>
+
+        <div class="admin-input-group">
+            <label class="admin-input-label">2. 성경 본문</label>
+            <input type="text" class="admin-input-text" id="inpAdminBible" placeholder="예: 요한복음 3장 16절 ~ 18절">
+        </div>
+
+        <div class="admin-input-group">
+            <label class="admin-input-label">3. 설교자</label>
+            <input type="text" class="admin-input-text" id="inpAdminPreacher" placeholder="예: 담임목사">
+        </div>
+
+        <div class="admin-input-group">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label class="admin-input-label" style="color:#38bdf8;">4. 유튜브 영상 주소</label>
+                <span style="font-size:10.5px; color:#fde047;">★ 터치 시 전체선택</span>
+            </div>
+            <div class="yt-input-row">
+                <input type="text" class="admin-input-text" id="inpAdminYt"
+                       placeholder="https://youtu.be/... 또는 watch?v=..."
+                       onfocus="this.select()" onclick="this.select()">
+                <button type="button" class="btn-paste-clipboard" onclick="pasteClipboardToYt()">
                     📋 붙여넣기
                 </button>
             </div>
         </div>
 
-        <!-- 5. 예톡TV 자동 업로드 (예/아니오) -->
-        <div class="admin-tv-toggle-box" style="margin-top:6px;">
+        <!-- 🌟 영상 삭제 / 초기화 버튼 -->
+        <div style="background:rgba(239,68,68,0.12); border:1.2px dashed #ef4444; border-radius:10px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
             <div>
-                <span class="admin-tv-title" style="display:block;">📺 예톡TV에 자동 업로드됩니다.</span>
-                <span style="font-size:11px; color:#94a3b8;">본 교회 성도 예톡TV 1번에 실시간 송출</span>
+                <span style="color:#f87171; font-size:12.5px; font-weight:900; display:block;">🗑️ 현재 예배 영상 삭제/초기화</span>
+                <span style="color:#94a3b8; font-size:11px;">해당 예배 영상을 삭제하고 기본 화면으로 되돌립니다.</span>
             </div>
-            <div class="admin-tv-btn-group">
-                <button type="button" id="btnModalTvYes" class="btn-tv-opt active" onclick="setModalTvBroadcast(true)">예</button>
-                <button type="button" id="btnModalTvNo" class="btn-tv-opt" onclick="setModalTvBroadcast(false)">아니오</button>
-            </div>
+            <button type="button" style="background:#ef4444; color:#ffffff; border:none; padding:7px 12px; border-radius:8px; font-size:12px; font-weight:900; cursor:pointer;" onclick="deleteCurrentWorshipVideo()">
+                삭제하기
+            </button>
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:auto; padding-top:16px; border-top:1.5px solid #1e293b;">
             <button type="button" style="flex:1; background:#1e293b; color:#cbd5e1; border:1px solid #334155; padding:12px; border-radius:10px; font-size:14px; font-weight:850; cursor:pointer;" onclick="closeAdminModal()">취소</button>
-            <button type="button" style="flex:2; background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; padding:12px; border-radius:10px; font-size:14.5px; font-weight:950; cursor:pointer; box-shadow:0 3px 12px rgba(2,132,199,0.4);" onclick="saveWorshipData()">저장하기</button>
+            <button type="button" style="flex:2; background:linear-gradient(135deg, #0284c7, #2563eb); color:white; border:none; padding:12px; border-radius:10px; font-size:14.5px; font-weight:950; cursor:pointer; box-shadow:0 3px 12px rgba(2,132,199,0.4);" onclick="saveAdminData()">저장하기</button>
         </div>
     </div>
 </div>
 
 <script>
     const SHARED_WORSHIP_KEY = "yetalk_church_worship_v42";
+    const TREASURE_ARCHIVE_KEY = "yetalk_church_treasure_sermons_v1";
     const WORSHIP_KEYS = ["sunday", "wednesday", "friday", "dawn", "special", "praise"];
 
     const DEFAULT_DATA = {
-        sunday: { tabName: "주일예배", title: "하나님의 언약을 굳게 붙들라", bible: "요한복음 3장 16절 ~ 18절", preacher: "담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", broadcastToTv: true },
-        wednesday: { tabName: "수요예배", title: "믿음으로 순종하는 삶", bible: "창세기 12장 1절 ~ 4절", preacher: "담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", broadcastToTv: true },
-        friday: { tabName: "금요기도회", title: "성령의 임재와 회복의 은혜", bible: "사도행전 1장 8절", preacher: "담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", broadcastToTv: true },
-        dawn: { tabName: "새벽기도회", title: "주의 인도하심을 따라", bible: "시편 23편 1절 ~ 6절", preacher: "교구목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", broadcastToTv: true },
-        special: { tabName: "특별예배", title: "복음의 능력으로 부흥하는 교회", bible: "에베소서 4장 11절 ~ 16절", preacher: "초청강사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", broadcastToTv: true },
-        praise: { tabName: "찬양모음", title: "온 맘 다해 주 찬양하라", bible: "시편 150편 1절 ~ 6절", preacher: "할렐루야 찬양대", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", broadcastToTv: true }
+        sunday: { tabName: "주일예배", title: "하나님의 언약을 굳게 붙들라", bible: "요한복음 3장 16절 ~ 18절", preacher: "이은혜 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 17일" },
+        wednesday: { tabName: "수요예배", title: "믿음으로 순종하는 삶", bible: "창세기 12장 1절 ~ 4절", preacher: "이은혜 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 20일" },
+        friday: { tabName: "금요기도회", title: "성령의 임재와 회복의 은혜", bible: "사도행전 1장 8절", preacher: "이은혜 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 15일" },
+        dawn: { tabName: "새벽기도회", title: "주의 인도하심을 따라", bible: "시편 23편 1절 ~ 6절", preacher: "교구목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 20일" },
+        special: { tabName: "특별예배", title: "복음의 능력으로 부흥하는 교회", bible: "에베소서 4장 11절 ~ 16절", preacher: "초청강사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 10일" },
+        praise: { tabName: "찬양모음", title: "온 맘 다해 주 찬양하라", bible: "시편 150편 1절 ~ 6절", preacher: "할렐루야 찬양대", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 17일" }
     };
+
+    // 지난 주 기본 설교 데이터
+    const PAST_DEFAULT_DATA = [
+        { tabName: "주일예배", title: "오직 믿음으로 살리라", bible: "로마서 1장 16절 ~ 17절", preacher: "이은혜 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 10일" },
+        { tabName: "수요예배", title: "기도의 능력과 응답의 확신", bible: "예레미야 33장 3절", preacher: "이은혜 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 13일" },
+        { tabName: "금요기도회", title: "성령의 불길 타오르게 하소서", bible: "누가복음 12장 49절", preacher: "이은혜 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 8일" }
+    ];
 
     let activeWorshipIndex = 0;
     let worshipData = {};
     let isScreenLocked = false;
-    let modalTvBroadcastChoice = true;
-    let isPlayingMode = false;
-    let ytPlayerInstance = null;
 
-    // 🌟 화면 확대: [🔍 확대 100%] -> 크게 135% -> 확대 풀스크린 -> 축소 80% 순환
-    const ZOOM_FACTORS = [1.0, 1.35, 1.0, 0.8];
-    const ZOOM_NAMES = ["확대 100%", "크게 135%", "확대 풀스크린", "축소 80%"];
+    // 🌟 화면 확대: 확대 1 -> 확대 2 -> 확대 3 -> 확대 1 순환 (예톡TV와 동일)
+    const ZOOM_FACTORS = [1.0, 1.25, 1.45];
+    const ZOOM_LABELS = ["확대 1", "확대 2", "확대 3"];
     let currentZoomIndex = 0;
 
-    // 🌟 재생 속도: [⚡ 속도 100%] -> 속도 135% -> 속도 150% -> 속도 170% -> 속도 80% 순환
-    const SPEED_RATES = [1.0, 1.35, 1.5, 1.7, 0.8];
-    const SPEED_NAMES = ["속도 100%", "속도 135%", "속도 150%", "속도 170%", "속도 80%"];
+    // 🌟 재생 속도: 속도 1 (1.0x) -> 속도 2 (1.25x) -> 속도 3 (1.5x) -> 속도 4 (2.0x) 순환 (예톡TV와 동일)
+    const SPEED_RATES = [1.0, 1.25, 1.5, 2.0];
+    const SPEED_LABELS = ["속도 1", "속도 2", "속도 3", "속도 4"];
     let currentSpeedIndex = 0;
 
-    function goBackToMain() {
-        sessionStorage.setItem("church_last_active_card_idx", "1");
-        location.href = "churchmain.html?card=1";
+    function getChurchName() {
+        let name = localStorage.getItem("yetalkChurchName") || "부산제일감리교회";
+        if (!name || name.includes("움직이는") || name.includes("김예톡") || name.includes("최예톡")) {
+            name = "부산제일감리교회";
+        }
+        return name;
     }
-
-    // 안드로이드 백키 대응
-    window.handleAppBackPress = function() {
-        if (isPlayingMode) {
-            setPlaybackMode(false);
-            return true;
-        }
-        goBackToMain();
-        return true;
-    };
-
-    try {
-        history.pushState({ page: "churchworship" }, "", location.href);
-        window.addEventListener("popstate", function() {
-            if (isPlayingMode) {
-                setPlaybackMode(false);
-            } else {
-                goBackToMain();
-            }
-        });
-    } catch(e) {}
-
-    function cycleWorshipZoom(idx = activeWorshipIndex) {
-        currentZoomIndex = (currentZoomIndex + 1) % ZOOM_FACTORS.length;
-        if (currentZoomIndex === 2) {
-            setPlaybackMode(true);
-        } else if (isPlayingMode) {
-            setPlaybackMode(false);
-        }
-        applyWorshipZoom(idx);
-        const text = document.getElementById(`zoomText_${idx}`);
-        const btn = document.getElementById(`btnZoom_${idx}`);
-        if (text) text.innerText = `🔍 ${ZOOM_NAMES[currentZoomIndex]}`;
-        if (btn) btn.classList.toggle("zoomed", currentZoomIndex !== 0);
-        showToast(`🔍 화면: ${ZOOM_NAMES[currentZoomIndex]}`);
-    }
-
-    function applyWorshipZoom(idx = activeWorshipIndex) {
-        const factor = ZOOM_FACTORS[currentZoomIndex];
-        const box = document.getElementById(`ytBox_${idx}`);
-        if (box) {
-            box.style.setProperty("--yt-zoom", factor);
-        }
-    }
-
-    function cycleWorshipSpeed(idx = activeWorshipIndex) {
-        currentSpeedIndex = (currentSpeedIndex + 1) % SPEED_RATES.length;
-        const rate = SPEED_RATES[currentSpeedIndex];
-
-        const text = document.getElementById(`speedText_${idx}`);
-        const btn = document.getElementById(`btnSpeed_${idx}`);
-        if (text) text.innerText = `⚡ ${SPEED_NAMES[currentSpeedIndex]}`;
-        if (btn) btn.classList.toggle("zoomed", currentSpeedIndex !== 0);
-
-        const iframe = document.getElementById(`worshipIframe_${idx}`);
-        if (iframe && iframe.contentWindow) {
-            try {
-                iframe.contentWindow.postMessage(JSON.stringify({
-                    event: 'command',
-                    func: 'setPlaybackRate',
-                    args: [rate]
-                }), '*');
-            } catch(e){}
-        }
-        if (ytPlayerInstance && typeof ytPlayerInstance.setPlaybackRate === "function") {
-            try {
-                ytPlayerInstance.setPlaybackRate(rate);
-            } catch(e) {}
-        }
-        showToast(`⚡ 음성: ${SPEED_NAMES[currentSpeedIndex]}`);
-    }
-
-    function toggleScreenLock(idx = activeWorshipIndex) {
-        isScreenLocked = !isScreenLocked;
-        const vp = document.getElementById("worshipViewport");
-        const guard = document.getElementById("worshipTouchGuard");
-        const btn = document.getElementById(`btnLock_${idx}`);
-        const text = document.getElementById(`lockText_${idx}`);
-
-        if (btn) {
-            btn.classList.toggle("locked", isScreenLocked);
-            if (text) text.innerText = isScreenLocked ? "🔒 고정ON" : "🔒 고정OFF";
-        }
-
-        if (isScreenLocked) {
-            if (vp) vp.classList.add("locked-scroll");
-            if (guard) guard.style.display = "block";
-            showToast("🔒 화면 보호 ON: 터치 및 스크롤이 차단되었습니다.");
-        } else {
-            if (vp) vp.classList.remove("locked-scroll");
-            if (guard) guard.style.display = "none";
-            showToast("🔓 화면 고정이 해제되었습니다.");
-        }
-    }
-
-    function showLockedAlert() {
-        showToast("🔒 화면이 고정되어 있습니다. 영상 아래 [고정ON] 버튼을 눌러 해제하세요.");
-    }
-
-    /* 🌟 영상 재생 시 풀스크린 / 중지 시 메뉴 복구 */
-    function setPlaybackMode(isPlaying) {
-        isPlayingMode = isPlaying;
-        document.body.classList.toggle("is-playing-mode", isPlaying);
-        const exitBtn = document.getElementById("btnExitFullscreen");
-        if (exitBtn) {
-            exitBtn.style.display = isPlaying ? "inline-flex" : "none";
-        }
-        if (!isPlaying && currentZoomIndex === 2) {
-            currentZoomIndex = 0;
-            const text = document.getElementById(`zoomText_${activeWorshipIndex}`);
-            const btn = document.getElementById(`btnZoom_${activeWorshipIndex}`);
-            if (text) text.innerText = `🔍 ${ZOOM_NAMES[0]}`;
-            if (btn) btn.classList.remove("zoomed");
-            applyWorshipZoom(activeWorshipIndex);
-        }
-    }
-
-    // 유튜브 postMessage 감지 (재생 시 풀스크린, 일시정지/종료 시 복구)
-    window.addEventListener("message", function(e) {
-        if (!e.data) return;
-        try {
-            let msg = e.data;
-            if (typeof msg === "string") {
-                try { msg = JSON.parse(msg); } catch(err) {}
-            }
-            if (msg && msg.event === "onStateChange") {
-                if (msg.info === 1) { // PLAYING
-                    setPlaybackMode(true);
-                } else if (msg.info === 2 || msg.info === 0) { // PAUSED or ENDED
-                    setPlaybackMode(false);
-                }
-            }
-        } catch(err) {}
-    });
 
     function extractYoutubeVideoId(url) {
         if (!url) return "92oktJl3-Fo";
@@ -848,331 +1107,370 @@
         return "92oktJl3-Fo";
     }
 
-    function getLiveTabKey() {
-        const savedType = localStorage.getItem("yetalk_church_live_service_type");
-        if (savedType && WORSHIP_KEYS.includes(savedType)) return savedType;
-        const now = new Date();
-        const day = now.getDay();
-        const hour = now.getHours();
-        if (day === 0) return "sunday";
-        if (day === 3) return "wednesday";
-        if (day === 5) return "friday";
-        if (hour >= 5 && hour < 7) return "dawn";
-        return "sunday";
+    function goBackToMain() {
+        sessionStorage.setItem("church_last_active_card_idx", "1");
+        location.href = "churchmain.html?card=1";
     }
 
-    function renderWorshipSection(idx = activeWorshipIndex) {
-        const vp = document.getElementById("worshipViewport");
-        const guard = document.getElementById("worshipTouchGuard");
-        vp.innerHTML = "";
-        if (guard) vp.appendChild(guard);
+    /* 🌟 화면 확대 순환 */
+    function cycleWorshipZoom() {
+        currentZoomIndex = (currentZoomIndex + 1) % ZOOM_FACTORS.length;
+        const factor = ZOOM_FACTORS[currentZoomIndex];
+        const iframe = document.getElementById("mainWorshipIframe");
+        if (iframe) {
+            iframe.style.setProperty("--yt-zoom", factor);
+        }
+        const textSpan = document.getElementById("zoomTextSpan");
+        const btn = document.getElementById("btnZoom");
+        if (textSpan) textSpan.innerText = ZOOM_LABELS[currentZoomIndex];
+        if (btn) btn.style.background = currentZoomIndex !== 0 ? "#0284c7" : "";
+        showToast(`🔍 ${ZOOM_LABELS[currentZoomIndex]} 적용 (배율: ${factor}x)`);
+    }
 
+    /* 🌟 음성 속도 순환 */
+    function cycleWorshipSpeed() {
+        currentSpeedIndex = (currentSpeedIndex + 1) % SPEED_RATES.length;
+        const rate = SPEED_RATES[currentSpeedIndex];
+        const iframe = document.getElementById("mainWorshipIframe");
+        if (iframe && iframe.contentWindow) {
+            try {
+                iframe.contentWindow.postMessage(JSON.stringify({
+                    event: 'command',
+                    func: 'setPlaybackRate',
+                    args: [rate]
+                }), '*');
+            } catch(e) {}
+        }
+        const textSpan = document.getElementById("speedTextSpan");
+        const btn = document.getElementById("btnSpeed");
+        if (textSpan) textSpan.innerText = SPEED_LABELS[currentSpeedIndex];
+        if (btn) btn.style.background = currentSpeedIndex !== 0 ? "#0284c7" : "";
+        showToast(`⚡ ${SPEED_LABELS[currentSpeedIndex]} 적용 (속도: ${rate}x)`);
+    }
+
+    /* 🌟 [사용자 요청] 화면 고정 토글: 빨간색 테두리 강조 & 스크롤/터치 완전 잠금 */
+    function toggleScreenLock() {
+        isScreenLocked = !isScreenLocked;
+        const container = document.getElementById("worshipScrollContainer");
+        const shield = document.getElementById("ytTouchShield");
+        const btn = document.getElementById("btnLock");
+        const textSpan = document.getElementById("lockTextSpan");
+
+        if (isScreenLocked) {
+            if (container) container.classList.add("locked-scroll");
+            if (shield) shield.style.display = "block";
+            if (btn) {
+                btn.classList.add("locked");
+                textSpan.innerText = "🔒 고정ON";
+            }
+            showToast("🔒 화면 보호 ON: 터치와 스크롤이 차단되었습니다.");
+        } else {
+            if (container) container.classList.remove("locked-scroll");
+            if (shield) shield.style.display = "none";
+            if (btn) {
+                btn.classList.remove("locked");
+                textSpan.innerText = "화면고정";
+            }
+            showToast("🔓 화면 고정이 해제되었습니다.");
+        }
+    }
+
+    function handleVideoTouch() {
+        if (isScreenLocked) {
+            showToast("🔒 화면이 고정되어 있습니다. 아래 [고정ON] 버튼을 눌러 해제하세요.");
+        }
+    }
+
+    /* 🌟 [사용자 요청] 보내기 버튼: 카톡 자동 복사 및 카톡창/공유창 열기 */
+    function shareCurrentWorshipVideo() {
+        const key = WORSHIP_KEYS[activeWorshipIndex];
+        const item = worshipData[key] || DEFAULT_DATA[key];
+        const ytId = extractYoutubeVideoId(item.yt);
+        const church = getChurchName();
+
+        const shareText = `[${church} ${item.tabName}]\n"${item.title}"\n설교: ${item.preacher} (본문: ${item.bible})\n\n▶ 예배 영상 바로보기:\nhttps://youtu.be/${ytId}\n\n🌿 예수님과 함께 걷는 나의 예톡 바로가기:\nhttps://yetalk.cc`;
+
+        // 클립보드 복사
+        let copied = false;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareText).then(() => { copied = true; }).catch(() => {});
+        }
+        if (!copied) {
+            try {
+                const ta = document.createElement("textarea");
+                ta.value = shareText;
+                ta.style.position = "fixed";
+                ta.style.opacity = "0";
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand("copy");
+                document.body.removeChild(ta);
+                copied = true;
+            } catch(e) {}
+        }
+
+        showToast("📋 예배 영상 및 예톡 링크가 복사되었습니다!");
+
+        // 네이티브 공유 / 카카오톡 연결
+        setTimeout(() => {
+            if (navigator.share) {
+                navigator.share({
+                    title: `[${church} ${item.tabName}] ${item.title}`,
+                    text: shareText
+                }).catch(() => {});
+            } else {
+                location.href = "kakaolink://send";
+            }
+        }, 300);
+    }
+
+    /* 🌟 예배 전환 함수 */
+    function switchWorship(idx) {
+        if (idx < 0 || idx >= WORSHIP_KEYS.length) return;
+        activeWorshipIndex = idx;
         const key = WORSHIP_KEYS[idx];
         const item = worshipData[key] || DEFAULT_DATA[key];
         const ytId = extractYoutubeVideoId(item.yt);
-        const liveKey = getLiveTabKey();
-        const isLive = (key === liveKey);
 
-        let displayTitle = item.title;
-        if (!displayTitle || displayTitle === "주일 대예배 실황") {
-            displayTitle = DEFAULT_DATA[key]?.title || "하나님의 언약을 굳게 붙들라";
+        // 상단 헤더 배지 업데이트
+        const headerBadge = document.getElementById("headerWorshipKindBadge");
+        if (headerBadge) headerBadge.innerText = `🎙️ ${item.tabName}`;
+
+        // 플레이어 iframe 소스 변경
+        const iframe = document.getElementById("mainWorshipIframe");
+        if (iframe) {
+            iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3`;
         }
-        const displayBible = item.bible || (item.meta ? item.meta.split('·')[0].trim() : "요한복음 3장 16절 ~ 18절");
-        const displayPreacher = item.preacher || (item.meta ? item.meta.split('·')[1]?.trim() : "담임목사") || "담임목사";
 
-        const sec = document.createElement("section");
-        sec.className = "worship-snap-section";
-        sec.id = `sec_worship_${idx}`;
-        sec.dataset.index = idx;
+        // 알약 텍스트 업데이트
+        const pillBadge = document.getElementById("pillBadgeText");
+        const pillTitle = document.getElementById("pillTitleText");
+        if (pillBadge) pillBadge.innerText = `🎙️ ${item.tabName}`;
+        if (pillTitle) pillTitle.innerText = item.title;
 
-        sec.innerHTML = `
+        // 모달 데이터 준비
+        const modalHeader = document.getElementById("modalHeaderBadge");
+        const modalTitle = document.getElementById("modalSermonTitle");
+        const modalBible = document.getElementById("modalSermonBible");
+        const modalPreacher = document.getElementById("modalSermonPreacher");
+        const modalChurch = document.getElementById("modalChurchName");
+        if (modalHeader) modalHeader.innerText = `🎙️ ${item.tabName}`;
+        if (modalTitle) modalTitle.innerText = item.title;
+        if (modalBible) modalBible.innerText = item.bible;
+        if (modalPreacher) modalPreacher.innerText = item.preacher;
+        if (modalChurch) modalChurch.innerText = getChurchName();
 
-            <!-- 영상 박스 (1:1 비율 기본) -->
-            <div class="yt-player-box" id="ytBox_${idx}">
-                <iframe id="worshipIframe_${idx}"
-                    src="https://www.youtube.com/embed/${ytId}?autoplay=0&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3&fs=0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    sandbox="allow-scripts allow-same-origin allow-presentation">
-                </iframe>
-                <div class="yt-inapp-guard-top" title="예톡 인앱 플레이어"></div>
-            </div>
+        // 피드 리스트 활성 강조 업데이트
+        document.querySelectorAll(".sermon-video-card").forEach(c => {
+            c.classList.toggle("active-playing", c.dataset.key === key);
+        });
 
-            <!-- 🌟 영상 바로 밑 컨트롤 바 ([확대] [속도] [고정] [관리] + [❤️] [✝️]) -->
-            <div class="worship-ctrl-bar-under-video">
-                <button type="button" class="btn-worship-ctrl ${currentZoomIndex !== 0 ? 'zoomed' : ''}" id="btnZoom_${idx}" onclick="cycleWorshipZoom(${idx})" title="화면확대">
-                    <span id="zoomText_${idx}">🔍 ${ZOOM_NAMES[currentZoomIndex]}</span>
-                </button>
-                <button type="button" class="btn-worship-ctrl ${currentSpeedIndex !== 0 ? 'zoomed' : ''}" id="btnSpeed_${idx}" onclick="cycleWorshipSpeed(${idx})" title="음성속도">
-                    <span id="speedText_${idx}">⚡ ${SPEED_NAMES[currentSpeedIndex]}</span>
-                </button>
-                <button type="button" class="btn-worship-ctrl ${isScreenLocked ? 'locked' : ''}" id="btnLock_${idx}" onclick="toggleScreenLock(${idx})" title="화면고정">
-                    <span id="lockText_${idx}">${isScreenLocked ? '🔒 고정ON' : '🔒 고정OFF'}</span>
-                </button>
-                <button type="button" class="btn-worship-ctrl" id="btnAdmin_${idx}" onclick="openAdminModal(${idx})" title="예배 관리실">
-                    <span>⚙️ 관리</span>
-                </button>
-                <button type="button" class="btn-worship-ctrl" onclick="spawnHeartSwarmFX()" title="사랑의 하트 드론" style="max-width:38px; padding:0; font-size:14px;">
-                    ❤️
-                </button>
-                <button type="button" class="btn-worship-ctrl" onclick="spawnCrossFormationFX()" title="은혜의 십자가 드론" style="max-width:38px; padding:0; font-size:14px;">
-                    ✝️
-                </button>
-            </div>
+        // 상단으로 부드럽게 스크롤
+        const container = document.getElementById("worshipScrollContainer");
+        if (container) container.scrollTo({ top: 0, behavior: "smooth" });
 
-            <!-- 설교 핵심 카드 (오직 설교제목, 본문, 설교자 3가지만 선명한 검은색으로 간결 배치) -->
-            <div class="sermon-info-card">
-                <div class="detail-line" style="font-size:15.5px; font-weight:950; margin-bottom:3px; color:#000000;">
-                    <span class="detail-tag" style="min-width:68px; color:#0f172a; font-weight:950;">🎙️ 설교제목</span>
-                    <span class="detail-val sermon-title-main" id="worshipTitleText_${idx}" style="font-size:15.5px; font-weight:950; color:#000000;">${displayTitle}</span>
-                </div>
-                <div class="sermon-detail-row">
-                    <div class="detail-line" style="font-size:14px; font-weight:900; color:#000000;">
-                        <span class="detail-tag" style="min-width:68px; color:#0f172a; font-weight:950;">📖 본 문</span>
-                        <span class="detail-val" id="worshipBibleText_${idx}" style="color:#000000; font-weight:900;">${displayBible}</span>
-                    </div>
-                    <div class="detail-line" style="font-size:14px; font-weight:900; color:#000000;">
-                        <span class="detail-tag" style="min-width:68px; color:#0f172a; font-weight:950;">✝️ 설 교 자</span>
-                        <span class="detail-val" id="worshipPreacherText_${idx}" style="color:#000000; font-weight:900;">${displayPreacher}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-        vp.appendChild(sec);
-        applyWorshipZoom(idx);
-
-        // YouTube IFrame API 연결
-        if (window.YT && window.YT.Player) {
-            try {
-                ytPlayerInstance = new YT.Player(`worshipIframe_${idx}`, {
-                    events: {
-                        'onStateChange': function(event) {
-                            if (event.data === YT.PlayerState.PLAYING) {
-                                setPlaybackMode(true);
-                            } else if (event.data === YT.PlayerState.PAUSED || event.data === YT.PlayerState.ENDED) {
-                                setPlaybackMode(false);
-                            }
-                        }
-                    }
-                });
-            } catch(e) {}
-        }
+        closeDropdownModal();
     }
 
-    function syncTabMenuUI(idx) {
-        const liveKey = getLiveTabKey();
-        const isLiveBroadcast = (localStorage.getItem("yetalk_church_live_broadcast") === "true");
-        document.querySelectorAll(".w-tab-chip").forEach((chip, i) => {
-            const isMatch = (i === idx);
-            chip.classList.toggle("active", isMatch);
-            const key = WORSHIP_KEYS[i];
-            const item = worshipData[key] || DEFAULT_DATA[key];
-            const isLive = isLiveBroadcast && (key === liveKey || key === "sunday");
-            chip.classList.toggle("is-live-chip", isLive);
-            if (isLive) {
-                chip.style.background = "#ef4444";
-                chip.style.borderColor = "#dc2626";
-                chip.style.color = "#ffffff";
-                chip.style.boxShadow = "0 2px 10px rgba(239, 68, 68, 0.5)";
-                chip.innerHTML = `<span class="live-dot-pulse" style="color:#ffffff;">●</span> ${item.tabName}`;
-            } else {
-                chip.style.background = "";
-                chip.style.borderColor = "";
-                chip.style.color = "";
-                chip.style.boxShadow = "";
-                chip.innerHTML = `${item.tabName}`;
-            }
-            if (isMatch) chip.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    /* 🌟 드롭다운 모달 제어 */
+    function openDropdownModal() {
+        const list = document.getElementById("dropdownButtonsList");
+        if (!list) return;
+        list.innerHTML = "";
+        WORSHIP_KEYS.forEach((k, i) => {
+            const itm = worshipData[k] || DEFAULT_DATA[k];
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = `dropdown-item-btn ${i === activeWorshipIndex ? 'selected' : ''}`;
+            btn.innerHTML = `
+                <span>🎙️ ${itm.tabName}</span>
+                <span style="font-size:11.5px; opacity:0.7;">${itm.title.slice(0, 16)}...</span>
+            `;
+            btn.onclick = () => switchWorship(i);
+            list.appendChild(btn);
+        });
+        document.getElementById("dropdownModal").classList.add("open");
+    }
+    function closeDropdownModal() {
+        const m = document.getElementById("dropdownModal");
+        if (m) m.classList.remove("open");
+    }
+
+    /* 🌟 설교 상세 모달 제어 */
+    function openSermonModal() {
+        const key = WORSHIP_KEYS[activeWorshipIndex];
+        const item = worshipData[key] || DEFAULT_DATA[key];
+        document.getElementById("modalHeaderBadge").innerText = `🎙️ ${item.tabName}`;
+        document.getElementById("modalChurchName").innerText = getChurchName();
+        document.getElementById("modalSermonTitle").innerText = item.title;
+        document.getElementById("modalSermonBible").innerText = item.bible;
+        document.getElementById("modalSermonPreacher").innerText = item.preacher;
+        document.getElementById("sermonModal").classList.add("open");
+    }
+    function closeSermonModal() {
+        const m = document.getElementById("sermonModal");
+        if (m) m.classList.remove("open");
+    }
+
+    /* 🌟 피드 렌더링: 이번 주 설교 & 지난 주 설교 */
+    function renderFeeds() {
+        const thisList = document.getElementById("thisWeekFeedList");
+        const pastList = document.getElementById("pastWeekFeedList");
+        if (!thisList || !pastList) return;
+
+        thisList.innerHTML = "";
+        WORSHIP_KEYS.forEach((k, idx) => {
+            const itm = worshipData[k] || DEFAULT_DATA[k];
+            const ytId = extractYoutubeVideoId(itm.yt);
+            const card = document.createElement("div");
+            card.className = `sermon-video-card ${idx === activeWorshipIndex ? 'active-playing' : ''}`;
+            card.dataset.key = k;
+            card.onclick = () => switchWorship(idx);
+            card.innerHTML = `
+                <div class="card-thumb-wrap">
+                    <img class="card-thumb-img" src="https://img.youtube.com/vi/${ytId}/mqdefault.jpg" alt="${itm.title}" onerror="this.src='https://img.youtube.com/vi/92oktJl3-Fo/mqdefault.jpg'">
+                    <div class="card-play-icon">▶</div>
+                </div>
+                <div class="card-info-wrap">
+                    <div class="card-badge-row">
+                        <span class="card-kind-badge">${itm.tabName}</span>
+                        <span class="card-date-badge">${itm.date || '이번 주'}</span>
+                    </div>
+                    <div class="card-title-text">${itm.title}</div>
+                    <div class="card-sub-text">설교: ${itm.preacher} • ${itm.bible}</div>
+                </div>
+            `;
+            thisList.appendChild(card);
+        });
+
+        // 지난 주 설교 피드
+        pastList.innerHTML = "";
+        let pastSermons = [];
+        try {
+            pastSermons = JSON.parse(localStorage.getItem(TREASURE_ARCHIVE_KEY) || "[]");
+        } catch(e) {}
+        if (!pastSermons || pastSermons.length === 0) {
+            pastSermons = PAST_DEFAULT_DATA;
+        }
+        pastSermons.forEach(itm => {
+            const ytId = extractYoutubeVideoId(itm.yt);
+            const card = document.createElement("div");
+            card.className = "sermon-video-card";
+            card.onclick = () => {
+                const iframe = document.getElementById("mainWorshipIframe");
+                if (iframe) {
+                    iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3`;
+                }
+                document.getElementById("pillBadgeText").innerText = `📁 ${itm.tabName} (지난 주)`;
+                document.getElementById("pillTitleText").innerText = itm.title;
+                document.getElementById("headerWorshipKindBadge").innerText = `📁 ${itm.tabName}`;
+                showToast(`📁 지난 주 [${itm.tabName}] 영상을 재생합니다.`);
+                const container = document.getElementById("worshipScrollContainer");
+                if (container) container.scrollTo({ top: 0, behavior: "smooth" });
+            };
+            card.innerHTML = `
+                <div class="card-thumb-wrap">
+                    <img class="card-thumb-img" src="https://img.youtube.com/vi/${ytId}/mqdefault.jpg" alt="${itm.title}" onerror="this.src='https://img.youtube.com/vi/92oktJl3-Fo/mqdefault.jpg'">
+                    <div class="card-play-icon" style="background:rgba(124,58,237,0.85);">▶</div>
+                </div>
+                <div class="card-info-wrap">
+                    <div class="card-badge-row">
+                        <span class="card-kind-badge" style="background:#7c3aed;">${itm.tabName}</span>
+                        <span class="card-date-badge">${itm.date || '지난 주'}</span>
+                    </div>
+                    <div class="card-title-text">${itm.title}</div>
+                    <div class="card-sub-text">설교: ${itm.preacher} • ${itm.bible}</div>
+                </div>
+            `;
+            pastList.appendChild(card);
         });
     }
 
-    function switchWorshipTab(index) {
-        if (index < 0 || index >= WORSHIP_KEYS.length) return;
-        activeWorshipIndex = index;
-        syncTabMenuUI(index);
-        renderWorshipSection(index);
-        const vp = document.getElementById("worshipViewport");
-        if (vp) vp.scrollTop = 0;
-    }
-
-    // 🌟 보물창고 자동 아카이브 등록 함수 (지난 설교 자동 보관)
-    function autoArchiveSermon(category, title, bible, preacher, yt) {
-        try {
-            if (!title || title.trim() === "" || title.trim() === "가") return;
-            const key = "yetalk_church_archive_records";
-            let archives = [];
-            try {
-                archives = JSON.parse(localStorage.getItem(key)) || [];
-            } catch(e) { archives = []; }
-            const cleanTitle = title || "예배 설교 실황";
-            const vid = extractYoutubeVideoId(yt);
-            const existingIdx = archives.findIndex(a => a.title === cleanTitle || (a.yt && vid && a.yt.includes(vid)));
-            const record = {
-                id: "worship_arc_" + Date.now(),
-                category: category || "주일예배",
-                title: cleanTitle,
-                content: `📖 본문: ${bible || "성경 본문"}\n✝️ 설교자: ${preacher || "담임목사"}\n\n말씀과 은혜의 영상을 보물창고에 보관합니다.`,
-                date: new Date().toISOString().slice(0, 10),
-                yt: yt || "https://www.youtube.com/watch?v=92oktJl3-Fo",
-                img: null
-            };
-            if (existingIdx >= 0) {
-                archives[existingIdx] = record;
-            } else {
-                archives.unshift(record);
-            }
-            localStorage.setItem(key, JSON.stringify(archives));
-        } catch(e) {}
-    }
-
-    function handleYtInputFocus(inputEl) {
-        if (!inputEl) return;
-        setTimeout(() => {
-            inputEl.select();
-            if (typeof inputEl.setSelectionRange === "function") {
-                inputEl.setSelectionRange(0, inputEl.value.length);
-            }
-        }, 50);
-    }
-
-    async function quickPasteClipboardToYt() {
-        const input = document.getElementById("inpYt");
-        if (!input) return;
-        try {
-            if (navigator.clipboard && navigator.clipboard.readText) {
-                const clipText = await navigator.clipboard.readText();
-                if (clipText && clipText.trim()) {
-                    input.value = clipText.trim();
-                    showToast("📋 클립보드 주소가 즉시 붙여넣기 되었습니다!");
-                    input.focus();
-                    handleYtInputFocus(input);
-                    return;
-                }
-            }
-        } catch(e) {}
-        input.focus();
-        handleYtInputFocus(input);
-        showToast("주소창이 선택되었습니다. 붙여넣기를 누르세요!");
-    }
-
-    function openAdminModal(idx = activeWorshipIndex) {
-        activeWorshipIndex = idx;
+    /* 🌟 관리자 모달 제어 */
+    function openAdminModal() {
         const key = WORSHIP_KEYS[activeWorshipIndex];
         const item = worshipData[key] || DEFAULT_DATA[key];
-        document.getElementById("modalWorshipEditTitle").innerText = `🏛️ [${item.tabName}] 관리실`;
-
-        document.getElementById("inpTitle").value = item.title || "";
-        document.getElementById("inpBible").value = item.bible || (item.meta ? item.meta.split('·')[0].trim() : "");
-        document.getElementById("inpPreacher").value = item.preacher || (item.meta ? item.meta.split('·')[1]?.trim() : "") || "담임목사";
-
-        const ytInput = document.getElementById("inpYt");
-        ytInput.value = item.yt || "";
-
-        setModalTvBroadcast(item.broadcastToTv !== false);
+        document.getElementById("adminModalTitle").innerText = `예배 관리실 - ${item.tabName}`;
+        document.getElementById("inpAdminTitle").value = item.title || "";
+        document.getElementById("inpAdminBible").value = item.bible || "";
+        document.getElementById("inpAdminPreacher").value = item.preacher || "";
+        document.getElementById("inpAdminYt").value = item.yt || "";
         document.getElementById("adminModal").classList.add("open");
-
-        setTimeout(() => {
-            ytInput.focus();
-            handleYtInputFocus(ytInput);
-        }, 200);
     }
-
     function closeAdminModal() {
         document.getElementById("adminModal").classList.remove("open");
     }
 
-    function setModalTvBroadcast(choice) {
-        modalTvBroadcastChoice = choice;
-        const btnYes = document.getElementById("btnModalTvYes");
-        const btnNo = document.getElementById("btnModalTvNo");
-        if (choice) {
-            btnYes.classList.add("active");
-            btnNo.classList.remove("active");
-        } else {
-            btnNo.classList.add("active");
-            btnYes.classList.remove("active");
+    function pasteClipboardToYt() {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+            navigator.clipboard.readText().then(txt => {
+                if (txt) {
+                    document.getElementById("inpAdminYt").value = txt.trim();
+                    showToast("📋 클립보드 주소가 입력되었습니다.");
+                }
+            }).catch(() => {
+                showToast("직접 입력창을 터치하여 붙여넣어 주세요.");
+            });
         }
     }
 
-    function saveWorshipData() {
+    function saveAdminData() {
         const key = WORSHIP_KEYS[activeWorshipIndex];
-        if (!worshipData[key]) worshipData[key] = {};
+        const title = document.getElementById("inpAdminTitle").value.trim();
+        const bible = document.getElementById("inpAdminBible").value.trim();
+        const preacher = document.getElementById("inpAdminPreacher").value.trim();
+        let yt = document.getElementById("inpAdminYt").value.trim();
 
-        const title = document.getElementById("inpTitle").value.trim();
-        const bible = document.getElementById("inpBible").value.trim();
-        const preacher = document.getElementById("inpPreacher").value.trim();
-        const yt = document.getElementById("inpYt").value.trim();
+        if (!title) { alert("설교 제목을 입력해주세요."); return; }
+        if (!bible) { alert("성경 본문을 입력해주세요."); return; }
+        if (!preacher) { alert("설교자를 입력해주세요."); return; }
+        if (!yt) yt = "https://www.youtube.com/watch?v=92oktJl3-Fo";
 
-        if (!title) { alert("설교 제목을 입력해 주세요."); return; }
-        if (!bible) { alert("성경 본문을 입력해 주세요."); return; }
-        if (!preacher) { alert("설교자를 입력해 주세요."); return; }
+        // 기존 설교는 보배창고로 자동 아카이빙
+        archiveCurrentToTreasure(key, worshipData[key]);
 
-        worshipData[key].title = title;
-        worshipData[key].bible = bible;
-        worshipData[key].preacher = preacher;
-        worshipData[key].yt = yt;
-        worshipData[key].broadcastToTv = modalTvBroadcastChoice;
-
+        worshipData[key] = {
+            tabName: worshipData[key]?.tabName || DEFAULT_DATA[key].tabName,
+            title: title,
+            bible: bible,
+            preacher: preacher,
+            yt: yt,
+            date: "오늘 업데이트"
+        };
         localStorage.setItem(SHARED_WORSHIP_KEY, JSON.stringify(worshipData));
-
-        // 🌟 설교 저장 시 보물창고에 자동 등록
-        autoArchiveSermon(worshipData[key].tabName || "주일예배", title, bible, preacher, yt);
-
-        if (modalTvBroadcastChoice) {
-            localStorage.setItem("yetalk_church_live_broadcast", "true");
-            localStorage.setItem("yetalk_church_live_video_url", yt);
-            localStorage.setItem("yetalk_church_live_video_title", title);
-            localStorage.setItem("yetalk_church_live_service_type", key);
-            localStorage.setItem("yetalk_church_live_worship_name", worshipData[key].tabName || title);
-            pushToYetalkTvMainFeed(worshipData[key]);
-            showToast("🏛️ 관리실 저장 완료! 보물창고 자동 등록 & 예톡TV 1번에 실시간 송출됩니다.");
-        } else {
-            localStorage.setItem("yetalk_church_live_broadcast", "false");
-            removeYetalkTvMainFeed(worshipData[key]);
-            showToast("🏛️ 관리실: 예배 정보가 저장되고 보물창고에 등록되었습니다.");
-        }
-
-        renderWorshipSection(activeWorshipIndex);
+        showToast("✅ 설교 영상 정보가 저장되고 보배창고에 등록되었습니다!");
+        switchWorship(activeWorshipIndex);
+        renderFeeds();
         closeAdminModal();
     }
 
-    function pushToYetalkTvMainFeed(item) {
-        let feeds = [];
-        try {
-            feeds = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]");
-        } catch(e) {}
-
-        const vid = extractYoutubeVideoId(item.yt);
-        let churchStoreName = localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
-        if (!churchStoreName || churchStoreName.includes("움직이는") || churchStoreName.includes("김예톡") || churchStoreName.includes("최예톡")) {
-            churchStoreName = "예톡행복한교회";
-            localStorage.setItem("yetalkChurchName", "예톡행복한교회");
-        }
-        const userRegion = localStorage.getItem("yetalkUserRegion") || "전국";
-
-        feeds = feeds.filter(f => f.videoId !== vid && f.id !== 'church_live_top_feed');
-        const newFeed = {
-            id: 'church_live_top_feed',
-            videoId: vid,
-            bizName: churchStoreName,
-            targetUrl: "churchworship.html",
-            views: 3840,
-            likes: 420,
-            format: '16:9',
-            region: userRegion,
-            badge: "🔴 실시간 LIVE"
-        };
-        feeds.unshift(newFeed);
-        localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(feeds));
+    function deleteCurrentWorshipVideo() {
+        if (!confirm("현재 예배 영상을 삭제하고 기본 샘플로 초기화하시겠습니까?")) return;
+        const key = WORSHIP_KEYS[activeWorshipIndex];
+        worshipData[key] = DEFAULT_DATA[key];
+        localStorage.setItem(SHARED_WORSHIP_KEY, JSON.stringify(worshipData));
+        showToast("🗑️ 영상이 삭제되고 초기화되었습니다.");
+        switchWorship(activeWorshipIndex);
+        renderFeeds();
+        closeAdminModal();
     }
 
-    function removeYetalkTvMainFeed(item) {
-        let feeds = [];
+    function archiveCurrentToTreasure(key, currentItem) {
+        if (!currentItem || !currentItem.title) return;
         try {
-            feeds = JSON.parse(localStorage.getItem("yetalkSavedCustomFeeds") || "[]");
+            let list = JSON.parse(localStorage.getItem(TREASURE_ARCHIVE_KEY) || "[]");
+            list = list.filter(x => x.title !== currentItem.title);
+            list.unshift({
+                tabName: currentItem.tabName,
+                title: currentItem.title,
+                bible: currentItem.bible,
+                preacher: currentItem.preacher,
+                yt: currentItem.yt,
+                date: currentItem.date || "지난 주"
+            });
+            if (list.length > 20) list = list.slice(0, 20);
+            localStorage.setItem(TREASURE_ARCHIVE_KEY, JSON.stringify(list));
         } catch(e) {}
-        const vid = extractYoutubeVideoId(item.yt);
-        feeds = feeds.filter(f => f.videoId !== vid && f.id !== 'church_live_top_feed');
-        localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(feeds));
     }
 
     function showToast(msg) {
@@ -1183,49 +1481,7 @@
         setTimeout(() => t.classList.remove("show"), 2200);
     }
 
-    function parseInitialTab() {
-        const params = new URLSearchParams(window.location.search);
-        const tab = params.get("tab");
-        if (tab) {
-            const idx = WORSHIP_KEYS.indexOf(tab.toLowerCase());
-            if (idx >= 0) return idx;
-            const num = parseInt(tab, 10);
-            if (!isNaN(num) && num >= 0 && num < WORSHIP_KEYS.length) return num;
-        }
-        return 0; // Default 주일예배
-    }
-
-    function initPage() {
-        const saved = localStorage.getItem(SHARED_WORSHIP_KEY);
-        if (saved) {
-            try {
-                worshipData = JSON.parse(saved);
-                let needsUpdate = false;
-                WORSHIP_KEYS.forEach(k => {
-                    if (!worshipData[k] || worshipData[k].title === "가" || !worshipData[k].title) worshipData[k] = DEFAULT_DATA[k];
-                    if (worshipData[k].broadcastToTv === undefined) {
-                        worshipData[k].broadcastToTv = true;
-                    }
-                    if (!worshipData[k].yt || worshipData[k].yt.includes("M7lc1UVf-VE")) {
-                        worshipData[k].yt = "https://www.youtube.com/watch?v=92oktJl3-Fo";
-                        needsUpdate = true;
-                    }
-                });
-                if (needsUpdate) {
-                    localStorage.setItem(SHARED_WORSHIP_KEY, JSON.stringify(worshipData));
-                }
-            } catch(e) { worshipData = DEFAULT_DATA; }
-        } else {
-            worshipData = DEFAULT_DATA;
-            localStorage.setItem(SHARED_WORSHIP_KEY, JSON.stringify(worshipData));
-        }
-
-        activeWorshipIndex = parseInitialTab();
-        syncTabMenuUI(activeWorshipIndex);
-        renderWorshipSection(activeWorshipIndex);
-    }
-
-    // 🌟 [사용자 요청] 작은 하트 수십 개로 하트를 그리는 스웜 애니메이션 FX (자유게시판 & 성경읽기와 동일 세트)
+    /* 🌟 [사용자 요청] 사랑의 하트 드론 애니메이션 FX */
     function spawnHeartSwarmFX() {
         const overlay = document.createElement("div");
         overlay.className = "particle-swarm-overlay";
@@ -1234,7 +1490,7 @@
         const count = 30;
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight * 0.45;
-        const heartEmojis = ["❤️", "💖", "💕", "🤍", "💓"];
+        const heartEmojis = ["💖", "💗", "💓", "❤️", "💕"];
 
         for (let i = 0; i < count; i++) {
             const p = document.createElement("div");
@@ -1263,7 +1519,7 @@
         }, 2500);
     }
 
-    // 🌟 [사용자 요청] 작고 하얀 십자가들이 드론같이 날아가 십자가를 그리고 사라지는 편대 FX (좌측 3개, 우측 3개 완벽 대칭)
+    /* 🌟 [사용자 요청] 은혜의 십자가 드론 애니메이션 FX */
     function spawnCrossFormationFX() {
         const overlay = document.createElement("div");
         overlay.className = "particle-swarm-overlay";
@@ -1281,11 +1537,9 @@
         overlay.appendChild(halo);
 
         const coords = [];
-        // Vertical stem
         for (let y = -120; y <= 140; y += 22) {
             coords.push({ x: 0, y: y });
         }
-        // Horizontal crossbeam (좌측 3개, 우측 3개 정확한 대칭 배치)
         [-68, -46, -24, 24, 46, 68].forEach(x => {
             coords.push({ x: x, y: -35 });
         });
@@ -1293,7 +1547,7 @@
         coords.forEach((coord, idx) => {
             const p = document.createElement("div");
             p.className = "swarm-cross-particle";
-            p.innerText = "✝";
+            p.innerText = "✝️";
             p.style.left = `${centerX}px`;
             p.style.top = `${centerY}px`;
             p.style.setProperty("--tx", `${coord.x}px`);
@@ -1307,22 +1561,29 @@
         }, 2600);
     }
 
-    function checkPcAdmobHide() {
-        if (window.innerWidth >= 768 || (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) && !window.AndroidBridge)) {
-            document.querySelectorAll('.bottom-fixed-admob-footer, [class*="admob"], [id*="admob"]').forEach(el => {
-                el.style.setProperty('display', 'none', 'important');
-            });
+    function initPage() {
+        const saved = localStorage.getItem(SHARED_WORSHIP_KEY);
+        if (saved) {
+            try {
+                worshipData = JSON.parse(saved);
+                WORSHIP_KEYS.forEach(k => {
+                    if (!worshipData[k] || !worshipData[k].title) worshipData[k] = DEFAULT_DATA[k];
+                });
+            } catch(e) { worshipData = DEFAULT_DATA; }
+        } else {
+            worshipData = DEFAULT_DATA;
+            localStorage.setItem(SHARED_WORSHIP_KEY, JSON.stringify(worshipData));
         }
+
+        switchWorship(0);
+        renderFeeds();
     }
 
     document.addEventListener("DOMContentLoaded", () => {
         const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
         document.body.setAttribute('data-theme', savedTheme);
         initPage();
-        checkPcAdmobHide();
     });
-    window.addEventListener("resize", checkPcAdmobHide);
-    window.addEventListener("pageshow", checkPcAdmobHide);
 </script>
 </body>
 </html>
