@@ -3883,6 +3883,16 @@
             z-index: 20000 !important;
         }
         .tv-shorts-feed-container::-webkit-scrollbar { display: none; }
+        .tv-shorts-feed-container.is-locked {
+            overflow-y: hidden !important;
+            touch-action: none !important;
+            scroll-snap-type: none !important;
+            -webkit-overflow-scrolling: auto !important;
+        }
+        .tv-shorts-feed-container.is-locked .tv-shorts-slide,
+        .tv-shorts-feed-container.is-locked .tv-shorts-touch-shield {
+            touch-action: none !important;
+        }
 
         /* 🌟 [총관리자 전용] 영상 최상단 노출 광고 / 우리의원 링크 배너 */
         .tv-shorts-top-ad-banner {
@@ -11979,7 +11989,7 @@ function renderShortsSlides() {
                 <!-- 활성화 시 동적 iframe 생성 -->
             </div>
             <!-- 유튜브 앱 이탈 100% 방지 투명 터치 방패 -->
-            <div class="tv-shorts-touch-shield" onclick="toggleCurrentShortsPlayPause()" title="터치하여 재생 / 일시정지"></div>
+            <div class="tv-shorts-touch-shield" onclick="handleShortsTouchShieldClick(event)" ontouchstart="handleShortsTouchShieldTouch(event)" ontouchmove="handleShortsTouchShieldTouch(event)" title="터치하여 재생 / 일시정지"></div>
         </div>
         `;
     });
@@ -12087,18 +12097,37 @@ function setupShortsFeedScrollListener() {
     if (!container) return;
     let scrollTimer = null;
 
-    // 🌟 [화면고정 방패] 화면고정 ON 시 스마트폰 터치 드래그 및 휠 원천 차단
-    container.addEventListener('touchmove', (e) => {
-        if (isTvScreenLocked) {
-            e.preventDefault();
-            e.stopPropagation();
-            return false;
+    // 🌟 [화면고정 방패] 화면고정 ON 시 스마트폰 터치/드래그 원천 차단 (하단 버튼 조작은 허용)
+    const isControlTarget = (target) => {
+        if (!target) return false;
+        const overlay = document.getElementById('tvShortsBottomOverlay') || document.querySelector('.tv-shorts-bottom-overlay');
+        const modal = document.getElementById('adminSlotEditModal');
+        return (overlay && overlay.contains(target)) || (modal && modal.contains(target));
+    };
+
+    window.addEventListener('touchstart', (e) => {
+        if (isTvScreenLocked && currentTvMode === 'shorts') {
+            if (!isControlTarget(e.target)) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
         }
     }, { passive: false });
 
     window.addEventListener('touchmove', (e) => {
         if (isTvScreenLocked && currentTvMode === 'shorts') {
+            if (!isControlTarget(e.target)) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }
+    }, { passive: false });
+
+    container.addEventListener('touchmove', (e) => {
+        if (isTvScreenLocked) {
             e.preventDefault();
+            e.stopPropagation();
+            return false;
         }
     }, { passive: false });
 
@@ -12128,9 +12157,32 @@ function setupShortsFeedScrollListener() {
     }, { passive: true });
 }
 
-// 🌟 터치 방패: 화면 터치 시 자체 재생/일시정지 토글
+// 🌟 [화면고정 방패] 화면고정 ON 시 터치 방패 클릭 및 터치 원천 차단
+function handleShortsTouchShieldTouch(e) {
+    if (isTvScreenLocked) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }
+}
+
+function handleShortsTouchShieldClick(e) {
+    if (isTvScreenLocked) {
+        e.preventDefault();
+        e.stopPropagation();
+        showToast('🔒 화면이 완전 고정되어 있습니다. (해제 시 빨간 화면고정 버튼 터치)');
+        return;
+    }
+    toggleCurrentShortsPlayPause();
+}
+
+// 🌟 터치 방패: 화면 터치 시 자체 재생/일시정지 토글 (화면고정 중에는 동작 안 함!)
 let isShortsPlaying = true;
 function toggleCurrentShortsPlayPause() {
+    if (isTvScreenLocked) {
+        showToast('🔒 화면이 완전 고정되어 있습니다. (해제 시 빨간 화면고정 버튼 터치)');
+        return;
+    }
     const iframe = document.getElementById(`ytIframe_${currentShortsIndex}`);
     if (!iframe || !iframe.contentWindow) return;
 
@@ -12255,16 +12307,19 @@ function toggleShortsScrollLock() {
     }
 
     if (container) {
+        container.classList.toggle('is-locked', isTvScreenLocked);
         if (isTvScreenLocked) {
             container.style.setProperty('overflow-y', 'hidden', 'important');
             container.style.setProperty('touch-action', 'none', 'important');
             container.style.setProperty('scroll-snap-type', 'none', 'important');
-            showToast('🔒 화면이 완전 고정되었습니다! (터치해도 다음 영상으로 넘어가지 않습니다)');
+            container.style.setProperty('-webkit-overflow-scrolling', 'auto', 'important');
+            showToast('🔒 화면이 완전 고정되었습니다! (터치해도 멈추거나 넘어가지 않습니다)');
         } else {
             container.style.setProperty('overflow-y', 'scroll', 'important');
             container.style.setProperty('touch-action', 'auto', 'important');
             container.style.setProperty('scroll-snap-type', 'y mandatory', 'important');
-            showToast('🔓 화면 고정이 해제되었습니다. (자유롭게 스크롤 가능)');
+            container.style.setProperty('-webkit-overflow-scrolling', 'touch', 'important');
+            showToast('🔓 화면 고정이 해제되었습니다. (자유롭게 터치·스크롤 가능)');
         }
     }
 }
