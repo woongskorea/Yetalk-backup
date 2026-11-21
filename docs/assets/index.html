@@ -5207,17 +5207,20 @@
                 <!-- 선택된 성경 본문 자동 렌더링 -->
             </div>
 
-            <!-- 🌟 [사용자 요청] 찬송가일 때 유튜브 찬양 바로듣기 버튼 & 성경/찬송 간략 출처 안내 바 -->
-            <div id="bbrBottomMetaRow" style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding:0 2px;">
+            <!-- 🌟 [사용자 요청] 찬송가일 때 유튜브 찬양 바로듣기 버튼 & 성경/찬송 간략 출처 안내 바 & 위로 버튼 -->
+            <div id="bbrBottomMetaRow" style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding:0 2px; gap:8px;">
                 <div id="hymnYtDirectLinkWrap" style="display:none;">
                     <button type="button" id="btnHymnYtDirectLink" onclick="scrollToHymnVideoBox(true)" style="background:#fef2f2; border:1.5px solid #fca5a5; color:#dc2626; border-radius:18px; padding:4px 12px; font-size:11.8px; font-weight:950; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 1px 3px rgba(220,38,38,0.1); transition:all 0.15s ease;" title="유튜브 찬양 영상 바로듣기">
                         <span style="font-size:13px;">📺</span>
                         <span id="txtHymnYtBtnLabel">찬송가 305장 듣기 ▶</span>
                     </button>
                 </div>
-                <div id="bbrBottomSourceNote" style="margin-left:auto; text-align:right; font-size:11px; color:#059669; opacity:0.9; font-weight:750; white-space:nowrap;">
+                <div id="bbrBottomSourceNote" style="flex:1; text-align:left; font-size:11px; color:#059669; opacity:0.9; font-weight:750; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                     [본문: 개역한글 + (없음) 킹제임스 참조 / 정회원 묵상용]
                 </div>
+                <button type="button" id="btnBibleScrollTop" onclick="scrollToBibleTop()" title="성경 위로 이동" style="padding:4.5px 12px; background:#f0fdf4; border:1.5px solid #059669; border-radius:14px; color:#047857; font-size:12.5px; font-weight:950; cursor:pointer; display:inline-flex; align-items:center; gap:3px; box-shadow:0 1.5px 4px rgba(5,150,105,0.15); flex-shrink:0; white-space:nowrap; transition:transform 0.12s ease;">
+                    <span>위로 ⬆</span>
+                </button>
             </div>
 
             <!-- 🌟 [사용자 요청] 구약 신약 찬송 모두 성경 본문 맨밑에도 좌우 삼각형(◀ / ▶) 앞뒤로만 가게, 중간에 지금 읽는 성경이나 찬양 장만 (제목 필요없이) -->
@@ -5297,6 +5300,12 @@
                         🙏 아멘
                     </button>
                 </div>
+            </div>
+            <!-- 🌟 [사용자 요청] 성경·감사고백 후 상단으로 편리하게 올라가는 위로 버튼 -->
+            <div style="display:flex; justify-content:center; margin:10px 0 4px 0;">
+                <button type="button" onclick="scrollToBibleTop()" style="padding:6px 18px; background:#f0fdf4; border:1.5px solid #10b981; border-radius:20px; font-size:12.5px; font-weight:950; color:#047857; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 1px 4px rgba(5,150,105,0.12);">
+                    <span>위로 ⬆</span>
+                </button>
             </div>
         </article>
 
@@ -12950,6 +12959,28 @@
             });
         } else {
             target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    // 🌟 [사용자 요청] 성경 읽은 후 상단으로 편리하게 올라가는 위로 스크롤 함수
+    function scrollToBibleTop() {
+        const portalBody = document.getElementById('portalBody');
+        const target = document.getElementById('thanksgivingBanner') || document.getElementById('dailyBibleReadingSection');
+        if (!target || !portalBody) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return;
+        }
+
+        const bodyRect = portalBody.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        const currentScroll = portalBody.scrollTop;
+        const targetScroll = currentScroll + (targetRect.top - bodyRect.top) - 4;
+
+        // 이미 성경 상단 부근에 있으면 페이지 맨 위(top:0)로 스크롤
+        if (Math.abs(currentScroll - targetScroll) < 40) {
+            portalBody.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            portalBody.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
         }
     }
 
