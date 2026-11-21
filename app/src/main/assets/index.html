@@ -17880,6 +17880,9 @@ const BIBLICAL_TIME_SLOTS = [
         const totalCountEl = document.getElementById("txtFriendTotalCount");
         if (totalCountEl) totalCountEl.innerText = `총 ${members.length}명`;
 
+        const isAdminAuth = (localStorage.getItem("yetalk_admin_auth") === "true");
+        const isLeader = isAdminAuth || myRole.includes("목사") || myRole.includes("장로");
+
         // 교우 목록 동적 렌더링
         const row = document.getElementById("christianRegisteredMembersRow");
         if (row) {
@@ -17896,9 +17899,9 @@ const BIBLICAL_TIME_SLOTS = [
                         <!-- 이름과 직분/나 배지 -->
                         <div style="display:flex; align-items:center; gap:5px; min-width:0; flex-grow:1;">
                             <span style="font-size:13.5px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:visible;">${m.nameOrId}</span>
-                            <button type="button" onclick="${!isMe ? `openEditChristianRoleModal('${m.nameOrId}', '${m.role || '성도'}')` : ''}" title="${isMe ? '나' : '터치하여 직분 변경 (선교사/전도사/장로/권사 등)'}" style="font-size:10px; font-weight:900; color:${isMe ? '#059669' : '#0369a1'}; background:${isMe ? '#dcfce7' : '#e0f2fe'}; border:1px solid ${isMe ? '#86efac' : '#bae6fd'}; padding:1.5px 6px; border-radius:5px; flex-shrink:0; cursor:${isMe ? 'default' : 'pointer'}; display:inline-flex; align-items:center; gap:2px;">
+                            <button type="button" onclick="${isMe ? `openApplyAppModal(true)` : (isLeader ? `openEditChristianRoleModal('${m.nameOrId}', '${m.role || '성도'}')` : `showBibleToast('🔒 교우 직분 변경은 교회 관리자(목사님, 장로님)만 가능합니다.')`)}" title="${isMe ? '나 (터치 시 내 정보 수정)' : (isLeader ? '터치하여 직분 변경 (관리자/교역자 권한)' : `${m.role || '성도'}`)}" style="font-size:10px; font-weight:900; color:${isMe ? '#059669' : '#0369a1'}; background:${isMe ? '#dcfce7' : '#e0f2fe'}; border:1px solid ${isMe ? '#86efac' : '#bae6fd'}; padding:1.5px 6px; border-radius:5px; flex-shrink:0; cursor:pointer; display:inline-flex; align-items:center; gap:2px;">
                                 <span>${isMe ? '나' : ((m.role && m.role.includes('장로')) ? '장로' : (m.role || '성도'))}</span>
-                                ${!isMe ? '<span style="font-size:8px; opacity:0.8; margin-left:1px;">✎</span>' : ''}
+                                ${!isMe && isLeader ? '<span style="font-size:8px; opacity:0.8; margin-left:1px;">✎</span>' : ''}
                             </button>
                         </div>
                     </div>
@@ -17948,6 +17951,15 @@ const BIBLICAL_TIME_SLOTS = [
     let targetRoleMemberName = "";
 
     function openEditChristianRoleModal(memberName, currentRole) {
+        const myRole = (localStorage.getItem("yetalk_church_role") || "성도").trim();
+        const isAdmin = (localStorage.getItem("yetalk_admin_auth") === "true");
+        const isLeader = isAdmin || myRole.includes("목사") || myRole.includes("장로");
+
+        if (!isLeader) {
+            showBibleToast("🔒 교우 직분 변경은 교회 관리자(목사님, 장로님)만 가능합니다.");
+            return;
+        }
+
         targetRoleMemberName = memberName;
         const modal = document.getElementById("editChristianRoleModal");
         const nameEl = document.getElementById("txtEditRoleMemberName");
@@ -19381,6 +19393,12 @@ https://woongskorea.github.io/Yetalk-backup/`;
                                 const cmName = cm.nameOrId || cm.name || "";
                                 if (cmRole && cmName) {
                                     syncMemberToChurchIntroData(churchName, pastorName, cmName, cmRole);
+                                    // 🌟 관리자가 직분을 변경한 경우 본인 기기 회원정보 직분도 자동 동기화
+                                    const myName = (localStorage.getItem("yetalk_user_name") || "").trim();
+                                    if (myName && getCleanPersonName(cmName) === getCleanPersonName(myName)) {
+                                        localStorage.setItem("yetalk_church_role", cmRole);
+                                        localStorage.setItem("yetalkChurchRole", cmRole);
+                                    }
                                 }
                             } catch(e) {}
                         });
