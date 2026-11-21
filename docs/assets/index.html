@@ -3377,21 +3377,31 @@
 
         /* 🌟 [사용자 요청] 말씀 복사 모드에서 터치하여 선택된 구절: 짙은 회색 선택 상태 */
         .bible-verse-item.highlight-copy-selected {
-            background: #475569 !important;
-            border: 2px solid #1e293b !important;
+            background: #e0f2fe !important;
+            border: 1.5px solid #38bdf8 !important;
             border-radius: 8px !important;
-            box-shadow: 0 2px 8px rgba(30, 41, 59, 0.35) !important;
-            color: #ffffff !important;
-            font-weight: 850 !important;
+            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.22) !important;
+            color: #0369a1 !important;
+            font-weight: 750 !important;
             padding: 5px 8px !important;
         }
         .bible-verse-item.highlight-copy-selected .bible-verse-num {
-            color: #f1f5f9 !important;
+            color: #0284c7 !important;
+            font-weight: 850 !important;
+        }
+        .bible-verse-item.highlight-copy-selected .bible-verse-body {
+            color: #0c4a6e !important;
         }
         body.theme-dark .bible-verse-item.highlight-copy-selected {
-            background: #334155 !important;
-            border: 2px solid #94a3b8 !important;
-            color: #ffffff !important;
+            background: rgba(2, 132, 199, 0.25) !important;
+            border-color: #38bdf8 !important;
+            color: #bae6fd !important;
+        }
+        body.theme-dark .bible-verse-item.highlight-copy-selected .bible-verse-num {
+            color: #38bdf8 !important;
+        }
+        body.theme-dark .bible-verse-item.highlight-copy-selected .bible-verse-body {
+            color: #e0f2fe !important;
         }
         body.theme-dark .bible-verse-item.highlight-copy-selected .bible-verse-num {
             color: #f8fafc !important;
@@ -9471,13 +9481,42 @@ const BIBLICAL_TIME_SLOTS = [
     let _versePressTimer = null;
     let _isLongPress = false;
 
+    // 🌟 [사용자 요청] 카카오톡 나에게 보내기 바로 연결 도우미
+    function openKakaoTalkWithVerse(fullText) {
+        if (window.AndroidBridge && window.AndroidBridge.shareToKakaoTalk) {
+            try {
+                window.AndroidBridge.shareToKakaoTalk(fullText);
+                return;
+            } catch(e) {}
+        }
+        if (window.AndroidBridge && window.AndroidBridge.launchApp) {
+            try {
+                window.AndroidBridge.launchApp('kakaotalk');
+                return;
+            } catch(e) {}
+        }
+        try {
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            if (isAndroid) {
+                window.location.href = "intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=" + encodeURIComponent(fullText) + ";package=com.kakao.talk;end";
+                return;
+            }
+        } catch(e) {}
+        try {
+            window.location.href = "kakaotalk://";
+        } catch(e) {
+            window.open('https://talk.kakao.com', '_blank');
+        }
+    }
+
     function toggleVerseCopyMode() {
         if (!isVerseCopyModeActive) {
             isVerseCopyModeActive = true;
             copySelectedVerses.clear();
             updateVerseCopyModeUI(true);
+            showSimpleToast("📋 복사 모드: 구절을 톡톡 쳐서 선택하세요");
         } else {
-            // 🌟 [사용자 요청] 선택된 구절이 있을 때 버튼을 눌러도 즉시 복사 완료!
+            // 선택된 구절이 있을 때 버튼 터치 시 즉시 복사 & 카카오톡 실행!
             const selectedEls = document.querySelectorAll(".bible-verse-item.highlight-copy-selected");
             if (copySelectedVerses.size > 0 || selectedEls.length > 0) {
                 executeCopySelectedVerses();
@@ -9503,19 +9542,19 @@ const BIBLICAL_TIME_SLOTS = [
             if (active) {
                 const selCount = copySelectedVerses.size;
                 if (selCount > 0) {
-                    btn.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
-                    btn.style.borderColor = "#34d399";
+                    btn.style.background = "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)";
+                    btn.style.borderColor = "#38bdf8";
                     btn.style.color = "#ffffff";
-                    btn.style.boxShadow = "0 2px 8px rgba(16,185,129,0.35)";
+                    btn.style.boxShadow = "0 2px 8px rgba(2,132,199,0.35)";
                     txt.textContent = `복사완료 (${selCount}절)`;
-                    btn.title = "터치하거나 구절을 꾹 누르면 복사 완료됩니다";
+                    btn.title = "터치하면 복사되어 카카오톡 나와의 채팅으로 바로 연결됩니다";
                 } else {
-                    btn.style.background = "#047857";
-                    btn.style.borderColor = "#047857";
+                    btn.style.background = "#0284c7";
+                    btn.style.borderColor = "#0284c7";
                     btn.style.color = "#ffffff";
-                    btn.style.boxShadow = "0 2px 8px rgba(4,120,87,0.35)";
+                    btn.style.boxShadow = "0 2px 8px rgba(2,132,199,0.35)";
                     txt.textContent = "복사 취소";
-                    btn.title = "구절들을 선택 후 꾹 누르거나 이 버튼을 눌러 복사하세요";
+                    btn.title = "구절들을 터치하여 선택 후 누르세요";
                 }
             } else {
                 btn.style.background = "#f8fafc";
@@ -9523,7 +9562,7 @@ const BIBLICAL_TIME_SLOTS = [
                 btn.style.color = "#1e293b";
                 btn.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
                 txt.textContent = "말씀 복사";
-                btn.title = "말씀 복사 모드 (터치하여 선택 후 꾹 눌러 복사)";
+                btn.title = "말씀 복사 모드 (구절 꾹 누름 또는 터치하여 시작)";
             }
         }
     }
@@ -9545,18 +9584,31 @@ const BIBLICAL_TIME_SLOTS = [
             _touchStartY = event.clientY || 0;
         }
 
-        // 🌟 [사용자 요청] 오직 말씀 복사 모드일 때만 꾹 누름(롱프레스)으로 복사 동작 수행!
-        if (!isVerseCopyModeActive) return;
-
-        // 🌟 400ms로 단축하여 모바일에서 쾌적하게 즉각 롱프레스 감지!
+        // 🌟 [사용자 요청] 성경 구절이 색깔 강조되어 있든 안 되어 있든,
+        // 한 구절을 400ms 꾹 누르면 복사 모드로 진입 및 해당 구절 자동 선택!
         _versePressTimer = setTimeout(() => {
             if (_isScrolling) return;
             _isLongPress = true;
-            if (verseKey && el) {
-                copySelectedVerses.add(verseKey);
-                el.classList.add("highlight-copy-selected");
+
+            if (!isVerseCopyModeActive) {
+                // 1) 평상시 꾹 누르면: 복사 모드 즉시 활성화 & 해당 구절 선택!
+                isVerseCopyModeActive = true;
+                copySelectedVerses.clear();
+                if (verseKey && el) {
+                    copySelectedVerses.add(verseKey);
+                    el.classList.add("highlight-copy-selected");
+                }
+                updateVerseCopyModeUI(true);
+                try { if (navigator.vibrate) navigator.vibrate(40); } catch(e) {}
+                showSimpleToast("📋 복사 모드: 구절을 톡톡 쳐서 추가하세요");
+            } else {
+                // 2) 이미 복사 모드일 때 꾹 누르면: 해당 구절 추가 후 즉시 복사 & 카톡 실행!
+                if (verseKey && el && !copySelectedVerses.has(verseKey)) {
+                    copySelectedVerses.add(verseKey);
+                    el.classList.add("highlight-copy-selected");
+                }
+                executeCopySelectedVerses();
             }
-            executeCopySelectedVerses();
         }, 400);
     }
 
@@ -9572,7 +9624,6 @@ const BIBLICAL_TIME_SLOTS = [
         }
         const dist = Math.hypot(curX - _touchStartX, curY - _touchStartY);
         if (dist > 8) {
-            // 🌟 손가락이 8px 이상 움직였으므로 스크롤 중임 -> 복사 타이머 즉시 취소!
             _isScrolling = true;
             if (_versePressTimer) {
                 clearTimeout(_versePressTimer);
@@ -9587,7 +9638,6 @@ const BIBLICAL_TIME_SLOTS = [
             _versePressTimer = null;
         }
         if (_isScrolling) {
-            // 🌟 스크롤 후 손을 뗐을 때 click 이벤트가 바로 발생해 구절 선택이 풀리는 것을 완벽 차단!
             setTimeout(() => {
                 _isScrolling = false;
             }, 300);
@@ -9599,7 +9649,6 @@ const BIBLICAL_TIME_SLOTS = [
             event.preventDefault();
             event.stopPropagation();
         }
-        // 🌟 스크롤 직후이거나 롱프레스 직후에는 클릭(토글) 방지!
         if (_isScrolling) {
             _isScrolling = false;
             return;
@@ -9609,17 +9658,21 @@ const BIBLICAL_TIME_SLOTS = [
             return;
         }
 
-        // 🌟 1) 말씀 복사 모드일 때: 하나씩 누르는 모든 구절이 짙은 회색으로 선택 토글!
+        // 🌟 1) 말씀 복사 모드일 때:
         if (isVerseCopyModeActive) {
+            // [사용자 요청] "확장된 성경 구절 어디든지 누르면 자동 복사하기가 되게 해주고 카톡의 나에게 보내기로 바로 연결되게 해줘"
             if (copySelectedVerses.has(verseKey)) {
-                copySelectedVerses.delete(verseKey);
-                el.classList.remove("highlight-copy-selected");
+                // 이미 선택/확장된 구절을 터치하면 -> 자동 복사 & 카카오톡 실행!
+                executeCopySelectedVerses();
+                return;
             } else {
+                // 선택되지 않은 그 밑의 구절을 톡 톡 치면 -> 복사 모드 범위 확장!
                 copySelectedVerses.add(verseKey);
                 el.classList.add("highlight-copy-selected");
+                updateVerseCopyModeUI(true);
+                try { if (navigator.vibrate) navigator.vibrate(25); } catch(e) {}
+                return;
             }
-            updateVerseCopyModeUI(true);
-            return;
         }
 
         // 🌟 2) 평상시 터치: 단순한 강조색깔 순환 (분홍 -> 노랑 -> 파랑 -> 진한분홍 -> 회색 -> 없음)
@@ -9627,7 +9680,6 @@ const BIBLICAL_TIME_SLOTS = [
     }
 
     function executeCopySelectedVerses() {
-        // 🌟 DOM에서 선택된 모든 구절 실시간 100% 직접 추출
         const selectedEls = Array.from(document.querySelectorAll(".bible-verse-item.highlight-copy-selected"));
         if (copySelectedVerses.size === 0 && selectedEls.length === 0) return;
 
@@ -9700,13 +9752,18 @@ const BIBLICAL_TIME_SLOTS = [
         }
 
         try {
-            if (navigator.vibrate) navigator.vibrate(50);
+            if (navigator.vibrate) navigator.vibrate([40, 50, 40]);
         } catch(e) {}
 
-        // 🌟 [사용자 요청] 꾹 누를 때만 "복사완료"란 알림창만 심플하게 뜨게
-        showSimpleToast("복사완료");
+        // 🌟 [사용자 요청] 카카오톡 나에게 보내기로 바로 연결
+        showSimpleToast("📋 말씀 복사완료! 카카오톡으로 연결합니다 💬");
 
-        // 복사 완료 후 말씀 복사 모드 및 회색 선택 상태 자동 종료
+        // 카카오톡 '나와의 채팅' 연결 실행
+        setTimeout(() => {
+            openKakaoTalkWithVerse(fullText);
+        }, 150);
+
+        // 복사 완료 후 말씀 복사 모드 및 선택 상태 자동 종료
         exitVerseCopyMode();
     }
 

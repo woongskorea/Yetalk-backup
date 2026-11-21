@@ -627,6 +627,22 @@ class MainActivity : AppCompatActivity() {
         }
 
         @JavascriptInterface
+        fun shareToKakaoTalk(text: String) {
+            runOnUiThread {
+                try {
+                    val intent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, text)
+                        setPackage("com.kakao.talk")
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    launchInstalledAppOrMarket("com.kakao.talk")
+                }
+            }
+        }
+
         fun copyToClipboard(text: String) {
             runOnUiThread {
                 try {
