@@ -12400,7 +12400,7 @@ function cycleShortsSpeed() {
     showToast(cfg.toast);
 }
 
-// 🌟 [사용자 요청] 영상 링크 자동 복사 & 카톡/공유창 열기
+// 🌟 [사용자 요청] 컴퓨터/스마트폰 맞춤 카카오톡 직통 보내기 (자동 복사 후 나에게 보내기/친구 피커 즉시 연결)
 function shareCurrentShortsVideo() {
     if (!shortsFeedList || shortsFeedList.length === 0) {
         showToast('공유할 영상이 없습니다.');
@@ -12416,11 +12416,13 @@ function shareCurrentShortsVideo() {
     const title = item.slotTitle || item.slotLabel || '예톡TV 은혜 영상';
     const shareText = `[예톡TV 은혜 나눔]\n${title}\n▶ 영상 바로보기: ${vidUrl}\n\n🌿 예수님과 함께 걷는 나의 예톡 바로가기:\nhttps://yetalk.cc`;
 
-    // 1. 클립보드에 링크 자동 복사 (즉각 성공 보장)
+    // 1. 영상 링크 및 은혜 문구 클립보드에 초고속 자동 복사
     let copied = false;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(shareText).then(() => { copied = true; }).catch(() => {});
-    }
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(shareText).then(() => { copied = true; }).catch(() => {});
+        }
+    } catch(e){}
     if (!copied) {
         try {
             const ta = document.createElement('textarea');
@@ -12435,18 +12437,32 @@ function shareCurrentShortsVideo() {
         } catch(e){}
     }
 
-    showToast('📋 영상 링크가 복사되었습니다! 카톡으로 은혜를 나눠보세요.');
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
-    // 2. 모바일 네이티브 공유창 (카카오톡, 메시지 등 선택창) 즉시 호출
-    if (navigator.share) {
-        navigator.share({
-            title: title,
-            text: shareText,
-            url: vidUrl
-        }).catch(err => {
-            // 사용자 취소 시 무시
-        });
+    // 2. 스마트폰 안드로이드 앱 (AndroidBridge) -> 카카오톡 나에게 보내기 / 대화방 선택창 직통 실행!
+    if (window.AndroidBridge && typeof window.AndroidBridge.shareToKakaoFriends === 'function') {
+        window.AndroidBridge.shareToKakaoFriends(shareText);
+        showToast('💬 카카오톡이 열립니다! 맨 위 [나와의 채팅]이나 대화방을 선택하세요.');
+        return;
     }
+
+    // 3. 모바일 웹 브라우저 (스마트폰 크롬/사파리)
+    if (isMobile) {
+        showToast('💬 링크 자동 복사 완료! 카카오톡 [나와의 채팅]으로 연결합니다.');
+        if (/Android/i.test(navigator.userAgent)) {
+            window.location.href = "intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=" + encodeURIComponent(shareText) + ";package=com.kakao.talk;end";
+            return;
+        }
+        window.location.href = "kakaolink://send?text=" + encodeURIComponent(shareText);
+        return;
+    }
+
+    // 4. 🌟 [핵심] 컴퓨터(PC / Windows / Mac)
+    // -> Windows OS 공유창(OneNote/Skype)은 절대 띄우지 않고, 카카오톡 PC를 즉시 실행!
+    showToast('💬 카카오톡 PC 실행 & 링크 자동 복사 완료!\n[나와의 채팅]에 붙여넣기(Ctrl+V) 하세요.');
+    try {
+        window.location.href = "kakaotalk://";
+    } catch(e){}
 }
 
 // 🌟 화면 고정
