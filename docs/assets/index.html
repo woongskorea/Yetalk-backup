@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -7104,10 +7104,9 @@
             <!-- 2) 상단 컴팩트 초청 배너 & 카톡 보내기 & 친구 등록창 (공간 절약) -->
             <div style="background:linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%); padding:12px 16px 10px 16px; border-bottom:1px solid #e2e8f0; flex-shrink:0;">
                 <div id="txtChristianInviteMsg" style="font-size:15px; font-weight:950; color:#0f172a; text-align:center; margin-bottom:10px; line-height:1.45; word-break:keep-all;">
-                    “예톡앱으로 초대합니다.”<br>
-                    <span style="font-size:12.5px; color:#334155; font-weight:700; display:block; margin-top:4px; line-height:1.4;">
-                        이른 아침 와서 조반을 먹으라는 주님의 음성이 들리는듯한 예톡앱입니다.<br>
-                        1) 교회 홈페이지 무료제작 &nbsp; 2) 성도들에게 주님께서 먹여주는듯한 성경앱
+                    “예톡으로 초대합니다.”<br>
+                    <span style="font-size:13px; color:#334155; font-weight:700; display:block; margin-top:4px; line-height:1.4;">
+                        이른 아침 와서 조반을 먹으라는 주님의 음성이 들리는듯한 예톡입니다.
                     </span>
                 </div>
                 <!-- 🌟 [사용자 요청] 링크 복사 후 카톡 보내기 순서로 배치 (링크 복사 먼저, 카톡 보내기 다음) -->
@@ -17734,6 +17733,33 @@ const BIBLICAL_TIME_SLOTS = [
             customFriends = JSON.parse(localStorage.getItem("yetalk_custom_friends") || "[]");
         } catch(e) { customFriends = []; }
 
+        // 🌟 [사용자 요청] furaha, furaha김 로컬 및 블랙리스트 즉시 청소 (Furaha KIM 1명만 단독 유지)
+        try {
+            let delList = JSON.parse(localStorage.getItem("yetalk_deleted_friends") || "[]");
+            ["Furaha", "furaha", "Furaha김", "furaha김", "Furaha 김", "furaha 김"].forEach(n => {
+                if (!delList.includes(n)) delList.push(n);
+            });
+            localStorage.setItem("yetalk_deleted_friends", JSON.stringify(delList));
+
+            let cFriends = JSON.parse(localStorage.getItem("yetalk_custom_friends") || "[]");
+            cFriends = cFriends.filter(f => {
+                const fn = (f.nameOrId || f.name || '').replace(/\s+/g, '').toLowerCase();
+                return fn !== 'furaha' && fn !== 'furaha김';
+            });
+            localStorage.setItem("yetalk_custom_friends", JSON.stringify(cFriends));
+
+            let cMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+            Object.keys(cMap).forEach(k => {
+                if (cMap[k] && Array.isArray(cMap[k].members)) {
+                    cMap[k].members = cMap[k].members.filter(m => {
+                        const mn = (m.nameOrId || m.name || '').replace(/\s+/g, '').toLowerCase();
+                        return mn !== 'furaha' && mn !== 'furaha김';
+                    });
+                }
+            });
+            localStorage.setItem("yetalk_registered_churches", JSON.stringify(cMap));
+        } catch(e) {}
+
         // 삭제된 교우 블랙리스트 불러오기 (X 눌러서 삭제한 사람 다시 안 뜨도록 완벽 차단)
         let deletedFriends = [];
         try {
@@ -17759,6 +17785,11 @@ const BIBLICAL_TIME_SLOTS = [
             const clean = getCleanPersonName(raw);
             if (deletedFriends.some(d => d === raw || d === clean || (clean && getCleanPersonName(d) === clean))) {
                 return false; // 삭제된 사람 제외
+            }
+            const norm = raw.replace(/\s+/g, '').toLowerCase();
+            // 🌟 [사용자 요청] furaha, furaha김 삭제 및 맨 밑의 Furaha KIM만 단독 유지
+            if (norm === 'furaha' || norm === 'furaha김') {
+                return false;
             }
             return !dummyNames.some(d => raw.trim() === d || raw.replace(/\s+/g, '') === d.replace(/\s+/g, ''));
         });
@@ -17800,6 +17831,8 @@ const BIBLICAL_TIME_SLOTS = [
             let displayName = pureClean;
             if (role === '담임목사' || rawName.includes('목사')) {
                 displayName = pureClean + ' 목사';
+            } else if (pureClean.replace(/\s+/g, '').toLowerCase() === 'furahakim') {
+                displayName = 'Furaha KIM';
             } else {
                 displayName = pureClean;
             }
@@ -17872,6 +17905,11 @@ const BIBLICAL_TIME_SLOTS = [
                         <button type="button" onclick="shareChristianInviteKakao('${m.nameOrId}')" style="padding:4px 7px; background:#fee500; color:#191919; border:none; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer; box-shadow:0 1px 3px rgba(254,229,0,0.25);">
                             카톡
                         </button>
+                        ${!isMe ? `
+                        <button type="button" onclick="deleteChristianFriend('${m.nameOrId}')" title="${m.nameOrId} 교우 목록에서 삭제" style="padding:4px 6px; background:#f8fafc; color:#94a3b8; border:1px solid #cbd5e1; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer; line-height:1; transition:all 0.15s ease;" onmouseover="this.style.color='#ef4444';this.style.background='#fee2e2';this.style.borderColor='#fca5a5';" onmouseout="this.style.color='#94a3b8';this.style.background='#f8fafc';this.style.borderColor='#cbd5e1';">
+                            ✕
+                        </button>
+                        ` : ''}
                     </div>
                 </div>
             `}).join("");
@@ -18144,11 +18182,8 @@ const BIBLICAL_TIME_SLOTS = [
 
     // 🌟 [사용자 요청] alert 없이 초대 문구 즉시 복사 & 버튼 피드백 (기존글에 '플레이스토어에서 예톡을 다운받으세요' 추가)
     function copyChristianInvite() {
-        const fullMsg = `예톡앱으로 초대합니다.
-이른 아침 와서 조반을 먹으라는 주님의 음성이 들리는듯한 예톡앱입니다.
-
-1) 교회 홈페이지 무료제작
-2) 성도들에게 주님께서 먹여주는듯한 성경앱
+        const fullMsg = `예톡으로 초대합니다.
+이른 아침 와서 조반을 먹으라는 주님의 음성이 들리는듯한 예톡입니다.
 
 👉 바로가기:
 https://woongskorea.github.io/Yetalk-backup/`;
@@ -18178,11 +18213,9 @@ https://woongskorea.github.io/Yetalk-backup/`;
     }
 
     function shareChristianInviteKakao(targetMemberName) {
-        const fullMsg = `예톡앱으로 초대합니다.
-이른 아침 와서 조반을 먹으라는 주님의 음성이 들리는듯한 예톡앱입니다.
-
-1) 교회 홈페이지 무료제작
-2) 성도들에게 주님께서 먹여주는듯한 성경앱
+        const prefix = targetMemberName ? `[${targetMemberName}님] ` : '';
+        const fullMsg = `${prefix}예톡으로 초대합니다.
+이른 아침 와서 조반을 먹으라는 주님의 음성이 들리는듯한 예톡입니다.
 
 👉 바로가기:
 https://woongskorea.github.io/Yetalk-backup/`;
@@ -19151,6 +19184,8 @@ https://woongskorea.github.io/Yetalk-backup/`;
                 // 🌟 [사용자 요청] 진짜 교우만 유지 (가짜/샘플 더미 교우 자동 필터링 및 제거)
                 cloudMembers = cloudMembers.filter(m => {
                     const name = typeof m === 'string' ? m : (m.nameOrId || m.name || '');
+                    const norm = name.replace(/\s+/g, '').toLowerCase();
+                    if (norm === 'furaha' || norm === 'furaha김') return false;
                     return !["정 권사", "김 성도", "박 사무사역", "정권사", "김성도", "박사무사역", "사무사역"].some(d => name.replace(/\s+/g, '') === d.replace(/\s+/g, ''));
                 });
                 busanDefaults.forEach(bd => {
@@ -19187,6 +19222,8 @@ https://woongskorea.github.io/Yetalk-backup/`;
                     // 🌟 가짜 샘플 교우 완전 필터링
                     cloudList = cloudList.filter(m => {
                         const name = typeof m === 'string' ? m : (m.nameOrId || m.name || '');
+                        const norm = name.replace(/\s+/g, '').toLowerCase();
+                        if (norm === 'furaha' || norm === 'furaha김') return false;
                         return !["정 권사", "김 성도", "박 사무사역", "정권사", "김성도", "박사무사역", "사무사역"].some(d => name.replace(/\s+/g, '') === d.replace(/\s+/g, ''));
                     });
                     if (cloudList.length > 0) {
