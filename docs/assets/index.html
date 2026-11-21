@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -11148,6 +11148,55 @@ const BIBLICAL_TIME_SLOTS = [
         ).join("");
     }
 
+    
+    // 🌟 [사용자 요청] 한영 병기 찬송가 영문 절(Verse) 데이터 (영문 모드 시 한글 가사 밑에 영어 가사 동시 표기)
+    window.ENG_HYMN_STANZA_DATA = {
+        1: {
+            verses: [
+                "Praise God, from whom all blessings flow; Praise Him, all creatures here below; Praise Him above, ye heav'nly host; Praise Father, Son, and Holy Ghost. Amen."
+            ]
+        },
+        23: {
+            verses: [
+                "O for a thousand tongues to sing My great Redeemer's praise, The glories of my God and King, The triumphs of His grace!",
+                "My gracious Master and my God, Assist me to proclaim, To spread thro' all the earth abroad The honors of Thy name.",
+                "Jesus! the name that charms our fears, That bids our sorrows cease; 'Tis music in the sinner's ears, 'Tis life, and health, and peace.",
+                "He breaks the power of canceled sin, He sets the pris'ner free; His blood can make the foulest clean, His blood availed for me."
+            ]
+        },
+        28: {
+            verses: [
+                "Come, Thou Fount of every blessing, Tune my heart to sing Thy grace; Streams of mercy, never ceasing, Call for songs of loudest praise.",
+                "Here I raise mine Ebenezer; Hither by Thy help I'm come; And I hope, by Thy good pleasure, Safely to arrive at home.",
+                "O to grace how great a debtor Daily I'm constrained to be! Let Thy goodness, like a fetter, Bind my wand'ring heart to Thee."
+            ]
+        },
+        288: {
+            verses: [
+                "Blessed assurance, Jesus is mine! O what a foretaste of glory divine! Heir of salvation, purchase of God, Born of His Spirit, washed in His blood.",
+                "Perfect submission, perfect delight, Visions of rapture now burst on my sight; Angels descending, bring from above Echoes of mercy, whispers of love.",
+                "Perfect submission, all is at rest, I in my Savior am happy and blest; Watching and waiting, looking above, Filled with His goodness, lost in His love."
+            ],
+            chorus: "This is my story, this is my song, Praising my Savior all the day long; This is my story, this is my song, Praising my Savior all the day long."
+        },
+        305: {
+            verses: [
+                "Amazing grace! how sweet the sound, That saved a wretch like me! I once was lost, but now am found, Was blind, but now I see.",
+                "'Twas grace that taught my heart to fear, And grace my fears relieved; How precious did that grace appear The hour I first believed!",
+                "Through many dangers, toils and snares, I have already come; 'Tis grace hath brought me safe thus far, And grace will lead me home.",
+                "When we've been there ten thousand years, Bright shining as the sun, We've no less days to sing God's praise Than when we'd first begun. Amen."
+            ]
+        },
+        438: {
+            verses: [
+                "Since Christ my soul from sin set free, This world has been a heav'n to me; 'Mid doubts and fears, for Jesus' sake, He will a glorious mansion make.",
+                "Once off in sinful paths I strayed, In deep despair my spirit prayed; But now with Christ my Savior King, A song of joyful praise I sing.",
+                "No matter where on earth I roam, With Jesus Christ I am at home; In humble tent or mansion fair, Where Jesus is, 'tis heaven there."
+            ],
+            chorus: "O hallelujah, yes, 'tis heav'n, 'Tis heav'n to know my sins forgiv'n; On land or sea, what matters where? Where Jesus is, 'tis heaven there."
+        }
+    };
+
     function displayHymn(num) {
         num = parseInt(num, 10);
         if (isNaN(num) || num < 1) num = 1;
@@ -11182,10 +11231,10 @@ const BIBLICAL_TIME_SLOTS = [
             txtAutoTimeSlot.innerText = isEn ? `Hymn ${num}: ${hymnDisplayTitle}` : `${num}장 ${info.title}`;
         }
 
-        // 🌟 [사용자 요청] 성경/찬송 본문 맨 밑 하단 네비게이션: 찬양 장만 표기 (제목 필요없이)
+        // 🌟 [사용자 요청] 성경/찬송 본문 맨 밑 하단 네비게이션: 찬양 장만 표기 (영문 시 Hymn {num})
         const bottomChText = document.getElementById("txtBottomBibleChapter");
         if (bottomChText) {
-            bottomChText.innerText = `찬송가 ${num}장`;
+            bottomChText.innerText = isEn ? `Hymn ${num}` : `찬송가 ${num}장`;
         }
 
         // 소제목 업데이트 (찬송가 번호 및 제목 표출 - 상단 빨강 반주 버튼 완전 제거)
@@ -11264,15 +11313,54 @@ const BIBLICAL_TIME_SLOTS = [
                 });
 
                 if (verseItems.length > 0) {
-                    lyricsHtml = verseItems.map(item => {
+                    lyricsHtml = verseItems.map((item, vIdx) => {
+                        let enVerseHtml = "";
                         let chHtml = "";
-                        if (item.chorusText) {
-                            chHtml = '<div style="margin-top:6px; padding-top:6px; border-top:1px dashed #d8b4fe; font-size:16px; font-weight:700; color:#6b21a8; line-height:1.65;"><span style="color:#7c3aed; font-weight:900; margin-right:4px;">(후렴)</span>' + item.chorusText + '</div>';
+
+                        if (isEn) {
+                            let enText = "";
+                            if (window.ENG_HYMN_STANZA_DATA && window.ENG_HYMN_STANZA_DATA[num] && window.ENG_HYMN_STANZA_DATA[num].verses && window.ENG_HYMN_STANZA_DATA[num].verses[vIdx]) {
+                                enText = window.ENG_HYMN_STANZA_DATA[num].verses[vIdx];
+                            } else if (info.engTitle) {
+                                enText = info.engTitle + " (Verse " + (vIdx + 1) + ")";
+                            }
+                            if (enText) {
+                                enVerseHtml = '<div class="hymn-en-verse-box" style="margin-top:7px; padding-top:7px; border-top:1px dashed #7dd3fc; font-size:15px; font-weight:600; color:#0369a1; font-style:italic; line-height:1.6; word-break:keep-all;">'
+                                    + '<div style="font-style:normal; font-size:11.5px; font-weight:900; color:#0284c7; margin-bottom:3px; letter-spacing:0.2px;">📖 Verse ' + (vIdx + 1) + '</div>'
+                                    + enText
+                                    + '</div>';
+                            }
                         }
-                        return '<div class="hymn-verse-card" style="margin-bottom:8px; padding:10px 14px; background:#faf5ff; border:1px solid #e9d5ff; border-radius:12px;"><div style="font-size:13.5px; font-weight:900; color:#7c3aed; margin-bottom:4px;">' + item.label + '</div><div style="font-size:17.5px; font-weight:700; color:#1e293b; line-height:1.7;">' + item.verseText + '</div>' + chHtml + '</div>';
+
+                        if (item.chorusText) {
+                            let enChorusPart = "";
+                            if (isEn) {
+                                let enCh = "";
+                                if (window.ENG_HYMN_STANZA_DATA && window.ENG_HYMN_STANZA_DATA[num] && window.ENG_HYMN_STANZA_DATA[num].chorus) {
+                                    enCh = window.ENG_HYMN_STANZA_DATA[num].chorus;
+                                }
+                                if (enCh) {
+                                    enChorusPart = '<div style="margin-top:4px; font-size:13.5px; font-weight:600; color:#7e22ce; font-style:italic; line-height:1.55;"><span style="font-style:normal; font-size:11px; font-weight:800; color:#9333ea; margin-right:4px; background:#f3e8ff; padding:1px 5px; border-radius:4px;">Refrain</span>' + enCh + '</div>';
+                                }
+                            }
+                            chHtml = '<div style="margin-top:6px; padding-top:6px; border-top:1px dashed #d8b4fe; font-size:16px; font-weight:700; color:#6b21a8; line-height:1.65;"><span style="color:#7c3aed; font-weight:900; margin-right:4px;">(후렴)</span>' + item.chorusText + enChorusPart + '</div>';
+                        }
+
+                        const cardLabel = isEn ? (item.label + ' &nbsp;<span style="color:#0284c7; font-weight:800; font-size:12.5px;">(Verse ' + (vIdx + 1) + ')</span>') : item.label;
+
+                        return '<div class="hymn-verse-card" style="margin-bottom:8px; padding:10px 14px; background:#faf5ff; border:1px solid #e9d5ff; border-radius:12px;">'
+                            + '<div style="font-size:13.5px; font-weight:900; color:#7c3aed; margin-bottom:4px;">' + cardLabel + '</div>'
+                            + '<div style="font-size:17.5px; font-weight:700; color:#1e293b; line-height:1.7;">' + item.verseText + '</div>'
+                            + enVerseHtml
+                            + chHtml
+                            + '</div>';
                     }).join("");
                 } else {
-                    lyricsHtml = '<div style="padding:14px; background:#faf5ff; border-radius:12px; font-size:17.5px; line-height:1.75; color:#1e293b;">' + info.lyrics.replace(/\n/g, "<br>") + '</div>';
+                    let enFallback = "";
+                    if (isEn && info.engTitle) {
+                        enFallback = '<div style="margin-top:10px; padding-top:8px; border-top:1px dashed #7dd3fc; font-size:15px; font-style:italic; color:#0369a1;">Hymn ' + num + ': ' + info.engTitle + '</div>';
+                    }
+                    lyricsHtml = '<div style="padding:14px; background:#faf5ff; border-radius:12px; font-size:17.5px; line-height:1.75; color:#1e293b;">' + info.lyrics.replace(/\n/g, "<br>") + enFallback + '</div>';
                 }
             } else {
                 lyricsHtml = '<div style="text-align:center; padding:28px 14px; background:#faf5ff; border-radius:12px; border:1px dashed #d8b4fe;">'
@@ -11300,10 +11388,10 @@ const BIBLICAL_TIME_SLOTS = [
         if (inlineVideo) inlineVideo.style.display = "block";
         renderHymnVideoList(num, currentHymnTitle);
 
-        // 🌟 [사용자 요청] 새찬송가 묵상용 글자 조금 줄여서 한줄로 핏
+        // 🌟 [사용자 요청] 새찬송가 묵상용 글자 조금 줄여서 한줄로 핏 (영문 시 영문 표기)
         const bottomNote = document.getElementById("bbrBottomSourceNote") || document.querySelector(".daily-bible-reading-section div[style*='text-align:right']");
         if (bottomNote) {
-            bottomNote.innerText = "[새찬송가 645장 / 묵상용]";
+            bottomNote.innerText = isEn ? "[The New Korean-English Hymnal 645 / For Meditation]" : "[새찬송가 645장 / 묵상용]";
             bottomNote.style.color = "#7c3aed";
             bottomNote.style.fontSize = "11px";
             bottomNote.style.whiteSpace = "nowrap";
@@ -20361,4 +20449,3 @@ https://woongskorea.github.io/Yetalk-backup/`;
     </div>
 </body>
 </html>
-
