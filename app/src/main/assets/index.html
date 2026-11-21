@@ -7106,7 +7106,7 @@
                 <div id="txtChristianInviteMsg" style="font-size:15px; font-weight:950; color:#0f172a; text-align:center; margin-bottom:10px; line-height:1.45; word-break:keep-all;">
                     “예톡으로 초대합니다.”<br>
                     <span style="font-size:13px; color:#334155; font-weight:700; display:block; margin-top:4px; line-height:1.4;">
-                        이른 아침 와서 조반을 먹으라는 주님의 음성이 들리는듯한 예톡입니다.
+                        플레이스토어에서 우리교회앱 예톡 다운 받으세요.
                     </span>
                 </div>
                 <!-- 🌟 [사용자 요청] 링크 복사 후 카톡 보내기 순서로 배치 (링크 복사 먼저, 카톡 보내기 다음) -->
@@ -7135,6 +7135,10 @@
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:14.5px; font-weight:950; color:#0f172a;">👥 등록 교우</span>
                     <span id="txtFriendTotalCount" style="font-size:12px; font-weight:900; color:#059669; background:#dcfce7; padding:2px 8px; border-radius:10px;">총 0명</span>
+                    <button type="button" onclick="restoreDeletedChristianFriends()" title="실수로 삭제된 교우 복구 (회원정보 및 클라우드 명단 전체 다시 불러오기)" style="background:#f0fdf4; border:1px solid #86efac; color:#15803d; font-size:11.5px; font-weight:950; padding:2px 7px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:3px; transition:all 0.15s ease;" onmouseover="this.style.background='#dcfce7';this.style.borderColor='#4ade80';" onmouseout="this.style.background='#f0fdf4';this.style.borderColor='#86efac';">
+                        <span>🔄</span>
+                        <span id="txtRestoreFriendsLabel">복구</span>
+                    </button>
                 </div>
                 <span id="txtFriendChurchNameBadge" style="font-size:12px; font-weight:800; color:#0369a1; background:#e0f2fe; padding:3px 10px; border-radius:10px;">부산제일감리교회</span>
             </div>
@@ -13039,6 +13043,8 @@ const BIBLICAL_TIME_SLOTS = [
         if (typeof updateVerseCopyModeUI === 'function') updateVerseCopyModeUI(isVerseCopyModeActive);
         const mealPrayerTxt = document.getElementById("txtMealPrayerBtn");
         if (mealPrayerTxt) mealPrayerTxt.innerText = isEn ? "Meal Prayer" : "식사 기도 뽑기";
+        const restoreFriendsLabel = document.getElementById("txtRestoreFriendsLabel");
+        if (restoreFriendsLabel) restoreFriendsLabel.innerText = isEn ? "Restore" : "복구";
 
         // 12. 중앙 네비게이션 버튼 & 구약/신약 성경 책 그리드 즉시 갱신
         if (typeof updateAutoTimeSlotButtonUI === 'function') updateAutoTimeSlotButtonUI();
@@ -18107,6 +18113,21 @@ const BIBLICAL_TIME_SLOTS = [
         const pastorName = localStorage.getItem("yetalk_pastor_name") || "";
         const churchKey = localStorage.getItem("yetalk_church_key") || (churchName + "_" + pastorName).toLowerCase().replace(/\s+/g, '');
 
+        // 0. 실수 삭제 대비 복구 히스토리에 백업 저장
+        try {
+            let history = JSON.parse(localStorage.getItem("yetalk_deleted_members_history") || "[]");
+            let foundRole = "성도";
+            let cMap = {};
+            try { cMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}"); } catch(e){}
+            if (cMap[churchKey] && cMap[churchKey].members) {
+                const existing = cMap[churchKey].members.find(m => m.nameOrId === friendName || getCleanPersonName(m.nameOrId) === cleanTarget);
+                if (existing && existing.role) foundRole = existing.role;
+            }
+            history = history.filter(h => h.nameOrId !== friendName && getCleanPersonName(h.nameOrId) !== cleanTarget);
+            history.push({ nameOrId: friendName, role: foundRole, deletedAt: new Date().toISOString() });
+            localStorage.setItem("yetalk_deleted_members_history", JSON.stringify(history));
+        } catch(e) {}
+
         // 1. 삭제자 블랙리스트에 추가 (클라우드에서 다시 내려와도 자동 차단)
         let deletedFriends = [];
         try {
@@ -18175,6 +18196,123 @@ const BIBLICAL_TIME_SLOTS = [
     }
     window.deleteChristianFriend = deleteChristianFriend;
 
+    // 🌟 [사용자 요청] 실수로 삭제된 교우 복구 & 회원 정보 및 클라우드 명단 전체 다시 불러오기
+    async function restoreDeletedChristianFriends() {
+        const isEn = (localStorage.getItem("yetalk_app_lang") === "en");
+        const confirmMsg = isEn 
+            ? "Do you want to restore deleted members and reload all church members from your church registration data?" 
+            : "실수로 삭제된 교우를 복구하시겠습니까?\n\n삭제 내역을 초기화하고 우리교회 회원 정보(클라우드 및 등록 교우)를 다시 모두 불러옵니다.";
+        if (!confirm(confirmMsg)) return;
+
+        const churchName = localStorage.getItem("yetalk_church_name") || "부산제일감리교회";
+        const pastorName = localStorage.getItem("yetalk_pastor_name") || "";
+        const churchKey = localStorage.getItem("yetalk_church_key") || (churchName + "_" + pastorName).toLowerCase().replace(/\s+/g, '');
+
+        // 1. 블랙리스트 초기화 (단, 영구 중복 Furaha 쓰레기 데이터만 유지)
+        localStorage.setItem("yetalk_deleted_friends", JSON.stringify(["Furaha", "furaha", "Furaha김", "furaha김"]));
+
+        // 2. 삭제 히스토리에서 복구
+        let history = [];
+        try {
+            history = JSON.parse(localStorage.getItem("yetalk_deleted_members_history") || "[]");
+        } catch(e) { history = []; }
+
+        let churchMap = {};
+        try {
+            churchMap = JSON.parse(localStorage.getItem("yetalk_registered_churches") || "{}");
+        } catch(e) { churchMap = {}; }
+        if (!churchMap[churchKey]) churchMap[churchKey] = { members: [] };
+        if (!Array.isArray(churchMap[churchKey].members)) churchMap[churchKey].members = [];
+
+        let customFriends = [];
+        try {
+            customFriends = JSON.parse(localStorage.getItem("yetalk_custom_friends") || "[]");
+        } catch(e) { customFriends = []; }
+
+        history.forEach(item => {
+            const raw = (item.nameOrId || '').trim();
+            const norm = raw.replace(/\s+/g, '').toLowerCase();
+            if (!raw || norm === 'furaha' || norm === 'furaha김') return;
+            
+            if (!churchMap[churchKey].members.some(m => getCleanPersonName(m.nameOrId) === getCleanPersonName(raw))) {
+                churchMap[churchKey].members.push({ nameOrId: raw, role: item.role || '성도' });
+            }
+            if (!customFriends.some(f => getCleanPersonName(f.nameOrId) === getCleanPersonName(raw))) {
+                customFriends.push({ nameOrId: raw, role: item.role || '성도' });
+            }
+        });
+
+        // 3. 교회 소개(churchintro) 저장 데이터에서 사역자/장로/교우 재동기화
+        try {
+            const STORAGE_KEY = "yetalk_church_intro_custom_sections_v5";
+            const rawSections = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("yetalk_church_intro_custom_sections_v4");
+            if (rawSections) {
+                const parsed = JSON.parse(rawSections);
+                Object.keys(parsed).forEach(secKey => {
+                    const sec = parsed[secKey];
+                    if (sec && Array.isArray(sec.items)) {
+                        sec.items.forEach(it => {
+                            const nm = (it.name || it.title || "").trim();
+                            const rl = (it.role || it.subTitle || "").trim() || "성도";
+                            const norm = nm.replace(/\s+/g, '').toLowerCase();
+                            if (nm && norm !== 'furaha' && norm !== 'furaha김') {
+                                if (!churchMap[churchKey].members.some(m => getCleanPersonName(m.nameOrId) === getCleanPersonName(nm))) {
+                                    churchMap[churchKey].members.push({ nameOrId: nm, role: rl });
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        } catch(e) {}
+
+        // 4. 부산제일감리교회 기본 교우 세트 보장
+        if (churchKey.includes("부산제일")) {
+            const busanDefaults = [
+                { nameOrId: "정찬석 목사", role: "담임목사" },
+                { nameOrId: "최베드로", role: "장로" },
+                { nameOrId: "이수미", role: "집사" },
+                { nameOrId: "최창숙", role: "성도" },
+                { nameOrId: "Furaha KIM", role: "성도" }
+            ];
+            busanDefaults.forEach(bd => {
+                if (!churchMap[churchKey].members.some(m => getCleanPersonName(m.nameOrId) === getCleanPersonName(bd.nameOrId))) {
+                    churchMap[churchKey].members.push(bd);
+                }
+            });
+        }
+
+        localStorage.setItem("yetalk_registered_churches", JSON.stringify(churchMap));
+        localStorage.setItem("yetalk_custom_friends", JSON.stringify(customFriends));
+        localStorage.removeItem("yetalk_deleted_members_history");
+
+        // 5. Firestore 클라우드에서 최신 교우 명단 다시 가져오기
+        if (window._firebaseDb && window._firebaseDoc && window._firebaseGetDoc && churchKey) {
+            try {
+                const memberDocRef = window._firebaseDoc(window._firebaseDb, "yetalk_church_members", churchKey);
+                const snap = await window._firebaseGetDoc(memberDocRef);
+                if (snap.exists() && snap.data() && Array.isArray(snap.data().members)) {
+                    const cloudList = snap.data().members;
+                    cloudList.forEach(cm => {
+                        const raw = (cm.nameOrId || cm.name || '').trim();
+                        const norm = raw.replace(/\s+/g, '').toLowerCase();
+                        if (raw && norm !== 'furaha' && norm !== 'furaha김') {
+                            if (!churchMap[churchKey].members.some(m => getCleanPersonName(m.nameOrId) === getCleanPersonName(raw))) {
+                                churchMap[churchKey].members.push({ nameOrId: raw, role: cm.role || '성도' });
+                            }
+                        }
+                    });
+                    localStorage.setItem("yetalk_registered_churches", JSON.stringify(churchMap));
+                }
+            } catch(e) { console.warn("Cloud restore error:", e); }
+        }
+
+        // 6. 화면 갱신 및 토스트
+        _renderChristianFriendsModalContent();
+        showBibleToast(isEn ? "✅ Church members restored successfully." : "✅ 삭제되었던 교우 명단이 정상 복구되었습니다.");
+    }
+    window.restoreDeletedChristianFriends = restoreDeletedChristianFriends;
+
     function closeChristianFriendsModal() {
         const modal = document.getElementById("christianFriendsModal");
         if (modal) { modal.style.display = "none"; modal.classList.remove("show"); }
@@ -18183,7 +18321,7 @@ const BIBLICAL_TIME_SLOTS = [
     // 🌟 [사용자 요청] alert 없이 초대 문구 즉시 복사 & 버튼 피드백 (기존글에 '플레이스토어에서 예톡을 다운받으세요' 추가)
     function copyChristianInvite() {
         const fullMsg = `예톡으로 초대합니다.
-이른 아침 와서 조반을 먹으라는 주님의 음성이 들리는듯한 예톡입니다.
+플레이스토어에서 우리교회앱 예톡 다운 받으세요.
 
 👉 바로가기:
 https://woongskorea.github.io/Yetalk-backup/`;
@@ -18215,7 +18353,7 @@ https://woongskorea.github.io/Yetalk-backup/`;
     function shareChristianInviteKakao(targetMemberName) {
         const prefix = targetMemberName ? `[${targetMemberName}님] ` : '';
         const fullMsg = `${prefix}예톡으로 초대합니다.
-이른 아침 와서 조반을 먹으라는 주님의 음성이 들리는듯한 예톡입니다.
+플레이스토어에서 우리교회앱 예톡 다운 받으세요.
 
 👉 바로가기:
 https://woongskorea.github.io/Yetalk-backup/`;
