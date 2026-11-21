@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>의원 관리실 - 환자 및 등급 관리</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --safe-top: max(env(safe-area-inset-top, 0px) + 16px, 20px);
+            --safe-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+            --bottom-ad-h: calc(88px + var(--safe-bottom));
+            --primary: #0284c7;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html, body {
+            width: 100%; height: 100%; background: #000000;
+            font-family: "Pretendard", -apple-system, sans-serif; color: var(--text-main);
+            overflow: hidden;
+        }
+
+        .admin-shell {
+            width: 100%; max-width: 480px; height: 100dvh; margin: 0 auto;
+            background: #f8fafc; display: flex; flex-direction: column; position: relative;
+            border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+        }
+
+        /* 1. 상단 바 */
+        .admin-nav-bar {
+            background: #ffffff; border-bottom: 1.5px solid var(--border);
+            padding: var(--safe-top) 14px 12px 14px; display: flex; justify-content: space-between; align-items: center;
+            flex-shrink: 0;
+        }
+        .btn-nav-back {
+            background: none; border: none; font-size: 22px; font-weight: 900; color: #0284c7; cursor: pointer;
+        }
+
+        /* 2. 스크롤 본문 */
+        .admin-content-scroll {
+            flex: 1; overflow-y: auto; padding: 16px 14px calc(var(--bottom-ad-h) + 20px) 14px;
+            display: flex; flex-direction: column; gap: 14px;
+        }
+
+        /* 매일 바뀌는 좋은 글 카드 */
+        .daily-quote-card {
+            background: linear-gradient(135deg, #0284c7, #0369a1); border-radius: 14px;
+            padding: 14px 16px; color: #ffffff; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+        }
+
+        /* 통계 카운터 */
+        .stat-grid-box {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        }
+        .stat-card-unit {
+            background: #ffffff; border: 1.5px solid var(--border); border-radius: 14px;
+            padding: 14px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .stat-num-txt {
+            font-size: 26px; font-weight: 950; color: #0284c7; margin-top: 4px; line-height: 1.2;
+        }
+
+        /* 대형 이름 검색창 */
+        .search-large-bar {
+            width: 100%; height: 50px; background: #ffffff; border: 2px solid #0284c7;
+            border-radius: 12px; padding: 0 16px; font-size: 15px; font-weight: 850; outline: none;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+        }
+
+        /* 환자 등급 관리 테이블 */
+        .patient-table-card {
+            background: #ffffff; border: 1.5px solid var(--border); border-radius: 14px;
+            overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .patient-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 14px; border-bottom: 1px solid #f1f5f9; gap: 8px;
+        }
+        .patient-row:last-child { border-bottom: none; }
+        .patient-info {
+            display: flex; flex-direction: column; gap: 3px;
+        }
+        .role-selector-pill {
+            height: 34px; border: 1.5px solid #0284c7; border-radius: 8px;
+            padding: 0 8px; font-size: 12.5px; font-weight: 850; background: #f0f9ff; color: #0369a1; outline: none;
+        }
+
+        /* 최하단 애드몹 슬롯 */
+        .bottom-fixed-admob-100 {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: var(--bottom-ad-h); padding-bottom: var(--safe-bottom);
+            background: #080d1a; border-top: 1.5px solid #1e3a5f;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 30000; box-shadow: 0 -4px 20px rgba(0,0,0,0.7);
+        }
+        .admob-display-box {
+            width: min(calc(100% - 24px), 340px); height: 56px;
+            background: #0b1326; border: 1px solid #1e293b; border-radius: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-shell">
+
+    <!-- 1. 상단 바 -->
+    <header class="admin-nav-bar">
+        <div style="display:flex; align-items:center; gap:8px;">
+            <button type="button" class="btn-nav-back" id="btnAdminBack" onclick="goClinicHome()">◀</button>
+            <strong style="font-size:17.5px; color:#0f172a;" id="dispAdminTitle">의원 관리실 (대표원장)</strong>
+        </div>
+        <button type="button" id="btnAdminHomeRight" style="background:#dc2626; color:#fff; border:none; padding:5px 12px; border-radius:8px; font-size:12px; font-weight:900; cursor:pointer;" onclick="goClinicHome()">의원 홈 ➔</button>
+    </header>
+
+    <!-- 2. 본문 스크롤 -->
+    <main class="admin-content-scroll">
+
+        <!-- 매일 바뀌는 좋은 글 -->
+        <div class="daily-quote-card">
+            <div style="font-size:11px; font-weight:900; color:#fde047; margin-bottom:4px;">✨ 오늘의 원장님 명언</div>
+            <div style="font-size:14px; font-weight:800; line-height:1.5;" id="dispDailyQuote">
+                “훌륭한 의사는 질병을 치료하지만, 위대한 의사는 질병을 앓고 있는 환자를 치료한다.”
+            </div>
+        </div>
+
+        <!-- 전체 등록 환자수 & 오늘 방문 횟수 통계 -->
+        <div class="stat-grid-box">
+            <div class="stat-card-unit">
+                <span style="font-size:12.5px; font-weight:800; color:#64748b;">👥 전체 등록 환자 수</span>
+                <div class="stat-num-txt" id="statTotalPatients">0명</div>
+            </div>
+            <div class="stat-card-unit">
+                <span style="font-size:12.5px; font-weight:800; color:#64748b;">📅 오늘 예약/방문 건수</span>
+                <div class="stat-num-txt" style="color:#dc2626;" id="statTodayVisits">0건</div>
+            </div>
+        </div>
+
+        <!-- 대형 환자 이름 검색 -->
+        <div>
+            <label style="font-size:13px; font-weight:900; color:#0f172a; display:block; margin-bottom:6px;">🔍 환자 이름 실시간 검색</label>
+            <input type="text" id="inpPatientSearchName" class="search-large-bar" placeholder="환자 성함 또는 연락처 입력..." oninput="filterPatientList()">
+        </div>
+
+        <!-- 환자 목록 및 등급 관리 테이블 -->
+        <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <strong style="font-size:14.5px; color:#0f172a;">환자 명단 및 회원 등급 조정</strong>
+                <span style="font-size:11.5px; color:#0284c7; font-weight:800;">원장 직권 실시간 반영</span>
+            </div>
+
+            <div class="patient-table-card" id="patientListContainer">
+                <!-- 환자 목록 렌더링 -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 최하단 애드몹 슬롯 -->
+    <div class="bottom-fixed-admob-100">
+        <div style="font-size:10px; color:#94a3b8; font-weight:700; margin-bottom:3px;">
+            AD • Google AdMob 공식 스폰서 슬롯 (300 × 100)
+        </div>
+        <div class="admob-display-box">
+            <strong style="color:#38bdf8; font-size:13px; font-weight:900;">Google AdMob (300x100 / Large Banner)</strong>
+            <span style="color:#facc15; font-size:11px; font-weight:800;">의료 미디어 영상 방송 공식 후원 슬롯</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const adminType = urlParams.get("type") || "";
+    let returnUrl = "doctormain.html";
+    let adminTitle = "의원 관리실 (대표원장)";
+    let homeBtnText = "의원 홈 ➔";
+
+    const userMedRole = localStorage.getItem("yetalkUserMedicalRole") || "";
+    if (adminType === "han" || userMedRole === "korean_doctor") {
+        returnUrl = "handoctormain.html";
+        adminTitle = "한의원 관리실 (한의원장)";
+        homeBtnText = "한의원 홈 ➔";
+        document.documentElement.style.setProperty('--primary', '#059669');
+    } else if (adminType === "dental" || userMedRole === "dentist") {
+        returnUrl = "dentalmain.html";
+        adminTitle = "치과의원 관리실 (치과원장)";
+        homeBtnText = "치과 홈 ➔";
+    }
+
+    function goClinicHome() {
+        location.href = returnUrl;
+    }
+
+    // 날짜별 명언 목록 (자동 변경)
+    const QUOTES = [
+        "“훌륭한 의사는 질병을 치료하지만, 위대한 의사는 질병을 앓고 있는 환자를 치료한다.”",
+        "“정직한 진료와 따뜻한 경청이 가장 강력한 처방전입니다.”",
+        "“환자의 신뢰는 의술의 깊이에서 시작하여 진심 어린 배려로 완성됩니다.”",
+        "“모든 치유의 첫걸음은 환자의 아픔에 공감하는 마음입니다.”"
+    ];
+
+    // 기본 환자 샘플 데이터
+    const DEFAULT_PATIENTS = [
+        { id: 1, name: "김예톡", phone: "010-8839-1029", role: "우수회원", lastVisit: "2026-10-08" },
+        { id: 2, name: "이수진", phone: "010-5231-9042", role: "정회원", lastVisit: "2026-10-08" },
+        { id: 3, name: "박민우", phone: "010-3349-2184", role: "준회원", lastVisit: "2026-10-07" },
+        { id: 4, name: "최정아", phone: "010-7712-4019", role: "부관리자", lastVisit: "2026-10-08" },
+        { id: 5, name: "정태양", phone: "010-9018-3320", role: "준회원", lastVisit: "2026-10-05" }
+    ];
+
+    function getPatientData() {
+        const raw = localStorage.getItem("yetalk_clinic_patient_members_v1");
+        if (!raw) {
+            localStorage.setItem("yetalk_clinic_patient_members_v1", JSON.stringify(DEFAULT_PATIENTS));
+            return DEFAULT_PATIENTS;
+        }
+        return JSON.parse(raw);
+    }
+
+    function savePatientData(data) {
+        localStorage.setItem("yetalk_clinic_patient_members_v1", JSON.stringify(data));
+    }
+
+    function renderDashboard() {
+        // 오늘의 명언 설정
+        const dayIdx = new Date().getDate() % QUOTES.length;
+        document.getElementById("dispDailyQuote").innerText = QUOTES[dayIdx];
+
+        // 예약 데이터와 연동
+        const patients = getPatientData();
+        const resList = JSON.parse(localStorage.getItem("yetalk_doctor_res_full_v1") || "[]");
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // 신규 예약 환자 자동 추가
+        resList.forEach(r => {
+            if (!patients.some(p => p.phone === r.phone)) {
+                patients.unshift({
+                    id: Date.now() + Math.random(),
+                    name: r.name,
+                    phone: r.phone,
+                    role: "정회원",
+                    lastVisit: r.date
+                });
+            }
+        });
+        savePatientData(patients);
+
+        // 통계 갱신
+        document.getElementById("statTotalPatients").innerText = `${patients.length}명`;
+        const todayCount = resList.filter(r => r.date === todayStr).length;
+        document.getElementById("statTodayVisits").innerText = `${todayCount}건`;
+
+        renderPatientsList(patients);
+    }
+
+    function renderPatientsList(list) {
+        const box = document.getElementById("patientListContainer");
+        if (list.length === 0) {
+            box.innerHTML = `<div style="text-align:center; padding:30px; color:#94a3b8; font-size:13.5px;">검색된 환자 정보가 없습니다.</div>`;
+            return;
+        }
+
+        box.innerHTML = list.map((p, idx) => `
+            <div class="patient-row">
+                <div class="patient-info">
+                    <strong style="font-size:15px; color:#0f172a;">${p.name} <small style="font-weight:600; color:#64748b;">(${p.phone})</small></strong>
+                    <span style="font-size:11.5px; color:#94a3b8;">최근 접수: ${p.lastVisit}</span>
+                </div>
+                <select class="role-selector-pill" onchange="changePatientRole(${p.id}, this.value)">
+                    <option value="준회원" ${p.role==='준회원'?'selected':''}>준회원</option>
+                    <option value="정회원" ${p.role==='정회원'?'selected':''}>정회원</option>
+                    <option value="우수회원" ${p.role==='우수회원'?'selected':''}>우수회원</option>
+                    <option value="부관리자" ${p.role==='부관리자'?'selected':''}>부관리자</option>
+                    <option value="관리자" ${p.role==='관리자'?'selected':''}>관리자</option>
+                </select>
+            </div>
+        `).join("");
+    }
+
+    function filterPatientList() {
+        const q = document.getElementById("inpPatientSearchName").value.trim().toLowerCase();
+        const all = getPatientData();
+        const filtered = all.filter(p => p.name.toLowerCase().includes(q) || p.phone.includes(q));
+        renderPatientsList(filtered);
+    }
+
+    function changePatientRole(patientId, newRole) {
+        const list = getPatientData();
+        const item = list.find(p => p.id === patientId);
+        if (item) {
+            item.role = newRole;
+            savePatientData(list);
+            alert(`🎉 [${item.name}] 환자의 등급이 '${newRole}'(으)로 조정되었습니다.`);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const tEl = document.getElementById("dispAdminTitle");
+        if (tEl) tEl.innerText = adminTitle;
+        const bEl = document.getElementById("btnAdminHomeRight");
+        if (bEl) bEl.innerText = homeBtnText;
+        renderDashboard();
+    });
+</script>
+</body>
+</html>
