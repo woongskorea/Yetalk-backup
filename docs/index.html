@@ -5595,7 +5595,7 @@
                 </button>
                 <button type="button" onclick="openMealPrayerLotteryModal()" style="background:#f8fafc; border:1.5px solid #cbd5e1; color:#1e293b; padding:5px 12px; border-radius:18px; font-size:12px; font-weight:900; cursor:pointer; box-shadow:0 1px 3px rgba(0,0,0,0.06); display:inline-flex; align-items:center; gap:5px; flex-shrink:0; white-space:nowrap; transition:all 0.15s ease;" title="재미있는 식사 기도자 뽑기 &amp; 상황별 기도문">
                     <span style="font-size:14px;">🍽️</span>
-                    <span>식사 기도 뽑기</span>
+                    <span id="txtMealPrayerBtn">식사 기도 뽑기</span>
                 </button>
             </div>
 
@@ -9105,7 +9105,8 @@ const BIBLICAL_TIME_SLOTS = [
     function updateMealBiblePaceBtnUI() {
         const pace = getMealBiblePace();
         const txt = document.getElementById('txtMealBiblePace');
-        if (txt) txt.innerText = `한끼 ${pace}장`;
+        const isEn = (localStorage.getItem("yetalk_app_lang") === "en");
+        if (txt) txt.innerText = isEn ? `Pace ${pace} Ch` : `한끼 ${pace}장`;
 
         for (let i = 1; i <= 3; i++) {
             const opt = document.getElementById(`mealPaceOpt_${i}`);
@@ -9289,12 +9290,30 @@ const BIBLICAL_TIME_SLOTS = [
         const unit = meta.unit || "장";
 
         const isOriginalSlot = (currBook === slotInfo.book && currCh === slotInfo.ch);
+        const isEn = (localStorage.getItem("yetalk_app_lang") === "en");
+        const enBook = (typeof EN_BIBLE_BOOK_NAMES !== 'undefined' && EN_BIBLE_BOOK_NAMES[currBook]) ? EN_BIBLE_BOOK_NAMES[currBook] : currBook;
 
         if (txtEl) {
-            if (isOriginalSlot && slotInfo.slotChapters && slotInfo.slotChapters.length > 1) {
-                txtEl.innerText = slotInfo.rangeText;
+            if (isEn) {
+                if (isOriginalSlot && slotInfo.slotChapters && slotInfo.slotChapters.length > 1) {
+                    const first = slotInfo.slotChapters[0];
+                    const last = slotInfo.slotChapters[slotInfo.slotChapters.length - 1];
+                    const enFirstBook = (typeof EN_BIBLE_BOOK_NAMES !== 'undefined' && EN_BIBLE_BOOK_NAMES[first.book]) ? EN_BIBLE_BOOK_NAMES[first.book] : first.book;
+                    const enLastBook = (typeof EN_BIBLE_BOOK_NAMES !== 'undefined' && EN_BIBLE_BOOK_NAMES[last.book]) ? EN_BIBLE_BOOK_NAMES[last.book] : last.book;
+                    if (first.book === last.book) {
+                        txtEl.innerText = `${enFirstBook} ${first.ch}~${last.ch}`;
+                    } else {
+                        txtEl.innerText = `${enFirstBook} ${first.ch} ~ ${enLastBook} ${last.ch}`;
+                    }
+                } else {
+                    txtEl.innerText = `${enBook} ${currCh}`;
+                }
             } else {
-                txtEl.innerText = `${currBook} ${currCh}${unit}`;
+                if (isOriginalSlot && slotInfo.slotChapters && slotInfo.slotChapters.length > 1) {
+                    txtEl.innerText = slotInfo.rangeText;
+                } else {
+                    txtEl.innerText = `${currBook} ${currCh}${unit}`;
+                }
             }
         }
         if (btnEl) {
@@ -10185,22 +10204,24 @@ const BIBLICAL_TIME_SLOTS = [
         const currentTongdokBook = (localStorage.getItem("yetalk_tongdok_book") || "").trim();
         const currentBook = currentUserBibleBook || "창세기";
 
+        const isEn = (localStorage.getItem("yetalk_app_lang") === "en");
         const books = BIBLE_66_BOOKS.filter(b => b.type === currentHomeTestament);
         books.forEach(b => {
             const chip = document.createElement("button");
             chip.type = "button";
             const isCurrentViewing = (b.name === currentUserBibleBook);
             const isThisBookTongdok = isTongdokActive && (b.name === currentTongdokBook);
+            const bookDisplayName = isEn ? ((typeof EN_BIBLE_BOOK_NAMES !== 'undefined' && EN_BIBLE_BOOK_NAMES[b.name]) ? EN_BIBLE_BOOK_NAMES[b.name] : b.name) : b.name;
 
             chip.className = "btn-user-book-chip" + (isCurrentViewing ? " active" : "");
             if (isThisBookTongdok) {
                 chip.style.borderColor = "#dc2626";
                 chip.style.fontWeight = "950";
-                chip.innerHTML = `<span style="color:#dc2626; margin-right:3px;">🔴</span>${b.name}`;
+                chip.innerHTML = `<span style="color:#dc2626; margin-right:3px;">🔴</span>${bookDisplayName}`;
             } else {
-                chip.innerText = b.name;
+                chip.innerText = bookDisplayName;
             }
-            chip.title = `${b.name} (${b.totalCh}${b.unit || '장'})` + (isThisBookTongdok ? " - [현재 매일 통독 고정중]" : "");
+            chip.title = isEn ? `${bookDisplayName} (${b.totalCh} Ch)` : `${b.name} (${b.totalCh}${b.unit || '장'})` + (isThisBookTongdok ? " - [현재 매일 통독 고정중]" : "");
             chip.onclick = function() {
                 onUserSelectBibleBook(b.name);
             };
@@ -10213,16 +10234,18 @@ const BIBLICAL_TIME_SLOTS = [
         const tongdokChip = document.createElement("button");
         tongdokChip.type = "button";
         tongdokChip.className = "btn-user-book-chip btn-user-tongdok-chip";
+        const enTongdokBook = (typeof EN_BIBLE_BOOK_NAMES !== 'undefined' && EN_BIBLE_BOOK_NAMES[currentTongdokBook]) ? EN_BIBLE_BOOK_NAMES[currentTongdokBook] : currentTongdokBook;
+        const enCurrBook = (typeof EN_BIBLE_BOOK_NAMES !== 'undefined' && EN_BIBLE_BOOK_NAMES[currentBook]) ? EN_BIBLE_BOOK_NAMES[currentBook] : currentBook;
         if (isTongdokActive && currentTongdokBook) {
             // 🔴 빨강색: 통독 고정 상태
             tongdokChip.style.cssText = "background:#dc2626 !important; border:1.8px solid #b91c1c !important; color:#ffffff !important; font-weight:950 !important; font-size:12px !important; border-radius:8px !important; padding:5px 8px !important; box-shadow:0 2px 7px rgba(220,38,38,0.4) !important; cursor:pointer; flex:1 1 auto; min-width:105px; max-width:155px; display:inline-flex; align-items:center; justify-content:center; gap:4px;";
-            tongdokChip.innerHTML = `<span>🔴</span> <span>[${currentTongdokBook} 통독 고정]</span>`;
-            tongdokChip.title = `현재 [${currentTongdokBook}] 통독 고정되어 있습니다. 누르면 즉시 해제(통독해지)됩니다.`;
+            tongdokChip.innerHTML = isEn ? `<span>🔴</span> <span>[Lock: ${enTongdokBook}]</span>` : `<span>🔴</span> <span>[${currentTongdokBook} 통독 고정]</span>`;
+            tongdokChip.title = isEn ? `Currently locked to [${enTongdokBook}]. Tap to release.` : `현재 [${currentTongdokBook}] 통독 고정되어 있습니다. 누르면 즉시 해제(통독해지)됩니다.`;
         } else {
             // 🌸 분홍색: 통독해지 상태 (누르면 즉시 통독 고정)
             tongdokChip.style.cssText = "background:#fce7f3 !important; border:1.8px solid #f472b6 !important; color:#be185d !important; font-weight:950 !important; font-size:12px !important; border-radius:8px !important; padding:5px 8px !important; box-shadow:0 2px 7px rgba(244,114,182,0.28) !important; cursor:pointer; flex:1 1 auto; min-width:105px; max-width:155px; display:inline-flex; align-items:center; justify-content:center; gap:4px;";
-            tongdokChip.innerHTML = `<span>🌸</span> <span>[${currentBook} 통독해지]</span>`;
-            tongdokChip.title = `누르면 즉시 [${currentBook}] 통독 고정됩니다.`;
+            tongdokChip.innerHTML = isEn ? `<span>🌸</span> <span>[Lock: ${enCurrBook}]</span>` : `<span>🌸</span> <span>[${currentBook} 통독해지]</span>`;
+            tongdokChip.title = isEn ? `Tap to lock daily reading to [${enCurrBook}].` : `누르면 즉시 [${currentBook}] 통독 고정됩니다.`;
         }
         tongdokChip.onclick = function(e) {
             e.stopPropagation();
@@ -10234,8 +10257,8 @@ const BIBLICAL_TIME_SLOTS = [
         const closeChip = document.createElement("button");
         closeChip.type = "button";
         closeChip.className = "btn-user-book-chip btn-user-book-close";
-        closeChip.innerHTML = `<span>▲</span> <span>닫기</span>`;
-        closeChip.title = "펼쳐진 성경 목록 닫기";
+        closeChip.innerHTML = isEn ? `<span>▲</span> <span>Close</span>` : `<span>▲</span> <span>닫기</span>`;
+        closeChip.title = isEn ? "Close Book List" : "펼쳐진 성경 목록 닫기";
         closeChip.onclick = function(e) {
             e.stopPropagation();
             foldHomeBibleBooks();
@@ -11080,6 +11103,51 @@ const BIBLICAL_TIME_SLOTS = [
     window.playCurrentHymnYouTube = playCurrentHymnYouTube;
 
     // 🌟 [사용자 요청] 찬송가를 성경처럼 한 절씩(1절, 2절, 3절, 4절, 후렴) 큰 글씨로 읽고 부를 수 있도록 표출
+    // 🌟 [사용자 요청] 찬송가 영문 지원 데이터 (전체 645장 engTitle 연동 + 대표 애창 찬송 영문 가사 탑재)
+    const ENG_HYMN_POPULAR_LYRICS = {
+        305: [
+            { verse: "Verse 1", text: "Amazing grace! How sweet the sound\nthat saved a wretch like me!\nI once was lost, but now am found;\nwas blind, but now I see." },
+            { verse: "Verse 2", text: "'Twas grace that taught my heart to fear,\nand grace my fears relieved;\nhow precious did that grace appear\nthe hour I first believed." },
+            { verse: "Verse 3", text: "Through many dangers, toils and snares,\nI have already come;\n'tis grace hath brought me safe thus far,\nand grace will lead me home." },
+            { verse: "Verse 4", text: "When we've been there ten thousand years,\nbright shining as the sun,\nwe've no less days to sing God's praise\nthan when we'd first begun." }
+        ],
+        1: [
+            { verse: "Verse 1", text: "Praise God, from whom all blessings flow;\npraise him, all creatures here below;\npraise him above, ye heavenly host;\npraise Father, Son, and Holy Ghost. Amen." }
+        ],
+        23: [
+            { verse: "Verse 1", text: "O for a thousand tongues to sing\nmy great Redeemer's praise,\nthe glories of my God and King,\nthe triumphs of his grace!" }
+        ],
+        28: [
+            { verse: "Verse 1", text: "Come, Thou Fount of every blessing,\ntune my heart to sing Thy grace;\nstreams of mercy, never ceasing,\ncall for songs of loudest praise." }
+        ],
+        435: [
+            { verse: "Verse 1", text: "I'm pressing on the upward way,\nnew heights I'm gaining every day;\nstill praying as I'm onward bound,\n\"Lord, plant my feet on higher ground.\"" }
+        ]
+    };
+
+    function updateHymnQuickChipsUI(isEn) {
+        const chips = [
+            { num: 1, ko: "1장 만복의 근원", en: "1 Praise God" },
+            { num: 23, ko: "23장 만 입이 내게", en: "23 O for a Thousand" },
+            { num: 28, ko: "28장 복의 근원", en: "28 Come, Thou Fount" },
+            { num: 88, ko: "88장 내 진정 사모하는", en: "88 Lily of the Valley" },
+            { num: 94, ko: "94장 주 예수보다 더", en: "94 I'd Rather Have Jesus" },
+            { num: 191, ko: "191장 내가 매일 기쁘게", en: "191 Rejoicing Every Day" },
+            { num: 288, ko: "288장 예수를 나의 구주", en: "288 Blessed Assurance" },
+            { num: 301, ko: "301장 지금까지 지내온 것", en: "301 God's Faithfulness" },
+            { num: 305, ko: "305장 나 같은 죄인", en: "305 Amazing Grace" },
+            { num: 435, ko: "435장 나의 영원하신", en: "435 Higher Ground" },
+            { num: 438, ko: "438장 내 영혼이 은총 입어", en: "438 O Happy Day" },
+            { num: 570, ko: "570장 주는 나를 기르시는", en: "570 Lord My Shepherd" }
+        ];
+        const row = document.getElementById("hymnQuickChipsRow");
+        if (!row) return;
+        const cur = (typeof currentHymnNum !== 'undefined') ? currentHymnNum : 1;
+        row.innerHTML = chips.map(c => 
+            `<button type="button" class="hymn-quick-chip ${(cur === c.num) ? 'active' : ''}" onclick="displayHymn(${c.num})">${isEn ? c.en : c.ko}</button>`
+        ).join("");
+    }
+
     function displayHymn(num) {
         num = parseInt(num, 10);
         if (isNaN(num) || num < 1) num = 1;
@@ -11093,7 +11161,9 @@ const BIBLICAL_TIME_SLOTS = [
         if (!info) {
             info = { num: num, title: "찬송가 " + num + "장", lyrics: "" };
         }
-        currentHymnTitle = info.title;
+        const isEn = (localStorage.getItem("yetalk_app_lang") === "en");
+        const hymnDisplayTitle = (isEn && info.engTitle) ? info.engTitle : info.title;
+        currentHymnTitle = hymnDisplayTitle;
 
         // input 상자 동기화
         const inpHymn = document.getElementById("inpHymnNum");
@@ -11102,13 +11172,14 @@ const BIBLICAL_TIME_SLOTS = [
         // 빠른 찬송 칩 active 표시 동기화
         document.querySelectorAll(".hymn-quick-chip").forEach(chip => {
             const chipText = chip.innerText.trim();
-            chip.classList.toggle("active", chipText.startsWith(num + "장"));
+            const isMatch = chipText.startsWith(num + "장") || chipText.startsWith(num + " ") || chipText.startsWith(num + ".");
+            chip.classList.toggle("active", isMatch);
         });
 
         // 중앙 네비게이션 버튼 텍스트 업데이트
         const txtAutoTimeSlot = document.getElementById("txtAutoTimeSlot");
         if (txtAutoTimeSlot) {
-            txtAutoTimeSlot.innerText = `${num}장 ${info.title}`;
+            txtAutoTimeSlot.innerText = isEn ? `Hymn ${num}: ${hymnDisplayTitle}` : `${num}장 ${info.title}`;
         }
 
         // 🌟 [사용자 요청] 성경/찬송 본문 맨 밑 하단 네비게이션: 찬양 장만 표기 (제목 필요없이)
@@ -11121,7 +11192,8 @@ const BIBLICAL_TIME_SLOTS = [
         const subTitleEl = document.getElementById("bbrChapterSubtitle");
         if (subTitleEl) {
             subTitleEl.style.color = "#7c3aed";
-            subTitleEl.innerHTML = '<div style="display:flex; align-items:center; padding:2px 0;"><span style="font-weight:950; color:#7c3aed; font-size:17.5px; letter-spacing:-0.3px;">' + num + '장 &nbsp;' + info.title + '</span></div>';
+            const heading = isEn ? `Hymn ${num} &nbsp;${hymnDisplayTitle}` : `${num}장 &nbsp;${info.title}`;
+            subTitleEl.innerHTML = '<div style="display:flex; align-items:center; padding:2px 0;"><span style="font-weight:950; color:#7c3aed; font-size:17.5px; letter-spacing:-0.3px;">' + heading + '</span></div>';
         }
 
         // 본문 가사 렌더링 (1절+후렴, 2절+후렴 결합 & 절간 빈 공간 없는 콤팩트 카드형 표출)
@@ -12717,6 +12789,30 @@ const BIBLICAL_TIME_SLOTS = [
         const gnModalTitle = document.getElementById('gnModalHeaderTitle');
         if (gnModalBack) gnModalBack.innerText = isEn ? 'Back' : '뒤로';
         if (gnModalTitle) gnModalTitle.innerText = isEn ? 'Word & Meditation of this Hour' : '이 시간의 말씀 & 묵상';
+
+        // 11. 성경 하단 3개 버튼 (한끼 / 말씀 복사 / 식사 기도 뽑기)
+        if (typeof updateMealBiblePaceBtnUI === 'function') updateMealBiblePaceBtnUI();
+        if (typeof updateVerseCopyModeUI === 'function') updateVerseCopyModeUI(isVerseCopyModeActive);
+        const mealPrayerTxt = document.getElementById("txtMealPrayerBtn");
+        if (mealPrayerTxt) mealPrayerTxt.innerText = isEn ? "Meal Prayer" : "식사 기도 뽑기";
+
+        // 12. 중앙 네비게이션 버튼 & 구약/신약 성경 책 그리드 즉시 갱신
+        if (typeof updateAutoTimeSlotButtonUI === 'function') updateAutoTimeSlotButtonUI();
+        if (typeof renderHomeBibleBookChips === 'function') renderHomeBibleBookChips();
+
+        // 13. 찬송가 검색바 및 빠른 찬송 칩 영문 갱신
+        const inpHymn = document.getElementById("inpHymnNum");
+        if (inpHymn) inpHymn.placeholder = isEn ? "Hymn No. (1~645)" : "찬송가 번호 입력 (1~645장)";
+        const btnHymnSearch = document.querySelector(".btn-hymn-search");
+        if (btnHymnSearch) btnHymnSearch.innerHTML = isEn ? "🔍 Search" : "🔍 찾기";
+        if (typeof updateHymnQuickChipsUI === 'function') updateHymnQuickChipsUI(isEn);
+
+        if (typeof currentHomeTestament !== 'undefined' && currentHomeTestament === 'HYMN') {
+            if (typeof displayHymn === 'function' && typeof currentHymnNum !== 'undefined') {
+                displayHymn(currentHymnNum || 1);
+            }
+        }
+
         if (typeof displayUserBibleChapter === 'function') {
             displayUserBibleChapter(currentUserBibleBook, currentUserBibleCh);
         }
@@ -12726,8 +12822,13 @@ const BIBLICAL_TIME_SLOTS = [
         }
     }
 
-    // 초기 로딩 시 저장된 언어 모드 복원
+    // 초기 로딩 시 기본은 한글로 처음 열리게 설정 (새 세션 시 한글 기본)
     document.addEventListener("DOMContentLoaded", function() {
+        let sessionInit = sessionStorage.getItem("yetalk_session_initialized");
+        if (!sessionInit) {
+            sessionStorage.setItem("yetalk_session_initialized", "true");
+            localStorage.setItem("yetalk_app_lang", "ko");
+        }
         const savedLang = localStorage.getItem("yetalk_app_lang") || "ko";
         applyAppLanguageUI(savedLang, false);
     });
