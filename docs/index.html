@@ -5368,13 +5368,22 @@
     <!-- 1. 상단 헤더: [사용자 요청] 빨강줄 완전 제거, 나의 앱은 13.5px로 정돈하고 예톡🌿은 26px로 훨씬 더 크고 멋지게 강조 (아래 버튼에 착 밀착) -->
     
     <header class="app-header" style="display:flex; justify-content:space-between; align-items:flex-end; padding:max(20px, calc(env(safe-area-inset-top, 0px) + 8px)) 14px 6px 14px; background:#ffffff; border-bottom:none; box-sizing:border-box;">
-        <div class="header-logo-group" id="headerLogoGroup" onclick="handleLogoClick()" style="display:flex; flex-direction:column; justify-content:flex-end; white-space:nowrap; cursor:pointer;">
-            <span id="txtHeaderLiveClock" style="font-size:12px; font-weight:800; color:#64748b; letter-spacing:-0.2px; line-height:1.2; margin-bottom:1px;">
-                🕒 <span id="liveClockDateText">11월 11일(화) 오후 11:30</span>
+                <!-- 🌟 [사용자 요청] 글로벌 예톡 Korea / YETALK English 원터치 언어 전환 로고 (우상단 녹색 잎파리 & 분위기 있는 글씨체) -->
+        <div class="header-logo-group" id="headerLogoGroup" onclick="toggleAppLanguage()" style="display:flex; flex-direction:column; justify-content:flex-end; white-space:nowrap; cursor:pointer; user-select:none; margin-left:-2px;" title="한국어(예톡 Korea) / English(YETALK English) 원터치 언어 전환">
+            <span id="txtHeaderLiveClock" style="font-size:11.5px; font-weight:800; color:#64748b; letter-spacing:-0.2px; line-height:1.2; margin-bottom:2px;">
+                🕒 <span id="liveClockDateText">11월 21일(토) 오후 4:25</span>
             </span>
-            <div style="display:flex; align-items:baseline; gap:5px;">
-                <span class="header-logo-prefix" style="font-size:13.5px; font-weight:750; color:#475569; letter-spacing:-0.3px;">나의 앱</span>
-                <span class="header-logo-name" style="font-size:26px; font-weight:950; color:#059669; letter-spacing:-0.5px;">예톡🌿</span>
+            <div style="display:flex; align-items:flex-end; gap:0px; position:relative;">
+                <span style="position:relative; display:inline-flex; align-items:baseline;">
+                    <span id="headerLogoBrand" style="font-size:25px; font-weight:950; color:#059669; letter-spacing:-0.6px; line-height:1;">예톡</span>
+                    <!-- 우상단 녹색 잎파리 (Brand Asset) -->
+                    <svg id="headerLogoLeaf" viewBox="0 0 24 24" style="width:14px; height:14px; fill:#10b981; filter:drop-shadow(0 1px 2px rgba(16,185,129,0.5)); position:absolute; top:-6px; right:-10px; transform:rotate(28deg); pointer-events:none;">
+                        <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"/>
+                    </svg>
+                </span>
+                <!-- 나지막하면서 분위기 있는 Korea / English -->
+                <span id="headerLogoRegion" style="font-family:'Georgia','Times New Roman',serif; font-style:italic; font-weight:700; font-size:13.5px; color:#059669; opacity:0.88; letter-spacing:0.3px; margin-left:14px; line-height:1; padding-bottom:1px;">Korea</span>
+                <span id="headerLogoLangBadge" style="font-size:9.5px; font-weight:800; color:#10b981; opacity:0.85; margin-left:4px; padding-bottom:1px;">🌐</span>
             </div>
         </div>
         <div class="header-right-actions" style="display:flex; align-items:center; gap:8px; align-self:flex-end; padding-bottom:2px;">
@@ -9354,7 +9363,16 @@
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const ampm = hours >= 12 ? '오후' : '오전';
         const displayHours = hours % 12 === 0 ? 12 : hours % 12;
-        el.innerText = `${month}월 ${date}일(${dayName}) ${ampm} ${displayHours}시 ${minutes}분`;
+        if (localStorage.getItem("yetalk_app_lang") === "en") {
+            const mNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const dNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            const enMonth = mNames[now.getMonth()];
+            const enDay = dNames[now.getDay()];
+            const enAmpm = hours >= 12 ? 'PM' : 'AM';
+            el.innerText = `${enMonth} ${date} (${enDay}) ${displayHours}:${minutes} ${enAmpm}`;
+        } else {
+            el.innerText = `${month}월 ${date}일(${dayName}) ${ampm} ${displayHours}시 ${minutes}분`;
+        }
     }
     setInterval(updateHeaderLiveClock, 30000);
     setTimeout(updateHeaderLiveClock, 100);
@@ -9853,6 +9871,14 @@
                 // 🌟 [사용자 요청] 개역한글 '없음' 구절에 킹제임스성경(KJV) 공인 번역 구절 완전 연동 (단어 '없음' 오인식 완전 차단)
                 const kjvText = KJV_MISSING_VERSES[verseKey];
                 const cleanBody = verseBody.replace(/[\s\[\]\(\)]/g, '');
+                // 🌟 [사용자 요청] 글로벌 영어 모드(YETALK English)일 때 성경 본문을 영문(WEB/KJV)으로 즉각 완전 표출
+                if (localStorage.getItem("yetalk_app_lang") === "en") {
+                    const kjvText = getKjvVerseText(bookName, chNum, verseNum);
+                    if (kjvText) {
+                        const kjvBadge = `<span class="kjv-verse-tag" style="background:#0284c7; color:#ffffff; font-size:10px; font-weight:800; padding:1px 5px; border-radius:4px; margin-right:5px; vertical-align:middle; display:inline-block;">WEB</span>`;
+                        verseBody = `${kjvBadge}<span class="kjv-verse-en" style="font-family:'Segoe UI',Roboto,Helvetica,sans-serif; color:#0f172a; font-weight:600; line-height:1.6;">${kjvText}</span>`;
+                    }
+                }
                 const isActualNone = (cleanBody === "없음") || !verseBody.trim();
                 if (kjvText && (isActualNone || cleanBody === "")) {
                     verseBody = `<span class="kjv-verse-text" style="color:#0f172a; font-weight:750;">${kjvText}</span> <span class="kjv-missing-badge" style="color:#b45309; font-weight:800; font-size:12.5px; background:#fef3c7; border:1px solid #fde68a; border-radius:6px; padding:1px 6px; display:inline-block; margin-left:4px; line-height:1.4; vertical-align:middle;">(KJV 킹제임스 완역)</span>`;
@@ -12414,6 +12440,172 @@
 
     let logoClickCount = 0;
     let logoClickTimer = null;
+    
+    /* ==========================================================================
+       🌟 [사용자 요청] 글로벌 예톡 (Korea ↔ English) 원터치 언어 전환 엔진
+       - 한번 누르면 상단 로고(예톡 Korea ↔ YETALK English)와 앱 전체 메뉴/성경이 즉시 전환
+       ========================================================================== */
+    const EN_BIBLE_BOOK_NAMES = {
+        "창세기": "Genesis", "출애굽기": "Exodus", "레위기": "Leviticus", "민수기": "Numbers", "신명기": "Deuteronomy",
+        "여호수아": "Joshua", "사사기": "Judges", "룻기": "Ruth", "사무엘상": "1 Samuel", "사무엘하": "2 Samuel",
+        "열왕기상": "1 Kings", "열왕기하": "2 Kings", "역대상": "1 Chronicles", "역대하": "2 Chronicles",
+        "에스라": "Ezra", "느헤미야": "Nehemiah", "에스더": "Esther", "욥기": "Job", "시편": "Psalms",
+        "잠언": "Proverbs", "전도서": "Ecclesiastes", "아가": "Song of Songs", "이사야": "Isaiah",
+        "예레미야": "Jeremiah", "예레미야애가": "Lamentations", "에스겔": "Ezekiel", "다니엘": "Daniel",
+        "호세아": "Hosea", "요엘": "Joel", "아모스": "Amos", "오바댜": "Obadiah", "요나": "Jonah",
+        "미가": "Micah", "나훔": "Nahum", "하박국": "Habakkuk", "스바냐": "Zephaniah", "학개": "Haggai",
+        "스가랴": "Zechariah", "말라기": "Malachi",
+        "마태복음": "Matthew", "마가복음": "Mark", "누가복음": "Luke", "요한복음": "John", "사도행전": "Acts",
+        "로마서": "Romans", "고린도전서": "1 Corinthians", "고린도후서": "2 Corinthians", "갈라디아서": "Galatians",
+        "에베소서": "Ephesians", "빌립보서": "Philippians", "골로새서": "Colossians",
+        "데살로니가전서": "1 Thessalonians", "데살로니가후서": "2 Thessalonians",
+        "디모데전서": "1 Timothy", "디모데후서": "2 Timothy", "디도서": "Titus", "빌레몬서": "Philemon",
+        "히브리서": "Hebrews", "야고보서": "James", "베드로전서": "1 Peter", "베드로후서": "2 Peter",
+        "요한일서": "1 John", "요한이서": "2 John", "요한삼서": "3 John", "유다서": "Jude", "요한계시록": "Revelation"
+    };
+
+    function getDisplayBookName(koreanName) {
+        if (localStorage.getItem("yetalk_app_lang") === "en") {
+            return EN_BIBLE_BOOK_NAMES[koreanName] || koreanName;
+        }
+        return koreanName;
+    }
+
+    let appLogoClickCount = 0;
+    let appLogoClickTimer = null;
+    function toggleAppLanguage() {
+        appLogoClickCount++;
+        if (appLogoClickTimer) clearTimeout(appLogoClickTimer);
+        appLogoClickTimer = setTimeout(() => { appLogoClickCount = 0; }, 1500);
+
+        // 5회 연속 탭 시 관리자 인증 진입 (비밀 유지)
+        if (appLogoClickCount >= 5) {
+            appLogoClickCount = 0;
+            triggerAdminAuth();
+            return;
+        }
+
+        // 1회 탭 시 한국어 <-> 영어 전환
+        const curLang = localStorage.getItem("yetalk_app_lang") || "ko";
+        const nextLang = (curLang === "ko") ? "en" : "ko";
+        localStorage.setItem("yetalk_app_lang", nextLang);
+        applyAppLanguageUI(nextLang, true);
+    }
+
+    function applyAppLanguageUI(lang, showToastMsg) {
+        const isEn = (lang === "en");
+
+        // 1. 상단 로고 (예톡 Korea <-> YETALK English)
+        const brandEl = document.getElementById("headerLogoBrand");
+        const regionEl = document.getElementById("headerLogoRegion");
+        const leafEl = document.getElementById("headerLogoLeaf");
+        if (brandEl) {
+            brandEl.innerText = isEn ? "YETALK" : "예톡";
+            brandEl.style.color = isEn ? "#0284c7" : "#059669";
+            brandEl.style.fontSize = isEn ? "23px" : "25px";
+        }
+        if (regionEl) {
+            regionEl.innerText = isEn ? "English" : "Korea";
+            regionEl.style.color = isEn ? "#0284c7" : "#059669";
+        }
+        if (leafEl) {
+            leafEl.style.right = isEn ? "-8px" : "-10px";
+            leafEl.style.fill = isEn ? "#0284c7" : "#10b981";
+        }
+
+        // 2. 상단 우측 버튼 (회원가입 <-> Join)
+        const joinBtn = document.getElementById("btnHeaderJoinAction");
+        if (joinBtn) {
+            const hasJoined = (localStorage.getItem("yetalk_is_registered") === "true");
+            if (isEn) {
+                joinBtn.innerText = hasJoined ? "Profile" : "Join";
+            } else {
+                joinBtn.innerText = hasJoined ? "내정보" : "회원가입";
+            }
+        }
+
+        // 3. 내앱 / 교우초청
+        const myAppChip = document.getElementById("chipTabPersonal");
+        const inviteChip = document.getElementById("chipTabInvite");
+        if (myAppChip) myAppChip.innerText = isEn ? "My App" : "내앱";
+        if (inviteChip) inviteChip.innerText = isEn ? "Invite" : "교우초청";
+
+        // 4. 4대 메인 버튼 (공지 · 예톡TV · 성경 · 커뮤니티)
+        const btnNotice = document.querySelector("#btnThreeNotice span:first-child");
+        const btnTv = document.querySelector("#btnThreeTv span");
+        const btnBible = document.querySelector("#btnThreeBible span");
+        const btnBoard = document.querySelector("#btnThreeBoard span");
+        if (btnNotice) btnNotice.innerText = isEn ? "Notice" : "공지";
+        if (btnTv) btnTv.innerText = isEn ? "YeTalk TV" : "예톡TV";
+        if (btnBible) btnBible.innerText = isEn ? "Bible" : "성경";
+        if (btnBoard) btnBoard.innerText = isEn ? "Community" : "커뮤니티";
+
+        // 5. 클리닉 & 무료 교회홈 배너
+        const clinicBanner = document.querySelector(".clinic-promo-banner div");
+        if (clinicBanner) {
+            clinicBanner.innerText = isEn ? 
+                "Autologous Dermal Regeneration (Nasolabial, Forehead, Eyes)" : 
+                "자가진피재생술(팔자주름,미간,이마,눈옆,입술위)";
+        }
+        const promoBannerSpan = document.querySelector(".church-free-promo-banner div span:first-child");
+        if (promoBannerSpan) {
+            promoBannerSpan.innerText = isEn ? 
+                "YeTalk Free Church Website Creation (Zero Fee)" : 
+                "예톡은 교회 홈페이지 무료 제작(유지비 제로)";
+        }
+
+        // 6. 4개 액션 버튼 (매일회개 · 까짓것 · 예톡사용법 · 교회성경검색)
+        const fourButtons = document.querySelectorAll(".portal-four-action-bar .btn-four-action");
+        if (fourButtons && fourButtons.length >= 4) {
+            const spans0 = fourButtons[0].querySelectorAll("span");
+            if (spans0.length >= 2) { spans0[0].innerText = isEn ? "Daily" : "매일회개"; spans0[1].innerText = isEn ? "Repentance" : "영적승리"; }
+            const spans1 = fourButtons[1].querySelectorAll("span");
+            if (spans1.length >= 2) { spans1[0].innerText = isEn ? "Stand" : "까짓것"; spans1[1].innerText = isEn ? "Firm" : "별거아냐"; }
+            const spans2 = fourButtons[2].querySelectorAll("span");
+            if (spans2.length >= 2) { spans2[0].innerText = isEn ? "YeTalk" : "예톡"; spans2[1].innerText = isEn ? "Guide" : "사용법"; }
+            const spans3 = fourButtons[3].querySelectorAll("span");
+            if (spans3.length >= 2) { spans3[0].innerText = isEn ? "Search" : "교회·성경"; spans3[1].innerText = isEn ? "Bible·Church" : "검색"; }
+        }
+
+        // 7. 주님 감사 배너
+        const thanksSpan = document.querySelector("#thanksgivingBanner span");
+        if (thanksSpan) {
+            thanksSpan.innerText = isEn ? 
+                "I give great thanks to the Lord who loves me today. ❤️" : 
+                "오늘도 나를 사랑하는 주님께 큰 감사 올려드립니다. ❤️";
+        }
+
+        // 8. 성경 통독 탭 (구약 / 신약 / 찬송)
+        const tabOT = document.getElementById("tabHomeOT");
+        const tabNT = document.getElementById("tabHomeNT");
+        const tabHymn = document.getElementById("tabHomeHymn");
+        if (tabOT) tabOT.innerText = isEn ? "OT" : "구약";
+        if (tabNT) tabNT.innerText = isEn ? "NT" : "신약";
+        if (tabHymn) tabHymn.innerText = isEn ? "Hymns" : "찬송";
+
+        // 9. 하단 4개 아이콘 (복음, 영접기도, 쿠팡, 카카오톡)
+        const bottomGospel = document.querySelector(".christian-fixed-footer a[href*='goodnews'] span:last-child");
+        if (bottomGospel) bottomGospel.innerText = isEn ? "Gospel" : "복음";
+        const bottomPray = document.querySelector(".christian-fixed-footer a[href*='salvation'] span:last-child");
+        if (bottomPray) bottomPray.innerText = isEn ? "Prayer" : "영접기도";
+
+        // 10. 실시간 시계 및 성경 챕터 갱신
+        updateHeaderLiveClock();
+        if (typeof displayUserBibleChapter === 'function') {
+            displayUserBibleChapter(currentUserBibleBook, currentUserBibleCh);
+        }
+
+        if (showToastMsg) {
+            showToast(isEn ? "🌐 Switched to English mode (YETALK English)" : "🇰🇷 한국어 모드로 전환되었습니다 (예톡 Korea)");
+        }
+    }
+
+    // 초기 로딩 시 저장된 언어 모드 복원
+    document.addEventListener("DOMContentLoaded", function() {
+        const savedLang = localStorage.getItem("yetalk_app_lang") || "ko";
+        applyAppLanguageUI(savedLang, false);
+    });
+
     function handleLogoClick() {
         logoClickCount++;
         if (logoClickTimer) clearTimeout(logoClickTimer);
