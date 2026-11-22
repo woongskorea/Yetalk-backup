@@ -5869,16 +5869,20 @@
     <div class="drawer-menu-overlay" id="drawerMenuOverlay" onclick="closeDrawer()">
         <div class="drawer-menu-panel" onclick="event.stopPropagation()">
             <div class="drawer-header" style="flex-direction:column; align-items:stretch; gap:6px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:20px;">🌿</span>
-                        <div>
-                            <strong style="font-size:15.5px; color:#0f172a;" id="drawerUserProfileName">예톡 메뉴</strong>
-                            <div style="font-size:11px; color:#059669; font-weight:800;" id="drawerUserProfileRole">부산제일감리교회 · 장로</div>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                    <div style="display:flex; align-items:flex-start; gap:8px; flex:1;">
+                        <span style="font-size:22px; line-height:1.2;">🌿</span>
+                        <div style="flex:1;">
+                            <strong style="font-size:17px; font-weight:950; color:#0f172a; display:block; margin-bottom:3px;" id="drawerUserProfileName">최베드로 성도님</strong>
+                            <!-- 1) 🌟 [사용자 요청] 위에는 본 교회 (소속 - 글자 큼직하게 표출) -->
+                            <div style="font-size:14.5px; color:#15803d; font-weight:950; line-height:1.4;" id="drawerUserProfileRole">부산제일감리교회 · 장로(시무장로)</div>
                         </div>
                     </div>
-                    <button type="button" style="background:none; border:none; font-size:20px; color:#64748b; cursor:pointer;" onclick="closeDrawer()">✕</button>
+                    <button type="button" style="background:#f1f5f9; border:none; width:32px; height:32px; border-radius:50%; font-size:16px; color:#475569; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-shrink:0;" onclick="closeDrawer()">✕</button>
                 </div>
+
+                <!-- 2) 🌟 [사용자 요청] 그 밑에는 본교회에서 만든 다른 부서교회(사역앱)가 있다면 그 밑에 표출 (글자 큼직 & 클릭 시 바로 입장) -->
+                <div id="drawerJoinedMinistryAppsBox" style="margin-top:6px; display:flex; flex-direction:column; gap:6px;"></div>
                 <!-- 🌟 [사용자 요청] 청색·자색·홍색·금색 성막 4색 그레이스 바 -->
                 <div style="display:flex; height:4px; border-radius:2px; overflow:hidden; margin-top:2px;" title="예수 그리스도를 상징하는 성막 4색 (청색: 생명, 자색: 만왕의 왕, 홍색: 보혈, 금색: 영광)">
                     <span style="flex:1; background:#2563eb;"></span>
@@ -5928,6 +5932,43 @@
                     <button type="button" onclick="openLordPrayerModal();" style="flex:1; padding:9px 10px; background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border:1.5px solid #4ade80; border-radius:10px; color:#15803d; font-size:13px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:5px; box-shadow:0 2px 6px rgba(22,163,74,0.1); transition:transform 0.1s;">
                         <span>🕊️</span> <span>주기도문</span>
                     </button>
+                </div>
+
+                <!-- 4-2. 🌟 [사용자 요청] 나의 교회사역앱 (부사역자: 부목사·전도사) 개설 및 본교회 ↔ 사역앱 전환 섹션 -->
+                <div id="drawerMinistryAppSection" style="margin:8px 0; padding:12px; background:#f0fdf4; border:1.8px solid #16a34a; border-radius:14px; box-shadow:0 2px 8px rgba(22,163,74,0.08);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:17px;">🌿</span>
+                            <strong style="font-size:14px; color:#166534; font-weight:950;">나의 교회사역앱 관리</strong>
+                        </div>
+                        <span id="badgeCurrentAppMode" style="font-size:11px; font-weight:900; background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:10px; border:1px solid #86efac;">⛪ 본교회 모드</span>
+                    </div>
+                    <div style="font-size:12px; color:#15803d; line-height:1.45; margin-bottom:10px;">
+                        💡 <b>부사역자의 경우 본인의 교회내 사역을 위한 앱을 이곳에서 만들 수 있습니다.</b><br>
+                        사역앱을 설정하시면 메인 예톡이 본인 사역앱 이름으로 바뀌며 본교회와 자유롭게 전환됩니다.
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                        <div>
+                            <label style="font-size:12px; font-weight:800; color:#1e293b; display:block; margin-bottom:3px;">사역앱 이름</label>
+                            <input type="text" id="inpDrawerMinistryAppName" placeholder="예: 열린청년교회" style="width:100%; height:38px; border:1.5px solid #cbd5e1; border-radius:8px; padding:0 10px; font-size:13.5px; font-weight:800; box-sizing:border-box; outline:none; background:#ffffff;">
+                        </div>
+                        <div>
+                            <label style="font-size:12px; font-weight:800; color:#1e293b; display:block; margin-bottom:3px;">담당사역자 (직함)</label>
+                            <input type="text" id="inpDrawerMinistryLeader" placeholder="예: 열린청년교회 전임사역자" style="width:100%; height:38px; border:1.5px solid #cbd5e1; border-radius:8px; padding:0 10px; font-size:13.5px; font-weight:800; box-sizing:border-box; outline:none; background:#ffffff;">
+                        </div>
+                        <div style="display:flex; gap:6px; margin-top:2px;">
+                            <button type="button" onclick="saveDrawerMinistryInfo()" style="flex:1; height:38px; background:#16a34a; color:#fff; border:none; border-radius:8px; font-size:12.5px; font-weight:900; cursor:pointer;">
+                                💾 사역정보 저장
+                            </button>
+                            <button type="button" id="btnToggleMinistryAppMode" onclick="toggleMinistryAppMode()" style="flex:1.4; height:38px; background:linear-gradient(135deg, #0284c7, #2563eb); color:#fff; border:none; border-radius:8px; font-size:12.5px; font-weight:950; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.3);">
+                                🔄 사역앱 보기 전환
+                            </button>
+                        </div>
+                        <!-- 💌 사역 초청 카톡 보내기 버튼 -->
+                        <button type="button" onclick="sendMinistryInviteKakao()" style="width:100%; height:38px; background:#fee500; border:1px solid #eab308; border-radius:8px; color:#371d1e; font-size:12.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:5px; cursor:pointer; margin-top:2px;">
+                            <span>💬</span> <span>"사역을 위하여 초청합니다." 카톡 보내기</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- 5. 🌟 [사용자 요청] 나만 보이는 총관리실 (최베드로 또는 관리자 계정만 노출) -->
@@ -6955,6 +6996,42 @@
                         </div>
                         <div id="pastorAuthStatusBadge" style="display:none; background:#dcfce7; border:1px solid #4ade80; border-radius:8px; padding:7px 10px; font-size:12px; color:#15803d; font-weight:900; text-align:center;">
                             ✅ 담임목사님 휴대폰 인증 완료 (정상적인 교회 공식 인증 준비됨)
+                        </div>
+                    </div>
+
+                    <!-- 5-1. 🌟 [사용자 요청] 부사역자(부목사, 전도사) 선택 시 사역앱 필요 여부 안내 및 설정 섹션 -->
+                    <div id="assistantPastorMinistryAppGuideSection" style="display:none; background:#f0fdf4; border:1.8px solid #16a34a; border-radius:12px; padding:12px; margin-top:8px;">
+                        <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                            <span style="font-size:16px;">🌿</span>
+                            <strong style="font-size:13.5px; color:#166534;">본인의 사역을 위한 교회사역앱이 필요하신가요?</strong>
+                        </div>
+                        <div style="font-size:12px; color:#15803d; line-height:1.48; margin-bottom:10px; background:#e8f5e9; padding:8px 10px; border-radius:8px; border:1px solid #c8e6c9;">
+                            💡 <b>부사역자의 경우 본인의 교회내 사역을 위한 앱을 우측 상단 네줄창에서 만들 수 있습니다.</b><br>
+                            회원 가입은 출석하시는 <b>본교회를 기본으로 정상 가입 및 로그인</b>되며, 가입 후 우측 상단 <b>네줄(햄버거) 메뉴</b>에서 언제든지 사역앱(청년부·교회학교·선교회 등)을 관리하고 본교회 ↔ 사역앱 간 자유롭게 전환하실 수 있습니다.
+                        </div>
+                        <div style="display:flex; gap:14px; align-items:center; margin-bottom:8px;">
+                            <label style="display:flex; align-items:center; gap:5px; font-size:13px; font-weight:900; color:#166534; cursor:pointer;">
+                                <input type="radio" name="radNeedMinistryApp" id="radNeedMinistryAppYes" value="Y" checked onchange="toggleMinistryAppFields(true)" style="accent-color:#16a34a; width:17px; height:17px;">
+                                <span>예 (사역앱 개설 희망)</span>
+                            </label>
+                            <label style="display:flex; align-items:center; gap:5px; font-size:13px; font-weight:800; color:#64748b; cursor:pointer;">
+                                <input type="radio" name="radNeedMinistryApp" id="radNeedMinistryAppNo" value="N" onchange="toggleMinistryAppFields(false)" style="accent-color:#16a34a; width:17px; height:17px;">
+                                <span>아니오 (본교회만 이용)</span>
+                            </label>
+                        </div>
+                        <!-- 사역앱 기본 정보 입력란 -->
+                        <div id="boxMinistryAppRegisterFields" style="display:flex; flex-direction:column; gap:8px; padding-top:6px; border-top:1px dashed #a7f3d0;">
+                            <div>
+                                <label style="font-size:12px; font-weight:800; color:#1e293b; display:block; margin-bottom:3px;">사역앱 이름</label>
+                                <input type="text" id="inpRegMinistryAppName" placeholder="예: 열린청년교회 (청년부, 다음세대사역교회 등)" style="width:100%; height:38px; border:1.5px solid #cbd5e1; border-radius:8px; padding:0 10px; font-size:13px; font-weight:800; box-sizing:border-box; outline:none;">
+                            </div>
+                            <div>
+                                <label style="font-size:12px; font-weight:800; color:#1e293b; display:block; margin-bottom:3px;">담당사역자 (직함)</label>
+                                <input type="text" id="inpRegMinistryLeaderTitle" placeholder="예: 열린청년교회 전임사역자" style="width:100%; height:38px; border:1.5px solid #cbd5e1; border-radius:8px; padding:0 10px; font-size:13px; font-weight:800; box-sizing:border-box; outline:none;">
+                            </div>
+                            <div style="font-size:11px; color:#059669; font-weight:700;">
+                                ※ 지금 입력하지 않으셔도 가입 후 우측 상단 네줄창에서 언제든 작성 및 변경할 수 있습니다.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -16046,15 +16123,261 @@ const BIBLICAL_TIME_SLOTS = [
         listEl.innerHTML = html;
     }
 
+    // 🌟 [사용자 요청] 가입된 교회사역앱 목록 조회 및 자동 동기화
+    function getJoinedMinistryApps() {
+        let list = [];
+        try {
+            const raw = localStorage.getItem("yetalk_joined_ministry_apps");
+            if (raw) list = JSON.parse(raw);
+        } catch(e) {}
+        if (!Array.isArray(list)) list = [];
+
+        // 사용자가 직접 개설/저장한 사역앱이 있다면 목록에 병합
+        const myMinistryName = localStorage.getItem("yetalk_ministry_app_name");
+        const myMinistryLeader = localStorage.getItem("yetalk_ministry_leader") || "전임사역자";
+        if (myMinistryName) {
+            const exists = list.find(a => a.name === myMinistryName);
+            if (!exists) {
+                list.unshift({ id: "my_ministry_" + Date.now(), name: myMinistryName, leader: myMinistryLeader, desc: "담당 사역교회" });
+            }
+        }
+
+        // 기본 추천/샘플 사역앱 (열린청년교회) 없으면 포함
+        if (list.length === 0) {
+            list.push({ id: "sample_youth_1", name: "열린청년교회", leader: "전임사역자", desc: "청년부 및 다음세대 사역공간" });
+        }
+        return list;
+    }
+
+    // 🌟 [사용자 요청] 네줄 햄버거 메뉴 내: 부산제일감리교회 이름 및 직분 바로 밑에 가입된 부사역자의 사역앱 목록 렌더링
+    function renderDrawerJoinedMinistryApps() {
+        const box = document.getElementById("drawerJoinedMinistryAppsBox");
+        if (!box) return;
+
+        const currentChurch = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회").trim();
+        const homeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_home_church_name") || "부산제일감리교회").trim();
+        const currentMode = localStorage.getItem("yetalk_current_church_mode") || "home";
+        const apps = getJoinedMinistryApps();
+
+        let html = "";
+
+        // 현재 사역앱 모드일 경우: 본교회(부산제일감리교회)로 복귀할 수 있는 버튼 표출
+        if (currentMode === "ministry" || currentChurch !== homeChurch) {
+            html += `
+                <div style="background:#eff6ff; border:1.8px solid #3b82f6; border-radius:12px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 6px rgba(59,130,246,0.12); cursor:pointer; margin-bottom:2px;" onclick="switchActiveChurchTo('${escapeHtml(homeChurch)}', 'home')">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:18px;">⛪</span>
+                        <div>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <strong style="font-size:15px; color:#1d4ed8; font-weight:950;">${escapeHtml(homeChurch)}</strong>
+                                <span style="font-size:11.5px; color:#1e40af; font-weight:850; background:#dbeafe; padding:1px 6px; border-radius:5px;">본교회</span>
+                            </div>
+                            <div style="font-size:11.5px; color:#64748b; font-weight:750; margin-top:2px;">본교회 메인으로 돌아가기</div>
+                        </div>
+                    </div>
+                    <span style="font-size:12.5px; font-weight:950; background:#2563eb; color:#ffffff; padding:5px 12px; border-radius:8px; white-space:nowrap; box-shadow:0 2px 6px rgba(37,99,235,0.25);">
+                        본교회 복귀 ➔
+                    </span>
+                </div>
+            `;
+        }
+
+        // 가입된 부사역자의 사역앱 목록 표시 (글자 큼직 & 클릭 시 원클릭 바로 입장)
+        apps.forEach(app => {
+            const isCurrentlyActive = (currentChurch === app.name);
+            html += `
+                <div style="background:${isCurrentlyActive ? '#dcfce7' : '#f0fdf4'}; border:1.8px solid ${isCurrentlyActive ? '#16a34a' : '#86efac'}; border-radius:12px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 6px rgba(16,185,129,0.1); cursor:pointer;" onclick="switchActiveChurchTo('${escapeHtml(app.name)}', 'ministry', '${escapeHtml(app.leader || '')}')">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:18px;">🌿</span>
+                        <div>
+                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                <strong style="font-size:15px; color:#15803d; font-weight:950;">${escapeHtml(app.name)}</strong>
+                                <span style="font-size:12px; color:#047857; font-weight:850; background:#dcfce7; padding:1.5px 6px; border-radius:5px;">${escapeHtml(app.leader || '부서/사역교회')}</span>
+                            </div>
+                            <div style="font-size:11.5px; color:#64748b; font-weight:750; margin-top:2px;">본교회 부서교회 사역공간</div>
+                        </div>
+                    </div>
+                    <span style="font-size:12.5px; font-weight:950; background:${isCurrentlyActive ? '#15803d' : '#16a34a'}; color:#ffffff; padding:5px 12px; border-radius:8px; white-space:nowrap; box-shadow:0 2px 6px rgba(22,163,74,0.25);">
+                        ${isCurrentlyActive ? '이용중 ✓' : '사역앱 입장 ➔'}
+                    </span>
+                </div>
+            `;
+        });
+
+        box.innerHTML = html;
+    }
+
+    // 🌟 [사용자 요청] 본교회 ↔ 사역앱 간 활성 교회 원클릭 전환 로직
+    function switchActiveChurchTo(churchName, mode, leaderTitle) {
+        if (!churchName) return;
+        const homeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_home_church_name") || "부산제일감리교회").trim();
+
+        if (mode === "home" || churchName === homeChurch) {
+            localStorage.setItem("yetalk_current_church_mode", "home");
+            localStorage.setItem("yetalk_church_name", homeChurch);
+            localStorage.setItem("yetalkChurchName", homeChurch);
+            showToast(`⛪ 본교회 [${homeChurch}] 모드로 전환되었습니다.`);
+        } else {
+            localStorage.setItem("yetalk_current_church_mode", "ministry");
+            localStorage.setItem("yetalk_church_name", churchName);
+            localStorage.setItem("yetalkChurchName", churchName);
+            if (leaderTitle) {
+                localStorage.setItem("yetalk_ministry_leader", leaderTitle);
+            }
+            showToast(`🌿 [${churchName}] 사역앱으로 전환되었습니다.`);
+        }
+
+        updateChristianHeaderUI();
+        updateDrawerInfo();
+        setTimeout(() => { closeDrawer(); }, 350);
+    }
+
+    // 🌟 [사용자 요청] 네줄 햄버거 메뉴 내 사역정보 저장
+    function saveDrawerMinistryInfo() {
+        const inpName = document.getElementById("inpDrawerMinistryAppName");
+        const inpLeader = document.getElementById("inpDrawerMinistryLeader");
+        const appName = (inpName?.value || "").trim();
+        const leader = (inpLeader?.value || "").trim();
+        if (!appName) {
+            showToast("사역앱 이름을 입력해주세요.");
+            return;
+        }
+
+        localStorage.setItem("yetalk_has_ministry_app", "true");
+        localStorage.setItem("yetalk_ministry_app_name", appName);
+        if (leader) localStorage.setItem("yetalk_ministry_leader", leader);
+
+        // 가입된 사역앱 목록에도 저장/갱신
+        let list = getJoinedMinistryApps();
+        const idx = list.findIndex(a => a.name === appName);
+        if (idx >= 0) {
+            list[idx].leader = leader || list[idx].leader;
+        } else {
+            list.unshift({ id: "ministry_" + Date.now(), name: appName, leader: leader || "전임사역자", desc: "담당 사역교회" });
+        }
+        localStorage.setItem("yetalk_joined_ministry_apps", JSON.stringify(list));
+
+        const currentMode = localStorage.getItem("yetalk_current_church_mode") || "home";
+        if (currentMode === "ministry") {
+            localStorage.setItem("yetalk_church_name", appName);
+            localStorage.setItem("yetalkChurchName", appName);
+            updateChristianHeaderUI();
+        }
+
+        updateDrawerInfo();
+        showToast(`💾 [${appName}] 사역정보가 저장되었습니다!`);
+    }
+
+    // 🌟 [사용자 요청] 본교회 ↔ 사역앱 토글 버튼
+    function toggleMinistryAppMode() {
+        const currentMode = localStorage.getItem("yetalk_current_church_mode") || "home";
+        const homeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_home_church_name") || "부산제일감리교회").trim();
+        const appName = (document.getElementById("inpDrawerMinistryAppName")?.value || "").trim() || localStorage.getItem("yetalk_ministry_app_name") || "열린청년교회";
+        const leader = (document.getElementById("inpDrawerMinistryLeader")?.value || "").trim() || localStorage.getItem("yetalk_ministry_leader") || "열린청년교회 전임사역자";
+
+        if (currentMode === "home") {
+            switchActiveChurchTo(appName, "ministry", leader);
+        } else {
+            switchActiveChurchTo(homeChurch, "home");
+        }
+    }
+
+    // 🌟 [사용자 요청] 단순히 "사역을 위하여 초청합니다." 자동 복사 후 카카오톡으로 보내기
+    function sendMinistryInviteKakao() {
+        const appName = (document.getElementById("inpDrawerMinistryAppName")?.value || "").trim() || localStorage.getItem("yetalk_ministry_app_name") || "열린청년교회";
+        const leader = (document.getElementById("inpDrawerMinistryLeader")?.value || "").trim() || localStorage.getItem("yetalk_ministry_leader") || "전임사역자";
+
+        const fullMsg = `사역을 위하여 초청합니다.
+[${appName}] (${leader})
+
+모바일 교회사역앱 예톡으로 초대합니다.
+아래 링크를 눌러 사역공간에 함께 참여해 주세요!
+
+👉 바로가기:
+https://woongskorea.github.io/Yetalk-backup/`;
+
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(fullMsg).catch(() => {});
+        }
+
+        if (window.AndroidBridge && typeof window.AndroidBridge.shareToKakaoFriends === "function") {
+            window.AndroidBridge.shareToKakaoFriends(fullMsg);
+        } else {
+            const kakaoScheme = "kakaolink://send?text=" + encodeURIComponent(fullMsg);
+            window.location.href = kakaoScheme;
+            setTimeout(() => {
+                if (navigator.share) {
+                    navigator.share({
+                        title: `[${appName}] 사역 초청`,
+                        text: fullMsg,
+                        url: "https://woongskorea.github.io/Yetalk-backup/"
+                    }).catch(() => {});
+                }
+            }, 600);
+        }
+
+        showToast("📋 '사역을 위하여 초청합니다.' 초청글이 자동 복사되어 카카오톡으로 연결됩니다!");
+    }
+
     function updateDrawerInfo() {
         const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "성도").trim();
-        const church = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "우리교회").trim();
+        const church = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회").trim();
+        const homeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_home_church_name") || "부산제일감리교회").trim();
         const role = (localStorage.getItem("yetalk_church_role") || localStorage.getItem("yetalkChurchRole") || localStorage.getItem("yetalk_user_role") || "성도").replace(/\(사모포함\)/g, '').replace(/\(간단가입\)/g, '').replace(/\(간단등록\)/g, '').trim();
+
+        const currentMode = localStorage.getItem("yetalk_current_church_mode") || "home";
+        const ministryAppName = localStorage.getItem("yetalk_ministry_app_name") || "열린청년교회";
+        const ministryLeader = localStorage.getItem("yetalk_ministry_leader") || "열린청년교회 전임사역자";
 
         const nameEl = document.getElementById("drawerUserProfileName");
         const roleEl = document.getElementById("drawerUserProfileRole");
         if (nameEl) nameEl.innerText = `${uName} 성도님`;
-        if (roleEl) roleEl.innerText = `${church} · ${role}`;
+
+        // 🌟 [사용자 요청] 네줄 햄버거 메뉴 상단에 부산제일감리교회 이름 및 직분 노출 (소속을 위에는 본 교회, 글자 큼직하게)
+        if (roleEl) {
+            roleEl.style.fontSize = "14.5px";
+            roleEl.style.fontWeight = "950";
+            if (currentMode === "ministry") {
+                roleEl.innerHTML = `<span style="color:#1d4ed8; font-weight:950;">⛪ ${homeChurch}</span> · <span style="color:#0f172a; font-weight:900;">${role}</span> <span style="font-size:11.5px; color:#15803d; background:#dcfce7; padding:2px 7px; border-radius:5px; margin-left:4px;">(현재 사역앱 이용중)</span>`;
+            } else {
+                roleEl.innerHTML = `<span style="color:#15803d; font-weight:950;">⛪ ${homeChurch}</span> · <span style="color:#0f172a; font-weight:900;">${role}</span>`;
+            }
+        }
+
+        // 🌟 [사용자 요청] 부산제일감리교회 이름 및 직분 바로 밑에 가입된 사역앱 목록 렌더링
+        renderDrawerJoinedMinistryApps();
+
+        // 🌟 [사용자 요청] 4-2. 사역앱 관리 섹션 입력창 및 토글 버튼 갱신
+        const inpName = document.getElementById("inpDrawerMinistryAppName");
+        const inpLeader = document.getElementById("inpDrawerMinistryLeader");
+        if (inpName && !inpName.value) inpName.value = ministryAppName;
+        if (inpLeader && !inpLeader.value) inpLeader.value = ministryLeader;
+
+        const badgeMode = document.getElementById("badgeCurrentAppMode");
+        const btnToggle = document.getElementById("btnToggleMinistryAppMode");
+        if (currentMode === "ministry") {
+            if (badgeMode) {
+                badgeMode.innerText = "🌿 사역앱 모드";
+                badgeMode.style.background = "#dbeafe";
+                badgeMode.style.color = "#1d4ed8";
+                badgeMode.style.borderColor = "#93c5fd";
+            }
+            if (btnToggle) {
+                btnToggle.innerHTML = `⛪ 본교회 복귀<br><small style="font-size:10.5px;">(${homeChurch})</small>`;
+                btnToggle.style.background = "linear-gradient(135deg, #059669, #047857)";
+            }
+        } else {
+            if (badgeMode) {
+                badgeMode.innerText = "⛪ 본교회 모드";
+                badgeMode.style.background = "#dcfce7";
+                badgeMode.style.color = "#15803d";
+                badgeMode.style.borderColor = "#86efac";
+            }
+            if (btnToggle) {
+                btnToggle.innerHTML = `🔄 사역앱 전환<br><small style="font-size:10.5px;">(${ministryAppName})</small>`;
+                btnToggle.style.background = "linear-gradient(135deg, #0284c7, #2563eb)";
+            }
+        }
 
         // 🌟 [사용자 요청] 나만 보이는 총관리실: 최베드로 또는 담임목사/관리자만 노출!
         const adminSec = document.getElementById("drawerSuperAdminSection");
@@ -16832,26 +17155,51 @@ const BIBLICAL_TIME_SLOTS = [
 
     function onChurchRoleChange(role) {
         const section = document.getElementById("pastorAuthSection");
-        if (!section) return;
+        const ministrySection = document.getElementById("assistantPastorMinistryAppGuideSection");
 
-        if (role === "담임목사") {
-            section.style.display = "block";
-            const savedPhone = localStorage.getItem("yetalk_pastor_phone") || localStorage.getItem("yetalk_user_phone") || "";
-            const inpPhone = document.getElementById("inpPastorPhone");
-            if (savedPhone && inpPhone && !inpPhone.value) {
-                inpPhone.value = savedPhone;
-            }
+        if (section) {
+            if (role === "담임목사") {
+                section.style.display = "block";
+                const savedPhone = localStorage.getItem("yetalk_pastor_phone") || localStorage.getItem("yetalk_user_phone") || "";
+                const inpPhone = document.getElementById("inpPastorPhone");
+                if (savedPhone && inpPhone && !inpPhone.value) {
+                    inpPhone.value = savedPhone;
+                }
 
-            // 🌟 [사용자 요청] 담임목사 선택 시 자동으로 담임 인증창 열기!
-            if (!isPastorPhoneVerified) {
-                setTimeout(() => {
-                    openPastorAuthModal();
-                }, 150);
+                // 🌟 [사용자 요청] 담임목사 선택 시 자동으로 담임 인증창 열기!
+                if (!isPastorPhoneVerified) {
+                    setTimeout(() => {
+                        openPastorAuthModal();
+                    }, 150);
+                }
+            } else {
+                section.style.display = "none";
+                isPastorPhoneVerified = false;
             }
-        } else {
-            section.style.display = "none";
-            isPastorPhoneVerified = false;
         }
+
+        // 🌟 [사용자 요청] 회원 가입시 부사역자(부목사, 전도사) 선택한 경우 사역앱 개설 안내 및 입력란 노출
+        if (ministrySection) {
+            if (role === "부목사" || role === "전도사") {
+                ministrySection.style.display = "block";
+                const uName = (document.getElementById("inpRegNameOrId")?.value || "").trim();
+                const inpApp = document.getElementById("inpRegMinistryAppName");
+                const inpLeader = document.getElementById("inpRegMinistryLeaderTitle");
+                if (inpApp && !inpApp.value) {
+                    inpApp.value = "열린청년교회";
+                }
+                if (inpLeader && !inpLeader.value) {
+                    inpLeader.value = uName ? `${uName} 전임사역자` : `전임사역자`;
+                }
+            } else {
+                ministrySection.style.display = "none";
+            }
+        }
+    }
+
+    function toggleMinistryAppFields(show) {
+        const box = document.getElementById("boxMinistryAppRegisterFields");
+        if (box) box.style.display = show ? "flex" : "none";
     }
 
     // 🌟 [사용자 요청] 담임목사 대표 인증창 모달 컨트롤러
@@ -17626,6 +17974,34 @@ const BIBLICAL_TIME_SLOTS = [
                 localStorage.removeItem("yetalk_is_church_owner");
             }
 
+            // 🌟 [사용자 요청] 부사역자(부목사, 전도사) 가입 시 본교회 기본 로그인 & 사역앱 생성 처리
+            let extraMinistryAlert = "";
+            if (role === "부목사" || role === "전도사") {
+                const wantMinistry = document.getElementById("radNeedMinistryAppYes")?.checked;
+                const regAppName = (document.getElementById("inpRegMinistryAppName")?.value || "").trim() || "열린청년교회";
+                const regLeader = (document.getElementById("inpRegMinistryLeaderTitle")?.value || "").trim() || `${nameOrId} 전임사역자`;
+
+                localStorage.setItem("yetalk_has_ministry_app", wantMinistry ? "true" : "false");
+                localStorage.setItem("yetalk_ministry_app_name", regAppName);
+                localStorage.setItem("yetalk_ministry_leader", regLeader);
+                localStorage.setItem("yetalk_home_church_name", churchName);
+                localStorage.setItem("yetalk_current_church_mode", "home"); // 본교회를 기본으로 로그인
+
+                if (wantMinistry) {
+                    let jApps = [];
+                    try {
+                        const raw = localStorage.getItem("yetalk_joined_ministry_apps");
+                        if (raw) jApps = JSON.parse(raw);
+                    } catch(e) {}
+                    if (!Array.isArray(jApps)) jApps = [];
+                    if (!jApps.find(a => a.name === regAppName)) {
+                        jApps.unshift({ id: "ministry_" + Date.now(), name: regAppName, leader: regLeader, desc: "청년부 및 다음세대 사역공간" });
+                        localStorage.setItem("yetalk_joined_ministry_apps", JSON.stringify(jApps));
+                    }
+                }
+                extraMinistryAlert = `\n\n💡 [사역안내] 부사역자의 경우 본인의 교회내 사역을 위한 앱을 우측 상단 네줄창에서 언제든 만들고 전환하실 수 있습니다.`;
+            }
+
             // 🌟 [사용자 요청] 회원 가입 정보 교회 소개(churchintro.html) 사역자/장로 목록에 자동 실시간 반영
             try {
                 syncMemberToChurchIntroData(churchName, pastorName, nameOrId, role);
@@ -17644,7 +18020,7 @@ const BIBLICAL_TIME_SLOTS = [
 
             setTimeout(() => {
                 closeChristianRegisterModal();
-                alert(`✅ ${isRegEditMode ? "회원정보가 성공적으로 수정되었습니다" : "예톡 교우 가입 및 우리교회앱 연결이 완료되었습니다"}!\n\n• 성도명: ${nameOrId}\n• 본인교회: ${churchName}\n• 담임목사: ${pastorName}\n• 직분: ${role}`);
+                alert(`✅ ${isRegEditMode ? "회원정보가 성공적으로 수정되었습니다" : "예톡 교우 가입 및 우리교회앱 연결이 완료되었습니다"}!\n\n• 성도명: ${nameOrId}\n• 본인교회: ${churchName}\n• 담임목사: ${pastorName}\n• 직분: ${role}${extraMinistryAlert}`);
             }, 300);
 
         } catch (err) {
@@ -18389,11 +18765,27 @@ const BIBLICAL_TIME_SLOTS = [
 
     // 🌟 [사용자 요청] alert 없이 초대 문구 즉시 복사 & 버튼 피드백 (기존글에 '플레이스토어에서 예톡을 다운받으세요' 추가)
     function copyChristianInvite() {
-        const fullMsg = `예톡으로 초대합니다.
+        const isMinistryMode = (localStorage.getItem("yetalk_current_church_mode") === "ministry");
+        const ministryAppName = localStorage.getItem("yetalk_ministry_app_name") || "열린청년교회";
+        const ministryLeader = localStorage.getItem("yetalk_ministry_leader") || "전임사역자";
+
+        let fullMsg = "";
+        if (isMinistryMode) {
+            fullMsg = `사역을 위하여 초청합니다.
+[${ministryAppName}] (${ministryLeader})
+
+모바일 교회사역앱 예톡으로 초대합니다.
+아래 링크를 눌러 사역공간에 함께 참여해 주세요!
+
+👉 바로가기:
+https://woongskorea.github.io/Yetalk-backup/`;
+        } else {
+            fullMsg = `예톡으로 초대합니다.
 플레이스토어에서 우리교회앱 예톡 다운 받으세요.
 
 👉 바로가기:
 https://woongskorea.github.io/Yetalk-backup/`;
+        }
 
         if (navigator.clipboard) {
             navigator.clipboard.writeText(fullMsg).then(() => {
@@ -18420,12 +18812,28 @@ https://woongskorea.github.io/Yetalk-backup/`;
     }
 
     function shareChristianInviteKakao(targetMemberName) {
+        const isMinistryMode = (localStorage.getItem("yetalk_current_church_mode") === "ministry");
+        const ministryAppName = localStorage.getItem("yetalk_ministry_app_name") || "열린청년교회";
+        const ministryLeader = localStorage.getItem("yetalk_ministry_leader") || "전임사역자";
         const prefix = targetMemberName ? `[${targetMemberName}님] ` : '';
-        const fullMsg = `${prefix}예톡으로 초대합니다.
+
+        let fullMsg = "";
+        if (isMinistryMode) {
+            fullMsg = `${prefix}사역을 위하여 초청합니다.
+[${ministryAppName}] (${ministryLeader})
+
+모바일 교회사역앱 예톡으로 초대합니다.
+아래 링크를 눌러 사역공간에 함께 참여해 주세요!
+
+👉 바로가기:
+https://woongskorea.github.io/Yetalk-backup/`;
+        } else {
+            fullMsg = `${prefix}예톡으로 초대합니다.
 플레이스토어에서 우리교회앱 예톡 다운 받으세요.
 
 👉 바로가기:
 https://woongskorea.github.io/Yetalk-backup/`;
+        }
 
         // 1. AndroidBridge 네이티브 카카오톡 호출
         if (window.AndroidBridge && typeof window.AndroidBridge.shareToKakaoFriends === "function") {
@@ -18441,7 +18849,7 @@ https://woongskorea.github.io/Yetalk-backup/`;
         setTimeout(() => {
             if (navigator.share) {
                 navigator.share({
-                    title: churchName ? `[${churchName}] 초청` : "예톡 초청",
+                    title: isMinistryMode ? `[${ministryAppName}] 사역 초청` : (churchName ? `[${churchName}] 초청` : "예톡 초청"),
                     text: fullMsg,
                     url: "https://woongskorea.github.io/Yetalk-backup/"
                 }).catch(() => {});
