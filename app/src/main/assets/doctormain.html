@@ -1505,7 +1505,7 @@
     <!-- 3층 메뉴별 독립 콘텐츠 영역 (밑으로 세로 화면이 계속 + 누르면 늘어남) -->
     
     <!-- 1) 의원소개 탭 컨테이너 -->
-    <main class="doc-tab-container" id="sec_intro"></main>
+    <main class="doc-tab-container active" id="sec_intro" style="display:block;"></main>
 
     <!-- 2) 진료(시술)안내 탭 컨테이너 -->
     <main class="doc-tab-container" id="sec_beauty">
@@ -6900,56 +6900,88 @@ function savePcClinicPopupEdit() {
     showToast("💾 의원 공지 팝업 내용이 성공적으로 저장되었습니다!");
 }
 
-/* 초기화 실행 */
-document.addEventListener("DOMContentLoaded", () => {
-    if (window.self !== window.top || window.innerWidth >= 1024) {
-        document.body.classList.add("is-pc-mode");
+/* 🌟 [사용자 요청] 초기화 실행: 첫 화면(의원소개) 즉시 렌더링 & DOMContentLoaded 레이스 컨디션 방지 */
+let _doctorMainInitialized = false;
+
+function initDoctorMainApp() {
+    if (_doctorMainInitialized) return;
+    _doctorMainInitialized = true;
+
+    try {
+        if (window.self !== window.top || window.innerWidth >= 1024) {
+            document.body.classList.add("is-pc-mode");
+        }
+
+        // 🌟 1순위: 의원소개 데이터 로드 및 즉시 렌더링 (초기 로딩 시 블랙/먹통 원천 차단)
+        loadIntroData();
+        renderIntroSection();
+        switchDoctorSection("intro");
+
+        // 🌟 2순위: 기타 탭 데이터 사전 준비
+        loadBeautyData();
+        loadClinicInquiryList();
+        loadDocTalkChatData();
+        loadClinicChatData();
+        initDocQuickReservationTab();
+        renderBeautySection();
+        renderNoticeBoardData();
+
+        // 🌟 3순위: 닥톡, 원내톡, 환자접수/문의 창 드래그 기능 등록
+        makeWindowDraggable("viewDetailChat");
+        makeWindowDraggable("viewDetailClinicChat");
+        makeWindowDraggable("viewDetailPatientInquiry");
+
+        // 5주치 예약 샘플 데이터 초기화
+        initRichStaffReservations();
+
+        // 원내 직원 모드 상태 확인 (기본은 고객 화면)
+        const savedStaffMode = localStorage.getItem("yetalkDoctorStaffMode") === "true";
+        if (savedStaffMode) {
+            toggleStaffWorkMode(true);
+        }
+
+        // 🌟 의원 명칭 및 전화번호 (관리자실에서 교체 가능 및 유지)
+        let savedClinic = localStorage.getItem("yetalkDoctorName") || "자가진피 주름)최웅식의원";
+        let savedPhone = localStorage.getItem("yetalkShopPhone") || "051-633-2478";
+        localStorage.setItem("yetalkDoctorName", savedClinic);
+        localStorage.setItem("yetalkShopPhone", savedPhone);
+        updateClinicBrandDisplay();
+
+        // PC 의원 공지 팝업 상태 점검
+        checkPcClinicPopup();
+
+        // URL 파라미터 처리 (예: ?staff=true, ?openInquiry=true)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("staff") === "true") {
+            toggleStaffWorkMode(true);
+        }
+        if (urlParams.get("openInquiry") === "true") {
+            toggleStaffWorkMode(true);
+            setTimeout(() => openPatientInquiryWindow(), 150);
+        }
+    } catch(err) {
+        console.error("initDoctorMainApp error:", err);
+        try {
+            renderIntroSection();
+            switchDoctorSection("intro");
+        } catch(e) {}
     }
-    loadIntroData();
-    loadBeautyData();
-    loadDocTalkChatData();
-    loadClinicChatData();
-    initDocQuickReservationTab();
+}
 
-    // 닥톡, 원내톡, 환자접수/문의 창 드래그 기능 등록
-    makeWindowDraggable("viewDetailChat");
-    makeWindowDraggable("viewDetailClinicChat");
-    makeWindowDraggable("viewDetailPatientInquiry");
+// 🌟 [핵심] DOM이 이미 파싱 완료되었거나 interactive인 경우 기다리지 않고 즉시 실행
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initDoctorMainApp);
+} else {
+    initDoctorMainApp();
+}
 
-    // 5주치 예약 샘플 데이터 초기화
-    initRichStaffReservations();
-
-    // 원내 직원 모드 상태 확인 (기본은 고객 화면)
-    const savedStaffMode = localStorage.getItem("yetalkDoctorStaffMode") === "true";
-    if (savedStaffMode) {
-        toggleStaffWorkMode(true);
-    }
-
-    // 🌟 [사용자 요청] 의원 명칭 및 전화번호 (관리자실에서 교체 가능 및 유지)
-    let savedClinic = localStorage.getItem("yetalkDoctorName") || "자가진피 주름)최웅식의원";
-    let savedPhone = localStorage.getItem("yetalkShopPhone") || "051-633-2478";
-    localStorage.setItem("yetalkDoctorName", savedClinic);
-    localStorage.setItem("yetalkShopPhone", savedPhone);
-    updateClinicBrandDisplay();
-
-    loadClinicInquiryList();
-    renderIntroSection();
-    renderBeautySection();
-    renderNoticeBoardData();
-
-    switchDoctorSection("intro");
-
-    // 🌟 [사용자 요청] PC 의원 공지 팝업 ("오늘 하루 동안 열지 않기와 X표") 상태 점검
-    checkPcClinicPopup();
-
-    // URL 파라미터 처리 (예: ?staff=true, ?openInquiry=true)
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get("staff") === "true") {
-        toggleStaffWorkMode(true);
-    }
-    if (urlParams.get("openInquiry") === "true") {
-        toggleStaffWorkMode(true);
-        setTimeout(() => openPatientInquiryWindow(), 150);
+// 🌟 2차 안전망: window.load 시점에도 컨텐츠 확인 후 즉시 복구
+window.addEventListener("load", () => {
+    const secIntro = document.getElementById("sec_intro");
+    if (!secIntro || !secIntro.innerHTML.trim() || secIntro.style.display === "none") {
+        initDoctorMainApp();
+        renderIntroSection();
+        switchDoctorSection("intro");
     }
 });
 </script>
