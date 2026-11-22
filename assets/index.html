@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -13185,14 +13185,23 @@ const BIBLICAL_TIME_SLOTS = [
             langBadge.style.color = isEn ? "#0284c7" : "#10b981";
         }
 
-        // 2. 상단 우측 버튼 (회원가입 <-> Join)
-        const joinBtn = document.getElementById("btnHeaderJoinAction");
-        if (joinBtn) {
-            const hasJoined = (localStorage.getItem("yetalk_is_registered") === "true");
-            if (isEn) {
-                joinBtn.innerText = hasJoined ? "Profile" : "Join";
-            } else {
-                joinBtn.innerText = hasJoined ? "내정보" : "회원가입";
+        // 2. 상단 우측 버튼 (회원가입 / 👤 최베드로 (장로) 유지)
+        if (typeof updateChristianHeaderUI === 'function') {
+            updateChristianHeaderUI();
+        } else {
+            const joinBtn = document.getElementById("btnHeaderJoinAction");
+            if (joinBtn) {
+                const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id") || localStorage.getItem("yetalkUserName") || localStorage.getItem("yetalkUserId") || "").trim();
+                const rawRole = localStorage.getItem("yetalk_church_role") || localStorage.getItem("yetalkChurchRole") || "";
+                const isRegistered = localStorage.getItem("yetalk_is_registered") === "true";
+                if (uName && isRegistered) {
+                    let displayRole = rawRole.replace(/\(사모포함\)/g, '').replace(/\(간단가입\)/g, '').replace(/\(간단등록\)/g, '').trim() || "성도";
+                    if (displayRole.includes("장로")) displayRole = "장로";
+                    const roleText = isEn ? (displayRole === "장로" ? "Elder" : displayRole) : displayRole;
+                    joinBtn.innerHTML = `👤 ${uName} <span style="font-size:11px; font-weight:750; opacity:0.95;">(${roleText})</span>`;
+                } else {
+                    joinBtn.innerText = isEn ? "✨ Join" : "✨ 가입";
+                }
             }
         }
 
@@ -19414,20 +19423,24 @@ https://woongskorea.github.io/Yetalk-backup/`;
                 joinBtn.style.padding = "5px 14px";
                 joinBtn.onclick = () => openMinistryInviteJoinModal(invitedMinistry, sessionStorage.getItem("yetalk_invited_leader"));
             } else if (uName && isRegularMember) {
-                // 정회원으로 등록 완료된 경우 [이름 (직분/정회원)] 표시 및 수정 모달 연결
+                // 정회원으로 등록 완료된 경우 [👤 이름 (직분/정회원)] 표시 및 수정 모달 연결
+                const curLang = localStorage.getItem("yetalk_app_lang") || "ko";
+                const isEn = (curLang === "en");
                 let displayRole = rawRole.replace(/\(사모포함\)/g, '').replace(/\(간단가입\)/g, '').replace(/\(간단등록\)/g, '').trim() || (memberType === "general" ? "정회원" : "성도");
                 if (displayRole.includes("장로")) displayRole = "장로";
-                joinBtn.innerHTML = `👤 ${uName} <span style="font-size:11px; font-weight:750; opacity:0.95;">(${displayRole})</span>`;
-                joinBtn.title = "내 회원정보 확인 및 수정";
+                const roleText = isEn ? (displayRole === "장로" ? "Elder" : (displayRole === "목사" ? "Pastor" : (displayRole === "권사" ? "Senior Deaconess" : (displayRole === "집사" ? "Deacon" : (memberType === "general" ? "Member" : "Saint"))))) : displayRole;
+                joinBtn.innerHTML = `👤 ${uName} <span style="font-size:11px; font-weight:750; opacity:0.95;">(${roleText})</span>`;
+                joinBtn.title = isEn ? "My Profile & Settings" : "내 회원정보 확인 및 수정";
                 joinBtn.style.background = "linear-gradient(135deg, #047857, #065f46)";
                 joinBtn.style.borderColor = "#34d399";
                 joinBtn.style.padding = "5px 10px";
                 joinBtn.onclick = () => openChristianRegisterModal();
             } else {
-                // 🌟 준회원이거나 처음 온 경우: 무조건 "✨ 가입"으로 또렷하게 표기!
-                // 클릭하면 이름은 입력창에 채워진 채로 열려서 나머지 정보(교회 or 연락처·거주지)를 입력하도록 유도
-                joinBtn.innerHTML = "✨ 가입";
-                joinBtn.title = uName ? `가입 (${uName}님 준회원 ➔ 정회원 등록)` : "예톡 회원가입";
+                // 🌟 준회원이거나 처음 온 경우: 무조건 "✨ 가입"("✨ Join")으로 또렷하게 표기!
+                const curLang = localStorage.getItem("yetalk_app_lang") || "ko";
+                const isEn = (curLang === "en");
+                joinBtn.innerHTML = isEn ? "✨ Join" : "✨ 가입";
+                joinBtn.title = isEn ? "Join Yetalk" : (uName ? `가입 (${uName}님 준회원 ➔ 정회원 등록)` : "예톡 회원가입");
                 joinBtn.style.background = "linear-gradient(135deg, #059669, #047857)";
                 joinBtn.style.borderColor = "#10b981";
                 joinBtn.style.padding = "5px 12px";
