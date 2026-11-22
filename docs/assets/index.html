@@ -5397,8 +5397,8 @@
             </div>
         </div>
         <div class="header-right-actions" style="display:flex; align-items:center; gap:8px; align-self:flex-end; padding-bottom:2px;">
-            <!-- 🌟 [사용자 요청] 나의 앱 예톡 우측 햄버거 버튼 좌측에 [회원가입] 배치 -->
-            <button type="button" id="btnHeaderJoinAction" onclick="openChristianRegisterModal()" style="background:linear-gradient(135deg, #059669, #047857); border:1.5px solid #10b981; color:#ffffff; font-size:12.5px; font-weight:950; padding:5px 12px; border-radius:16px; cursor:pointer; box-shadow:0 2px 6px rgba(5,150,105,0.25); white-space:nowrap; transition:transform 0.12s ease;">회원가입</button>
+            <!-- 🌟 [사용자 요청] 나의 앱 예톡 우측 햄버거 버튼 좌측에 [가입] 배치 -->
+            <button type="button" id="btnHeaderJoinAction" onclick="openChristianRegisterModal()" style="background:linear-gradient(135deg, #059669, #047857); border:1.5px solid #10b981; color:#ffffff; font-size:12.5px; font-weight:950; padding:5px 12px; border-radius:16px; cursor:pointer; box-shadow:0 2px 6px rgba(5,150,105,0.25); white-space:nowrap; transition:transform 0.12s ease;">가입</button>
             <!-- 🌟 [사용자 요청] 예수님을 상징하는 청색·자색·홍색·금색 4줄 햄버거 메뉴 -->
             <button type="button" class="btn-header-hamburger" title="예톡 4색 성막 메뉴 (청색·자색·홍색·금색: 예수 그리스도의 상징)" onclick="openDrawer()" style="background:#ffffff; border:1.5px solid #cbd5e1; border-radius:9px; padding:6px 7px; cursor:pointer; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:2.8px; box-shadow:0 1px 3px rgba(0,0,0,0.05); transition:transform 0.1s ease;">
                 <span style="display:block; width:19px; height:2.4px; background:#2563eb; border-radius:2px;"></span>
@@ -6209,6 +6209,27 @@
                 </button>
                 <button type="button" onclick="closeChurchFreeHomepageModal()" style="width:100%; background:#f1f5f9; color:#64748b; border:none; border-radius:12px; padding:10px; font-size:13px; font-weight:800; cursor:pointer;">
                     닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 [사용자 요청] 카톡 초대로 들어왔을 때 사역앱 정회원 원클릭 가입 모달 -->
+    <div class="modal-overlay" id="ministryInviteJoinModal" style="display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.72); z-index:999999; padding:16px; box-sizing:border-box;" onclick="closeMinistryInviteJoinModal()">
+        <div style="background:#ffffff; border-radius:22px; width:100%; max-width:370px; padding:22px 18px 18px 18px; text-align:center; box-shadow:0 14px 40px rgba(0,0,0,0.35); box-sizing:border-box;" onclick="event.stopPropagation()">
+            <div style="font-size:38px; line-height:1; margin-bottom:8px;">🌿</div>
+            <strong style="font-size:18px; color:#15803d; font-weight:950; display:block; margin-bottom:4px;" id="modalInviteMinistryTitle">열린청년교회</strong>
+            <div style="font-size:13px; color:#64748b; font-weight:800; margin-bottom:14px;" id="modalInviteMinistrySub">담당: 전임사역자</div>
+            <div style="font-size:15px; color:#0f172a; font-weight:900; line-height:1.5; margin-bottom:18px; background:#f0fdf4; padding:14px 12px; border-radius:14px; border:1.5px solid #86efac;">
+                사역을 위하여 초청합니다.<br>
+                <span style="color:#16a34a; font-weight:950; font-size:16px; display:inline-block; margin-top:4px;">가입을 원하시나요?</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button type="button" onclick="confirmJoinInvitedMinistry()" style="flex:1.2; background:linear-gradient(135deg, #059669, #047857); color:#ffffff; border:none; border-radius:12px; padding:13px 8px; font-size:15px; font-weight:950; cursor:pointer; box-shadow:0 3px 8px rgba(5,150,105,0.3);">
+                    예 (정회원 가입)
+                </button>
+                <button type="button" onclick="closeMinistryInviteJoinModal()" style="flex:0.8; background:#f1f5f9; color:#475569; border:none; border-radius:12px; padding:13px 8px; font-size:14px; font-weight:800; cursor:pointer;">
+                    다음에
                 </button>
             </div>
         </div>
@@ -16177,7 +16198,7 @@ const BIBLICAL_TIME_SLOTS = [
         listEl.innerHTML = html;
     }
 
-    // 🌟 [사용자 요청] 가입된 교회사역앱 목록 조회 및 자동 동기화
+    // 🌟 [사용자 요청] 가입된 교회사역앱 목록 조회 및 자동 동기화 (평소에는 가입/개설 전까지 절대 안 보임!)
     function getJoinedMinistryApps() {
         let list = [];
         try {
@@ -16186,20 +16207,20 @@ const BIBLICAL_TIME_SLOTS = [
         } catch(e) {}
         if (!Array.isArray(list)) list = [];
 
-        // 사용자가 직접 개설/저장한 사역앱이 있다면 목록에 병합
-        const myMinistryName = localStorage.getItem("yetalk_ministry_app_name");
-        const myMinistryLeader = localStorage.getItem("yetalk_ministry_leader") || "전임사역자";
-        if (myMinistryName) {
+        // 과거 하드코딩되었던 샘플(sample_youth_1)은 완전 제거
+        list = list.filter(a => a && a.id !== "sample_youth_1" && a.name !== "열린청년교회");
+
+        // 사용자가 부목사/전도사로서 직접 개설/저장한 사역앱이 있다면 목록에 병합
+        const hasMyMinistry = localStorage.getItem("yetalk_has_ministry_app") === "true";
+        const myMinistryName = (localStorage.getItem("yetalk_ministry_app_name") || "").trim();
+        const myMinistryLeader = (localStorage.getItem("yetalk_ministry_leader") || "").trim() || "전임사역자";
+        if (hasMyMinistry && myMinistryName) {
             const exists = list.find(a => a.name === myMinistryName);
             if (!exists) {
                 list.unshift({ id: "my_ministry_" + Date.now(), name: myMinistryName, leader: myMinistryLeader, desc: "담당 사역교회" });
             }
         }
 
-        // 기본 추천/샘플 사역앱 (열린청년교회) 없으면 포함
-        if (list.length === 0) {
-            list.push({ id: "sample_youth_1", name: "열린청년교회", leader: "전임사역자", desc: "청년부 및 다음세대 사역공간" });
-        }
         return list;
     }
 
@@ -16213,6 +16234,12 @@ const BIBLICAL_TIME_SLOTS = [
         const currentMode = localStorage.getItem("yetalk_current_church_mode") || "home";
         const apps = getJoinedMinistryApps();
 
+        // 🌟 [사용자 요청] 가입/개설된 사역앱이 없고 본교회 모드라면 2층 영역을 아예 비워서 평소에는 깔끔하게 숨김!
+        if (apps.length === 0 && (currentMode === "home" || currentChurch === homeChurch)) {
+            box.innerHTML = "";
+            return;
+        }
+
         let html = "";
 
         // 현재 사역앱 모드일 경우: 본교회(부산제일감리교회)로 복귀할 수 있는 버튼 표출
@@ -16220,13 +16247,13 @@ const BIBLICAL_TIME_SLOTS = [
             html += `
                 <div style="background:#eff6ff; border:1.8px solid #3b82f6; border-radius:12px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 6px rgba(59,130,246,0.12); cursor:pointer; margin-bottom:2px;" onclick="switchActiveChurchTo('${escapeHtml(homeChurch)}', 'home')">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:18px;">⛪</span>
+                        <span style="font-size:20px;">⛪</span>
                         <div>
                             <div style="display:flex; align-items:center; gap:6px;">
                                 <strong style="font-size:15px; color:#1d4ed8; font-weight:950;">${escapeHtml(homeChurch)}</strong>
                                 <span style="font-size:11.5px; color:#1e40af; font-weight:850; background:#dbeafe; padding:1px 6px; border-radius:5px;">본교회</span>
                             </div>
-                            <div style="font-size:11.5px; color:#64748b; font-weight:750; margin-top:2px;">본교회 메인으로 돌아가기</div>
+                            <div style="font-size:12px; color:#64748b; font-weight:750; margin-top:2px;">본교회 메인으로 돌아가기</div>
                         </div>
                     </div>
                     <span style="font-size:12.5px; font-weight:950; background:#2563eb; color:#ffffff; padding:5px 12px; border-radius:8px; white-space:nowrap; box-shadow:0 2px 6px rgba(37,99,235,0.25);">
@@ -16236,19 +16263,19 @@ const BIBLICAL_TIME_SLOTS = [
             `;
         }
 
-        // 가입된 부사역자의 사역앱 목록 표시 (글자 큼직 & 클릭 시 원클릭 바로 입장)
+        // 가입된 부사역자의 사역앱 목록 표시 (글자 큼직 15px & 클릭 시 원클릭 바로 입장)
         apps.forEach(app => {
             const isCurrentlyActive = (currentChurch === app.name);
             html += `
                 <div style="background:${isCurrentlyActive ? '#dcfce7' : '#f0fdf4'}; border:1.8px solid ${isCurrentlyActive ? '#16a34a' : '#86efac'}; border-radius:12px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 6px rgba(16,185,129,0.1); cursor:pointer;" onclick="switchActiveChurchTo('${escapeHtml(app.name)}', 'ministry', '${escapeHtml(app.leader || '')}')">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:18px;">🌿</span>
+                        <span style="font-size:20px;">🌿</span>
                         <div>
                             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                                 <strong style="font-size:15px; color:#15803d; font-weight:950;">${escapeHtml(app.name)}</strong>
-                                <span style="font-size:12px; color:#047857; font-weight:850; background:#dcfce7; padding:1.5px 6px; border-radius:5px;">${escapeHtml(app.leader || '부서/사역교회')}</span>
+                                <span style="font-size:12px; color:#047857; font-weight:850; background:#dcfce7; padding:1.5px 6px; border-radius:5px;">${escapeHtml(app.leader || '부서·사역교회')}</span>
                             </div>
-                            <div style="font-size:11.5px; color:#64748b; font-weight:750; margin-top:2px;">본교회 부서교회 사역공간</div>
+                            <div style="font-size:12px; color:#64748b; font-weight:750; margin-top:2px;">본교회 부서교회 사역공간</div>
                         </div>
                     </div>
                     <span style="font-size:12.5px; font-weight:950; background:${isCurrentlyActive ? '#15803d' : '#16a34a'}; color:#ffffff; padding:5px 12px; border-radius:8px; white-space:nowrap; box-shadow:0 2px 6px rgba(22,163,74,0.25);">
@@ -16326,8 +16353,13 @@ const BIBLICAL_TIME_SLOTS = [
     function toggleMinistryAppMode() {
         const currentMode = localStorage.getItem("yetalk_current_church_mode") || "home";
         const homeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_home_church_name") || "부산제일감리교회").trim();
-        const appName = (document.getElementById("inpDrawerMinistryAppName")?.value || "").trim() || localStorage.getItem("yetalk_ministry_app_name") || "열린청년교회";
-        const leader = (document.getElementById("inpDrawerMinistryLeader")?.value || "").trim() || localStorage.getItem("yetalk_ministry_leader") || "열린청년교회 전임사역자";
+        const appName = (document.getElementById("inpDrawerMinistryAppName")?.value || "").trim() || localStorage.getItem("yetalk_ministry_app_name");
+        const leader = (document.getElementById("inpDrawerMinistryLeader")?.value || "").trim() || localStorage.getItem("yetalk_ministry_leader") || "전임사역자";
+
+        if (!appName) {
+            showToast("먼저 사역앱 이름을 설정하고 저장해주세요.");
+            return;
+        }
 
         if (currentMode === "home") {
             switchActiveChurchTo(appName, "ministry", leader);
@@ -16338,17 +16370,19 @@ const BIBLICAL_TIME_SLOTS = [
 
     // 🌟 [사용자 요청] 단순히 "사역을 위하여 초청합니다." 자동 복사 후 카카오톡으로 보내기
     function sendMinistryInviteKakao() {
+        const homeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_home_church_name") || "부산제일감리교회").trim();
         const appName = (document.getElementById("inpDrawerMinistryAppName")?.value || "").trim() || localStorage.getItem("yetalk_ministry_app_name") || "열린청년교회";
         const leader = (document.getElementById("inpDrawerMinistryLeader")?.value || "").trim() || localStorage.getItem("yetalk_ministry_leader") || "전임사역자";
 
+        const inviteUrl = `https://woongskorea.github.io/Yetalk-backup/?ministry=${encodeURIComponent(appName)}&leader=${encodeURIComponent(leader)}`;
         const fullMsg = `사역을 위하여 초청합니다.
 [${appName}] (${leader})
 
 모바일 교회사역앱 예톡으로 초대합니다.
-아래 링크를 눌러 사역공간에 함께 참여해 주세요!
+아래 링크를 누르면 상단 [가입] 버튼으로 바로 정회원 등록되어 함께 사역에 참여하실 수 있습니다.
 
-👉 바로가기:
-https://woongskorea.github.io/Yetalk-backup/`;
+👉 사역앱 바로가기:
+${inviteUrl}`;
 
         if (navigator.clipboard) {
             navigator.clipboard.writeText(fullMsg).catch(() => {});
@@ -16364,14 +16398,121 @@ https://woongskorea.github.io/Yetalk-backup/`;
                     navigator.share({
                         title: `[${appName}] 사역 초청`,
                         text: fullMsg,
-                        url: "https://woongskorea.github.io/Yetalk-backup/"
+                        url: inviteUrl
                     }).catch(() => {});
                 }
             }, 600);
         }
 
-        showToast("📋 '사역을 위하여 초청합니다.' 초청글이 자동 복사되어 카카오톡으로 연결됩니다!");
+        showToast("📋 '사역을 위하여 초청합니다.' 초청글과 가입링크가 자동 복사되어 카카오톡으로 연결됩니다!");
     }
+
+    // 🌟 [사용자 요청] 카톡 초대로 들어왔을 때 사역앱 정회원 원클릭 가입 로직
+    function openMinistryInviteJoinModal(appName, leader) {
+        appName = appName || sessionStorage.getItem("yetalk_invited_ministry") || "열린청년교회";
+        leader = leader || sessionStorage.getItem("yetalk_invited_leader") || "전임사역자";
+
+        const titleEl = document.getElementById("modalInviteMinistryTitle");
+        const subEl = document.getElementById("modalInviteMinistrySub");
+        if (titleEl) titleEl.innerText = appName;
+        if (subEl) subEl.innerText = `담당: ${leader}`;
+
+        const modal = document.getElementById("ministryInviteJoinModal");
+        if (modal) {
+            modal.style.display = "flex";
+            modal.classList.add("show");
+        }
+    }
+    window.openMinistryInviteJoinModal = openMinistryInviteJoinModal;
+
+    function closeMinistryInviteJoinModal() {
+        const modal = document.getElementById("ministryInviteJoinModal");
+        if (modal) {
+            modal.style.display = "none";
+            modal.classList.remove("show");
+        }
+    }
+    window.closeMinistryInviteJoinModal = closeMinistryInviteJoinModal;
+
+    function confirmJoinInvitedMinistry() {
+        const appName = sessionStorage.getItem("yetalk_invited_ministry") || (document.getElementById("modalInviteMinistryTitle")?.innerText || "").trim() || "열린청년교회";
+        const leader = sessionStorage.getItem("yetalk_invited_leader") || (document.getElementById("modalInviteMinistrySub")?.innerText || "").replace("담당: ", "").trim() || "전임사역자";
+
+        // 🌟 [사용자 요청] "가입원하시나요? 예 클릭으로 정회원 가입 됨"
+        localStorage.setItem("yetalk_user_grade", "정회원");
+        localStorage.setItem("yetalkUserGrade", "정회원");
+        localStorage.setItem("yetalk_is_registered", "true");
+        localStorage.setItem("yetalkIsRegularMember", "true");
+
+        // 가입된 사역앱 목록에 추가
+        let list = [];
+        try {
+            const raw = localStorage.getItem("yetalk_joined_ministry_apps");
+            if (raw) list = JSON.parse(raw);
+        } catch(e) {}
+        if (!Array.isArray(list)) list = [];
+
+        list = list.filter(a => a && a.id !== "sample_youth_1" && a.name !== "열린청년교회");
+        if (!list.some(a => a.name === appName)) {
+            list.unshift({
+                id: "ministry_" + Date.now(),
+                name: appName,
+                leader: leader,
+                desc: "담당 사역교회"
+            });
+            localStorage.setItem("yetalk_joined_ministry_apps", JSON.stringify(list));
+        }
+
+        // 해당 사역앱으로 모드 전환
+        switchActiveChurchTo(appName, "ministry", leader);
+        closeMinistryInviteJoinModal();
+        updateChristianHeaderUI();
+        updateDrawerInfo();
+
+        showToast(`🎉 [${appName}] 정회원으로 가입되었습니다!\n우측 상단 햄버거 메뉴(2층)에서 본교회와 사역앱을 자유롭게 전환하실 수 있습니다.`);
+    }
+    window.confirmJoinInvitedMinistry = confirmJoinInvitedMinistry;
+
+    function checkUrlForMinistryInvite() {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const ministryParam = urlParams.get("ministry");
+            const leaderParam = urlParams.get("leader") || "전임사역자";
+            if (!ministryParam) return;
+
+            sessionStorage.setItem("yetalk_invited_ministry", ministryParam);
+            sessionStorage.setItem("yetalk_invited_leader", leaderParam);
+
+            const joinedApps = getJoinedMinistryApps();
+            const alreadyJoined = joinedApps.some(a => a.name === ministryParam);
+
+            if (alreadyJoined) {
+                switchActiveChurchTo(ministryParam, "ministry", leaderParam);
+            } else {
+                // 상단 교회 이름을 초청된 사역앱 이름으로 설정
+                const churchBtn = document.getElementById("chipTabOurChurch");
+                if (churchBtn) {
+                    churchBtn.innerText = ministryParam;
+                    churchBtn.title = `${ministryParam} (${leaderParam}) - 초청 사역공간`;
+                }
+                // 상단 우측 가입 버튼을 [✨ 가입]으로 설정하고 클릭 시 모달 열기
+                const joinBtn = document.getElementById("btnHeaderJoinAction");
+                if (joinBtn) {
+                    joinBtn.innerHTML = "✨ 가입";
+                    joinBtn.title = `${ministryParam} 사역앱 가입`;
+                    joinBtn.style.background = "linear-gradient(135deg, #059669, #047857)";
+                    joinBtn.onclick = () => openMinistryInviteJoinModal(ministryParam, leaderParam);
+                }
+                // 방문자에게 가입 안내 팝업창 띄우기
+                setTimeout(() => {
+                    openMinistryInviteJoinModal(ministryParam, leaderParam);
+                }, 800);
+            }
+        } catch(e) {
+            console.error("checkUrlForMinistryInvite error:", e);
+        }
+    }
+    window.checkUrlForMinistryInvite = checkUrlForMinistryInvite;
 
     function updateDrawerInfo() {
         const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "성도").trim();
@@ -16379,9 +16520,30 @@ https://woongskorea.github.io/Yetalk-backup/`;
         const homeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_home_church_name") || "부산제일감리교회").trim();
         const role = (localStorage.getItem("yetalk_church_role") || localStorage.getItem("yetalkChurchRole") || localStorage.getItem("yetalk_user_role") || "성도").replace(/\(사모포함\)/g, '').replace(/\(간단가입\)/g, '').replace(/\(간단등록\)/g, '').trim();
 
+        // 🌟 [사용자 요청] 평소에는 안 보이고, 부목사나 전도사가 만들었을 때만 나의 교회사역앱 관리 노출!
+        const isAssistantPastor = (role.indexOf("부목사") >= 0 || role.indexOf("전도사") >= 0);
+        const hasCreatedMinistry = (localStorage.getItem("yetalk_has_ministry_app") === "true");
+        const ministrySection = document.getElementById("drawerMinistryAppSection");
+        if (ministrySection) {
+            if (isAssistantPastor || hasCreatedMinistry) {
+                ministrySection.style.display = "block";
+            } else {
+                ministrySection.style.display = "none";
+            }
+        }
+
         const currentMode = localStorage.getItem("yetalk_current_church_mode") || "home";
-        const ministryAppName = localStorage.getItem("yetalk_ministry_app_name") || "열린청년교회";
-        const ministryLeader = localStorage.getItem("yetalk_ministry_leader") || "열린청년교회 전임사역자";
+        const hasMinistry = (localStorage.getItem("yetalk_has_ministry_app") === "true");
+        const ministryAppName = hasMinistry ? (localStorage.getItem("yetalk_ministry_app_name") || "") : "";
+        const ministryLeader = hasMinistry ? (localStorage.getItem("yetalk_ministry_leader") || "") : "";
+
+        // 가입/개설된 사역앱이 없는데 사역앱 모드로 남아있다면 본교회 모드로 안전 복구
+        const apps = getJoinedMinistryApps();
+        if (apps.length === 0 && currentMode === "ministry") {
+            localStorage.setItem("yetalk_current_church_mode", "home");
+            localStorage.setItem("yetalk_church_name", homeChurch);
+            localStorage.setItem("yetalkChurchName", homeChurch);
+        }
 
         const nameEl = document.getElementById("drawerUserProfileName");
         const roleEl = document.getElementById("drawerUserProfileRole");
@@ -16391,25 +16553,25 @@ https://woongskorea.github.io/Yetalk-backup/`;
         if (roleEl) {
             roleEl.style.fontSize = "15.5px";
             roleEl.style.fontWeight = "950";
-            if (currentMode === "ministry") {
-                roleEl.innerHTML = `<span style="color:#1d4ed8; font-weight:950;">⛪ ${homeChurch}</span> · <span style="color:#0f172a; font-weight:900;">${role}</span> <span style="font-size:11.5px; color:#15803d; background:#dcfce7; padding:2px 7px; border-radius:5px; margin-left:4px;">(현재 사역앱 이용중)</span>`;
+            if (currentMode === "ministry" && church !== homeChurch) {
+                roleEl.innerHTML = `<span style="color:#1d4ed8; font-weight:950;">⛪ ${homeChurch}</span> · <span style="color:#0f172a; font-weight:900;">${role}</span> <span style="font-size:11.5px; color:#15803d; background:#dcfce7; padding:2px 7px; border-radius:5px; margin-left:4px;">(사역앱 이용중)</span>`;
             } else {
                 roleEl.innerHTML = `<span style="color:#15803d; font-weight:950;">⛪ ${homeChurch}</span> · <span style="color:#0f172a; font-weight:900;">${role}</span>`;
             }
         }
 
-        // 🌟 [사용자 요청] 부산제일감리교회 이름 및 직분 바로 밑에 가입된 사역앱 목록 렌더링
+        // 🌟 [사용자 요청] 부산제일감리교회 이름 및 직분 바로 밑에 가입된 사역앱 목록 렌더링 (없으면 아예 숨김)
         renderDrawerJoinedMinistryApps();
 
         // 🌟 [사용자 요청] 4-2. 사역앱 관리 섹션 입력창 및 토글 버튼 갱신
         const inpName = document.getElementById("inpDrawerMinistryAppName");
         const inpLeader = document.getElementById("inpDrawerMinistryLeader");
-        if (inpName && !inpName.value) inpName.value = ministryAppName;
-        if (inpLeader && !inpLeader.value) inpLeader.value = ministryLeader;
+        if (inpName && !inpName.value && ministryAppName) inpName.value = ministryAppName;
+        if (inpLeader && !inpLeader.value && ministryLeader) inpLeader.value = ministryLeader;
 
         const badgeMode = document.getElementById("badgeCurrentAppMode");
         const btnToggle = document.getElementById("btnToggleMinistryAppMode");
-        if (currentMode === "ministry") {
+        if (currentMode === "ministry" && church !== homeChurch) {
             if (badgeMode) {
                 badgeMode.innerText = "🌿 사역앱 모드";
                 badgeMode.style.background = "#dbeafe";
@@ -16417,6 +16579,20 @@ https://woongskorea.github.io/Yetalk-backup/`;
                 badgeMode.style.borderColor = "#93c5fd";
             }
             if (btnToggle) {
+                btnToggle.innerHTML = `⛪ 본교회 복귀<br><small style="font-size:10.5px;">(${homeChurch})</small>`;
+            }
+        } else {
+            if (badgeMode) {
+                badgeMode.innerText = "⛪ 본교회 모드";
+                badgeMode.style.background = "#dcfce7";
+                badgeMode.style.color = "#15803d";
+                badgeMode.style.borderColor = "#86efac";
+            }
+            if (btnToggle) {
+                btnToggle.innerHTML = `🔄 사역앱 전환<br><small style="font-size:10.5px;">(${ministryAppName || '사역앱'})</small>`;
+                btnToggle.style.background = "linear-gradient(135deg, #0284c7, #2563eb)";
+            }
+        }
                 btnToggle.innerHTML = `⛪ 본교회 복귀<br><small style="font-size:10.5px;">(${homeChurch})</small>`;
                 btnToggle.style.background = "linear-gradient(135deg, #059669, #047857)";
             }
@@ -17048,6 +17224,10 @@ https://woongskorea.github.io/Yetalk-backup/`;
         }
 
         const urlParams = new URLSearchParams(window.location.search);
+        // 🌟 [사용자 요청] 카톡 초대로 들어온 사역앱(ministry) 파라미터 감지 및 원클릭 가입 유도
+        if (typeof checkUrlForMinistryInvite === 'function') {
+            checkUrlForMinistryInvite();
+        }
         const bookParam = urlParams.get("book");
         if (bookParam) {
             localStorage.setItem("yetalk_user_bible_book", bookParam);
@@ -19241,12 +19421,27 @@ https://woongskorea.github.io/Yetalk-backup/`;
         const userGrade = localStorage.getItem("yetalk_user_grade") || localStorage.getItem("yetalkUserGrade") || "";
         const memberType = localStorage.getItem("yetalk_member_type") || "";
         const isRegistered = localStorage.getItem("yetalk_is_registered") === "true";
+        const invitedMinistry = sessionStorage.getItem("yetalk_invited_ministry");
+        const joinedApps = getJoinedMinistryApps();
+        const isAlreadyJoinedThisMinistry = invitedMinistry ? joinedApps.some(a => a.name === invitedMinistry) : false;
 
         // 정회원 판정:
         // 기독교인 정회원(교회명 존재 & 정회원) 또는 일반인 정회원(연락처+거주지 입력 완료)
         const isRegularMember = (userGrade === "정회원") || (memberType === "christian" && isRegistered && rawRole && rawRole !== "준회원") || (localStorage.getItem("yetalkIsRegularMember") === "true");
 
         if (joinBtn) {
+            // 🌟 [사용자 요청] 카톡 초대로 들어와 아직 해당 사역앱에 가입하지 않은 상태라면: 상단에 [✨ 가입] 버튼 노출!
+            // 클릭 시 "가입을 원하시나요? [예]" 팝업으로 즉시 정회원 가입!
+            if (invitedMinistry && !isAlreadyJoinedThisMinistry) {
+                joinBtn.innerHTML = "✨ 가입";
+                joinBtn.title = `${invitedMinistry} 사역앱 정회원 가입`;
+                joinBtn.style.background = "linear-gradient(135deg, #059669, #047857)";
+                joinBtn.style.borderColor = "#10b981";
+                joinBtn.style.padding = "5px 14px";
+                joinBtn.onclick = () => openMinistryInviteJoinModal(invitedMinistry, sessionStorage.getItem("yetalk_invited_leader"));
+                return;
+            }
+
             if (uName && isRegularMember) {
                 // 정회원으로 등록 완료된 경우 [이름 (직분/정회원)] 표시 및 수정 모달 연결
                 let displayRole = rawRole.replace(/\(사모포함\)/g, '').replace(/\(간단가입\)/g, '').replace(/\(간단등록\)/g, '').trim() || (memberType === "general" ? "정회원" : "성도");
@@ -19258,10 +19453,10 @@ https://woongskorea.github.io/Yetalk-backup/`;
                 joinBtn.style.padding = "5px 10px";
                 joinBtn.onclick = () => openChristianRegisterModal();
             } else {
-                // 🌟 준회원이거나 처음 온 경우: 무조건 "✨ 회원가입"으로 또렷하게 표기!
+                // 🌟 준회원이거나 처음 온 경우: 무조건 "✨ 가입"으로 또렷하게 표기!
                 // 클릭하면 이름은 입력창에 채워진 채로 열려서 나머지 정보(교회 or 연락처·거주지)를 입력하도록 유도
-                joinBtn.innerHTML = "✨ 회원가입";
-                joinBtn.title = uName ? `회원가입 (${uName}님 준회원 ➔ 정회원 등록)` : "예톡 회원가입";
+                joinBtn.innerHTML = "✨ 가입";
+                joinBtn.title = uName ? `가입 (${uName}님 준회원 ➔ 정회원 등록)` : "예톡 회원가입";
                 joinBtn.style.background = "linear-gradient(135deg, #059669, #047857)";
                 joinBtn.style.borderColor = "#10b981";
                 joinBtn.style.padding = "5px 12px";
