@@ -5396,7 +5396,7 @@
                     <img id="headerLogoRegionImg" src="images/logo/logo_korea.png" alt="Korea" style="height:22px; width:auto; display:inline-block; object-fit:contain; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.06)); vertical-align:middle; transition:all 0.18s ease;">
                     <span id="headerLogoRegion" style="display:none;">Korea</span>
                 </span>
-                <span id="headerLogoLangBadge" style="font-size:10.5px; font-weight:800; color:#10b981; opacity:0.85; margin-left:4px;">🌐</span>
+
             </div>
         </div>
         <div class="header-right-actions" style="display:flex; align-items:center; gap:8px; align-self:flex-end; padding-bottom:2px;">
@@ -13181,9 +13181,7 @@ const BIBLICAL_TIME_SLOTS = [
             leafEl.style.right = isEn ? "-8px" : "-10px";
             leafEl.style.fill = isEn ? "#0284c7" : "#10b981";
         }
-        if (langBadge) {
-            langBadge.style.color = isEn ? "#0284c7" : "#10b981";
-        }
+        
 
         // 2. 상단 우측 버튼 (회원가입 / 👤 최베드로 (장로) 유지)
         if (typeof updateChristianHeaderUI === 'function') {
@@ -16248,8 +16246,8 @@ const BIBLICAL_TIME_SLOTS = [
         } catch(e) {}
         if (!Array.isArray(list)) list = [];
 
-        // 과거 하드코딩되었던 목업 샘플 ID(sample_youth_1)만 완전 제거
-        list = list.filter(a => a && a.id !== "sample_youth_1");
+        // 과거 하드코딩되었던 목업 샘플 ID 및 미가입 테스트 데이터 완전 제거
+        list = list.filter(a => a && a.id !== "sample_youth_1" && a.name !== "열린청년교회");
 
         // 사용자가 부목사/전도사로서 직접 개설/저장한 사역앱이 있다면 목록에 병합
         const hasMyMinistry = localStorage.getItem("yetalk_has_ministry_app") === "true";
@@ -19390,11 +19388,31 @@ https://woongskorea.github.io/Yetalk-backup/`;
     }
 
     function updateChristianHeaderUI() {
-        // 🌟 [사용자 요청] 퀵 메뉴 바에 본인 교회 실제 이름 버튼 표출 (저장된 교회명 즉시 반영)
-        const churchName = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회";
+        // 🌟 [사용자 요청] 아직 가입하지 않은 테스트용 열린청년교회 모의 데이터 자동 정리 및 본교회(부산제일감리교회) 정상 복원
+        try {
+            const rawChurch = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "").trim();
+            const homeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_home_church_name") || "부산제일감리교회").trim();
+            const joinedList = getJoinedMinistryApps();
+            const isJoinedCurrent = joinedList.some(a => a && a.name === rawChurch);
+
+            // 열린청년교회 테스트 모의값이거나 가입되지 않은 사역앱인 경우 본교회로 자동 원복
+            if (rawChurch === "열린청년교회" || (rawChurch && rawChurch !== homeChurch && !isJoinedCurrent)) {
+                localStorage.setItem("yetalk_church_name", homeChurch);
+                localStorage.setItem("yetalkChurchName", homeChurch);
+                localStorage.setItem("yetalk_current_church_mode", "home");
+            }
+            if (localStorage.getItem("yetalk_ministry_app_name") === "열린청년교회") {
+                localStorage.removeItem("yetalk_has_ministry_app");
+                localStorage.removeItem("yetalk_ministry_app_name");
+                localStorage.removeItem("yetalk_ministry_leader");
+            }
+        } catch(e) {}
+
+        // 🌟 [사용자 요청] 퀵 메뉴 바에 본인 교회 실제 이름 버튼 표출 (본교회 부산제일감리교회 기본)
+        const churchName = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회").trim();
         const ourChurchTab = document.getElementById("chipTabOurChurch");
         if (ourChurchTab) {
-            ourChurchTab.innerHTML = `${churchName.trim()}`;
+            ourChurchTab.innerHTML = `${churchName}`;
         }
 
         // 🌟 [사용자 요청] 개인앱에서 이름만으로 준회원 등록되었어도 예톡홈에서는 회원가입이라고 적어줘.. 누르면 이름은 그대로 띄워주고 나머지 입력하도록
@@ -19410,7 +19428,7 @@ https://woongskorea.github.io/Yetalk-backup/`;
 
         // 정회원 판정:
         // 기독교인 정회원(교회명 존재 & 정회원) 또는 일반인 정회원(연락처+거주지 입력 완료)
-        const isRegularMember = (userGrade === "정회원") || (memberType === "christian" && isRegistered && rawRole && rawRole !== "준회원") || (localStorage.getItem("yetalkIsRegularMember") === "true");
+        const isRegularMember = (userGrade === "정회원") || (memberType === "christian" && isRegistered && rawRole && rawRole !== "준회원") || (localStorage.getItem("yetalkIsRegularMember") === "true") || (uName && isRegistered) || (uName && rawRole && !rawRole.includes("준회원"));
 
         if (joinBtn) {
             // 🌟 [사용자 요청] 카톡 초대로 들어와 아직 해당 사역앱에 가입하지 않은 상태라면: 상단에 [✨ 가입] 버튼 노출!
