@@ -453,6 +453,39 @@
                 width: 100%;
             }
         }
+
+        /* 🌟 [사용자 요청] 성도중보 기도 요청 2줄 말줄임 및 리스트 스타일 */
+        .saint-pray-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.6;
+            max-height: 3.25em;
+            transition: all 0.2s ease;
+        }
+        .saint-pray-clamp-2.expanded {
+            display: block !important;
+            -webkit-line-clamp: unset !important;
+            overflow: visible !important;
+            max-height: none !important;
+        }
+        .saint-pray-item {
+            padding: 12px 2px;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background 0.15s ease;
+        }
+        .saint-pray-item:last-child {
+            border-bottom: none;
+        }
+        #saintsPrayListContainer::-webkit-scrollbar {
+            width: 5px;
+        }
+        #saintsPrayListContainer::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -479,8 +512,8 @@
                         <strong style="color:#0284c7; font-size:16px; font-weight:950;">이번 주의 기도</strong>
                         <span id="badgeWeeklyPrayDate" style="background:#e0f2fe; color:#0369a1; font-size:11px; font-weight:900; padding:2px 7px; border-radius:8px;">금주 기도제목</span>
                     </div>
-                    <button type="button" onclick="openWeeklyPrayEditModal()" style="background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; font-size:12px; font-weight:950; padding:6px 12px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(2,132,199,0.25);">
-                        <span>✏️</span> <span>기도제목 수정</span>
+                    <button type="button" id="btnWeeklyPrayTopAction" onclick="handleWeeklyPrayTopAction()" style="background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; font-size:12px; font-weight:950; padding:6px 12px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(2,132,199,0.25);">
+                        <span>✏️</span> <span id="txtWeeklyPrayTopAction">기도제목 수정</span>
                     </button>
                 </div>
 
@@ -503,10 +536,16 @@
                         <span id="txtWeeklyPrayTopicTitle" style="font-size:14.5px; font-weight:950; color:#0369a1; display:flex; align-items:center; gap:5px;">
                             <span>⛪</span> <span>교회를 위한 기도제목</span>
                         </span>
-                        <span style="font-size:11px; font-weight:800; color:#64748b;">매주 업데이트</span>
+                        <span id="badgeWeeklyPrayUpdate" style="font-size:11px; font-weight:800; color:#64748b;">매주 업데이트</span>
+                        <button type="button" id="btnNewSaintPray" onclick="openWriteSaintPrayModal()" style="display:none; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; font-size:12px; font-weight:950; padding:5px 12px; border-radius:8px; cursor:pointer; align-items:center; gap:4px; box-shadow:0 2px 5px rgba(2,132,199,0.25);">
+                            <span>✏️</span> <span>+ 새글 쓰기</span>
+                        </button>
                     </div>
-                    <!-- 대형 텍스트 기도 내용 본문 -->
+                    <!-- 대형 텍스트 기도 내용 본문 (교회, 나라 탭) -->
                     <div id="txtWeeklyPrayBody" style="font-size:16.5px; font-weight:750; color:#1e293b; line-height:1.75; word-break:keep-all; white-space:pre-wrap; min-height:100px;">
+                    </div>
+                    <!-- 👥 성도중보 기도 요청 리스트 (성도 탭) -->
+                    <div id="saintsPrayListContainer" style="display:none; flex-direction:column; max-height:450px; overflow-y:auto;">
                     </div>
                 </div>
             </section>
@@ -571,6 +610,37 @@
             <div style="display:flex; justify-content:flex-end; gap:8px; padding:12px 18px; border-top:1.5px solid #f1f5f9; background:#f8fafc;">
                 <button type="button" onclick="closeWeeklyPrayEditModal()" style="padding:9px 16px; background:#e2e8f0; color:#475569; border:none; border-radius:9px; font-size:13px; font-weight:850; cursor:pointer;">취소</button>
                 <button type="button" onclick="saveWeeklyPrayEdit()" style="padding:9px 20px; background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; border:none; border-radius:9px; font-size:13px; font-weight:950; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.3);">💾 저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🌟 [사용자 요청] 성도중보 기도 요청 새글 작성 모달 (비실명 작성 지원) -->
+    <div class="modal-overlay" id="modalWriteSaintPray" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:950; align-items:center; justify-content:center; padding:16px;">
+        <div style="background:#ffffff; border-radius:16px; width:100%; max-width:440px; box-shadow:0 10px 30px rgba(0,0,0,0.25); overflow:hidden; animation:modalPop 0.2s ease;">
+            <div style="background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; padding:14px 18px; display:flex; justify-content:space-between; align-items:center;">
+                <strong style="font-size:16px; font-weight:950; display:flex; align-items:center; gap:6px;">
+                    <span>👥</span> <span>성도중보 기도 요청</span>
+                </strong>
+                <button type="button" onclick="closeWriteSaintPrayModal()" style="background:none; border:none; color:#ffffff; font-size:22px; font-weight:bold; cursor:pointer; line-height:1;">✕</button>
+            </div>
+            <div style="padding:18px; display:flex; flex-direction:column; gap:14px;">
+                <div>
+                    <label style="display:block; font-size:12.5px; font-weight:900; color:#334155; margin-bottom:5px;">
+                        작성자 이름 / 닉네임 (비실명 가능)
+                    </label>
+                    <input type="text" id="inpSaintPrayAuthor" placeholder="예: 최베드로, 최아무개, 익명 성도" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:14px; font-weight:700; box-sizing:border-box; outline:none;" />
+                    <span style="font-size:11px; color:#64748b; margin-top:4px; display:block;">* 실명 대신 '최아무개', '익명 성도' 등 원하시는 이름으로 자유롭게 적으실 수 있습니다.</span>
+                </div>
+                <div>
+                    <label style="display:block; font-size:12.5px; font-weight:900; color:#334155; margin-bottom:5px;">
+                        기도 제목 및 요청 내용
+                    </label>
+                    <textarea id="inpSaintPrayContent" rows="5" placeholder="환우 치유, 사업·가정의 회복, 진로·자녀 등 성도들과 함께 기도할 제목을 자세히 적어주세요." style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:14.5px; font-weight:600; line-height:1.6; resize:vertical; box-sizing:border-box; outline:none; font-family:inherit;"></textarea>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+                    <button type="button" onclick="closeWriteSaintPrayModal()" style="padding:10px 16px; border:1.5px solid #cbd5e1; background:#f8fafc; color:#475569; border-radius:8px; font-size:13.5px; font-weight:900; cursor:pointer;">취소</button>
+                    <button type="button" onclick="submitSaintPrayRequest()" style="padding:10px 18px; border:none; background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; border-radius:8px; font-size:13.5px; font-weight:950; cursor:pointer; box-shadow:0 3px 8px rgba(2,132,199,0.3);">🙏 기도 요청 등록</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1938,7 +2008,7 @@
     }
 
     // =========================================================================
-    // 🌟 [사용자 요청] 이번 주의 기도 (교회 · 나라 · 성도 3대 메뉴 & 대형 텍스트 & 매주 수정)
+    // 🌟 [사용자 요청] 이번 주의 기도 (교회 · 나라 · 성도 3대 메뉴)
     // =========================================================================
     const WEEKLY_PRAY_STORAGE_KEY = 'yetalk_weekly_pray_topics_v2';
     const DEFAULT_WEEKLY_PRAY = {
@@ -1959,6 +2029,204 @@
     let currentWeeklyPrayCat = 'church';
     let weeklyPrayData = null;
 
+    // =========================================================================
+    // 🌟 [사용자 요청] 성도중보 기도 요청 (2줄 미리보기, 1px 구분선, 비실명 작성 지원)
+    // =========================================================================
+    const SAINTS_PRAY_STORAGE_KEY = 'yetalk_saints_prayer_requests_v2';
+    const DEFAULT_SAINTS_PRAYERS = [
+        {
+            id: 'sp_1',
+            author: '환우가족',
+            date: '2026.11.22',
+            content: '육신의 질병과 암, 수술, 투병 가운데 있는 환우 성도님들에게 여호와 라파 치료의 광선을 비추어 깨끗이 낫게 하시고 고통 중에 있는 성도들의 마음에 하늘의 평강을 주옵소서.',
+            cheers: 8
+        },
+        {
+            id: 'sp_2',
+            author: '믿음의성도',
+            date: '2026.11.21',
+            content: '경제적 어려움과 사업, 직장, 생업의 위기 속에 있는 가정마다 까마귀를 통한 엘리야의 공급하심이 임하게 하시고 막힌 문이 열리는 축복을 주옵소서.',
+            cheers: 6
+        },
+        {
+            id: 'sp_3',
+            author: '청년부교구',
+            date: '2026.11.20',
+            content: '취업과 진로, 결혼과 출산, 자녀 양육을 앞두고 기도하는 성도들에게 가장 선하고 복된 길을 예비하여 주옵소서.',
+            cheers: 11
+        },
+        {
+            id: 'sp_4',
+            author: '중보기도팀',
+            date: '2026.11.19',
+            content: '삶의 무거운 짐으로 지치고 낙심한 영혼들이 십자가 사랑 안에서 참된 안식과 회복을 얻게 하옵소서.',
+            cheers: 14
+        }
+    ];
+
+    let saintsPrayList = [];
+
+    function loadSaintsPrayList() {
+        try {
+            const raw = localStorage.getItem(SAINTS_PRAY_STORAGE_KEY);
+            if (raw) {
+                saintsPrayList = JSON.parse(raw);
+            }
+        } catch(e) {}
+        if (!saintsPrayList || !Array.isArray(saintsPrayList) || saintsPrayList.length === 0) {
+            saintsPrayList = [...DEFAULT_SAINTS_PRAYERS];
+            saveSaintsPrayList();
+        }
+    }
+
+    function saveSaintsPrayList() {
+        try {
+            localStorage.setItem(SAINTS_PRAY_STORAGE_KEY, JSON.stringify(saintsPrayList));
+        } catch(e) {}
+    }
+
+    function renderSaintsPrayList() {
+        const container = document.getElementById('saintsPrayListContainer');
+        if (!container) return;
+
+        if (saintsPrayList.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:30px 10px; color:#94a3b8; font-size:13.5px; font-weight:700;">
+                    등록된 성도중보 기도 요청이 없습니다.<br>
+                    우측 상단 <b>+ 새글 쓰기</b>를 눌러 첫 기도 요청을 올려주세요! 🙏
+                </div>
+            `;
+            return;
+        }
+
+        const myName = getCurrentUser();
+        const isAdmin = isUserAdminOrSubAdmin();
+
+        let html = '';
+        saintsPrayList.forEach(item => {
+            const isOwner = (item.author && item.author === myName);
+            const canDelete = isOwner || isAdmin;
+            html += `
+                <div class="saint-pray-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-size:13.5px; font-weight:900; color:#0369a1; display:inline-flex; align-items:center; gap:3px;">
+                                <span>👤</span> <span>${escapeHtml(item.author || '익명 성도')}</span>
+                            </span>
+                            <span style="font-size:11px; font-weight:700; color:#94a3b8;">${escapeHtml(item.date || '')}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <button type="button" onclick="cheerSaintPray('${item.id}')" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; font-size:11.5px; font-weight:850; padding:2.5px 9px; border-radius:12px; cursor:pointer; display:inline-flex; align-items:center; gap:3px;">
+                                <span>🙏 아멘</span> <span id="cheer_val_${item.id}">${item.cheers || 0}</span>
+                            </button>
+                            ${canDelete ? `
+                                <button type="button" onclick="deleteSaintPray('${item.id}')" style="background:none; border:none; color:#94a3b8; font-size:12px; cursor:pointer; padding:2px;" title="기도 요청 삭제">🗑️</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div id="saint_content_${item.id}" onclick="toggleExpandSaintPray('${item.id}')" class="saint-pray-clamp-2" style="font-size:15px; font-weight:700; color:#1e293b; line-height:1.65; word-break:keep-all; cursor:pointer;">
+                        ${escapeHtml(item.content || '')}
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; margin-top:4px;">
+                        <span id="saint_hint_${item.id}" onclick="toggleExpandSaintPray('${item.id}')" style="font-size:11px; font-weight:800; color:#0284c7; cursor:pointer;">더보기 ▼</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function toggleExpandSaintPray(id) {
+        const el = document.getElementById('saint_content_' + id);
+        const hint = document.getElementById('saint_hint_' + id);
+        if (!el) return;
+        if (el.classList.contains('expanded')) {
+            el.classList.remove('expanded');
+            if (hint) hint.innerText = '더보기 ▼';
+        } else {
+            el.classList.add('expanded');
+            if (hint) hint.innerText = '접기 ▲';
+        }
+    }
+
+    function cheerSaintPray(id) {
+        const item = saintsPrayList.find(x => x.id === id);
+        if (item) {
+            item.cheers = (item.cheers || 0) + 1;
+            saveSaintsPrayList();
+            const valEl = document.getElementById('cheer_val_' + id);
+            if (valEl) valEl.innerText = item.cheers;
+        }
+    }
+
+    function deleteSaintPray(id) {
+        if (!confirm('이 기도 요청을 삭제하시겠습니까?')) return;
+        saintsPrayList = saintsPrayList.filter(x => x.id !== id);
+        saveSaintsPrayList();
+        renderSaintsPrayList();
+    }
+
+    function openWriteSaintPrayModal() {
+        const myName = getCurrentUser();
+        const authorInp = document.getElementById('inpSaintPrayAuthor');
+        if (authorInp) {
+            authorInp.value = myName || '익명 성도';
+        }
+        const contentInp = document.getElementById('inpSaintPrayContent');
+        if (contentInp) contentInp.value = '';
+        const modal = document.getElementById('modalWriteSaintPray');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function closeWriteSaintPrayModal() {
+        const modal = document.getElementById('modalWriteSaintPray');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function submitSaintPrayRequest() {
+        const authorInp = document.getElementById('inpSaintPrayAuthor');
+        const contentInp = document.getElementById('inpSaintPrayContent');
+        let author = authorInp ? authorInp.value.trim() : '';
+        let content = contentInp ? contentInp.value.trim() : '';
+
+        if (!author) author = '익명 성도';
+        if (!content) {
+            alert('기도 요청 내용을 입력해 주세요.');
+            if (contentInp) contentInp.focus();
+            return;
+        }
+
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const dateStr = `${y}.${m}.${d}`;
+
+        const newPost = {
+            id: 'sp_' + Date.now(),
+            author: author,
+            date: dateStr,
+            content: content,
+            cheers: 1
+        };
+
+        // 새글은 최상단에 추가 (위로 적어지도록)
+        saintsPrayList.unshift(newPost);
+        saveSaintsPrayList();
+        closeWriteSaintPrayModal();
+        renderSaintsPrayList();
+        alert('성도중보 기도 요청이 은혜롭게 등록되었습니다! 🙏');
+    }
+
+    function handleWeeklyPrayTopAction() {
+        if (currentWeeklyPrayCat === 'saints') {
+            openWriteSaintPrayModal();
+        } else {
+            openWeeklyPrayEditModal();
+        }
+    }
+
     function initWeeklyPray() {
         try {
             const raw = localStorage.getItem(WEEKLY_PRAY_STORAGE_KEY);
@@ -1968,22 +2236,47 @@
             weeklyPrayData = { ...DEFAULT_WEEKLY_PRAY };
             localStorage.setItem(WEEKLY_PRAY_STORAGE_KEY, JSON.stringify(weeklyPrayData));
         }
+        loadSaintsPrayList();
         renderWeeklyPray();
     }
 
     function renderWeeklyPray() {
         const bodyEl = document.getElementById('txtWeeklyPrayBody');
         const titleEl = document.getElementById('txtWeeklyPrayTopicTitle');
+        const updateBadge = document.getElementById('badgeWeeklyPrayUpdate');
+        const newPrayBtn = document.getElementById('btnNewSaintPray');
+        const saintsContainer = document.getElementById('saintsPrayListContainer');
+        const topActionBtn = document.getElementById('btnWeeklyPrayTopAction');
+        const topActionText = document.getElementById('txtWeeklyPrayTopAction');
         if (!bodyEl) return;
 
         const catTitles = {
             church: '<span>⛪</span> <span>교회를 위한 기도제목</span>',
             nation: '<span>🇰🇷</span> <span>나라와 민족을 위한 기도제목</span>',
-            saints: '<span>👥</span> <span>성도와 환우를 위한 기도제목</span>'
+            saints: '<span>👥</span> <span>성도중보 기도 요청</span>'
         };
 
         if (titleEl) titleEl.innerHTML = catTitles[currentWeeklyPrayCat] || catTitles.church;
-        bodyEl.innerText = (weeklyPrayData && weeklyPrayData[currentWeeklyPrayCat]) || DEFAULT_WEEKLY_PRAY[currentWeeklyPrayCat] || '';
+
+        if (currentWeeklyPrayCat === 'saints') {
+            // 성도 탭: 제목 "성도중보 기도 요청", "매주 업데이트" 숨김, "+ 새글 쓰기" 표시, 2줄 말줄임 리스트 표시
+            if (updateBadge) updateBadge.style.display = 'none';
+            if (newPrayBtn) newPrayBtn.style.display = 'inline-flex';
+            if (topActionText) topActionText.innerText = '+ 새글 쓰기';
+            bodyEl.style.display = 'none';
+            if (saintsContainer) {
+                saintsContainer.style.display = 'flex';
+                renderSaintsPrayList();
+            }
+        } else {
+            // 교회/나라 탭: 정적 본문 및 매주 업데이트 표시
+            if (updateBadge) updateBadge.style.display = 'inline';
+            if (newPrayBtn) newPrayBtn.style.display = 'none';
+            if (topActionText) topActionText.innerText = '기도제목 수정';
+            bodyEl.style.display = 'block';
+            if (saintsContainer) saintsContainer.style.display = 'none';
+            bodyEl.innerText = (weeklyPrayData && weeklyPrayData[currentWeeklyPrayCat]) || DEFAULT_WEEKLY_PRAY[currentWeeklyPrayCat] || '';
+        }
 
         ['church', 'nation', 'saints'].forEach(cat => {
             const btn = document.getElementById('btnPrayCat_' + cat);
