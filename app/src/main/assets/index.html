@@ -5383,7 +5383,7 @@
             <span id="txtHeaderLiveClock" style="font-size:11.5px; font-weight:800; color:#64748b; letter-spacing:-0.2px; line-height:1.2; margin-bottom:2px;">
                 🕒 <span id="liveClockDateText">11월 21일(토) 오후 4:25</span>
             </span>
-            <div style="display:flex; align-items:flex-end; gap:0px; position:relative;">
+            <div style="display:flex; align-items:center; gap:0px; position:relative;">
                 <span style="position:relative; display:inline-flex; align-items:baseline;">
                     <span id="headerLogoBrand" style="font-size:25px; font-weight:950; color:#059669; letter-spacing:-0.6px; line-height:1;">예톡</span>
                     <!-- 우상단 녹색 잎파리 (Brand Asset) -->
@@ -5391,9 +5391,12 @@
                         <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"/>
                     </svg>
                 </span>
-                <!-- 나지막하면서 분위기 있는 Korea / English -->
-                <span id="headerLogoRegion" style="font-family:'Georgia','Times New Roman',serif; font-style:italic; font-weight:700; font-size:13.5px; color:#059669; opacity:0.88; letter-spacing:0.3px; margin-left:14px; line-height:1; padding-bottom:1px;">Korea</span>
-                <span id="headerLogoLangBadge" style="font-size:9.5px; font-weight:800; color:#10b981; opacity:0.85; margin-left:4px; padding-bottom:1px;">🌐</span>
+                <!-- 🌟 [사용자 요청] 새 캘리그래피 디자인 (Korea / English, 10% 확대 22px 높이) -->
+                <span id="headerLogoRegionWrap" style="display:inline-flex; align-items:center; margin-left:14px; vertical-align:middle;">
+                    <img id="headerLogoRegionImg" src="images/logo/logo_korea.png" alt="Korea" style="height:22px; width:auto; display:inline-block; object-fit:contain; filter:drop-shadow(0 1px 2px rgba(0,0,0,0.06)); vertical-align:middle; transition:all 0.18s ease;">
+                    <span id="headerLogoRegion" style="display:none;">Korea</span>
+                </span>
+                <span id="headerLogoLangBadge" style="font-size:10.5px; font-weight:800; color:#10b981; opacity:0.85; margin-left:4px;">🌐</span>
             </div>
         </div>
         <div class="header-right-actions" style="display:flex; align-items:center; gap:8px; align-self:flex-end; padding-bottom:2px;">
@@ -13153,22 +13156,33 @@ const BIBLICAL_TIME_SLOTS = [
     function applyAppLanguageUI(lang, showToastMsg) {
         const isEn = (lang === "en");
 
-        // 1. 상단 로고 (예톡 Korea <-> YETALK English)
+        // 1. 상단 로고 (예톡 Korea <-> YETALK English, 캘리그래피 그래픽 디자인)
         const brandEl = document.getElementById("headerLogoBrand");
         const regionEl = document.getElementById("headerLogoRegion");
+        const regionImg = document.getElementById("headerLogoRegionImg");
         const leafEl = document.getElementById("headerLogoLeaf");
+        const langBadge = document.getElementById("headerLogoLangBadge");
+
         if (brandEl) {
             brandEl.innerText = isEn ? "YETALK" : "예톡";
             brandEl.style.color = isEn ? "#0284c7" : "#059669";
-            brandEl.style.fontSize = isEn ? "23px" : "25px";
+            brandEl.style.fontSize = isEn ? "24px" : "25px";
+        }
+        if (regionImg) {
+            regionImg.src = isEn ? "images/logo/logo_english.png" : "images/logo/logo_korea.png";
+            regionImg.alt = isEn ? "English" : "Korea";
+            // 🌟 [사용자 요청] 기존보다 10% 정도 살짝 키운 높이 (22px ~ 23px)
+            regionImg.style.height = isEn ? "23px" : "22px";
         }
         if (regionEl) {
             regionEl.innerText = isEn ? "English" : "Korea";
-            regionEl.style.color = isEn ? "#0284c7" : "#059669";
         }
         if (leafEl) {
             leafEl.style.right = isEn ? "-8px" : "-10px";
             leafEl.style.fill = isEn ? "#0284c7" : "#10b981";
+        }
+        if (langBadge) {
+            langBadge.style.color = isEn ? "#0284c7" : "#10b981";
         }
 
         // 2. 상단 우측 버튼 (회원가입 <-> Join)
@@ -13290,7 +13304,12 @@ const BIBLICAL_TIME_SLOTS = [
         }
 
         if (showToastMsg) {
-            showToast(isEn ? "🌐 Switched to English mode (YETALK English)" : "🇰🇷 한국어 모드로 전환되었습니다 (예톡 Korea)");
+            const toastMsg = isEn ? "🌐 Switched to English mode (YETALK English)" : "🇰🇷 한국어 모드로 전환되었습니다 (예톡 Korea)";
+            if (typeof showToast === 'function') {
+                showToast(toastMsg);
+            } else if (typeof showBibleToast === 'function') {
+                showBibleToast(toastMsg);
+            }
         }
     }
 
