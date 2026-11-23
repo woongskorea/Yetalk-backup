@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>소모임 사랑방 커뮤니티 | 예톡</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --safe-top: max(env(safe-area-inset-top, 0px), 0px);
+            --safe-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+            --brand-green: #15803d;
+            --brand-blue: #0284c7;
+            --text-dark: #111827;
+            --text-sub: #4b5563;
+            --text-muted: #9ca3af;
+            --border-light: #f1f5f9;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            color: var(--text-dark);
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 🌟 전체화면 커뮤니티 컨테이너 */
+        .board-fullscreen-container {
+            width: 100%;
+            max-width: 520px;
+            height: 100%;
+            margin: 0 auto;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.06);
+        }
+
+        @media (min-width: 1024px) {
+            .board-fullscreen-container { max-width: 760px; }
+        }
+
+        /* 🌟 헤더 (뒤로가기, 소모임이름, 방장, 공개/비공개 토글) */
+        .board-fullscreen-header {
+            background: #ffffff;
+            border-bottom: 1.5px solid #e2e8f0;
+            padding: max(calc(env(safe-area-inset-top, 0px) + 8px), 16px) 12px 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            flex-shrink: 0;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            z-index: 50;
+        }
+
+        .btn-board-fullscreen-back {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .btn-board-fullscreen-back:active { background: #e2e8f0; }
+
+        .board-fullscreen-title-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .board-fullscreen-title {
+            color: #0284c7;
+            font-size: 15.5px;
+            font-weight: 950;
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .board-fullscreen-sub {
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 1px;
+        }
+
+        .header-actions-right {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .btn-header-leader {
+            background: #ffffff;
+            border: 1.2px solid #94a3b8;
+            border-radius: 14px;
+            font-size: 11.5px;
+            font-weight: 900;
+            color: #0f172a;
+            padding: 4px 8px;
+            cursor: pointer;
+        }
+
+        .btn-header-lock {
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 850;
+            padding: 4px 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .btn-header-lock.public {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #2563eb;
+        }
+        .btn-header-lock.private {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+
+        /* 🌟 게시글 리스트 영역 */
+        .board-fullscreen-list {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: calc(var(--safe-bottom) + 84px);
+            background: #ffffff;
+        }
+
+        /* 🌟 예톡 커뮤니티 게시글 카드 */
+        .board-fullscreen-card {
+            background: #ffffff;
+            border: none;
+            border-bottom: 1px solid #f1f5f9;
+            border-radius: 0;
+            padding: 15px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .board-fullscreen-card:active {
+            background: #f8fafc;
+        }
+
+        .board-medigate-title {
+            color: #111827;
+            font-size: 15.5px;
+            font-weight: 850;
+            line-height: 1.4;
+            margin-bottom: 2px;
+            word-break: break-word;
+        }
+
+        .board-medigate-text {
+            color: #4b5563;
+            font-size: 13.5px;
+            line-height: 1.55;
+            word-break: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .board-medigate-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .board-medigate-author {
+            color: #0284c7;
+            font-weight: 750;
+        }
+
+        .board-medigate-icons-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            color: #9ca3af;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .medigate-stat-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        /* 🌟 우측 하단 플로팅 '+' 새글쓰기 버튼 */
+        .btn-medigate-fab-write {
+            position: absolute;
+            right: 20px;
+            bottom: calc(var(--safe-bottom) + 24px);
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+            font-size: 32px;
+            font-weight: 350;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.15s ease;
+        }
+        .btn-medigate-fab-write:active {
+            transform: scale(0.92);
+            background: #1d4ed8;
+        }
+
+        /* 🌟 게시글 상세 읽기 모달 */
+        .board-post-detail-modal {
+            position: fixed;
+            inset: 0;
+            background: #ffffff;
+            z-index: 200000;
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .board-post-detail-modal.show {
+            display: flex !important;
+        }
+
+        .post-detail-header {
+            background: #ffffff;
+            border-bottom: 1.5px solid #e2e8f0;
+            padding: max(calc(env(safe-area-inset-top, 0px) + 8px), 16px) 14px 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-shrink: 0;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            z-index: 100;
+        }
+
+        .btn-post-detail-back {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .post-detail-header-title {
+            color: #111827;
+            font-size: 16px;
+            font-weight: 950;
+            letter-spacing: -0.3px;
+        }
+
+        .btn-post-menu-dots {
+            background: none;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            color: #64748b;
+            font-size: 18px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .post-detail-content-scroll {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px 16px 60px 16px;
+            background: #ffffff;
+        }
+
+        .post-detail-headline {
+            font-size: 20px;
+            font-weight: 950;
+            color: #0f172a;
+            line-height: 1.45;
+            margin-bottom: 10px;
+            word-break: keep-all;
+        }
+
+        .post-detail-meta-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 16px;
+            font-size: 12.5px;
+            color: #64748b;
+        }
+
+        .post-detail-body-text {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #1e293b;
+            word-break: keep-all;
+            white-space: pre-wrap;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .post-detail-actions-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 0;
+            border-top: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 20px;
+        }
+
+        .btn-post-reaction {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13.5px;
+            font-weight: 850;
+            cursor: pointer;
+            border: 1.2px solid #e2e8f0;
+            background: #f8fafc;
+            color: #334155;
+            transition: all 0.15s ease;
+        }
+        .btn-post-reaction.active-heart {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #ef4444;
+        }
+        .btn-post-reaction.active-cross {
+            background: #f5f3ff;
+            border-color: #ddd6fe;
+            color: #7c3aed;
+        }
+
+        /* 🌟 글 속 구글 애드몹 배너 */
+        .post-detail-admob-box {
+            background: #0f172a;
+            border: 1.5px solid #1e3a5f;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 16px 0 24px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            text-align: center;
+        }
+
+        /* 🌟 댓글 작성 및 리스트 */
+        .post-detail-comments-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 10px;
+            padding-bottom: 40px;
+        }
+
+        .medigate-comment-write-box {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .medigate-comment-write-inner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-medigate-camera {
+            font-size: 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748b;
+            padding: 2px;
+        }
+
+        .medigate-comment-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 14.5px;
+            font-weight: 600;
+            color: #0f172a;
+            outline: none;
+        }
+
+        .btn-medigate-submit {
+            background: #0284c7;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 850;
+            cursor: pointer;
+        }
+
+        .post-comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .comment-item-card {
+            background: #ffffff;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 10px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .comment-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12.5px;
+            color: #64748b;
+        }
+
+        .comment-item-author {
+            color: #0f172a;
+            font-weight: 850;
+        }
+
+        .comment-item-body {
+            font-size: 14px;
+            color: #334155;
+            line-height: 1.55;
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        /* 🌟 글쓰기 풀화면 모달 */
+        .cafe-write-modal {
+            position: fixed;
+            inset: 0;
+            background: #ffffff;
+            z-index: 210000;
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+        .cafe-write-modal.show { display: flex !important; }
+
+        .cafe-write-header {
+            background: #ffffff;
+            border-bottom: 1.5px solid #e2e8f0;
+            padding: max(calc(env(safe-area-inset-top, 0px) + 8px), 16px) 14px 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-cafe-close {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 850;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .cafe-write-body {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px 16px max(calc(env(safe-area-inset-bottom, 0px) + 50px), 64px) 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-sizing: border-box;
+        }
+
+        .cafe-input-title {
+            width: 100%;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            outline: none;
+            font-family: inherit;
+        }
+        .cafe-input-title:focus { border-color: #0284c7; }
+
+        .cafe-textarea-text {
+            width: 100%;
+            flex: 1;
+            min-height: 180px;
+            max-height: 45vh;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 14.5px;
+            line-height: 1.7;
+            color: #1e293b;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+        }
+        .cafe-textarea-text:focus { border-color: #0284c7; }
+
+        .btn-cafe-submit-full {
+            width: 100%;
+            background: #0284c7;
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+            margin-top: 10px;
+            margin-bottom: 24px;
+            flex-shrink: 0;
+        }
+
+        /* 모달 오버레이 */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            z-index: 220000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .modal-overlay.show { display: flex !important; }
+
+        .modal-card {
+            background: #ffffff;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            padding: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="board-fullscreen-container">
+    <!-- 1. 커뮤니티 상단 헤더 -->
+    <header class="board-fullscreen-header">
+        <button type="button" class="btn-board-fullscreen-back" onclick="goToMemberLobby()">← 뒤로</button>
+        <div class="board-fullscreen-title-box">
+            <span class="board-fullscreen-title" id="headerRoomTitle">🌿 1구역 목장 (사랑방)</span>
+            <span class="board-fullscreen-sub" id="headerRoomSub">성도들의 따뜻한 소통과 은혜의 나눔터</span>
+        </div>
+        <div class="header-actions-right">
+            <button type="button" class="btn-header-leader" onclick="openLeaderModal()">👑 방장</button>
+            <button type="button" class="btn-header-lock public" id="btnRoomLockState" onclick="openLeaderModal()">입장(공개)</button>
+            <button type="button" onclick="location.href='index.html'" style="background:#dc2626; color:#ffffff; border:none; border-radius:14px; font-size:11px; font-weight:950; padding:4px 8px; cursor:pointer;">📺 예톡TV</button>
+        </div>
+    </header>
+
+    <!-- 2. 게시글 목록 영역 -->
+    <main class="board-fullscreen-list" id="boardFeedListContainer">
+        <!-- 동적 렌더링 -->
+    </main>
+
+    <!-- 3. 우측 하단 플로팅 새글쓰기 버튼 -->
+    <button type="button" class="btn-medigate-fab-write" onclick="openMemberWriteModal()" title="새 나눔글 쓰기">+</button>
+</div>
+
+<!-- ============================================================
+     🌟 4. 게시글 상세 읽기 모달
+     ============================================================ -->
+<div class="board-post-detail-modal" id="boardPostDetailModal">
+    <header class="post-detail-header">
+        <button type="button" class="btn-post-detail-back" onclick="closeBoardPostDetailModal()">◀ 목록</button>
+        <span class="post-detail-header-title">게시글 읽기</span>
+        <button type="button" class="btn-post-menu-dots" onclick="showPostActionOptions()">⋮</button>
+    </header>
+
+    <div class="post-detail-content-scroll">
+        <h1 class="post-detail-headline" id="detailPostTitle">제목</h1>
+
+        <div class="post-detail-meta-box">
+            <span id="detailPostTag" style="font-weight:900; color:#0284c7;">[나눔]</span>
+            <span id="detailPostAuthor" style="font-weight:800; color:#0f172a;">최베드로</span>
+            <span>•</span>
+            <span id="detailPostDate">오늘</span>
+            <span>•</span>
+            <span>조회 <span id="detailPostViews">24</span></span>
+        </div>
+
+        <div class="post-detail-body-text" id="detailPostBodyText">
+            본문 내용
+        </div>
+
+        <div id="detailPostAttachedPhotoWrap" style="display:none; margin:16px 0; border-radius:10px; overflow:hidden; border:1px solid #e2e8f0;">
+            <img id="detailPostAttachedPhotoImg" src="" style="width:100%; height:auto; max-height:480px; object-fit:contain; display:block;">
+        </div>
+
+        <!-- 감정 반응 액션 바 -->
+        <div class="post-detail-actions-bar">
+            <button type="button" class="btn-post-reaction" id="btnReactionHeart" onclick="togglePostReaction('heart')">
+                <span>❤️</span> <span id="txtReactionHeartCount">0</span>
+            </button>
+            <button type="button" class="btn-post-reaction" id="btnReactionCross" onclick="togglePostReaction('cross')">
+                <span>✝️</span> <span id="txtReactionCrossCount">0</span>
+            </button>
+            <div style="flex:1;"></div>
+            <span style="font-size:12.5px; color:#64748b; font-weight:700;">💬 댓글 <span id="txtDetailCommentCount">0</span></span>
+        </div>
+
+        <!-- 🌟 글 속 구글 애드몹 배너 -->
+        <div class="post-detail-admob-box">
+            <div style="font-size:9.5px; color:#38bdf8; font-weight:850; letter-spacing:0.5px;">
+                <span>AD</span> • <span>Google AdMob 공식 스폰서 슬롯 (320 × 100)</span>
+            </div>
+            <strong style="color:#ffffff; font-size:13.5px; font-weight:950;">Google AdMob (320 × 100)</strong>
+            <span style="color:#94a3b8; font-size:11px; font-weight:750;" id="postAdmobRoomName">소모임 사랑방 공식 후원 배너</span>
+        </div>
+
+        <!-- 댓글 섹션 -->
+        <div class="post-detail-comments-section">
+            <div class="medigate-comment-write-box">
+                <div class="medigate-comment-write-inner">
+                    <label for="fileCommentPhoto" class="btn-medigate-camera" title="사진 첨부">📷</label>
+                    <input type="file" id="fileCommentPhoto" accept="image/*" style="display:none;" onchange="handleCommentPhotoSelected(event)">
+                    <input type="text" id="inpPostComment" class="medigate-comment-input" placeholder="은혜로운 댓글을 남겨주세요." onkeydown="if(event.key==='Enter') submitRoomComment()">
+                    <button type="button" class="btn-medigate-submit" onclick="submitRoomComment()">등록</button>
+                </div>
+                <div id="commentPhotoBadge" style="display:none; padding:4px 6px; font-size:11.5px; color:#0284c7; align-items:center; gap:6px;">
+                    <span>📷 사진 첨부됨</span>
+                    <button type="button" onclick="cancelCommentPhoto()" style="background:none; border:none; color:#ef4444; font-size:11px; cursor:pointer;">✕ 삭제</button>
+                </div>
+            </div>
+
+            <div class="post-comments-list" id="postCommentsList">
+                <!-- 동적 렌더링 -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     🌟 5. 새 나눔글 작성 모달
+     ============================================================ -->
+<div class="cafe-write-modal" id="memberWriteModal">
+    <header class="cafe-write-header">
+        <button type="button" class="btn-cafe-close" onclick="closeMemberWriteModal()">✕ 닫기</button>
+        <span class="post-detail-header-title" id="writeModalHeaderTitle">✍️ 나눔글 작성</span>
+        <div style="width:50px;"></div>
+    </header>
+
+    <div class="cafe-write-body">
+        <input type="hidden" id="inpWritePostId">
+        <div>
+            <label style="font-size:12px; font-weight:800; color:#64748b; display:block; margin-bottom:4px;">제목</label>
+            <input type="text" class="cafe-input-title" id="inpWriteTitle" placeholder="제목을 입력하세요.">
+        </div>
+
+        <div style="flex:1; display:flex; flex-direction:column;">
+            <label style="font-size:12px; font-weight:800; color:#64748b; display:block; margin-bottom:4px;">은혜의 나눔 본문</label>
+            <textarea class="cafe-textarea-text" id="inpWriteText" placeholder="성도들과 함께 나눌 은혜와 기도제목을 자유롭게 적어주세요."></textarea>
+        </div>
+
+        <div>
+            <input type="file" id="fileWritePhoto" accept="image/*" style="display:none;" onchange="handleWritePhotoSelected(event)">
+            <button type="button" onclick="document.getElementById('fileWritePhoto').click()" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:7px 12px; font-size:12.5px; font-weight:750; color:#334155; cursor:pointer;">📷 사진 첨부</button>
+            <div id="writePhotoPreviewWrap" style="display:none; margin-top:8px; position:relative; max-width:200px;">
+                <img id="writePhotoPreviewImg" style="width:100%; border-radius:8px; border:1px solid #e2e8f0;">
+                <button type="button" onclick="cancelWritePhoto()" style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%; width:22px; height:22px; font-size:12px; cursor:pointer;">✕</button>
+            </div>
+        </div>
+
+        <button type="button" class="btn-cafe-submit-full" onclick="submitMemberWritePost()">등록하기</button>
+    </div>
+</div>
+
+<!-- ============================================================
+     🌟 6. 방장 관리 모달 (사용자 요청: 라이브 음성 제거, 공개/비공개 및 회원 관리 탑재)
+     ============================================================ -->
+<div class="modal-overlay" id="modalLeaderManage" onclick="closeLeaderModal()">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <!-- 헤더 -->
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:8px;">
+            <strong style="font-size:15.5px; color:#0f172a; display:flex; align-items:center; gap:5px;">👑 방장 관리 모드</strong>
+            <button type="button" onclick="closeLeaderModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:#64748b;">✕</button>
+        </div>
+
+        <!-- 가로 메뉴 탭: [⚙️ 방 설정 / 관리] [👥 회원 및 승인 관리] -->
+        <div style="display:flex; gap:6px; background:#f1f5f9; padding:3px; border-radius:10px;">
+            <button type="button" id="tabLeaderSettings" onclick="switchLeaderModalTab('settings')" style="flex:1; padding:7px 4px; border:none; border-radius:8px; font-size:12px; font-weight:900; background:#ffffff; color:#0284c7; box-shadow:0 1px 3px rgba(0,0,0,0.1); cursor:pointer;">
+                ⚙️ 방 설정 / 관리
+            </button>
+            <button type="button" id="tabLeaderMembers" onclick="switchLeaderModalTab('members')" style="flex:1; padding:7px 4px; border:none; border-radius:8px; font-size:12px; font-weight:800; background:transparent; color:#64748b; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:4px;">
+                👥 회원 및 승인 관리 <span id="badgePendingCount" style="display:none; background:#ef4444; color:#fff; font-size:10px; padding:1px 5px; border-radius:10px; font-weight:900;">0</span>
+            </button>
+        </div>
+
+        <!-- 탭 1 패널: 방 설정 (라이브 음성 제거) -->
+        <div id="panelLeaderSettings" style="display:flex; flex-direction:column; gap:10px;">
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+                <span style="font-size:12px; font-weight:900; color:#0284c7;">1️⃣ 소모임방 이름 & 인도자(방장) 명칭</span>
+                <div>
+                    <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">소모임방 이름</label>
+                    <input type="text" id="inpLeaderRoomTitle" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="font-size:11px; color:#64748b; font-weight:750; display:block; margin-bottom:2px;">방장 명칭 (구역장, 회장 등)</label>
+                    <input type="text" id="inpLeaderUserTitle" placeholder="예: 1구역장 (또는 최베드로)" style="width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:13px; font-weight:800; box-sizing:border-box;">
+                </div>
+                <button type="button" onclick="saveLeaderRoomNameAndUser()" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:8px; font-size:12px; font-weight:900; cursor:pointer;">💾 변경 저장</button>
+            </div>
+
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:900; color:#334155;">2️⃣ 입장 공개 / 비공개 설정</span>
+                    <span id="txtModalLockNotice" style="font-size:11px; font-weight:850; color:#2563eb;">공개 중</span>
+                </div>
+                <div style="display:flex; gap:16px; align-items:center; margin-top:2px;">
+                    <label style="display:flex; align-items:center; gap:5px; font-size:12.5px; font-weight:850; cursor:pointer; color:#0f172a;">
+                        <input type="radio" name="radUnifiedLock" value="public" id="radLockPublic" onchange="changeRoomPrivacyFromRadio(false)"> 🔓 공개방
+                    </label>
+                    <label style="display:flex; align-items:center; gap:5px; font-size:12.5px; font-weight:850; cursor:pointer; color:#dc2626;">
+                        <input type="radio" name="radUnifiedLock" value="secret" id="radLockSecret" onchange="changeRoomPrivacyFromRadio(true)"> 🔒 비공개(참여신청 승인제)
+                    </label>
+                </div>
+                <div style="font-size:11px; color:#64748b; line-height:1.4; margin-top:4px; background:#ffffff; border:1px dashed #cbd5e1; border-radius:6px; padding:6px 8px;">
+                    💡 <strong>비공개방 설정 안내:</strong> 비공개 시 성도가 [참여신청]을 하고, 방장이 상단 <strong>[👥 회원 및 승인 관리]</strong> 탭에서 승인해야 입장할 수 있습니다.
+                </div>
+            </div>
+
+            <!-- 소모임방 삭제 (방장 및 관리자 전용) -->
+            <div style="background:#fff1f2; border:1px solid #fecdd3; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:900; color:#b91c1c;">3️⃣ 소모임방 삭제 (영구 제거)</span>
+                    <span style="font-size:10.5px; font-weight:850; color:#ef4444; background:#fee2e2; padding:2px 6px; border-radius:4px;">방장/관리자 전용</span>
+                </div>
+                <div style="font-size:11px; color:#7f1d1d; line-height:1.4;">
+                    소모임방을 삭제하면 현재 방과 게시글 내용이 완전히 삭제되며 복구할 수 없습니다.
+                </div>
+                <button type="button" onclick="deleteCurrentMemberRoom()" style="width:100%; background:#ef4444; color:#ffffff; border:none; border-radius:8px; padding:9px; font-size:12.5px; font-weight:950; cursor:pointer; margin-top:2px;">
+                    🗑️ 이 소모임방 삭제하기
+                </button>
+            </div>
+        </div>
+
+        <!-- 탭 2 패널: 회원 및 승인 관리 -->
+        <div id="panelLeaderMembers" style="display:none; flex-direction:column; gap:10px;">
+            <!-- 1) 참여 신청 대기자 명단 -->
+            <div style="background:#fef2f2; border:1.2px solid #fecaca; border-radius:10px; padding:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <strong style="font-size:12.5px; color:#dc2626; display:flex; align-items:center; gap:4px;">
+                        📥 참여 신청 대기자 <span id="txtPendingHeaderCount">(0명)</span>
+                    </strong>
+                    <button type="button" onclick="approveAllPendingRequests()" style="background:#dc2626; color:#fff; border:none; border-radius:6px; font-size:11px; font-weight:900; padding:3px 8px; cursor:pointer;">전체 허용</button>
+                </div>
+                <div id="pendingRequestsListContainer" style="display:flex; flex-direction:column; gap:5px; max-height:130px; overflow-y:auto;">
+                    <!-- 대기자 목록 -->
+                </div>
+            </div>
+
+            <!-- 2) 현재 참여 회원 명단 & 퇴장 처리 -->
+            <div style="background:#f8fafc; border:1.2px solid #e2e8f0; border-radius:10px; padding:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <strong style="font-size:12.5px; color:#1e293b; display:flex; align-items:center; gap:4px;">
+                        👥 현재 참여 회원 명단 <span id="txtActiveMembersCount">(0명)</span>
+                    </strong>
+                </div>
+                <div style="display:flex; gap:4px; margin-bottom:8px;">
+                    <input type="text" id="inpDirectAddMember" placeholder="성도 이름 직접 입력 (예: 김은혜)" style="flex:1; border:1px solid #cbd5e1; border-radius:6px; padding:6px 8px; font-size:12px; outline:none; box-sizing:border-box;">
+                    <button type="button" onclick="submitDirectAddMember()" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:6px 10px; font-size:11.5px; font-weight:900; cursor:pointer; flex-shrink:0;">+ 추가</button>
+                </div>
+                <div id="activeMembersListContainer" style="display:flex; flex-direction:column; gap:5px; max-height:160px; overflow-y:auto;">
+                    <!-- 참여 회원 목록 및 퇴장 버튼 -->
+                </div>
+            </div>
+        </div>
+
+        <button type="button" onclick="closeLeaderModal()" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:8px; font-size:12.5px; font-weight:900; color:#475569; cursor:pointer; margin-top:2px;">닫기</button>
+    </div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    let activeCat = urlParams.get('cat') || sessionStorage.getItem('church_viewing_cat') || 'cell';
+    let activeRoomId = urlParams.get('roomId') || sessionStorage.getItem('church_viewing_roomId') || 'cm_1';
+
+    const STORAGE_KEY_ROOMS = (activeCat === 'cell') ? 'yetalk_member_rooms_cell_v7' : 'yetalk_member_rooms_group_v7';
+    const STORAGE_KEY_POSTS = 'yetalk_member_board_posts_' + activeRoomId;
+
+    let allRoomsList = [];
+    let currentRoom = null;
+    let postList = [];
+    let currentViewingPost = null;
+    let commentAttachedPhoto = null;
+    let writeAttachedPhoto = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        initRoomAndBoard();
+    });
+
+    function getCurrentUser() {
+        return (localStorage.getItem("yetalkUserName") || localStorage.getItem("yetalkUserId") || "나").trim();
+    }
+
+    function isUserAdminOrSubAdmin() {
+        const uName = (localStorage.getItem("yetalkUserName") || "").trim();
+        const uRole = (localStorage.getItem("yetalkUserRole") || "").trim();
+        const uGrade = (localStorage.getItem("yetalk_user_grade") || localStorage.getItem("yetalkMemberGrade") || "").trim();
+        const curStatus = (localStorage.getItem("yetalk_current_member_status") || "").trim();
+        if (uName.includes("관리자") || uName.includes("부관리자") || uName.includes("총관리자") || uName.includes("담임목사") || uName === "최예톡" || uName === "최베드로") return true;
+        if (uRole.includes("관리자") || uRole.includes("부관리자") || uRole.includes("총관리자") || uRole.includes("담임목사") || uRole.includes("목사") || uRole.includes("교역자")) return true;
+        if (uGrade === "superadmin" || uGrade === "admin" || uGrade === "subadmin" || uGrade === "관리자" || uGrade === "부관리자") return true;
+        if (curStatus === "관리자" || curStatus === "부관리자" || curStatus === "교역자" || curStatus === "담임목사") return true;
+        return false;
+    }
+
+    function sanitizeRoom(r) {
+        if (!r.members || !Array.isArray(r.members)) {
+            r.members = r.leader ? [r.leader] : [];
+        }
+        if (!r.pendingRequests || !Array.isArray(r.pendingRequests)) {
+            r.pendingRequests = [];
+        }
+        r.isPrivate = !!r.isPrivate;
+        return r;
+    }
+
+    function initRoomAndBoard() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY_ROOMS);
+            if (raw) allRoomsList = JSON.parse(raw).map(sanitizeRoom);
+        } catch(e) { allRoomsList = []; }
+
+        currentRoom = allRoomsList.find(r => r.id === activeRoomId);
+        if (!currentRoom) {
+            const defaultName = (activeCat === 'cell') ? "+ 1구역 목장 (사랑방)" : "+ 제1남선교회 (빈방)";
+            currentRoom = sanitizeRoom({ id: activeRoomId, name: defaultName, leader: "", isPrivate: false, members: [], pendingRequests: [] });
+            allRoomsList.push(currentRoom);
+            saveRoomsListToStorage();
+        }
+
+        updateHeaderUI();
+        loadRoomPosts();
+        renderCommunityBoard();
+    }
+
+    function saveRoomsListToStorage() {
+        localStorage.setItem(STORAGE_KEY_ROOMS, JSON.stringify(allRoomsList));
+    }
+
+    function updateHeaderUI() {
+        if (!currentRoom) return;
+        const icon = (activeCat === 'cell') ? '🌿' : '🤝';
+        const sub = (activeCat === 'cell') ? '구역 식구들의 따뜻한 사랑과 은혜의 나눔터' : '복음과 선교를 향한 헌신과 친교의 나눔터';
+
+        document.getElementById("headerRoomTitle").innerText = `${icon} ${currentRoom.name}`;
+        document.getElementById("headerRoomSub").innerText = sub;
+        document.getElementById("postAdmobRoomName").innerText = `${currentRoom.name} 사역 공식 후원 배너`;
+
+        const btnLock = document.getElementById("btnRoomLockState");
+        const radPublic = document.getElementById("radLockPublic");
+        const radSecret = document.getElementById("radLockSecret");
+        const txtNotice = document.getElementById("txtModalLockNotice");
+
+        if (currentRoom.isPrivate) {
+            btnLock.className = "btn-header-lock private";
+            btnLock.innerText = "비공개 🔒";
+            if (radSecret) radSecret.checked = true;
+            if (txtNotice) { txtNotice.innerText = "비공개 중"; txtNotice.style.color = "#dc2626"; }
+        } else {
+            btnLock.className = "btn-header-lock public";
+            btnLock.innerText = "입장(공개)";
+            if (radPublic) radPublic.checked = true;
+            if (txtNotice) { txtNotice.innerText = "공개 중"; txtNotice.style.color = "#2563eb"; }
+        }
+    }
+
+    function goToMemberLobby() {
+        location.href = "churchmember.html";
+    }
+
+    // 🌟 방장 관리 모달 열기
+    function openLeaderModal() {
+        if (!currentRoom) return;
+        const myName = getCurrentUser();
+        const isAdmin = isUserAdminOrSubAdmin();
+        const isLeader = (currentRoom.leader && (currentRoom.leader === myName || myName.includes("구역장") || myName.includes("회장") || myName.includes("방장")));
+        const isEmptyRoom = (!currentRoom.leader || currentRoom.leader.trim() === "" || currentRoom.name.startsWith("+"));
+
+        document.getElementById("inpLeaderRoomTitle").value = currentRoom.name;
+        document.getElementById("inpLeaderUserTitle").value = currentRoom.leader || myName;
+
+        switchLeaderModalTab('settings');
+        updateHeaderUI();
+        renderPendingAndMemberList();
+
+        document.getElementById("modalLeaderManage").classList.add("show");
+    }
+
+    function closeLeaderModal() {
+        document.getElementById("modalLeaderManage").classList.remove("show");
+    }
+
+    function switchLeaderModalTab(tab) {
+        const btnS = document.getElementById("tabLeaderSettings");
+        const btnM = document.getElementById("tabLeaderMembers");
+        const pnlS = document.getElementById("panelLeaderSettings");
+        const pnlM = document.getElementById("panelLeaderMembers");
+
+        if (tab === 'settings') {
+            btnS.style.background = "#ffffff";
+            btnS.style.color = "#0284c7";
+            btnS.style.fontWeight = "900";
+            btnM.style.background = "transparent";
+            btnM.style.color = "#64748b";
+            btnM.style.fontWeight = "800";
+            pnlS.style.display = "flex";
+            pnlM.style.display = "none";
+        } else {
+            btnM.style.background = "#ffffff";
+            btnM.style.color = "#0284c7";
+            btnM.style.fontWeight = "900";
+            btnS.style.background = "transparent";
+            btnS.style.color = "#64748b";
+            btnS.style.fontWeight = "800";
+            pnlS.style.display = "none";
+            pnlM.style.display = "flex";
+            renderPendingAndMemberList();
+        }
+    }
+
+    // 🌟 방장 정보 및 방 이름 저장
+    function saveLeaderRoomNameAndUser() {
+        if (!currentRoom) return;
+        const name = document.getElementById("inpLeaderRoomTitle").value.trim();
+        let leader = document.getElementById("inpLeaderUserTitle").value.trim();
+        if (!name) { alert("소모임방 이름을 입력해주세요."); return; }
+        if (!leader) leader = getCurrentUser();
+
+        let cleanName = name;
+        if (cleanName.startsWith("+")) {
+            cleanName = cleanName.replace(/^\+\s*/, "");
+        }
+
+        currentRoom.name = cleanName;
+        currentRoom.leader = leader;
+
+        if (!currentRoom.members.includes(leader)) {
+            currentRoom.members.unshift(leader);
+        }
+
+        saveRoomsListToStorage();
+        updateHeaderUI();
+        alert(`💾 방 이름 [${cleanName}] 및 방장 [${leader}] 변경이 저장되었습니다!`);
+    }
+
+    // 🌟 방장이 방 공개 / 비공개 설정 토글
+    function changeRoomPrivacyFromRadio(isPrivate) {
+        if (!currentRoom) return;
+        currentRoom.isPrivate = isPrivate;
+        saveRoomsListToStorage();
+        updateHeaderUI();
+        alert(isPrivate ? "🔒 [비공개(참여신청 승인제)]로 변경되었습니다.\n방장의 승인을 받은 성도만 입장할 수 있습니다." : "🔓 [공개방]으로 변경되었습니다.\n모든 성도가 자유롭게 입장할 수 있습니다.");
+    }
+
+    // 🌟 회원 승인 및 명단 관리
+    function renderPendingAndMemberList() {
+        if (!currentRoom) return;
+        const pendingBox = document.getElementById("pendingRequestsListContainer");
+        const activeBox = document.getElementById("activeMembersListContainer");
+        const badge = document.getElementById("badgePendingCount");
+        const headerCount = document.getElementById("txtPendingHeaderCount");
+        const activeCount = document.getElementById("txtActiveMembersCount");
+
+        const pending = currentRoom.pendingRequests || [];
+        const members = currentRoom.members || [];
+
+        if (badge) {
+            badge.style.display = pending.length > 0 ? "inline-block" : "none";
+            badge.innerText = pending.length;
+        }
+        if (headerCount) headerCount.innerText = `(${pending.length}명)`;
+        if (activeCount) activeCount.innerText = `(${members.length}명)`;
+
+        // 대기자 리스트
+        pendingBox.innerHTML = "";
+        if (pending.length === 0) {
+            pendingBox.innerHTML = `<div style="font-size:12px; color:#94a3b8; text-align:center; padding:8px 0;">대기 중인 참여 신청자가 없습니다.</div>`;
+        } else {
+            pending.forEach((req, idx) => {
+                const row = document.createElement("div");
+                row.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:1px solid #fecaca; border-radius:6px; padding:6px 8px; font-size:12px;";
+                row.innerHTML = `
+                    <div style="font-weight:800; color:#0f172a;">${escapeHtml(req)}</div>
+                    <div style="display:flex; gap:4px;">
+                        <button type="button" onclick="approvePendingRequest(${idx})" style="background:#0284c7; color:#fff; border:none; border-radius:4px; padding:3px 7px; font-size:11px; font-weight:850; cursor:pointer;">승인</button>
+                        <button type="button" onclick="rejectPendingRequest(${idx})" style="background:#fee2e2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; padding:3px 7px; font-size:11px; font-weight:850; cursor:pointer;">거절</button>
+                    </div>
+                `;
+                pendingBox.appendChild(row);
+            });
+        }
+
+        // 회원 리스트
+        activeBox.innerHTML = "";
+        if (members.length === 0) {
+            activeBox.innerHTML = `<div style="font-size:12px; color:#94a3b8; text-align:center; padding:8px 0;">등록된 회원이 없습니다.</div>`;
+        } else {
+            members.forEach((m, idx) => {
+                const isLeader = (m === currentRoom.leader);
+                const row = document.createElement("div");
+                row.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:1px solid #e2e8f0; border-radius:6px; padding:6px 8px; font-size:12px;";
+                row.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <span style="font-weight:850; color:#0f172a;">${escapeHtml(m)}</span>
+                        ${isLeader ? '<span style="font-size:10px; background:#eff6ff; color:#0284c7; border:1px solid #bfdbfe; border-radius:4px; padding:1px 4px; font-weight:900;">방장</span>' : ''}
+                    </div>
+                    ${!isLeader ? `<button type="button" onclick="removeMemberByIndex(${idx})" style="background:#fee2e2; color:#dc2626; border:none; border-radius:4px; padding:2px 6px; font-size:10.5px; font-weight:800; cursor:pointer;">퇴장</button>` : ''}
+                `;
+                activeBox.appendChild(row);
+            });
+        }
+    }
+
+    function approvePendingRequest(idx) {
+        if (!currentRoom || !currentRoom.pendingRequests[idx]) return;
+        const applicant = currentRoom.pendingRequests.splice(idx, 1)[0];
+        if (!currentRoom.members.includes(applicant)) {
+            currentRoom.members.push(applicant);
+        }
+        saveRoomsListToStorage();
+        renderPendingAndMemberList();
+        alert(`🎉 [${applicant}] 성도님의 참여 신청이 승인되었습니다.`);
+    }
+
+    function rejectPendingRequest(idx) {
+        if (!currentRoom || !currentRoom.pendingRequests[idx]) return;
+        const applicant = currentRoom.pendingRequests.splice(idx, 1)[0];
+        saveRoomsListToStorage();
+        renderPendingAndMemberList();
+    }
+
+    function approveAllPendingRequests() {
+        if (!currentRoom || !currentRoom.pendingRequests || currentRoom.pendingRequests.length === 0) return;
+        currentRoom.pendingRequests.forEach(req => {
+            if (!currentRoom.members.includes(req)) currentRoom.members.push(req);
+        });
+        currentRoom.pendingRequests = [];
+        saveRoomsListToStorage();
+        renderPendingAndMemberList();
+        alert("🎉 모든 대기자의 참여 신청이 일괄 승인되었습니다.");
+    }
+
+    function submitDirectAddMember() {
+        const inp = document.getElementById("inpDirectAddMember");
+        const val = inp.value.trim();
+        if (!val) return;
+        if (!currentRoom.members.includes(val)) {
+            currentRoom.members.push(val);
+            saveRoomsListToStorage();
+            inp.value = "";
+            renderPendingAndMemberList();
+        } else {
+            alert("이미 참여 회원 명단에 등록되어 있습니다.");
+        }
+    }
+
+    function removeMemberByIndex(idx) {
+        if (!currentRoom || !currentRoom.members[idx]) return;
+        const memberName = currentRoom.members[idx];
+        if (!confirm(`정말 [${memberName}] 성도님을 방에서 퇴장 처리하시겠습니까?`)) return;
+        currentRoom.members.splice(idx, 1);
+        saveRoomsListToStorage();
+        renderPendingAndMemberList();
+    }
+
+    function deleteCurrentMemberRoom() {
+        if (!currentRoom) return;
+        if (!confirm(`⚠️ 경고: [${currentRoom.name}] 방과 모든 나눔글을 영구 삭제하시겠습니까?\n이 작업은 취소할 수 없습니다.`)) return;
+
+        allRoomsList = allRoomsList.filter(r => r.id !== activeRoomId);
+        saveRoomsListToStorage();
+        localStorage.removeItem(STORAGE_KEY_POSTS);
+        alert("방이 성공적으로 삭제되었습니다.");
+        goToMemberLobby();
+    }
+
+    // 🌟 커뮤니티 게시글 로드
+    function loadRoomPosts() {
+        try {
+            postList = JSON.parse(localStorage.getItem(STORAGE_KEY_POSTS)) || [];
+        } catch(e) { postList = []; }
+
+        if (postList.length === 0) {
+            const isCell = (activeCat === 'cell');
+            const roomTitle = currentRoom ? currentRoom.name.replace(/^\+\s*/, '') : "사랑방";
+            postList = [
+                {
+                    id: "post_1",
+                    title: `[${isCell ? '목장 사랑방' : '선교회'}] ${roomTitle}에 오신 모든 성도님들을 환영하고 축복합니다!`,
+                    text: `할렐루야! 우리 ${roomTitle} 나눔터가 활짝 열렸습니다.\n\n주 안에서 함께 소통하며 말씀과 기도로 은혜를 나누는 복된 믿음의 교제가 되기를 소망합니다. 언제든 자유롭게 은혜의 나눔과 기도제목을 올려주세요.`,
+                    author: currentRoom.leader || "구역장 최베드로",
+                    date: "오늘",
+                    hearts: 24,
+                    crosses: 18,
+                    comments: [
+                        { author: "은혜성도", text: "아멘! 우리 모임에서 함께 기도할 수 있어 큰 힘이 됩니다. ❤️", date: "방금 전" }
+                    ]
+                },
+                {
+                    id: "post_2",
+                    title: "오늘 하루도 살아서 숨쉬고 기도할 수 있음에 감사드립니다",
+                    text: "주님의 크신 사랑과 은혜에 감사드립니다. 범사에 감사하라 하신 말씀 기억하며 오늘도 승리합니다! 성도 여러분 모두 평안한 하루 되세요. 🙏",
+                    author: "믿음가족",
+                    date: "어제",
+                    hearts: 19,
+                    crosses: 7,
+                    comments: []
+                },
+                {
+                    id: "post_3",
+                    title: "서로 사랑하며 격려하는 복된 믿음의 공동체",
+                    text: "마음을 같이하여 같은 사랑을 가지고 뜻을 합하며 한마음을 품어... (빌 2:2)\n\n서로를 위해 간절히 중보하고 따뜻한 격려를 전하는 아름다운 사랑방이 되기를 소망합니다.",
+                    author: "김사랑",
+                    date: "2일 전",
+                    hearts: 31,
+                    crosses: 15,
+                    comments: []
+                }
+            ];
+            savePostsToStorage();
+        }
+    }
+
+    function savePostsToStorage() {
+        localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(postList));
+    }
+
+    // 🌟 커뮤니티 게시글 렌더링
+    function renderCommunityBoard() {
+        const container = document.getElementById("boardFeedListContainer");
+        if (!container) return;
+        container.innerHTML = "";
+
+        if (postList.length === 0) {
+            container.innerHTML = `
+                <div style="padding:60px 20px; text-align:center; color:#94a3b8;">
+                    <div style="font-size:36px; margin-bottom:10px;">✍️</div>
+                    <strong style="font-size:15px; color:#475569; display:block;">아직 등록된 나눔글이 없습니다.</strong>
+                    <span style="font-size:12.5px; margin-top:4px; display:block;">우측 하단 [+] 버튼을 눌러 첫 번째 나눔글을 올려보세요!</span>
+                </div>
+            `;
+            return;
+        }
+
+        postList.forEach((post, idx) => {
+            const card = document.createElement("div");
+            card.className = "board-fullscreen-card";
+            card.onclick = () => openBoardPostDetailModal(post.id);
+
+            const commentCount = (post.comments && Array.isArray(post.comments)) ? post.comments.length : 0;
+            const hearts = post.hearts || 0;
+            const crosses = post.crosses || 0;
+
+            card.innerHTML = `
+                <h3 class="board-medigate-title">${escapeHtml(post.title)}</h3>
+                <p class="board-medigate-text">${escapeHtml(post.text)}</p>
+                <div class="board-medigate-meta-row">
+                    <span class="board-medigate-author">${escapeHtml(post.author || "성도")}</span>
+                    <span>•</span>
+                    <span>${escapeHtml(post.date || "오늘")}</span>
+                </div>
+                <div class="board-medigate-icons-row">
+                    <span class="medigate-stat-item" style="color:#ef4444;">❤️ ${hearts}</span>
+                    <span class="medigate-stat-item" style="color:#7c3aed;">✝️ ${crosses}</span>
+                    <span class="medigate-stat-item">💬 ${commentCount}</span>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    // 🌟 게시글 상세 보기 모달
+    function openBoardPostDetailModal(postId) {
+        const post = postList.find(p => p.id === postId);
+        if (!post) return;
+        currentViewingPost = post;
+
+        document.getElementById("detailPostTitle").innerText = post.title;
+        document.getElementById("detailPostAuthor").innerText = post.author || "성도";
+        document.getElementById("detailPostDate").innerText = post.date || "오늘";
+        document.getElementById("detailPostViews").innerText = (post.views || 24) + 1;
+        post.views = (post.views || 24) + 1;
+        savePostsToStorage();
+
+        document.getElementById("detailPostBodyText").innerText = post.text;
+
+        const photoWrap = document.getElementById("detailPostAttachedPhotoWrap");
+        const photoImg = document.getElementById("detailPostAttachedPhotoImg");
+        if (post.img && post.img.trim() !== "") {
+            photoImg.src = post.img;
+            photoWrap.style.display = "block";
+        } else {
+            photoWrap.style.display = "none";
+            photoImg.src = "";
+        }
+
+        document.getElementById("txtReactionHeartCount").innerText = post.hearts || 0;
+        document.getElementById("txtReactionCrossCount").innerText = post.crosses || 0;
+
+        renderPostComments();
+        document.getElementById("boardPostDetailModal").classList.add("show");
+    }
+
+    function closeBoardPostDetailModal() {
+        document.getElementById("boardPostDetailModal").classList.remove("show");
+        currentViewingPost = null;
+        renderCommunityBoard();
+    }
+
+    function togglePostReaction(type) {
+        if (!currentViewingPost) return;
+        if (type === 'heart') {
+            currentViewingPost.hearts = (currentViewingPost.hearts || 0) + 1;
+            document.getElementById("txtReactionHeartCount").innerText = currentViewingPost.hearts;
+            document.getElementById("btnReactionHeart").classList.add("active-heart");
+        } else if (type === 'cross') {
+            currentViewingPost.crosses = (currentViewingPost.crosses || 0) + 1;
+            document.getElementById("txtReactionCrossCount").innerText = currentViewingPost.crosses;
+            document.getElementById("btnReactionCross").classList.add("active-cross");
+        }
+        savePostsToStorage();
+    }
+
+    function renderPostComments() {
+        if (!currentViewingPost) return;
+        const list = currentViewingPost.comments || [];
+        const container = document.getElementById("postCommentsList");
+        const countEl = document.getElementById("txtDetailCommentCount");
+        if (countEl) countEl.innerText = list.length;
+        if (!container) return;
+        container.innerHTML = "";
+
+        if (list.length === 0) {
+            container.innerHTML = `<div style="font-size:12.5px; color:#94a3b8; padding:12px 0;">아직 댓글이 없습니다. 첫 번째 은혜의 댓글을 남겨보세요!</div>`;
+            return;
+        }
+
+        list.forEach((c, idx) => {
+            const item = document.createElement("div");
+            item.className = "comment-item-card";
+            item.innerHTML = `
+                <div class="comment-item-header">
+                    <span class="comment-item-author">${escapeHtml(c.author || "성도")}</span>
+                    <span>${escapeHtml(c.date || "방금 전")}</span>
+                </div>
+                <div class="comment-item-body">${escapeHtml(c.text)}</div>
+                ${c.img ? `<img src="${c.img}" style="max-width:180px; border-radius:8px; margin-top:6px; border:1px solid #e2e8f0;">` : ''}
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    function submitRoomComment() {
+        if (!currentViewingPost) return;
+        const input = document.getElementById("inpPostComment");
+        const text = input.value.trim();
+        if (!text && !commentAttachedPhoto) return;
+
+        if (!currentViewingPost.comments) currentViewingPost.comments = [];
+        currentViewingPost.comments.push({
+            author: getCurrentUser(),
+            text: text,
+            date: "방금 전",
+            img: commentAttachedPhoto || ""
+        });
+
+        savePostsToStorage();
+        input.value = "";
+        cancelCommentPhoto();
+        renderPostComments();
+    }
+
+    function handleCommentPhotoSelected(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            commentAttachedPhoto = evt.target.result;
+            document.getElementById("commentPhotoBadge").style.display = "flex";
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function cancelCommentPhoto() {
+        commentAttachedPhoto = null;
+        const badge = document.getElementById("commentPhotoBadge");
+        if (badge) badge.style.display = "none";
+        const inp = document.getElementById("fileCommentPhoto");
+        if (inp) inp.value = "";
+    }
+
+    // 🌟 글쓰기 모달 열기/닫기
+    function openMemberWriteModal(editPostId = null) {
+        const modal = document.getElementById("memberWriteModal");
+        const titleInp = document.getElementById("inpWriteTitle");
+        const textInp = document.getElementById("inpWriteText");
+        const idInp = document.getElementById("inpWritePostId");
+        const titleEl = document.getElementById("writeModalHeaderTitle");
+
+        if (editPostId) {
+            const target = postList.find(p => p.id === editPostId);
+            if (target) {
+                titleEl.innerText = "✍️ 나눔글 수정";
+                idInp.value = target.id;
+                titleInp.value = target.title;
+                textInp.value = target.text;
+                if (target.img) {
+                    writeAttachedPhoto = target.img;
+                    document.getElementById("writePhotoPreviewImg").src = writeAttachedPhoto;
+                    document.getElementById("writePhotoPreviewWrap").style.display = "block";
+                }
+            }
+        } else {
+            titleEl.innerText = "✍️ 새 나눔글 작성";
+            idInp.value = "";
+            titleInp.value = "";
+            textInp.value = "";
+            cancelWritePhoto();
+        }
+
+        modal.classList.add("show");
+    }
+
+    function closeMemberWriteModal() {
+        const modal = document.getElementById("memberWriteModal");
+        if (modal) modal.classList.remove("show");
+        cancelWritePhoto();
+    }
+
+    function handleWritePhotoSelected(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            const img = new Image();
+            img.onload = () => {
+                const maxDim = 1200;
+                let w = img.width;
+                let h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                    else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                }
+                const canvas = document.createElement("canvas");
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, w, h);
+                writeAttachedPhoto = canvas.toDataURL("image/jpeg", 0.82);
+                document.getElementById("writePhotoPreviewImg").src = writeAttachedPhoto;
+                document.getElementById("writePhotoPreviewWrap").style.display = "block";
+            };
+            img.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function cancelWritePhoto() {
+        writeAttachedPhoto = null;
+        const wrap = document.getElementById("writePhotoPreviewWrap");
+        if (wrap) wrap.style.display = "none";
+        const inp = document.getElementById("fileWritePhoto");
+        if (inp) inp.value = "";
+    }
+
+    function submitMemberWritePost() {
+        const title = document.getElementById("inpWriteTitle").value.trim();
+        const text = document.getElementById("inpWriteText").value.trim();
+        const editId = document.getElementById("inpWritePostId").value;
+
+        if (!title) { alert("제목을 입력해주세요."); return; }
+        if (!text) { alert("본문 내용을 입력해주세요."); return; }
+
+        if (editId) {
+            const target = postList.find(p => p.id === editId);
+            if (target) {
+                target.title = title;
+                target.text = text;
+                if (writeAttachedPhoto) target.img = writeAttachedPhoto;
+            }
+        } else {
+            const newPost = {
+                id: "post_" + Date.now(),
+                title: title,
+                text: text,
+                author: getCurrentUser(),
+                date: "오늘",
+                hearts: 0,
+                crosses: 0,
+                comments: [],
+                img: writeAttachedPhoto || ""
+            };
+            postList.unshift(newPost);
+        }
+
+        savePostsToStorage();
+        closeMemberWriteModal();
+        renderCommunityBoard();
+        alert("🎉 나눔글이 성공적으로 등록되었습니다!");
+    }
+
+    function showPostActionOptions() {
+        if (!currentViewingPost) return;
+        const myName = getCurrentUser();
+        const isAdmin = isUserAdminOrSubAdmin();
+        const isAuthor = (currentViewingPost.author === myName);
+
+        if (!isAdmin && !isAuthor) {
+            alert("게시글 수정/삭제는 작성자 또는 관리자만 가능합니다.");
+            return;
+        }
+
+        if (confirm("이 게시글을 삭제하시겠습니까?")) {
+            postList = postList.filter(p => p.id !== currentViewingPost.id);
+            savePostsToStorage();
+            closeBoardPostDetailModal();
+            renderCommunityBoard();
+            alert("게시글이 삭제되었습니다.");
+        }
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // 안드로이드 하드웨어 / 제스처 백키 전용 핸들러 (MainActivity.kt 연동)
+    window.handleAppBackPress = function() {
+        const modal = document.querySelector(".cafe-write-modal.show, .board-post-detail-modal.show, .modal-overlay.show, .modal-overlay[style*='display: flex'], .modal-overlay[style*='display:flex'], #modalLeaderUnified[style*='display: flex'], #modalLeaderUnified[style*='display:flex']");
+        if (modal) {
+            if (modal.id === "boardWriteModal") closeMemberWriteModal();
+            else if (modal.id === "boardPostDetailModal") closeBoardPostDetailModal();
+            else if (modal.id === "modalLeaderUnified") closeLeaderModal();
+            else {
+                modal.classList.remove("show", "open");
+                modal.style.display = "none";
+            }
+            return true;
+        }
+        goToMemberLobby();
+        return true;
+    };
+</script>
+
+</body>
+</html>

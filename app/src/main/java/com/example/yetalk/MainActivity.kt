@@ -209,7 +209,7 @@ class MainActivity : AppCompatActivity() {
                                    cleanUrl == "https://yetalk.cc/assets/" ||
                                    cleanUrl.isEmpty()
 
-                    // 🌟 [사용자 요청] 다음세대방, 선교전도방에서 뒤로가기 시 해당 상위 부서/선교 메뉴로 이동
+                    // 🌟 [사용자 요청] 다음세대방, 선교전도방, 소모임방에서 뒤로가기 시 해당 상위 부서/선교/소모임 메뉴로 이동
                     if (cleanUrl.endsWith("churchnextgen_board.html")) {
                         webView.loadUrl("https://yetalk.cc/assets/churchnextgen.html")
                         return@evaluateJavascript
@@ -220,11 +220,17 @@ class MainActivity : AppCompatActivity() {
                         return@evaluateJavascript
                     }
 
+                    if (cleanUrl.endsWith("churchmember_board.html")) {
+                        webView.loadUrl("https://yetalk.cc/assets/churchmember.html")
+                        return@evaluateJavascript
+                    }
+
                     // 🌟 [사용자 요청] 예수동행, 다음세대, 선교전도 등 교회 하위 메뉴에서 나오면 바로 예톡홈으로 가지 않고 교회홈(churchmain.html)으로 복귀!
                     val isChurchSubPage = cleanUrl.endsWith("churchjesuswalking.html") ||
                                           cleanUrl.endsWith("churchnextgen.html") ||
                                           cleanUrl.endsWith("churchmission.html") ||
-                                          cleanUrl.endsWith("churchpray.html")
+                                          cleanUrl.endsWith("churchpray.html") ||
+                                          cleanUrl.endsWith("churchmember.html")
 
                     if (isChurchSubPage) {
                         webView.loadUrl("https://yetalk.cc/assets/churchmain.html")
