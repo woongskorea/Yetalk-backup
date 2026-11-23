@@ -707,6 +707,13 @@
                 <iframe id="detailYoutubeIframe" src="" style="position:absolute; top:0; left:0; width:100%; height:100%; border:0;" allowfullscreen></iframe>
             </div>
 
+            <!-- 🌟 [사용자 요청] 글 내용 밑에 -목사님 수정- 네모 버튼 (편하게 보이게) -->
+            <div id="postDetailEditActionRow" style="display:flex; justify-content:flex-end; align-items:center; margin-top:14px; margin-bottom:8px;">
+                <button type="button" id="btnPastorDirectEdit" onclick="onJesusPostAction('edit')" style="background:#f0f9ff; border:1.8px solid #0284c7; color:#0284c7; font-size:13.5px; font-weight:900; padding:7px 16px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 4px rgba(2,132,199,0.15); transition:all 0.15s ease;">
+                    <span>✏️</span> <span id="lblPastorDirectEdit">목사님 수정</span>
+                </button>
+            </div>
+
             <!-- 하트, 십자가, 댓글 수 이모티콘 -->
             <div class="medigate-detail-reactions-row">
                 <span class="reaction-item-btn" onclick="addJesusLike()" title="은혜 아멘">
@@ -835,13 +842,26 @@
         renderCommunityBoard();
     });
 
+    // 🌟 [사용자 요청] 나오면 예톡홈이 아니라 교회홈(churchmain.html)으로 복귀!
     function goToChurchHome() {
-        if (window.history.length > 1) {
-            window.history.back();
-        } else {
-            window.location.href = "churchmain.html";
-        }
+        window.location.href = "churchmain.html";
     }
+
+    // 안드로이드 하드웨어 / 제스처 백키 전용 핸들러 (MainActivity.kt 연동)
+    window.handleAppBackPress = function() {
+        const writeModal = document.getElementById("jesusWriteModal");
+        if (writeModal && (writeModal.classList.contains("show") || writeModal.style.display === "flex")) {
+            closeJesusWriteModal();
+            return true;
+        }
+        const detailModal = document.getElementById("boardPostDetailModal");
+        if (detailModal && detailModal.classList.contains("show")) {
+            closeJesusPostDetail();
+            return true;
+        }
+        goToChurchHome();
+        return true;
+    };
 
     function getChurchMeta() {
         const churchName = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회").trim();
@@ -1022,6 +1042,12 @@
         document.getElementById("detailPostViews").innerText = currentViewingPost.views || 120;
         document.getElementById("detailLikesCount").innerText = currentViewingPost.likes || 0;
         document.getElementById("detailCrossesCount").innerText = currentViewingPost.crosses || 0;
+
+        // 🌟 [사용자 요청] 글 내용 밑에 -목사님 수정- 네모 버튼 레이블 갱신
+        const pastorBtnLabel = document.getElementById("lblPastorDirectEdit");
+        if (pastorBtnLabel) {
+            pastorBtnLabel.innerText = currentViewingPost.isMain ? "목사님 수정" : "글 수정";
+        }
 
         const scrBox = document.getElementById("detailScriptureBox");
         const scrText = document.getElementById("detailScriptureText");
