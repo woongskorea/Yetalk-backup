@@ -1034,6 +1034,25 @@
             localStorage.setItem(customKey, JSON.stringify(loaded));
         }
 
+        // 🌟 [사용자 요청] 특별히 예톡 본부에서 보낼 공지가 있다면 제일 위에 [예톡공지] 최우선 1번 노출!
+        try {
+            const hqRaw = localStorage.getItem("yetalk_hq_global_notice");
+            if (hqRaw) {
+                const hqNotice = JSON.parse(hqRaw);
+                if (hqNotice && hqNotice.active && hqNotice.title) {
+                    loaded = loaded.filter(n => n.id !== "yetalk_hq_notice_global" && !n.isHqNotice);
+                    loaded.unshift({
+                        ...hqNotice,
+                        id: "yetalk_hq_notice_global",
+                        isHqNotice: true,
+                        category: "예톡공지",
+                        author: hqNotice.author || "예톡 총괄본부",
+                        time: hqNotice.time || "오늘"
+                    });
+                }
+            }
+        } catch(e) {}
+
         notices = loaded;
         renderNoticeFeed();
 

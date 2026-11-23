@@ -456,6 +456,26 @@
                 </div>
             </div>
 
+            <!-- 🌟 [사용자 요청] 전국 모든 교회 대상 '예톡 본부 특별공지' 발송 (최상단 노출) -->
+            <div class="control-item" style="background:#1e293b; padding:12px; border-radius:10px; border:1.5px solid #f59e0b; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                    <label style="font-size:12.5px; font-weight:900; color:#fde047; margin:0;">📢 전국 교회 최상단 '예톡공지' 발송</label>
+                    <span id="hqNoticeStatusBadge" style="font-size:11px; font-weight:800; color:#94a3b8;">미등록 (꺼짐)</span>
+                </div>
+                <div style="font-size:11px; color:#cbd5e1; margin-bottom:8px; line-height:1.4;">
+                    특별히 예톡 본부에서 보낼 공지가 있을 때 등록하시면, <strong>전국 모든 교회의 [공지알림] 맨 위(1번)</strong>에 [예톡공지] 뱃지와 함께 최우선 노출됩니다.
+                </div>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    <input type="text" id="hqNoticeTitleInput" class="plan-config-input" placeholder="공지 제목 (예: [예톡 본부] 2026 전국 교회 연합 안내)">
+                    <textarea id="hqNoticeContentInput" class="plan-config-input" rows="3" style="resize:vertical; min-height:60px;" placeholder="공지 상세 내용을 입력하세요..."></textarea>
+                    <input type="text" id="hqNoticeAuthorInput" class="plan-config-input" placeholder="작성자 명칭 (기본: 예톡 총괄본부)">
+                    <div style="display:flex; gap:6px; margin-top:2px;">
+                        <button type="button" class="plan-save-btn" style="flex:2; background:linear-gradient(135deg, #f59e0b, #d97706); color:#0f172a; font-weight:950; font-size:13px;" onclick="saveHqGlobalNotice()">📢 예톡공지 즉시 발송/저장</button>
+                        <button type="button" class="plan-save-btn" style="flex:1; background:#475569; font-size:12px;" onclick="clearHqGlobalNotice()">✕ 공지 내리기/삭제</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- 3. 애드몹 ON / OFF (월 3만원 무광고 모드) -->
             <div style="display:flex; justify-content:space-between; align-items:center; background:#1e293b; padding:10px 12px; border-radius:8px; border:1px solid #334155;">
                 <div>
@@ -932,6 +952,67 @@
         updateAdminUiBadges();
     }
 
+    function saveHqGlobalNotice() {
+        const title = document.getElementById("hqNoticeTitleInput").value.trim();
+        const content = document.getElementById("hqNoticeContentInput").value.trim();
+        const author = document.getElementById("hqNoticeAuthorInput").value.trim() || "예톡 총괄본부";
+
+        if (!title || !content) {
+            alert("예톡공지 제목과 내용을 모두 입력해 주세요.");
+            return;
+        }
+
+        const hqNoticeObj = {
+            id: "yetalk_hq_notice_global",
+            isHqNotice: true,
+            category: "예톡공지",
+            title: title,
+            content: content,
+            author: author,
+            time: "오늘",
+            date: new Date().toLocaleDateString('ko-KR'),
+            timestamp: Date.now(),
+            views: 777,
+            active: true
+        };
+
+        localStorage.setItem("yetalk_hq_global_notice", JSON.stringify(hqNoticeObj));
+
+        if (window.yetalkDb && window.yetalkFs) {
+            try {
+                const { doc, setDoc, serverTimestamp } = window.yetalkFs;
+                setDoc(doc(window.yetalkDb, "yetalk_hq_config", "global_notice"), {
+                    ...hqNoticeObj,
+                    updatedAt: serverTimestamp()
+                }, { merge: true }).catch(() => {});
+            } catch(e){}
+        }
+
+        alert(`📢 [${title}]\n예톡 본부 공지가 전국 모든 교회 [공지알림] 최상단 1번에 발송/등록되었습니다!`);
+        updateAdminUiBadges();
+    }
+
+    function clearHqGlobalNotice() {
+        localStorage.removeItem("yetalk_hq_global_notice");
+
+        if (window.yetalkDb && window.yetalkFs) {
+            try {
+                const { doc, deleteDoc } = window.yetalkFs;
+                deleteDoc(doc(window.yetalkDb, "yetalk_hq_config", "global_notice")).catch(() => {});
+            } catch(e){}
+        }
+
+        const t = document.getElementById("hqNoticeTitleInput");
+        const c = document.getElementById("hqNoticeContentInput");
+        const a = document.getElementById("hqNoticeAuthorInput");
+        if (t) t.value = "";
+        if (c) c.value = "";
+        if (a) a.value = "";
+
+        alert("✕ 예톡 본부 공지가 내려갔습니다.\n(더 이상 교회 공지에 노출되지 않습니다)");
+        updateAdminUiBadges();
+    }
+
     function clearVideoTopAd() {
         localStorage.removeItem("yetalkVideoPlayingAd");
         localStorage.removeItem("yetalkVideoPlayingAdUrl");
@@ -962,6 +1043,36 @@
             } else {
                 pinBadge.innerText = "미등록";
                 pinBadge.style.color = "#94a3b8";
+            }
+        }
+
+        // 🌟 [사용자 요청] 예톡 본부 공지 뱃지 갱신
+        const hqNoticeRaw = localStorage.getItem("yetalk_hq_global_notice");
+        const hqBadge = document.getElementById("hqNoticeStatusBadge");
+        if (hqBadge) {
+            if (hqNoticeRaw) {
+                try {
+                    const parsed = JSON.parse(hqNoticeRaw);
+                    if (parsed && parsed.active && parsed.title) {
+                        hqBadge.innerText = "🟢 예톡공지 발송 중";
+                        hqBadge.style.color = "#facc15";
+                        const t = document.getElementById("hqNoticeTitleInput");
+                        const c = document.getElementById("hqNoticeContentInput");
+                        const a = document.getElementById("hqNoticeAuthorInput");
+                        if (t && !t.value) t.value = parsed.title || "";
+                        if (c && !c.value) c.value = parsed.content || "";
+                        if (a && !a.value) a.value = parsed.author || "예톡 총괄본부";
+                    } else {
+                        hqBadge.innerText = "미등록 (꺼짐)";
+                        hqBadge.style.color = "#94a3b8";
+                    }
+                } catch(e) {
+                    hqBadge.innerText = "미등록 (꺼짐)";
+                    hqBadge.style.color = "#94a3b8";
+                }
+            } else {
+                hqBadge.innerText = "미등록 (꺼짐)";
+                hqBadge.style.color = "#94a3b8";
             }
         }
 

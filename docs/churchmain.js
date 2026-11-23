@@ -197,6 +197,23 @@ function initChurchData() {
             if (!list3 || !Array.isArray(list3) || list3.length < 3 || !list3[list3.length - 1].isAdmob250 || list3.some(isDoctorDirtySlide) || needVerseMigration) {
                 churchSlideData[3] = createDefaultSlides("공지알림", false);
             }
+            // 🌟 [사용자 요청] 예톡 본부 공지가 활성화되어 있으면 공지알림(3번 카드) 0번 슬라이드에 최우선 배치!
+            try {
+                const hqRaw = localStorage.getItem("yetalk_hq_global_notice");
+                if (hqRaw) {
+                    const hq = JSON.parse(hqRaw);
+                    if (hq && hq.active && hq.title) {
+                        const hqSlide = {
+                            title: "공지알림",
+                            verse: "👑 [예톡공지] " + hq.title,
+                            body: hq.content,
+                            yt: "",
+                            img: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?auto=format&fit=crop&w=1600&q=90"
+                        };
+                        churchSlideData[3] = [hqSlide, ...churchSlideData[3].filter(s => !s.verse || !s.verse.includes("[예톡공지]"))];
+                    }
+                }
+            } catch(e) {}
         } else if (m.id === 7) {
             // 🌟 소모임방 (성도 교제 및 셀 모임): 마지막 슬라이드에 250 애드몹 보장!
             const list7 = churchSlideData[7];
