@@ -261,12 +261,12 @@
                     </span>
                 </div>
 
-                <!-- 대형 텍스트 선교 소식 및 기도 본문 -->
-                <div id="txtMissionaryBody" style="font-size:16.5px; font-weight:750; color:#1e293b; line-height:1.75; word-break:keep-all; white-space:pre-wrap; min-height:80px;">
+                <!-- 대형 텍스트 선교 소식 및 기도 본문 (글 중간 사진 삽입 지원) -->
+                <div id="txtMissionaryBody" style="font-size:16.5px; font-weight:750; color:#1e293b; line-height:1.75; word-break:keep-all; min-height:80px;">
                 </div>
 
-                <!-- 🌟 [사용자 요청] 본문 아래에 작게 노출되는 사진 영역 (최대 2장 가로 나란히, 터치 시 크게보기) -->
-                <div id="missionaryPhotoContainer" style="display:none; margin-top:14px; margin-bottom:6px; gap:8px; justify-content:center; align-items:center; flex-wrap:nowrap;">
+                <!-- 🌟 [사용자 요청] 본문 아래에 가로로 크게 꽉 채워 노출되는 사진 영역 -->
+                <div id="missionaryPhotoContainer" style="display:none; margin-top:14px; margin-bottom:6px; flex-direction:column; gap:12px; width:100%;">
                 </div>
 
                 <!-- 🌟 [사용자 요청] 본문 밑 우측하단 복사 및 수정 버튼 (다음세대와 동일 스타일) -->
@@ -408,6 +408,11 @@
 
             <!-- 🌟 [사용자 요청] 본문 아래 첨부된 사진 리스트 및 빈 공간 클릭 시 사진 첨부 영역 -->
             <div id="attachedPhotosRow" style="display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap;">
+            </div>
+
+            <!-- 🌟 [사용자 요청] 글 중간 사진 넣기 안내 -->
+            <div style="font-size:11.5px; color:#0369a1; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:7px 11px; margin-top:8px; line-height:1.5;">
+                💡 <strong>글 중간에 사진 넣기</strong>: 사진 첨부 시 작성 커서 위치에 <code>[사진 1]</code> 태그가 삽입되어 글 중간에 사진이 나옵니다. (태그가 없으면 글 맨 아래에 가로로 꽉 차게 나옵니다)
             </div>
         </div>
 
@@ -845,29 +850,61 @@
         if (lblTabName) lblTabName.innerText = currentItem.topicTitle || currentItem.tabName || defaultTabName;
         // 🌟 [사용자 요청] (보안가명) 제거
         if (txtAuthor) txtAuthor.innerHTML = `🛡️ 게시자: <strong>${escapeHtml(currentItem.authorAlias || defaultAuthor)}</strong>`;
-        if (txtBody) txtBody.innerText = currentItem.content || "";
+        // 🌟 [사용자 요청] 가로로 크게 꽉 채우는 사진 카드 HTML 빌더
+        function buildPhotoElementHtml(src, photoNum) {
+            if (!src) return "";
+            const safeSrc = src.replace(/"/g, '&quot;');
+            return `<div class="mission-photo-view-box" style="width:100%; margin:14px 0; border-radius:12px; overflow:hidden; border:1.5px solid #bfdbfe; background:#ffffff; box-shadow:0 3px 12px rgba(2,132,199,0.1); cursor:pointer;" onclick="viewPhotoFullscreen('${safeSrc}')">
+                <img src="${safeSrc}" alt="선교 현장 사진 ${photoNum}" style="width:100%; height:auto; max-height:560px; object-fit:contain; display:block; background:#f8fafc; margin:0 auto;">
+                <div style="font-size:11.5px; color:#475569; font-weight:800; padding:7px 12px; background:#f0f9ff; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e0f2fe;">
+                    <span>📷 사진 ${photoNum} (터치 시 크게보기)</span>
+                    <span style="color:#0284c7; font-weight:900;">🔍 원본 확대</span>
+                </div>
+            </div>`;
+        }
 
-        // 🌟 [사용자 요청] 본문 아래에 작게 노출되는 사진 표시 (최대 2장 가로 나란히, 터치 시 크게보기)
+        const photos = (currentItem.photos && Array.isArray(currentItem.photos) && currentItem.photos.length > 0)
+            ? currentItem.photos
+            : (currentItem.photoUrl && currentItem.photoUrl.trim() !== "" ? [currentItem.photoUrl] : []);
+
+        const rawContent = currentItem.content || "";
+        let usedPhotoIndices = new Set();
+        let formattedContent = escapeHtml(rawContent);
+
+        // 🌟 [사용자 요청] 글 중간 사진 배치 지원: [사진 1], [사진 2], [📷 사진 1], [📷 사진 2] 등 감지하여 그 자리에 사진 삽입
+        photos.forEach((src, idx) => {
+            const num = idx + 1;
+            const markerRegex = new RegExp(`\\[(?:📷\\s*)?사진\\s*${num}\\]`, "gi");
+            if (markerRegex.test(rawContent)) {
+                usedPhotoIndices.add(idx);
+                formattedContent = formattedContent.replace(markerRegex, `###PHOTO_SLOT_${idx}###`);
+            }
+        });
+
+        formattedContent = formattedContent.replace(/\n/g, '<br>');
+
+        photos.forEach((src, idx) => {
+            if (usedPhotoIndices.has(idx)) {
+                formattedContent = formattedContent.replace(`###PHOTO_SLOT_${idx}###`, buildPhotoElementHtml(src, idx + 1));
+            }
+        });
+
+        if (txtBody) {
+            txtBody.innerHTML = formattedContent;
+        }
+
+        // 🌟 [사용자 요청] 본문 본문에 삽입되지 않은 사진은 맨 아래에 가로로 크게 꽉 채워 배치 (홀쭉하지 않고 가로 100% 꽉 채움)
         if (photoContainer) {
-            const photos = (currentItem.photos && Array.isArray(currentItem.photos) && currentItem.photos.length > 0)
-                ? currentItem.photos
-                : (currentItem.photoUrl && currentItem.photoUrl.trim() !== "" ? [currentItem.photoUrl] : []);
-
-            if (photos.length > 0) {
+            const unusedPhotos = photos.filter((_, idx) => !usedPhotoIndices.has(idx));
+            if (unusedPhotos.length > 0) {
                 photoContainer.style.display = "flex";
-                photoContainer.innerHTML = "";
-                photos.forEach((src) => {
-                    const imgBox = document.createElement("div");
-                    imgBox.style.cssText = `flex:${photos.length > 1 ? '1' : '0 1 auto'}; max-width:${photos.length > 1 ? '49%' : '100%'}; max-height:180px; border-radius:10px; overflow:hidden; border:1.5px solid #93c5fd; box-shadow:0 2px 8px rgba(0,0,0,0.08); background:#000; cursor:pointer; display:flex; align-items:center; justify-content:center;`;
-                    imgBox.onclick = () => viewPhotoFullscreen(src);
-
-                    const img = document.createElement("img");
-                    img.src = src;
-                    img.alt = "선교 소식 사진";
-                    img.style.cssText = "width:100%; height:180px; object-fit:contain; display:block;";
-                    imgBox.appendChild(img);
-                    photoContainer.appendChild(imgBox);
-                });
+                photoContainer.style.flexDirection = "column";
+                photoContainer.style.gap = "14px";
+                photoContainer.style.width = "100%";
+                photoContainer.innerHTML = unusedPhotos.map((src) => {
+                    const originalIdx = photos.indexOf(src);
+                    return buildPhotoElementHtml(src, originalIdx + 1);
+                }).join("");
             } else {
                 photoContainer.style.display = "none";
                 photoContainer.innerHTML = "";
@@ -884,6 +921,29 @@
     }
     window.viewPhotoFullscreen = viewPhotoFullscreen;
 
+    // 🌟 [사용자 요청] 글 중간 원하는 위치에 [사진 1], [사진 2] 태그 삽입
+    function insertPhotoTagAtCursor(tagText) {
+        const textarea = document.getElementById("inpEditContent");
+        if (!textarea) return;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const val = textarea.value;
+        if (typeof start === "number" && typeof end === "number") {
+            const before = val.substring(0, start);
+            const after = val.substring(end);
+            const prefix = (before.length > 0 && !before.endsWith('\n')) ? '\n' : '';
+            const suffix = (!after.startsWith('\n')) ? '\n' : '';
+            const insertText = prefix + tagText + suffix;
+            textarea.value = before + insertText + after;
+            textarea.selectionStart = textarea.selectionEnd = start + insertText.length;
+        } else {
+            textarea.value = val + '\n' + tagText + '\n';
+        }
+        textarea.focus();
+        showToast(`✍️ 본문에 ${tagText} 태그가 삽입되었습니다.`);
+    }
+    window.insertPhotoTagAtCursor = insertPhotoTagAtCursor;
+
     // 🌟 [사용자 요청] 빈공간 또는 사진 첨부 버튼 클릭 시 파일 선택 트리거
     function triggerPhotoSelect() {
         if (currentEditPhotos.length >= 2) {
@@ -898,7 +958,7 @@
     }
     window.triggerPhotoSelect = triggerPhotoSelect;
 
-    // 🌟 [사용자 요청] 사진 2개 선택 및 다중 첨부 처리 핸들러 (자동 압축)
+    // 🌟 [사용자 요청] 사진 2개 선택 및 다중 첨부 처리 핸들러 (자동 압축 및 본문 커서 태그 자동 삽입)
     function handleMultiplePhotoUpload(event) {
         const files = event.target.files;
         if (!files || files.length === 0) return;
@@ -921,7 +981,7 @@
             reader.onload = function(e) {
                 const img = new Image();
                 img.onload = function() {
-                    const maxDim = 1000;
+                    const maxDim = 1200;
                     let w = img.width;
                     let h = img.height;
                     if (w > maxDim || h > maxDim) {
@@ -938,14 +998,17 @@
                     canvas.height = h;
                     const ctx = canvas.getContext("2d");
                     ctx.drawImage(img, 0, 0, w, h);
-                    const compressed = canvas.toDataURL("image/jpeg", 0.78);
+                    const compressed = canvas.toDataURL("image/jpeg", 0.82);
                     if (currentEditPhotos.length < 2) {
+                        const newPhotoNum = currentEditPhotos.length + 1;
                         currentEditPhotos.push(compressed);
+                        // 글 작성 중인 경우 커서 위치에 바로 사진 태그 삽입
+                        insertPhotoTagAtCursor(`[📷 사진 ${newPhotoNum}]`);
                     }
                     processedCount++;
                     if (processedCount === filesToProcess.length) {
                         renderAttachedPhotosUI();
-                        showToast(`📷 사진 ${filesToProcess.length}장이 첨부되었습니다.`);
+                        showToast(`📷 사진 ${filesToProcess.length}장이 추가되었습니다.`);
                     }
                 };
                 img.src = e.target.result;
@@ -958,14 +1021,21 @@
     // 🌟 [사용자 요청] 첨부 사진 개별 삭제
     function removeAttachedPhotoByIndex(idx) {
         if (idx >= 0 && idx < currentEditPhotos.length) {
+            const photoNum = idx + 1;
             currentEditPhotos.splice(idx, 1);
+            // 본문 텍스트 내 해당 사진 태그도 정리
+            const textarea = document.getElementById("inpEditContent");
+            if (textarea) {
+                const markerRegex = new RegExp(`\\[(?:📷\\s*)?사진\\s*${photoNum}\\]`, "gi");
+                textarea.value = textarea.value.replace(markerRegex, "").trim();
+            }
             renderAttachedPhotosUI();
             showToast("🗑️ 첨부 사진이 삭제되었습니다.");
         }
     }
     window.removeAttachedPhotoByIndex = removeAttachedPhotoByIndex;
 
-    // 🌟 [사용자 요청] 모달 내 첨부 사진 썸네일 및 빈 공간 클릭 영역 UI 렌더링
+    // 🌟 [사용자 요청] 모달 내 첨부 사진 썸네일 및 글 중간 삽입 버튼 UI 렌더링
     function renderAttachedPhotosUI() {
         const container = document.getElementById("attachedPhotosRow");
         if (!container) return;
@@ -973,8 +1043,12 @@
 
         // 기존 첨부된 사진 썸네일 (최대 2장)
         currentEditPhotos.forEach((photoData, idx) => {
+            const photoNum = idx + 1;
+            const card = document.createElement("div");
+            card.style.cssText = "display:flex; align-items:center; gap:8px; background:#f0f9ff; border:1.5px solid #93c5fd; border-radius:10px; padding:6px 10px; box-sizing:border-box;";
+
             const wrap = document.createElement("div");
-            wrap.style.cssText = "position:relative; width:88px; height:88px; border-radius:10px; overflow:hidden; border:2px solid #38bdf8; box-shadow:0 2px 6px rgba(0,0,0,0.12); cursor:pointer; flex-shrink:0;";
+            wrap.style.cssText = "position:relative; width:64px; height:64px; border-radius:8px; overflow:hidden; border:1px solid #38bdf8; cursor:pointer; flex-shrink:0;";
             wrap.onclick = () => viewPhotoFullscreen(photoData);
 
             const img = document.createElement("img");
@@ -982,26 +1056,36 @@
             img.style.cssText = "width:100%; height:100%; object-fit:cover; display:block;";
             wrap.appendChild(img);
 
-            // 삭제 버튼
             const delBtn = document.createElement("button");
             delBtn.type = "button";
             delBtn.innerHTML = "✕";
-            delBtn.style.cssText = "position:absolute; top:3px; right:3px; width:22px; height:22px; background:rgba(220,38,38,0.9); color:#fff; border:none; border-radius:50%; font-size:12px; font-weight:900; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.3);";
+            delBtn.style.cssText = "position:absolute; top:2px; right:2px; width:20px; height:20px; background:rgba(220,38,38,0.9); color:#fff; border:none; border-radius:50%; font-size:11px; font-weight:900; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center;";
             delBtn.onclick = (e) => {
                 e.stopPropagation();
                 removeAttachedPhotoByIndex(idx);
             };
             wrap.appendChild(delBtn);
 
-            container.appendChild(wrap);
+            const infoBox = document.createElement("div");
+            infoBox.style.cssText = "display:flex; flex-direction:column; gap:4px;";
+            infoBox.innerHTML = `
+                <div style="font-size:12px; font-weight:900; color:#0369a1;">사진 ${photoNum}</div>
+                <button type="button" onclick="insertPhotoTagAtCursor('[📷 사진 ${photoNum}]')" style="background:#ffffff; border:1.2px solid #0284c7; color:#0284c7; font-size:11px; font-weight:900; padding:4px 8px; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:3px; white-space:nowrap;">
+                    <span>📍</span> <span>글 커서에 [사진 ${photoNum}] 넣기</span>
+                </button>
+            `;
+
+            card.appendChild(wrap);
+            card.appendChild(infoBox);
+            container.appendChild(card);
         });
 
         // 🌟 빈 공간 클릭 시 사진 첨부 슬롯 (2장 미만일 때 노출)
         if (currentEditPhotos.length < 2) {
             const addSlot = document.createElement("div");
-            addSlot.style.cssText = "flex:1; min-width:140px; height:88px; border:2px dashed #93c5fd; background:#f0f9ff; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; cursor:pointer; color:#0284c7; box-sizing:border-box;";
+            addSlot.style.cssText = "flex:1; min-width:140px; height:76px; border:2px dashed #93c5fd; background:#f8fafc; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; cursor:pointer; color:#0284c7; box-sizing:border-box; padding:4px 8px;";
             addSlot.onclick = triggerPhotoSelect;
-            addSlot.innerHTML = `<span style="font-size:20px;">📷</span><span style="font-size:11.5px; font-weight:800; text-align:center;">빈 공간 터치 시 사진 첨부<br><span style="font-size:10.5px; color:#64748b; font-weight:700;">(최대 2장, ${currentEditPhotos.length}/2)</span></span>`;
+            addSlot.innerHTML = `<span style="font-size:18px;">📷</span><span style="font-size:11.5px; font-weight:800; text-align:center;">빈 공간 터치 시 사진 첨부<br><span style="font-size:10.5px; color:#64748b; font-weight:700;">(최대 2장, ${currentEditPhotos.length}/2)</span></span>`;
             container.appendChild(addSlot);
         }
     }
