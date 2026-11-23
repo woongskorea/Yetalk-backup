@@ -163,10 +163,9 @@
                 <div style="display:flex; align-items:center; gap:7px;">
                     <span style="font-size:20px;">🌱</span>
                     <strong style="color:#15803d; font-size:16px; font-weight:950;">다음세대 이번 주의 기도</strong>
-                    <span id="badgeNextgenPrayDate" style="background:#dcfce7; color:#15803d; font-size:11px; font-weight:900; padding:2px 7px; border-radius:8px;">금주 기도제목</span>
                 </div>
                 <button type="button" onclick="openNextgenPrayEditModal()" style="background:linear-gradient(135deg, #16a34a, #15803d); border:none; color:#ffffff; font-size:12px; font-weight:950; padding:6px 12px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(22,163,74,0.25);">
-                    <span>✏️</span> <span>기도제목 수정</span>
+                    <span>➕</span> <span>기도제목 추가</span>
                 </button>
             </div>
 
@@ -192,27 +191,30 @@
                     <span id="txtNextgenPrayTopicTitle" style="font-size:14.5px; font-weight:950; color:#15803d; display:flex; align-items:center; gap:5px;">
                         <span>🌱</span> <span>청년교회를 위한 기도제목</span>
                     </span>
-                    <span style="font-size:11px; font-weight:800; color:#64748b;">매주 업데이트</span>
                 </div>
                 <!-- 대형 텍스트 기도 내용 본문 -->
-                <div id="txtNextgenPrayBody" style="font-size:16.5px; font-weight:750; color:#1e293b; line-height:1.75; word-break:keep-all; white-space:pre-wrap; min-height:100px;">
+                <div id="txtNextgenPrayBody" style="font-size:16.5px; font-weight:750; color:#1e293b; line-height:1.75; word-break:keep-all; white-space:pre-wrap; min-height:80px;">
+                </div>
+                <!-- 🌟 [사용자 요청] 밑에 수정이나 복사 버튼 우측 하단 배치 -->
+                <div style="display:flex; justify-content:flex-end; align-items:center; gap:6px; margin-top:10px; padding-top:8px; border-top:1px dashed #bbf7d0;">
+                    <button type="button" onclick="copyCurrentNextgenPray()" style="background:#ffffff; border:1px solid #cbd5e1; color:#334155; padding:4px 10px; border-radius:6px; font-size:11.5px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:3px;">
+                        <span>📋</span> <span>복사</span>
+                    </button>
+                    <button type="button" onclick="openNextgenPrayEditModal()" style="background:#ffffff; border:1px solid #86efac; color:#15803d; padding:4px 10px; border-radius:6px; font-size:11.5px; font-weight:850; cursor:pointer; display:inline-flex; align-items:center; gap:3px;">
+                        <span>✏️</span> <span>수정</span>
+                    </button>
                 </div>
             </div>
         </section>
 
-        <!-- 🌟 [사용자 요청] 2. 부서별 나눔 및 기도방 (기도제목 밑으로 이동) -->
+        <!-- 🌟 [사용자 요청] 2. 부서별 나눔 및 기도방 (각 부서별 1개씩 단독 배치) -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin:16px 4px 10px 4px;">
-            <strong style="font-size:15px; font-weight:950; color:#0f172a;">🌱 다음세대 부서별 나눔방</strong>
+            <strong style="font-size:15px; font-weight:950; color:#0f172a;" id="txtNextgenRoomSectionTitle">🌱 청년교회 나눔방</strong>
             <span style="font-size:11.5px; color:#15803d; font-weight:800;">터치 시 즉시 입장</span>
         </div>
 
-        <!-- 🌟 [사용자 요청] 다음세대 (열린청년교회, 청소년교회, 어린이부, 유치부, 유아부) 5대 기본 부서 카드 리스트 -->
+        <!-- 🌟 [사용자 요청] 각 탭별로 1개씩 독립된 부서 카드 -->
         <div class="room-grid-list" id="roomListContainer"></div>
-
-        <!-- + 부서 추가 버튼 -->
-        <button type="button" class="btn-add-room" onclick="openAddRoomModal()">
-            <span>➕</span> <span id="btnAddRoomText">새 다음세대 부서 추가하기</span>
-        </button>
 
         <!-- 🌟 [사용자 요청] 다음세대 대표 사진 (예수님과 다음세대 청년·어린이들의 교제) -->
         <div class="nextgen-photo-card" style="margin-top:4px; margin-bottom:24px; border-radius:14px; overflow:hidden; border:1.5px solid #e2e8f0; background:#ffffff; box-shadow:0 3px 12px rgba(0,0,0,0.06);">
@@ -414,9 +416,27 @@
         });
     }
 
+    function copyCurrentNextgenPray() {
+        const text = document.getElementById('txtNextgenPrayBody')?.innerText || '';
+        if (!text) return;
+        const catTitles = { youth: '청년교회', teen: '청소년교회', kids: '어린이부', infant: '유치부' };
+        const dept = catTitles[currentNextgenPrayCat] || '다음세대';
+        const copyText = `[다음세대 ${dept} 이번 주의 기도]\n\n${text}`;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(copyText).then(() => {
+                showToast("📋 " + dept + " 기도제목이 복사되었습니다!");
+            }).catch(() => {
+                showToast("📋 " + dept + " 기도제목 복사 완료!");
+            });
+        } else {
+            alert(copyText);
+        }
+    }
+
     function switchNextgenPrayCat(cat) {
         currentNextgenPrayCat = cat;
         renderNextgenPray();
+        renderRooms();
     }
 
     function openNextgenPrayEditModal() {
@@ -528,52 +548,77 @@
 
     function renderRooms() {
         const container = document.getElementById("roomListContainer");
+        const titleEl = document.getElementById("txtNextgenRoomSectionTitle");
+        if (!container) return;
         container.innerHTML = "";
 
-        nextgenRooms.forEach(r => {
-            const isUnopened = !r.leader || r.leader.trim() === "" || r.name.startsWith("+");
-            const leaderText = isUnopened ? `👤 빈방 (입장 후 방장 등록)` : `👤 담당/방장: ${r.leader}`;
+        const catNames = {
+            youth: "청년교회",
+            teen: "청소년교회",
+            kids: "어린이부",
+            infant: "유치부"
+        };
+        const activeDeptName = catNames[currentNextgenPrayCat] || "청년교회";
+        if (titleEl) titleEl.innerText = `🌱 ${activeDeptName} 나눔방`;
 
-            const isPrivate = !!r.isPrivate;
-            const canEnter = canUserEnterRoom(r);
-            const isPending = isUserPending(r);
-
-            // 🌟 [사용자 요청] 밖에서는 설정 버튼 완전 제거!
-            // 상태는 3가지: 참여 / 승인대기 / 참여요청
-            // 모든 경우에 [입장 ▸] 글자는 항상 표시!
-            let statusBadgeHtml = "";
-
-            if (!isPrivate || canEnter) {
-                // 1. 참여 상태 (승인되었거나 공개방이거나 빈방)
-                statusBadgeHtml = `<span style="font-size:11px; font-weight:900; color:#10b981; background:rgba(16,185,129,0.14); border:1px solid rgba(16,185,129,0.35); border-radius:6px; padding:3px 7px; white-space:nowrap;">참여</span>`;
-            } else if (isPending) {
-                // 2. 승인대기 상태
-                statusBadgeHtml = `<button type="button" style="font-size:11px; font-weight:900; color:#f59e0b; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); border-radius:6px; padding:3px 7px; cursor:pointer; white-space:nowrap;" onclick="event.stopPropagation(); showToast('⏳ 담당자의 참여 승인을 기다리고 있습니다.');">승인대기</button>`;
-            } else {
-                // 3. 참여요청 상태 (비공개방 미신청)
-                statusBadgeHtml = `<button type="button" style="font-size:11px; font-weight:950; color:#ffffff; background:linear-gradient(135deg, #ef4444, #dc2626); border:1px solid #f87171; border-radius:6px; padding:3px 8px; cursor:pointer; box-shadow:0 2px 6px rgba(220,38,38,0.35); white-space:nowrap;" onclick="event.stopPropagation(); openJoinRequestModal('${r.id}')">참여요청</button>`;
-            }
-
-            const actionHtml = `
-                ${statusBadgeHtml}
-                <span style="color:#0284c7; font-size:13.5px; font-weight:950; padding:2px 4px; white-space:nowrap;">입장 ▸</span>
-            `;
-
-            const card = document.createElement("div");
-            card.className = `room-card ${(!isUnopened) ? 'leader-active' : ''}`;
-            card.onclick = () => enterRoomBoard(r);
-
-            card.innerHTML = `
-                <div class="room-info-col">
-                    <span class="room-name-title">${escapeHtml(r.name)}</span>
-                    <span class="room-leader-tag">${leaderText}</span>
-                </div>
-                <div class="room-action-wrap">
-                    ${actionHtml}
-                </div>
-            `;
-            container.appendChild(card);
+        // 🌟 [사용자 요청] 청년교회는 청년교회방만, 청소년교회는 청소년방만, 각자 하나씩만 배치!
+        let targetRoom = nextgenRooms.find(r => {
+            if (currentNextgenPrayCat === 'youth') return r.id === 'ng_1' || r.name.includes("청년");
+            if (currentNextgenPrayCat === 'teen') return r.id === 'ng_2' || r.name.includes("청소년") || r.name.includes("중고등");
+            if (currentNextgenPrayCat === 'kids') return r.id === 'ng_3' || r.name.includes("어린이") || r.name.includes("초등");
+            if (currentNextgenPrayCat === 'infant') return r.id === 'ng_4' || r.name.includes("유치") || r.name.includes("유아");
+            return false;
         });
+
+        if (!targetRoom) {
+            targetRoom = {
+                id: "ng_" + currentNextgenPrayCat,
+                name: `+ ${activeDeptName} 나눔방 (빈방)`,
+                cat: currentNextgenPrayCat,
+                leader: "",
+                isPrivate: false,
+                members: [],
+                pendingRequests: []
+            };
+            nextgenRooms.push(targetRoom);
+            saveAllRoomsToStorage();
+        }
+
+        const isUnopened = !targetRoom.leader || targetRoom.leader.trim() === "" || targetRoom.name.startsWith("+");
+        const leaderText = isUnopened ? `👤 빈방 (입장 후 방장 등록)` : `👤 담당/방장: ${targetRoom.leader}`;
+
+        const isPrivate = !!targetRoom.isPrivate;
+        const canEnter = canUserEnterRoom(targetRoom);
+        const isPending = isUserPending(targetRoom);
+
+        let statusBadgeHtml = "";
+        if (!isPrivate || canEnter) {
+            statusBadgeHtml = `<span style="font-size:11px; font-weight:900; color:#10b981; background:rgba(16,185,129,0.14); border:1px solid rgba(16,185,129,0.35); border-radius:6px; padding:3px 7px; white-space:nowrap;">참여</span>`;
+        } else if (isPending) {
+            statusBadgeHtml = `<button type="button" style="font-size:11px; font-weight:900; color:#f59e0b; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); border-radius:6px; padding:3px 7px; cursor:pointer; white-space:nowrap;" onclick="event.stopPropagation(); showToast('⏳ 담당자의 참여 승인을 기다리고 있습니다.');">승인대기</button>`;
+        } else {
+            statusBadgeHtml = `<button type="button" style="font-size:11px; font-weight:950; color:#ffffff; background:linear-gradient(135deg, #ef4444, #dc2626); border:1px solid #f87171; border-radius:6px; padding:3px 8px; cursor:pointer; box-shadow:0 2px 6px rgba(220,38,38,0.35); white-space:nowrap;" onclick="event.stopPropagation(); openJoinRequestModal('${targetRoom.id}')">참여요청</button>`;
+        }
+
+        const actionHtml = `
+            ${statusBadgeHtml}
+            <span style="color:#0284c7; font-size:13.5px; font-weight:950; padding:2px 4px; white-space:nowrap;">입장 ▸</span>
+        `;
+
+        const card = document.createElement("div");
+        card.className = `room-card ${(!isUnopened) ? 'leader-active' : ''}`;
+        card.onclick = () => enterRoomBoard(targetRoom);
+
+        card.innerHTML = `
+            <div class="room-info-col">
+                <span class="room-name-title">${escapeHtml(targetRoom.name)}</span>
+                <span class="room-leader-tag">${leaderText}</span>
+            </div>
+            <div class="room-action-wrap">
+                ${actionHtml}
+            </div>
+        `;
+        container.appendChild(card);
     }
 
     function enterRoomBoard(room) {
@@ -588,10 +633,11 @@
         }
 
         sessionStorage.setItem("nextgen_board_room_id", room.id);
-        sessionStorage.setItem("nextgen_board_room_name", room.name);
+        sessionStorage.setItem("nextgen_board_room_name", room.name.replace(/^\+\s*/, ''));
+        sessionStorage.setItem("nextgen_board_room_cat", currentNextgenPrayCat);
         sessionStorage.setItem("nextgen_board_leader", room.leader || "");
         sessionStorage.setItem("churchnextgen_active_dept", room.name);
-        location.href = "churchnextgen_board.html";
+        location.href = `churchnextgen_board.html?dept=${currentNextgenPrayCat}&roomId=${room.id}`;
     }
 
     // 🌟 참여 신청 모달 관련
