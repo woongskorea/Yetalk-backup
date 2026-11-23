@@ -156,15 +156,14 @@
 
     <!-- 메인 스크롤 콘텐츠: 기도제목 상단 배치 + 4대 부서 나눔방 하단 배치 -->
     <main class="main-scroll-content">
-        <!-- 🌟 [사용자 요청] 1. 다음세대 이번 주의 기도 (청년교회 · 청소년교회 · 어린이부 · 유치부 4대 메뉴 & 대형 텍스트 & 매주 수정) -->
+        <!-- 🌟 [사용자 요청] 1. 다음세대 기도 (중복 문구 삭제, 좌측 기도음악 버튼 + 우측 한 줄 기도제목 추가 버튼) -->
         <section class="nextgen-weekly-pray-card" style="background:#ffffff; border:1.8px solid #bbf7d0; border-radius:15px; padding:15px 14px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 16px rgba(22,163,74,0.08); margin-bottom:18px;">
-            <!-- 상단 헤더: 제목 + 관리자 수정 버튼 -->
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:10px;">
-                <div style="display:flex; align-items:center; gap:7px;">
-                    <span style="font-size:20px;">🌱</span>
-                    <strong style="color:#15803d; font-size:16px; font-weight:950;">다음세대 이번 주의 기도</strong>
-                </div>
-                <button type="button" onclick="openNextgenPrayEditModal()" style="background:linear-gradient(135deg, #16a34a, #15803d); border:none; color:#ffffff; font-size:12px; font-weight:950; padding:6px 12px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(22,163,74,0.25);">
+            <!-- 상단 헤더: 좌측 기도음악(재생 시 빨간색) | 우측 기도제목 추가(한 줄) -->
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:10px; gap:8px;">
+                <button type="button" id="btnPrayerMusicTrack1" onclick="togglePrayerMusic1()" style="background:#eff6ff; border:1.5px solid #bfdbfe; color:#0369a1; font-size:13px; font-weight:900; padding:6px 14px; border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04); white-space:nowrap;">
+                    <span id="iconPrayMusic">🎵</span> <span id="txtPrayMusic">기도음악 ▶</span>
+                </button>
+                <button type="button" onclick="openNextgenPrayEditModal()" style="background:linear-gradient(135deg, #16a34a, #15803d); border:none; color:#ffffff; font-size:12.5px; font-weight:950; padding:6px 14px; border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(22,163,74,0.25); white-space:nowrap;">
                     <span>➕</span> <span>기도제목 추가</span>
                 </button>
             </div>
@@ -372,6 +371,98 @@
 
     let currentNextgenPrayCat = 'youth';
     let nextgenPrayData = null;
+
+    // =========================================================================
+    // 🌟 [사용자 요청] 매일회개 기도음악 1번과 100% 동일한 유튜브/오디오 음원 연동 & 재생 시 빨간색 UI
+    // =========================================================================
+    let isPrayMusicPlaying = false;
+    let prayMusicAudioObj = null;
+
+    function extractYouTubeId(url) {
+        if (!url) return null;
+        const str = url.trim();
+        const reg = /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/|live\/))([\w-]{11})/;
+        const m = str.match(reg);
+        if (m && m[1]) return m[1];
+        if (/^[\w-]{11}$/.test(str)) return str;
+        return null;
+    }
+
+    function getPrayerMusic1Url() {
+        const myCustom1 = (localStorage.getItem("yetalk_my_prayer_music_url_1") || localStorage.getItem("yetalk_my_prayer_music_url") || "").trim();
+        if (myCustom1) return myCustom1;
+        const adminGlobal1 = (localStorage.getItem("yetalk_admin_prayer_music_url_1") || localStorage.getItem("yetalk_admin_prayer_music_url") || "").trim();
+        if (adminGlobal1) return adminGlobal1;
+        return "https://www.youtube.com/watch?v=kJQP7kiw5Fk";
+    }
+
+    function togglePrayerMusic1() {
+        if (isPrayMusicPlaying) {
+            stopPrayerMusic1();
+        } else {
+            startPrayerMusic1();
+        }
+    }
+
+    function startPrayerMusic1() {
+        const url = getPrayerMusic1Url();
+        const ytId = extractYouTubeId(url);
+
+        if (ytId) {
+            let host = document.getElementById('hiddenLiveYtIframeContainer');
+            if (!host) {
+                host = document.createElement('div');
+                host.id = 'hiddenLiveYtIframeContainer';
+                host.style.cssText = 'display:none; width:1px; height:1px; position:absolute; left:-9999px;';
+                document.body.appendChild(host);
+            }
+            host.innerHTML = `<iframe id="prayLiveYtIframe" width="200" height="200" src="https://www.youtube.com/embed/${ytId}?autoplay=1&loop=1&playlist=${ytId}&enablejsapi=1" frameborder="0" allow="autoplay; encrypted-media"></iframe>`;
+        } else {
+            if (!prayMusicAudioObj) {
+                prayMusicAudioObj = new Audio(url);
+                prayMusicAudioObj.loop = true;
+            } else {
+                prayMusicAudioObj.src = url;
+                prayMusicAudioObj.loop = true;
+            }
+            prayMusicAudioObj.play().catch(e => console.warn(e));
+        }
+
+        isPrayMusicPlaying = true;
+        updatePrayerMusicButtonUI(true);
+    }
+
+    function stopPrayerMusic1() {
+        const host = document.getElementById('hiddenLiveYtIframeContainer');
+        if (host) host.innerHTML = '';
+        if (prayMusicAudioObj) {
+            try { prayMusicAudioObj.pause(); prayMusicAudioObj.currentTime = 0; } catch(e) {}
+        }
+        isPrayMusicPlaying = false;
+        updatePrayerMusicButtonUI(false);
+    }
+
+    function updatePrayerMusicButtonUI(playing) {
+        const btn = document.getElementById('btnPrayerMusicTrack1');
+        const icon = document.getElementById('iconPrayMusic');
+        const txt = document.getElementById('txtPrayMusic');
+        if (!btn) return;
+        if (playing) {
+            btn.style.background = '#dc2626';
+            btn.style.borderColor = '#b91c1c';
+            btn.style.color = '#ffffff';
+            btn.style.boxShadow = '0 3px 10px rgba(220,38,38,0.35)';
+            if (icon) icon.innerText = '🎵';
+            if (txt) txt.innerText = '기도음악';
+        } else {
+            btn.style.background = '#eff6ff';
+            btn.style.borderColor = '#bfdbfe';
+            btn.style.color = '#0369a1';
+            btn.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)';
+            if (icon) icon.innerText = '🎵';
+            if (txt) txt.innerText = '기도음악 ▶';
+        }
+    }
 
     function initNextgenPray() {
         try {
@@ -726,6 +817,7 @@
     function closeModal(id) { document.getElementById(id).classList.remove("open"); }
 
     function goToChurchHome() {
+        stopPrayerMusic1();
         sessionStorage.setItem("church_last_active_card_idx", "8");
         location.href = "churchmain.html?card=8";
     }
