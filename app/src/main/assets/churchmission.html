@@ -232,14 +232,14 @@
     <main class="main-scroll-content">
         <!-- 🌟 [사용자 요청] 1. 선교사 소식 및 기도제목 (선교사 1, 선교사 2, 선교사 3, + 추가 탭 & 대형 텍스트 & 사진 첨부 지원) - 최상단 배치 -->
         <section class="missionary-weekly-card">
-            <!-- 상단 헤더: 제목 + 소식 수정 버튼 -->
+            <!-- 상단 헤더: 제목 + 소식 추가 버튼 (다음세대 스타일) -->
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:10px;">
                 <div style="display:flex; align-items:center; gap:7px;">
                     <span style="font-size:20px;" id="iconMissionaryHeader">🌍</span>
                     <strong style="color:#0284c7; font-size:16px; font-weight:950;" id="txtMissionaryHeader">선교사 소식 및 기도제목</strong>
                 </div>
-                <button type="button" onclick="openMissionaryEditModal()" style="background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; font-size:12px; font-weight:950; padding:6px 12px; border-radius:8px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(2,132,199,0.25);">
-                    <span>✏️</span> <span id="btnEditMissionaryLabel">소식 수정 / 관리</span>
+                <button type="button" onclick="openMissionaryEditModal(true)" style="background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; font-size:12px; font-weight:950; padding:6px 14px; border-radius:20px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(2,132,199,0.25);">
+                    <span>➕</span> <span id="btnEditMissionaryLabel">추가</span>
                 </button>
             </div>
 
@@ -275,6 +275,16 @@
                 <!-- 대형 텍스트 선교 소식 및 기도 본문 -->
                 <div id="txtMissionaryBody" style="font-size:16.5px; font-weight:750; color:#1e293b; line-height:1.75; word-break:keep-all; white-space:pre-wrap; min-height:100px;">
                 </div>
+
+                <!-- 🌟 [사용자 요청] 본문 밑 우측하단 복사 및 수정 버튼 (다음세대와 동일 스타일) -->
+                <div style="display:flex; justify-content:flex-end; align-items:center; gap:6px; margin-top:10px; padding-top:8px; border-top:1px dashed #93c5fd;">
+                    <button type="button" onclick="copyCurrentMissionaryPray()" style="background:#ffffff; border:1px solid #cbd5e1; color:#334155; padding:4px 10px; border-radius:6px; font-size:11.5px; font-weight:800; cursor:pointer; display:inline-flex; align-items:center; gap:3px;">
+                        <span>📋</span> <span>복사</span>
+                    </button>
+                    <button type="button" onclick="openMissionaryEditModal(false)" style="background:#ffffff; border:1px solid #93c5fd; color:#0284c7; padding:4px 10px; border-radius:6px; font-size:11.5px; font-weight:850; cursor:pointer; display:inline-flex; align-items:center; gap:3px;">
+                        <span>✏️</span> <span>수정</span>
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -284,11 +294,11 @@
             <span style="font-size:11.5px; color:#0284c7; font-weight:800;">터치 시 즉시 입장</span>
         </div>
 
-        <!-- 5개 기본 방 + 추가된 방 리스트 -->
+        <!-- 🌟 [사용자 요청] 선택된 상단 탭에 매칭되는 방 1개만 단독 표시 -->
         <div class="room-grid-list" id="roomListContainer"></div>
 
-        <!-- + 방 추가 버튼 -->
-        <button type="button" class="btn-add-room" onclick="openAddRoomModal()">
+        <!-- + 방 추가 버튼 (단독 매칭 방만 노출하도록 숨김) -->
+        <button type="button" class="btn-add-room" id="btnAddRoomBtn" onclick="openAddRoomModal()" style="display:none;">
             <span>➕</span> <span id="btnAddRoomText">새 선교방 추가하기</span>
         </button>
     </main>
@@ -329,7 +339,7 @@
 
 <!-- 🌟 [사용자 요청] 선교사 소식 및 기도제목 수정/추가 모달 (사진 첨부 기능 포함) -->
 <div class="modal-overlay" id="modalMissionaryEdit">
-    <div class="modal-card" style="max-width:440px; max-height:90vh; overflow-y:auto;">
+    <div class="modal-card" style="max-width:440px; max-height:92vh; overflow-y:auto; -webkit-overflow-scrolling:touch;">
         <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
             <strong style="color:#0284c7; font-size:16px; font-weight:950; display:flex; align-items:center; gap:6px;">
                 <span>✏️</span> <span id="modalMissionaryEditTitle">선교사 소식 및 기도제목 관리</span>
@@ -403,12 +413,12 @@
             </div>
         </div>
 
-        <!-- 5. 선교 편지 및 기도제목 본문 -->
+        <!-- 5. 선교 편지 및 기도제목 본문 (사용자 요청: 세로긴 통창) -->
         <div>
-            <label style="font-size:12px; color:#475569; font-weight:900; display:block; margin-bottom:4px;">
+            <label style="font-size:13px; color:#0f172a; font-weight:950; display:block; margin-bottom:6px;">
                 5. 선교 편지 및 기도제목 본문
             </label>
-            <textarea id="inpEditContent" class="modal-input" style="height:150px; background:#ffffff; color:#0f172a; line-height:1.6; font-size:14.5px; resize:vertical;" placeholder="선교 현장의 사역 소식과 중보 기도제목을 적어주세요..."></textarea>
+            <textarea id="inpEditContent" class="modal-input" style="width:100%; min-height:300px; height:360px; background:#ffffff; color:#0f172a; line-height:1.8; font-size:15px; font-weight:600; resize:vertical; padding:14px; border:2px solid #93c5fd; border-radius:12px; box-sizing:border-box;" placeholder="선교 현장의 사역 소식과 중보 기도제목을 적어주세요..."></textarea>
         </div>
 
         <!-- 하단 액션 버튼 -->
@@ -788,13 +798,13 @@
         const editLabel = document.getElementById("btnEditMissionaryLabel");
         if (iconEl) iconEl.innerText = isM ? "🌍" : "🕊️";
         if (titleEl) titleEl.innerText = isM ? "선교사 소식 및 기도제목" : "전도대 소식 및 기도제목";
-        if (editLabel) editLabel.innerText = isM ? "소식 수정 / 관리" : "소식 수정 / 관리";
+        if (editLabel) editLabel.innerText = "추가";
 
         renderMissionarySection();
         renderRooms();
     }
 
-    // 🌟 [사용자 요청] 선교사1, 선교사2, 선교사3, 추가+ 탭 및 대형 본문 렌더링
+    // 🌟 [사용자 요청] 선교사1, 선교사2, 선교사3, 추가+ 탭 및 대형 본문 렌더링 (이모티콘 제거)
     function renderMissionarySection() {
         const isM = (currentCategory === "mission");
         const list = isM ? missionaryList : evangelList;
@@ -813,10 +823,12 @@
             btn.type = "button";
             btn.className = `btn-missionary-tab ${idx === activeIdx ? 'active' : ''}`;
             const defaultName = isM ? `선교사 ${idx + 1}` : `전도팀 ${idx + 1}`;
-            btn.innerHTML = `${isM ? '🌍' : '🕊️'} ${escapeHtml(item.tabName || defaultName)}`;
+            // 🌟 [사용자 요청] 선교사1, 선교사2 이모티콘 제거하여 깔끔하게 표시
+            btn.innerHTML = `${escapeHtml(item.tabName || defaultName)}`;
             btn.onclick = () => {
                 if (isM) currentMissionaryIdx = idx; else currentEvangelIdx = idx;
                 renderMissionarySection();
+                renderRooms();
             };
             tabRow.appendChild(btn);
         });
@@ -1078,13 +1090,49 @@
     }
     window.saveMissionaryEditData = saveMissionaryEditData;
 
-    // 사랑방 렌더링
+    // 🌟 [사용자 요청] 다음세대와 동일한 선교 기도제목 복사 기능
+    function copyCurrentMissionaryPray() {
+        const isM = (currentCategory === "mission");
+        const list = isM ? missionaryList : evangelList;
+        const activeIdx = isM ? currentMissionaryIdx : currentEvangelIdx;
+        const item = list[activeIdx] || {};
+        const title = item.topicTitle || item.tabName || (isM ? `선교사 ${activeIdx + 1}` : `전도팀 ${activeIdx + 1}`);
+        const text = (item.content || "").trim();
+        const copyText = `[${title}]\n게시자: ${item.authorAlias || title}\n\n${text}`;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(copyText).then(() => {
+                showToast("📋 " + title + " 기도제목이 복사되었습니다!");
+            }).catch(() => {
+                showToast("📋 기도제목 복사 완료!");
+            });
+        } else {
+            alert(copyText);
+        }
+    }
+    window.copyCurrentMissionaryPray = copyCurrentMissionaryPray;
+
+    // 사랑방 렌더링 (선택된 상단 탭에 매칭되는 나눔방 딱 1개만 단독 표시)
     function renderRooms() {
         const container = document.getElementById("roomListContainer");
+        if (!container) return;
         container.innerHTML = "";
-        const list = (currentCategory === "mission") ? missionRooms : evangelRooms;
+        const isM = (currentCategory === "mission");
+        const list = isM ? missionRooms : evangelRooms;
+        const activeIdx = isM ? currentMissionaryIdx : currentEvangelIdx;
 
-        list.forEach(r => {
+        // 🌟 [사용자 요청] 밑에도 선교 나눔방을 한개씩만 적어줘 (선택된 탭에 매칭되는 1개 방만 단독 표시)
+        let room = list[activeIdx];
+        if (!room) {
+            const newId = (isM ? "m_" : "e_") + (activeIdx + 1);
+            const defaultName = isM ? `+ ${activeIdx + 1}선교나눔방 (빈방)` : `+ ${activeIdx + 1}전도나눔방 (빈방)`;
+            room = sanitizeRoom({ id: newId, name: defaultName, leader: "", isPrivate: false, members: [], pendingRequests: [] });
+            list[activeIdx] = room;
+            saveAllRoomsToStorage();
+        }
+
+        const roomsToRender = [room];
+
+        roomsToRender.forEach(r => {
             const isUnopened = !r.leader || r.leader.trim() === "" || r.name.startsWith("+");
             const leaderTitle = (currentCategory === "mission") ? "선교사(방장)" : "팀장";
             const leaderText = isUnopened ? `👤 빈방 (입장 후 방장 등록)` : `👤 ${leaderTitle}: ${r.leader}`;
