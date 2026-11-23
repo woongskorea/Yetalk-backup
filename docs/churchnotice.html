@@ -611,8 +611,8 @@
                     <span>우리교회 · 담임목사님 말씀 자동 배송 안내</span>
                 </div>
                 <div style="font-size:12px; font-weight:750; color:#334155; line-height:1.6; word-break:keep-all;">
-                    매일 오전 10시, 우리교회 또는 담임목사님의 <strong>[예수동행]</strong> 은혜의 말씀이 성도님들께 자동 배달됩니다.<br>
-                    <span style="font-size:11.2px; color:#64748b;">(담임목사님께서 10시 이전 새글 수정 시 목사님 성함으로, 수정 없을 시 교회 공식 명의로 배달됩니다)</span>
+                    매일 오전 10시, 우리교회 또는 담임목사님의 <strong>[행복한 예수동행]</strong> 은혜의 말씀이 성도님들께 자동 배달됩니다.<br>
+                    <span style="font-size:11.2px; color:#64748b;">(담임목사님께서 10시 이전 새글 수정 시 목사님 성함으로, 수정 없을 시 교회 이름으로 배달됩니다)</span>
                 </div>
             </section>
 
@@ -940,38 +940,39 @@
         try { storedWordNotice = JSON.parse(localStorage.getItem("yetalk_today_pastor_word_v5") || localStorage.getItem("yetalk_church_daily_word")); } catch(e) {}
         const isTodayUpdatedNotice = (storedWordNotice && (storedWordNotice.date === todayStrNotice || storedWordNotice.date === nowNotice.toISOString().slice(0, 10)));
 
-        if (curHourNotice >= 10 || isTodayUpdatedNotice) {
-            let sScriptureNotice = "오직 여호와를 앙망하는 자는 새 힘을 얻으리니 독수리가 날개치며 올라감 같을 것이요 달음박질하여도 곤비하지 아니하겠고 걸어가도 피곤하지 아니하리로다 (이사야 40:31)";
-            let sMeditationNotice = "성도 여러분, 오늘도 주님과 손잡고 걸어가는 복된 하루 되시기를 축복합니다.\n마음의 무거운 짐을 주님께 모두 맡겨드리고, 약속의 말씀을 굳게 붙잡아 평안과 감사가 넘치시기를 소망합니다.";
-            if (storedWordNotice && storedWordNotice.scripture) {
-                sScriptureNotice = storedWordNotice.scripture;
-                if (storedWordNotice.meditation) sMeditationNotice = storedWordNotice.meditation;
-            }
-                        
-            // 중복 방지 후 최상단 삽입
-            // 🌟 [사용자 요청 & 법적 안전] 목사님 직접 수정 시 목사님 성함, 기본 발송 시 교회명으로 발송
-            let authorNotice = isTodayUpdatedNotice ? effectivePastorNotice : (churchName ? (`[${churchName}] 예수동행`) : "우리교회 예수동행");
-            let catNotice = isTodayUpdatedNotice ? "목사님의 예수동행" : "오늘의 예수동행";
-            let titleNotice = isTodayUpdatedNotice
-                ? ("🕊️ [목사님의 예수동행] " + sScriptureNotice.slice(0, 28) + "...")
-                : ("🕊️ [오늘의 예수동행] " + sScriptureNotice.slice(0, 28) + "...");
-            let medHeaderNotice = isTodayUpdatedNotice ? "🕊️ 담임목사 권면 묵상:" : "🕊️ 오늘의 은혜 묵상:";
-            const noticeGuideNotice = "\n\n────────────────────\n\n💡 안내: 담임목사님께서 교회앱 [예수동행] 메뉴에서 10시 이전 당일의 새글 수정하시면 담임목사님 이름으로 발송되며, 수정이 없을 시 교회 공식 은혜의 말씀으로 매일 오전 10시에 자동 발송됩니다.";
-
-            // 🌟 중복 방지: 동일 날짜 또는 예수동행 제목 중복 항목 깔끔히 필터링
-            loaded = loaded.filter(item => item && item.id !== dailyWordNoticeId && !String(item.title || "").includes("[오늘의 예수동행]") && !String(item.title || "").includes("[목사님의 예수동행]"));
-            loaded.unshift({
-                id: dailyWordNoticeId,
-                category: catNotice,
-                title: titleNotice,
-                content: "“" + sScriptureNotice + "”\n\n" + medHeaderNotice + "\n" + sMeditationNotice + noticeGuideNotice,
-                author: authorNotice,
-                time: "오늘 10:00",
-                views: 520,
-                img: (storedWordNotice && storedWordNotice.img) || null,
-                fileName: null
-            });
+        // 🌟 [사용자 요청] 예수동행: 공지부분에 매일 항상 올라옴!
+        // 10시 전 수정 안 하면 '공식' 빼고 교회 이름으로([부산제일감리교회] 행복한 예수동행),
+        // 목사님께서 수정하셨으면 목사님 이름으로([정찬석 담임목사의 행복한 예수동행])!
+        let sScriptureNotice = "오직 여호와를 앙망하는 자는 새 힘을 얻으리니 독수리가 날개치며 올라감 같을 것이요 달음박질하여도 곤비하지 아니하겠고 걸어가도 피곤하지 아니하리로다 (이사야 40:31)";
+        let sMeditationNotice = "성도 여러분, 오늘도 주님과 손잡고 걸어가는 복된 하루 되시기를 축복합니다.\n마음의 무거운 짐을 주님께 모두 맡겨드리고, 약속의 말씀을 굳게 붙잡아 평안과 감사가 넘치시기를 소망합니다.";
+        if (storedWordNotice && storedWordNotice.scripture) {
+            sScriptureNotice = storedWordNotice.scripture;
+            if (storedWordNotice.meditation) sMeditationNotice = storedWordNotice.meditation;
         }
+                    
+        let authorNotice = isTodayUpdatedNotice 
+            ? (effectivePastorNotice.includes("행복한") ? effectivePastorNotice : `[${effectivePastorNotice}의 행복한 예수동행]`)
+            : (churchName ? `[${churchName}] 행복한 예수동행` : "[우리교회] 행복한 예수동행");
+        let catNotice = "행복한 예수동행";
+        let titleNotice = isTodayUpdatedNotice
+            ? ("🕊️ [" + effectivePastorNotice + "의 행복한 예수동행] " + sScriptureNotice.slice(0, 24) + "...")
+            : ("🕊️ [" + (churchName || "우리교회") + " 행복한 예수동행] " + sScriptureNotice.slice(0, 24) + "...");
+        let medHeaderNotice = isTodayUpdatedNotice ? "🕊️ 담임목사 권면 묵상:" : "🕊️ 오늘의 은혜 묵상:";
+        const noticeGuideNotice = "\n\n────────────────────\n\n💡 안내: 담임목사님께서 교회앱 [예수동행] 메뉴에서 10시 이전 당일의 새글을 수정하시면 담임목사님 이름으로 발송되며, 수정이 없을 시 교회 이름으로 매일 은혜의 말씀이 자동 등록됩니다.";
+
+        // 🌟 중복 방지: 동일 날짜 또는 예수동행 제목 중복 항목 깔끔히 필터링
+        loaded = loaded.filter(item => item && item.id !== dailyWordNoticeId && !String(item.title || "").includes("예수동행"));
+        loaded.unshift({
+            id: dailyWordNoticeId,
+            category: catNotice,
+            title: titleNotice,
+            content: "“" + sScriptureNotice + "”\n\n" + medHeaderNotice + "\n" + sMeditationNotice + noticeGuideNotice,
+            author: authorNotice,
+            time: isTodayUpdatedNotice ? "오늘" : "오늘 10:00",
+            views: 520,
+            img: (storedWordNotice && storedWordNotice.img) || null,
+            fileName: null
+        });
 
         if (Array.isArray(loaded)) {
             loaded = loaded.map(item => {

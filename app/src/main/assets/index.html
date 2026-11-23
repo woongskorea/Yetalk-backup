@@ -7636,7 +7636,8 @@
                 <span class="board-fullscreen-title" id="boardFullscreenTitle">💬 예톡 커뮤니티</span>
                 <span class="board-fullscreen-sub" id="boardFullscreenSub">따뜻한 소통과 은혜의 나눔터</span>
             </div>
-            <button type="button" class="btn-cafe-submit" onclick="openCafeWriteModal()" style="padding:5px 12px; font-size:12px;">✍️ 글쓰기</button>
+            <!-- 🌟 [사용자 요청] 우측 하단 플로팅 + 버튼 사용을 위해 상단 글쓰기 버튼 제거 (센터 정렬용 투명 스페이서 유지) -->
+            <div style="width:55px; height:1px;"></div>
         </header>
 
         <!-- 🌟 [사용자 요청] 단일 커뮤니티 게시판으로 통합 (다중 탭 제거) -->
@@ -16023,33 +16024,35 @@ const BIBLICAL_TIME_SLOTS = [
 
             const churchDailyWordList = [];
 
-            // 오전 10시(10:00) 이후이거나 목사님이 당일 수정하신 경우 1번으로 자동 발송!
-            if (currentHour >= 10 || isTodayUpdated) {
-                let sScripture = "오직 여호와를 앙망하는 자는 새 힘을 얻으리니 독수리가 날개치며 올라감 같을 것이요 달음박질하여도 곤비하지 아니하겠고 걸어가도 피곤하지 아니하리로다 (이사야 40:31)";
-                let sMeditation = "성도 여러분, 오늘도 주님과 손잡고 걸어가는 복된 하루 되시기를 축복합니다.\n마음의 무거운 짐을 주님께 모두 맡겨드리고, 약속의 말씀을 굳게 붙잡아 평안과 감사가 넘치시기를 소망합니다.";
-                if (storedWord && storedWord.scripture) {
-                    sScripture = storedWord.scripture;
-                    if (storedWord.meditation) sMeditation = storedWord.meditation;
-                }
-                                // 🌟 [사용자 요청 & 법적 안전] 목사님 직접 수정 시 목사님 성함, 기본 발송 시 교회명으로 발송 (성명권 보호)
-                let noticeSender = isTodayUpdated ? effectivePastor : (churchName ? (`[${churchName}] 예수동행`) : "우리교회 예수동행");
-                let noticeTitle = isTodayUpdated 
-                    ? ("🕊️ [목사님의 예수동행] " + sScripture.slice(0, 24) + "...")
-                    : ("🕊️ [오늘의 예수동행] " + sScripture.slice(0, 24) + "...");
-                let medHeader = isTodayUpdated ? "🕊️ 담임목사 권면 묵상:" : "🕊️ 오늘의 은혜 묵상:";
-                const noticeGuide = "\n\n────────────────────\n\n💡 안내: 담임목사님께서 교회앱 [예수동행] 메뉴에서 10시 이전 당일의 새글 수정하시면 담임목사님 이름으로 발송되며, 수정이 없을 시 교회 공식 은혜의 말씀으로 매일 오전 10시에 자동 발송됩니다.";
-
-                churchDailyWordList.push({
-                    id: dailyNoticeId,
-                    tagType: "church",
-                    tagText: "예수동행",
-                    sender: noticeSender,
-                    title: noticeTitle,
-                    content: "“" + sScripture + "”\n\n" + medHeader + "\n" + sMeditation + noticeGuide,
-                    dateText: "오늘 10:00",
-                    targetUrl: "churchnotice.html?noticeId=" + dailyNoticeId
-                });
+            // 🌟 [사용자 요청] 예수동행: 예톡홈 공지부분에 매일 항상 올라옴!
+            // 10시 전에 수정 안 하면 '공식'은 빼고 교회 이름으로 ([부산제일감리교회] 행복한 예수동행),
+            // 목사님께서 수정하셨으면 목사님 이름으로 ([정찬석 담임목사의 행복한 예수동행])!
+            let sScripture = "오직 여호와를 앙망하는 자는 새 힘을 얻으리니 독수리가 날개치며 올라감 같을 것이요 달음박질하여도 곤비하지 아니하겠고 걸어가도 피곤하지 아니하리로다 (이사야 40:31)";
+            let sMeditation = "성도 여러분, 오늘도 주님과 손잡고 걸어가는 복된 하루 되시기를 축복합니다.\n마음의 무거운 짐을 주님께 모두 맡겨드리고, 약속의 말씀을 굳게 붙잡아 평안과 감사가 넘치시기를 소망합니다.";
+            if (storedWord && storedWord.scripture) {
+                sScripture = storedWord.scripture;
+                if (storedWord.meditation) sMeditation = storedWord.meditation;
             }
+
+            let noticeSender = isTodayUpdated 
+                ? (effectivePastor.includes("행복한") ? effectivePastor : `[${effectivePastor}의 행복한 예수동행]`)
+                : (churchName ? `[${churchName}] 행복한 예수동행` : "[우리교회] 행복한 예수동행");
+            let noticeTitle = isTodayUpdated 
+                ? ("🕊️ [" + effectivePastor + "의 행복한 예수동행] " + sScripture.slice(0, 24) + "...")
+                : ("🕊️ [" + (churchName || "우리교회") + " 행복한 예수동행] " + sScripture.slice(0, 24) + "...");
+            let medHeader = isTodayUpdated ? "🕊️ 담임목사 권면 묵상:" : "🕊️ 오늘의 은혜 묵상:";
+            const noticeGuide = "\n\n────────────────────\n\n💡 안내: 담임목사님께서 교회앱 [예수동행] 메뉴에서 10시 이전 당일의 새글을 수정하시면 담임목사님 이름으로 발송되며, 수정이 없을 시 교회 이름으로 매일 은혜의 말씀이 자동 등록됩니다.";
+
+            churchDailyWordList.push({
+                id: dailyNoticeId,
+                tagType: "church",
+                tagText: "행복한 예수동행",
+                sender: noticeSender,
+                title: noticeTitle,
+                content: "“" + sScripture + "”\n\n" + medHeader + "\n" + sMeditation + noticeGuide,
+                dateText: isTodayUpdated ? "오늘" : "오늘 10:00",
+                targetUrl: "churchnotice.html?noticeId=" + dailyNoticeId
+            });
 
             const defaultChurchNotices = [
                 {
