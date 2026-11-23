@@ -5282,7 +5282,7 @@
                     <span>👑 영상+</span>
                 </button>
                 <button type="button" class="shorts-action-btn btn-shorts-member-upload" id="btnShortsMemberUpload" onclick="openStudioModal()" title="성도 누구나 은혜 영상 올리기 (녹색)">
-                    <span>🌿 영상올리기</span>
+                    <span>영상올리기</span>
                 </button>
                 <button type="button" class="shorts-action-btn btn-shorts-delete" id="btnShortsAdminDelete" onclick="handleAdminDeleteAction()" title="영상 삭제 (대표님 전용)">
                     <span>🗑️ 삭제</span>
@@ -5672,149 +5672,135 @@
 
     
     <!-- 👑 [대표님 전용] 슬롯 유튜브 영상 추가/관리 모달 -->
+    <!-- 🌟 [사용자 요청] 12개 슬롯 간편 수정 및 단독 영상 등록 모달 (3열 바둑판 메뉴 & 다른 영상 안 섞임) -->
     <div class="modal-overlay" id="adminSlotEditModal" style="display:none; z-index:25000;" onclick="closeAdminSlotEditModal()">
-        <div class="modal-card" style="padding:18px; max-width:440px; background:#0f172a; border:2px solid #ef4444; border-radius:18px; max-height:90vh; overflow-y:auto; box-sizing:border-box;" onclick="event.stopPropagation()">
+        <div class="modal-card" style="padding:16px 14px; max-width:440px; background:#0f172a; border:2px solid #38bdf8; border-radius:18px; max-height:92vh; overflow-y:auto; box-sizing:border-box;" onclick="event.stopPropagation()">
+            <!-- 헤더: 타이틀 & 닫기 -->
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:8px; margin-bottom:10px;">
-                <div style="display:flex; align-items:center; gap:6px; overflow:hidden; flex:1; margin-right:8px;">
+                <div style="display:flex; align-items:center; gap:6px; overflow:hidden; flex:1;">
                     <span style="font-size:20px; flex-shrink:0;">👑</span>
-                    <strong style="color:#ef4444; font-size:15px; font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="adminSlotEditModalHeader">슬롯 영상 관리 및 추가</strong>
+                    <strong style="color:#38bdf8; font-size:15px; font-weight:950; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="adminSlotEditModalHeader">12개 슬롯 간편 수정 및 영상 등록</strong>
                 </div>
-                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer; flex-shrink:0;" onclick="closeAdminSlotEditModal()">✕</button>
+                <button type="button" style="background:#1e293b; border:1px solid #475569; color:#f8fafc; font-size:16px; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0;" onclick="closeAdminSlotEditModal()">✕</button>
             </div>
-            
 
+            <!-- 🌟 [사용자 요청] 12개의 메뉴(슬롯 버튼)가 3열 바둑판으로 시원하게 나와서 바로 선택! -->
+            <div style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:12px; font-weight:900; color:#cbd5e1;">👇 수정할 슬롯 번호 터치 (12개 메뉴)</span>
+                <span style="font-size:11px; color:#38bdf8; font-weight:800;" id="adminSelectedSlotNotice">선택: 1번</span>
+            </div>
+            <div id="adminSlotTabsContainer" style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px; margin-bottom:14px;">
+                <!-- JS로 12개 슬롯 버튼 동적 렌더링 -->
+            </div>
 
-            <!-- 🌟 슬롯 선택 탭 (기도 1 / 기도 2 / 기도 3 등) -->
-            <div id="adminSlotTabsContainer" style="display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:2px;"></div>
-
-            <!-- 🌟 현재 슬롯에 등록된 영상 목록 -->
-            <div style="margin-bottom:12px; background:#0b1329; border:1px solid #1e3a5f; border-radius:10px; padding:10px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                    <span style="font-size:12.5px; font-weight:900; color:#38bdf8;">🎬 현재 슬롯 등록 영상 (<span id="adminSlotVideosCount">0</span>개)</span>
-                    <span style="font-size:10.5px; color:#94a3b8;">* 위에서부터 순서대로 재생됩니다</span>
+            <!-- 선택된 슬롯 1개에 대한 간편 등록 폼 -->
+            <div style="background:#131d33; border:1.5px solid #1e3a5f; border-radius:12px; padding:12px; margin-bottom:12px; box-sizing:border-box;">
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:12px; font-weight:900; color:#38bdf8; display:block; margin-bottom:4px;">1. 슬롯 버튼 명칭 (이름 변경)</label>
+                    <input type="text" id="inpAdminSlotLabel" class="modal-input" placeholder="버튼에 표시될 이름 (예: 찬양 1, 말씀 3 등)" style="width:100%; padding:9px 12px; font-size:14px; font-weight:900; background:#0b1120; color:#ffffff; border:1.5px solid #334155; border-radius:8px; box-sizing:border-box;">
                 </div>
-                <div id="adminSlotVideosListBox" style="max-height:130px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;"></div>
-            </div>
 
-            <!-- 새 영상 등록 폼 -->
-            <div style="margin-bottom:9px;">
-                <label style="font-size:12px; font-weight:800; color:#94a3b8; display:block; margin-bottom:4px;">슬롯 버튼 명칭 (예: 찬양 1, 우리교회 설교, 기도 1 등)</label>
-                <input type="text" id="inpAdminSlotLabel" class="modal-input" placeholder="슬롯 명칭" style="width:100%; padding:8px 12px; font-size:13.5px; font-weight:800; background:#1e293b; color:#ffffff; border:1.5px solid #475569; border-radius:8px; box-sizing:border-box;">
-            </div>
-
-            <div style="margin-bottom:9px;">
-                <label style="font-size:12px; font-weight:800; color:#94a3b8; display:block; margin-bottom:4px;">영상 제목 / 은혜의 설명 (내가 원하는 제목으로 자유 변경)</label>
-                <input type="text" id="inpAdminSlotTitle" class="modal-input" placeholder="성도들에게 표시될 영상 제목" style="width:100%; padding:8px 12px; font-size:13.5px; font-weight:800; background:#1e293b; color:#ffffff; border:1.5px solid #475569; border-radius:8px; box-sizing:border-box;">
-            </div>
-
-            <!-- 🌟 [사용자 요청] 버튼 이름 & 안에 것 영상 제목 바로 저장 버튼 (새 링크 없이도 즉시 수정) -->
-            <button type="button" onclick="saveAdminSlotLabelAndTitleOnly()" style="width:100%; padding:10px; background:linear-gradient(135deg, #2563eb, #1d4ed8); color:#ffffff; border:none; border-radius:10px; font-size:13.5px; font-weight:950; cursor:pointer; margin-bottom:12px; box-shadow:0 2px 8px rgba(37,99,235,0.35);">
-                💾 버튼 이름 &amp; 영상 제목 바로 저장 (새 링크 없이 변경)
-            </button>
-
-            <div style="margin-bottom:9px;">
-
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <label style="font-size:12px; font-weight:800; color:#94a3b8;">유튜브 링크 주소 또는 영상 ID (쇼츠/롱폼/공유링크 모두 가능)</label>
-                    <span style="font-size:11px; color:#38bdf8; font-weight:700;">* 터치 시 지우지 않고 바로 붙여넣기</span>
+                <div style="margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label style="font-size:12px; font-weight:900; color:#facc15; margin:0;">2. 유튜브 영상 주소 (새 영상 올리기)</label>
+                        <span style="font-size:10.5px; color:#94a3b8; font-weight:700;">* 터치 시 지우지 않고 바로 붙여넣기</span>
+                    </div>
+                    <div style="position:relative; display:flex; align-items:center;">
+                        <input type="text" id="inpAdminSlotYtUrl" class="modal-input" placeholder="유튜브 링크를 붙여넣으세요" onclick="handleYtUrlFocusAndPaste(this)" onfocus="this.select()" style="width:100%; padding:9px 75px 9px 12px; font-size:13.5px; font-weight:800; background:#0b1120; color:#64748b; border:1.5px solid #334155; border-radius:8px; box-sizing:border-box; transition:all 0.2s ease;">
+                        <button type="button" onclick="pasteClipboardToInput('inpAdminSlotYtUrl')" style="position:absolute; right:6px; background:#1e293b; border:1.2px solid #38bdf8; color:#38bdf8; border-radius:6px; font-size:11px; font-weight:900; padding:4px 8px; cursor:pointer;">
+                            📋 붙여넣기
+                        </button>
+                    </div>
                 </div>
-                <div style="position:relative; display:flex; align-items:center;">
-                    <input type="text" id="inpAdminSlotYtUrl" class="modal-input" placeholder="여기를 터치하면 기존 주소 전체 선택 &amp; 붙여넣기 가능" onclick="handleYtUrlFocusAndPaste(this)" onfocus="this.select()" style="width:100%; padding:9px 75px 9px 12px; font-size:13.5px; font-weight:800; background:#0f172a; color:#64748b; border:1.5px solid #334155; border-radius:8px; box-sizing:border-box; transition:all 0.2s ease;">
-                    <button type="button" onclick="pasteClipboardToInput('inpAdminSlotYtUrl')" style="position:absolute; right:6px; background:#1e293b; border:1.2px solid #38bdf8; color:#38bdf8; border-radius:6px; font-size:11.5px; font-weight:900; padding:4px 8px; cursor:pointer;">
-                        📋 붙여넣기
-                    </button>
-                </div>
-            </div>
 
-            <!-- 🌟 [사용자 요청] 추가하기 버튼 및 1번 꽂기 / 덮어쓰기 버튼 -->
-            <div style="display:flex; flex-direction:column; gap:7px;">
-                <button type="button" onclick="addAdminSlotVideo(false)" style="width:100%; padding:11px; background:linear-gradient(135deg, #10b981, #059669); border:none; color:#ffffff; border-radius:10px; font-size:14.5px; font-weight:900; cursor:pointer; box-shadow:0 3px 10px rgba(16,185,129,0.35);">
-                    ➕ 맨 뒤에 새 영상 추가 (2번, 3번...)
+                <div style="margin-bottom:12px;">
+                    <label style="font-size:12px; font-weight:800; color:#94a3b8; display:block; margin-bottom:4px;">3. 영상 제목 (선택 사항)</label>
+                    <input type="text" id="inpAdminSlotTitle" class="modal-input" placeholder="영상 제목 (비워둘 시 슬롯 명칭 자동 적용)" style="width:100%; padding:8px 12px; font-size:13px; font-weight:800; background:#0b1120; color:#e2e8f0; border:1.2px solid #334155; border-radius:8px; box-sizing:border-box;">
+                </div>
+
+                <!-- 🌟 [사용자 요청] 단 1개의 확실한 큰 버튼: 다른 영상과 섞이지 않고 오직 이 영상만 딱 올라가도록 저장! -->
+                <button type="button" onclick="saveAdminSlotSingleVideoExact()" style="width:100%; padding:13px 8px; background:linear-gradient(135deg, #10b981 0%, #059669 100%); border:none; color:#ffffff; border-radius:10px; font-size:15.5px; font-weight:950; cursor:pointer; box-shadow:0 3px 12px rgba(16,185,129,0.4); display:flex; align-items:center; justify-content:center; gap:6px;">
+                    <span>🚀 이 슬롯에 새 영상 등록 &amp; 이름 저장</span>
                 </button>
-                <div style="display:flex; gap:6px;">
-                    <button type="button" onclick="closeAdminSlotEditModal()" style="flex:1; padding:9px; background:#1e293b; border:1px solid #475569; color:#94a3b8; border-radius:10px; font-size:12px; font-weight:800; cursor:pointer;">닫기</button>
-                    <button type="button" onclick="addAdminSlotVideo(true)" style="flex:1.8; padding:9px; background:#0284c7; border:none; color:#ffffff; border-radius:10px; font-size:12px; font-weight:850; cursor:pointer;" title="새 영상을 1번에 넣고 기존 영상은 2번으로 아래로 밀림">🔝 1번에 꽂기 (기존은 2번으로)</button>
-                    <button type="button" id="btnReplaceLoadedSlotVideo" onclick="replaceLoadedSlotVideo()" style="display:none; flex:1.4; padding:9px; background:#f59e0b; border:none; color:#ffffff; border-radius:10px; font-size:12px; font-weight:850; cursor:pointer;">✏️ 덮어쓰기</button>
-                </div>
             </div>
+
+            <!-- 하단 닫기 -->
+            <button type="button" onclick="closeAdminSlotEditModal()" style="width:100%; padding:10px; background:#1e293b; border:1px solid #475569; color:#94a3b8; border-radius:10px; font-size:13px; font-weight:850; cursor:pointer;">
+                닫기
+            </button>
         </div>
     </div>
 
-    <!-- 3. 나의 영상 올리기 모달 -->
+
+        <!-- 3. 🌟 [사용자 요청] 성도 영상 올리기 모달 (어디 올릴지 선택 없이 바로 링크+한마디 등록) -->
     <div class="modal-overlay" id="studioModal" onclick="closeModal('studioModal')">
-        <div class="modal-card" style="max-height:90vh; overflow-y:auto; padding:16px 14px;" onclick="event.stopPropagation()">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:6px;">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:20px;">🎬</span>
-                    <strong style="color:#38bdf8; font-size:16px;" id="studioModalHeaderTitle">영상 올리기 (쇼츠 & 롱폼)</strong>
+        <div class="modal-card" style="max-height:90vh; overflow-y:auto; padding:18px 16px; background:#0f172a; border:2px solid #10b981; border-radius:18px; box-sizing:border-box;" onclick="event.stopPropagation()">
+            <!-- 헤더: 타이틀 & 닫기 -->
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:8px; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:22px;">🎬</span>
+                    <strong style="color:#10b981; font-size:16px; font-weight:950;" id="studioModalHeaderTitle">영상 올리기</strong>
                 </div>
-                <button type="button" style="background:none; border:none; color:#94a3b8; font-size:22px; cursor:pointer;" onclick="closeModal('studioModal')">✕</button>
-            </div>
-            <div style="font-size:12px; color:#cbd5e1; line-height:1.4; margin:4px 0 2px 0;">
-                쇼츠, 롱폼, 라이브, 모바일 공유링크(?si= 포함) 등 모든 유튜브 영상이 올라갑니다.
+                <button type="button" style="background:#1e293b; border:1px solid #475569; color:#f8fafc; font-size:16px; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="closeModal('studioModal')">✕</button>
             </div>
 
-            <!-- 🌟 [사용자 요청] 현재 선택된 채널 표시 및 등록 채널 선택 드롭다운 -->
-            <div style="background:#0f172a; border:1.5px solid #38bdf8; border-radius:8px; padding:7px 12px; margin:4px 0 8px 0; display:flex; justify-content:space-between; align-items:center;">
+            <!-- 관리자 모드일 때만 채널 선택 노출, 성도는 숨김 -->
+            <div id="studioChannelSelectWrap" style="display:none; background:#1e293b; border:1.5px solid #38bdf8; border-radius:8px; padding:7px 12px; margin-bottom:12px; justify-content:space-between; align-items:center;">
                 <span style="font-size:13px; color:#94a3b8; font-weight:800;">등록 대상 채널:</span>
-                <select id="ytInpChannelSelect" class="modal-input" style="width:auto; min-width:140px; padding:4px 10px; font-size:13.5px; font-weight:900; background:#1e293b; color:#38bdf8; border:1.5px solid #38bdf8; border-radius:6px; cursor:pointer;" onchange="onUploadChannelChange(this.value)">
-                    <option value="찬양">찬양</option>
-                    <option value="자유">자유</option>
-                    <option value="말씀">말씀TV</option>
-                    <option value="간증">간증</option>
-                    <option value="천국">천국</option>
-                    <option value="기도">기도</option>
-                    <option value="회개">회개</option>
-                    <option value="우리교회">우리교회</option>
-                    <option value="성경">성경</option>
-                    <option value="애국">애국</option>
-                    <option value="예수님">✝️ 예수님</option>
-                    <option value="깨어납시다">🔥 깨어납시다</option>
+                <select id="ytInpChannelSelect" class="modal-input" style="width:auto; min-width:140px; padding:4px 10px; font-size:13.5px; font-weight:900; background:#0f172a; color:#38bdf8; border:1.5px solid #38bdf8; border-radius:6px; cursor:pointer;" onchange="onUploadChannelChange(this.value)">
+                    <option value="성도마음껏 참여TV">🌟 전체/성도참여 (일반 피드)</option>
+                    <option value="찬양">🎵 찬양 예톡TV (Praise)</option>
+                    <option value="회개">💧 회개 예톡TV (Repentance)</option>
+                    <option value="간증">✨ 간증 예톡TV (Testimony)</option>
+                    <option value="말씀">📖 말씀 예톡TV (Word)</option>
+                    <option value="기도">🔥 기도 예톡TV (Prayer)</option>
                 </select>
-                <span id="currentUploadChannelLabel" style="display:none;">찬양</span>
+                <span id="currentUploadChannelLabel" style="display:none;">성도마음껏 참여TV</span>
             </div>
 
-            <!-- 🌟 [사용자 요청] 영상 등록 하기 버튼 (분홍/파랑 제외: 고품격 에메랄드 그린) -->
-            <button type="button" onclick="submitNewYoutubeVideo()" class="btn-submit-action" style="height:48px; margin:4px 0 10px 0; font-size:16px; font-weight:950; border-radius:12px; background:linear-gradient(135deg, #059669 0%, #10b981 100%); border:1.5px solid #6ee7b7; box-shadow:0 4px 18px rgba(16,185,129,0.55); color:#ffffff;">
-                ✨ 영상 등록 하기
-            </button>
-
-            <!-- 1. 유튜브 링크 주소 (제일 위) -->
-            <div class="form-group-line">
-
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                    <label class="form-label-title" style="color:#38bdf8; font-weight:900; margin:0;">1. 유튜브 링크 주소 (필수)</label>
-                    <span style="font-size:11px; color:#38bdf8; font-weight:700;">* 터치 시 지우지 않고 바로 붙여넣기</span>
+            <!-- 1. 유튜브 링크 주소 (필수) -->
+            <div style="margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <label style="color:#38bdf8; font-size:13px; font-weight:900; margin:0;">1. 유튜브 링크 주소 (필수)</label>
+                    <span style="font-size:11px; color:#38bdf8; font-weight:700;">* 터치 시 바로 붙여넣기</span>
                 </div>
                 <div style="position:relative; display:flex; align-items:center;">
-                    <input type="text" id="ytInpUrl" class="modal-input" placeholder="유튜브 링크를 붙여넣으세요 (쇼츠, 롱폼, 라이브)" onclick="handleYtUrlFocusAndPaste(this)" onfocus="this.select()" style="width:100%; padding:9px 75px 9px 12px; font-size:13.5px; font-weight:800; background:#0f172a; color:#64748b; border:1.5px solid #334155; border-radius:8px; box-sizing:border-box; transition:all 0.2s ease;">
+                    <input type="text" id="ytInpUrl" class="modal-input" placeholder="유튜브 링크를 붙여넣으세요" onclick="handleYtUrlFocusAndPaste(this)" onfocus="this.select()" style="width:100%; padding:10px 75px 10px 12px; font-size:13.5px; font-weight:800; background:#0b1120; color:#64748b; border:1.5px solid #334155; border-radius:8px; box-sizing:border-box; transition:all 0.2s ease;">
                     <button type="button" onclick="pasteClipboardToInput('ytInpUrl')" style="position:absolute; right:6px; background:#1e293b; border:1.2px solid #38bdf8; color:#38bdf8; border-radius:6px; font-size:11.5px; font-weight:900; padding:4px 8px; cursor:pointer;">
                         📋 붙여넣기
                     </button>
                 </div>
             </div>
 
-            <!-- 2. 성도 영상 소개글 (사용자 요청: 비워둘 시 기본 은혜 문구 적용) -->
-            <div class="form-group-line">
-                <label class="form-label-title" style="color:#facc15; font-weight:900;">2. 성도 영상 소개글 (비워둘 시 기본 은혜 문구 적용)</label>
-                <input type="text" id="ytInpTitle" class="modal-input" placeholder="영상 소개글을 적어주세요 (비워둘 시 총관리실 기본글 적용)">
+            <!-- 2. 성도 영상 소개글 (한마디 적고 싶으면 적기) -->
+            <div style="margin-bottom:12px;">
+                <label style="color:#facc15; font-size:13px; font-weight:900; display:block; margin-bottom:5px;">2. 한마디 은혜 나눔 (선택 사항)</label>
+                <input type="text" id="ytInpTitle" class="modal-input" placeholder="함께 나눌 은혜의 한마디를 적어주세요 (선택)" style="width:100%; padding:10px 12px; font-size:13px; font-weight:800; background:#0b1120; color:#e2e8f0; border:1.2px solid #334155; border-radius:8px; box-sizing:border-box;">
             </div>
 
-            <!-- 3. 소속 교회 이름 (사용자 요청: 전문앱 홍보 대신 소속 교회명 노출) -->
-            <div class="form-group-line">
-                <label class="form-label-title" style="color:#4ade80; font-weight:900;">3. 소속 교회 또는 작성자 이름 (영상 좌측 하단에 노출)</label>
-                <input type="text" id="ytInpChurchName" class="modal-input" placeholder="이름 또는 교회명을 입력하세요 (기본: 최베드로)">
+            <!-- 3. 작성자 또는 소속 교회 이름 -->
+            <div style="margin-bottom:14px;">
+                <label style="color:#4ade80; font-size:13px; font-weight:900; display:block; margin-bottom:5px;">3. 작성자 또는 교회 이름 (선택)</label>
+                <input type="text" id="ytInpChurchName" class="modal-input" placeholder="이름 또는 교회명을 입력하세요 (기본: 최베드로)" style="width:100%; padding:10px 12px; font-size:13px; font-weight:800; background:#0b1120; color:#e2e8f0; border:1.2px solid #334155; border-radius:8px; box-sizing:border-box;">
             </div>
 
-            <!-- 전체 1번 최신 대표 고정 옵션 -->
-            <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#fde047; font-weight:800; margin:4px 0 8px 0; cursor:pointer;">
-                <input type="checkbox" id="chkPinAsTopVideo" checked style="width:16px; height:16px; accent-color:#059669;">
-                <span>★ 이 영상을 전체 1번 최신 대표 영상으로 즉시 올리기</span>
-            </label>
+            <!-- 관리자 모드 전용 핀 체크박스 -->
+            <div id="studioPinOptionWrap" style="display:none; margin-bottom:12px;">
+                <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#fde047; font-weight:800; cursor:pointer;">
+                    <input type="checkbox" id="chkPinAsTopVideo" style="width:16px; height:16px; accent-color:#059669;">
+                    <span>★ [대표 전용] 이 영상을 전체 1번 최신 대표 영상으로 즉시 올리기</span>
+                </label>
+            </div>
+
+            <!-- 🌟 영상 등록 하기 버튼 -->
+            <button type="button" onclick="submitNewYoutubeVideo()" class="btn-submit-action" style="width:100%; height:48px; font-size:16px; font-weight:950; border-radius:12px; background:linear-gradient(135deg, #059669 0%, #10b981 100%); border:1.5px solid #6ee7b7; box-shadow:0 4px 18px rgba(16,185,129,0.55); color:#ffffff; cursor:pointer;">
+                ✨ 영상 올리기
+            </button>
         </div>
     </div>
 
-    <!-- 🌟 [사용자 요청] 총관리실 모달: 기본 은혜 소개글 편집/저장 기능 탑재 -->
+
+        <!-- 🌟 [사용자 요청] 총관리실 모달: 기본 은혜 소개글 편집/저장 기능 탑재 -->
     <div class="modal-overlay" id="superAdminDeskModal" onclick="closeModal('superAdminDeskModal')">
         <div class="modal-card" style="max-width:440px; padding:18px 16px; background:#0f172a; border:2px solid #ef4444; border-radius:16px;" onclick="event.stopPropagation()">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #334155; padding-bottom:8px; margin-bottom:12px;">
@@ -8252,6 +8238,22 @@
                     if (found) {
                         found.shortAd = trimmed;
                         localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(savedList));
+        // 🌟 [사용자 요청] 성도가 올린 영상은 하루(24시간) 동안 본인에게 가장 위에 최우선 노출!
+        try {
+            const myRecentUpload = {
+                id: newFeed.id,
+                videoId: videoId,
+                title: promoText || '성도 은혜 영상',
+                date: dateStr,
+                timestamp: Date.now(),
+                bizName: churchName,
+                churchName: churchName,
+                shortAd: promoText || '성도 은혜 영상',
+                targetUrl: 'churchmain.html',
+                isUploadedByMe: true
+            };
+            localStorage.setItem('yetalk_my_recent_upload', JSON.stringify(myRecentUpload));
+        } catch(e){}
                     }
                 } catch(e){}
                 updateBottomInfo(curFeed);
@@ -12295,19 +12297,20 @@ function buildShortsFeedList(targetChannelKey = null) {
     if (targetChannelKey && fixedChannelsData && fixedChannelsData[targetChannelKey] && fixedChannelsData[targetChannelKey].slots) {
         const ch = fixedChannelsData[targetChannelKey];
         ch.slots.forEach((s, sIdx) => {
-            const vList = ensureSlotVideos(s);
-            vList.forEach((v, vIdx) => {
+            // 🌟 [사용자 요청] 다른 영상과 절대 섞이지 않고 각 슬롯 버튼에 등록된 영상 딱 1개씩만 순서대로 배치!
+            const vid = s.videoId || (s.videos && s.videos[0] ? s.videos[0].videoId : '') || '';
+            if (vid) {
                 shortsFeedList.push({
                     chKey: targetChannelKey,
                     slotIdx: sIdx,
-                    videoSubIdx: vIdx,
+                    videoSubIdx: 0,
                     icon: ch.icon || '🎬',
                     chTitle: ch.title || `${targetChannelKey}TV`,
                     slotLabel: s.label || `${targetChannelKey} ${sIdx + 1}`,
-                    slotTitle: v.title || s.label || `${targetChannelKey} 영상`,
-                    videoId: v.videoId || 'pZuW2CV0mXY'
+                    slotTitle: (s.videos && s.videos[0] ? s.videos[0].title : '') || s.title || s.label || `${targetChannelKey} 영상`,
+                    videoId: vid
                 });
-            });
+            }
         });
         return;
     }
@@ -12321,6 +12324,24 @@ function buildShortsFeedList(targetChannelKey = null) {
             if (Array.isArray(parsed)) feeds = parsed;
         }
     } catch(e){}
+
+    // 🌟 [사용자 요청] 성도가 올린 영상은 24시간(하루) 동안 본인에게 가장 위에 최우선 노출!
+    const myRecentRaw = localStorage.getItem('yetalk_my_recent_upload');
+    if (myRecentRaw) {
+        try {
+            const myRecent = JSON.parse(myRecentRaw);
+            const isWithin24Hours = (Date.now() - (myRecent.timestamp || 0)) < 24 * 60 * 60 * 1000;
+            if (isWithin24Hours && myRecent.videoId) {
+                feeds = feeds.filter(f => f.videoId !== myRecent.videoId);
+                feeds.unshift({
+                    ...myRecent,
+                    isPinnedByAdmin: false,
+                    slotLabel: '🌟 [내가 올린 영상]',
+                    slotTitle: myRecent.title || '성도 은혜 영상'
+                });
+            }
+        } catch(e){}
+    }
 
     // 🌟 [총관리자 1번 꽂기 영상 최우선 1번 삽입]
     const pinnedRaw = localStorage.getItem('yetalkPinnedCommunityVideo');
@@ -13090,12 +13111,21 @@ function openChannelScriptureModal(chKey) {
             const isFirst = (idx === 0);
             const bg = isFirst ? '#f0fdf4' : '#f8fafc';
             const color = isFirst ? '#047857' : '#0f172a';
-            const border = isFirst ? '1.8px solid #86efac' : '1.5px solid #cbd5e1';
+            const border = isFirst ? '2px solid #86efac' : '1.5px solid #cbd5e1';
             const titleTip = s.title ? `title="${s.title.replace(/"/g, '&quot;')}"` : '';
+            const rawLabel = (s.label || `${idx + 1}`).trim();
+
+            // 🌟 [사용자 요청] 글 크게 더 & 말씀 등 긴 명칭 바깥 삐져나감 완벽 방지 자동 최적화
+            let fSize = '16px';
+            if (rawLabel.length >= 8) {
+                fSize = '12.5px';
+            } else if (rawLabel.length >= 5) {
+                fSize = '14px';
+            }
 
             return `
-            <button type="button" class="scripture-slot-grid-btn" ${titleTip} onclick="startShortsFromSlot('${chKey}', ${idx}); closeTvScriptureModal();" style="min-height:54px; padding:10px 4px; background:${bg}; color:${color}; border:${border}; border-radius:12px; font-size:16px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.06); transition:all 0.15s ease;">
-                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; letter-spacing:-0.4px;">${s.label || `${idx + 1}`}</span>
+            <button type="button" class="scripture-slot-grid-btn" ${titleTip} onclick="startShortsFromSlot('${chKey}', ${idx}); closeTvScriptureModal();" style="min-height:58px; height:58px; padding:4px 4px; background:${bg}; color:${color}; border:${border}; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 5px rgba(0,0,0,0.06); transition:all 0.15s ease; box-sizing:border-box; width:100%; min-width:0; overflow:hidden;">
+                <span style="font-size:${fSize}; font-weight:950; white-space:normal; word-break:keep-all; word-wrap:break-word; line-height:1.22; text-align:center; max-height:48px; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; width:100%; letter-spacing:-0.4px;">${rawLabel}</span>
             </button>
             `;
         }).join('');
@@ -13335,6 +13365,7 @@ function openAdminSlotEditModal(chKey, slotIdx) {
     }
 }
 
+// 🌟 [사용자 요청] 12개 슬롯 버튼이 3열 x 4행 바둑판 메뉴로 시원하게 한눈에 펼쳐짐
 function renderAdminSlotTabs() {
     if (!currentEditingSlot) return;
     const { chKey, slotIdx } = currentEditingSlot;
@@ -13344,20 +13375,71 @@ function renderAdminSlotTabs() {
     const tabsBox = document.getElementById('adminSlotTabsContainer');
     if (!tabsBox) return;
 
+    const noticeEl = document.getElementById('adminSelectedSlotNotice');
+    if (noticeEl) {
+        noticeEl.innerText = `선택: ${slotIdx + 1}번 [${ch.slots[slotIdx].label || `${slotIdx + 1}`}]`;
+    }
+
     tabsBox.innerHTML = ch.slots.map((s, idx) => {
         const isActive = (idx === slotIdx);
-        const vList = ensureSlotVideos(s);
-        const countStr = vList.length > 0 ? ` (${vList.length})` : '';
-        const bg = isActive ? 'linear-gradient(135deg, #dc2626, #b91c1c)' : '#1e293b';
+        const bg = isActive ? 'linear-gradient(135deg, #0284c7, #2563eb)' : '#1e293b';
         const color = isActive ? '#ffffff' : '#cbd5e1';
-        const border = isActive ? '2px solid #f87171' : '1.2px solid #475569';
-        const shadow = isActive ? 'box-shadow:0 2px 8px rgba(220, 38, 38, 0.45);' : '';
+        const border = isActive ? '2px solid #38bdf8' : '1.2px solid #334155';
+        const shadow = isActive ? 'box-shadow:0 0 10px rgba(56, 189, 248, 0.7);' : '';
+        const fontW = isActive ? '950' : '850';
+        const labelText = (s.label || `${idx + 1}`).trim();
         return `
-            <button type="button" onclick="switchAdminSlotTab(${idx})" style="flex:1; min-width:76px; padding:8px 6px; background:${bg}; color:${color}; border:${border}; border-radius:8px; font-size:12.5px; font-weight:900; cursor:pointer; white-space:nowrap; ${shadow}">
-                ${s.label}${countStr}
+            <button type="button" onclick="switchAdminSlotTab(${idx})" style="padding:7px 4px; min-height:42px; background:${bg}; color:${color}; border:${border}; border-radius:8px; font-size:12.5px; font-weight:${fontW}; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; ${shadow} transition:all 0.15s ease;">
+                <span style="display:block; font-size:10px; opacity:0.8; line-height:1;">${idx + 1}번</span>
+                <span style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:2px;">${labelText}</span>
             </button>
         `;
     }).join('');
+}
+
+// 🌟 [사용자 요청] 다른 영상이랑 섞이지 않고 오직 올린 영상 1개만 그 슬롯에 단독 등록 & 저장!
+function saveAdminSlotSingleVideoExact() {
+    if (!currentEditingSlot) return;
+    const { chKey, slotIdx } = currentEditingSlot;
+    const ch = fixedChannelsData[chKey];
+    if (!ch || !ch.slots || !ch.slots[slotIdx]) return;
+    const slot = ch.slots[slotIdx];
+
+    const inpLabel = document.getElementById('inpAdminSlotLabel');
+    const inpUrl = document.getElementById('inpAdminSlotYtUrl');
+    const inpTitle = document.getElementById('inpAdminSlotTitle');
+
+    const newLabel = (inpLabel ? inpLabel.value.trim() : '') || slot.label || `${slotIdx + 1}`;
+    const rawUrl = inpUrl ? inpUrl.value.trim() : '';
+    const newTitle = (inpTitle ? inpTitle.value.trim() : '') || newLabel;
+
+    slot.label = newLabel;
+    slot.title = newTitle;
+
+    // 🌟 [사용자 요청] 다른 영상과 섞이지 않도록 이전 목록을 싹 비우고 오직 올린 영상 1개만 단독 등록!
+    if (rawUrl) {
+        const vid = (typeof extractYouTubeVideoId === 'function') ? extractYouTubeVideoId(rawUrl) : rawUrl;
+        if (vid) {
+            slot.videoId = vid;
+            slot.videos = [{
+                videoId: vid,
+                title: newTitle,
+                addedAt: new Date().toISOString()
+            }];
+        }
+    } else if (slot.videoId) {
+        slot.videos = [{
+            videoId: slot.videoId,
+            title: newTitle
+        }];
+    }
+
+    saveFixedChannelsToStorageAndCloud();
+    renderAdminSlotTabs();
+    buildShortsFeedList();
+    renderCategoryListView();
+    showToast(`🎉 [${newLabel}] 슬롯에 다른 영상 없이 오직 이 영상만 성공적으로 등록되었습니다!`);
+    closeAdminSlotEditModal();
 }
 
 function switchAdminSlotTab(targetSlotIdx) {
