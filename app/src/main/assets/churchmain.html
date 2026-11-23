@@ -446,14 +446,9 @@
         <button type="button" class="c-nav-chip" id="chip_10" onclick="handleChurchNavTab(10)">보물창고</button>
     </nav>
 
-    <!-- 예배 클릭 시 노출되는 6대 서브 칩 메뉴 -->
+    <!-- 예배 클릭 시 노출되는 서브 칩 메뉴 (일반 교회 6대 vs 사역앱 3대 심플 메뉴) -->
     <div class="worship-sub-menu-bar" id="worshipSubMenuBar">
-        <button type="button" class="w-sub-chip active" onclick="switchWorshipSubTab('welcome')">환영인사</button>
-        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('vision')">교회비전</button>
-        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('servants')">섬기는 이</button>
-        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('ministry')">부서사역</button>
-        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('missionary')">파송선교사</button>
-        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('history')">교회역사</button>
+        <!-- JS 동적 렌더링 -->
     </div>
 
     <!-- 고정 서브 액션 바: 관리자 전용 숨김 처리하여 메인 카드 세로 공간 최대화 -->
@@ -1208,6 +1203,37 @@
     };
 
     let activeWorshipSubKey = "welcome";
+
+    function isMinistryAppMode() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get("mode");
+        if (mode === "ministry") return true;
+        if (mode === "home") return false;
+        const curMode = localStorage.getItem("yetalk_current_church_mode");
+        if (curMode === "ministry") return true;
+        const home = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_home_church_name") || "부산제일감리교회").trim();
+        const cur = (sessionStorage.getItem("yetalk_viewing_church") || localStorage.getItem("yetalkChurchName") || "").trim();
+        if (cur && cur !== home && (cur.includes("청년") || cur.includes("사역") || cur.includes("부서"))) return true;
+        return false;
+    }
+
+    function renderWorshipSubMenuBar() {
+        const bar = document.getElementById("worshipSubMenuBar");
+        if (!bar) return;
+        if (isMinistryAppMode()) {
+            const role = (localStorage.getItem("yetalk_ministry_leader") || "").includes("전도사") ? "전도사" : "부목사";
+            bar.innerHTML = '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'welcome' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'welcome\')">환영인사</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'servants' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'servants\')">' + role + '</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'ministry' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'ministry\')">부서소개</button>';
+        } else {
+            bar.innerHTML = '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'welcome' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'welcome\')">환영인사</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'vision' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'vision\')">교회비전</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'servants' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'servants\')">섬기는 이</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'ministry' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'ministry\')">부서사역</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'missionary' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'missionary\')">파송선교사</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'history' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'history\')">교회역사</button>';
+        }
+    }
 
     function getDailyGraceVerse() {
         const h = new Date().getHours();
@@ -1988,6 +2014,7 @@
         // 2. 초청으로 왔거나 본교회 미등록자: 준회원 가입 안내 (예/아니오)
         updateChurchHeaderMemberUI(churchName);
 
+        renderWorshipSubMenuBar();
         initRollingVerses();
         loadPcPopupData();
         checkPcChurchPopup();

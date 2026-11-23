@@ -1,4 +1,4 @@
-/*==================================================
+﻿/*==================================================
 YETALK CHURCHMAIN.JS
 예톡 교회홈 (숏폼 스냅 & 애드몹 안전 규격 연동)
 ==================================================*/
@@ -354,7 +354,10 @@ function goToLiveWorship(tabKey) {
 
 function goToDetailPage(secId, targetLink) {
     sessionStorage.setItem("church_last_active_card_idx", secId.toString());
-    location.href = targetLink;
+    const curChurch = sessionStorage.getItem("yetalk_viewing_church") || localStorage.getItem("yetalkChurchName") || "부산제일감리교회";
+    const mode = localStorage.getItem("yetalk_current_church_mode") || "home";
+    const connector = targetLink.includes("?") ? "&" : "?";
+    location.href = targetLink + connector + "churchName=" + encodeURIComponent(curChurch) + "&mode=" + encodeURIComponent(mode);
 }
 
 const FOUR_TIMES_SHORT_VERSES = {

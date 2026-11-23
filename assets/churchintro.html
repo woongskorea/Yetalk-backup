@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -903,6 +903,68 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
 <script>
     const STORAGE_KEY = "yetalk_church_intro_custom_sections_v5";
 
+    // [사용자 요청] 사역앱(부목사·전도사) 전용 감지 및 저장소 분리
+    function getActiveChurchName() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const qChurch = urlParams.get("churchName") || urlParams.get("churchId");
+        if (qChurch && qChurch !== "yetalk-church") {
+            try { return decodeURIComponent(qChurch).trim(); } catch(e) { return qChurch.trim(); }
+        }
+        return (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || localStorage.getItem("yetalkMyChurchName") || "부산제일감리교회").trim();
+    }
+
+    function isMinistryAppMode() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get("mode");
+        if (mode === "ministry") return true;
+        if (mode === "home") return false;
+
+        const curMode = localStorage.getItem("yetalk_current_church_mode");
+        if (curMode === "ministry") return true;
+
+        const churchName = getActiveChurchName();
+        const home = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_home_church_name") || "부산제일감리교회").trim();
+        if (churchName && churchName !== home && (churchName.includes("청년") || churchName.includes("사역") || churchName.includes("부서"))) {
+            return true;
+        }
+        return false;
+    }
+
+    function getMinistryLeaderRole() {
+        const savedLeader = (localStorage.getItem("yetalk_ministry_leader") || "").trim();
+        if (savedLeader) {
+            if (savedLeader.includes("전도사")) return "전도사";
+            if (savedLeader.includes("부목사")) return "부목사";
+            if (savedLeader.includes("강도사")) return "강도사";
+        }
+        const userRole = (localStorage.getItem("yetalk_church_role") || localStorage.getItem("yetalkChurchRole") || "").trim();
+        if (userRole.includes("전도사")) return "전도사";
+        if (userRole.includes("부목사")) return "부목사";
+        if (userRole.includes("강도사")) return "강도사";
+        return "부목사";
+    }
+
+    function getMinistryLeaderName() {
+        const savedLeader = (localStorage.getItem("yetalk_ministry_leader") || "").trim();
+        if (savedLeader && !savedLeader.includes("전임사역자") && savedLeader.length >= 2) {
+            return savedLeader;
+        }
+        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
+        const role = getMinistryLeaderRole();
+        if (uName && uName !== "성도" && uName !== "은혜 성도") {
+            return uName + " " + role;
+        }
+        return "담당 " + role;
+    }
+
+    function getStorageKey() {
+        if (isMinistryAppMode()) {
+            const cName = getActiveChurchName().replace(/\s+/g, '_');
+            return "yetalk_ministry_intro_" + cName;
+        }
+        return STORAGE_KEY;
+    }
+
     // 10대 탭 정의 (환영인사, 담임목사, 부목사, 전도사, 파송선교사, 간사, 시무장로, 교회비전, 부서사역, 교회역사)
     const TAB_NAMES = ["환영인사", "담임목사", "부목사", "전도사", "파송선교사", "간사", "시무장로", "교회비전", "부서사역", "교회역사"];
 
@@ -1214,7 +1276,7 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
             });
 
             if (modified) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+                localStorage.setItem(getStorageKey(), JSON.stringify(churchSections));
             }
         } catch(err) {
             console.warn("syncChurchMembersFromRegistered error:", err);
@@ -1243,7 +1305,8 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
     }
 
     function loadSections() {
-        const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("yetalk_church_intro_custom_sections_v4");
+        const storageKey = getStorageKey();
+        const raw = localStorage.getItem(storageKey) || (!isMinistryAppMode() ? localStorage.getItem("yetalk_church_intro_custom_sections_v4") : null);
         if (raw) {
             try { churchSections = JSON.parse(raw); } catch(e) { churchSections = JSON.parse(JSON.stringify(DEFAULT_DATA)); }
         } else {
@@ -1260,6 +1323,38 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
             }
         });
 
+        if (isMinistryAppMode()) {
+            const chName = getActiveChurchName();
+            const leaderRole = getMinistryLeaderRole();
+            const leaderName = getMinistryLeaderName();
+            if (!churchSections.welcome || !churchSections.welcome.isMinistry) {
+                churchSections.welcome = {
+                    isMinistry: true,
+                    badge: "환영인사",
+                    title: chName + "에 오신 것을 환영합니다!",
+                    img: "https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1200&q=80",
+                    body: "“청년이 살아야 교회가 살고 나라가 삽니다!”\n\n" + chName + "은 하나님의 거룩한 임재와 뜨거운 찬양이 살아 숨 쉬는 믿음의 청년 공동체입니다.\n말씀과 기도로 무장하여 세상 속에서 빛과 소금으로 살아가는 믿음의 청년들을 주님의 사랑으로 축복하며 환영합니다."
+                };
+            }
+            if (!churchSections.ministry_leader) {
+                churchSections.ministry_leader = {
+                    badge: leaderRole,
+                    name: leaderName,
+                    role: chName + " 담당 사역 및 말씀",
+                    bgImg: "images/church_hero_heaven.jpg",
+                    img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80",
+                    body: "“주님의 심장으로 청년 세대를 섬기며 복음의 증인으로 동행하겠습니다.”\n\n할렐루야! " + chName + "을 섬기는 " + leaderName + "입니다.\n삶의 치열한 현장 속에서 믿음의 방향을 고민하는 모든 청년들과 함께 울고 함께 웃으며, 하나님의 크신 사랑과 위로를 전하는 든든한 영적 동역자가 되겠습니다."
+                };
+            }
+            if (!churchSections.department_intro) {
+                churchSections.department_intro = {
+                    badge: "부서소개",
+                    title: chName + " 소개 및 모임 안내",
+                    img: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1200&auto=format&fit=crop&q=80",
+                    body: "📌 [정기 예배 및 모임 안내]\n• 주일 청년 대예배: 매주 주일 오후 2시 (본관 3층 비전홀)\n• 금요 심야 찬양기도회: 매주 금요일 밤 9시\n• 또래별 소그룹 성경공부: 매주 토요일 오후 5시\n\n📌 [핵심 사역팀 안내]\n• 워십 찬양팀: 열정적인 찬양과 경배 인도\n• 미디어 선교팀: 유튜브 생중계, 숏폼 및 영상 제작\n• 새가족 바나바팀: 처음 온 청년들의 따뜻한 정착 섬김\n• 국내외 비전트립: 방학 중 농어촌 봉사 및 단기선교\n\n💡 (우측 상단 '수정 ✏️' 버튼을 눌러 우리 부서만의 사진과 상세 소개를 자유롭게 입력해 보세요!)"
+                };
+            }
+        }
         if (!churchSections.welcome) churchSections.welcome = JSON.parse(JSON.stringify(DEFAULT_DATA.welcome));
         if (!churchSections.pastor) churchSections.pastor = JSON.parse(JSON.stringify(DEFAULT_DATA.pastor));
         if (churchSections.pastor && !churchSections.pastor.bgImg) churchSections.pastor.bgImg = "images/church_hero_heaven.jpg";
@@ -1362,7 +1457,16 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
     }
 
     function getTabDefs() {
-        // 🌟 [사용자 요청] 장로님 위치: 간사 뒤, 교회비전 앞에 고정 (환영인사 ➔ 담임목사 ➔ 부목사 ➔ 전도사 ➔ 파송선교사 ➔ 간사 ➔ 장로 ➔ 교회비전 ➔ 부서사역 ➔ 교회역사)
+        // 🌟 [사용자 요청] 부목사·전도사 사역앱: 담임목사 대신 본인 직책이 가장 위에, 그 밑에 부서소개 빈 공간만 심플하게 노출
+        if (isMinistryAppMode()) {
+            const role = getMinistryLeaderRole();
+            return [
+                { key: "welcome", label: "환영인사" },
+                { key: "ministry_leader", label: role },
+                { key: "department_intro", label: "부서소개" }
+            ];
+        }
+        // 일반 본교회 (부산제일감리교회 등 10대 탭 전체)
         return [
             { key: "welcome", label: "환영인사" },
             { key: "pastor", label: "담임목사" },
@@ -1445,6 +1549,54 @@ body[data-theme="white"] .article-text-body { color: #334155 !important; line-he
                 }
                 html += bodyHtml;
                 appendSnapSection("sec_welcome", tabIdx, html);
+            }
+            else if (tab.key === "ministry_leader") {
+                const ml = churchSections.ministry_leader || {};
+                const chName = getActiveChurchName();
+                const bgImage = ml.bgImg || 'images/church_hero_heaven.jpg';
+                const mlPhoto = ml.img || '';
+                const isSingleMode = (ml.layoutMode === 'single') || (!mlPhoto && bgImage);
+                const mlName = ml.name || getMinistryLeaderName();
+                const mlRole = ml.role || (chName + ' 담당 사역 및 말씀');
+                const mlBadge = ml.badge || getMinistryLeaderRole();
+                let leaderCardHtml = '<div class="pastor-integrated-card">' +
+                    '<div class="pastor-hero-banner">' +
+                        '<img class="pastor-hero-bg" src="' + bgImage + '" alt="' + mlName + '" onerror="this.onerror=null; this.src=\'images/church_hero_heaven.jpg\';">' +
+                        '<div class="pastor-hero-overlay"></div>' +
+                        '<div class="pastor-top-row">' +
+                            (!isSingleMode && mlPhoto ? ('<div class="pastor-hero-avatar-box"><img src="' + mlPhoto + '" alt="' + mlName + '" onerror="this.onerror=null; this.src=\'images/church_hero_heaven.jpg\';"></div>') : '<div></div>') +
+                            '<div class="pastor-hero-top-actions">' +
+                                '<button type="button" class="btn-action-pill edit" onclick="openLeaderEdit(\'ministry_leader\', 0)" title="사역자 정보 수정" style="padding:5px 12px; font-size:12.5px;">✏️ 수정</button>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="pastor-bottom-info-block">' +
+                            '<span class="pastor-hero-tag">✝️ ' + chName + ' · 담당 사역자 (' + mlBadge + ')</span>' +
+                            '<h2 class="pastor-hero-name">' + mlName + '</h2>' +
+                            '<div class="pastor-hero-role">' + mlRole + '</div>' +
+                            '<div class="pastor-hero-desc-scroll" style="background:transparent !important; border:none !important; box-shadow:none !important; padding:6px 0 0 0 !important; margin-top:6px !important;">' +
+                                renderPastorHeroBody(ml.body || ml.desc || '“주님의 심장으로 청년 세대를 섬기며 복음의 증인으로 동행하겠습니다.”') +
+                            '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+                appendSnapSection("sec_ministry_leader", tabIdx, leaderCardHtml);
+            }
+            else if (tab.key === "department_intro") {
+                const dept = churchSections.department_intro || {};
+                const chName = getActiveChurchName();
+                let bodyHtml = renderFormattedBody(getCombinedBody(dept), false);
+                let html = '<div class="section-header-row">' +
+                    '<div>' +
+                        '<span class="badge-pill">' + (dept.badge || '부서소개') + '</span>' +
+                        '<h2 class="article-main-title">' + (dept.title || (chName + ' 소개 및 사역 안내')) + '</h2>' +
+                    '</div>' +
+                    '<button type="button" class="btn-admin-edit" onclick="triggerGeneralEdit(\'department_intro\')" title="부서 소개 수정">수정 ✏️</button>' +
+                '</div>';
+                if (dept.img) {
+                    html += '<div class="attached-photo-wrap"><img src="' + dept.img + '" alt="' + (dept.title || '') + '"></div>';
+                }
+                html += bodyHtml;
+                appendSnapSection("sec_department_intro", tabIdx, html);
             }
             else if (tab.key === "pastor") {
                 const p = churchSections.pastor || {};
@@ -2015,7 +2167,7 @@ function renderFormattedBody(rawText, isHistory) {
         churchSections[key].img = img;
         churchSections[key].body = body;
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        localStorage.setItem(getStorageKey(), JSON.stringify(churchSections));
         renderViewport();
         scrollToTab(currentActiveTabIdx);
         closeModal("generalPageEditModal");
@@ -2042,7 +2194,12 @@ function renderFormattedBody(rawText, isHistory) {
         let title = "";
         let canDelete = false;
 
-        if (type === 'pastor') {
+        if (type === 'ministry_leader') {
+            item = churchSections.ministry_leader || {};
+            const role = item.badge || getMinistryLeaderRole();
+            title = "✏️ [" + role + "] 사역자 정보 및 사진 수정";
+            canDelete = false;
+        } else if (type === 'pastor') {
             item = churchSections.pastor;
             title = "✏️ 담임목사 정보 및 사진 수정";
             canDelete = false;
@@ -2236,7 +2393,22 @@ function renderFormattedBody(rawText, isHistory) {
 
         const { type, idx } = activeLeaderContext;
 
-        if (type === 'pastor') {
+        if (type === 'ministry_leader') {
+            const bgVal = document.getElementById("inpPastorBgImg") ? document.getElementById("inpPastorBgImg").value.trim() : "";
+            const isSingle = document.getElementById("modePastorSingle")?.checked;
+            const curBadge = (churchSections.ministry_leader && churchSections.ministry_leader.badge) ? churchSections.ministry_leader.badge : getMinistryLeaderRole();
+            churchSections.ministry_leader = {
+                badge: curBadge,
+                name: name,
+                role: role,
+                body: desc,
+                desc: desc,
+                img: img,
+                bgImg: bgVal || "images/church_hero_heaven.jpg",
+                layoutMode: isSingle ? 'single' : 'dual'
+            };
+            try { localStorage.setItem("yetalk_ministry_leader", name); } catch(e){}
+        } else if (type === 'pastor') {
             churchSections.pastor.title = name;
             churchSections.pastor.role = role;
             churchSections.pastor.body = desc;
@@ -2286,7 +2458,7 @@ function renderFormattedBody(rawText, isHistory) {
             }
         }
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        localStorage.setItem(getStorageKey(), JSON.stringify(churchSections));
         renderViewport();
         scrollToTab(currentActiveTabIdx);
         closeModal("servantEditModal");
@@ -2347,7 +2519,7 @@ function renderFormattedBody(rawText, isHistory) {
             }
         }
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        localStorage.setItem(getStorageKey(), JSON.stringify(churchSections));
         renderViewport();
         scrollToTab(currentActiveTabIdx);
         showToast(`🗑️ [${name}] 님이 삭제되었습니다.`);
@@ -2431,7 +2603,7 @@ function renderFormattedBody(rawText, isHistory) {
             churchSections.elders.push(elderObj);
         }
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        localStorage.setItem(getStorageKey(), JSON.stringify(churchSections));
         renderViewport();
         scrollToTabKey('elders');
         closeModal("elderEditModal");
@@ -2443,7 +2615,7 @@ function renderFormattedBody(rawText, isHistory) {
         const name = churchSections.elders[idx].name;
         if (!confirm(`정말 [${name}] 님을 목록에서 삭제하시겠습니까?`)) return;
         churchSections.elders.splice(idx, 1);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        localStorage.setItem(getStorageKey(), JSON.stringify(churchSections));
         renderViewport();
         scrollToTabKey('elders');
         showToast(`🗑️ [${name}] 님이 삭제되었습니다.`);
@@ -2490,7 +2662,7 @@ function renderFormattedBody(rawText, isHistory) {
         churchSections.elders[globalIdx] = churchSections.elders[targetGlobalIdx];
         churchSections.elders[targetGlobalIdx] = temp;
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        localStorage.setItem(getStorageKey(), JSON.stringify(churchSections));
         renderViewport();
         scrollToTabKey("elders");
         showToast(`🔄 [${temp.name}] 순서가 변경되었습니다.`);
@@ -2509,7 +2681,7 @@ function renderFormattedBody(rawText, isHistory) {
         churchSections.elders[activeElderIdx] = churchSections.elders[targetIdx];
         churchSections.elders[targetIdx] = temp;
         activeElderIdx = targetIdx;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        localStorage.setItem(getStorageKey(), JSON.stringify(churchSections));
         renderViewport();
         scrollToTabKey("elders");
         showToast(`🔄 [${temp.name}] 순서가 이동되었습니다.`);
@@ -2535,7 +2707,7 @@ function renderFormattedBody(rawText, isHistory) {
         churchSections[listKey][idx] = churchSections[listKey][targetIdx];
         churchSections[listKey][targetIdx] = temp;
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        localStorage.setItem(getStorageKey(), JSON.stringify(churchSections));
         renderViewport();
         scrollToTabKey(category);
         showToast(`🔄 [${temp.name || temp.title}] 순서가 변경되었습니다.`);
@@ -2563,7 +2735,7 @@ function renderFormattedBody(rawText, isHistory) {
         churchSections[listKey][targetIdx] = temp;
         activeLeaderContext.idx = targetIdx;
 
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(churchSections));
+        localStorage.setItem(getStorageKey(), JSON.stringify(churchSections));
         renderViewport();
         scrollToTabKey(type);
         showToast(`🔄 [${temp.name || temp.title}] 순서가 이동되었습니다.`);
@@ -2606,12 +2778,14 @@ function renderFormattedBody(rawText, isHistory) {
         const savedTheme = localStorage.getItem('yetalk_active_theme') || 'white';
         document.body.setAttribute('data-theme', savedTheme);
 
-        let churchName = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalkMyChurchName') || '부산제일감리교회').trim();
+        let churchName = getActiveChurchName();
         if (!churchName || churchName.includes('움직이는') || churchName.includes('김예톡') || churchName.includes('최예톡') || churchName === '우리교회') {
             churchName = '부산제일감리교회';
         }
-        localStorage.setItem('yetalkChurchName', churchName);
-        localStorage.setItem('yetalk_church_name', churchName);
+        if (!isMinistryAppMode()) {
+            localStorage.setItem('yetalkChurchName', churchName);
+            localStorage.setItem('yetalk_church_name', churchName);
+        }
         if (churchSections.pastor && churchSections.pastor.body) {
             churchSections.pastor.body = churchSections.pastor.body.replace(/예톡행복한교회/g, churchName);
         }
