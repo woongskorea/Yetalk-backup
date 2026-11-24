@@ -12783,12 +12783,36 @@ function dismissShortsPosterAt(idx) {
     }
 }
 
-// 유튜브 플레이어 재생 시작 메시지 즉시 감지하여 포스터 즉각 제거
+// 🌟 [사용자 요청] 영상 끝나면 즉시 처음부터 다시 자동 무한 리플레이
+function replayCurrentShortsVideo() {
+    const iframe = document.getElementById(`ytIframe_${currentShortsIndex}`);
+    if (iframe && iframe.contentWindow) {
+        try {
+            iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0,true]}', '*');
+            iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        } catch(e) {}
+    }
+}
+
+// 🌟 유튜브 플레이어 메시지 감지:
+// 1. 영상 재생 시작 감지 -> 포스터 즉각 제거
+// 2. 영상 종료(Ended: playerState 0) 감지 -> 즉시 자동 리플레이!
 window.addEventListener('message', (e) => {
     try {
         const data = (typeof e.data === 'string') ? JSON.parse(e.data) : e.data;
-        if (data && (data.event === 'onReady' || (data.info && (data.info.playerState === 1 || data.info.playerState === 3)))) {
+        if (!data) return;
+
+        // 1. 재생 시작 시 포스터 쉴드 부드럽게 제거
+        if (data.event === 'onReady' || (data.info && (data.info.playerState === 1 || data.info.playerState === 3))) {
             dismissShortsPosterAt(currentShortsIndex);
+        }
+
+        // 2. 🌟 [사용자 요청] 영상 끝나면 즉시 자동 리플레이!
+        const state = (data.info && typeof data.info.playerState !== 'undefined') 
+            ? data.info.playerState 
+            : (data.event === 'onStateChange' ? data.info : null);
+        if (state === 0) {
+            replayCurrentShortsVideo();
         }
     } catch(err) {}
 });
@@ -12811,7 +12835,7 @@ function loadShortsPlayerAt(idx, shouldAutoplay) {
     const iframeHtml = `
         <div class="tv-shorts-poster-shield" id="shortsPoster_${idx}" style="position:absolute; inset:0; width:100%; height:100%; background:#000000 url('${posterUrl}') center center / cover no-repeat; z-index:3; pointer-events:none; transition:opacity 0.25s ease;"></div>
         <iframe id="ytIframe_${idx}"
-            src="https://www.youtube.com/embed/${vid}?autoplay=${shouldAutoplay ? 1 : 0}&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&disablekb=1&fs=0&iv_load_policy=3"
+            src="https://www.youtube.com/embed/${vid}?autoplay=${shouldAutoplay ? 1 : 0}&loop=1&playlist=${vid}&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&disablekb=1&fs=0&iv_load_policy=3"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             loading="eager"
             fetchpriority="high"
