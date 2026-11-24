@@ -6427,6 +6427,8 @@
             <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
                 <input type="text" id="inpAdminInqName" placeholder="보내시는 분 성함 / 직분" style="border:1.5px solid #cbd5e1; border-radius:8px; padding:9px 10px; font-size:13.5px; outline:none;">
                 <input type="tel" id="inpAdminInqPhone" placeholder="연락처 (답변 받으실 전화번호)" style="border:1.5px solid #cbd5e1; border-radius:8px; padding:9px 10px; font-size:13.5px; outline:none;">
+                <!-- 🌟 [사용자 요청] 이메일 적는 란 추가 -->
+                <input type="email" id="inpAdminInqEmail" placeholder="이메일 (선택 또는 이메일 답변 원하실 때)" style="border:1.5px solid #cbd5e1; border-radius:8px; padding:9px 10px; font-size:13.5px; outline:none;">
                 <textarea id="inpAdminInqContent" rows="4" placeholder="문의 또는 건의하실 내용을 적어주세요..." style="border:1.5px solid #cbd5e1; border-radius:8px; padding:9px 10px; font-size:13.5px; outline:none; resize:none; font-family:inherit; line-height:1.45;"></textarea>
             </div>
             <div style="display:flex; gap:8px;">
@@ -11115,7 +11117,7 @@ const BIBLICAL_TIME_SLOTS = [
         performChurchBibleWordSearch(query);
     }
 
-    // 🌟 [사용자 요청] 관리자에게 문의하기 모달 (회원가입 성함 및 전화번호 자동 기재, 수정 가능)
+    // 🌟 [사용자 요청] 관리자에게 문의하기 모달 (회원가입 성함, 전화번호, 이메일 자동 기재, 수정 가능)
     function openAdminInquiryModal() {
         const modal = document.getElementById("adminInquiryModal");
         if (!modal) return;
@@ -11123,12 +11125,14 @@ const BIBLICAL_TIME_SLOTS = [
 
         const inpName = document.getElementById("inpAdminInqName");
         const inpPhone = document.getElementById("inpAdminInqPhone");
+        const inpEmail = document.getElementById("inpAdminInqEmail");
         const inpContent = document.getElementById("inpAdminInqContent");
 
-        // 회원가입 시 이름 및 전화번호 자동 채우기
+        // 회원가입 시 이름, 직분, 전화번호, 이메일 자동 채우기
         const savedName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "";
         const savedRole = localStorage.getItem("yetalk_church_role") || localStorage.getItem("yetalkUserRole") || "";
         const savedPhone = localStorage.getItem("yetalk_user_phone") || localStorage.getItem("yetalkUserPhone") || "";
+        const savedEmail = localStorage.getItem("yetalk_user_email") || localStorage.getItem("yetalkUserEmail") || "";
 
         let defaultNameWithRole = savedName;
         if (savedRole && savedRole !== '성도' && !defaultNameWithRole.includes(savedRole)) {
@@ -11137,6 +11141,7 @@ const BIBLICAL_TIME_SLOTS = [
 
         if (inpName) inpName.value = defaultNameWithRole || savedName || "";
         if (inpPhone) inpPhone.value = savedPhone || "";
+        if (inpEmail) inpEmail.value = savedEmail || "";
         if (inpContent) inpContent.value = "";
 
         setTimeout(() => {
@@ -11152,10 +11157,12 @@ const BIBLICAL_TIME_SLOTS = [
     function submitAdminInquiry() {
         const inpName = document.getElementById("inpAdminInqName");
         const inpPhone = document.getElementById("inpAdminInqPhone");
+        const inpEmail = document.getElementById("inpAdminInqEmail");
         const inpContent = document.getElementById("inpAdminInqContent");
 
         const name = inpName ? inpName.value.trim() : "";
         const phone = inpPhone ? inpPhone.value.trim() : "";
+        const email = inpEmail ? inpEmail.value.trim() : "";
         const content = inpContent ? inpContent.value.trim() : "";
 
         if (!content) {
@@ -11167,11 +11174,16 @@ const BIBLICAL_TIME_SLOTS = [
         const now = new Date();
         const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
+        if (email) {
+            try { localStorage.setItem("yetalk_user_email", email); } catch(e){}
+        }
+
         const newInq = {
             id: "inq_" + Date.now(),
             authorKey: "user_" + Date.now(),
             name: name || "익명 문의자",
             phone: phone || "연락처 미기재",
+            email: email || "",
             category: "관리자문의",
             content: content,
             status: "미확인",
@@ -11198,6 +11210,80 @@ const BIBLICAL_TIME_SLOTS = [
         if (inpContent) inpContent.value = "";
         closeAdminInquiryModal();
         alert("✨ 관리자에게 문의가 성공적으로 전송되었습니다!\n\n소중한 의견 감사합니다.");
+    }
+
+    // 🌟 [사용자 요청] 문의자에게 답변 작성 및 등록 & 예톡 1:1 대화방으로도 전달
+    function submitInquiryReply(id) {
+        const inp = document.getElementById("inpInqReply_" + id);
+        const text = inp ? inp.value.trim() : "";
+        if (!text) {
+            alert("답변 내용을 입력해 주세요.");
+            if (inp) inp.focus();
+            return;
+        }
+
+        try {
+            const raw = localStorage.getItem("yetalk_customer_inquiries_v2");
+            let list = raw ? JSON.parse(raw) : [];
+            const item = list.find(x => x.id === id);
+            if (!item) return;
+
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            item.reply = text;
+            item.replyDate = dateStr;
+            item.status = "완료";
+            localStorage.setItem("yetalk_customer_inquiries_v2", JSON.stringify(list));
+
+            // 🌟 [사용자 요청] 예톡 채팅창으로도 답변 전달 연동!
+            const targetName = (item.name || "문의자").trim();
+            const chatKey = "yetalk_private_chat_" + targetName;
+            let messages = [];
+            try { messages = JSON.parse(localStorage.getItem(chatKey) || "[]"); } catch(e){}
+            const timeStr = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            messages.push({
+                id: Date.now(),
+                sender: "관리자",
+                isMe: true,
+                text: `[관리자 문의 답변] ${text}`,
+                time: timeStr
+            });
+            localStorage.setItem(chatKey, JSON.stringify(messages));
+
+            updateDrawerUnreadInquiryBadge();
+            renderAdminInquiriesList();
+            alert(`✔ 답변이 등록되었으며, [${targetName}]님의 예톡 채팅방으로도 전달되었습니다!`);
+        } catch(e) {
+            console.error("submitInquiryReply error:", e);
+        }
+    }
+
+    // 🌟 [사용자 요청] 답변 삭제
+    function deleteInquiryReplyItem(id) {
+        if (!confirm("작성하신 답변을 삭제하시겠습니까?\n(상태가 '검토중'으로 변경됩니다)")) return;
+        try {
+            const raw = localStorage.getItem("yetalk_customer_inquiries_v2");
+            let list = raw ? JSON.parse(raw) : [];
+            const item = list.find(x => x.id === id);
+            if (item) {
+                item.reply = "";
+                item.replyDate = "";
+                item.status = "검토중";
+                localStorage.setItem("yetalk_customer_inquiries_v2", JSON.stringify(list));
+                updateDrawerUnreadInquiryBadge();
+                renderAdminInquiriesList();
+            }
+        } catch(e) {
+            console.error("deleteInquiryReplyItem error:", e);
+        }
+    }
+
+    // 🌟 [사용자 요청] 문의 상세에서 예톡 1:1 채팅창 바로 열기
+    function openPrivateChatFromInquiry(name, phone) {
+        closeAdminInquiriesListModal();
+        const targetName = (name || "문의자").trim();
+        openMemberPrivateChat(targetName, "문의회원");
     }
 
     // 🌟 [사용자 요청] 네줄 햄버거 메뉴 미확인 문의 숫자 뱃지 갱신
@@ -11363,17 +11449,57 @@ const BIBLICAL_TIME_SLOTS = [
                 <!-- 터치 시 상세 펼침 -->
                 ${isExpanded ? `
                 <div style="margin-top:10px; padding-top:9px; border-top:1px dashed #cbd5e1;">
-                    <div style="font-size:13.5px; color:#0f172a; font-weight:600; line-height:1.55; word-break:keep-all; background:#ffffff; padding:9px 11px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:8px;">
+                    <!-- 문의 원문 박스 -->
+                    <div style="font-size:13.5px; color:#0f172a; font-weight:600; line-height:1.55; word-break:keep-all; background:#ffffff; padding:10px 12px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:8px;">
                         ${escapeHtml(item.content)}
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-                        <!-- 연락처 및 전화/문자 바로가기 -->
-                        <div style="display:flex; align-items:center; gap:5px;">
+
+                    <!-- 🌟 [사용자 요청] 답변 작성 및 확인 영역 (예톡채팅 연동) -->
+                    <div style="margin-bottom:8px;">
+                        ${item.reply ? `
+                            <div style="background:#f0fdf4; border:1.2px solid #a7f3d0; border-radius:10px; padding:10px 12px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                    <strong style="font-size:12px; font-weight:950; color:#15803d; display:flex; align-items:center; gap:4px;">
+                                        <span>💬</span><span>관리자 답변 (예톡채팅 연동됨)</span>
+                                    </strong>
+                                    <div style="display:flex; align-items:center; gap:6px;">
+                                        <span style="font-size:10.5px; color:#16a34a; font-weight:800;">${escapeHtml(item.replyDate || '')}</span>
+                                        <button type="button" onclick="deleteInquiryReplyItem('${item.id}')" style="background:#fff1f2; border:1px solid #fecaca; color:#e11d48; font-size:10.5px; font-weight:900; padding:1px 6px; border-radius:4px; cursor:pointer;">삭제</button>
+                                    </div>
+                                </div>
+                                <div style="font-size:13px; color:#14532d; font-weight:700; line-height:1.5; word-break:break-word;">
+                                    ${escapeHtml(item.reply)}
+                                </div>
+                            </div>
+                        ` : `
+                            <div style="background:#f8fafc; border:1.2px dashed #cbd5e1; border-radius:10px; padding:8px 10px;">
+                                <div style="font-size:11.5px; font-weight:900; color:#0369a1; margin-bottom:5px; display:flex; align-items:center; gap:4px;">
+                                    <span>💬</span><span>간단한 답변 바로 작성 (등록 시 예톡채팅으로도 함께 전달 ✨)</span>
+                                </div>
+                                <div style="display:flex; gap:6px;">
+                                    <input type="text" id="inpInqReply_${item.id}" placeholder="문의자에게 전할 답변을 입력하세요..." style="flex:1; border:1.2px solid #cbd5e1; border-radius:6px; padding:6px 9px; font-size:12.5px; outline:none;" onkeypress="if(event.key==='Enter') submitInquiryReply('${item.id}')">
+                                    <button type="button" onclick="submitInquiryReply('${item.id}')" style="background:#10b981; color:#ffffff; border:none; border-radius:6px; padding:6px 12px; font-size:12px; font-weight:950; cursor:pointer; flex-shrink:0;">
+                                        등록
+                                    </button>
+                                </div>
+                            </div>
+                        `}
+                    </div>
+
+                    <!-- 🌟 [사용자 요청] 연락처(전화, 문자, 이메일) 및 예톡 채팅 바로가기 버튼들 -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; padding-top:4px;">
+                        <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
                             <span style="font-size:12px; font-weight:900; color:#334155;">📞 ${escapeHtml(item.phone || '연락처 미기재')}</span>
                             ${cleanPhone ? `
                                 <a href="tel:${cleanPhone}" style="padding:3px 8px; background:#f0fdf4; border:1px solid #86efac; border-radius:6px; font-size:11px; font-weight:900; color:#15803d; text-decoration:none;">전화</a>
                                 <a href="sms:${cleanPhone}" style="padding:3px 8px; background:#eff6ff; border:1px solid #93c5fd; border-radius:6px; font-size:11px; font-weight:900; color:#1d4ed8; text-decoration:none;">문자</a>
                             ` : ''}
+                            ${item.email ? `
+                                <a href="mailto:${escapeHtml(item.email)}?subject=${encodeURIComponent('[예톡 문의 답변] 문의하신 내용에 대한 안내입니다')}" style="padding:3px 8px; background:#fefce8; border:1px solid #fde047; border-radius:6px; font-size:11px; font-weight:900; color:#a16207; text-decoration:none;" title="${escapeHtml(item.email)}">✉️ 이메일</a>
+                            ` : ''}
+                            <button type="button" onclick="openPrivateChatFromInquiry('${escapeHtml(item.name || '문의자')}', '${cleanPhone}')" style="padding:3px 8px; background:#e0f2fe; border:1px solid #bae6fd; border-radius:6px; font-size:11px; font-weight:900; color:#0284c7; cursor:pointer; display:inline-flex; align-items:center; gap:3px;">
+                                <span>💬</span><span>예톡채팅</span>
+                            </button>
                         </div>
                         <!-- 상태 변경 및 삭제 -->
                         <div style="display:flex; align-items:center; gap:4px; margin-left:auto;">
@@ -11383,6 +11509,11 @@ const BIBLICAL_TIME_SLOTS = [
                             <button type="button" onclick="deleteInquiryItem('${item.id}')" style="padding:3px 6px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; font-size:11px; font-weight:900; color:#64748b; cursor:pointer; margin-left:4px;">🗑️</button>
                         </div>
                     </div>
+                    ${item.email ? `
+                    <div style="font-size:11.5px; color:#64748b; font-weight:700; margin-top:4px;">
+                        ✉️ 이메일: <a href="mailto:${escapeHtml(item.email)}" style="color:#0284c7; text-decoration:none;">${escapeHtml(item.email)}</a>
+                    </div>
+                    ` : ''}
                 </div>
                 ` : ''}
             </div>
