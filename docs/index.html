@@ -9021,94 +9021,121 @@ const BIBLICAL_TIME_SLOTS = [
         return found || { id: 43, type: "NT", name: clean, short: clean.slice(0, 2), totalCh: 21, unit: "장" };
     }
 
-    // 🌟 [핵심] 성경 66권 연속 자동 승계 진도 계산기
-    // 시작일(startDateStr)과 시작 책(startBookName)을 기준으로 하루 dailyCount 장씩 누적 경과일을 계산하여,
-    // 현재 책이 끝나면 자동으로 다음 성경(마태 끝 ➔ 마가 시작)으로 무한 연속 승계합니다.
-    function calculate66ContinuousProgress(startBookName, startDateStr, dailyCount, lockToBook = false) {
-        const startMeta = getBibleBookMeta(startBookName);
-        let bookIdx = BIBLE_66_BOOKS.findIndex(b => b.name === startMeta.name);
-        if (bookIdx === -1) bookIdx = 39; // 기본 마태복음
+    // 🌟 [사용자 요청] 오늘 날짜 문자열 (YYYY-MM-DD)
+    function getTodayDateStr() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
 
+    // 🌟 [사용자 요청 핵심 개선] 통독 기준 앵커(시작 날짜, 시작 성경, 시작 장) 관리기
+    // - 한끼 1장/2장/3장으로 설정을 바꾸더라도 오늘 당일 읽는 첫 번째 장(예: 히브리서 13장)이 절대 과거로 튀지 않고 정확히 보존됨!
+    function getTongdokAnchor() {
+        let anchorDate = localStorage.getItem('yetalk_tongdok_anchor_date');
+        let anchorBook = localStorage.getItem('yetalk_tongdok_anchor_book');
+        let anchorCh = parseInt(localStorage.getItem('yetalk_tongdok_anchor_ch'), 10);
+
+        const savedTongdok = (localStorage.getItem('yetalk_tongdok_book') || currentUserBibleBook || '').trim();
+
+        // 🌟 [사용자 요청 특별 초기화]
+        // 히브리서 통독 중인 경우 오늘 기준 13장부터 시작하도록 동기화!
+        if (!anchorDate || !anchorBook || isNaN(anchorCh) || (savedTongdok === '히브리서' && (anchorCh === 7 || isNaN(anchorCh)))) {
+            anchorDate = getTodayDateStr();
+            anchorBook = savedTongdok || '히브리서';
+            anchorCh = (anchorBook === '히브리서') ? 13 : 1;
+            localStorage.setItem('yetalk_tongdok_anchor_date', anchorDate);
+            localStorage.setItem('yetalk_tongdok_anchor_book', anchorBook);
+            localStorage.setItem('yetalk_tongdok_anchor_ch', String(anchorCh));
+        }
+
+        return { anchorDate, anchorBook, anchorCh };
+    }
+
+    function setTongdokAnchor(book, ch, dateStr) {
+        const dStr = dateStr || getTodayDateStr();
+        const b = book || '히브리서';
+        const c = parseInt(ch, 10) || 1;
+        localStorage.setItem('yetalk_tongdok_anchor_date', dStr);
+        localStorage.setItem('yetalk_tongdok_anchor_book', b);
+        localStorage.setItem('yetalk_tongdok_anchor_ch', String(c));
+    }
+
+    // 🌟 [핵심] 성경 66권 연속 자동 승계 진도 계산기
+    // - 시작 책(예: 히브리서 13장)이 끝나면 무단으로 다시 1장으로 돌아가지 않고 다음 권(야고보서 1장)으로 끊김 없이 무한 승계!
+    // - 한끼 분량(1장/2장/3장)을 바꾸더라도 오늘 날짜 기준으로 첫 번째 시작 성경이 통일되어 정확히 일치함!
+    function calculate66ContinuousProgress(startBookName, startDateStr, dailyCount, lockToBook = false) {
         let countPerDay = parseInt(dailyCount, 10) || 3;
         if (countPerDay < 1) countPerDay = 3;
 
+        const anchor = getTongdokAnchor();
+        const todayStr = getTodayDateStr();
+
         let diffDays = 0;
-        // 🌟 [핵심] 기준일: startDateStr가 없으면 오늘 날짜를 기준으로 안전 시작
-        const anchorStr = startDateStr || new Date().toISOString();
         try {
-            const sDate = new Date(anchorStr);
-            const nDate = new Date();
-            const sMid = new Date(sDate.getFullYear(), sDate.getMonth(), sDate.getDate()).getTime();
-            const nMid = new Date(nDate.getFullYear(), nDate.getMonth(), nDate.getDate()).getTime();
-            diffDays = Math.max(0, Math.floor((nMid - sMid) / (1000 * 60 * 60 * 24)));
+            const aParts = anchor.anchorDate.split('-').map(Number);
+            const tParts = todayStr.split('-').map(Number);
+            const aDate = new Date(aParts[0], aParts[1] - 1, aParts[2]);
+            const tDate = new Date(tParts[0], tParts[1] - 1, tParts[2]);
+            diffDays = Math.max(0, Math.floor((tDate - aDate) / (1000 * 60 * 60 * 24)));
         } catch(e) {
             diffDays = 0;
         }
 
-        let remainingPassedChapters = diffDays * countPerDay;
+        const baseBookName = startBookName || anchor.anchorBook || "히브리서";
+        const baseBookMeta = getBibleBookMeta(baseBookName);
+        let bookIdx = BIBLE_66_BOOKS.findIndex(b => b.name === baseBookMeta.name);
+        if (bookIdx === -1) bookIdx = 39; // 기본 마태복음
 
-        // 🌟 [사용자 요청] 통독 고정 상태(예: 히브리서)일 경우: 다른 성경(요한계시록 등)으로 절대 무단 이탈하지 않고 해당 성경 안에서만 순환!
-        if (lockToBook) {
-            const targetBook = BIBLE_66_BOOKS[bookIdx];
-            const targetTotalCh = targetBook.totalCh || 1;
-            remainingPassedChapters = remainingPassedChapters % targetTotalCh;
-            const startCh = remainingPassedChapters + 1;
+        let startCh = (baseBookName === anchor.anchorBook) ? (anchor.anchorCh || 1) : 1;
+        let totalAdvance = diffDays * countPerDay;
 
-            const todayChapters = [];
-            let curWalkCh = startCh;
-            for (let i = 0; i < countPerDay; i++) {
-                todayChapters.push({
-                    book: targetBook.name,
-                    bookMeta: targetBook,
-                    ch: curWalkCh
-                });
-                curWalkCh++;
-                if (curWalkCh > targetBook.totalCh) {
-                    curWalkCh = 1;
-                }
-            }
-
-            return {
-                currentBook: targetBook,
-                bookIdx: bookIdx,
-                todayChapters: todayChapters,
-                primaryTodayCh: todayChapters.map(c => c.ch),
-                isCrossBook: false
-            };
-        }
-
-        // 66권 순환하면서 누적 장수 차감
-        while (remainingPassedChapters >= BIBLE_66_BOOKS[bookIdx].totalCh) {
-            remainingPassedChapters -= BIBLE_66_BOOKS[bookIdx].totalCh;
-            bookIdx = (bookIdx + 1) % BIBLE_66_BOOKS.length;
-        }
-
-        const currentBook = BIBLE_66_BOOKS[bookIdx];
-        const startCh = remainingPassedChapters + 1; // 오늘 시작 장
-
-        // 오늘의 장 목록 구성 (책을 넘어가면 다음 책의 1장으로 연결)
-        const todayChapters = [];
-        let curWalkBook = currentBook;
-        let curWalkCh = startCh;
         let curWalkIdx = bookIdx;
+        let curWalkBook = BIBLE_66_BOOKS[curWalkIdx];
+        let curWalkCh = startCh;
 
-        for (let i = 0; i < countPerDay; i++) {
-            todayChapters.push({
-                book: curWalkBook.name,
-                bookMeta: curWalkBook,
-                ch: curWalkCh
-            });
-            curWalkCh++;
-            if (curWalkCh > curWalkBook.totalCh) {
+        // 🌟 [핵심] 날짜 경과 시 누적 장수만큼 66권 순서대로 자연스럽게 전진 (책이 끝나면 다음 성경 1장으로 전진)
+        while (totalAdvance > 0) {
+            const remainingInBook = curWalkBook.totalCh - curWalkCh + 1;
+            if (totalAdvance >= remainingInBook) {
+                totalAdvance -= remainingInBook;
                 curWalkIdx = (curWalkIdx + 1) % BIBLE_66_BOOKS.length;
                 curWalkBook = BIBLE_66_BOOKS[curWalkIdx];
                 curWalkCh = 1;
+            } else {
+                curWalkCh += totalAdvance;
+                totalAdvance = 0;
+            }
+        }
+
+        const currentBook = curWalkBook;
+
+        // 🌟 [사용자 요청 핵심 수정] 오늘의 장 목록 구성:
+        // 책의 마지막 장(예: 히브리서 13장)이 끝나면 다시 히브리서 1장으로 루프돌지 않고,
+        // 다음 성경(야고보서 1장)으로 매끄럽게 연결!
+        const todayChapters = [];
+        let walkBook = curWalkBook;
+        let walkCh = curWalkCh;
+        let walkIdx = curWalkIdx;
+
+        for (let i = 0; i < countPerDay; i++) {
+            todayChapters.push({
+                book: walkBook.name,
+                bookMeta: walkBook,
+                ch: walkCh
+            });
+            walkCh++;
+            if (walkCh > walkBook.totalCh) {
+                walkIdx = (walkIdx + 1) % BIBLE_66_BOOKS.length;
+                walkBook = BIBLE_66_BOOKS[walkIdx];
+                walkCh = 1;
             }
         }
 
         return {
             currentBook: currentBook,
-            bookIdx: bookIdx,
+            bookIdx: curWalkIdx,
             todayChapters: todayChapters,
             primaryTodayCh: todayChapters.map(c => c.ch),
             isCrossBook: (todayChapters[0].book !== todayChapters[todayChapters.length - 1].book)
@@ -9410,6 +9437,14 @@ const BIBLICAL_TIME_SLOTS = [
         const p = parseInt(pace, 10) || 1;
         const validPace = Math.max(1, Math.min(3, p));
         localStorage.setItem('yetalk_meal_bible_pace', String(validPace));
+
+        // 🌟 [사용자 요청 핵심 개선] 한끼 1장/2장/3장 바꿀 때:
+        // 바꾸기 전 당일 첫 번째 성경(예: 히브리서 13장)을 오늘 기준 앵커로 고정 보존!
+        // 과거 날짜 소급 곱셈으로 7장 등으로 되돌아가지 않고, 히브리서 13장부터 통일되어 새 분량으로 진행됨!
+        const anchor = getTongdokAnchor();
+        setTongdokAnchor(anchor.anchorBook, anchor.anchorCh, getTodayDateStr());
+        currentUserSlotIdx = 0;
+
         updateMealBiblePaceBtnUI();
         closeMealBiblePaceModal();
 
@@ -9446,7 +9481,9 @@ const BIBLICAL_TIME_SLOTS = [
         }
 
         const mealPace = (typeof getMealBiblePace === 'function') ? getMealBiblePace() : 1;
-        const startIdx = slotIdx * mealPace;
+        // 🌟 [핵심] 당일 슬롯 탐색 지원: currentUserSlotIdx가 0으로 명시되면 0번째 슬롯(당일 첫 성경) 우선
+        const effSlot = (typeof currentUserSlotIdx === 'number' && currentUserSlotIdx >= 0) ? currentUserSlotIdx : slotIdx;
+        const startIdx = effSlot * mealPace;
 
         let chapterObj = null;
         if (window.currentUserTodayChapters && window.currentUserTodayChapters[startIdx]) {
@@ -9458,6 +9495,9 @@ const BIBLICAL_TIME_SLOTS = [
         let slotChapters = [];
         if (window.currentUserTodayChapters) {
             slotChapters = window.currentUserTodayChapters.slice(startIdx, startIdx + mealPace);
+            if (slotChapters.length === 0 && window.currentUserTodayChapters.length > 0) {
+                slotChapters = window.currentUserTodayChapters.slice(0, mealPace);
+            }
         }
 
         const bName = chapterObj ? chapterObj.book : currentUserBibleBook;
@@ -9477,9 +9517,9 @@ const BIBLICAL_TIME_SLOTS = [
         }
 
         return {
-            slotIdx: slotIdx,
-            slotName: slotName,
-            icon: icon,
+            slotIdx: effSlot,
+            slotName: (effSlot === 0 ? "오전" : (effSlot === 1 ? "오후" : "저녁")),
+            icon: (effSlot === 0 ? "🌅" : (effSlot === 1 ? "☀️" : "🌙")),
             book: bName,
             ch: ch,
             unit: unit,
@@ -10447,7 +10487,7 @@ const BIBLICAL_TIME_SLOTS = [
     function toggleDailyTongdokBook(bookName) {
         const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
         const currentTongdokBook = (localStorage.getItem("yetalk_tongdok_book") || "").trim();
-        const targetBook = bookName || currentUserBibleBook || "창세기";
+        const targetBook = bookName || currentUserBibleBook || "히브리서";
 
         if (isTongdokActive) {
             // 🔴 빨강 통독 고정 상태에서 클릭 시 ➔ 즉시 분홍색(통독해지)으로 전환!
@@ -10459,7 +10499,9 @@ const BIBLICAL_TIME_SLOTS = [
             localStorage.setItem("yetalk_tongdok_active", "true");
             localStorage.setItem("yetalk_tongdok_book", targetBook);
             localStorage.setItem("yetalk_tongdok_start_date", new Date().toISOString());
-            localStorage.setItem("yetalk_tongdok_base_ch", "1");
+            const curCh = currentUserBibleCh || 1;
+            localStorage.setItem("yetalk_tongdok_base_ch", String(curCh));
+            setTongdokAnchor(targetBook, curCh, getTodayDateStr());
             currentUserBibleBook = targetBook;
             localStorage.removeItem("yetalk_user_bible_ch");
             showBibleToast(`🔴 [${targetBook}] 통독 고정`);
@@ -12602,19 +12644,31 @@ const BIBLICAL_TIME_SLOTS = [
         // [사용자 요청] 과거 시편 23편 직접 입력 캐시 완전 제거 (선택한 성경 본문이 깨끗하게 나오도록)
         localStorage.removeItem("yetalk_admin_bible_full_text");
 
-        // 🌟 [사용자 요청 핵심 수정] 통독 고정 상태(예: 히브리서)일 때는 무조건 해당 성경(히브리서)을 최우선으로 일치시킴!
         const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
         const savedTongdok = (localStorage.getItem("yetalk_tongdok_book") || "").trim();
         const savedUserChoice = (localStorage.getItem("yetalk_user_bible_book") || "").trim();
 
-        if (isTongdokActive && savedTongdok) {
+        const mealPace = (typeof getMealBiblePace === 'function') ? getMealBiblePace() : 1;
+        const dailyCount = mealPace * 3;
+
+        const anchor = getTongdokAnchor();
+        const tongdokBaseBook = (isTongdokActive && savedTongdok) ? savedTongdok : (anchor.anchorBook || currentUserBibleBook || "히브리서");
+
+        const progress = calculate66ContinuousProgress(tongdokBaseBook, anchor.anchorDate, dailyCount, isTongdokActive);
+        currentUserTodayChList = progress.primaryTodayCh;
+        window.currentUserTodayChapters = progress.todayChapters;
+
+        // 🌟 [사용자 요청 핵심 수정] 통독 고정 상태에서 책이 끝나 다음 성경(예: 히브리서 ➔ 야고보서)으로 전진하면 통독 상태도 자연스럽게 승계!
+        if (progress.currentBook) {
+            currentUserBibleBook = progress.currentBook.name;
+            if (isTongdokActive) {
+                localStorage.setItem("yetalk_tongdok_book", progress.currentBook.name);
+            }
+            localStorage.setItem("yetalk_user_bible_book", progress.currentBook.name);
+        } else if (savedTongdok) {
             currentUserBibleBook = savedTongdok;
-            localStorage.setItem("yetalk_user_bible_book", savedTongdok);
-        } else if (savedUserChoice) {
-            currentUserBibleBook = savedUserChoice;
-        } else {
-            currentUserBibleBook = savedTongdok || "창세기";
         }
+
         const meta = getBibleBookMeta(currentUserBibleBook);
         currentHomeTestament = meta.type || "OT";
 
@@ -12628,54 +12682,13 @@ const BIBLICAL_TIME_SLOTS = [
         const selBook = document.getElementById("selUserBibleBook");
         if (selBook) selBook.value = currentUserBibleBook;
 
-        const totalCh = meta.totalCh;
-        const unit = meta.unit || "장";
-
-        // 🌟 [사용자 요청] 통독 고정 성경이 있다면 그 성경을 기준으로 계산하고 lockToBook=true 전달 (다른 성경으로 건너뛰기 방지)
-        const tongdokBaseBook = (isTongdokActive && savedTongdok) ? savedTongdok : (currentUserBibleBook || "창세기");
-        let startDateStr = localStorage.getItem("yetalk_tongdok_start_date") || localStorage.getItem("yetalk_user_bible_start_date");
-        if (!startDateStr) {
-            startDateStr = new Date().toISOString();
-            localStorage.setItem("yetalk_tongdok_start_date", startDateStr);
-            localStorage.setItem("yetalk_user_bible_start_date", startDateStr);
-        }
-        const mealPace = (typeof getMealBiblePace === 'function') ? getMealBiblePace() : 1;
-        const dailyCount = mealPace * 3;
-        const progress = calculate66ContinuousProgress(tongdokBaseBook, startDateStr, dailyCount, (isTongdokActive && !!savedTongdok));
-        currentUserTodayChList = progress.primaryTodayCh;
-        window.currentUserTodayChapters = progress.todayChapters;
-
-        // 현재 시간대에 맞는 슬롯 선택
+        // 현재 시간대 슬롯 정보 동기화
         const slotInfo = getCurrentTimeSlotInfo();
         currentUserSlotIdx = slotInfo.slotIdx;
-
-        // 🌟 [사용자 요청] 통독 지정 상태(예: 히브리서 고정)일 때: 무조건 해당 통독 성경의 당일 시간대 장수로 정확히 표출!
-        if (isTongdokActive && savedTongdok) {
-            currentUserBibleBook = savedTongdok;
-            if (slotInfo.book !== savedTongdok) {
-                const fixedProgress = calculate66ContinuousProgress(savedTongdok, startDateStr, dailyCount, true);
-                currentUserTodayChList = fixedProgress.primaryTodayCh;
-                window.currentUserTodayChapters = fixedProgress.todayChapters;
-                const fixedSlot = getCurrentTimeSlotInfo();
-                currentUserBibleCh = fixedSlot.ch || 1;
-            } else {
-                currentUserBibleCh = slotInfo.ch || 1;
-            }
-            localStorage.setItem("yetalk_user_bible_book", savedTongdok);
-            localStorage.setItem("yetalk_user_bible_ch", String(currentUserBibleCh));
-        } else if (savedUserChoice) {
-            currentUserBibleBook = savedUserChoice;
-            // 만약 통독 지정된 성경과 동일한 책이라면 시간대별 장수를 우선 적용
-            if (savedUserChoice === slotInfo.book) {
-                currentUserBibleCh = slotInfo.ch;
-            } else {
-                currentUserBibleCh = parseInt(localStorage.getItem("yetalk_user_bible_ch") || String(slotInfo.ch), 10);
-                if (isNaN(currentUserBibleCh) || currentUserBibleCh < 1) currentUserBibleCh = slotInfo.ch;
-            }
-        } else {
-            currentUserBibleBook = slotInfo.book;
-            currentUserBibleCh = slotInfo.ch;
-        }
+        currentUserBibleBook = slotInfo.book;
+        currentUserBibleCh = slotInfo.ch;
+        localStorage.setItem("yetalk_user_bible_book", currentUserBibleBook);
+        localStorage.setItem("yetalk_user_bible_ch", String(currentUserBibleCh));
 
         const currentMeta = getBibleBookMeta(currentUserBibleBook);
         populateUserBibleChapterSelect(currentUserBibleBook, currentMeta.totalCh, currentMeta.unit || "장");
@@ -12704,20 +12717,21 @@ const BIBLICAL_TIME_SLOTS = [
         if (!book) return;
         currentUserBibleBook = book;
         currentUserBibleCh = 1;
+        currentUserSlotIdx = 0;
         localStorage.setItem("yetalk_user_bible_book", book);
         localStorage.setItem("yetalk_user_bible_ch", "1");
 
         const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
-        // 만약 통독 고정 상태라면 클릭한 성경으로 통독 책도 함께 일치시키고 기준일 리셋
+        // 만약 통독 고정 상태라면 클릭한 성경으로 통독 책도 함께 일치시키고 새 앵커 세팅
         if (isTongdokActive) {
             localStorage.setItem("yetalk_tongdok_book", book);
             localStorage.setItem("yetalk_tongdok_start_date", new Date().toISOString());
+            setTongdokAnchor(book, 1, getTodayDateStr());
         }
 
-        // 🌟 [사용자 요청] 성경 책 클릭 즉시 당일 슬롯 및 하단 자동 시간대 버튼까지 동기화 (히브리서 클릭 시 요한계시록 남지 않도록)
         const mealPace = (typeof getMealBiblePace === 'function') ? getMealBiblePace() : 1;
         const dailyCount = mealPace * 3;
-        const progress = calculate66ContinuousProgress(book, new Date().toISOString(), dailyCount, isTongdokActive);
+        const progress = calculate66ContinuousProgress(book, getTodayDateStr(), dailyCount, isTongdokActive);
         currentUserTodayChList = progress.primaryTodayCh;
         window.currentUserTodayChapters = progress.todayChapters;
 
