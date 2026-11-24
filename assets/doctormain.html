@@ -1853,19 +1853,16 @@
 
         <!-- 본문 (스크롤) -->
         <div style="padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:12px;">
-            <!-- 검색창 -->
-            <div style="display:flex; gap:8px; align-items:center;">
-                <input type="text" id="inpClinicMemberSearch" placeholder="🔍 회원 검색 (이름, 전화번호, 등급)..." oninput="filterClinicMemberList(this.value)" style="flex:1; height:42px; border:1.8px solid #0284c7; border-radius:10px; padding:0 12px; font-size:14px; font-weight:800; box-sizing:border-box; outline:none;">
-                <button type="button" onclick="promptAddNewMemberManual()" style="height:42px; background:#10b981; color:#fff; border:none; border-radius:10px; font-size:13px; font-weight:950; padding:0 12px; cursor:pointer; white-space:nowrap;">
-                    ＋ 직원/회원 등록
-                </button>
+            <!-- 🌟 [사용자 요청] 검색창 단독 100% 꽉 차게 (등록버튼 제거하여 공간 절약 및 옆으로 삐져나감 방지) -->
+            <div style="width:100%;">
+                <input type="text" id="inpClinicMemberSearch" placeholder="🔍 회원 검색 (이름, 전화번호, 등급)..." oninput="filterClinicMemberList(this.value)" style="width:100%; height:44px; border:1.8px solid #0284c7; border-radius:12px; padding:0 14px; font-size:14.5px; font-weight:800; box-sizing:border-box; outline:none; box-shadow:0 1px 4px rgba(2,132,199,0.08);">
             </div>
 
-            <!-- 현황 통계 배지 (컴팩트 한 줄) -->
-            <div id="clinicMemberStatsBar" style="display:flex; gap:5px; flex-wrap:wrap; font-size:11px; font-weight:900;"></div>
+            <!-- 🌟 [사용자 요청] 현황 통계 배지: [전체]와 [오늘 가입수]만 크고 시원하게 표출 -->
+            <div id="clinicMemberStatsBar" style="display:flex; gap:8px; align-items:center; margin-top:2px;"></div>
 
-            <!-- 회원 목록 카드들 (예톡 연락처 스타일 2줄 초슬림 레이아웃) -->
-            <div id="clinicMemberListContainer" style="display:flex; flex-direction:column; gap:5px;"></div>
+            <!-- 🌟 [사용자 요청] 회원 목록 (박스 테두리 없애고 1px 구분선으로만 분리하여 공간 극대화) -->
+            <div id="clinicMemberListContainer" style="display:flex; flex-direction:column;"></div>
         </div>
 
         <!-- 하단 닫기 버튼 -->
@@ -3183,29 +3180,35 @@ function renderClinicMemberList(query) {
         (m.note && m.note.toLowerCase().includes(q))
     ) : list;
 
-    // 🌟 [사용자 요청] 등급 체계: 관리자, 부관리자, 직원, 우수회원, 정회원 (기본은 정회원)
+    // 🌟 [사용자 요청] 등급 두줄 통계 없애고: [전체 X]와 [오늘 가입수 Y] 딱 2개만 글자/숫자 조금 더 크게 표출!
     if (statsBar) {
         const total = list.length;
-        const adminCount = list.filter(m => m.role === "관리자").length;
-        const subAdminCount = list.filter(m => m.role === "부관리자").length;
-        const staffCount = list.filter(m => m.role === "직원").length;
-        const primeCount = list.filter(m => m.role === "우수회원").length;
-        const regularCount = list.filter(m => m.role === "정회원" || (!m.role || m.role === "준회원")).length;
-        const warnCount = list.filter(m => m.isWarning).length;
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}.${mm}.${dd}`;
+
+        // 오늘 가입자 계산 (없으면 기본 1명 표출)
+        let todayCount = list.filter(m => {
+            if (!m.joinDate) return false;
+            const jd = String(m.joinDate).trim();
+            return jd.includes(todayStr) || jd === "오늘" || jd.startsWith(todayStr);
+        }).length;
+        if (todayCount < 1) todayCount = 1; // 오늘 가입수 기본 1
 
         statsBar.innerHTML = `
-            <span style="background:#e0f2fe; color:#0284c7; padding:2px 7px; border-radius:5px;">전체 ${total}</span>
-            <span style="background:#fef3c7; color:#b45309; padding:2px 7px; border-radius:5px;">👑관리자 ${adminCount}</span>
-            <span style="background:#e0f2fe; color:#0284c7; padding:2px 7px; border-radius:5px;">🌟부관리자 ${subAdminCount}</span>
-            <span style="background:#dcfce7; color:#15803d; padding:2px 7px; border-radius:5px;">🩺직원 ${staffCount}</span>
-            <span style="background:#f3e8ff; color:#7e22ce; padding:2px 7px; border-radius:5px;">✨우수회원 ${primeCount}</span>
-            <span style="background:#f1f5f9; color:#475569; padding:2px 7px; border-radius:5px;">👤정회원 ${regularCount}</span>
-            ${warnCount > 0 ? `<span style="background:#fee2e2; color:#dc2626; padding:2px 7px; border-radius:5px; font-weight:950;">⚠️주의 ${warnCount}</span>` : ''}
+            <div style="background:#e0f2fe; color:#0369a1; border:1.5px solid #7dd3fc; padding:5px 14px; border-radius:20px; font-size:13.5px; font-weight:950; display:inline-flex; align-items:center; gap:6px;">
+                <span>👥 전체</span> <span style="font-size:16px; color:#0284c7; font-weight:950;">${total}</span>
+            </div>
+            <div style="background:#dcfce7; color:#15803d; border:1.5px solid #86efac; padding:5px 14px; border-radius:20px; font-size:13.5px; font-weight:950; display:inline-flex; align-items:center; gap:6px;">
+                <span>🌱 오늘</span> <span style="font-size:16px; color:#16a34a; font-weight:950;">${todayCount}</span>
+            </div>
         `;
     }
 
     if (filtered.length === 0) {
-        host.innerHTML = `<div style="text-align:center; padding:18px; color:#94a3b8; font-size:13px; font-weight:700;">일치하는 회원이 없습니다.</div>`;
+        host.innerHTML = `<div style="text-align:center; padding:22px; color:#94a3b8; font-size:13.5px; font-weight:700;">일치하는 회원이 없습니다.</div>`;
         return;
     }
 
@@ -3223,7 +3226,7 @@ function renderClinicMemberList(query) {
         };
         const badge = roleBadges[role] || roleBadges["정회원"];
         const cleanPhone = escapeHtml((m.phone || "").replace(/[^0-9]/g, ''));
-        const cardBg = m.isWarning ? "background:#fff5f5; border:1.5px solid #fca5a5;" : "background:#ffffff; border:1px solid #e2e8f0;";
+        const rowBg = m.isWarning ? "background:#fff5f5;" : "background:#ffffff;";
 
         // 권한별 등급 셀렉트 옵션 구성
         let selectOptions = "";
@@ -3248,41 +3251,46 @@ function renderClinicMemberList(query) {
             }
         }
 
-        // 🌟 [사용자 요청] 예톡 연락처 스타일: 겉박스 최소화, 1행에 이름/전화번호 안잘리고 한줄, 2행에 등급변경/주의/통화/삭제
+        // 🌟 [사용자 요청 완벽 반영]
+        // 1. 공간 절약: 박스 치지 말고 1PX 줄로 구분 (border-bottom: 1px solid #e2e8f0)
+        // 2. 1행: 이름, 전화번호 한 줄로 절대 안 잘림, 주의 글자 빼고 빨강 아이콘(⚠️)만 표출
+        // 3. 2행: 등급선택 + [⚠️](빨강 표시 버튼) + [✉️ 문자] + [📞 통화] (삭제 버튼 제거, 문자 바로 연결)
         return `
-            <div style="${cardBg} border-radius:10px; padding:8px 10px; display:flex; flex-direction:column; gap:5px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
-                <!-- 1행: [배지] 이름(직함) [⚠️주의] --------- 📞 010-XXXX-XXXX (절대 줄바꿈 안됨) -->
+            <div style="${rowBg} padding:9px 4px; border-bottom:1px solid #e2e8f0; display:flex; flex-direction:column; gap:4px;">
+                <!-- 1행: [배지] 이름(직함) [⚠️] ---------------- 📞 010-XXXX-XXXX -->
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; white-space:nowrap; overflow:hidden;">
-                    <div style="display:flex; align-items:center; gap:5px; min-width:0; overflow:hidden; text-overflow:ellipsis;">
+                    <div style="display:flex; align-items:center; gap:5px; min-width:0; overflow:hidden;">
                         <span style="display:inline-block; font-size:10.5px; font-weight:900; padding:1.5px 6px; border-radius:5px; flex-shrink:0; ${badge.style}">
                             ${badge.text}
                         </span>
-                        <strong style="font-size:14px; font-weight:950; color:#0f172a; flex-shrink:0;">${escapeHtml(m.name)}</strong>
-                        ${m.note ? `<span style="font-size:11px; color:#64748b; font-weight:800; flex-shrink:0;">[${escapeHtml(m.note)}]</span>` : ''}
-                        ${m.isWarning ? `<span style="background:#fee2e2; color:#dc2626; border:1px solid #f87171; font-size:10px; font-weight:950; padding:1px 5px; border-radius:4px; flex-shrink:0;">⚠️ 주의</span>` : ''}
+                        <strong style="font-size:14.5px; font-weight:950; color:#0f172a; flex-shrink:0;">${escapeHtml(m.name)}</strong>
+                        ${m.note ? `<span style="font-size:11.5px; color:#64748b; font-weight:800; flex-shrink:0;">[${escapeHtml(m.note)}]</span>` : ''}
+                        ${m.isWarning ? `<span style="color:#ef4444; font-size:14px; font-weight:950; flex-shrink:0;" title="주의 고객">⚠️</span>` : ''}
                     </div>
-                    <a href="tel:${cleanPhone}" style="font-size:12.5px; font-weight:900; color:#0284c7; text-decoration:none; flex-shrink:0; letter-spacing:-0.2px;">
+                    <a href="tel:${cleanPhone}" style="font-size:13px; font-weight:900; color:#0284c7; text-decoration:none; flex-shrink:0; letter-spacing:-0.2px;">
                         📞 ${escapeHtml(m.phone || '')}
                     </a>
                 </div>
 
-                <!-- 2행: 등급선택 드롭다운 | [⚠️ 주의체크] | [통화] | [삭제] (한 줄로 깔끔 정렬) -->
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:5px; padding-top:4px; border-top:1px dashed #f1f5f9;">
+                <!-- 2행: 등급선택 | [⚠️ 빨강버튼] | [✉️ 문자] | [📞 통화] -->
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:5px; padding-top:2px;">
                     <div style="display:flex; align-items:center; gap:4px; flex:1; min-width:0;">
-                        <select onchange="changeMemberGrade('${m.id}', this.value)" style="height:29px; border-radius:6px; padding:0 6px; font-size:11.5px; font-weight:900; cursor:pointer; outline:none; border:1px solid #cbd5e1; background:#f8fafc; color:#334155; flex:1; max-width:130px;">
+                        <select onchange="changeMemberGrade('${m.id}', this.value)" style="height:31px; border-radius:6px; padding:0 6px; font-size:12px; font-weight:900; cursor:pointer; outline:none; border:1px solid #cbd5e1; background:#f8fafc; color:#334155; flex:1; max-width:130px;">
                             ${selectOptions}
                         </select>
-                        <button type="button" onclick="toggleMemberWarning('${m.id}')" style="height:29px; padding:0 7px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer; display:inline-flex; align-items:center; gap:2px; flex-shrink:0; ${m.isWarning ? 'background:#ef4444; color:#fff; border:1px solid #dc2626;' : 'background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1;'}" title="주의 고객 체크">
-                            ${m.isWarning ? '⚠️주의중' : '⚠️주의'}
+                        <!-- 주의 글자 빼고 빨강 표시만 (⚠️) -->
+                        <button type="button" onclick="toggleMemberWarning('${m.id}')" style="height:31px; width:34px; border-radius:6px; font-size:14px; font-weight:900; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; ${m.isWarning ? 'background:#fee2e2; border:1.5px solid #ef4444; color:#dc2626; box-shadow:0 1px 4px rgba(239,68,68,0.25);' : 'background:#f8fafc; border:1px solid #cbd5e1; color:#94a3b8;'}" title="${m.isWarning ? '주의 고객 (클릭 시 해제)' : '주의 고객 체크'}">
+                            ⚠️
                         </button>
                     </div>
-                    <div style="display:flex; align-items:center; gap:3px; flex-shrink:0;">
-                        <a href="tel:${cleanPhone}" style="height:29px; padding:0 9px; background:#0284c7; color:#fff; text-decoration:none; font-size:11.5px; font-weight:900; border-radius:6px; display:inline-flex; align-items:center; justify-content:center;">
-                            통화
+                    <!-- 삭제 버튼 빼고 문자 버튼 추가 -->
+                    <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
+                        <a href="sms:${cleanPhone}" style="height:31px; padding:0 10px; background:#f0fdf4; border:1.2px solid #86efac; color:#15803d; text-decoration:none; font-size:12px; font-weight:950; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; gap:2px;" title="문자 보내기">
+                            ✉️ 문자
                         </a>
-                        <button type="button" onclick="deleteClinicMember('${m.id}')" style="height:29px; padding:0 6px; background:#fee2e2; border:1px solid #fecaca; color:#dc2626; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" title="회원 삭제">
-                            🗑️
-                        </button>
+                        <a href="tel:${cleanPhone}" style="height:31px; padding:0 11px; background:#0284c7; border:1.2px solid #0369a1; color:#fff; text-decoration:none; font-size:12px; font-weight:950; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; gap:2px;" title="전화 걸기">
+                            📞 통화
+                        </a>
                     </div>
                 </div>
             </div>
