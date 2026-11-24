@@ -1861,15 +1861,11 @@
                 </button>
             </div>
 
-            <!-- 현황 통계 배지 -->
-            <div id="clinicMemberStatsBar" style="display:flex; gap:6px; flex-wrap:wrap; font-size:11.5px; font-weight:900;"></div>
+            <!-- 현황 통계 배지 (컴팩트 한 줄) -->
+            <div id="clinicMemberStatsBar" style="display:flex; gap:5px; flex-wrap:wrap; font-size:11px; font-weight:900;"></div>
 
-            <div style="font-size:12px; color:#475569; font-weight:750; background:#f0f9ff; padding:8px 10px; border-radius:8px; border:1px solid #bae6fd; line-height:1.45;">
-                💡 <b>원장님 안내:</b> 원내 직원을 <b>[부관리자]</b> 또는 <b>[우수회원]</b>으로 등급업 하시면 원내 예약관리 및 진료 수정 권한이 부여됩니다. 일반 환자는 <b>[정회원]</b>으로 기본 관리됩니다.
-            </div>
-
-            <!-- 회원 목록 카드들 -->
-            <div id="clinicMemberListContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+            <!-- 회원 목록 카드들 (예톡 연락처 스타일 2줄 초슬림 레이아웃) -->
+            <div id="clinicMemberListContainer" style="display:flex; flex-direction:column; gap:5px;"></div>
         </div>
 
         <!-- 하단 닫기 버튼 -->
@@ -3121,12 +3117,12 @@ function promptChangeClinicInfo() {
    ========================================================================= */
 const CLINIC_MEMBERS_STORAGE_KEY = "yetalk_clinic_members_v2";
 const DEFAULT_CLINIC_MEMBERS = [
-    { id: "m_1", name: "최웅식", phone: "051-633-2478", role: "관리자", joinDate: "2026.01.01", note: "원장" },
-    { id: "m_2", name: "이수진", phone: "010-9876-5432", role: "부관리자", joinDate: "2026.02.15", note: "원내 실장" },
-    { id: "m_3", name: "박미경", phone: "010-5544-3322", role: "우수회원", joinDate: "2026.03.10", note: "간호팀장" },
-    { id: "m_4", name: "홍길동", phone: "010-1234-5678", role: "정회원", joinDate: "2026.11.20", note: "환자" },
-    { id: "m_5", name: "김영희", phone: "010-8877-6655", role: "정회원", joinDate: "2026.11.21", note: "환자" },
-    { id: "m_6", name: "정다은", phone: "010-2233-4455", role: "정회원", joinDate: "2026.11.22", note: "환자" }
+    { id: "m_1", name: "최웅식", phone: "051-633-2478", role: "관리자", joinDate: "2026.01.01", note: "원장", isWarning: false },
+    { id: "m_2", name: "이수진", phone: "010-9876-5432", role: "부관리자", joinDate: "2026.02.15", note: "원내 실장", isWarning: false },
+    { id: "m_3", name: "박미경", phone: "010-5544-3322", role: "직원", joinDate: "2026.03.10", note: "간호팀장", isWarning: false },
+    { id: "m_4", name: "홍길동", phone: "010-1234-5678", role: "정회원", joinDate: "2026.11.20", note: "환자", isWarning: false },
+    { id: "m_5", name: "김영희", phone: "010-8877-6655", role: "우수회원", joinDate: "2026.11.21", note: "VIP단골", isWarning: false },
+    { id: "m_6", name: "정다은", phone: "010-2233-4455", role: "정회원", joinDate: "2026.11.22", note: "환자", isWarning: true }
 ];
 
 function loadClinicMemberList() {
@@ -3160,6 +3156,18 @@ function filterClinicMemberList(query) {
     renderClinicMemberList(query);
 }
 
+// 🌟 [사용자 요청] 주의 고객 체크 토글 함수 (조심하고 성질 나쁜 고객 관리)
+function toggleMemberWarning(memberId) {
+    const list = loadClinicMemberList();
+    const item = list.find(m => m.id === memberId);
+    if (!item) return;
+
+    item.isWarning = !item.isWarning;
+    saveClinicMemberList(list);
+    renderClinicMemberList(document.getElementById("inpClinicMemberSearch")?.value || "");
+    showToast(item.isWarning ? `⚠️ [${item.name}] 고객을 [주의 고객]으로 체크했습니다.` : `✅ [${item.name}] 고객의 주의 체크가 해제되었습니다.`);
+}
+
 function renderClinicMemberList(query) {
     const host = document.getElementById("clinicMemberListContainer");
     const statsBar = document.getElementById("clinicMemberStatsBar");
@@ -3175,64 +3183,105 @@ function renderClinicMemberList(query) {
         (m.note && m.note.toLowerCase().includes(q))
     ) : list;
 
+    // 🌟 [사용자 요청] 등급 체계: 관리자, 부관리자, 직원, 우수회원, 정회원 (기본은 정회원)
     if (statsBar) {
         const total = list.length;
         const adminCount = list.filter(m => m.role === "관리자").length;
         const subAdminCount = list.filter(m => m.role === "부관리자").length;
+        const staffCount = list.filter(m => m.role === "직원").length;
         const primeCount = list.filter(m => m.role === "우수회원").length;
-        const regularCount = list.filter(m => m.role === "정회원" || m.role === "준회원").length;
+        const regularCount = list.filter(m => m.role === "정회원" || (!m.role || m.role === "준회원")).length;
+        const warnCount = list.filter(m => m.isWarning).length;
 
         statsBar.innerHTML = `
-            <span style="background:#e0f2fe; color:#0284c7; padding:3px 8px; border-radius:6px;">총 회원: ${total}명</span>
-            <span style="background:#fef3c7; color:#b45309; padding:3px 8px; border-radius:6px;">관리자: ${adminCount}</span>
-            <span style="background:#dcfce7; color:#15803d; padding:3px 8px; border-radius:6px;">부관리자(직원): ${subAdminCount}</span>
-            <span style="background:#ede9fe; color:#6d28d9; padding:3px 8px; border-radius:6px;">우수회원: ${primeCount}</span>
-            <span style="background:#f1f5f9; color:#475569; padding:3px 8px; border-radius:6px;">정회원(환자): ${regularCount}</span>
+            <span style="background:#e0f2fe; color:#0284c7; padding:2px 7px; border-radius:5px;">전체 ${total}</span>
+            <span style="background:#fef3c7; color:#b45309; padding:2px 7px; border-radius:5px;">👑관리자 ${adminCount}</span>
+            <span style="background:#e0f2fe; color:#0284c7; padding:2px 7px; border-radius:5px;">🌟부관리자 ${subAdminCount}</span>
+            <span style="background:#dcfce7; color:#15803d; padding:2px 7px; border-radius:5px;">🩺직원 ${staffCount}</span>
+            <span style="background:#f3e8ff; color:#7e22ce; padding:2px 7px; border-radius:5px;">✨우수회원 ${primeCount}</span>
+            <span style="background:#f1f5f9; color:#475569; padding:2px 7px; border-radius:5px;">👤정회원 ${regularCount}</span>
+            ${warnCount > 0 ? `<span style="background:#fee2e2; color:#dc2626; padding:2px 7px; border-radius:5px; font-weight:950;">⚠️주의 ${warnCount}</span>` : ''}
         `;
     }
 
     if (filtered.length === 0) {
-        host.innerHTML = `<div style="text-align:center; padding:20px; color:#94a3b8; font-size:13.5px; font-weight:700;">일치하는 회원이 없습니다.</div>`;
+        host.innerHTML = `<div style="text-align:center; padding:18px; color:#94a3b8; font-size:13px; font-weight:700;">일치하는 회원이 없습니다.</div>`;
         return;
     }
 
-    host.innerHTML = filtered.map(m => {
-        const roleColors = {
-            "관리자": "background:#fef3c7; color:#b45309; border:1px solid #fde047;",
-            "부관리자": "background:#dcfce7; color:#15803d; border:1px solid #86efac;",
-            "우수회원": "background:#ede9fe; color:#6d28d9; border:1px solid #c4b5fd;",
-            "정회원": "background:#f1f5f9; color:#334155; border:1px solid #cbd5e1;",
-            "준회원": "background:#f8fafc; color:#64748b; border:1px solid #e2e8f0;"
-        };
-        const badgeStyle = roleColors[m.role] || roleColors["정회원"];
+    // 🌟 [사용자 요청] 원장(관리자)는 전체 변경 가능, 부관리자/직원은 손님관리 차원에서 우수회원/정회원만 변경 가능
+    const isBossAdmin = isUserClinicAdmin();
 
+    host.innerHTML = filtered.map(m => {
+        const role = m.role || "정회원";
+        const roleBadges = {
+            "관리자": { text: "👑 관리자", style: "background:#fef3c7; color:#b45309; border:1px solid #fde047;" },
+            "부관리자": { text: "🌟 부관리자", style: "background:#e0f2fe; color:#0284c7; border:1px solid #7dd3fc;" },
+            "직원": { text: "🩺 직원", style: "background:#dcfce7; color:#15803d; border:1px solid #86efac;" },
+            "우수회원": { text: "✨ 우수회원", style: "background:#f3e8ff; color:#7e22ce; border:1px solid #d8b4fe;" },
+            "정회원": { text: "👤 정회원", style: "background:#f1f5f9; color:#334155; border:1px solid #cbd5e1;" }
+        };
+        const badge = roleBadges[role] || roleBadges["정회원"];
+        const cleanPhone = escapeHtml((m.phone || "").replace(/[^0-9]/g, ''));
+        const cardBg = m.isWarning ? "background:#fff5f5; border:1.5px solid #fca5a5;" : "background:#ffffff; border:1px solid #e2e8f0;";
+
+        // 권한별 등급 셀렉트 옵션 구성
+        let selectOptions = "";
+        if (isBossAdmin) {
+            // 원장님: 모든 등급 변경 권한
+            selectOptions = `
+                <option value="관리자" ${role === '관리자' ? 'selected' : ''}>👑 관리자</option>
+                <option value="부관리자" ${role === '부관리자' ? 'selected' : ''}>🌟 부관리자</option>
+                <option value="직원" ${role === '직원' ? 'selected' : ''}>🩺 직원</option>
+                <option value="우수회원" ${role === '우수회원' ? 'selected' : ''}>✨ 우수회원</option>
+                <option value="정회원" ${role === '정회원' ? 'selected' : ''}>👤 정회원</option>
+            `;
+        } else {
+            // 부관리자 / 직원: 손님관리 차원에서 우수회원, 정회원만 변경 가능
+            if (role === '관리자' || role === '부관리자' || role === '직원') {
+                selectOptions = `<option value="${role}" selected>${badge.text}</option>`;
+            } else {
+                selectOptions = `
+                    <option value="우수회원" ${role === '우수회원' ? 'selected' : ''}>✨ 우수회원</option>
+                    <option value="정회원" ${role === '정회원' ? 'selected' : ''}>👤 정회원</option>
+                `;
+            }
+        }
+
+        // 🌟 [사용자 요청] 예톡 연락처 스타일: 겉박스 최소화, 1행에 이름/전화번호 안잘리고 한줄, 2행에 등급변경/주의/통화/삭제
         return `
-            <div style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <span style="font-size:15px; font-weight:950; color:#0f172a;">👤 ${escapeHtml(m.name)}</span>
-                        ${m.note ? `<span style="font-size:11.5px; color:#64748b; font-weight:800;">[${escapeHtml(m.note)}]</span>` : ''}
-                        <span style="font-size:13px; color:#0284c7; font-weight:800;">${escapeHtml(m.phone)}</span>
+            <div style="${cardBg} border-radius:10px; padding:8px 10px; display:flex; flex-direction:column; gap:5px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                <!-- 1행: [배지] 이름(직함) [⚠️주의] --------- 📞 010-XXXX-XXXX (절대 줄바꿈 안됨) -->
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; white-space:nowrap; overflow:hidden;">
+                    <div style="display:flex; align-items:center; gap:5px; min-width:0; overflow:hidden; text-overflow:ellipsis;">
+                        <span style="display:inline-block; font-size:10.5px; font-weight:900; padding:1.5px 6px; border-radius:5px; flex-shrink:0; ${badge.style}">
+                            ${badge.text}
+                        </span>
+                        <strong style="font-size:14px; font-weight:950; color:#0f172a; flex-shrink:0;">${escapeHtml(m.name)}</strong>
+                        ${m.note ? `<span style="font-size:11px; color:#64748b; font-weight:800; flex-shrink:0;">[${escapeHtml(m.note)}]</span>` : ''}
+                        ${m.isWarning ? `<span style="background:#fee2e2; color:#dc2626; border:1px solid #f87171; font-size:10px; font-weight:950; padding:1px 5px; border-radius:4px; flex-shrink:0;">⚠️ 주의</span>` : ''}
                     </div>
-                    <span style="font-size:11px; color:#94a3b8; font-weight:700;">가입: ${escapeHtml(m.joinDate || '')}</span>
+                    <a href="tel:${cleanPhone}" style="font-size:12.5px; font-weight:900; color:#0284c7; text-decoration:none; flex-shrink:0; letter-spacing:-0.2px;">
+                        📞 ${escapeHtml(m.phone || '')}
+                    </a>
                 </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding-top:6px; border-top:1px dashed #f1f5f9;">
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <span style="font-size:12px; font-weight:800; color:#475569;">등급 변경:</span>
-                        <select onchange="changeMemberGrade('${m.id}', this.value)" style="height:34px; border-radius:8px; padding:0 8px; font-size:12.5px; font-weight:900; cursor:pointer; outline:none; ${badgeStyle}">
-                            <option value="관리자" ${m.role === '관리자' ? 'selected' : ''}>👑 관리자 (원장님)</option>
-                            <option value="부관리자" ${m.role === '부관리자' ? 'selected' : ''}>🌟 부관리자 (원내 직원/실장)</option>
-                            <option value="우수회원" ${m.role === '우수회원' ? 'selected' : ''}>✨ VIP / 우수회원 (단골/스태프)</option>
-                            <option value="정회원" ${m.role === '정회원' ? 'selected' : ''}>👤 정회원 (일반 환자)</option>
-                            <option value="준회원" ${m.role === '준회원' ? 'selected' : ''}>📝 준회원 (신규/대기)</option>
+
+                <!-- 2행: 등급선택 드롭다운 | [⚠️ 주의체크] | [통화] | [삭제] (한 줄로 깔끔 정렬) -->
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:5px; padding-top:4px; border-top:1px dashed #f1f5f9;">
+                    <div style="display:flex; align-items:center; gap:4px; flex:1; min-width:0;">
+                        <select onchange="changeMemberGrade('${m.id}', this.value)" style="height:29px; border-radius:6px; padding:0 6px; font-size:11.5px; font-weight:900; cursor:pointer; outline:none; border:1px solid #cbd5e1; background:#f8fafc; color:#334155; flex:1; max-width:130px;">
+                            ${selectOptions}
                         </select>
+                        <button type="button" onclick="toggleMemberWarning('${m.id}')" style="height:29px; padding:0 7px; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer; display:inline-flex; align-items:center; gap:2px; flex-shrink:0; ${m.isWarning ? 'background:#ef4444; color:#fff; border:1px solid #dc2626;' : 'background:#f1f5f9; color:#64748b; border:1px solid #cbd5e1;'}" title="주의 고객 체크">
+                            ${m.isWarning ? '⚠️주의중' : '⚠️주의'}
+                        </button>
                     </div>
-                    <div style="display:flex; align-items:center; gap:4px;">
-                        <a href="tel:${escapeHtml(m.phone.replace(/[^0-9]/g, ''))}" style="background:#0284c7; color:#fff; text-decoration:none; font-size:11.5px; font-weight:900; padding:5px 9px; border-radius:6px; display:inline-flex; align-items:center; gap:2px;">
-                            📞 통화
+                    <div style="display:flex; align-items:center; gap:3px; flex-shrink:0;">
+                        <a href="tel:${cleanPhone}" style="height:29px; padding:0 9px; background:#0284c7; color:#fff; text-decoration:none; font-size:11.5px; font-weight:900; border-radius:6px; display:inline-flex; align-items:center; justify-content:center;">
+                            통화
                         </a>
-                        <button type="button" onclick="deleteClinicMember('${m.id}')" style="background:#fee2e2; border:1px solid #fecaca; color:#dc2626; border-radius:6px; padding:4px 8px; font-size:11.5px; font-weight:900; cursor:pointer;">
-                            삭제
+                        <button type="button" onclick="deleteClinicMember('${m.id}')" style="height:29px; padding:0 6px; background:#fee2e2; border:1px solid #fecaca; color:#dc2626; border-radius:6px; font-size:11px; font-weight:900; cursor:pointer;" title="회원 삭제">
+                            🗑️
                         </button>
                     </div>
                 </div>
@@ -3284,9 +3333,17 @@ function promptAddNewMemberManual() {
     if (!name || !name.trim()) return;
     const phone = prompt("핸드폰 번호를 입력하세요 (예: 010-1234-5678):");
     if (!phone || !phone.trim()) return;
-    const isStaffRole = confirm(`[${name.trim()}] 님을 원내 직원(부관리자)으로 등록하시겠습니까?\n[확인]을 누르면 부관리자, [취소]를 누르면 일반 정회원으로 등록됩니다.`);
-    const role = isStaffRole ? "부관리자" : "정회원";
-    const note = isStaffRole ? "원내직원" : "환자";
+
+    // 🌟 [사용자 요청] 기본은 모두 정회원, 원장이 관리자/부관리자/직원/우수회원/정회원 선택
+    let role = "정회원";
+    let note = "고객";
+    if (isUserClinicAdmin()) {
+        const choice = prompt(`[${name.trim()}] 님의 등록 등급을 선택하세요:\n1: 정회원 (기본)\n2: 우수회원 (단골/VIP)\n3: 직원 (간호/스태프)\n4: 부관리자 (원내실장)\n5: 관리자 (원장)`, "1");
+        if (choice === "2") { role = "우수회원"; note = "VIP단골"; }
+        else if (choice === "3") { role = "직원"; note = "간호스태프"; }
+        else if (choice === "4") { role = "부관리자"; note = "원내실장"; }
+        else if (choice === "5") { role = "관리자"; note = "원장"; }
+    }
 
     const list = loadClinicMemberList();
     const newMember = {
@@ -3295,7 +3352,8 @@ function promptAddNewMemberManual() {
         phone: phone.trim(),
         role: role,
         joinDate: new Date().toLocaleDateString('ko-KR').replace(/\.$/, ''),
-        note: note
+        note: note,
+        isWarning: false
     };
     list.unshift(newMember);
     saveClinicMemberList(list);
