@@ -5403,7 +5403,8 @@
             letter-spacing: -0.2px;
             text-shadow: 0 1px 4px rgba(0,0,0,0.85);
         }
-        /* 대형 화이트 하트 (아랫배에서 화면 맨 위로 천천히 상승 후 중지) */
+        /* 🌟 [사용자 요청] 대형 화이트/레드 하트 은혜 FX
+           아랫배(76%)에서 머리 위(10%)로 상승 ➔ 연한 붉은색으로 변화 ➔ 가슴 중앙(56%)으로 내려와 안착 후 메인 복귀 */
         .white-heart-rising-box {
             position: absolute;
             left: 50%;
@@ -5411,17 +5412,47 @@
             transform: translateX(-50%) scale(0.9);
             pointer-events: none;
             z-index: 10;
-            transition: top 2.6s cubic-bezier(0.22, 1, 0.36, 1), transform 2.6s ease;
+            transition: top 2.4s cubic-bezier(0.25, 1, 0.5, 1), transform 2.4s ease;
         }
-        .white-heart-rising-box.rise-top {
-            top: 9%;
+        /* 1단계: 아랫배에서 머리 위로 떠오름 */
+        .white-heart-rising-box.stage-rise-top {
+            top: 10%;
             transform: translateX(-50%) scale(1.05);
         }
+        /* 2단계: 가슴 중앙으로 서서히 내려옴 */
+        .white-heart-rising-box.stage-descend-chest {
+            top: 56%;
+            transform: translateX(-50%) scale(1.1);
+            transition: top 2.2s cubic-bezier(0.35, 0, 0.25, 1), transform 2.2s ease;
+        }
+        /* 3단계: 가슴 중앙에서 따뜻하게 안착 & 은은한 생명의 박동 */
+        .white-heart-rising-box.stage-chest-pulse {
+            top: 56%;
+            animation: chestGraceHeartbeat 1.3s ease-in-out infinite alternate;
+        }
+        @keyframes chestGraceHeartbeat {
+            0% { transform: translateX(-50%) scale(1.06); }
+            50% { transform: translateX(-50%) scale(1.16); }
+            100% { transform: translateX(-50%) scale(1.10); }
+        }
+
         .white-heart-svg {
             width: 96px;
             height: 96px;
             fill: #ffffff;
             filter: drop-shadow(0 0 16px rgba(255,255,255,1)) drop-shadow(0 0 35px rgba(255,255,255,0.85)) drop-shadow(0 0 65px rgba(255,255,255,0.6));
+            transition: fill 1.2s ease, filter 1.2s ease;
+        }
+        /* 머리 위에서 연한 붉은색(분홍빛 은혜)으로 변화 */
+        .white-heart-svg.color-pale-red {
+            fill: #f87171;
+            filter: drop-shadow(0 0 20px rgba(248,113,113,0.95)) drop-shadow(0 0 40px rgba(251,113,133,0.85)) drop-shadow(0 0 65px rgba(239,68,68,0.6));
+        }
+        /* 가슴으로 내려오며 점점 깊고 따뜻한 붉은색으로 변화 */
+        .white-heart-svg.color-deep-red {
+            fill: #dc2626;
+            filter: drop-shadow(0 0 22px rgba(220,38,38,1)) drop-shadow(0 0 45px rgba(239,68,68,0.9)) drop-shadow(0 0 75px rgba(220,38,38,0.7));
+            transition: fill 1.8s ease, filter 1.8s ease;
         }
     </style>
 </head>
@@ -14603,16 +14634,23 @@ const BIBLICAL_TIME_SLOTS = [
         }, 2500);
     }
 
-    // 🌟 [사용자 요청] 좌측 하얀색 하트 클릭 시: 두 손 든 여인 사진 + 아랫배에서 화면 맨 위로 천천히 올라가 중지하는 대형 화이트 하트 FX
-    let whiteHeartModalTimer = null;
+    // 🌟 [사용자 요청] 좌측 하얀색 하트 클릭 시:
+    // 두 손 든 여인 사진 + 아랫배에서 하얀 하트 상승 ➔ 머리 위에서 연한 붉은색 변화 ➔ 가슴 중앙으로 내려와 안착 후 메인 복귀
+    let whiteHeartTimers = [];
+    function clearWhiteHeartTimers() {
+        if (whiteHeartTimers && whiteHeartTimers.length > 0) {
+            whiteHeartTimers.forEach(t => clearTimeout(t));
+            whiteHeartTimers = [];
+        }
+    }
+
     function openWhiteHeartModal() {
-        if (whiteHeartModalTimer) clearTimeout(whiteHeartModalTimer);
+        clearWhiteHeartTimers();
         const existing = document.getElementById("modalWhiteHeartGrace");
         if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
 
         const isEn = (localStorage.getItem("yetalk_app_lang") === "en");
         const caption = isEn ? "Jesus, I love You. Thank You." : "예수님 사랑합니다. 감사합니다";
-        const tip = isEn ? "Tap anywhere to return" : "화면을 터치하면 메인으로 복귀합니다";
 
         const modal = document.createElement("div");
         modal.id = "modalWhiteHeartGrace";
@@ -14623,7 +14661,7 @@ const BIBLICAL_TIME_SLOTS = [
             <div class="heart-grace-bg" style="background-image:url('images/prayer_woman.jpg');"></div>
             <div class="heart-grace-vignette"></div>
             <div id="whiteHeartRisingBox" class="white-heart-rising-box">
-                <svg viewBox="0 0 24 24" class="white-heart-svg">
+                <svg id="whiteHeartSvgElem" viewBox="0 0 24 24" class="white-heart-svg">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                 </svg>
             </div>
@@ -14636,23 +14674,50 @@ const BIBLICAL_TIME_SLOTS = [
 
         requestAnimationFrame(() => {
             modal.classList.add("active");
-            setTimeout(() => {
-                const box = document.getElementById("whiteHeartRisingBox");
-                if (box) box.classList.add("rise-top");
-            }, 60);
-        });
 
-        // 2.6s 천천히 상승 + 화면 제일 위에서 약 1.3s 중지(머무름) -> 이후 여유있게 페이드아웃 복귀
-        whiteHeartModalTimer = setTimeout(() => {
-            closeWhiteHeartModal();
-        }, 4200);
+            // 1단계 (60ms): 아랫배에서부터 머리 위로 하얀 하트가 천천히 떠오름 (약 2.4초 소요)
+            whiteHeartTimers.push(setTimeout(() => {
+                const box = document.getElementById("whiteHeartRisingBox");
+                if (box) box.classList.add("stage-rise-top");
+            }, 60));
+
+            // 2단계 (2450ms): 머리 위에 도달하여, 하얀색에서 연한 붉은색으로 은은하게 변화
+            whiteHeartTimers.push(setTimeout(() => {
+                const svg = document.getElementById("whiteHeartSvgElem");
+                if (svg) svg.classList.add("color-pale-red");
+            }, 2450));
+
+            // 3단계 (3550ms): 점점 짙고 붉은 하트가 나의 가슴 중앙으로 천천히 내려옴 (약 2.2초 소요)
+            whiteHeartTimers.push(setTimeout(() => {
+                const box = document.getElementById("whiteHeartRisingBox");
+                const svg = document.getElementById("whiteHeartSvgElem");
+                if (box) {
+                    box.classList.remove("stage-rise-top");
+                    box.classList.add("stage-descend-chest");
+                }
+                if (svg) {
+                    svg.classList.remove("color-pale-red");
+                    svg.classList.add("color-deep-red");
+                }
+            }, 3550));
+
+            // 4단계 (5800ms): 나의 가슴 중앙에 안착하여 따뜻한 생명의 박동 감돌기
+            whiteHeartTimers.push(setTimeout(() => {
+                const box = document.getElementById("whiteHeartRisingBox");
+                if (box) {
+                    box.classList.add("stage-chest-pulse");
+                }
+            }, 5800));
+
+            // 5단계 (7200ms): 가슴 중앙에 완전히 머문 후, 부드럽게 메인 화면으로 복귀
+            whiteHeartTimers.push(setTimeout(() => {
+                closeWhiteHeartModal();
+            }, 7200));
+        });
     }
 
     function closeWhiteHeartModal() {
-        if (whiteHeartModalTimer) {
-            clearTimeout(whiteHeartModalTimer);
-            whiteHeartModalTimer = null;
-        }
+        clearWhiteHeartTimers();
         const modal = document.getElementById("modalWhiteHeartGrace");
         if (modal) {
             modal.classList.remove("active");
