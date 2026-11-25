@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>열방 선교 · 전도 커뮤니티 | 예톡</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --safe-top: max(env(safe-area-inset-top, 0px), 0px);
+            --safe-bottom: max(env(safe-area-inset-bottom, 0px), 0px);
+            --brand-primary: #0284c7;
+            --brand-blue: #2563eb;
+            --text-dark: #111827;
+            --text-sub: #4b5563;
+            --text-muted: #9ca3af;
+            --border-light: #f1f5f9;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            color: var(--text-dark);
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 🌟 전체화면 커뮤니티 게시판 컨테이너 */
+        .board-fullscreen-container {
+            width: 100%;
+            max-width: 520px;
+            height: 100%;
+            margin: 0 auto;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.06);
+        }
+
+        /* 🌟 [사용자 요청] PC 레이아웃 래퍼 & 좌우 날개 광고 */
+        .church-pc-layout-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        .church-pc-wing {
+            display: none !important;
+        }
+
+        .cafe-write-dialog {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            padding-bottom: calc(var(--safe-bottom, 24px) + 55px);
+            box-sizing: border-box;
+        }
+
+        @media (min-width: 1024px) {
+            html, body {
+                overflow-y: auto !important;
+                background: #090d16 !important;
+            }
+
+            .church-pc-layout-wrapper {
+                display: flex !important;
+                flex-direction: row !important;
+                justify-content: center !important;
+                align-items: flex-start !important;
+                gap: 16px !important;
+                max-width: 1640px !important;
+                margin: 0 auto !important;
+                padding: 10px 14px !important;
+                min-height: 100vh !important;
+            }
+
+            .church-pc-wing {
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 12px !important;
+                width: 230px !important;
+                min-width: 220px !important;
+                max-width: 240px !important;
+                position: sticky !important;
+                top: 10px !important;
+                max-height: calc(100vh - 20px) !important;
+                overflow-y: auto !important;
+                scrollbar-width: none !important;
+                z-index: 90 !important;
+            }
+            .church-pc-wing::-webkit-scrollbar { display: none; }
+
+            .pc-wing-title-box {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                padding: 8px 12px;
+                background: rgba(15, 23, 42, 0.85);
+                border: 1px solid rgba(56, 189, 248, 0.3);
+                border-radius: 12px;
+                text-align: center;
+                backdrop-filter: blur(8px);
+            }
+            .pc-wing-badge {
+                font-size: 10px;
+                font-weight: 900;
+                letter-spacing: 0.5px;
+                color: #38bdf8;
+            }
+            .pc-wing-title {
+                font-size: 13.5px;
+                font-weight: 900;
+                color: #ffffff;
+            }
+
+            .church-pc-ad-card {
+                background: #ffffff;
+                border: 1.5px solid #e2e8f0;
+                border-radius: 14px;
+                padding: 14px 12px;
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+                cursor: pointer;
+                transition: transform 0.15s ease, box-shadow 0.15s ease;
+            }
+            .church-pc-ad-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            }
+            .ad-tag-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .ad-tag {
+                font-size: 10px;
+                font-weight: 900;
+                letter-spacing: 0.4px;
+            }
+            .ad-subtag {
+                font-size: 10px;
+                font-weight: 800;
+                color: #64748b;
+                background: #f1f5f9;
+                padding: 1px 6px;
+                border-radius: 4px;
+            }
+            .ad-icon {
+                font-size: 26px;
+                text-align: center;
+                margin: 2px 0;
+            }
+            .ad-heading {
+                font-size: 14px;
+                font-weight: 950;
+                color: #0f172a;
+                line-height: 1.35;
+                text-align: center;
+            }
+            .ad-desc {
+                font-size: 11.5px;
+                color: #475569;
+                line-height: 1.45;
+                text-align: center;
+                font-weight: 600;
+            }
+            .ad-action-pill {
+                margin-top: 4px;
+                background: #f8fafc;
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                font-size: 11px;
+                font-weight: 800;
+                color: #0f172a;
+                text-align: center;
+                padding: 5px 0;
+            }
+
+            /* 🌟 [사용자 요청] 기본 교회앱 본 페이지 중앙 부분과 100% 동일한 크기 (max-width: 1100px) */
+            .board-fullscreen-container {
+                flex: 1 1 auto !important;
+                max-width: 1100px !important;
+                min-width: 320px !important;
+                height: calc(100vh - 20px) !important;
+                margin: 0 !important;
+                border-radius: 16px !important;
+                box-shadow: 0 16px 50px rgba(0, 0, 0, 0.45) !important;
+                overflow: hidden !important;
+                position: relative !important;
+            }
+
+            /* 🌟 [사용자 요청] 개별글 볼 때 좌우 광고 영역은 살리고 기본 교회앱 본 페이지 중앙 크기와 같아야 함 */
+            .board-post-detail-modal {
+                position: absolute !important;
+                inset: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                border-radius: 16px !important;
+                overflow: hidden !important;
+                z-index: 200 !important;
+            }
+
+            /* 🌟 [사용자 요청] 새글 쓰기 모달: PC에서는 중앙에 정돈된 다이얼로그 모달로 표출 */
+            .cafe-write-modal {
+                position: fixed !important;
+                inset: 0 !important;
+                background: rgba(0, 0, 0, 0.65) !important;
+                display: none;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 20px !important;
+                z-index: 210000 !important;
+            }
+            .cafe-write-modal.show {
+                display: flex !important;
+            }
+            .cafe-write-dialog {
+                max-width: 680px !important;
+                width: 100% !important;
+                max-height: 90vh !important;
+                border-radius: 18px !important;
+                overflow: hidden !important;
+                background: #ffffff !important;
+                box-shadow: 0 16px 45px rgba(0, 0, 0, 0.35) !important;
+                display: flex !important;
+                flex-direction: column !important;
+                padding-bottom: 0 !important;
+            }
+
+            /* 🌟 [사용자 요청] 컴퓨터에서는 구글 규정상 모든 곳에 애드몹 삭제 */
+            .board-fullscreen-bottom-admob,
+            .post-detail-bottom-admob,
+            .admob-pill,
+            [class*="admob"] {
+                display: none !important;
+            }
+
+            .btn-medigate-fab-write {
+                bottom: 24px !important;
+                right: 24px !important;
+            }
+        }
+
+        /* 🌟 헤더 (뒤로가기, 선교방이름, 방장, 공개/비공개 토글) */
+        .board-fullscreen-header {
+            background: #ffffff;
+            border-bottom: 1.5px solid #e2e8f0;
+            padding: max(calc(env(safe-area-inset-top, 0px) + 8px), 16px) 12px 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            flex-shrink: 0;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            z-index: 50;
+        }
+
+        .btn-board-fullscreen-back {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .btn-board-fullscreen-back:active { background: #e2e8f0; }
+
+        .board-fullscreen-title-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-width: 0;
+            flex: 1;
+        }
+
+        .board-fullscreen-title {
+            color: #0284c7;
+            font-size: 15.5px;
+            font-weight: 950;
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .board-fullscreen-sub {
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 1px;
+        }
+
+        .header-actions-right {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .btn-header-leader {
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            color: #b45309;
+            font-size: 11.5px;
+            font-weight: 900;
+            padding: 5px 8px;
+            border-radius: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .btn-header-leader:active { background: #fde68a; }
+
+        .btn-header-lock {
+            font-size: 11.5px;
+            font-weight: 900;
+            padding: 5px 9px;
+            border-radius: 14px;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-header-lock.public { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+        .btn-header-lock.private { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+
+        /* 🌟 게시글 리스트 영역 (다음세대와 100% 동일한 깔끔한 메디게이트/예톡 카드형) */
+        .board-fullscreen-list {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+            background: #ffffff;
+        }
+
+        .board-fullscreen-card {
+            background: #ffffff;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 16px 16px 14px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .board-fullscreen-card:active { background: #f8fafc; }
+
+        .board-medigate-title {
+            color: #111827;
+            font-size: 15.5px;
+            font-weight: 850;
+            line-height: 1.4;
+            margin-bottom: 3px;
+            word-break: break-word;
+        }
+
+        .board-medigate-text {
+            color: #4b5563;
+            font-size: 13.5px;
+            line-height: 1.55;
+            word-break: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .board-medigate-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .board-medigate-author {
+            color: #0284c7;
+            font-weight: 750;
+        }
+
+        .board-medigate-icons-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            color: #9ca3af;
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        .medigate-stat-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        /* 🌟 우측 하단 플로팅 '+' 새글쓰기 버튼 */
+        .btn-medigate-fab-write {
+            position: absolute;
+            right: 20px;
+            bottom: calc(var(--safe-bottom) + 24px);
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #2563eb;
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+            font-size: 32px;
+            font-weight: 350;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.15s ease;
+        }
+        .btn-medigate-fab-write:active {
+            transform: scale(0.92);
+            background: #1d4ed8;
+        }
+
+        /* 🌟 하단 100 애드몹 */
+        .board-fullscreen-bottom-admob {
+            background: #ffffff;
+            border-top: 1px solid #f1f5f9;
+            padding: 8px 14px calc(var(--safe-bottom) + 8px) 14px;
+            flex-shrink: 0;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.03);
+            z-index: 50;
+        }
+
+        .admob-pill {
+            min-height: 75px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #0f172a;
+            border-radius: 10px;
+            padding: 10px 10px;
+            text-align: center;
+        }
+
+        .admob-badge-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+
+        .admob-badge-tag {
+            background: #0284c7;
+            color: #fff;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 1.5px 5px;
+            border-radius: 4px;
+        }
+
+        .admob-badge-title {
+            color: #ffffff;
+            font-size: 12.5px;
+            font-weight: 800;
+        }
+
+        .admob-badge-sub {
+            color: #94a3b8;
+            font-size: 10.5px;
+        }
+
+        /* ============================================================
+           🌟 게시글 상세 읽기 화면 모달
+           ============================================================ */
+        .board-post-detail-modal {
+            position: fixed;
+            inset: 0;
+            background: #ffffff;
+            z-index: 200000;
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .board-post-detail-modal.show {
+            display: flex !important;
+        }
+
+        .post-detail-header {
+            background: #ffffff;
+            border-bottom: 1.5px solid #e2e8f0;
+            padding: max(calc(env(safe-area-inset-top, 0px) + 8px), 16px) 14px 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-shrink: 0;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+            z-index: 100;
+        }
+
+        .btn-post-detail-back {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .btn-post-detail-back:active { background: #e2e8f0; }
+
+        .post-detail-header-title {
+            color: #111827;
+            font-size: 16px;
+            font-weight: 950;
+            letter-spacing: -0.3px;
+        }
+
+        .btn-post-menu-dots {
+            background: none;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #64748b;
+            cursor: pointer;
+        }
+
+        .post-detail-menu-dropdown {
+            position: absolute;
+            top: 40px;
+            right: 0;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            display: flex;
+            flex-direction: column;
+            min-width: 110px;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        .menu-dropdown-item {
+            background: none;
+            border: none;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 750;
+            color: #334155;
+            cursor: pointer;
+        }
+        .menu-dropdown-item:active { background: #f8fafc; }
+        .menu-dropdown-item.menu-item-del { color: #ef4444; border-top: 1px solid #f1f5f9; }
+
+        .post-detail-scroll-body {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: #ffffff;
+        }
+
+        .post-detail-card {
+            padding: 18px 18px 12px 18px;
+            background: #ffffff;
+        }
+
+        .post-detail-title {
+            font-size: 18.5px;
+            font-weight: 900;
+            color: #111827;
+            line-height: 1.4;
+            margin: 0;
+            word-break: break-word;
+        }
+
+        .medigate-detail-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12.5px;
+            color: #9ca3af;
+            margin-top: 6px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .post-detail-full-text {
+            color: #1f2937;
+            font-size: 15.5px;
+            line-height: 1.8;
+            word-break: break-word;
+            white-space: pre-line;
+        }
+
+        .medigate-detail-reactions-row {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 14px;
+            margin-top: 18px;
+            padding: 8px 0;
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #64748b;
+        }
+        .reaction-item-btn {
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 8px;
+            border-radius: 6px;
+            user-select: none;
+            transition: background 0.15s ease;
+        }
+        .reaction-item-btn:active { background: #f1f5f9; }
+
+        .post-detail-bottom-admob {
+            margin-top: 14px;
+            margin-bottom: 8px;
+        }
+
+        /* 🌟 댓글 섹션 */
+        .post-detail-comments-section {
+            padding: 16px 16px calc(var(--safe-bottom, 24px) + 70px) 16px;
+            background: #ffffff;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .medigate-comment-write-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 4px 6px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        .medigate-comment-write-inner {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-medigate-camera {
+            font-size: 18px;
+            padding: 6px 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .medigate-comment-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            padding: 8px 4px;
+            color: #1e293b;
+            outline: none;
+            font-family: inherit;
+        }
+        .medigate-comment-input::placeholder { color: #94a3b8; }
+
+        .btn-medigate-submit {
+            background: #0284c7;
+            color: #ffffff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .btn-medigate-submit:active { background: #0369a1; }
+
+        .post-comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .post-comment-item {
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .comment-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .comment-author-name {
+            font-size: 12.5px;
+            font-weight: 850;
+            color: #0284c7;
+        }
+
+        .comment-time-text {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .comment-body-text {
+            font-size: 13.5px;
+            color: #334155;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* 🌟 글쓰기 풀화면 모달 */
+        .cafe-write-modal {
+            position: fixed;
+            inset: 0;
+            background: #ffffff;
+            z-index: 210000;
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+        .cafe-write-modal.show { display: flex !important; }
+
+        .cafe-write-header {
+            background: #ffffff;
+            border-bottom: 1.5px solid #e2e8f0;
+            padding: max(calc(env(safe-area-inset-top, 0px) + 8px), 16px) 14px 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-cafe-close {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .cafe-write-body {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px 16px max(calc(env(safe-area-inset-bottom, 0px) + 50px), 64px) 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-sizing: border-box;
+        }
+
+        .cafe-input-title {
+            width: 100%;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 15px;
+            font-weight: 800;
+            color: #0f172a;
+            outline: none;
+            font-family: inherit;
+        }
+        .cafe-input-title:focus { border-color: #0284c7; }
+
+        .cafe-textarea-text {
+            width: 100%;
+            flex: 1;
+            min-height: 180px;
+            max-height: 45vh;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 14.5px;
+            line-height: 1.7;
+            color: #1e293b;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+        }
+        .cafe-textarea-text:focus { border-color: #0284c7; }
+
+        .btn-cafe-submit-full {
+            width: 100%;
+            background: #0284c7;
+            color: #ffffff;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.3);
+            margin-top: 10px;
+            margin-bottom: 24px;
+            flex-shrink: 0;
+        }
+        .btn-cafe-submit-full:active { background: #0369a1; }
+
+        /* 🌟 방장 관리 모달 */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.65);
+            z-index: 220000; align-items: center; justify-content: center; padding: 14px;
+        }
+        .modal-card {
+            width: 100%; max-width: 400px; background: #ffffff; border-radius: 16px; padding: 18px 16px;
+            display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        }
+    </style>
+</head>
+<body>
+
+<div class="church-pc-layout-wrapper">
+    <!-- 🌟 [사용자 요청] 좌측 광고 날개 (PC 230px, 모바일에서는 display:none) -->
+    <aside class="church-pc-wing left-wing">
+        <div class="pc-wing-title-box">
+            <span class="pc-wing-badge">SPONSOR WINGS</span>
+            <span class="pc-wing-title">📢 공식 스폰서 광고</span>
+        </div>
+        
+        <!-- 광고 슬롯 1 -->
+        <div class="church-pc-ad-card" onclick="alert('📢 [공식 스폰서 입점 안내]\n\n교회 성도님들의 일터와 기독 기업을 연결하는 공식 상생 광고 슬롯입니다.\n(광고 제휴 문의: 교회사무국 또는 예톡 고객센터)')" title="클릭 시 제휴 안내">
+            <div class="ad-tag-row">
+                <span class="ad-tag" style="color:#38bdf8;">SPONSOR 01</span>
+                <span class="ad-subtag">일터상생</span>
+            </div>
+            <div class="ad-icon">✝️</div>
+            <strong class="ad-heading">기독 기업 & 성도 일터</strong>
+            <p class="ad-desc">교회 성도와 이웃을 잇는<br>따뜻한 공식 스폰서 슬롯</p>
+            <div class="ad-action-pill">공식 입점 / 제휴 문의</div>
+        </div>
+
+        <!-- 광고 슬롯 2 -->
+        <div class="church-pc-ad-card" onclick="alert('📺 [미디어 영상 사역 후원]\n\n예톡TV와 함께 전국 교회 복음 방송을 송출하고 후원하는 공식 미디어 슬롯입니다.')" title="클릭 시 방송 후원 안내">
+            <div class="ad-tag-row">
+                <span class="ad-tag" style="color:#fde047;">SPONSOR 02</span>
+                <span class="ad-subtag">방송선교</span>
+            </div>
+            <div class="ad-icon">📺</div>
+            <strong class="ad-heading">예톡 미디어 영상 사역</strong>
+            <p class="ad-desc">전국 교회 복음 영상 송출 및<br>온라인 선교 방송 공식 후원</p>
+            <div class="ad-action-pill">미디어 방송 사역 후원</div>
+        </div>
+
+        <!-- 광고 슬롯 3 -->
+        <div class="church-pc-ad-card" onclick="alert('🤝 [선교 & 나눔 서포터즈]\n\n열방 복음 전파와 땅끝 선교 사역을 지원하는 공식 후원 슬롯입니다.')" title="클릭 시 후원 안내">
+            <div class="ad-tag-row">
+                <span class="ad-tag" style="color:#a78bfa;">SPONSOR 03</span>
+                <span class="ad-subtag">나눔선교</span>
+            </div>
+            <div class="ad-icon">🤝</div>
+            <strong class="ad-heading">열방 선교 & 전도 동역</strong>
+            <p class="ad-desc">땅끝까지 이르는 복음 전파와<br>국내외 영혼 구원 사역 동역</p>
+            <div class="ad-action-pill">선교 사역 동역 문의</div>
+        </div>
+    </aside>
+
+    <div class="board-fullscreen-container">
+        <!-- 1. 헤더 (뒤로가기, 부서이름, 방장, 공개/비공개 토글) -->
+        <header class="board-fullscreen-header">
+            <button type="button" class="btn-board-fullscreen-back" onclick="location.href='churchmission.html'">← 뒤로</button>
+            <div class="board-fullscreen-title-box">
+                <span class="board-fullscreen-title" id="headerDeptTitle">🌐 열방 선교 · 전도 커뮤니티</span>
+                <span class="board-fullscreen-sub" id="headerDeptSub">열방 복음화와 영혼 구원을 향한 뜨거운 동역</span>
+            </div>
+            <div class="header-actions-right">
+                <button type="button" class="btn-header-leader" onclick="openLeaderModal()">👑 방장</button>
+                <button type="button" class="btn-header-lock public" id="btnDeptLockState" onclick="toggleDeptLockState()">입장(공개)</button>
+            </div>
+        </header>
+
+        <!-- 2. 게시글 목록 (커뮤니티 스타일) -->
+        <div class="board-fullscreen-list" id="boardFullscreenList">
+            <!-- JS 렌더링 -->
+        </div>
+
+        <!-- 3. 우측 하단 플로팅 '+' 새글쓰기 버튼 -->
+        <button type="button" class="btn-medigate-fab-write" onclick="openDeptWriteModal()" title="새 나눔글 쓰기">+</button>
+
+        <!-- ============================================================
+             🌟 4. 게시글 상세 읽기 모달 (PC에서는 중앙 1100px 쉘 안에 위치)
+             ============================================================ -->
+        <div class="board-post-detail-modal" id="boardPostDetailModal">
+            <header class="post-detail-header">
+                <button type="button" class="btn-post-detail-back" onclick="closeDeptPostDetail()">◀ 목록</button>
+                <span class="post-detail-header-title">게시글 읽기</span>
+                <div class="post-detail-header-actions" style="position:relative;">
+                    <button type="button" class="btn-post-menu-dots" id="btnPostMenuDots" onclick="toggleDeptPostMenu(event)" title="더보기 메뉴">⋮</button>
+                    <div class="post-detail-menu-dropdown" id="deptPostMenuDropdown" style="display:none;">
+                        <button type="button" class="menu-dropdown-item" onclick="onDeptPostAction('copy')">📋 글 복사</button>
+                        <button type="button" class="menu-dropdown-item" id="btnMenuEdit" onclick="onDeptPostAction('edit')">✏️ 글 수정</button>
+                        <button type="button" class="menu-dropdown-item menu-item-del" id="btnMenuDelete" onclick="onDeptPostAction('delete')">🗑️ 글 삭제</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="post-detail-scroll-body" id="postDetailScrollBody">
+                <div class="post-detail-card">
+                    <h2 class="post-detail-title" id="detailPostTitle"></h2>
+                    <div class="medigate-detail-meta">
+                        <span id="detailPostTag" style="color:#0284c7; font-weight:700;">[선교전도]</span>
+                        <strong id="detailPostAuthor" style="color:#374151; font-weight:750;">작성자</strong>
+                        <span>·</span>
+                        <span id="detailPostDate">오늘</span>
+                        <span>·</span>
+                        <span>👁 <span id="detailPostViews">124</span></span>
+                    </div>
+
+                    <div class="post-detail-full-text" id="detailPostText"></div>
+
+                    <!-- 첨부 사진 -->
+                    <div id="detailPhotoWrap" style="display:none; margin-top:14px;">
+                        <img id="detailPostImg" src="" alt="첨부 사진" style="width:100%; max-height:420px; object-fit:contain; border-radius:10px; border:1px solid #e2e8f0;">
+                    </div>
+
+                    <!-- 하트, 십자가, 댓글 수 이모티콘 -->
+                    <div class="medigate-detail-reactions-row">
+                        <span class="reaction-item-btn" onclick="addDeptLike()" title="은혜 아멘">
+                            ❤️ <span id="detailLikesCount">0</span>
+                        </span>
+                        <span class="reaction-item-btn" onclick="addDeptCross()" title="십자가 은혜">
+                            ✝️ <span id="detailCrossesCount">0</span>
+                        </span>
+                        <span class="reaction-item-btn" title="댓글 수">
+                            💬 <span id="detailCommentsCount">0</span>
+                        </span>
+                    </div>
+
+                    <!-- 🌟 본문 마지막에 배치되는 애드몹 150 슬롯 -->
+                    <div class="post-detail-bottom-admob">
+                        <div class="admob-pill">
+                            <div class="admob-badge-row">
+                                <span class="admob-badge-tag">AD</span>
+                                <strong class="admob-badge-title">Google AdMob (320 x 150)</strong>
+                            </div>
+                            <span class="admob-badge-sub">소상공인 · 교회 · 의원 · 예약앱 공식 스폰서 배너 슬롯</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 댓글 섹션 (밑에 넉넉한 여유공간) -->
+                <div class="post-detail-comments-section">
+                    <div class="medigate-comment-write-box">
+                        <div class="medigate-comment-write-inner">
+                            <label for="fileCommentPhoto" class="btn-medigate-camera" title="사진 첨부">📷</label>
+                            <input type="file" id="fileCommentPhoto" accept="image/*" style="display:none;" onchange="handleCommentPhotoSelected(event)">
+                            <input type="text" id="inpPostComment" class="medigate-comment-input" placeholder="댓글을 남겨주세요." onkeydown="if(event.key==='Enter') submitDeptComment()">
+                            <button type="button" class="btn-medigate-submit" onclick="submitDeptComment()">등록</button>
+                        </div>
+                        <div id="commentPhotoBadge" style="display:none; padding:4px 6px; font-size:11.5px; color:#0284c7; align-items:center; gap:6px;">
+                            <span>📷 사진 첨부됨</span>
+                            <button type="button" onclick="cancelCommentPhoto()" style="background:none; border:none; color:#ef4444; font-size:11px; cursor:pointer;">✕ 삭제</button>
+                        </div>
+                    </div>
+
+                    <div class="post-comments-list" id="postCommentsList">
+                        <!-- 동적 렌더링 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> <!-- /board-fullscreen-container -->
+
+    <!-- 🌟 [사용자 요청] 우측 광고 날개: 본인 교회 교우들의 사업체 소개 영역 (PC 230px) -->
+    <aside class="church-pc-wing right-wing" id="churchPcRightWing">
+        <div class="pc-wing-title-box" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <span class="pc-wing-badge" style="color:#059669;">CHURCH BIZ</span>
+                <span class="pc-wing-title" style="display:block;">💼 우리교회 교우기업</span>
+            </div>
+            <!-- 사무간사/관리자 전용 등록 & 시간설정 버튼 -->
+            <button type="button" onclick="openChurchBizModal()" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:6px; font-size:11px; font-weight:900; color:#0f172a; padding:3px 7px; cursor:pointer;" title="교우 사업체 광고 등록 및 노출시간 설정">⚙️ 관리</button>
+        </div>
+
+        <!-- 동적 교우기업 광고 슬롯 2개 (JS 자동 롤링) -->
+        <div id="churchBizSlotContainer" style="display:flex; flex-direction:column; gap:12px;">
+            <!-- JS 동적 렌더링 -->
+        </div>
+
+        <!-- 맨 하단: [사용자 요청] 천국에도 COUPANG 있을까? 이미지 배너 + 로켓배송 안내 카드 -->
+        <div class="church-pc-ad-card coupang-ad-card" onclick="window.open('https://www.coupang.com', '_blank')" title="쿠팡 로켓배송 바로가기 (새창)" style="background:#ffffff; border:1.8px solid #fca5a5; border-radius:14px; padding:10px; cursor:pointer; box-shadow:0 3px 10px rgba(239,68,68,0.12); transition:all 0.18s ease; display:flex; flex-direction:column; gap:8px;">
+            <div style="width:100%; overflow:hidden; border-radius:8px; line-height:0; background:#f8fafc; border:1px solid #fee2e2;">
+                <img src="images/shopping/coupangheaven.jpg" alt="천국에도 쿠팡 있을까?" style="width:100%; height:auto; display:block; object-fit:contain;" onerror="this.onerror=null; this.src='../images/shopping/coupangheaven.jpg';">
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="coupang-brand-logo" style="font-size:16px; font-weight:950; color:#e11d48; letter-spacing:-0.5px;">coupang</span>
+                <span class="coupang-rocket-badge" style="font-size:11px; font-weight:900; background:#ef4444; color:#ffffff; padding:2px 7px; border-radius:10px;">🚀 로켓배송</span>
+            </div>
+
+            <strong class="coupang-title-text" style="font-size:13px; font-weight:950; color:#991b1b; line-height:1.3; margin:0;">교회 사무실 · 행사물품</strong>
+            <p class="coupang-body-text" style="font-size:11px; color:#475569; font-weight:750; line-height:1.45; margin:0; word-break:keep-all;">
+                사무용 복사용지, 탕비실 다과,<br>주일학교 간식 최저가 로켓배송!
+            </p>
+            <button type="button" class="btn-coupang-direct" style="width:100%; background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; border:none; border-radius:8px; padding:8px 10px; font-size:11.5px; font-weight:950; cursor:pointer; box-shadow:0 2px 8px rgba(239, 68, 68, 0.3);">
+                🛒 쿠팡 최저가 쇼핑 바로가기 ▶
+            </button>
+        </div>
+    </aside>
+</div> <!-- /church-pc-layout-wrapper -->
+
+<!-- ============================================================
+     🌟 5. 새 나눔글 작성 모달
+     ============================================================ -->
+<div class="cafe-write-modal" id="deptWriteModal">
+    <div class="cafe-write-dialog">
+        <header class="cafe-write-header">
+            <button type="button" class="btn-cafe-close" onclick="closeDeptWriteModal()">✕ 닫기</button>
+            <span class="post-detail-header-title" id="writeModalHeaderTitle">✍️ 나눔글 작성</span>
+            <div style="width:50px;"></div>
+        </header>
+
+        <div class="cafe-write-body">
+            <input type="hidden" id="inpWritePostId">
+            <div>
+                <label style="font-size:12px; font-weight:800; color:#64748b; display:block; margin-bottom:4px;">제목</label>
+                <input type="text" class="cafe-input-title" id="inpWriteTitle" placeholder="제목을 입력하세요.">
+            </div>
+
+            <div style="flex:1; display:flex; flex-direction:column;">
+                <label style="font-size:12px; font-weight:800; color:#64748b; display:block; margin-bottom:4px;">선교 · 전도 나눔 본문</label>
+                <textarea class="cafe-textarea-text" id="inpWriteText" placeholder="선교지와 전도 현장의 소식, 성도들과 함께 나눌 은혜와 중보기도 제목을 자유롭게 적어주세요."></textarea>
+            </div>
+
+            <div>
+                <input type="file" id="fileWritePhoto" accept="image/*" style="display:none;" onchange="handleWritePhotoSelected(event)">
+                <button type="button" onclick="document.getElementById('fileWritePhoto').click()" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:7px 12px; font-size:12.5px; font-weight:750; color:#334155; cursor:pointer;">📷 사진 첨부</button>
+                <div id="writePhotoPreviewWrap" style="display:none; margin-top:8px; position:relative; max-width:200px;">
+                    <img id="writePhotoPreviewImg" style="width:100%; border-radius:8px; border:1px solid #e2e8f0;">
+                    <button type="button" onclick="cancelWritePhoto()" style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%; width:22px; height:22px; font-size:12px; cursor:pointer;">✕</button>
+                </div>
+            </div>
+
+            <button type="button" class="btn-cafe-submit-full" onclick="submitDeptWritePost()">등록하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================
+     🌟 6. 방장 관리 모달
+     ============================================================ -->
+<div class="modal-overlay" id="modalLeaderManage" onclick="closeLeaderModal()">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #f1f5f9; padding-bottom:8px;">
+            <strong style="font-size:15px; color:#0f172a;">👑 선교방 방장 관리</strong>
+            <button type="button" onclick="closeLeaderModal()" style="background:none; border:none; font-size:18px; color:#64748b; cursor:pointer;">✕</button>
+        </div>
+
+        <div>
+            <label style="font-size:11.5px; font-weight:800; color:#64748b; display:block; margin-bottom:3px;">선교방 이름</label>
+            <input type="text" id="inpLeaderRoomTitle" style="width:100%; padding:9px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:13.5px; font-weight:750; outline:none;">
+        </div>
+
+        <div>
+            <label style="font-size:11.5px; font-weight:800; color:#64748b; display:block; margin-bottom:3px;">담당 사역자 / 방장 성함</label>
+            <input type="text" id="inpLeaderName" style="width:100%; padding:9px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:13.5px; font-weight:750; outline:none;">
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <strong style="font-size:13px; color:#0f172a; display:block;">입장 공개 설정</strong>
+                <span style="font-size:11px; color:#64748b;" id="txtLockDesc">현재 모든 성도가 바로 입장할 수 있는 공개방입니다.</span>
+            </div>
+            <button type="button" id="btnModalToggleLock" onclick="toggleDeptLockState()" style="padding:6px 12px; border-radius:10px; font-size:12px; font-weight:900; cursor:pointer; background:#eff6ff; border:1px solid #bfdbfe; color:#2563eb;">공개 중</button>
+        </div>
+
+        <button type="button" onclick="saveLeaderSettings()" style="width:100%; background:#0284c7; color:#ffffff; border:none; padding:12px; border-radius:10px; font-size:14px; font-weight:900; cursor:pointer; margin-top:4px;">저장 및 적용하기</button>
+    </div>
+</div>
+
+<!-- 🌟 [사용자 요청] 교우기업 광고 관리 모달 (그림, 글, 지역, 교우명, 롤링 시간설정) -->
+<div class="modal-overlay" id="modalChurchBizAdmin" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:999999; align-items:center; justify-content:center; padding:14px; box-sizing:border-box;">
+    <div style="background:#ffffff; width:100%; max-width:440px; border-radius:18px; padding:20px 18px; box-shadow:0 12px 35px rgba(0,0,0,0.3); max-height:90vh; overflow-y:auto; box-sizing:border-box;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #e2e8f0; padding-bottom:12px; margin-bottom:14px;">
+            <strong style="font-size:16.5px; font-weight:950; color:#0f172a;">💼 교우기업 사업체 광고 등록 · 설정</strong>
+            <button type="button" onclick="closeChurchBizModal()" style="background:none; border:none; font-size:20px; font-weight:900; color:#64748b; cursor:pointer;">✕</button>
+        </div>
+
+        <form onsubmit="saveChurchBizSetting(event)" style="display:flex; flex-direction:column; gap:12px;">
+            <div style="background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:12px; padding:10px 12px;">
+                <label style="font-size:12px; font-weight:900; color:#166534; display:block; margin-bottom:4px;">⏱️ 반복 노출 주기 설정 (사무간사 · 관리자)</label>
+                <div style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:800; color:#0f172a;">
+                    <span>1시간에 1회,</span>
+                    <input type="number" id="inpBizDurationMin" min="1" max="60" value="15" style="width:55px; height:32px; border:1.5px solid #86efac; border-radius:6px; text-align:center; font-size:14px; font-weight:900; outline:none;">
+                    <span>분간 집중 롤링 노출</span>
+                </div>
+            </div>
+
+            <!-- 교우기업 1 -->
+            <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:12px; padding:12px;">
+                <span style="font-size:12.5px; font-weight:950; color:#0284c7; display:block; margin-bottom:8px;">[교우기업 1]</span>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    <input type="text" id="inpBiz1Name" placeholder="업체명 (예: 제일청과 · 과일유통)" style="height:34px; padding:0 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                    <input type="text" id="inpBiz1Owner" placeholder="대표 직분/성함 (예: 박집사)" style="height:34px; padding:0 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                    <input type="text" id="inpBiz1Region" placeholder="지역/위치 (예: 부산 남구 대연동)" style="height:34px; padding:0 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                    <input type="text" id="inpBiz1Phone" placeholder="연락처 (예: 010-2345-6789)" style="height:34px; padding:0 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                    <textarea id="inpBiz1Desc" rows="2" placeholder="한 줄 소개 문구" style="padding:6px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px; font-weight:700; resize:none;"></textarea>
+                    <input type="text" id="inpBiz1Img" placeholder="사진 이미지 URL (선택 사항)" style="height:34px; padding:0 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                </div>
+            </div>
+
+            <!-- 교우기업 2 -->
+            <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:12px; padding:12px;">
+                <span style="font-size:12.5px; font-weight:950; color:#059669; display:block; margin-bottom:8px;">[교우기업 2]</span>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    <input type="text" id="inpBiz2Name" placeholder="업체명 (예: 은혜 인테리어 · 설비)" style="height:34px; padding:0 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                    <input type="text" id="inpBiz2Owner" placeholder="대표 직분/성함 (예: 이권사)" style="height:34px; padding:0 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                    <input type="text" id="inpBiz2Region" placeholder="지역/위치 (예: 부산 수영구)" style="height:34px; padding:0 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                    <input type="text" id="inpBiz2Phone" placeholder="연락처 (예: 010-3456-7890)" style="height:34px; padding:0 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12.5px; font-weight:800;">
+                    <textarea id="inpBiz2Desc" rows="2" placeholder="한 줄 소개 문구" style="padding:6px 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px; font-weight:700; resize:none;"></textarea>
+                    <input type="text" id="inpBiz2Img" placeholder="사진 이미지 URL (선택 사항)" style="height:34px; padding:0 8px; border:1px solid #cbd5e1; border-radius:6px; font-size:12px;">
+                </div>
+            </div>
+
+            <div style="display:flex; gap:8px; margin-top:6px;">
+                <button type="button" onclick="closeChurchBizModal()" style="flex:1; height:42px; background:#e2e8f0; color:#475569; border:none; border-radius:10px; font-size:13.5px; font-weight:900; cursor:pointer;">취소</button>
+                <button type="submit" style="flex:2; height:42px; background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; border:none; border-radius:10px; font-size:14px; font-weight:950; cursor:pointer; box-shadow:0 3px 10px rgba(2,132,199,0.3);">💾 저장 및 광고 반영</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    let activeRoomId = urlParams.get('roomId') || sessionStorage.getItem('mission_board_room_id') || 'mission_default';
+    let activeCategory = urlParams.get('cat') || sessionStorage.getItem('mission_board_category') || 'mission';
+
+    let roomTitle = sessionStorage.getItem('mission_board_room_name') || '열방 선교 · 전도 커뮤니티';
+    let roomLeader = sessionStorage.getItem('mission_board_leader') || '바울선교사';
+
+    const STORAGE_KEY_POSTS = "yetalk_mission_board_posts_" + activeRoomId;
+    const STORAGE_KEY_LOCK = "yetalk_mission_board_lock_" + activeRoomId;
+    const STORAGE_KEY_ROOM_NAME = "yetalk_mission_board_rname_" + activeRoomId;
+    const STORAGE_KEY_LEADER = "yetalk_mission_board_leader_" + activeRoomId;
+
+    let postList = [];
+    let currentViewingPost = null;
+    let commentAttachedPhoto = null;
+    let writeAttachedPhoto = null;
+    let isRoomPrivate = false;
+
+    // 🌟 [사용자 요청] 카톡 스타일에서 다음세대와 동일한 게시판 스타일로 전환 시 기본 게시글 세트
+    const DEFAULT_MISSION_POSTS = [
+        {
+            id: "post_mission_1",
+            author: "GracePaul (바울선교사)",
+            tag: "[해외선교]",
+            title: "동남아 선교지 기도제목 및 사역 소식 나눔",
+            text: "샬롬! 동남아 선교 기도나눔방입니다. 열방과 지역 복음화를 위해 기도와 소식을 전합니다.\n\n현지 교회 개척과 성경학교 사역을 통해 많은 영혼들이 주님께로 돌아오고 있습니다.\n현지 사역자분들의 영육의 강건함과 사역지의 안전을 위해 늘 함께 중보해 주시는 모든 동역자분들께 깊은 감사를 드립니다.",
+            date: "오늘",
+            likes: 48,
+            crosses: 12,
+            views: 142,
+            comments: [
+                {
+                    id: "c_1",
+                    author: "선교동역자",
+                    text: "선교사님 늘 기도하고 있습니다! 주님께서 큰 평강과 승리를 주실 줄 믿습니다.",
+                    time: "1시간 전"
+                },
+                {
+                    id: "c_2",
+                    author: "최베드로",
+                    text: "아멘! 온 교회가 함께 기도하며 동역합니다. 힘내세요 선교사님!",
+                    time: "30분 전"
+                }
+            ]
+        },
+        {
+            id: "post_mission_2",
+            author: "선교동역자",
+            tag: "[중보기도]",
+            title: "땅끝까지 복음 전파를 위한 영육의 강건함 중보기도",
+            text: "현지 영혼 구원 사역과 사역자분들의 영육의 강건함을 위해 늘 중보하고 응원합니다!\n\n아멘! 땅끝까지 이르러 주의 증인 되는 거룩한 선교 여정에 기쁨과 감사함으로 함께 동역하겠습니다. 주님의 크신 은혜와 평강이 모든 선교지에 함께하시기를 기도합니다.",
+            date: "오늘",
+            likes: 35,
+            crosses: 8,
+            views: 98,
+            comments: [
+                {
+                    id: "c_3",
+                    author: "김예톡",
+                    text: "아멘! 한마음으로 기도에 힘쓰겠습니다.",
+                    time: "2시간 전"
+                }
+            ]
+        },
+        {
+            id: "post_mission_3",
+            author: "전도팀장",
+            tag: "[국내전도]",
+            title: "이번 주 토요일 국내 전도대 및 이웃 섬김 사역 안내",
+            text: "이번 주 토요일 오후 2시, 지역 사회 이웃들에게 따뜻한 사랑과 복음을 전하는 거리 전도 및 섬김 사역이 진행됩니다.\n\n복음의 씨앗이 열매 맺는 은혜의 자리에 성도님들의 많은 기도와 동참을 부탁드립니다.",
+            date: "어제",
+            likes: 29,
+            crosses: 4,
+            views: 76,
+            comments: []
+        }
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        initMissionMeta();
+        loadMissionPosts();
+        renderCommunityBoard();
+        renderChurchBizSlots();
+    });
+
+    function initMissionMeta() {
+        const savedName = localStorage.getItem(STORAGE_KEY_ROOM_NAME);
+        if (savedName) roomTitle = savedName;
+
+        const savedLeader = localStorage.getItem(STORAGE_KEY_LEADER);
+        if (savedLeader) roomLeader = savedLeader;
+
+        isRoomPrivate = (localStorage.getItem(STORAGE_KEY_LOCK) === "true");
+
+        document.getElementById("headerDeptTitle").innerText = `🌐 ${roomTitle}`;
+        document.getElementById("headerDeptSub").innerText = "열방 복음화와 영혼 구원을 향한 뜨거운 동역";
+        updateLockBtnState();
+    }
+
+    function updateLockBtnState() {
+        const btn = document.getElementById("btnDeptLockState");
+        const btnModal = document.getElementById("btnModalToggleLock");
+        const txtModal = document.getElementById("txtLockDesc");
+
+        if (isRoomPrivate) {
+            btn.className = "btn-header-lock private";
+            btn.innerText = "비공개(승인)";
+            if (btnModal) {
+                btnModal.style.background = "#fee2e2";
+                btnModal.style.color = "#dc2626";
+                btnModal.style.borderColor = "#fca5a5";
+                btnModal.innerText = "비공개 중";
+            }
+            if (txtModal) txtModal.innerText = "방장의 승인을 받은 회원만 입장할 수 있는 비공개방입니다.";
+        } else {
+            btn.className = "btn-header-lock public";
+            btn.innerText = "입장(공개)";
+            if (btnModal) {
+                btnModal.style.background = "#eff6ff";
+                btnModal.style.color = "#2563eb";
+                btnModal.style.borderColor = "#bfdbfe";
+                btnModal.innerText = "공개 중";
+            }
+            if (txtModal) txtModal.innerText = "현재 모든 성도가 바로 입장할 수 있는 공개방입니다.";
+        }
+    }
+
+    function toggleDeptLockState() {
+        isRoomPrivate = !isRoomPrivate;
+        localStorage.setItem(STORAGE_KEY_LOCK, isRoomPrivate ? "true" : "false");
+        updateLockBtnState();
+        alert(isRoomPrivate ? "🔒 비공개 방으로 전환되었습니다." : "🌐 공개 방으로 전환되었습니다.");
+    }
+
+    function loadMissionPosts() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY_POSTS);
+            if (raw) {
+                postList = JSON.parse(raw);
+            } else {
+                postList = DEFAULT_MISSION_POSTS;
+                localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(postList));
+            }
+        } catch (e) {
+            postList = DEFAULT_MISSION_POSTS;
+        }
+    }
+
+    function renderCommunityBoard() {
+        const listEl = document.getElementById("boardFullscreenList");
+        if (!listEl) return;
+
+        if (postList.length === 0) {
+            listEl.innerHTML = `
+                <div style="padding:40px 20px; text-align:center; color:#9ca3af;">
+                    <div style="font-size:36px; margin-bottom:8px;">🌐</div>
+                    <p style="font-size:14px; font-weight:700;">등록된 선교 · 전도 나눔글이 없습니다.<br>우측 하단 '+' 버튼을 눌러 첫 소식을 전해보세요!</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        postList.forEach((post, index) => {
+            const commentCount = post.comments ? post.comments.length : 0;
+            const tagStr = post.tag || "[선교전도]";
+            html += `
+                <article class="board-fullscreen-card" onclick="openDeptPostDetail('${post.id}')">
+                    <h3 class="board-medigate-title">${escapeHtml(post.title || '선교 소식 나눔')}</h3>
+                    <p class="board-medigate-text">${escapeHtml(post.text)}</p>
+                    <div class="board-medigate-meta-row">
+                        <span style="color:#0284c7; font-weight:700;">${tagStr}</span>
+                        <span class="board-medigate-author">${escapeHtml(post.author)}</span>
+                        <span>·</span>
+                        <span>${post.date || '오늘'}</span>
+                    </div>
+                    <div class="board-medigate-icons-row">
+                        <span class="medigate-stat-item">❤️ <span>${post.likes || 0}</span></span>
+                        <span class="medigate-stat-item">✝️ <span>${post.crosses || 0}</span></span>
+                        <span class="medigate-stat-item">💬 <span>${commentCount}</span></span>
+                    </div>
+                </article>
+            `;
+        });
+
+        // 목록 맨 하단 구글 애드몹 배너 (모바일 전용, PC는 CSS로 숨김)
+        html += `
+            <div class="board-fullscreen-bottom-admob">
+                <div class="admob-pill">
+                    <div class="admob-badge-row">
+                        <span class="admob-badge-tag">AD</span>
+                        <strong class="admob-badge-title">Google AdMob (320 x 100)</strong>
+                    </div>
+                    <span class="admob-badge-sub">열방선교 & 전도 사역 공식 스폰서 배너 슬롯</span>
+                </div>
+            </div>
+        `;
+
+        listEl.innerHTML = html;
+    }
+
+    // 🌟 상세 읽기 화면 열기
+    function openDeptPostDetail(postId) {
+        const post = postList.find(p => p.id === postId);
+        if (!post) return;
+        currentViewingPost = post;
+
+        if (typeof post.views === 'number') {
+            post.views += 1;
+        } else {
+            post.views = 12;
+        }
+        localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(postList));
+
+        document.getElementById("detailPostTitle").innerText = post.title || "선교 소식 나눔";
+        document.getElementById("detailPostTag").innerText = post.tag || "[선교전도]";
+        document.getElementById("detailPostAuthor").innerText = post.author || "동역자";
+        document.getElementById("detailPostDate").innerText = post.date || "오늘";
+        document.getElementById("detailPostViews").innerText = post.views || 1;
+        document.getElementById("detailPostText").innerText = post.text || "";
+
+        const photoWrap = document.getElementById("detailPhotoWrap");
+        const photoImg = document.getElementById("detailPostImg");
+        if (post.img) {
+            photoImg.src = post.img;
+            photoWrap.style.display = "block";
+        } else {
+            photoWrap.style.display = "none";
+            photoImg.src = "";
+        }
+
+        document.getElementById("detailLikesCount").innerText = post.likes || 0;
+        document.getElementById("detailCrossesCount").innerText = post.crosses || 0;
+        document.getElementById("detailCommentsCount").innerText = post.comments ? post.comments.length : 0;
+
+        renderDeptComments();
+
+        const modal = document.getElementById("boardPostDetailModal");
+        modal.classList.add("show");
+        document.getElementById("postDetailScrollBody").scrollTop = 0;
+    }
+
+    function closeDeptPostDetail() {
+        const modal = document.getElementById("boardPostDetailModal");
+        modal.classList.remove("show");
+        closeDeptPostMenu();
+        currentViewingPost = null;
+        renderCommunityBoard();
+    }
+
+    function toggleDeptPostMenu(e) {
+        if (e) e.stopPropagation();
+        const menu = document.getElementById("deptPostMenuDropdown");
+        menu.style.display = (menu.style.display === "none" || !menu.style.display) ? "flex" : "none";
+    }
+
+    function closeDeptPostMenu() {
+        const menu = document.getElementById("deptPostMenuDropdown");
+        if (menu) menu.style.display = "none";
+    }
+
+    function onDeptPostAction(act) {
+        closeDeptPostMenu();
+        if (!currentViewingPost) return;
+
+        if (act === "copy") {
+            const textToCopy = `[${currentViewingPost.title}]\n\n${currentViewingPost.text}\n\n- 예톡 열방 선교 · 전도 커뮤니티`;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    alert("📋 게시글 내용이 클립보드에 복사되었습니다.");
+                });
+            } else {
+                alert("📋 복사되었습니다:\n\n" + textToCopy.slice(0, 100) + "...");
+            }
+        } else if (act === "edit") {
+            openDeptWriteModal(currentViewingPost.id);
+        } else if (act === "delete") {
+            if (confirm("정말로 이 게시글을 삭제하시겠습니까?")) {
+                postList = postList.filter(p => p.id !== currentViewingPost.id);
+                localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(postList));
+                closeDeptPostDetail();
+                alert("🗑️ 게시글이 삭제되었습니다.");
+            }
+        }
+    }
+
+    function addDeptLike() {
+        if (!currentViewingPost) return;
+        currentViewingPost.likes = (currentViewingPost.likes || 0) + 1;
+        document.getElementById("detailLikesCount").innerText = currentViewingPost.likes;
+        localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(postList));
+    }
+
+    function addDeptCross() {
+        if (!currentViewingPost) return;
+        currentViewingPost.crosses = (currentViewingPost.crosses || 0) + 1;
+        document.getElementById("detailCrossesCount").innerText = currentViewingPost.crosses;
+        localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(postList));
+    }
+
+    // 🌟 댓글 렌더링 및 등록
+    function renderDeptComments() {
+        const cListEl = document.getElementById("postCommentsList");
+        if (!cListEl || !currentViewingPost) return;
+
+        const comments = currentViewingPost.comments || [];
+        if (comments.length === 0) {
+            cListEl.innerHTML = `
+                <div style="padding:14px 0; text-align:center; color:#94a3b8; font-size:12.5px;">
+                    첫 번째 은혜의 중보 댓글을 남겨주세요 🙏
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        comments.forEach(c => {
+            html += `
+                <div class="post-comment-item">
+                    <div class="comment-header-row">
+                        <strong class="comment-author-name">${escapeHtml(c.author)}</strong>
+                        <span class="comment-time-text">${c.time || '방금'}</span>
+                    </div>
+                    <div class="comment-body-text">${escapeHtml(c.text)}</div>
+                    ${c.img ? `<img src="${c.img}" style="max-width:180px; border-radius:6px; margin-top:6px; border:1px solid #e2e8f0;">` : ''}
+                </div>
+            `;
+        });
+        cListEl.innerHTML = html;
+    }
+
+    function handleCommentPhotoSelected(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            commentAttachedPhoto = ev.target.result;
+            document.getElementById("commentPhotoBadge").style.display = "flex";
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function cancelCommentPhoto() {
+        commentAttachedPhoto = null;
+        document.getElementById("commentPhotoBadge").style.display = "none";
+        document.getElementById("fileCommentPhoto").value = "";
+    }
+
+    function submitDeptComment() {
+        if (!currentViewingPost) return;
+        const input = document.getElementById("inpPostComment");
+        const text = input.value.trim();
+        if (!text && !commentAttachedPhoto) {
+            alert("댓글 내용을 입력해주세요.");
+            return;
+        }
+
+        const myName = localStorage.getItem("yetalkUserName") || "선교동역자";
+        if (!currentViewingPost.comments) currentViewingPost.comments = [];
+
+        currentViewingPost.comments.push({
+            id: "c_" + Date.now(),
+            author: myName,
+            text: text,
+            img: commentAttachedPhoto,
+            time: "방금"
+        });
+
+        localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(postList));
+        input.value = "";
+        cancelCommentPhoto();
+        renderDeptComments();
+        document.getElementById("detailCommentsCount").innerText = currentViewingPost.comments.length;
+    }
+
+    // 🌟 글쓰기 모달 열기/닫기/등록
+    function openDeptWriteModal(editId) {
+        const modal = document.getElementById("deptWriteModal");
+        const titleEl = document.getElementById("writeModalHeaderTitle");
+        const idInp = document.getElementById("inpWritePostId");
+        const titleInp = document.getElementById("inpWriteTitle");
+        const textInp = document.getElementById("inpWriteText");
+
+        if (editId) {
+            const target = postList.find(p => p.id === editId);
+            if (!target) return;
+            titleEl.innerText = "✏️ 게시글 수정하기";
+            idInp.value = target.id;
+            titleInp.value = target.title || "";
+            textInp.value = target.text || "";
+            if (target.img) {
+                writeAttachedPhoto = target.img;
+                document.getElementById("writePhotoPreviewImg").src = writeAttachedPhoto;
+                document.getElementById("writePhotoPreviewWrap").style.display = "block";
+            }
+        } else {
+            titleEl.innerText = "✍️ 나눔글 작성";
+            idInp.value = "";
+            titleInp.value = "";
+            textInp.value = "";
+            cancelWritePhoto();
+        }
+
+        modal.classList.add("show");
+    }
+
+    function closeDeptWriteModal() {
+        const modal = document.getElementById("deptWriteModal");
+        if (modal) modal.classList.remove("show");
+        cancelWritePhoto();
+    }
+
+    function handleWritePhotoSelected(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            writeAttachedPhoto = ev.target.result;
+            document.getElementById("writePhotoPreviewImg").src = writeAttachedPhoto;
+            document.getElementById("writePhotoPreviewWrap").style.display = "block";
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function cancelWritePhoto() {
+        writeAttachedPhoto = null;
+        const wrap = document.getElementById("writePhotoPreviewWrap");
+        if (wrap) wrap.style.display = "none";
+        const fileInp = document.getElementById("fileWritePhoto");
+        if (fileInp) fileInp.value = "";
+    }
+
+    function submitDeptWritePost() {
+        const id = document.getElementById("inpWritePostId").value;
+        const title = document.getElementById("inpWriteTitle").value.trim();
+        const text = document.getElementById("inpWriteText").value.trim();
+
+        if (!text) {
+            alert("본문 내용을 입력해주세요.");
+            return;
+        }
+
+        if (id) {
+            const idx = postList.findIndex(p => p.id === id);
+            if (idx >= 0) {
+                postList[idx].title = title || "선교 소식 나눔";
+                postList[idx].text = text;
+                postList[idx].img = writeAttachedPhoto;
+            }
+        } else {
+            const myName = localStorage.getItem("yetalkUserName") || "선교동역자";
+            const newPost = {
+                id: "post_" + Date.now(),
+                author: myName,
+                tag: "[선교전도]",
+                title: title || (text.slice(0, 24) + "..."),
+                text: text,
+                img: writeAttachedPhoto,
+                date: "오늘",
+                likes: 1,
+                crosses: 0,
+                views: 10,
+                comments: []
+            };
+            postList.unshift(newPost);
+        }
+
+        localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(postList));
+        closeDeptWriteModal();
+        renderCommunityBoard();
+        alert("✨ 게시글이 등록되었습니다!");
+    }
+
+    // 🌟 방장 설정 모달
+    function openLeaderModal() {
+        const modal = document.getElementById("modalLeaderManage");
+        document.getElementById("inpLeaderRoomTitle").value = roomTitle;
+        document.getElementById("inpLeaderName").value = localStorage.getItem(STORAGE_KEY_LEADER) || roomLeader || "";
+        updateLockBtnState();
+        modal.style.display = "flex";
+    }
+
+    function closeLeaderModal() {
+        const modal = document.getElementById("modalLeaderManage");
+        if (modal) modal.style.display = "none";
+    }
+
+    function saveLeaderSettings() {
+        const title = document.getElementById("inpLeaderRoomTitle").value.trim();
+        const leader = document.getElementById("inpLeaderName").value.trim();
+
+        if (title) {
+            roomTitle = title;
+            localStorage.setItem(STORAGE_KEY_ROOM_NAME, title);
+            document.getElementById("headerDeptTitle").innerText = `🌐 ${title}`;
+        }
+        if (leader) {
+            roomLeader = leader;
+            localStorage.setItem(STORAGE_KEY_LEADER, leader);
+        }
+
+        closeLeaderModal();
+        alert("👑 방장 관리 설정이 저장되었습니다!");
+    }
+
+    // 안드로이드 하드웨어 / 제스처 백키 전용 핸들러 (MainActivity.kt 연동)
+    window.handleAppBackPress = function() {
+        const modal = document.querySelector(".modal-overlay.open, .modal-overlay.show, #boardPostDetailModal.show, #deptWriteModal.show, #modalLeaderManage[style*='display: flex'], #modalLeaderManage[style*='display:flex'], #modalChurchBizAdmin[style*='display: flex'], #modalChurchBizAdmin[style*='display:flex']");
+        if (modal) {
+            modal.classList.remove("open", "show");
+            if (modal.id === "boardPostDetailModal") closeDeptPostDetail();
+            if (modal.id === "deptWriteModal") closeDeptWriteModal();
+            if (modal.id === "modalLeaderManage") closeLeaderModal();
+            if (modal.id === "modalChurchBizAdmin") closeChurchBizModal();
+            modal.style.display = "none";
+            return true;
+        }
+        location.href = "churchmission.html";
+        return true;
+    };
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // 🌟 [사용자 요청] 우리교회 교우기업 광고 데이터 관리 및 시간별 자동 롤링 시스템
+    const CHURCH_BIZ_STORAGE_KEY = "yetalk_church_biz_ads_v1";
+
+    const DEFAULT_CHURCH_BIZ = {
+        durationMin: 15,
+        biz1: {
+            name: "제일청과 · 과일유통",
+            owner: "박집사",
+            region: "부산 남구 대연동",
+            phone: "010-2345-6789",
+            desc: "성도님 특별 할인! 매일 아침 신선한 산지직송 제철과일 배송",
+            img: ""
+        },
+        biz2: {
+            name: "은혜 인테리어 · 설비",
+            owner: "이권사",
+            region: "부산 수영구",
+            phone: "010-3456-7890",
+            desc: "교회 비품 공사 및 아파트 주택 리모델링 전문 무료 견적",
+            img: ""
+        }
+    };
+
+    function getChurchBizData() {
+        try {
+            const raw = localStorage.getItem(CHURCH_BIZ_STORAGE_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch(e){}
+        return DEFAULT_CHURCH_BIZ;
+    }
+
+    function renderChurchBizSlots() {
+        const container = document.getElementById("churchBizSlotContainer");
+        if (!container) return;
+        const data = getChurchBizData();
+
+        const b1 = data.biz1 || DEFAULT_CHURCH_BIZ.biz1;
+        const b2 = data.biz2 || DEFAULT_CHURCH_BIZ.biz2;
+
+        container.innerHTML = `
+            <!-- 교우기업 1 -->
+            <div class="church-pc-ad-card" onclick="alert('🏢 [${b1.name} - ${b1.owner}]\\n\\n• 지역: ${b1.region}\\n• 연락처: ${b1.phone}\\n• 소개: ${b1.desc}')" title="클릭 시 사업체 상세 및 연락처 안내" style="background:#ffffff; border:1.8px solid #cbd5e1; border-radius:14px; padding:12px; cursor:pointer; transition:all 0.15s ease; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                <div class="ad-tag-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <span class="ad-tag" style="color:#0284c7; font-size:10px; font-weight:950; background:#e0f2fe; padding:2px 6px; border-radius:5px;">교우기업 01</span>
+                    <span class="ad-subtag" style="font-size:10px; font-weight:850; color:#0369a1;">${b1.region || '우리교회 교우'}</span>
+                </div>
+                ${b1.img ? `<img src="${b1.img}" alt="${b1.name}" style="width:100%; height:75px; object-fit:cover; border-radius:8px; margin-bottom:6px;">` : `<div style="font-size:24px; text-align:center; margin-bottom:4px;">🏪</div>`}
+                <strong class="ad-heading" style="display:block; font-size:13.5px; font-weight:950; color:#0f172a; line-height:1.3; margin-bottom:2px;">${b1.name}</strong>
+                <div style="font-size:11px; font-weight:900; color:#059669; margin-bottom:4px;">대표: ${b1.owner || '성도'} (${b1.phone})</div>
+                <p class="ad-desc" style="font-size:11px; color:#475569; font-weight:700; line-height:1.45; margin:0 0 6px 0; word-break:keep-all;">${b1.desc}</p>
+                <div class="ad-action-pill" style="font-size:10.5px; font-weight:900; background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; border-radius:6px; padding:4px 0; text-align:center;">📞 교우 사업체 문의하기</div>
+            </div>
+
+            <!-- 교우기업 2 -->
+            <div class="church-pc-ad-card" onclick="alert('🏢 [${b2.name} - ${b2.owner}]\\n\\n• 지역: ${b2.region}\\n• 연락처: ${b2.phone}\\n• 소개: ${b2.desc}')" title="클릭 시 사업체 상세 및 연락처 안내" style="background:#ffffff; border:1.8px solid #cbd5e1; border-radius:14px; padding:12px; cursor:pointer; transition:all 0.15s ease; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+                <div class="ad-tag-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                    <span class="ad-tag" style="color:#059669; font-size:10px; font-weight:950; background:#dcfce7; padding:2px 6px; border-radius:5px;">교우기업 02</span>
+                    <span class="ad-subtag" style="font-size:10px; font-weight:850; color:#15803d;">${b2.region || '우리교회 교우'}</span>
+                </div>
+                ${b2.img ? `<img src="${b2.img}" alt="${b2.name}" style="width:100%; height:75px; object-fit:cover; border-radius:8px; margin-bottom:6px;">` : `<div style="font-size:24px; text-align:center; margin-bottom:4px;">🛠️</div>`}
+                <strong class="ad-heading" style="display:block; font-size:13.5px; font-weight:950; color:#0f172a; line-height:1.3; margin-bottom:2px;">${b2.name}</strong>
+                <div style="font-size:11px; font-weight:900; color:#059669; margin-bottom:4px;">대표: ${b2.owner || '성도'} (${b2.phone})</div>
+                <p class="ad-desc" style="font-size:11px; color:#475569; font-weight:700; line-height:1.45; margin:0 0 6px 0; word-break:keep-all;">${b2.desc}</p>
+                <div class="ad-action-pill" style="font-size:10.5px; font-weight:900; background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; border-radius:6px; padding:4px 0; text-align:center;">📞 교우 사업체 문의하기</div>
+            </div>
+        `;
+    }
+
+    function openChurchBizModal() {
+        const data = getChurchBizData();
+        const elDuration = document.getElementById("inpBizDurationMin");
+        if (elDuration) elDuration.value = data.durationMin || 10;
+
+        const b1 = data.biz1 || {};
+        const b2 = data.biz2 || {};
+
+        if (document.getElementById("inpBiz1Name")) document.getElementById("inpBiz1Name").value = b1.name || "";
+        if (document.getElementById("inpBiz1Owner")) document.getElementById("inpBiz1Owner").value = b1.owner || "";
+        if (document.getElementById("inpBiz1Region")) document.getElementById("inpBiz1Region").value = b1.region || "";
+        if (document.getElementById("inpBiz1Phone")) document.getElementById("inpBiz1Phone").value = b1.phone || "";
+        if (document.getElementById("inpBiz1Desc")) document.getElementById("inpBiz1Desc").value = b1.desc || "";
+        if (document.getElementById("inpBiz1Img")) document.getElementById("inpBiz1Img").value = b1.img || "";
+
+        if (document.getElementById("inpBiz2Name")) document.getElementById("inpBiz2Name").value = b2.name || "";
+        if (document.getElementById("inpBiz2Owner")) document.getElementById("inpBiz2Owner").value = b2.owner || "";
+        if (document.getElementById("inpBiz2Region")) document.getElementById("inpBiz2Region").value = b2.region || "";
+        if (document.getElementById("inpBiz2Phone")) document.getElementById("inpBiz2Phone").value = b2.phone || "";
+        if (document.getElementById("inpBiz2Desc")) document.getElementById("inpBiz2Desc").value = b2.desc || "";
+        if (document.getElementById("inpBiz2Img")) document.getElementById("inpBiz2Img").value = b2.img || "";
+
+        const modal = document.getElementById("modalChurchBizAdmin");
+        if (modal) modal.style.display = "flex";
+    }
+
+    function closeChurchBizModal() {
+        const modal = document.getElementById("modalChurchBizAdmin");
+        if (modal) modal.style.display = "none";
+    }
+
+    function saveChurchBizSetting(e) {
+        if (e) e.preventDefault();
+        const durationMin = parseInt(document.getElementById("inpBizDurationMin")?.value || "10", 10);
+
+        const data = {
+            durationMin: isNaN(durationMin) ? 10 : durationMin,
+            biz1: {
+                name: document.getElementById("inpBiz1Name")?.value.trim() || "",
+                owner: document.getElementById("inpBiz1Owner")?.value.trim() || "",
+                region: document.getElementById("inpBiz1Region")?.value.trim() || "",
+                phone: document.getElementById("inpBiz1Phone")?.value.trim() || "",
+                desc: document.getElementById("inpBiz1Desc")?.value.trim() || "",
+                img: document.getElementById("inpBiz1Img")?.value.trim() || ""
+            },
+            biz2: {
+                name: document.getElementById("inpBiz2Name")?.value.trim() || "",
+                owner: document.getElementById("inpBiz2Owner")?.value.trim() || "",
+                region: document.getElementById("inpBiz2Region")?.value.trim() || "",
+                phone: document.getElementById("inpBiz2Phone")?.value.trim() || "",
+                desc: document.getElementById("inpBiz2Desc")?.value.trim() || "",
+                img: document.getElementById("inpBiz2Img")?.value.trim() || ""
+            }
+        };
+
+        localStorage.setItem(CHURCH_BIZ_STORAGE_KEY, JSON.stringify(data));
+        renderChurchBizSlots();
+        closeChurchBizModal();
+        alert("💾 교우기업 광고 및 노출 설정이 저장되었습니다!");
+    }
+</script>
+</body>
+</html>
