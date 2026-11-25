@@ -2,17 +2,917 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="0; url=doctormain.html">
-    <title>자가진피 최웅식의원 이동 중...</title>
-    <script>
-        location.replace("doctormain.html" + window.location.search);
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>예톡 의원 - 단골의원 & 미용의원 예약 포털</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900;950&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --safe-top: max(env(safe-area-inset-top, 0px), 10px);
+            --safe-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
+            --primary-pink: #ec4899;
+            --primary-blue: #0284c7;
+            --primary-dark: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            user-select: none;
+        }
+
+        html, body {
+            width: 100%;
+            min-height: 100%;
+            background: #f8fafc;
+            color: #0f172a;
+            overflow-x: hidden;
+        }
+
+        .app-viewport {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            background: #ffffff;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0,0,0,0.06);
+            padding-bottom: 74px; /* 하단 탭바 여백 */
+        }
+
+        /* 1. 최상단 헤더 */
+        .clinic-header {
+            padding: calc(var(--safe-top) + 6px) 16px 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            border-bottom: 1px solid #f1f5f9;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .header-brand-title {
+            font-size: 20px;
+            font-weight: 950;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .brand-cross-icon {
+            color: #0284c7;
+            font-size: 19px;
+            font-weight: 950;
+            line-height: 1;
+        }
+        .header-brand-sub {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 700;
+            margin-left: 2px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-header-pill {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            color: #15803d;
+            padding: 5px 10px;
+            border-radius: 14px;
+            font-size: 11.5px;
+            font-weight: 900;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s;
+        }
+        .btn-header-pill:active {
+            transform: scale(0.96);
+        }
+
+        /* 2. 🌟 [사용자 요청] 미용의원 & 단골의원 자동 전환 롤링 히어로 배너 */
+        .hero-banner-container {
+            width: 100%;
+            height: 250px;
+            position: relative;
+            overflow: hidden;
+            background: #0f172a;
+        }
+
+        .hero-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: scale(1.02);
+            pointer-events: none;
+            display: flex;
+            align-items: flex-end;
+            padding: 20px 18px 24px 18px;
+        }
+        .hero-slide.active {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        .hero-bg-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+            z-index: 1;
+        }
+        .hero-gradient-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+        }
+        /* 미용의원 핑크빛 화사한 그라데이션 */
+        .overlay-beauty {
+            background: linear-gradient(180deg, rgba(15,23,42,0.1) 0%, rgba(15,23,42,0.4) 45%, rgba(15,23,42,0.92) 100%);
+        }
+        /* 단골의원 차분하고 신뢰감 넘치는 딥블루 그라데이션 */
+        .overlay-family {
+            background: linear-gradient(180deg, rgba(15,23,42,0.1) 0%, rgba(15,23,42,0.4) 45%, rgba(15,23,42,0.92) 100%);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+        }
+
+        .hero-tag-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 900;
+            margin-bottom: 6px;
+            backdrop-filter: blur(8px);
+        }
+        .pill-beauty {
+            background: rgba(236, 72, 153, 0.25);
+            border: 1px solid rgba(244, 114, 182, 0.6);
+            color: #fbcfe8;
+        }
+        .pill-family {
+            background: rgba(2, 132, 199, 0.25);
+            border: 1px solid rgba(56, 189, 248, 0.6);
+            color: #bae6fd;
+        }
+
+        .hero-main-title {
+            font-size: 21px;
+            font-weight: 950;
+            color: #ffffff;
+            line-height: 1.25;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        }
+        .hero-sub-title {
+            font-size: 12.5px;
+            color: #cbd5e1;
+            font-weight: 600;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .hero-badges-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            font-size: 11px;
+            color: #e2e8f0;
+            font-weight: 800;
+        }
+        .badge-check-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            background: rgba(255,255,255,0.14);
+            padding: 3px 8px;
+            border-radius: 8px;
+        }
+
+        /* 슬라이드 인디케이터 도트 */
+        .slider-dots {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 10;
+            display: flex;
+            gap: 5px;
+            background: rgba(0,0,0,0.4);
+            padding: 4px 8px;
+            border-radius: 12px;
+            backdrop-filter: blur(6px);
+        }
+        .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .dot.active {
+            width: 18px;
+            border-radius: 4px;
+            background: #ffffff;
+        }
+
+        /* 3. 🌟 [1년 전 시안 양식 완벽 구현] 2대 핵심 진료 예약 카드 */
+        .action-cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 14px 14px 8px 14px;
+        }
+
+        .entry-action-card {
+            border-radius: 16px;
+            padding: 14px 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 96px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+            transition: all 0.16s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .entry-action-card:active {
+            transform: scale(0.97);
+        }
+
+        /* 좌측: 피부 · 성형 예약하기 (화사한 핑크) */
+        .card-beauty-track {
+            background: linear-gradient(135deg, #f43f5e 0%, #ec4899 100%);
+            color: #ffffff;
+        }
+        /* 우측: 검사 · 수술 예약하기 (깔끔한 화이트/블루) */
+        .card-family-track {
+            background: #ffffff;
+            border: 1.8px solid #0284c7;
+            color: #0f172a;
+        }
+
+        .card-top-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+        .card-icon-box {
+            font-size: 22px;
+            line-height: 1;
+        }
+        .card-action-title {
+            font-size: 15.5px;
+            font-weight: 950;
+            letter-spacing: -0.4px;
+        }
+        .card-action-sub {
+            font-size: 11.5px;
+            font-weight: 600;
+            opacity: 0.9;
+            line-height: 1.35;
+        }
+
+        /* 4. 5대 퀵 액션 메뉴 그리드 */
+        .quick-nav-section {
+            padding: 8px 14px 12px 14px;
+        }
+        .quick-nav-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            text-align: center;
+        }
+        .btn-quick-item {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 2px;
+            border-radius: 12px;
+            transition: all 0.12s;
+        }
+        .btn-quick-item:active {
+            background: #f1f5f9;
+            transform: scale(0.95);
+        }
+        .quick-item-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 13px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .quick-item-label {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #334155;
+            letter-spacing: -0.3px;
+        }
+        .quick-item-sub {
+            font-size: 9.5px;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        /* 섹션 구분선 */
+        .section-divider {
+            height: 8px;
+            background: #f1f5f9;
+            width: 100%;
+        }
+
+        /* 5. 최근 방문 / 나의 단골 의원 섹션 */
+        .content-section {
+            padding: 16px 14px;
+        }
+        .section-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: 16.5px;
+            font-weight: 950;
+            color: #0f172a;
+            letter-spacing: -0.4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-view-all {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 700;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .clinic-cards-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .clinic-item-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            transition: all 0.15s ease;
+        }
+        .clinic-item-card:active {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+        .clinic-left-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+        .clinic-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .avatar-pink { background: #ffe4e6; color: #f43f5e; }
+        .avatar-blue { background: #e0f2fe; color: #0284c7; }
+        .avatar-green { background: #dcfce7; color: #16a34a; }
+
+        .clinic-meta {
+            flex: 1;
+            min-width: 0;
+        }
+        .clinic-name-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .clinic-name {
+            font-size: 15px;
+            font-weight: 950;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .badge-verified {
+            background: #eff6ff;
+            color: #2563eb;
+            font-size: 9.5px;
+            font-weight: 900;
+            padding: 1px 5px;
+            border-radius: 4px;
+        }
+        .clinic-detail-desc {
+            font-size: 11.5px;
+            color: #64748b;
+            margin-top: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-reserve-action {
+            background: #ffffff;
+            border: 1.5px solid #0284c7;
+            color: #0284c7;
+            font-size: 12.5px;
+            font-weight: 900;
+            padding: 6px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .btn-reserve-action:active {
+            background: #0284c7;
+            color: #ffffff;
+        }
+        .btn-reserve-pink {
+            border-color: #ec4899;
+            color: #ec4899;
+        }
+        .btn-reserve-pink:active {
+            background: #ec4899;
+            color: #ffffff;
+        }
+
+        /* 6. 주요 예약 항목 (8대 카테고리) */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+        .category-chip-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.12s;
+        }
+        .category-chip-box:active {
+            background: #e2e8f0;
+            transform: scale(0.96);
+        }
+        .cat-icon {
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+        .cat-title {
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #334155;
+            letter-spacing: -0.3px;
+        }
+
+        /* 7. 최하단 고정 구글 애드몹 배너 (320 × 100) */
+        .clinic-admob-slot {
+            margin: 8px 14px 16px 14px;
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 14px;
+            height: 98px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            text-align: center;
+        }
+        .admob-title-blue {
+            font-size: 13.5px;
+            font-weight: 950;
+            color: #0284c7;
+            letter-spacing: -0.3px;
+        }
+
+        /* 8. 최하단 모바일 탭 바 */
+        .bottom-nav-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-around;
+            padding: 6px 8px calc(var(--safe-bottom) + 2px) 8px;
+            z-index: 100;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+        }
+        .nav-tab-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            color: #64748b;
+            font-size: 10.5px;
+            font-weight: 800;
+            flex: 1;
+            padding: 4px 0;
+            transition: color 0.12s;
+        }
+        .nav-tab-btn.active {
+            color: #0284c7;
+        }
+        .nav-icon {
+            font-size: 18px;
+            line-height: 1;
+        }
+    </style>
 </head>
-<body style="background:#0f172a; color:#ffffff; display:flex; align-items:center; justify-content:center; height:100vh; font-family:sans-serif; margin:0;">
-    <div style="text-align:center;">
-        <div style="font-size:36px; margin-bottom:12px;">🏥</div>
-        <strong style="font-size:18px; color:#38bdf8;">자가진피 최웅식의원</strong>
-        <p style="font-size:14px; color:#94a3b8; margin-top:8px;">의원 홈으로 안전하게 연결 중입니다...</p>
+<body>
+
+<div class="app-viewport">
+    <!-- 1. 최상단 헤더 -->
+    <header class="clinic-header">
+        <div class="header-brand" onclick="location.reload()" title="예톡 의원 홈">
+            <span class="brand-cross-icon">✚</span>
+            <div class="header-brand-title">
+                <span>예톡 의원</span>
+                <span class="header-brand-sub">스마트 예약 포털</span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <!-- 🌟 [사용자 요청] 예톡 교회로 상호 전환 버튼 -->
+            <button type="button" class="btn-header-pill" onclick="location.href='index.html'" title="예톡 교회앱으로 전환">
+                <span>⛪</span>
+                <span>교회홈 가기</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- 2. 🌟 [사용자 요청] 미용의원 & 단골의원 자동 롤링 히어로 배너 (몇 초 간격으로 살 바꾸어줌) -->
+    <div class="hero-banner-container" id="heroBanner">
+        <!-- 슬라이드 인디케이터 도트 -->
+        <div class="slider-dots">
+            <div class="dot active" id="dot0" onclick="goToSlide(0)"></div>
+            <div class="dot" id="dot1" onclick="goToSlide(1)"></div>
+        </div>
+
+        <!-- 슬라이드 1: 🌸 미용 의원 (예쁜 여성 모델 이미지) -->
+        <div class="hero-slide active" id="slide0" onclick="handleTrackClick('beauty')">
+            <img class="hero-bg-img" src="images/clinic_beauty_model.jpg" alt="미용 의원 피부 성형 뷰티">
+            <div class="hero-gradient-overlay overlay-beauty"></div>
+            <div class="hero-content">
+                <span class="hero-tag-pill pill-beauty">🌸 예톡 미용의원 · 뷰티 케어</span>
+                <h2 class="hero-main-title">
+                    화사하게 빛나는 피부,<br>
+                    전문의 1:1 맞춤 안심 시술
+                </h2>
+                <p class="hero-sub-title">보톡스 · 리프팅 · 레이저 · 필러 · 자가진피 사전예약 OK</p>
+                <div class="hero-badges-row">
+                    <span class="badge-check-item">✓ 간편한 모바일 예약</span>
+                    <span class="badge-check-item">✓ 안심 시술</span>
+                    <span class="badge-check-item">✓ 전국 어디서나</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 슬라이드 2: 🏥 단골 의원 (따뜻한 부부 / 가족 건강 모델 이미지) -->
+        <div class="hero-slide" id="slide1" onclick="handleTrackClick('family')">
+            <img class="hero-bg-img" src="images/clinic_family_model.jpg" alt="단골 의원 가족 주치의">
+            <div class="hero-gradient-overlay overlay-family"></div>
+            <div class="hero-content">
+                <span class="hero-tag-pill pill-family">🏥 우리 가족 평생 단골의원</span>
+                <h2 class="hero-main-title">
+                    몸과 마음을 치료하는<br>
+                    우리 동네 단골의원 케어
+                </h2>
+                <p class="hero-sub-title">내과 · 건강검진 · 만성질환 · 초음파 · 수술 편안한 사전예약</p>
+                <div class="hero-badges-row">
+                    <span class="badge-check-item">✓ 1:1 가족 주치의</span>
+                    <span class="badge-check-item">✓ 기다림 없는 예약</span>
+                    <span class="badge-check-item">✓ 평생 건강관리</span>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- 3. 🌟 [1년 전 시안 양식 완벽 구현] 2대 핵심 진료 예약 카드 -->
+    <section class="action-cards-grid">
+        <!-- 🌸 피부 · 성형 예약하기 -->
+        <div class="entry-action-card card-beauty-track" onclick="handleTrackClick('beauty')">
+            <div class="card-top-row">
+                <span class="card-icon-box">🧖‍♀️</span>
+                <span class="card-action-title">피부 · 성형 예약하기</span>
+            </div>
+            <div class="card-action-sub">보톡스 · 리프팅 · 레이저 · 필러</div>
+        </div>
+
+        <!-- 🩺 검사 · 수술 예약하기 -->
+        <div class="entry-action-card card-family-track" onclick="handleTrackClick('family')">
+            <div class="card-top-row">
+                <span class="card-icon-box" style="color:#0284c7;">🩺</span>
+                <span class="card-action-title" style="color:#0284c7;">검사 · 수술 예약하기</span>
+            </div>
+            <div class="card-action-sub" style="color:#64748b;">내시경 · 초음파 · 수술 · 검진</div>
+        </div>
+    </section>
+
+    <!-- 4. 5대 퀵 액션 메뉴 그리드 -->
+    <nav class="quick-nav-section">
+        <div class="quick-nav-grid">
+            <button type="button" class="btn-quick-item" onclick="openClinicQuickAction('history')">
+                <div class="quick-item-icon">📅</div>
+                <div class="quick-item-label">최근 예약</div>
+                <div class="quick-item-sub">바로 확인</div>
+            </button>
+            <button type="button" class="btn-quick-item" onclick="openClinicQuickAction('favorite')">
+                <div class="quick-item-icon">⭐</div>
+                <div class="quick-item-label">단골 의원</div>
+                <div class="quick-item-sub">빠른 예약</div>
+            </button>
+            <button type="button" class="btn-quick-item" onclick="openClinicQuickAction('search')">
+                <div class="quick-item-icon">📍</div>
+                <div class="quick-item-label">의원 찾기</div>
+                <div class="quick-item-sub">지역·진료과</div>
+            </button>
+            <button type="button" class="btn-quick-item" onclick="openClinicQuickAction('notice')">
+                <div class="quick-item-icon">🔔</div>
+                <div class="quick-item-label">예약 알림</div>
+                <div class="quick-item-sub">확인·변경</div>
+            </button>
+            <button type="button" class="btn-quick-item" onclick="openClinicQuickAction('mypage')">
+                <div class="quick-item-icon">👤</div>
+                <div class="quick-item-label">마이페이지</div>
+                <div class="quick-item-sub">예약 관리</div>
+            </button>
+        </div>
+    </nav>
+
+    <div class="section-divider"></div>
+
+    <!-- 5. 최근 방문 / 나의 단골 의원 섹션 -->
+    <section class="content-section">
+        <div class="section-header-row">
+            <h3 class="section-title">
+                <span>⭐</span>
+                <span>나의 단골 의원 & 추천 의원</span>
+            </h3>
+            <button type="button" class="btn-view-all" onclick="alert('전체 등록 의원 목록을 준비 중입니다.')">전체 보기 ➔</button>
+        </div>
+
+        <div class="clinic-cards-list">
+            <!-- 🌟 자가진피 최웅식의원 (클릭 시 doctormain.html 상세 이동) -->
+            <div class="clinic-item-card" onclick="location.href='doctormain.html'">
+                <div class="clinic-left-info">
+                    <div class="clinic-avatar avatar-pink">✨</div>
+                    <div class="clinic-meta">
+                        <div class="clinic-name-row">
+                            <span class="clinic-name">자가진피 최웅식의원</span>
+                            <span class="badge-verified">인증의원</span>
+                        </div>
+                        <div class="clinic-detail-desc">성형외과 · 피부과 | 자가진피 동안 시술 전문</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-reserve-action btn-reserve-pink" onclick="event.stopPropagation(); location.href='doctormain.html?tab=reserve_inquiry';">
+                    예약하기
+                </button>
+            </div>
+
+            <!-- 예톡 연세내과의원 -->
+            <div class="clinic-item-card" onclick="alert('예톡 연세내과의원 상세 정보로 연결됩니다.')">
+                <div class="clinic-left-info">
+                    <div class="clinic-avatar avatar-blue">🩺</div>
+                    <div class="clinic-meta">
+                        <div class="clinic-name-row">
+                            <span class="clinic-name">예톡 연세내과의원</span>
+                            <span class="badge-verified">단골의원</span>
+                        </div>
+                        <div class="clinic-detail-desc">내과 · 건강검진 | 위·대장 내시경, 만성질환 케어</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-reserve-action" onclick="event.stopPropagation(); alert('예약 접수 창이 열립니다.');">
+                    예약하기
+                </button>
+            </div>
+
+            <!-- 서울튼튼 정형외과의원 -->
+            <div class="clinic-item-card" onclick="alert('서울튼튼 정형외과의원 상세 정보로 연결됩니다.')">
+                <div class="clinic-left-info">
+                    <div class="clinic-avatar avatar-green">🦴</div>
+                    <div class="clinic-meta">
+                        <div class="clinic-name-row">
+                            <span class="clinic-name">서울튼튼 정형외과의원</span>
+                            <span class="badge-verified">단골의원</span>
+                        </div>
+                        <div class="clinic-detail-desc">정형외과 · 통증의학과 | 척추관절, 도수·물리치료</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-reserve-action" onclick="event.stopPropagation(); alert('예약 접수 창이 열립니다.');">
+                    예약하기
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- 6. 주요 예약 항목 (8대 카테고리) -->
+    <section class="content-section">
+        <div class="section-header-row">
+            <h3 class="section-title">
+                <span>📋</span>
+                <span>주요 진료 · 시술 예약 항목</span>
+            </h3>
+        </div>
+
+        <div class="categories-grid">
+            <div class="category-chip-box" onclick="handleTrackClick('beauty')">
+                <div class="cat-icon">💉</div>
+                <div class="cat-title">보톡스/필러</div>
+            </div>
+            <div class="category-chip-box" onclick="handleTrackClick('beauty')">
+                <div class="cat-icon">🧖‍♀️</div>
+                <div class="cat-title">리프팅</div>
+            </div>
+            <div class="category-chip-box" onclick="handleTrackClick('beauty')">
+                <div class="cat-icon">✨</div>
+                <div class="cat-title">레이저/피부</div>
+            </div>
+            <div class="category-chip-box" onclick="handleTrackClick('family')">
+                <div class="cat-icon">🫁</div>
+                <div class="cat-title">내시경검사</div>
+            </div>
+            <div class="category-chip-box" onclick="handleTrackClick('family')">
+                <div class="cat-icon">🖥️</div>
+                <div class="cat-title">초음파검사</div>
+            </div>
+            <div class="category-chip-box" onclick="handleTrackClick('beauty')">
+                <div class="cat-icon">🔬</div>
+                <div class="cat-title">수술/시술</div>
+            </div>
+            <div class="category-chip-box" onclick="handleTrackClick('family')">
+                <div class="cat-icon">📋</div>
+                <div class="cat-title">건강검진</div>
+            </div>
+            <div class="category-chip-box" onclick="handleTrackClick('family')">
+                <div class="cat-icon">🩺</div>
+                <div class="cat-title">만성질환케어</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. 구글 애드몹 공식 슬롯 (320 × 100) -->
+    <div class="clinic-admob-slot">
+        <div style="font-size:10px; font-weight:800; color:#64748b; margin-bottom:2px;">
+            <span style="background:#0284c7; color:#fff; padding:1px 4px; border-radius:3px; font-size:9px;">AD</span>
+            Google AdMob 공식 스폰서 슬롯 (320 × 100)
+        </div>
+        <div class="admob-title-blue">Google AdMob Large Banner</div>
+        <div style="font-size:11px; color:#64748b; margin-top:2px;">대한민국 소상공인 · 병의원 · 교회 공식 지원 스폰서</div>
+    </div>
+</div>
+
+<!-- 8. 최하단 모바일 탭 바 -->
+<nav class="bottom-nav-bar">
+    <button type="button" class="nav-tab-btn active" onclick="location.reload()">
+        <span class="nav-icon">🏠</span>
+        <span>홈</span>
+    </button>
+    <button type="button" class="nav-tab-btn" onclick="openClinicQuickAction('search')">
+        <span class="nav-icon">🔍</span>
+        <span>검색</span>
+    </button>
+    <button type="button" class="nav-tab-btn" onclick="openClinicQuickAction('history')">
+        <span class="nav-icon">📅</span>
+        <span>예약내역</span>
+    </button>
+    <button type="button" class="nav-tab-btn" onclick="openClinicQuickAction('favorite')">
+        <span class="nav-icon">⭐</span>
+        <span>단골의원</span>
+    </button>
+    <button type="button" class="nav-tab-btn" onclick="location.href='index.html'" style="color:#15803d;">
+        <span class="nav-icon">⛪</span>
+        <span>교회홈</span>
+    </button>
+</nav>
+
+<script>
+    // 🌟 [사용자 요청] 몇 초 간격으로 살 바꾸어주는 롤링 히어로 배너 (4.5초 간격)
+    let currentSlideIdx = 0;
+    const totalSlides = 2;
+    let autoSlideTimer = null;
+
+    function goToSlide(idx) {
+        currentSlideIdx = idx;
+        for (let i = 0; i < totalSlides; i++) {
+            const slide = document.getElementById('slide' + i);
+            const dot = document.getElementById('dot' + i);
+            if (slide && dot) {
+                if (i === idx) {
+                    slide.classList.add('active');
+                    dot.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                    dot.classList.remove('active');
+                }
+            }
+        }
+        resetAutoSlideTimer();
+    }
+
+    function nextSlide() {
+        goToSlide((currentSlideIdx + 1) % totalSlides);
+    }
+
+    function resetAutoSlideTimer() {
+        if (autoSlideTimer) clearInterval(autoSlideTimer);
+        autoSlideTimer = setInterval(nextSlide, 4500); // 🌟 4.5초마다 부드럽게 자동 전환
+    }
+
+    // 🌟 트랙 클릭 (미용의원 / 단골의원)
+    function handleTrackClick(track) {
+        if (track === 'beauty') {
+            // 미용 성형 시술 안내 / 최웅식의원 뷰티 상세로 이동
+            location.href = 'doctormain.html?tab=beauty';
+        } else {
+            // 단골의원 검사·수술 예약 안내로 이동
+            location.href = 'doctormain.html?tab=reserve_inquiry';
+        }
+    }
+
+    function openClinicQuickAction(action) {
+        if (action === 'favorite') {
+            alert('⭐ 등록된 나의 단골 의원: [자가진피 최웅식의원]');
+        } else if (action === 'history') {
+            location.href = 'doctormain.html?tab=reserve_check';
+        } else if (action === 'notice') {
+            location.href = 'doctormain.html?tab=notice';
+        } else {
+            location.href = 'doctormain.html';
+        }
+    }
+
+    // 페이지 진입 시 타이머 구동
+    window.addEventListener('DOMContentLoaded', () => {
+        resetAutoSlideTimer();
+    });
+</script>
+
 </body>
 </html>
