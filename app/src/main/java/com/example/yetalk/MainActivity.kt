@@ -557,6 +557,25 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // 🌟 [사용자 요청] 메디게이트 스타일 최신 앱 업데이트 Play 스토어 바로 이동
+        @JavascriptInterface
+        fun openPlayStore(targetPackage: String?) {
+            runOnUiThread {
+                val pkg = if (!targetPackage.isNullOrBlank()) targetPackage else applicationContext.packageName
+                launchInstalledAppOrMarket(pkg)
+            }
+        }
+
+        @JavascriptInterface
+        fun getAppVersion(): String {
+            return try {
+                val pInfo = packageManager.getPackageInfo(packageName, 0)
+                pInfo.versionName ?: "1.1.2"
+            } catch (e: Exception) {
+                "1.1.2"
+            }
+        }
+
         // 🌟 [사용자 요청] 외부 웹사이트(네이버쇼핑 등)를 브라우저 인텐트로 즉시 실행
         @JavascriptInterface
         fun openBrowser(url: String) {

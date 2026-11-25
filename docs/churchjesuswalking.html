@@ -454,11 +454,12 @@
 
         .medigate-comment-write-box {
             background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 4px 6px;
+            border: none;
+            border-bottom: 1.5px solid #0284c7;
+            border-radius: 8px;
+            padding: 8px 12px;
             margin-bottom: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            box-shadow: none;
         }
 
         .medigate-comment-write-inner {
@@ -506,13 +507,15 @@
         }
 
         .post-comment-item {
-            background: #f8fafc;
-            border: 1px solid #f1f5f9;
-            border-radius: 10px;
-            padding: 10px 12px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid #f1f5f9;
+            border-radius: 0;
+            padding: 12px 2px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 5px;
+            box-shadow: none;
         }
 
         .comment-header-row {
@@ -1457,19 +1460,198 @@
             return;
         }
 
-        listEl.innerHTML = comments.map(c => `
+        listEl.innerHTML = comments.map((c, idx) => {
+            const commentId = c.id || ('c_' + idx);
+            c.id = commentId;
+            const replies = Array.isArray(c.replies) ? c.replies : [];
+
+            const repliesHtml = replies.map((r, rIdx) => {
+                const replyId = r.id || ('rp_' + rIdx);
+                r.id = replyId;
+                return `
+                <div style="margin-left:18px; margin-top:6px; padding:6px 0 6px 10px; border-left:2px solid #e2e8f0; display:flex; flex-direction:column; gap:2px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <strong style="font-size:12px; color:#0284c7; font-weight:800;">↳ 👤 ${escapeHtml(r.author || '교우')}</strong>
+                            <span style="font-size:10.5px; color:#94a3b8;">${escapeHtml(r.date || '방금 전')}</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <button type="button" onclick="editJesusReply('${commentId}', '${replyId}')" style="color:#64748b; background:none; border:none; cursor:pointer; font-size:11px; font-weight:700; padding:0 2px;">수정</button>
+                            <button type="button" onclick="deleteJesusReply('${commentId}', '${replyId}')" style="color:#ef4444; background:none; border:none; cursor:pointer; font-size:11px; font-weight:700; padding:0 2px;">삭제</button>
+                        </div>
+                    </div>
+                    <div style="font-size:13px; color:#334155; line-height:1.5; word-break:break-word;">${escapeHtml(r.text || '')}</div>
+                </div>
+                `;
+            }).join('');
+
+            return `
             <div class="post-comment-item">
-                <div class="comment-header-row">
-                    <span class="comment-author-name">${escapeHtml(c.author || '성도')}</span>
-                    <div style="display:flex; align-items:center; gap:6px;">
+                <div class="comment-header-row" style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="comment-author-name">👤 ${escapeHtml(c.author || '성도')}</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
                         <span class="comment-time-text">${escapeHtml(c.date || '방금 전')}</span>
-                        <button type="button" onclick="deleteJesusComment('${c.id}')" style="background:none; border:none; color:#cbd5e1; font-size:12px; cursor:pointer;" title="댓글 삭제">✕</button>
+                        <button type="button" onclick="editJesusComment('${commentId}')" style="color:#64748b; background:none; border:none; cursor:pointer; font-size:11.5px; font-weight:700; padding:0 2px;">수정</button>
+                        <button type="button" onclick="deleteJesusComment('${commentId}')" style="color:#ef4444; background:none; border:none; cursor:pointer; font-size:11.5px; font-weight:700; padding:0 2px;">삭제</button>
                     </div>
                 </div>
                 ${c.img ? `<div style="margin:4px 0;"><img src="${c.img}" style="max-height:160px; border-radius:8px; display:block;"></div>` : ''}
                 <div class="comment-body-text">${escapeHtml(c.text || '')}</div>
+
+                <div style="display:flex; align-items:center; gap:12px; margin-top:4px;">
+                    <button type="button" onclick="toggleJesusReplyBox('${commentId}')" style="background:none; border:none; color:#0284c7; font-size:12px; font-weight:750; cursor:pointer; display:inline-flex; align-items:center; gap:3px; padding:0;">
+                        💬 댓글쓰기
+                    </button>
+                </div>
+
+                <div id="replyBox_${commentId}" style="display:none; margin:8px 0 6px 18px; border-bottom:1.5px solid #0284c7; padding:4px 0; align-items:center; gap:6px;">
+                    <input type="text" id="inpReply_${commentId}" placeholder="답글을 남겨주세요..." style="flex:1; border:none; background:transparent; font-size:12.5px; outline:none; color:#0f172a; padding:4px 0;" onkeydown="if(event.key==='Enter') submitJesusReply('${commentId}')" />
+                    <button type="button" onclick="toggleJesusReplyBox('${commentId}')" style="background:none; border:none; color:#94a3b8; font-size:11.5px; cursor:pointer;">취소</button>
+                    <button type="button" onclick="submitJesusReply('${commentId}')" style="background:#0284c7; color:#fff; border:none; border-radius:5px; font-size:11.5px; font-weight:800; padding:3px 8px; cursor:pointer;">등록</button>
+                </div>
+
+                ${repliesHtml}
             </div>
-        `).join("");
+            `;
+        }).join("");
+    }
+
+    function toggleJesusReplyBox(commentId) {
+        const box = document.getElementById('replyBox_' + commentId);
+        if (!box) return;
+        const isHidden = (box.style.display === 'none' || !box.style.display);
+        box.style.display = isHidden ? 'flex' : 'none';
+        if (isHidden) {
+            const inp = document.getElementById('inpReply_' + commentId);
+            if (inp) inp.focus();
+        }
+    }
+
+    function submitJesusReply(commentId) {
+        if (!currentViewingPost) return;
+        const inp = document.getElementById('inpReply_' + commentId);
+        if (!inp) return;
+        const text = inp.value.trim();
+        if (!text) return;
+
+        const myName = localStorage.getItem("yetalkUserName") || "은혜성도";
+        const newReply = {
+            id: 'rp_' + Date.now(),
+            author: myName,
+            text: text,
+            date: '방금 전'
+        };
+
+        if (currentViewingPost.isMain) {
+            let list = [];
+            try { list = JSON.parse(localStorage.getItem(STORAGE_KEY_COMMENTS)) || []; } catch(e){}
+            const c = list.find(x => x.id === commentId);
+            if (c) {
+                if (!Array.isArray(c.replies)) c.replies = [];
+                c.replies.push(newReply);
+                localStorage.setItem(STORAGE_KEY_COMMENTS, JSON.stringify(list));
+            }
+        } else {
+            const c = (currentViewingPost.comments || []).find(x => x.id === commentId);
+            if (c) {
+                if (!Array.isArray(c.replies)) c.replies = [];
+                c.replies.push(newReply);
+                const idx = postList.findIndex(p => p.id === currentViewingPost.id);
+                if (idx >= 0) {
+                    postList[idx].comments = currentViewingPost.comments;
+                    localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(postList));
+                }
+            }
+        }
+
+        inp.value = '';
+        toggleJesusReplyBox(commentId);
+        renderJesusComments();
+    }
+
+    function editJesusComment(commentId) {
+        if (!currentViewingPost) return;
+        if (currentViewingPost.isMain) {
+            let list = [];
+            try { list = JSON.parse(localStorage.getItem(STORAGE_KEY_COMMENTS)) || []; } catch(e){}
+            const c = list.find(x => x.id === commentId);
+            if (!c) return;
+            const newText = prompt("댓글 내용을 수정하세요:", c.text || "");
+            if (newText !== null && newText.trim() !== "") {
+                c.text = newText.trim();
+                localStorage.setItem(STORAGE_KEY_COMMENTS, JSON.stringify(list));
+                renderJesusComments();
+            }
+        } else {
+            const c = (currentViewingPost.comments || []).find(x => x.id === commentId);
+            if (!c) return;
+            const newText = prompt("댓글 내용을 수정하세요:", c.text || "");
+            if (newText !== null && newText.trim() !== "") {
+                c.text = newText.trim();
+                const idx = postList.findIndex(p => p.id === currentViewingPost.id);
+                if (idx >= 0) {
+                    postList[idx].comments = currentViewingPost.comments;
+                    localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(postList));
+                }
+                renderJesusComments();
+            }
+        }
+    }
+
+    function editJesusReply(commentId, replyId) {
+        if (!currentViewingPost) return;
+        if (currentViewingPost.isMain) {
+            let list = [];
+            try { list = JSON.parse(localStorage.getItem(STORAGE_KEY_COMMENTS)) || []; } catch(e){}
+            const c = list.find(x => x.id === commentId);
+            if (!c || !Array.isArray(c.replies)) return;
+            const r = c.replies.find(x => x.id === replyId);
+            if (!r) return;
+            const newText = prompt("답글 내용을 수정하세요:", r.text || "");
+            if (newText !== null && newText.trim() !== "") {
+                r.text = newText.trim();
+                localStorage.setItem(STORAGE_KEY_COMMENTS, JSON.stringify(list));
+                renderJesusComments();
+            }
+        } else {
+            const c = (currentViewingPost.comments || []).find(x => x.id === commentId);
+            if (!c || !Array.isArray(c.replies)) return;
+            const r = c.replies.find(x => x.id === replyId);
+            if (!r) return;
+            const newText = prompt("답글 내용을 수정하세요:", r.text || "");
+            if (newText !== null && newText.trim() !== "") {
+                r.text = newText.trim();
+                const idx = postList.findIndex(p => p.id === currentViewingPost.id);
+                if (idx >= 0) {
+                    postList[idx].comments = currentViewingPost.comments;
+                    localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(postList));
+                }
+                renderJesusComments();
+            }
+        }
+    }
+
+    function deleteJesusReply(commentId, replyId) {
+        if (!confirm("답글을 삭제하시겠습니까?")) return;
+        if (!currentViewingPost) return;
+        if (currentViewingPost.isMain) {
+            let list = [];
+            try { list = JSON.parse(localStorage.getItem(STORAGE_KEY_COMMENTS)) || []; } catch(e){}
+            const c = list.find(x => x.id === commentId);
+            if (!c || !Array.isArray(c.replies)) return;
+            c.replies = c.replies.filter(x => x.id !== replyId);
+            localStorage.setItem(STORAGE_KEY_COMMENTS, JSON.stringify(list));
+        } else {
+            const c = (currentViewingPost.comments || []).find(x => x.id === commentId);
+            if (!c || !Array.isArray(c.replies)) return;
+            c.replies = c.replies.filter(x => x.id !== replyId);
+            const idx = postList.findIndex(p => p.id === currentViewingPost.id);
+            if (idx >= 0) {
+                postList[idx].comments = currentViewingPost.comments;
+                localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(postList));
+            }
+        }
+        renderJesusComments();
     }
 
     // 🌟 댓글 등록

@@ -22520,5 +22520,100 @@ https://woongskorea.github.io/Yetalk-backup/`;
 
         </div>
     </div>
+
+    <!-- 🌟 [사용자 요청] 메디게이트 스타일 최신 버전 업데이트 안내 모달 -->
+    <div id="modalMedigateAppUpdate" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:99999999; align-items:center; justify-content:center; padding:24px; box-sizing:border-box;">
+        <div style="background:#ffffff; border-radius:22px; width:100%; max-width:320px; padding:26px 24px 20px 24px; box-shadow:0 12px 36px rgba(0,0,0,0.25); animation:popIn 0.2s ease-out; box-sizing:border-box;">
+            <h3 style="margin:0 0 12px 0; font-size:18.5px; font-weight:850; color:#0f172a; line-height:1.35; letter-spacing:-0.3px;">
+                새로운 버전이 업데이트 되었어요!
+            </h3>
+            <p style="margin:0 0 24px 0; font-size:14px; font-weight:550; color:#475569; line-height:1.55; letter-spacing:-0.2px;">
+                안정적인 서비스 이용을 위해 최신 버전으로 업데이트가 꼭 필요해요.
+            </p>
+            <div style="display:flex; justify-content:flex-end; align-items:center;">
+                <button type="button" onclick="goToPlayStoreUpdate()" style="background:none; border:none; color:#0284c7; font-size:15.5px; font-weight:850; cursor:pointer; padding:6px 10px; border-radius:8px;">
+                    업데이트
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // 🌟 [사용자 요청] 메디게이트 스타일 앱 업데이트 확인 및 플레이스토어 바로가기
+    const YETALK_CURRENT_APP_VERSION = "1.1.2";
+
+    function showMedigateUpdateModal(show = true) {
+        const modal = document.getElementById("modalMedigateAppUpdate");
+        if (modal) {
+            modal.style.display = show ? "flex" : "none";
+        }
+    }
+
+    function goToPlayStoreUpdate() {
+        const pkg = "com.yetalk.app";
+        if (window.AndroidBridge && typeof window.AndroidBridge.openPlayStore === "function") {
+            window.AndroidBridge.openPlayStore(pkg);
+        } else if (window.AndroidBridge && typeof window.AndroidBridge.openBrowser === "function") {
+            window.AndroidBridge.openBrowser("market://details?id=" + pkg);
+        } else {
+            try {
+                window.location.href = "market://details?id=" + pkg;
+            } catch(e) {
+                window.open("https://play.google.com/store/apps/details?id=" + pkg, "_blank");
+            }
+        }
+    }
+
+    function compareAppVersions(v1, v2) {
+        if (!v1 || !v2) return 0;
+        const p1 = v1.replace(/[^0-9.]/g, '').split('.').map(Number);
+        const p2 = v2.replace(/[^0-9.]/g, '').split('.').map(Number);
+        const len = Math.max(p1.length, p2.length);
+        for (let i = 0; i < len; i++) {
+            const num1 = p1[i] || 0;
+            const num2 = p2[i] || 0;
+            if (num1 < num2) return -1;
+            if (num1 > num2) return 1;
+        }
+        return 0;
+    }
+
+    function checkMedigateAppUpdate() {
+        const curVer = (window.AndroidBridge && typeof window.AndroidBridge.getAppVersion === 'function')
+            ? window.AndroidBridge.getAppVersion()
+            : YETALK_CURRENT_APP_VERSION;
+
+        // URL 파라미터로 ?update=1 또는 ?update_test=1 테스트 지원
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('update') === '1' || urlParams.get('update_test') === '1') {
+                showMedigateUpdateModal(true);
+                return;
+            }
+        } catch(e) {}
+
+        // Firestore 클라우드 버전 체크
+        try {
+            if (window._firebaseDb && window._firebaseDoc && window._firebaseGetDoc) {
+                const vRef = window._firebaseDoc(window._firebaseDb, "app_config", "version");
+                window._firebaseGetDoc(vRef).then(snap => {
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        const latest = data.latestVersion || data.version;
+                        if (latest && compareAppVersions(curVer, latest) < 0) {
+                            showMedigateUpdateModal(true);
+                        }
+                    }
+                }).catch(err => console.log("Update check note:", err));
+            }
+        } catch(e) {}
+    }
+
+    window.showMedigateUpdateModal = showMedigateUpdateModal;
+    window.goToPlayStoreUpdate = goToPlayStoreUpdate;
+    window.checkMedigateAppUpdate = checkMedigateAppUpdate;
+
+    setTimeout(checkMedigateAppUpdate, 1500);
+    </script>
 </body>
 </html>
