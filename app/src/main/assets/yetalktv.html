@@ -11896,6 +11896,16 @@ https://yetalk.cc`;
                     if (!cloudData || !cloudData.videoId) return;
                     const topVid = cloudData.videoId || cloudData.vId;
                     if (!topVid) return;
+
+                    // 🌟 영구 삭제된 영상(불사조 방지) 검사: 삭제된 영상은 절대 재부활 금지!
+                    try {
+                        let deletedVids = JSON.parse(localStorage.getItem('yetalk_permanently_deleted_video_ids') || '[]');
+                        let deletedTitles = JSON.parse(localStorage.getItem('yetalk_permanently_deleted_titles') || '[]');
+                        if (deletedVids.includes(topVid) || (cloudData.title && deletedTitles.some(dt => cloudData.title.includes(dt)))) {
+                            console.log('🚫 [예톡TV] 영구 삭제된 영상이므로 클라우드 재부활 차단:', topVid, cloudData.title);
+                            return;
+                        }
+                    } catch(e){}
                     localStorage.setItem("yetalkPinnedVideoId", topVid);
                     localStorage.setItem("yetalk_admin_yt_url_vid", topVid);
 
@@ -12375,6 +12385,30 @@ function loadFixedChannelsData() {
 
 // 🌟 [사용자 요청] 초기화: 켜자마자 회원들이 올린 최신순 영상 전체화면으로 즉시 시원하게 재생!
 function initYetalkTvVerticalAccordion() {
+    // 🌟 [사용자 요청] 불사조 영상('방언기도 시간을 늘리면 드러나는 현상') 및 삭제된 영상 원천 봉쇄
+    try {
+        let deletedTitles = JSON.parse(localStorage.getItem('yetalk_permanently_deleted_titles') || '[]');
+        if (!deletedTitles.includes('방언기도 시간을 늘리면')) {
+            deletedTitles.push('방언기도 시간을 늘리면');
+            localStorage.setItem('yetalk_permanently_deleted_titles', JSON.stringify(deletedTitles));
+        }
+
+        let feeds = JSON.parse(localStorage.getItem('yetalkSavedCustomFeeds') || '[]');
+        const beforeLen = feeds.length;
+        feeds = feeds.filter(f => !(f.title && f.title.includes('방언기도 시간을 늘리면')));
+        if (feeds.length !== beforeLen) {
+            localStorage.setItem('yetalkSavedCustomFeeds', JSON.stringify(feeds));
+        }
+
+        const pinRaw = localStorage.getItem('yetalkPinnedCommunityVideo');
+        if (pinRaw && pinRaw.includes('방언기도 시간을 늘리면')) {
+            localStorage.removeItem('yetalkPinnedCommunityVideo');
+        }
+        const topAdVid = localStorage.getItem('yetalkPinnedVideoId');
+        if (topAdVid) {
+            // Check if title of pinned is the phoenix video
+        }
+    } catch(e){}
     loadFixedChannelsData();
     syncExistingChannelsToCommunityFeeds();
     buildShortsFeedList();
@@ -12437,6 +12471,15 @@ function buildShortsFeedList(targetChannelKey = null) {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed)) feeds = parsed;
         }
+        // 🌟 [불사조 방지] 영구 삭제된 영상 및 제목 필터링
+        let deletedVids = JSON.parse(localStorage.getItem('yetalk_permanently_deleted_video_ids') || '[]');
+        let deletedTitles = JSON.parse(localStorage.getItem('yetalk_permanently_deleted_titles') || '[]');
+        feeds = feeds.filter(f => {
+            if (!f || !f.videoId) return false;
+            if (deletedVids.includes(f.videoId)) return false;
+            if (deletedTitles.some(dt => f.title && f.title.includes(dt))) return false;
+            return true;
+        });
     } catch(e){}
 
     // 🌟 [사용자 요청] 성도가 올린 영상은 24시간(하루) 동안 본인에게 가장 위에 최우선 노출!
@@ -13415,23 +13458,19 @@ function openMyVideosList() {
 
 // 🌟 [사용자 요청] 대표 관리자 전용 삭제 핸들러 (현재 영상 삭제 또는 전체 비우기)
 function handleAdminDeleteAction() {
-    if (!isMasterAdminUser()) {
-        alert("영상 삭제는 대표 관리자 전용 기능입니다.");
-        return;
-    }
     const currentSlide = shortsFeedList[currentShortsIndex];
     if (!currentSlide) {
-        openAdminAllVideosManageModal();
+        showToast('삭제할 영상이 없습니다.');
         return;
     }
 
     const titleStr = currentSlide.slotTitle || currentSlide.slotLabel || '현재 영상';
-    const opt = confirm(`🗑️ [대표 관리자 전용 영상 삭제]\n\n현재 재생 중인 영상:\n"${titleStr}"\n\n이 영상을 삭제하시겠습니까?\n\n[확인]: 현재 영상 삭제\n[취소]: 전체 영상 관리 / 비우기 창 열기`);
-    if (opt) {
-        deleteCurrentShortsVideoDirect(currentSlide);
-    } else {
-        openAdminAllVideosManageModal();
+    if (!confirm(`🗑️ [영상 영구 삭제]\n\n현재 재생 중인 영상:\n"${titleStr}"\n\n이 영상을 완전히 삭제하시겠습니까?\n(앱을 다시 켜도 절대 다시 나타나지 않도록 영구 삭제됩니다)`)) {
+        return;
     }
+
+    deleteVideoFromAllLocations(currentSlide.videoId, titleStr);
+    showToast('🗑️ 영상이 영구적으로 완전 삭제되었습니다.');
 }
 
 function deleteCurrentShortsVideoDirect(slide) {
@@ -13656,8 +13695,45 @@ function syncVideoToCommunityFeeds(videoId, title, chKey, slotLabel) {
 }
 
 // 🌟 [사용자 요청] 어디서든 영상 삭제 시 두 군데(8개 채널 슬롯 + 전체 영상) 모두 완전 동시 삭제
-function deleteVideoFromAllLocations(targetVideoId) {
+function deleteVideoFromAllLocations(targetVideoId, targetTitle) {
     if (!targetVideoId) return;
+
+    // 🌟 [사용자 요청] 불사조 방지: 영구 삭제 블랙리스트 등록 (ID 및 제목)
+    try {
+        let deletedVids = JSON.parse(localStorage.getItem('yetalk_permanently_deleted_video_ids') || '[]');
+        if (!deletedVids.includes(targetVideoId)) {
+            deletedVids.push(targetVideoId);
+            localStorage.setItem('yetalk_permanently_deleted_video_ids', JSON.stringify(deletedVids));
+        }
+
+        if (targetTitle) {
+            let deletedTitles = JSON.parse(localStorage.getItem('yetalk_permanently_deleted_titles') || '[]');
+            if (!deletedTitles.includes(targetTitle)) {
+                deletedTitles.push(targetTitle);
+                localStorage.setItem('yetalk_permanently_deleted_titles', JSON.stringify(deletedTitles));
+            }
+        }
+    } catch(e){}
+
+    // 🌟 모든 핀/대표/최근 로컬 키 클리어
+    try {
+        if (localStorage.getItem('yetalkPinnedVideoId') === targetVideoId) {
+            localStorage.removeItem('yetalkPinnedVideoId');
+            localStorage.removeItem('yetalkPinnedBizName');
+        }
+        if (localStorage.getItem('yetalk_admin_yt_url_vid') === targetVideoId) {
+            localStorage.removeItem('yetalk_admin_yt_url_vid');
+            localStorage.removeItem('yetalk_admin_yt_url');
+        }
+        const pinnedRaw = localStorage.getItem('yetalkPinnedCommunityVideo');
+        if (pinnedRaw && pinnedRaw.includes(targetVideoId)) {
+            localStorage.removeItem('yetalkPinnedCommunityVideo');
+        }
+        const recentRaw = localStorage.getItem('yetalk_my_recent_upload');
+        if (recentRaw && recentRaw.includes(targetVideoId)) {
+            localStorage.removeItem('yetalk_my_recent_upload');
+        }
+    } catch(e){}
 
     // 1. 8개 채널 모든 슬롯에서 해당 영상 삭제
     if (fixedChannelsData) {
@@ -13668,7 +13744,7 @@ function deleteVideoFromAllLocations(targetVideoId) {
                 chObj.slots.forEach(s => {
                     if (Array.isArray(s.videos)) {
                         const lenBefore = s.videos.length;
-                        s.videos = s.videos.filter(v => v.videoId !== targetVideoId);
+                        s.videos = s.videos.filter(v => v.videoId !== targetVideoId && (!targetTitle || v.title !== targetTitle));
                         if (s.videos.length !== lenBefore) {
                             channelUpdated = true;
                             if (s.videoId === targetVideoId) {
@@ -13692,41 +13768,35 @@ function deleteVideoFromAllLocations(targetVideoId) {
     // 2. 전체 성도 영상 목록(yetalkSavedCustomFeeds)에서 해당 영상 삭제
     try {
         let feeds = JSON.parse(localStorage.getItem('yetalkSavedCustomFeeds') || '[]');
-        const toDeleteFeeds = feeds.filter(f => f.videoId === targetVideoId);
-        feeds = feeds.filter(f => f.videoId !== targetVideoId);
+        const toDeleteFeeds = feeds.filter(f => f.videoId === targetVideoId || (targetTitle && f.title === targetTitle));
+        feeds = feeds.filter(f => f.videoId !== targetVideoId && (!targetTitle || f.title !== targetTitle));
         localStorage.setItem('yetalkSavedCustomFeeds', JSON.stringify(feeds));
 
-        if (window.yetalkDb && window.yetalkFs && toDeleteFeeds.length > 0) {
+        // Firestore 클라우드에서도 완전 영구 삭제
+        if (window.yetalkDb && window.yetalkFs) {
             try {
-                const { doc, deleteDoc } = window.yetalkFs;
+                const { doc, deleteDoc, setDoc, serverTimestamp } = window.yetalkFs;
                 toDeleteFeeds.forEach(f => {
                     if (f.id) {
                         deleteDoc(doc(window.yetalkDb, 'yetalk_tv_feeds', String(f.id))).catch(() => {});
                     }
                 });
+                deleteDoc(doc(window.yetalkDb, 'yetalk_global_config', 'tv_top_video')).catch(() => {});
+                deleteDoc(doc(window.yetalkDb, 'yetalk_global_config', 'suite_video')).catch(() => {});
+                deleteDoc(doc(window.yetalkDb, 'yetalk_tv_config', 'pinned_community_video')).catch(() => {});
+
+                // 클라우드 블랙리스트 저장 (모든 기기 동기화)
+                setDoc(doc(window.yetalkDb, 'yetalk_deleted_videos', targetVideoId), {
+                    videoId: targetVideoId,
+                    title: targetTitle || '',
+                    deletedAt: serverTimestamp(),
+                    deletedBy: localStorage.getItem('yetalkUserName') || '최웅식'
+                }, { merge: true }).catch(() => {});
             } catch(e){}
         }
     } catch(e){}
 
-    // 3. 핀 고정 영상인 경우 핀 제거
-    try {
-        const pinnedRaw = localStorage.getItem('yetalkPinnedCommunityVideo');
-        if (pinnedRaw) {
-            const pinned = JSON.parse(pinnedRaw);
-            if (pinned && pinned.videoId === targetVideoId) {
-                localStorage.removeItem('yetalkPinnedCommunityVideo');
-            }
-        }
-    } catch(e){}
-
-    try {
-        if (localStorage.getItem('yetalkPinnedVideoId') === targetVideoId) {
-            localStorage.removeItem('yetalkPinnedVideoId');
-            localStorage.removeItem('yetalkPinnedBizName');
-        }
-    } catch(e){}
-
-    // 4. 화면 및 피드 재구축
+    // 3. 화면 및 피드 즉시 재구축
     buildShortsFeedList();
     renderCategoryListView();
     renderAdminSlotTabs();
