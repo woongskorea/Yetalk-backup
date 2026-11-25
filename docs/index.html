@@ -5404,7 +5404,7 @@
             text-shadow: 0 1px 4px rgba(0,0,0,0.85);
         }
         /* 🌟 [사용자 요청] 대형 화이트/레드 하트 은혜 FX
-           아랫배(76%)에서 머리 위(10%)로 상승 ➔ 연한 붉은색으로 변화 ➔ 가슴 중앙(56%)으로 내려와 안착 후 메인 복귀 */
+           아랫배(76%)에서 머리 위(10%)로 상승 ➔ 연한 붉은색으로 변화 ➔ 가슴 중앙(65%)으로 내려와 3단계 확대 후 1초 더 머무르고 메인 복귀 */
         .white-heart-rising-box {
             position: absolute;
             left: 50%;
@@ -5419,21 +5419,27 @@
             top: 10%;
             transform: translateX(-50%) scale(1.05);
         }
-        /* 2단계: 가슴 중앙으로 서서히 내려옴 */
+        /* 2단계: 가슴 중앙(65%)으로 내려와 안착 (3단계 확대 중 1단계: 기본 scale 1.0) */
         .white-heart-rising-box.stage-descend-chest {
-            top: 56%;
-            transform: translateX(-50%) scale(1.1);
-            transition: top 2.2s cubic-bezier(0.35, 0, 0.25, 1), transform 2.2s ease;
+            top: 65%;
+            transform: translateX(-50%) scale(1.0);
+            transition: top 2.2s cubic-bezier(0.35, 0, 0.25, 1), transform 0.6s ease;
         }
-        /* 3단계: 가슴 중앙에서 따뜻하게 안착 & 은은한 생명의 박동 */
-        .white-heart-rising-box.stage-chest-pulse {
-            top: 56%;
-            animation: chestGraceHeartbeat 1.3s ease-in-out infinite alternate;
+        /* 3단계 확대 중 2단계: 1차 확대 (scale 1.16, 광채 확장) */
+        .white-heart-rising-box.stage-grow-step2 {
+            top: 65%;
+            transform: translateX(-50%) scale(1.16);
+            transition: transform 0.75s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
-        @keyframes chestGraceHeartbeat {
-            0% { transform: translateX(-50%) scale(1.06); }
-            50% { transform: translateX(-50%) scale(1.16); }
-            100% { transform: translateX(-50%) scale(1.10); }
+        /* 3단계 확대 중 3단계: 2차 확대 (scale 1.30, 극대화된 성령의 광채 & 생명의 박동) */
+        .white-heart-rising-box.stage-grow-step3 {
+            top: 65%;
+            animation: chestGraceHeartbeat3 1.3s ease-in-out infinite alternate;
+        }
+        @keyframes chestGraceHeartbeat3 {
+            0% { transform: translateX(-50%) scale(1.26); }
+            50% { transform: translateX(-50%) scale(1.36); }
+            100% { transform: translateX(-50%) scale(1.30); }
         }
 
         .white-heart-svg {
@@ -5453,6 +5459,12 @@
             fill: #dc2626;
             filter: drop-shadow(0 0 22px rgba(220,38,38,1)) drop-shadow(0 0 45px rgba(239,68,68,0.9)) drop-shadow(0 0 75px rgba(220,38,38,0.7));
             transition: fill 1.8s ease, filter 1.8s ease;
+        }
+        /* 3단계 확대 시 눈부신 성령의 광채 극대화 */
+        .white-heart-svg.color-radiant-red {
+            fill: #dc2626;
+            filter: drop-shadow(0 0 30px rgba(220,38,38,1)) drop-shadow(0 0 60px rgba(239,68,68,1)) drop-shadow(0 0 95px rgba(220,38,38,0.85));
+            transition: filter 0.8s ease;
         }
     </style>
 </head>
@@ -14687,7 +14699,7 @@ const BIBLICAL_TIME_SLOTS = [
                 if (svg) svg.classList.add("color-pale-red");
             }, 2450));
 
-            // 3단계 (3550ms): 점점 짙고 붉은 하트가 나의 가슴 중앙으로 천천히 내려옴 (약 2.2초 소요)
+            // 3단계 (3550ms): 점점 짙고 붉은 하트가 나의 가슴 중앙(65%)으로 천천히 내려옴 (약 2.2초 소요)
             whiteHeartTimers.push(setTimeout(() => {
                 const box = document.getElementById("whiteHeartRisingBox");
                 const svg = document.getElementById("whiteHeartSvgElem");
@@ -14701,18 +14713,35 @@ const BIBLICAL_TIME_SLOTS = [
                 }
             }, 3550));
 
-            // 4단계 (5800ms): 나의 가슴 중앙에 안착하여 따뜻한 생명의 박동 감돌기
+            // 4단계-A (5800ms): 가슴 중앙 안착 완료 (3단계 확대 중 1단계: 기본 scale 1.0)
+            // (stage-descend-chest 상태 유지)
+
+            // 4단계-B (6550ms): 하트 3단계 확대 중 2단계 (1차 확대: scale 1.16 & 광채 증가)
             whiteHeartTimers.push(setTimeout(() => {
                 const box = document.getElementById("whiteHeartRisingBox");
                 if (box) {
-                    box.classList.add("stage-chest-pulse");
+                    box.classList.remove("stage-descend-chest");
+                    box.classList.add("stage-grow-step2");
                 }
-            }, 5800));
+            }, 6550));
 
-            // 5단계 (7200ms): 가슴 중앙에 완전히 머문 후, 부드럽게 메인 화면으로 복귀
+            // 4단계-C (7450ms): 하트 3단계 확대 중 3단계 (2차 확대: scale 1.30 & 눈부신 성령의 광채 & 생명의 박동)
+            whiteHeartTimers.push(setTimeout(() => {
+                const box = document.getElementById("whiteHeartRisingBox");
+                const svg = document.getElementById("whiteHeartSvgElem");
+                if (box) {
+                    box.classList.remove("stage-grow-step2");
+                    box.classList.add("stage-grow-step3");
+                }
+                if (svg) {
+                    svg.classList.add("color-radiant-red");
+                }
+            }, 7450));
+
+            // 5단계 (8800ms): 가슴 중앙에서 약 1.3초 더 충만하게 머문 후, 부드럽게 메인 화면으로 복귀
             whiteHeartTimers.push(setTimeout(() => {
                 closeWhiteHeartModal();
-            }, 7200));
+            }, 8800));
         });
     }
 
