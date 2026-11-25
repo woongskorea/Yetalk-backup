@@ -9546,7 +9546,7 @@
     }
 
     function deleteUploadedVideoItem(feedId) {
-        if (!confirm("이 영상을 삭제하시겠습니까?")) return;
+        if (!confirm("이 영상을 완전히 삭제하시겠습니까?\n(8개 채널 슬롯 및 전체 성도 영상 목록 두 군데서 모두 삭제됩니다)")) return;
 
         let customFeeds = [];
         try {
@@ -9554,18 +9554,14 @@
         } catch(e) { customFeeds = []; }
 
         const targetFeed = customFeeds.find(f => String(f.id) === String(feedId));
-        customFeeds = customFeeds.filter(f => String(f.id) !== String(feedId));
-        localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(customFeeds));
+        const targetVideoId = targetFeed ? targetFeed.videoId : null;
 
-        if (targetFeed && localStorage.getItem("yetalkPinnedVideoId") === targetFeed.videoId) {
-            localStorage.removeItem("yetalkPinnedVideoId");
-            localStorage.removeItem("yetalkPinnedBizName");
-        }
-
-        let hiddenIds = JSON.parse(localStorage.getItem("yetalkHiddenFeedIds") || "[]");
-        if (!hiddenIds.includes(feedId)) {
-            hiddenIds.push(feedId);
-            localStorage.setItem("yetalkHiddenFeedIds", JSON.stringify(hiddenIds));
+        if (targetVideoId) {
+            // 🌟 [사용자 요청] 어디서든 영상 삭제 시 두 군데(슬롯 + 전체 영상) 모두 완전 삭제!
+            deleteVideoFromAllLocations(targetVideoId);
+        } else {
+            customFeeds = customFeeds.filter(f => String(f.id) !== String(feedId));
+            localStorage.setItem("yetalkSavedCustomFeeds", JSON.stringify(customFeeds));
         }
 
         if (ytPlayerMap[feedId]) {
@@ -9578,9 +9574,8 @@
             delete ytPlayerMap[feedId];
         }
 
-        showToast("🗑️ 영상이 삭제되었습니다.");
         renderMyUploadedVideosList();
-        resetToFirstHomeScreen(true);
+        showToast("🗑️ 영상이 두 군데(슬롯 및 전체 영상)에서 모두 삭제되었습니다.");
     }
 
     function openInviteModal() { openModal('inviteModal'); }
@@ -12381,6 +12376,7 @@ function loadFixedChannelsData() {
 // 🌟 [사용자 요청] 초기화: 켜자마자 회원들이 올린 최신순 영상 전체화면으로 즉시 시원하게 재생!
 function initYetalkTvVerticalAccordion() {
     loadFixedChannelsData();
+    syncExistingChannelsToCommunityFeeds();
     buildShortsFeedList();
     setupShortsFeedScrollListener();
     setShortsMode(0); // 🌟 켜자마자 바로 시원한 영상 전체화면 재생!
@@ -13439,34 +13435,11 @@ function handleAdminDeleteAction() {
 }
 
 function deleteCurrentShortsVideoDirect(slide) {
-    if (!slide) return;
+    if (!slide || !slide.videoId) return;
     try {
-        let feeds = JSON.parse(localStorage.getItem('yetalkSavedCustomFeeds') || '[]');
-        feeds = feeds.filter(f => f.videoId !== slide.videoId);
-        localStorage.setItem('yetalkSavedCustomFeeds', JSON.stringify(feeds));
-
-        const pinnedRaw = localStorage.getItem('yetalkPinnedCommunityVideo');
-        if (pinnedRaw) {
-            try {
-                const pinned = JSON.parse(pinnedRaw);
-                if (pinned.videoId === slide.videoId) {
-                    localStorage.removeItem('yetalkPinnedCommunityVideo');
-                }
-            } catch(e){}
-        }
-
-        if (window.yetalkDb && window.yetalkFs && slide.feedData && slide.feedData.id) {
-            try {
-                const { doc, deleteDoc } = window.yetalkFs;
-                deleteDoc(doc(window.yetalkDb, 'yetalk_tv_feeds', String(slide.feedData.id))).catch(() => {});
-            } catch(e){}
-        }
-
-        alert("영상이 성공적으로 삭제되었습니다.");
-        buildShortsFeedList();
-        renderShortsSlides();
-        if (currentShortsIndex >= shortsFeedList.length) currentShortsIndex = Math.max(0, shortsFeedList.length - 1);
-        jumpToShortsSlide(currentShortsIndex);
+        // 🌟 [사용자 요청] 어디서든 영상 삭제 시 두 군데(슬롯 + 전체 영상) 모두 완전 삭제!
+        deleteVideoFromAllLocations(slide.videoId);
+        alert("영상이 두 군데(슬롯 및 전체 영상)에서 모두 성공적으로 삭제되었습니다.");
     } catch(e) {
         alert("삭제 처리 중 오류가 발생했습니다: " + e.message);
     }
@@ -13623,6 +13596,205 @@ function updateAdminSlotVideoOrderUI() {
             saveText.innerText = `🚀 [${slotLabel}] ${currentAdminSlotVideoOrder + 1}번 영상으로 저장하기`;
         }
     }
+}
+
+
+// 🌟 [사용자 요청] 8개 채널 슬롯 영상 <-> 전체 영상(성도 영상) 자동 양방향 동기화
+function syncVideoToCommunityFeeds(videoId, title, chKey, slotLabel) {
+    if (!videoId) return;
+    try {
+        let feeds = [];
+        try {
+            feeds = JSON.parse(localStorage.getItem('yetalkSavedCustomFeeds') || '[]');
+        } catch(e) { feeds = []; }
+
+        const existingIdx = feeds.findIndex(f => f.videoId === videoId);
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+
+        const feedItem = {
+            id: (existingIdx !== -1 && feeds[existingIdx].id) ? feeds[existingIdx].id : Date.now(),
+            videoId: videoId,
+            title: title || slotLabel || '예톡 은혜 영상',
+            date: dateStr,
+            timestamp: Date.now(),
+            bizName: '예톡TV',
+            churchName: '예톡TV',
+            shortAd: title || slotLabel || '은혜의 영상',
+            targetUrl: 'churchmain.html',
+            views: (existingIdx !== -1 && feeds[existingIdx].views) ? feeds[existingIdx].views : 10,
+            likes: (existingIdx !== -1 && feeds[existingIdx].likes) ? feeds[existingIdx].likes : 3,
+            format: '16:9',
+            region: '전국',
+            isUploadedByMe: true,
+            channel: chKey || '찬양',
+            slotLabel: slotLabel || ''
+        };
+
+        if (existingIdx !== -1) {
+            feeds.splice(existingIdx, 1);
+            feeds.unshift(feedItem);
+        } else {
+            feeds.unshift(feedItem);
+        }
+
+        localStorage.setItem('yetalkSavedCustomFeeds', JSON.stringify(feeds));
+
+        if (window.yetalkDb && window.yetalkFs) {
+            try {
+                const { doc, setDoc, serverTimestamp } = window.yetalkFs;
+                setDoc(doc(window.yetalkDb, 'yetalk_tv_feeds', String(feedItem.id)), {
+                    ...feedItem,
+                    updatedAt: serverTimestamp(),
+                    updatedBy: localStorage.getItem('yetalkUserName') || '최웅식'
+                }, { merge: true }).catch(() => {});
+            } catch(e){}
+        }
+    } catch(err) {
+        console.error('syncVideoToCommunityFeeds error:', err);
+    }
+}
+
+// 🌟 [사용자 요청] 어디서든 영상 삭제 시 두 군데(8개 채널 슬롯 + 전체 영상) 모두 완전 동시 삭제
+function deleteVideoFromAllLocations(targetVideoId) {
+    if (!targetVideoId) return;
+
+    // 1. 8개 채널 모든 슬롯에서 해당 영상 삭제
+    if (fixedChannelsData) {
+        let channelUpdated = false;
+        Object.keys(fixedChannelsData).forEach(k => {
+            const chObj = fixedChannelsData[k];
+            if (chObj && chObj.slots) {
+                chObj.slots.forEach(s => {
+                    if (Array.isArray(s.videos)) {
+                        const lenBefore = s.videos.length;
+                        s.videos = s.videos.filter(v => v.videoId !== targetVideoId);
+                        if (s.videos.length !== lenBefore) {
+                            channelUpdated = true;
+                            if (s.videoId === targetVideoId) {
+                                s.videoId = s.videos[0] ? s.videos[0].videoId : '';
+                                s.title = s.videos[0] ? s.videos[0].title : '';
+                            }
+                        }
+                    } else if (s.videoId === targetVideoId) {
+                        s.videoId = '';
+                        s.title = '';
+                        channelUpdated = true;
+                    }
+                });
+            }
+        });
+        if (channelUpdated) {
+            saveFixedChannelsToStorageAndCloud();
+        }
+    }
+
+    // 2. 전체 성도 영상 목록(yetalkSavedCustomFeeds)에서 해당 영상 삭제
+    try {
+        let feeds = JSON.parse(localStorage.getItem('yetalkSavedCustomFeeds') || '[]');
+        const toDeleteFeeds = feeds.filter(f => f.videoId === targetVideoId);
+        feeds = feeds.filter(f => f.videoId !== targetVideoId);
+        localStorage.setItem('yetalkSavedCustomFeeds', JSON.stringify(feeds));
+
+        if (window.yetalkDb && window.yetalkFs && toDeleteFeeds.length > 0) {
+            try {
+                const { doc, deleteDoc } = window.yetalkFs;
+                toDeleteFeeds.forEach(f => {
+                    if (f.id) {
+                        deleteDoc(doc(window.yetalkDb, 'yetalk_tv_feeds', String(f.id))).catch(() => {});
+                    }
+                });
+            } catch(e){}
+        }
+    } catch(e){}
+
+    // 3. 핀 고정 영상인 경우 핀 제거
+    try {
+        const pinnedRaw = localStorage.getItem('yetalkPinnedCommunityVideo');
+        if (pinnedRaw) {
+            const pinned = JSON.parse(pinnedRaw);
+            if (pinned && pinned.videoId === targetVideoId) {
+                localStorage.removeItem('yetalkPinnedCommunityVideo');
+            }
+        }
+    } catch(e){}
+
+    try {
+        if (localStorage.getItem('yetalkPinnedVideoId') === targetVideoId) {
+            localStorage.removeItem('yetalkPinnedVideoId');
+            localStorage.removeItem('yetalkPinnedBizName');
+        }
+    } catch(e){}
+
+    // 4. 화면 및 피드 재구축
+    buildShortsFeedList();
+    renderCategoryListView();
+    renderAdminSlotTabs();
+    renderAdminSlotVideosList();
+    if (currentScriptureChKey && fixedChannelsData && fixedChannelsData[currentScriptureChKey]) {
+        openChannelScriptureModal(currentScriptureChKey);
+    }
+    if (currentTvMode === 'shorts') {
+        if (currentShortsIndex >= shortsFeedList.length) {
+            currentShortsIndex = Math.max(0, shortsFeedList.length - 1);
+        }
+        renderShortsSlides();
+        activateShortsSlide(currentShortsIndex);
+    }
+}
+
+// 🌟 [사용자 요청] 8개 채널 슬롯 영상 전체 영상 피드로 자동 초기 동기화
+function syncExistingChannelsToCommunityFeeds() {
+    if (!fixedChannelsData) return;
+    try {
+        let feeds = [];
+        try {
+            feeds = JSON.parse(localStorage.getItem('yetalkSavedCustomFeeds') || '[]');
+        } catch(e) { feeds = []; }
+
+        const existingVids = new Set(feeds.map(f => f.videoId));
+        let addedCount = 0;
+
+        const fixedKeys = ['찬양', '회개', '간증', '천국', '말씀', '기도', '쇼츠', '애국'];
+        fixedKeys.forEach(k => {
+            const ch = fixedChannelsData[k];
+            if (ch && ch.slots) {
+                ch.slots.forEach(s => {
+                    const vList = ensureSlotVideos(s);
+                    vList.forEach(v => {
+                        if (v.videoId && !existingVids.has(v.videoId)) {
+                            existingVids.add(v.videoId);
+                            const now = new Date();
+                            feeds.push({
+                                id: Date.now() + Math.floor(Math.random() * 100000),
+                                videoId: v.videoId,
+                                title: v.title || s.label || `${k} 은혜 영상`,
+                                date: `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`,
+                                timestamp: Date.now(),
+                                bizName: '예톡TV',
+                                churchName: '예톡TV',
+                                shortAd: v.title || s.label || '은혜의 영상',
+                                targetUrl: 'churchmain.html',
+                                views: 15,
+                                likes: 5,
+                                format: '16:9',
+                                region: '전국',
+                                isUploadedByMe: true,
+                                channel: k,
+                                slotLabel: s.label || ''
+                            });
+                            addedCount++;
+                        }
+                    });
+                });
+            }
+        });
+
+        if (addedCount > 0) {
+            localStorage.setItem('yetalkSavedCustomFeeds', JSON.stringify(feeds));
+            console.log(`[예톡TV] 8개 채널 영상 ${addedCount}개가 전체 성도 영상 피드에 자동 동기화되었습니다.`);
+        }
+    } catch(e){}
 }
 
 function openAdminSlotEditModal(chKey, slotIdx) {
@@ -13831,6 +14003,9 @@ function saveAdminSlotVideoByOrder() {
 
     saveFixedChannelsToStorageAndCloud();
 
+    // 🌟 [사용자 요청] 8개 채널 슬롯에 올린 영상은 전체 성도 영상(전체 영상)에 자동 동기화!
+    syncVideoToCommunityFeeds(vid, newTitle, chKey, slot.label);
+
     if (inpUrl) inpUrl.value = '';
     if (inpTitle) inpTitle.value = '';
 
@@ -13934,33 +14109,17 @@ function deleteAdminSlotVideo(vIdx) {
     const vList = ensureSlotVideos(slot);
 
     if (vIdx < 0 || vIdx >= vList.length) return;
-    const targetTitle = vList[vIdx].title || slot.label;
+    const targetVideo = vList[vIdx];
+    const targetTitle = targetVideo.title || slot.label;
+    const targetVideoId = targetVideo.videoId;
 
-    if (!confirm(`'${targetTitle}' 영상을 이 슬롯 목록에서 완전히 삭제하시겠습니까?`)) {
+    if (!confirm(`'${targetTitle}' 영상을 완전히 삭제하시겠습니까?\n(8개 채널 슬롯 및 전체 성도 영상 목록 두 군데서 모두 삭제됩니다)`)) {
         return;
     }
 
-    vList.splice(vIdx, 1);
-    if (vList.length === 0) {
-        slot.videoId = '';
-        slot.title = '';
-    } else {
-        slot.videoId = vList[0].videoId;
-        slot.title = vList[0].title;
-    }
-
-    saveFixedChannelsToStorageAndCloud();
-    renderAdminSlotTabs();
-    renderAdminSlotVideosList();
-    buildShortsFeedList();
-    renderCategoryListView();
-    if (currentScriptureChKey === chKey) {
-        openChannelScriptureModal(chKey);
-    }
-    if (currentTvMode === 'shorts') {
-        activateShortsSlide(currentShortsIndex);
-    }
-    showToast(`🗑️ 영상이 정상적으로 삭제되었습니다.`);
+    // 🌟 [사용자 요청] 어디서든 영상 삭제 시 두 군데(슬롯 + 전체 영상) 모두 완전 삭제!
+    deleteVideoFromAllLocations(targetVideoId);
+    showToast(`🗑️ 영상이 두 군데(슬롯 및 전체 영상)에서 모두 성공적으로 삭제되었습니다.`);
 }
 
 function renderShortsTopAdBanner() {
