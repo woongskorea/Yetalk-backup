@@ -7123,7 +7123,7 @@
             <div class="modal-header" style="border-bottom:1.5px solid #f1f5f9; padding:15px 18px 12px 18px; margin:0; display:flex; justify-content:space-between; align-items:center; flex-shrink:0; background:#ffffff;">
                 <div style="min-width:0; flex:1;">
                     <span class="modal-title" id="christianRegisterModalTitle" style="color:#047857; font-size:17.5px; font-weight:950; display:block;">✨ 예톡 회원가입 & 정보 확인</span>
-                    <div id="christianRegisterModalSub" style="font-size:11.5px; color:#64748b; font-weight:700; margin-top:2px; line-height:1.35;">상단 버튼을 눌러 일반인과 기독교인을 자유롭게 전환하여 등록하실 수 있습니다.</div>
+                    <div id="christianRegisterModalSub" style="font-size:11.5px; color:#64748b; font-weight:700; margin-top:2px; line-height:1.35;">교회명 담임목사님 성함 입력시 본인교회에 자동 등록됩니다.</div>
                 </div>
                 <button type="button" style="background:none; border:none; color:#94a3b8; font-size:26px; cursor:pointer; padding:2px 4px; line-height:1; flex-shrink:0; margin-left:6px;" onclick="closeChristianRegisterModal()" title="닫기">✕</button>
             </div>
@@ -7157,6 +7157,11 @@
                         <div style="font-size:11.5px; color:#64748b; margin-top:3px; padding-left:2px;">
                             ※ 연락처를 적어두시면 차후 의원 예약문의나 개별 서비스 이용 시 자동으로 채워집니다.
                         </div>
+                    </div>
+
+                    <div>
+                        <label class="modal-label" style="font-size:13.5px; font-weight:900; color:#0f172a; margin-bottom:4px; display:block;">3. 주소 <span style="font-size:12px; color:#64748b; font-weight:700;">(시·구까지만 작성 - 선택사항)</span></label>
+                        <input type="text" class="modal-input" id="inpRegGenAddress" placeholder="예: 부산시 남구 (선택사항)" oninput="syncMemberRegAddress('general')" style="height:44px; font-size:14.5px; font-weight:800; border:1.5px solid #cbd5e1; border-radius:10px; padding:0 12px; width:100%; box-sizing:border-box;">
                     </div>
                 </div>
 
@@ -7274,6 +7279,15 @@
                         <input type="tel" class="modal-input" id="inpRegChristianPhone" placeholder="010-1234-5678 (선택사항)" maxlength="13" oninput="formatPhoneInput(this)" style="height:44px; font-size:14.5px; font-weight:800; border:1.5px solid #cbd5e1; border-radius:10px; padding:0 12px; width:100%; box-sizing:border-box;">
                         <div style="font-size:11.5px; color:#64748b; margin-top:3px; padding-left:2px;">
                             ※ 연락처를 적어두시면 차후 의원이나 교회사역앱 이용 시 자동으로 편리하게 채워집니다.
+                        </div>
+                    </div>
+
+                    <!-- 6. 🌟 [사용자 요청] 6번에 주소 란 (시·구까지만 작성) -->
+                    <div>
+                        <label class="modal-label" style="font-size:13px; font-weight:900; color:#0f172a; margin-bottom:4px; display:block;">6. 주소 <span style="font-size:12px; color:#64748b; font-weight:700;">(시·구까지만 작성)</span></label>
+                        <input type="text" class="modal-input" id="inpRegChristianAddress" placeholder="예: 부산시 남구 (또는 서울시 서초구)" oninput="syncMemberRegAddress('christian')" style="height:44px; font-size:14.5px; font-weight:800; border:1.5px solid #cbd5e1; border-radius:10px; padding:0 12px; width:100%; box-sizing:border-box;">
+                        <div style="font-size:11.5px; color:#64748b; margin-top:3px; padding-left:2px;">
+                            ※ 상세 주소 없이 <strong>시·구(군)</strong>까지만 간편하게 작성해 주세요.
                         </div>
                     </div>
                 </div>
@@ -18684,7 +18698,7 @@ ${inviteUrl}`;
             if (secChr) secChr.style.display = "flex";
 
             if (titleEl) titleEl.innerText = isRegEditMode ? "✏️ 교우 회원정보 확인 및 수정" : "✝️ 예톡 교우 회원가입";
-            if (subEl) subEl.innerText = "교회명과 담임목사님 입력 시 우리교회앱이 즉시 생성·연결됩니다.";
+            if (subEl) subEl.innerText = "교회명 담임목사님 성함 입력시 본인교회에 자동 등록됩니다.";
             if (submitBtn) {
                 if (isRegEditMode) {
                     submitBtn.innerText = "💾 회원정보 수정하기";
@@ -18712,6 +18726,18 @@ ${inviteUrl}`;
         handleRegInputChanged();
     }
 
+    function syncMemberRegAddress(source) {
+        if (source === 'christian') {
+            const v = document.getElementById("inpRegChristianAddress")?.value || "";
+            const g = document.getElementById("inpRegGenAddress");
+            if (g) g.value = v;
+        } else {
+            const v = document.getElementById("inpRegGenAddress")?.value || "";
+            const c = document.getElementById("inpRegChristianAddress");
+            if (c) c.value = v;
+        }
+    }
+
     function updateGeneralGradeNotice() {
         const submitBtn = document.getElementById("btnSubmitChristianReg");
         if (submitBtn && currentMemberRegType === "general") {
@@ -18731,12 +18757,15 @@ ${inviteUrl}`;
         const inpGenName = document.getElementById("inpRegGenNameOrId");
         const inpGenPhone = document.getElementById("inpRegGenPhone");
         const inpChrPhone = document.getElementById("inpRegChristianPhone");
+        const inpChrAddr = document.getElementById("inpRegChristianAddress");
+        const inpGenAddr = document.getElementById("inpRegGenAddress");
 
         const savedName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id") || localStorage.getItem("yetalkUserName") || localStorage.getItem("yetalkUserId") || "";
         const savedChurch = localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "";
         const savedPastor = localStorage.getItem("yetalk_pastor_name") || "";
         const savedRole = localStorage.getItem("yetalk_church_role") || "성도";
         const savedPhone = localStorage.getItem("yetalk_user_phone") || localStorage.getItem("yetalkUserPhone") || "";
+        const savedAddr = localStorage.getItem("yetalk_user_address") || localStorage.getItem("yetalkUserAddress") || "";
         const savedType = localStorage.getItem("yetalk_member_type") || (savedChurch ? "christian" : "");
         const savedGrade = localStorage.getItem("yetalk_user_grade") || localStorage.getItem("yetalkUserGrade") || "";
 
@@ -18750,6 +18779,8 @@ ${inviteUrl}`;
         if (inpPastor) inpPastor.value = savedPastor;
         if (inpGenPhone) inpGenPhone.value = savedPhone;
         if (inpChrPhone) inpChrPhone.value = savedPhone;
+        if (inpChrAddr) inpChrAddr.value = savedAddr;
+        if (inpGenAddr) inpGenAddr.value = savedAddr;
 
         if (selRole) {
             let matched = false;
@@ -18817,6 +18848,7 @@ ${inviteUrl}`;
         try {
             const nameOrId = (document.getElementById("inpRegGenNameOrId")?.value || "").trim();
             const phone = (document.getElementById("inpRegGenPhone")?.value || "").trim();
+            const address = (document.getElementById("inpRegGenAddress")?.value || "").trim();
 
             if (!nameOrId) {
                 alert("이름 또는 아이디를 입력해주세요.");
@@ -18845,6 +18877,10 @@ ${inviteUrl}`;
             if (phone) {
                 localStorage.setItem("yetalk_user_phone", phone);
                 localStorage.setItem("yetalkUserPhone", phone);
+            }
+            if (address) {
+                localStorage.setItem("yetalk_user_address", address);
+                localStorage.setItem("yetalkUserAddress", address);
             }
             localStorage.setItem("yetalk_church_role", "준회원");
             localStorage.setItem("yetalkChurchRole", "준회원");
@@ -19067,10 +19103,14 @@ ${inviteUrl}`;
             const existingIdx = churchMap[churchKey].members.findIndex(m => m.nameOrId === nameOrId);
             if (existingIdx >= 0) {
                 churchMap[churchKey].members[existingIdx].role = role;
+                if (chrAddress) churchMap[churchKey].members[existingIdx].address = chrAddress;
+                if (chrPhone) churchMap[churchKey].members[existingIdx].phone = chrPhone;
             } else {
                 churchMap[churchKey].members.push({
                     nameOrId: nameOrId,
                     role: role,
+                    address: chrAddress,
+                    phone: chrPhone,
                     joinedAt: new Date().toLocaleDateString()
                 });
             }
@@ -19081,7 +19121,13 @@ ${inviteUrl}`;
 
             // 🌟 클라우드 Firestore 실시간 교우 등록 동기화
             if (typeof window.syncMemberToCloud === "function") {
-                window.syncMemberToCloud(churchKey, { nameOrId: nameOrId, role: role, joinedAt: new Date().toLocaleDateString() });
+                window.syncMemberToCloud(churchKey, {
+                    nameOrId: nameOrId,
+                    role: role,
+                    address: chrAddress,
+                    phone: chrPhone,
+                    joinedAt: new Date().toLocaleDateString()
+                });
             }
 
             // 사용자 프로필 저장 (snake_case 및 camelCase 상호 호환 저장)
@@ -19108,11 +19154,16 @@ ${inviteUrl}`;
             localStorage.setItem("yetalk_is_christian", "true");
             localStorage.setItem("yetalk_terms_agreed", "true");
 
-            // 🌟 [사용자 요청] 교우 회원가입 시 선택 입력한 연락처(휴대폰 번호) 저장
+            // 🌟 [사용자 요청] 교우 회원가입 시 선택 입력한 연락처(휴대폰 번호) 및 주소(시·구) 저장
             const chrPhone = (document.getElementById("inpRegChristianPhone")?.value || "").trim();
             if (chrPhone) {
                 localStorage.setItem("yetalk_user_phone", chrPhone);
                 localStorage.setItem("yetalkUserPhone", chrPhone);
+            }
+            const chrAddress = (document.getElementById("inpRegChristianAddress")?.value || "").trim();
+            if (chrAddress) {
+                localStorage.setItem("yetalk_user_address", chrAddress);
+                localStorage.setItem("yetalkUserAddress", chrAddress);
             }
 
             if (role === "담임목사") {
@@ -19169,7 +19220,7 @@ ${inviteUrl}`;
 
             setTimeout(() => {
                 closeChristianRegisterModal();
-                alert(`✅ ${isRegEditMode ? "회원정보가 성공적으로 수정되었습니다" : "예톡 교우 가입 및 우리교회앱 연결이 완료되었습니다"}!\n\n• 성도명: ${nameOrId}\n• 본인교회: ${churchName}\n• 담임목사: ${pastorName}\n• 직분: ${role}${extraMinistryAlert}`);
+                alert(`✅ ${isRegEditMode ? "회원정보가 성공적으로 수정되었습니다" : "예톡 교우 가입 및 우리교회앱 연결이 완료되었습니다"}!\n\n• 성도명: ${nameOrId}\n• 본인교회: ${churchName}\n• 담임목사: ${pastorName}\n• 직분: ${role}${chrAddress ? `\n• 주소: ${chrAddress}` : ''}${extraMinistryAlert}`);
             }, 300);
 
         } catch (err) {
