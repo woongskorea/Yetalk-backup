@@ -294,8 +294,30 @@
         }
     }
 
-    // 🌟 [사용자 요청] 단골 의원 입장 / 우리 교회 입장 클릭 시 즉시 준회원 자동 연동 후 해당 페이지로 이동
+    // 🌟 [사용자 요청] 단골 의원 입장 / 우리 교회 입장 처리: 기존 가입한 정회원은 준회원 아이디 발급 없이 바로 정회원 로그인 상태로 직행!
     function enterTrack(track) {
+        const isRegistered = localStorage.getItem("yetalk_is_registered") === "true" ||
+                             localStorage.getItem("yetalk_church_member") === "true" ||
+                             localStorage.getItem("yetalk_tv_member") === "true";
+        const savedTier = localStorage.getItem("yetalk_member_tier");
+        const savedName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
+        const hasRealName = savedName && !savedName.startsWith("준회원(");
+
+        // 🌟 이미 교회나 예톡에 가입한 정회원은 준회원 아이디 없이 영구 로그인 상태로 즉시 직행!
+        if (isRegistered || savedTier === "정회원" || hasRealName) {
+            localStorage.setItem("yetalk_member_tier", "정회원");
+            localStorage.setItem("yetalk_selected_track", track);
+            localStorage.setItem("yetalk_app_entry", track);
+
+            if (track === "clinic") {
+                location.href = "doctormain.html";
+            } else {
+                location.href = "index.html";
+            }
+            return;
+        }
+
+        // 🌟 신규 처음 방문자인 경우에만 편리한 준회원 가상 ID를 부여하여 바로 입장
         let vId = localStorage.getItem('yetalk_virtual_id');
         if (!vId) {
             const prefix = track === 'clinic' ? 'YTK-MED-' : 'YTK-CH-';
@@ -308,8 +330,7 @@
         localStorage.setItem('yetalk_selected_track', track);
         localStorage.setItem('yetalk_app_entry', track);
 
-        const currentName = localStorage.getItem('yetalkUserName') || localStorage.getItem('yetalk_user_name');
-        if (!currentName) {
+        if (!savedName) {
             localStorage.setItem('yetalkUserName', '준회원(' + vId.slice(-4) + ')');
         }
 
