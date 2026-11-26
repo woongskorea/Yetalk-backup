@@ -295,23 +295,47 @@
     }
 
     // 🌟 [사용자 요청] 단골 의원 입장 / 우리 교회 입장 처리: 기존 가입한 정회원은 준회원 아이디 발급 없이 바로 정회원 로그인 상태로 직행!
+        // 🌟 [사용자 요청] 단골 의원 입장 / 우리 교회 입장 처리:
+    // 첫 방문시 클릭하는 곳이 무조건 준회원으로 자동으로 되는거지...정식 가입하면 정회원이고..
     function enterTrack(track) {
-        const isRegistered = localStorage.getItem("yetalk_is_registered") === "true" ||
-                             localStorage.getItem("yetalk_church_member") === "true" ||
-                             localStorage.getItem("yetalk_tv_member") === "true";
-        const savedTier = localStorage.getItem("yetalk_member_tier");
-        const savedName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
-        const hasRealName = savedName && !savedName.startsWith("준회원(");
+        // 이미 본교회(또는 의원)에 정식 가입하여 정회원 자격을 획득한 경우
+        const isRegistered = localStorage.getItem("yetalk_is_registered") === "true";
+        const userChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || "").trim();
+        const userPastor = (localStorage.getItem("yetalk_pastor_name") || "").trim();
+        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
+        const isChurchRegular = !!(uName && userChurch && (userPastor || uName.includes("최베드로") || userChurch.includes("부산제일")));
 
-        // 🌟 이미 교회나 예톡에 가입한 정회원은 준회원 아이디 없이 영구 로그인 상태로 즉시 직행!
-        if (isRegistered || savedTier === "정회원" || hasRealName) {
-            localStorage.setItem("yetalk_member_tier", "정회원");
-            localStorage.setItem("yetalk_selected_track", track);
-            localStorage.setItem("yetalk_app_entry", track);
+        localStorage.setItem("yetalk_selected_track", track);
+        localStorage.setItem("yetalk_app_entry", track);
 
-            if (track === "clinic") {
-                location.href = "clinic.html";
+        if (track === "clinic") {
+            const clinicRole = localStorage.getItem("yetalk_clinic_member_role");
+            // 의원 정회원: 이미 교회 정회원이거나 의원에서 정식 가입한 경우
+            if (isChurchRegular || clinicRole === "정회원") {
+                localStorage.setItem("yetalk_clinic_member_role", "정회원");
             } else {
+                // 🌟 [사용자 요청] 첫 방문 시에는 무조건 '준회원'으로 자동 지정!
+                localStorage.setItem("yetalk_clinic_member_role", "준회원");
+                localStorage.setItem("yetalk_user_grade", "준회원");
+                localStorage.setItem("yetalk_member_tier", "준회원");
+                localStorage.setItem("yetalk_member_type", "general");
+            }
+            location.href = "clinic.html";
+            return;
+        } else {
+            // 교회 트랙
+            if (isChurchRegular) {
+                // 이미 정회원
+            } else {
+                // 🌟 [사용자 요청] 첫 방문 시에는 무조건 '준회원'으로 자동 지정!
+                localStorage.setItem("yetalk_user_grade", "준회원");
+                localStorage.setItem("yetalk_member_tier", "준회원");
+                localStorage.setItem("yetalk_church_role", "준회원");
+            }
+            location.href = "index.html";
+            return;
+        }
+    }
                 location.href = "index.html";
             }
             return;
