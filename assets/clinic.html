@@ -177,7 +177,7 @@
            ======================================================== */
         .hero-banner-container {
             width: 100%;
-            height: 138px;
+            height: 185px;
             position: relative;
             overflow: hidden;
             background: linear-gradient(135deg, #fff0f3 0%, #ffffff 50%, #f0f9ff 100%);
@@ -641,13 +641,13 @@
 
         /* 🌟 가입시 의원 이름으로 동적 변경되는 버튼 */
         .btn-box-my-clinic {
-            background: #ffffff;
-            border: 1.5px solid #0284c7;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+            border: 2px solid #0284c7;
             color: #0284c7;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 950;
-            padding: 7px 11px;
-            border-radius: 10px;
+            padding: 9px 15px;
+            border-radius: 12px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
@@ -722,8 +722,8 @@
             display: flex;
             flex-direction: column;
             gap: 5px;
-            max-height: 220px;
-            overflow-y: auto;
+            max-height: 108px;
+            overflow: hidden;
         }
 
         .live-member-item-row {
@@ -1159,13 +1159,19 @@
          3. 🌟 단골의원 방문 예약
          ======================================================== -->
     <section class="favorite-clinic-banner-section" id="sectionFavoriteClinics">
-        <button type="button" class="btn-favorite-clinic-long" onclick="toggleFavoriteClinicList()">
-            <div class="long-btn-title">
-                <span>⭐</span>
-                <span>단골의원 방문예약</span>
-            </div>
-            <span class="long-btn-arrow" id="arrowFavoriteToggle">▼</span>
-        </button>
+        <!-- 🌟 [사용자 요청] 단골의원 방문예약을 두 개로 분할: 좌측 [단골 알림], 우측 [단골 라스트 예약] -->
+        <div style="display:flex; gap:8px; width:100%;">
+            <button type="button" id="btnFavoriteNoticeAlert" onclick="openFavoriteNoticeModal()" style="flex:1; height:46px; background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border:1.8px solid #86efac; border-radius:12px; color:#15803d; font-size:14.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:5px; cursor:pointer; box-shadow:0 2px 8px rgba(22,101,52,0.12); transition:all 0.15s ease;">
+                <span style="font-size:16px;">🔔</span>
+                <span>단골 알림</span>
+                <span id="badgeFavoriteNoticeCount" style="background:#dc2626; color:#ffffff; font-size:10px; font-weight:900; padding:1px 6px; border-radius:10px; margin-left:2px;">NEW</span>
+            </button>
+            <button type="button" id="btnFavoriteClinicToggle" onclick="toggleFavoriteClinicList()" style="flex:1.25; height:46px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none; border-radius:12px; color:#ffffff; font-size:14.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:5px; cursor:pointer; box-shadow:0 3px 10px rgba(2,132,199,0.25); transition:all 0.15s ease;">
+                <span style="font-size:16px;">⭐</span>
+                <span>단골 라스트 예약</span>
+                <span id="arrowFavoriteToggle" style="font-size:13px; font-weight:900; margin-left:2px;">▼</span>
+            </button>
+        </div>
 
         <!-- 펼쳐지는 의원 리스트 패널 (기본 접힘) -->
         <div class="favorite-clinic-list-panel" id="favoriteClinicListPanel">
@@ -1888,11 +1894,20 @@
         const times = [
             "방금 전", "1분 전", "2분 전", "3분 전", "5분 전",
             "6분 전", "8분 전", "11분 전", "14분 전", "17분 전",
-            "22분 전", "26분 전"
+            "22분 전", "26분 전", "31분 전", "35분 전", "40분 전",
+            "45분 전", "50분 전", "1시간 전", "2시간 전", "3시간 전"
         ];
 
-        for (let i = 0; i < 12; i++) {
-            const role = (i % 3 === 0) ? "정" : ((i % 3 === 1) ? "준" : "의");
+        // 🌟 [사용자 요청] 예톡메인(교회) 가입시에도 여기에 정회원('정')으로 자동 표시 연동
+        const churchUserName = localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_registered_user");
+        if (churchUserName) {
+            const masked = churchUserName.length > 2 ? churchUserName[0] + "*" + churchUserName.slice(-1) : churchUserName[0] + "*";
+            liveMembersList.push({ role: "정", name: masked, region: "부산시 동구", timeText: "방금 전", isNew: true });
+        }
+
+        // 🌟 [사용자 요청] 의사 회원은 20명 중 1명 정도만 드물게 노출 (나머지는 실제 등록 시 바로 올림)
+        for (let i = 0; i < 20; i++) {
+            const role = (i === 6) ? "의" : ((i % 5 === 1) ? "준" : "정");
             const name = (role === "의") ? (SAMPLE_NAMES[i % SAMPLE_NAMES.length] + " 원장") : SAMPLE_NAMES[i % SAMPLE_NAMES.length];
             const region = SAMPLE_REGIONS[i % SAMPLE_REGIONS.length];
             const timeText = times[i];
@@ -1905,7 +1920,7 @@
         const box = document.getElementById("liveMembersListBox");
         if (!box) return;
 
-        box.innerHTML = liveMembersList.map(m => `
+        box.innerHTML = liveMembersList.slice(0, 3).map(m => `
             <div class="live-member-item-row ${m.isNew ? 'is-new' : ''}">
                 <div class="live-row-left">
                     <span class="member-role-badge role-${m.role}">${m.role}</span>
@@ -1932,11 +1947,13 @@
         renderLiveMembersList();
     }
 
+    // 🌟 [사용자 요청] 신규 회원 가입 스트림: 의사 회원은 20번에 1번(5%)만 노출
     setInterval(() => {
-        const randRole = ROLE_TYPES[Math.floor(Math.random() * ROLE_TYPES.length)];
-        const randName = (randRole === '의') ? (SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)] + " 원장") : SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)];
+        const isDoc = Math.random() < 0.05;
+        const randRole = isDoc ? "의" : (Math.random() < 0.25 ? "준" : "정");
+        const randName = isDoc ? (SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)] + " 원장") : SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)];
         addNewLiveMember(randRole, randName, null, "방금 전");
-    }, 15000);
+    }, 18000);
 
     // ==========================================
     // 토스트 알림 함수
@@ -1962,7 +1979,143 @@
         initLiveMembersList();
         resetAutoSlideTimer();
     });
+
+    // ==========================================
+    // 5. 🌟 [사용자 요청] 단골 알림 & 지역 이벤트 공지 시스템
+    // ==========================================
+    function openFavoriteNoticeModal() {
+        const modal = document.getElementById("modalFavoriteClinicNotices");
+        if (modal) {
+            modal.style.display = "flex";
+            renderFavoriteNotices();
+        }
+    }
+
+    function closeFavoriteNoticeModal() {
+        const modal = document.getElementById("modalFavoriteClinicNotices");
+        if (modal) modal.style.display = "none";
+    }
+
+    function renderFavoriteNotices() {
+        const host = document.getElementById("favoriteNoticeListContainer");
+        if (!host) return;
+
+        // 1. 단골의원 (별표 ★ 한 의원) 목록 가져오기
+        const starredClinics = CLINIC_MASTER_DATA.filter(c => c.isStar);
+        const starredNames = starredClinics.map(c => c.name);
+
+        // 2. 의원 공지사항 데이터 불러오기
+        let allNotices = [];
+        try {
+            const raw18 = localStorage.getItem("yetalk_doctor_notices_board_v18");
+            const raw16 = localStorage.getItem("yetalk_doctor_notices_board_v16");
+            if (raw18) allNotices = JSON.parse(raw18);
+            else if (raw16) allNotices = JSON.parse(raw16);
+        } catch(e) {}
+
+        if (!allNotices || allNotices.length === 0) {
+            allNotices = [
+                {
+                    id: "ev_1",
+                    title: "자가진피재생술 주름·흉터 1:1 맞춤 상담 안내",
+                    content: "팔자주름, 깊은 이마·미간주름 및 패인 흉터 회복을 위한 자가진피재생술 맞춤 상담을 진행합니다.",
+                    clinicName: "자가진피 최웅식의원",
+                    region: "부산시 동구",
+                    time: "오늘",
+                    isEvent: false
+                },
+                {
+                    id: "ev_2",
+                    title: "[이벤트] 부산시 동구 단골의원 봄맞이 무료 피부 검진 혜택",
+                    content: "우리 동네 단골 환자분들을 위해 봄맞이 피부 건강 및 주름 정밀 검진 상담을 전액 무료 지원합니다.",
+                    clinicName: "자가진피 최웅식의원",
+                    region: "부산시 동구",
+                    time: "진행중",
+                    isEvent: true
+                }
+            ];
+        }
+
+        // 🌟 [사용자 요청] 같은 구의 모든 의원이 아니고,
+        // 1) 본인이 별표(★)한 단골의원의 공지글이거나,
+        // 2) 해당 구/지역의 의원이 등록한 [이벤트 공지알림]인 경우에만 표출!
+        const filtered = allNotices.filter(n => {
+            const isMyStarred = starredNames.some(sn => (n.clinicName && n.clinicName.includes(sn)) || (n.sender && n.sender.includes(sn)) || sn.includes("최웅식"));
+            const isEvent = n.isEvent === true;
+            return isMyStarred || isEvent;
+        });
+
+        if (filtered.length === 0) {
+            host.innerHTML = `
+                <div style="text-align:center; padding:30px 10px; color:#64748b; font-size:13.5px;">
+                    <span style="font-size:32px; display:block; margin-bottom:8px;">📭</span>
+                    등록된 단골의원 소식이나 지역 이벤트가 없습니다.<br>
+                    <span style="font-size:12px; color:#94a3b8;">(원하시는 의원에 별표 ★를 누르시면 공지알림을 받아보실 수 있습니다)</span>
+                </div>
+            `;
+            return;
+        }
+
+        host.innerHTML = filtered.map(item => {
+            const isEv = item.isEvent === true;
+            const clinic = item.clinicName || "자가진피 최웅식의원";
+            const region = item.region || "부산시 동구";
+            return `
+                <div style="background:#ffffff; border:${isEv ? '1.8px solid #f43f5e' : '1.5px solid #0284c7'}; border-radius:14px; padding:12px 14px; box-shadow:0 3px 10px rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:6px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:11px; font-weight:950; padding:2px 8px; border-radius:6px; ${isEv ? 'background:#ffe4e6; color:#e11d48; border:1px solid #fecdd3;' : 'background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;'}">
+                            ${isEv ? '🎉 지역 이벤트 특가 알림' : '⭐ 내 단골의원 공지'}
+                        </span>
+                        <span style="font-size:11.5px; color:#64748b; font-weight:700;">${item.time || item.date || '방금 전'}</span>
+                    </div>
+                    <div style="font-size:15px; font-weight:950; color:#0f172a; line-height:1.35; margin-top:2px;">
+                        ${item.title}
+                    </div>
+                    <div style="font-size:13px; color:#334155; line-height:1.55; word-break:keep-all;">
+                        ${(item.content || item.body || '').replace(/\n/g, '<br>')}
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; padding-top:6px; border-top:1px dashed #e2e8f0;">
+                        <span style="font-size:12px; font-weight:900; color:#0284c7;">🏥 ${clinic} (${region})</span>
+                        <button type="button" onclick="location.href='doctormain.html'" style="background:#0284c7; color:#fff; border:none; border-radius:6px; padding:5px 10px; font-size:11.5px; font-weight:900; cursor:pointer;">
+                            의원 가기 ➔
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
+
 </script>
+
+
+<!-- 🌟 [사용자 요청] 단골 알림 & 지역 이벤트 알림 전용 팝업 모달 -->
+<div class="clinic-modal-backdrop" id="modalFavoriteClinicNotices" style="display:none;" onclick="if(event.target===this) closeFavoriteNoticeModal()">
+    <div class="clinic-modal-card" style="max-width:440px; width:92%; max-height:85vh; display:flex; flex-direction:column; border-radius:18px; overflow:hidden; padding:0; background:#ffffff; box-shadow:0 12px 36px rgba(0,0,0,0.25);">
+        <!-- 헤더 -->
+        <div style="background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; padding:14px 18px; display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:20px;">🔔</span>
+                <div>
+                    <div style="font-size:16px; font-weight:950; letter-spacing:-0.3px;">단골의원 소식 & 지역 이벤트 알림</div>
+                    <div style="font-size:11px; opacity:0.9; font-weight:600;">즐겨찾기(별표)한 단골의원 공지 및 우리 지역 특가/이벤트</div>
+                </div>
+            </div>
+            <button type="button" onclick="closeFavoriteNoticeModal()" style="background:none; border:none; color:#ffffff; font-size:22px; font-weight:bold; cursor:pointer; line-height:1;">✕</button>
+        </div>
+
+        <!-- 본문 (목록) -->
+        <div id="favoriteNoticeListContainer" style="padding:14px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; background:#f8fafc;">
+            <!-- 자바스크립트로 동적 렌더링 -->
+        </div>
+
+        <!-- 하단 -->
+        <div style="padding:10px 16px; background:#f1f5f9; border-top:1px solid #e2e8f0; text-align:right;">
+            <button type="button" onclick="closeFavoriteNoticeModal()" style="height:36px; padding:0 16px; background:#64748b; color:#ffffff; border:none; border-radius:8px; font-size:13px; font-weight:900; cursor:pointer;">
+                닫기
+            </button>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>

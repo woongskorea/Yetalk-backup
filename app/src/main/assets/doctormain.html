@@ -1648,6 +1648,12 @@
                 <input type="text" id="inpDirectNoticeTitle" class="m-large-input" placeholder="공지 제목을 입력하세요 (예: 진료 일정 및 자가진피 안내)">
                 <textarea id="inpDirectNoticeContent" class="m-large-input" style="height:85px; padding:10px; resize:none;" placeholder="환자 및 고객들에게 전달할 공지 내용을 작성해주세요."></textarea>
                 
+                <!-- 🌟 [사용자 요청] 지역/전체 이벤트 알림 체크박스 (체크 시 단골 알림에 자동 표출) -->
+                <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:900; color:#e11d48; cursor:pointer; background:#fff1f2; border:1px solid #fecdd3; padding:7px 11px; border-radius:8px;">
+                    <input type="checkbox" id="chkDirectNoticeIsEvent" style="width:16px; height:16px; accent-color:#e11d48;">
+                    <span>🎉 [이벤트 알림으로 전송] 체크 시 같은 지역구 환자들의 단골 알림에 자동 표출됩니다.</span>
+                </label>
+                
                 <!-- 사진 파일 선택 -->
                 <div style="display:flex; align-items:center; justify-content:space-between; background:#f8fafc; padding:8px 12px; border-radius:10px; border:1px solid #e2e8f0;">
                     <label style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; background:#e0f2fe; color:#0284c7; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:900;">
@@ -4393,6 +4399,7 @@ function handleDirectNoticePhoto(event) {
 function submitDirectClinicNotice() {
     const t = (document.getElementById("inpDirectNoticeTitle")?.value || "").trim();
     const b = (document.getElementById("inpDirectNoticeContent")?.value || "").trim();
+    const isEvent = document.getElementById("chkDirectNoticeIsEvent")?.checked || false;
     if (!t || !b) {
         showToast("공지 제목과 내용을 모두 입력해주세요.");
         return;
@@ -4415,12 +4422,16 @@ function submitDirectClinicNotice() {
         author: "원장실",
         time: "방금 전",
         img: tempDirectNoticePhotoBase64 || "",
+        isEvent: isEvent,
+        clinicName: savedClinic,
+        region: "부산시 동구",
         hasAdmob100: true
     };
 
     const posts = getNoticePosts();
     posts.unshift(newNotice);
     localStorage.setItem("yetalk_doctor_notices_board_v16", JSON.stringify(posts));
+    localStorage.setItem("yetalk_doctor_notices_board_v18", JSON.stringify(posts));
 
     // 🌟 [사용자 요청] 의원의 독립성을 위해 기독교 예톡 메인으로 가지 않고 의원 자체 공간에서만 확인
     // (차후 다른 의원 홈페이지 연계 시까지 의원 전용 알림으로만 관리)
@@ -4465,6 +4476,7 @@ function submitNewClinicNoticeFull() {
         author: "원장실", time: "방금 전", hasAdmob100: true
     });
     localStorage.setItem("yetalk_doctor_notices_board_v16", JSON.stringify(posts));
+    localStorage.setItem("yetalk_doctor_notices_board_v18", JSON.stringify(posts));
     closeNoticeEditorFullscreen();
     renderNoticeBoardData();
     showToast("📢 새 공지사항이 등록되었습니다!");
