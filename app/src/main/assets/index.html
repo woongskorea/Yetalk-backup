@@ -33,13 +33,21 @@
         body.live-worship-fullscreen-mode .yetalk-home-footer-info {
             display: none !important;
         }
+        body.live-worship-fullscreen-mode .main-container {
+            height: 100dvh !important;
+            height: 100vh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            background: #000000 !important;
+        }
         body.live-worship-fullscreen-mode .portal-scroll-body {
             padding: 0 !important;
-            margin: 0 !important;
+            margin: 0 0 138px 0 !important;
             overflow: hidden !important;
-            height: calc(100dvh - 114px) !important;
-            max-height: calc(100dvh - 114px) !important;
             flex: 1 1 auto !important;
+            height: auto !important;
+            max-height: none !important;
             background: #000000 !important;
         }
         body.live-worship-fullscreen-mode #liveWorshipContainer {
@@ -5841,8 +5849,13 @@
                 <div id="liveWorshipScreenLockShield" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.01); z-index:50;"></div>
             </div>
 
-            <!-- 2. 상단 투명 컨트롤 바 (버튼이 영상에 방해 안 되도록 반투명 배경으로 최상단 배치) -->
-            <div class="live-worship-top-overlay" style="position:absolute; top:0; left:0; right:0; z-index:30; background:linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 75%, transparent 100%); padding:max(10px, env(safe-area-inset-top)) 10px 18px 10px; display:flex; flex-direction:column; gap:6px; pointer-events:auto;">
+            <!-- 재생 중 메뉴 숨김 시 다시 부르는 플로팅 메뉴 버튼 -->
+            <button type="button" id="btnLiveControlsToggle" onclick="showLiveWorshipControlsTemporarily(4500)" style="display:none; position:absolute; top:max(12px, env(safe-area-inset-top, 12px)); right:12px; z-index:60; background:rgba(15,23,42,0.85); border:1.5px solid rgba(255,255,255,0.45); border-radius:20px; padding:6px 12px; font-size:12.5px; font-weight:950; color:#ffffff; cursor:pointer; backdrop-filter:blur(10px); box-shadow:0 4px 14px rgba(0,0,0,0.6); align-items:center; gap:5px;">
+                <span>📺</span> <span>메뉴</span>
+            </button>
+
+            <!-- 2. 상단 투명 컨트롤 바 (버튼이 영상에 방해 안 되도록 튀지 않는 다크 반투명 유리 배경으로 최상단 배치) -->
+            <div class="live-worship-top-overlay" id="liveWorshipTopOverlay" style="position:absolute; top:0; left:0; right:0; z-index:40; background:linear-gradient(180deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 75%, transparent 100%); padding:max(10px, env(safe-area-inset-top, 10px)) 10px 18px 10px; display:flex; flex-direction:column; gap:6px; pointer-events:auto; transition:opacity 0.35s ease;">
                 <!-- 상단 1줄: 라이브 라벨 & 시계 & 교회추가 & 닫기 -->
                 <div style="display:flex; justify-content:space-between; align-items:center; color:#ffffff;">
                     <div style="display:flex; align-items:center; gap:6px;">
@@ -5856,61 +5869,64 @@
                     </div>
                 </div>
 
-                <!-- 상단 2줄: 좌·중·우 3개 선택 버튼 (투명한 반투명 유리 블러 배경으로 영상 방해 최소화) -->
+                <!-- 상단 2줄: 좌·중·우 3개 선택 버튼 (너무 튀지 않고 은은한 다크 반투명 글래스) -->
                 <div style="display:grid; grid-template-columns:1fr 1.25fr 1.15fr; gap:6px; width:100%;">
                     <!-- 1) 예톡 예배 -->
-                    <button type="button" id="btnLiveYetalk" onclick="selectLiveWorshipStream('yetalk')" style="padding:6px 4px; border-radius:10px; font-size:12px; font-weight:950; cursor:pointer; border:1px solid rgba(255,255,255,0.25); background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); color:#ffffff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:all 0.15s ease;">
+                    <button type="button" id="btnLiveYetalk" onclick="selectLiveWorshipStream('yetalk')" style="padding:7px 4px; border-radius:10px; font-size:12px; font-weight:950; cursor:pointer; border:1.5px solid rgba(255,255,255,0.22); background:rgba(15,23,42,0.72); backdrop-filter:blur(8px); color:#ffffff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:all 0.15s ease;">
                         <span style="font-size:10px; font-weight:800; opacity:0.85;">예톡TV</span>
                         <span>예톡 예배</span>
-                        <span class="live-status-pill" id="pillLiveYetalk" style="font-size:9px; padding:1px 5px; border-radius:6px; background:rgba(255,255,255,0.2); color:#e2e8f0; font-weight:900;">설교영상</span>
+                        <span class="live-status-pill" id="pillLiveYetalk" style="font-size:9.5px; padding:1.5px 6px; border-radius:6px; background:rgba(255,255,255,0.18); color:#cbd5e1; font-weight:900;">설교영상</span>
                     </button>
 
                     <!-- 2) 우리교회 라이브 -->
-                    <button type="button" id="btnLiveOurChurch" onclick="selectLiveWorshipStream('our_church')" style="padding:6px 4px; border-radius:10px; font-size:12px; font-weight:950; cursor:pointer; border:1px solid rgba(255,255,255,0.25); background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); color:#ffffff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:all 0.15s ease;">
+                    <button type="button" id="btnLiveOurChurch" onclick="selectLiveWorshipStream('our_church')" style="padding:7px 4px; border-radius:10px; font-size:12px; font-weight:950; cursor:pointer; border:1.5px solid rgba(255,255,255,0.22); background:rgba(15,23,42,0.72); backdrop-filter:blur(8px); color:#ffffff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:all 0.15s ease;">
                         <span style="font-size:10px; font-weight:800; opacity:0.85;" id="dispLiveOurChurchName">부산제일감리교회</span>
                         <span>우리교회 라이브</span>
-                        <span class="live-status-pill" id="pillLiveOurChurch" style="font-size:9px; padding:1px 5px; border-radius:6px; background:rgba(255,255,255,0.2); color:#e2e8f0; font-weight:900;">설교영상</span>
+                        <span class="live-status-pill" id="pillLiveOurChurch" style="font-size:9.5px; padding:1.5px 6px; border-radius:6px; background:rgba(255,255,255,0.18); color:#cbd5e1; font-weight:900;">설교영상</span>
                     </button>
 
                     <!-- 3) 기타 교회 예배 -->
-                    <button type="button" id="btnLiveOtherChurches" onclick="toggleOtherChurchesDropdown()" style="padding:6px 4px; border-radius:10px; font-size:12px; font-weight:950; cursor:pointer; border:1px solid rgba(255,255,255,0.25); background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); color:#ffffff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:all 0.15s ease;">
+                    <button type="button" id="btnLiveOtherChurches" onclick="toggleOtherChurchesDropdown()" style="padding:7px 4px; border-radius:10px; font-size:12px; font-weight:950; cursor:pointer; border:1.5px solid rgba(255,255,255,0.22); background:rgba(15,23,42,0.72); backdrop-filter:blur(8px); color:#ffffff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:all 0.15s ease;">
                         <span style="font-size:10px; font-weight:800; opacity:0.85;">준회원 교회</span>
                         <span id="dispLiveOtherChurchLabel">기타교회 ▼</span>
-                        <span class="live-status-pill" id="pillLiveOtherChurch" style="font-size:9px; padding:1px 5px; border-radius:6px; background:rgba(255,255,255,0.2); color:#e2e8f0; font-weight:900;">선택</span>
+                        <span class="live-status-pill" id="pillLiveOtherChurch" style="font-size:9.5px; padding:1.5px 6px; border-radius:6px; background:rgba(255,255,255,0.18); color:#cbd5e1; font-weight:900;">선택</span>
                     </button>
                 </div>
             </div>
 
-            <!-- 🌟 기타 교회 드롭다운 오버레이 -->
-            <div id="dropdownOtherChurchesList" style="display:none; position:absolute; top:88px; left:10px; right:10px; z-index:40; background:rgba(15,23,42,0.92); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.25); border-radius:12px; padding:10px; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto;">
-                <div style="font-size:11.5px; font-weight:900; color:#94a3b8; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
-                    <span>📋 등록 교회 라이브/설교 목록</span>
-                    <button type="button" onclick="toggleOtherChurchesDropdown()" style="background:none; border:none; font-size:13px; color:#ffffff; font-weight:900; cursor:pointer;">닫기 ✕</button>
+            <!-- 🌟 기타 교회 드롭다운 오버레이: 좁은 박스에 가두지 않고 화면 하단까지 넉넉하고 시원하게 스크롤 -->
+            <div id="dropdownOtherChurchesList" style="display:none; position:absolute; top:90px; left:8px; right:8px; bottom:8px; z-index:70; background:rgba(15,23,42,0.96); backdrop-filter:blur(18px); border:1.5px solid rgba(255,255,255,0.28); border-radius:16px; overflow:hidden; box-shadow:0 16px 40px rgba(0,0,0,0.7); flex-direction:column;">
+                <div style="padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.12); display:flex; justify-content:space-between; align-items:center; flex-shrink:0; background:rgba(30,41,59,0.5);">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:16px;">📋</span>
+                        <span style="font-size:15px; font-weight:950; color:#ffffff; letter-spacing:-0.3px;">등록 교회 라이브 &amp; 설교 목록</span>
+                    </div>
+                    <button type="button" onclick="toggleOtherChurchesDropdown()" style="background:rgba(255,255,255,0.18); border:none; font-size:13px; color:#ffffff; font-weight:900; padding:5px 12px; border-radius:8px; cursor:pointer;">닫기 ✕</button>
                 </div>
-                <div id="dispAssociateChurchesItems" style="display:flex; flex-direction:column; gap:6px;">
+                <div id="dispAssociateChurchesItems" style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:12px 14px 45px 14px; display:flex; flex-direction:column; gap:10px;">
                     <!-- JS 렌더링 -->
                 </div>
             </div>
 
-            <!-- 3. 하단 투명 컨트롤 바 (제목 및 예톡홈·속도·확대·화면고정 4대 버튼) -->
-            <div style="position:absolute; bottom:0; left:0; right:0; z-index:30; background:linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 75%, transparent 100%); padding:14px 10px 8px 10px; display:flex; flex-direction:column; gap:5px; pointer-events:auto;">
+            <!-- 3. 하단 투명 컨트롤 바 (애드몹 위로 온전히 올라와 짤림 방지, 재생 시 자동 숨김) -->
+            <div id="liveWorshipBottomOverlay" style="position:absolute; bottom:6px; left:8px; right:8px; z-index:40; background:linear-gradient(0deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.65) 75%, transparent 100%); padding:12px 10px 8px 10px; border-radius:14px; display:flex; flex-direction:column; gap:6px; pointer-events:auto; transition:opacity 0.35s ease;">
                 <!-- 현재 영상 제목 -->
-                <div style="font-size:12px; font-weight:850; color:#ffffff; padding:0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 3px rgba(0,0,0,0.9);" id="dispCurrentLiveTitle">
+                <div style="font-size:13px; font-weight:950; color:#ffffff; padding:0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 3px rgba(0,0,0,0.9);" id="dispCurrentLiveTitle">
                     [부산제일감리교회] 주일 실시간 생방송 라이브 예배
                 </div>
 
-                <!-- 4대 도구 버튼 (반투명 유리 버튼) -->
+                <!-- 4대 도구 버튼 (반투명 유리 버튼, 큰 터치 영역 & 또렷한 글자) -->
                 <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; width:100%;">
-                    <button type="button" onclick="closeLiveWorshipView()" style="background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.25); border-radius:8px; padding:7px 4px; font-size:11.5px; font-weight:950; color:#ffffff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:3px;">
+                    <button type="button" onclick="closeLiveWorshipView()" style="background:rgba(30,41,59,0.85); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.25); border-radius:10px; padding:10px 4px; font-size:12.5px; font-weight:950; color:#ffffff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:3px;">
                         <span>🏠</span> <span>예톡홈</span>
                     </button>
-                    <button type="button" id="btnLivePlayerSpeed" onclick="cycleLivePlayerSpeed()" style="background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.25); border-radius:8px; padding:7px 4px; font-size:11.5px; font-weight:950; color:#ffffff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:3px;">
+                    <button type="button" id="btnLivePlayerSpeed" onclick="cycleLivePlayerSpeed()" style="background:rgba(30,41,59,0.85); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.25); border-radius:10px; padding:10px 4px; font-size:12.5px; font-weight:950; color:#ffffff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:3px;">
                         <span>⚡</span> <span id="txtLivePlayerSpeed">속도 1</span>
                     </button>
-                    <button type="button" onclick="toggleLivePlayerFullscreen()" style="background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.25); border-radius:8px; padding:7px 4px; font-size:11.5px; font-weight:950; color:#ffffff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:3px;">
+                    <button type="button" onclick="toggleLivePlayerFullscreen()" style="background:rgba(30,41,59,0.85); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.25); border-radius:10px; padding:10px 4px; font-size:12.5px; font-weight:950; color:#ffffff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:3px;">
                         <span>🔍</span> <span>확대</span>
                     </button>
-                    <button type="button" id="btnLiveScreenLock" onclick="toggleLiveScreenLock()" style="background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.25); border-radius:8px; padding:7px 4px; font-size:11.5px; font-weight:950; color:#ffffff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:3px;">
+                    <button type="button" id="btnLiveScreenLock" onclick="toggleLiveScreenLock()" style="background:rgba(30,41,59,0.85); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.25); border-radius:10px; padding:10px 4px; font-size:12.5px; font-weight:950; color:#ffffff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:3px;">
                         <span id="iconLiveScreenLock">🔓</span> <span id="txtLiveScreenLock">화면고정</span>
                     </button>
                 </div>
@@ -20795,8 +20811,86 @@ https://woongskorea.github.io/Yetalk-backup/`;
         { name: '사랑의교회', title: '주일 사랑의예배 실시간 중계', isLive: false, yt: 'https://www.youtube.com/watch?v=0bAEv9j9w5k' },
         { name: '새에덴교회', title: '생명의 말씀 주일 예배', isLive: false, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' },
         { name: '영락교회', title: '주일 온세대 연합예배', isLive: false, yt: 'https://www.youtube.com/watch?v=0bAEv9j9w5k' },
-        { name: '지구촌교회', title: '은혜와 진리의 주일예배', isLive: false, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' }
+        { name: '지구촌교회', title: '은혜와 진리의 주일예배', isLive: false, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' },
+        { name: '온누리교회', title: '주일 열린 예배 설교', isLive: false, yt: 'https://www.youtube.com/watch?v=0bAEv9j9w5k' },
+        { name: '명성교회', title: '주일 찬양과 말씀 예배', isLive: false, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' }
     ];
+
+    let liveControlsHideTimer = null;
+    let isLiveControlsHidden = false;
+
+    // 🌟 [사용자 요청] 재생 중 메뉴 숨김/복원 컨트롤
+    function hideLiveWorshipOverlays() {
+        isLiveControlsHidden = true;
+        const topEl = document.getElementById('liveWorshipTopOverlay');
+        const btmEl = document.getElementById('liveWorshipBottomOverlay');
+        const toggleBtn = document.getElementById('btnLiveControlsToggle');
+        const drop = document.getElementById('dropdownOtherChurchesList');
+        if (topEl) {
+            topEl.style.opacity = '0';
+            topEl.style.pointerEvents = 'none';
+        }
+        if (btmEl) {
+            btmEl.style.opacity = '0';
+            btmEl.style.pointerEvents = 'none';
+        }
+        if (toggleBtn) toggleBtn.style.display = 'inline-flex';
+        if (drop) drop.style.display = 'none';
+    }
+    window.hideLiveWorshipOverlays = hideLiveWorshipOverlays;
+
+    function showLiveWorshipOverlays() {
+        isLiveControlsHidden = false;
+        if (liveControlsHideTimer) {
+            clearTimeout(liveControlsHideTimer);
+            liveControlsHideTimer = null;
+        }
+        const topEl = document.getElementById('liveWorshipTopOverlay');
+        const btmEl = document.getElementById('liveWorshipBottomOverlay');
+        const toggleBtn = document.getElementById('btnLiveControlsToggle');
+        if (topEl) {
+            topEl.style.opacity = '1';
+            topEl.style.pointerEvents = 'auto';
+        }
+        if (btmEl) {
+            btmEl.style.opacity = '1';
+            btmEl.style.pointerEvents = 'auto';
+        }
+        if (toggleBtn) toggleBtn.style.display = 'none';
+    }
+    window.showLiveWorshipOverlays = showLiveWorshipOverlays;
+
+    function showLiveWorshipControlsTemporarily(durationMs = 4500) {
+        showLiveWorshipOverlays();
+        if (liveControlsHideTimer) clearTimeout(liveControlsHideTimer);
+        liveControlsHideTimer = setTimeout(() => {
+            hideLiveWorshipOverlays();
+        }, durationMs);
+    }
+    window.showLiveWorshipControlsTemporarily = showLiveWorshipControlsTemporarily;
+
+    // 🌟 [사용자 요청] 유튜브 재생/정지 이벤트 감지하여 재생 중에는 풀스크린(메뉴 자동 숨김), 정지 시에는 메뉴 복원
+    if (!window.yetalkLiveMessageListenerBound) {
+        window.yetalkLiveMessageListenerBound = true;
+        window.addEventListener('message', function(e) {
+            try {
+                let data = e.data;
+                if (typeof data === 'string') data = JSON.parse(data);
+                if (data && (data.event === 'onStateChange' || data.info !== undefined)) {
+                    const state = data.info !== undefined ? data.info : data.data;
+                    // 1: PLAYING, 2: PAUSED, 0: ENDED
+                    if (state === 1) {
+                        if (liveControlsHideTimer) clearTimeout(liveControlsHideTimer);
+                        liveControlsHideTimer = setTimeout(() => {
+                            hideLiveWorshipOverlays();
+                        }, 2200);
+                    } else if (state === 2 || state === 0) {
+                        showLiveWorshipOverlays();
+                    }
+                }
+            } catch(err) {}
+        });
+    }
 
     function toEmbedLiveUrl(url) {
         if (!url) return '';
@@ -20816,6 +20910,85 @@ https://woongskorea.github.io/Yetalk-backup/`;
         return url;
     }
 
+    // 🌟 [사용자 요청] 성도들이 실제로 준회원으로 가입한 타교회 목록 수집
+    function getJoinedAssociateChurchesList() {
+        const list = [];
+        const homeChurch = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalk_registered_home_church') || '부산제일감리교회').trim();
+
+        // 1) localStorage 키 스캔
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('yetalk_church_member_grade_')) {
+                const chName = key.replace('yetalk_church_member_grade_', '').trim();
+                const grade = localStorage.getItem(key);
+                if (grade === '준회원' && chName && chName !== homeChurch && !list.includes(chName)) {
+                    list.push(chName);
+                }
+            }
+        }
+        // 2) yetalk_joined_associate_churches 배열
+        try {
+            const arr = JSON.parse(localStorage.getItem('yetalk_joined_associate_churches') || '[]');
+            arr.forEach(c => {
+                const name = typeof c === 'string' ? c.trim() : (c && c.name ? c.name.trim() : '');
+                if (name && name !== homeChurch && !list.includes(name)) list.push(name);
+            });
+        } catch(e){}
+
+        // 3) 사역앱
+        try {
+            if (typeof getJoinedMinistryApps === 'function') {
+                const apps = getJoinedMinistryApps() || [];
+                apps.forEach(a => {
+                    const name = (a && a.name ? a.name.trim() : '');
+                    if (name && name !== homeChurch && !list.includes(name)) list.push(name);
+                });
+            }
+        } catch(e){}
+
+        return list;
+    }
+
+    // 🌟 전체 기타교회 정렬 목록 생성: 준회원 가입 교회 최우선 -> 대표님 등록 교회 -> 기본 추천 교회
+    function buildConsolidatedOtherChurchesList() {
+        let customList = [];
+        try {
+            const raw = localStorage.getItem('yetalk_admin_custom_churches');
+            if (raw) customList = JSON.parse(raw) || [];
+        } catch(e){}
+
+        const joinedNames = getJoinedAssociateChurchesList();
+        const joinedItems = [];
+        joinedNames.forEach(name => {
+            const customMatch = customList.find(c => c.name === name);
+            const defaultMatch = associateChurchesLiveList.find(c => c.name === name);
+            const ytUrl = customMatch ? (customMatch.yt || customMatch.url) : (defaultMatch ? defaultMatch.yt : 'https://www.youtube.com/watch?v=92oktJl3-Fo');
+            const isLive = customMatch ? !!customMatch.isLive : (defaultMatch ? !!defaultMatch.isLive : false);
+            const title = customMatch ? customMatch.title : (defaultMatch ? defaultMatch.title : '주일 예배 실황');
+            joinedItems.push({
+                name: name,
+                title: title,
+                yt: ytUrl,
+                url: ytUrl,
+                isLive: isLive,
+                isJoined: true
+            });
+        });
+
+        // 대표님 등록 3개 교회 (준회원 가입 목록과 중복 제외)
+        const adminItems = customList
+            .filter(c => !joinedItems.some(j => j.name === c.name))
+            .map(c => ({ ...c, isAdminAdded: true }));
+
+        // 기본 주요 교회 목록 (이미 포함된 교회 제외)
+        const defaultItems = associateChurchesLiveList.filter(c =>
+            !joinedItems.some(j => j.name === c.name) && !adminItems.some(a => a.name === c.name)
+        );
+
+        // 성도들이 준회원 가입한 교회 최상단, 없으면 대표님이 올린 추천 교회 상단!
+        return [...joinedItems, ...adminItems, ...defaultItems];
+    }
+
     function updateLiveWorshipClock() {
         const clockEl = document.getElementById('liveWorshipClock');
         if (!clockEl) return;
@@ -20830,12 +21003,10 @@ https://woongskorea.github.io/Yetalk-backup/`;
         clockEl.innerText = `${month}월 ${date}일(${dayName}) ${hours}:${minutes}:${seconds}`;
     }
 
-    // 🌟 [사용자 요청] 라이브 예배 뷰 열기: 상단 로고바 & 퀵메뉴바를 숨겨 거의 풀스크린처럼 최상단으로 올려서 배치
     function openLiveWorshipView() {
         isLiveWorshipOpen = true;
         document.body.classList.add('live-worship-fullscreen-mode');
 
-        // [사용자 요청] 상단 로고 헤더와 퀵네비바 완전 숨김
         const appHeader = document.querySelector('.app-header');
         if (appHeader) {
             appHeader.dataset.prevDisplay = appHeader.style.display || '';
@@ -20850,7 +21021,6 @@ https://woongskorea.github.io/Yetalk-backup/`;
         const liveSec = document.getElementById('liveWorshipContainer');
         if (liveSec) liveSec.style.display = 'block';
 
-        // 🌟 [사용자 요청] 포털 본문 내부의 다른 모든 요소(카테고리 탭, 말씀 카드 등) 즉각 숨김
         const portalBody = document.getElementById('portalBody');
         if (portalBody) {
             Array.from(portalBody.children).forEach(child => {
@@ -20861,12 +21031,12 @@ https://woongskorea.github.io/Yetalk-backup/`;
             });
         }
 
-        // 시계 타이머 가동
+        showLiveWorshipOverlays();
+
         updateLiveWorshipClock();
         if (liveClockTimer) clearInterval(liveClockTimer);
         liveClockTimer = setInterval(updateLiveWorshipClock, 1000);
 
-        // 교회 이름 세팅
         const myChurch = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalk_registered_home_church') || '부산제일감리교회').trim();
         const dispEl = document.getElementById('dispLiveOurChurchName');
         if (dispEl) dispEl.innerText = myChurch;
@@ -20881,7 +21051,6 @@ https://woongskorea.github.io/Yetalk-backup/`;
         isLiveWorshipOpen = false;
         document.body.classList.remove('live-worship-fullscreen-mode');
 
-        // 상단 로고 헤더와 퀵네비바 복원
         const appHeader = document.querySelector('.app-header');
         if (appHeader) {
             appHeader.style.display = appHeader.dataset.prevDisplay !== undefined ? appHeader.dataset.prevDisplay : '';
@@ -20894,7 +21063,6 @@ https://woongskorea.github.io/Yetalk-backup/`;
         const liveSec = document.getElementById('liveWorshipContainer');
         if (liveSec) liveSec.style.display = 'none';
 
-        // 🌟 포털 본문 다른 요소들 복원
         const portalBody = document.getElementById('portalBody');
         if (portalBody) {
             Array.from(portalBody.children).forEach(child => {
@@ -20909,7 +21077,11 @@ https://woongskorea.github.io/Yetalk-backup/`;
             liveClockTimer = null;
         }
 
-        // 오디오 정지
+        if (liveControlsHideTimer) {
+            clearTimeout(liveControlsHideTimer);
+            liveControlsHideTimer = null;
+        }
+
         const iframe = document.getElementById('liveWorshipPlayerIframe');
         if (iframe) iframe.src = '';
 
@@ -20917,11 +21089,11 @@ https://woongskorea.github.io/Yetalk-backup/`;
         document.getElementById('chipTabOurChurch')?.classList.add('active');
     }
 
-        function selectLiveWorshipStream(channelKey, customObj = null) {
+    // 🌟 [사용자 요청] 스트림 선택 및 가로 3개 버튼 스타일 갱신 (너무 튀지 않는 다크 반투명 글래스 + 라이브가 하나라도 있으면 빨강 ON)
+    function selectLiveWorshipStream(channelKey, customObj = null) {
         currentLiveChannelKey = channelKey;
         const myChurch = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalk_registered_home_church') || '부산제일감리교회').trim();
 
-        // 🌟 [사용자 요청] 기타교회 열린 리스트 자동 닫기
         if (channelKey === 'yetalk' || channelKey === 'our_church') {
             const drop = document.getElementById('dropdownOtherChurchesList');
             if (drop) drop.style.display = 'none';
@@ -20938,115 +21110,129 @@ https://woongskorea.github.io/Yetalk-backup/`;
         const iframe = document.getElementById('liveWorshipPlayerIframe');
         const titleEl = document.getElementById('dispCurrentLiveTitle');
 
-        // 기본 버튼 스타일 초기화
+        const isYetalkLive = localStorage.getItem('yetalk_live_yetalk_church_islive') === 'true';
+        const isOurChurchLive = localStorage.getItem('yetalk_live_our_church_islive') === 'true';
+        const fullOtherList = buildConsolidatedOtherChurchesList();
+        const isAnyOtherLive = fullOtherList.some(ch => ch.isLive);
+
+        // 3개 버튼 기본 스타일 (단정하고 튀지 않는 다크 반투명 글래스)
         [btnYetalk, btnOurChurch, btnOther].forEach(btn => {
             if (btn) {
-                btn.style.background = '#f8fafc';
-                btn.style.color = '#334155';
-                btn.style.border = '1.5px solid #cbd5e1';
+                btn.style.background = 'rgba(15, 23, 42, 0.72)';
+                btn.style.color = '#ffffff';
+                btn.style.border = '1.5px solid rgba(255, 255, 255, 0.22)';
                 btn.style.boxShadow = 'none';
             }
         });
 
+        // 뱃지 상태 업데이트 (라이브가 있으면 빨강 ON, 없으면 차분한 설교영상)
+        if (pillYetalk) {
+            pillYetalk.innerText = isYetalkLive ? '🔴 라이브 ON' : '설교영상';
+            pillYetalk.style.background = isYetalkLive ? '#ef4444' : 'rgba(255,255,255,0.18)';
+            pillYetalk.style.color = isYetalkLive ? '#ffffff' : '#cbd5e1';
+            pillYetalk.style.boxShadow = isYetalkLive ? '0 0 8px rgba(239,68,68,0.7)' : 'none';
+        }
+        if (pillOur) {
+            pillOur.innerText = isOurChurchLive ? '🔴 라이브 ON' : '설교영상';
+            pillOur.style.background = isOurChurchLive ? '#ef4444' : 'rgba(255,255,255,0.18)';
+            pillOur.style.color = isOurChurchLive ? '#ffffff' : '#cbd5e1';
+            pillOur.style.boxShadow = isOurChurchLive ? '0 0 8px rgba(239,68,68,0.7)' : 'none';
+        }
+        if (pillOther) {
+            pillOther.innerText = isAnyOtherLive ? '🔴 라이브 ON' : '설교영상';
+            pillOther.style.background = isAnyOtherLive ? '#ef4444' : 'rgba(255,255,255,0.18)';
+            pillOther.style.color = isAnyOtherLive ? '#ffffff' : '#cbd5e1';
+            pillOther.style.boxShadow = isAnyOtherLive ? '0 0 8px rgba(239,68,68,0.7)' : 'none';
+        }
+
         let targetUrl = '';
 
         if (channelKey === 'yetalk') {
-            const isLive = localStorage.getItem('yetalk_live_yetalk_church_islive') === 'true';
             const ytUrl = localStorage.getItem('yetalk_live_yetalk_church_url') || 'https://www.youtube.com/watch?v=kJQP7kiw5Fk';
             const title = localStorage.getItem('yetalk_live_yetalk_church_title') || '[예톡교회] 주일 연합 실시간 라이브 예배';
 
             if (btnYetalk) {
-                btnYetalk.style.background = isLive ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #0284c7, #0369a1)';
-                btnYetalk.style.color = '#ffffff';
-                btnYetalk.style.border = isLive ? '1.5px solid #ef4444' : '1.5px solid #0284c7';
-                btnYetalk.style.boxShadow = isLive ? '0 3px 10px rgba(239,68,68,0.35)' : '0 3px 10px rgba(2,132,199,0.35)';
-            }
-            if (pillYetalk) {
-                pillYetalk.innerText = isLive ? '🔴 라이브 ON' : '설교영상';
-                pillYetalk.style.background = isLive ? '#ffffff' : '#e0f2fe';
-                pillYetalk.style.color = isLive ? '#dc2626' : '#0284c7';
+                btnYetalk.style.background = isYetalkLive ? 'rgba(185, 28, 28, 0.45)' : 'rgba(30, 41, 59, 0.9)';
+                btnYetalk.style.border = isYetalkLive ? '1.5px solid #ef4444' : '1.5px solid rgba(255, 255, 255, 0.6)';
             }
             targetUrl = toEmbedLiveUrl(ytUrl);
-            if (titleEl) titleEl.innerText = `${isLive ? '🔴 LIVE ' : ''}${title}`;
+            if (titleEl) titleEl.innerText = `${isYetalkLive ? '🔴 LIVE ' : ''}${title}`;
         } else if (channelKey === 'our_church') {
-            const isLive = localStorage.getItem('yetalk_live_our_church_islive') === 'true'; // 기본 false: 실제 라이브 안 할 땐 회색
             const ytUrl = localStorage.getItem('yetalk_live_our_church_url') || 'https://www.youtube.com/watch?v=92oktJl3-Fo';
 
             if (btnOurChurch) {
-                btnOurChurch.style.background = isLive ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #1e40af, #1e3a8a)';
-                btnOurChurch.style.color = '#ffffff';
-                btnOurChurch.style.border = isLive ? '1.5px solid #ef4444' : '1.5px solid #1e40af';
-                btnOurChurch.style.boxShadow = isLive ? '0 3px 10px rgba(239,68,68,0.35)' : '0 3px 10px rgba(30,64,175,0.25)';
-            }
-            if (pillOur) {
-                pillOur.innerText = isLive ? '🔴 라이브 ON' : '설교영상';
-                pillOur.style.background = isLive ? '#ffffff' : '#e2e8f0';
-                pillOur.style.color = isLive ? '#dc2626' : '#475569';
+                btnOurChurch.style.background = isOurChurchLive ? 'rgba(185, 28, 28, 0.45)' : 'rgba(30, 41, 59, 0.9)';
+                btnOurChurch.style.border = isOurChurchLive ? '1.5px solid #ef4444' : '1.5px solid rgba(255, 255, 255, 0.6)';
             }
             targetUrl = toEmbedLiveUrl(ytUrl);
-            if (titleEl) titleEl.innerText = `${isLive ? '🔴 LIVE ' : ''}[${myChurch}] 주일 예배 영상`;
+            if (titleEl) titleEl.innerText = `${isOurChurchLive ? '🔴 LIVE ' : ''}[${myChurch}] 주일 예배 영상`;
         } else if (channelKey === 'other_church' && customObj) {
             const isLive = !!customObj.isLive;
             if (btnOther) {
-                btnOther.style.background = isLive ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #475569, #334155)';
-                btnOther.style.color = '#ffffff';
-                btnOther.style.border = isLive ? '1.5px solid #ef4444' : '1.5px solid #475569';
-                btnOther.style.boxShadow = isLive ? '0 3px 10px rgba(239,68,68,0.35)' : 'none';
+                btnOther.style.background = isLive ? 'rgba(185, 28, 28, 0.45)' : 'rgba(30, 41, 59, 0.9)';
+                btnOther.style.border = isLive ? '1.5px solid #ef4444' : '1.5px solid rgba(255, 255, 255, 0.6)';
             }
             const labelEl = document.getElementById('dispLiveOtherChurchLabel');
             if (labelEl) labelEl.innerText = customObj.name;
-            if (pillOther) {
-                pillOther.innerText = isLive ? '🔴 라이브 ON' : '설교영상';
-                pillOther.style.background = isLive ? '#ffffff' : '#e2e8f0';
-                pillOther.style.color = isLive ? '#dc2626' : '#475569';
-            }
             targetUrl = toEmbedLiveUrl(customObj.yt || customObj.url);
             if (titleEl) titleEl.innerText = `${isLive ? '🔴 LIVE ' : ''}[${customObj.name}] ${customObj.title || '최신 설교 말씀'}`;
         }
 
         if (iframe && targetUrl) iframe.src = targetUrl;
+
+        // 스트림 선택 시 메뉴가 떠 있다가 영상이 시작되면 자동으로 풀스크린 전환
+        showLiveWorshipControlsTemporarily(3500);
     }
 
     function toggleOtherChurchesDropdown() {
         const drop = document.getElementById('dropdownOtherChurchesList');
         if (!drop) return;
-        drop.style.display = (drop.style.display === 'none' || !drop.style.display) ? 'flex' : 'none';
+        const isOpen = drop.style.display === 'flex';
+        drop.style.display = isOpen ? 'none' : 'flex';
+        if (!isOpen) {
+            renderAssociateChurchesList();
+        }
     }
 
-    // 🌟 [사용자 요청] 기타 교회 목록 렌더링 (대표님 등록 3개 교회 최우선 표시 + 실제 라이브만 빨강, 아니면 회색 설교영상)
+    // 🌟 [사용자 요청] 기타 교회 목록 렌더링
+    // 1) 준회원 가입 교회 최상단 2) 대표님 등록 교회 3) 주요 전국 교회
+    // 4) 갇힌 박스 없이 아래 끝까지 시원하게 스크롤 + 글자 시원하게 확대
     function renderAssociateChurchesList() {
         const container = document.getElementById('dispAssociateChurchesItems');
         if (!container) return;
 
-        let customList = [];
-        try {
-            const raw = localStorage.getItem('yetalk_admin_custom_churches');
-            if (raw) customList = JSON.parse(raw) || [];
-        } catch(e){}
+        const fullList = buildConsolidatedOtherChurchesList();
 
-        const fullList = [...customList, ...associateChurchesLiveList];
+        // 상단 기타교회 버튼의 라이브 여부 실시간 갱신
+        const isAnyLive = fullList.some(ch => ch.isLive);
+        const pillOther = document.getElementById('pillLiveOtherChurch');
+        if (pillOther) {
+            pillOther.innerText = isAnyLive ? '🔴 라이브 ON' : '설교영상';
+            pillOther.style.background = isAnyLive ? '#ef4444' : 'rgba(255,255,255,0.18)';
+            pillOther.style.color = isAnyLive ? '#ffffff' : '#cbd5e1';
+            pillOther.style.boxShadow = isAnyLive ? '0 0 8px rgba(239,68,68,0.7)' : 'none';
+        }
 
         container.innerHTML = fullList.map((ch, idx) => `
-            <div onclick="selectAssociateChurchLiveItem(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:1px solid ${ch.isLive ? '#fca5a5' : '#e2e8f0'}; border-radius:10px; padding:8px 10px; cursor:pointer; transition:background 0.15s;">
-                <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
-                    <span style="font-size:14px;">⛪</span>
-                    <strong style="font-size:13px; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ch.name}</strong>
-                    <span style="font-size:11px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ch.title || '설교 말씀'}</span>
+            <div onclick="selectAssociateChurchLiveItem(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:rgba(30, 41, 59, 0.88); border:1.5px solid ${ch.isLive ? '#ef4444' : 'rgba(255,255,255,0.15)'}; border-radius:12px; padding:12px 14px; cursor:pointer; transition:all 0.15s ease; box-shadow:0 3px 10px rgba(0,0,0,0.3);">
+                <div style="display:flex; flex-direction:column; gap:3px; min-width:0; flex:1; margin-right:10px;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="font-size:16px;">⛪</span>
+                        <strong style="font-size:15.5px; font-weight:950; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ch.name}</strong>
+                        ${ch.isJoined ? '<span style="font-size:10.5px; font-weight:900; background:#065f46; color:#a7f3d0; padding:1.5px 6px; border-radius:4px;">준회원</span>' : ''}
+                        ${ch.isAdminAdded ? '<span style="font-size:10.5px; font-weight:900; background:#1e3a8a; color:#93c5fd; padding:1.5px 6px; border-radius:4px;">추천</span>' : ''}
+                    </div>
+                    <span style="font-size:13px; color:#cbd5e1; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ch.title || '설교 말씀 실황'}</span>
                 </div>
-                <span style="font-size:10px; font-weight:950; padding:2px 8px; border-radius:6px; ${ch.isLive ? 'background:#ef4444; color:#ffffff;' : 'background:#e2e8f0; color:#64748b;'}">
+                <span style="font-size:12px; font-weight:950; padding:5px 12px; border-radius:8px; flex-shrink:0; ${ch.isLive ? 'background:#ef4444; color:#ffffff; box-shadow:0 2px 8px rgba(239,68,68,0.5);' : 'background:rgba(255,255,255,0.12); color:#cbd5e1; border:1px solid rgba(255,255,255,0.2);'}">
                     ${ch.isLive ? '🔴 라이브 ON' : '설교영상'}
                 </span>
             </div>
-        `).join('');
+        ").join('');
     }
 
     function selectAssociateChurchLiveItem(idx) {
-        let customList = [];
-        try {
-            const raw = localStorage.getItem('yetalk_admin_custom_churches');
-            if (raw) customList = JSON.parse(raw) || [];
-        } catch(e){}
-        const fullList = [...customList, ...associateChurchesLiveList];
+        const fullList = buildConsolidatedOtherChurchesList();
         const ch = fullList[idx];
         if (!ch) return;
         toggleOtherChurchesDropdown();
@@ -21054,7 +21240,6 @@ https://woongskorea.github.io/Yetalk-backup/`;
     }
     window.selectAssociateChurchLiveItem = selectAssociateChurchLiveItem;
 
-    // 🌟 [사용자 요청] 도구바 기능들 (속도 / 확대 / 화면고정)
     function cycleLivePlayerSpeed() {
         const speeds = [1.0, 1.25, 1.5, 2.0];
         let idx = speeds.indexOf(currentLivePlayerSpeed);
