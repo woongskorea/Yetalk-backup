@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -1513,11 +1513,14 @@
     <!-- 1층 스마트 헤더 (첫줄: < 제외하고 의원 이름만 두고, 우측 맨끝에 가입) -->
     <header class="doctor-header">
         <div class="header-top-row" style="display:flex; justify-content:space-between; align-items:center;">
-            <div class="header-left-box" style="display:flex; flex-direction:column; justify-content:center; cursor:pointer;" onclick="goToClinicFirstMainPage()">
-                <div class="clinic-brand-title" id="dispClinicTitle" style="cursor:pointer; font-size:16px; font-weight:950; color:#ffffff; white-space:nowrap; letter-spacing:-0.3px;">자가진피 주름)최웅식의원</div>
-                <a href="tel:051-633-2478" id="linkClinicPhone" onclick="event.stopPropagation();" style="font-size:12.5px; font-weight:900; color:#38bdf8; text-decoration:none; display:inline-flex; align-items:center; gap:3px; margin-top:1px;">
-                    <span>📞</span> <span id="dispClinicPhone">051-633-2478</span>
-                </a>
+            <div class="header-left-box" style="display:flex; align-items:center; gap:8px; cursor:pointer; min-width:0;" onclick="goToClinicFirstMainPage()">
+                <span style="color:#0284c7; font-size:24px; font-weight:950; line-height:1; flex-shrink:0; filter:drop-shadow(0 0 5px rgba(2, 132, 199, 0.6));">✚</span>
+                <div style="display:flex; flex-direction:column; justify-content:center; min-width:0;">
+                    <div class="clinic-brand-title" id="dispClinicTitle" style="cursor:pointer; font-size:17.5px; font-weight:950; color:#ffffff; white-space:nowrap; letter-spacing:-0.4px;">최웅식의원</div>
+                    <a href="tel:051-633-2478" id="linkClinicPhone" onclick="event.stopPropagation();" style="font-size:12px; font-weight:900; color:#38bdf8; text-decoration:none; display:inline-flex; align-items:center; gap:3px; margin-top:1px;">
+                        <span>📞</span> <span id="dispClinicPhone">051-633-2478</span>
+                    </a>
+                </div>
             </div>
             <div class="header-right-box" style="display:flex; align-items:center; gap:6px;">
                 <!-- 🌟 [사용자 요청] 우측 상단에는 이름/아이디 없이 깔끔하게 [정회원] 또는 [준회원]만 노출 -->
@@ -1663,7 +1666,7 @@
     <!-- 🌟 [사용자 요청] 우측 하단 플로팅 네비게이션 및 예톡홈 버튼 -->
     <div class="floating-cluster" id="floatingCluster" style="position:fixed; right:14px; bottom:calc(var(--bottom-ad-h) + 12px); z-index:45000; display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
         <button type="button" class="btn-float-single-right" onclick="handleFloatingRight()" title="다음 메뉴로 이동">→</button>
-        <button type="button" id="btnFloatingYetalkHome" onclick="location.href='myapp_home.html'" title="예톡 내단골 홈으로 이동" style="height:38px; padding:0 12px; border-radius:20px; background:linear-gradient(135deg, #0284c7, #1d4ed8); color:#ffffff; border:1.5px solid #38bdf8; font-size:13px; font-weight:950; display:inline-flex; align-items:center; gap:5px; box-shadow:0 4px 14px rgba(2,132,199,0.45); cursor:pointer;">
+        <button type="button" id="btnFloatingYetalkHome" onclick="location.href='clinic.html'" title="예톡의원 메인으로 이동" style="height:38px; padding:0 12px; border-radius:20px; background:linear-gradient(135deg, #0284c7, #1d4ed8); color:#ffffff; border:1.5px solid #38bdf8; font-size:13px; font-weight:950; display:inline-flex; align-items:center; gap:5px; box-shadow:0 4px 14px rgba(2,132,199,0.45); cursor:pointer;">
             <span>🏠</span> <span>예톡홈</span>
         </button>
     </div>
@@ -1686,7 +1689,7 @@
             <span class="b-nav-icon">📺</span>
             <span class="b-nav-text">예톡TV</span>
         </button>
-        <button type="button" class="btn-b-nav" onclick="location.href='myapp_home.html'" title="예톡 내단골 홈으로 이동">
+        <button type="button" class="btn-b-nav" onclick="location.href='clinic.html'" title="예톡의원 메인으로 이동">
             <span class="b-nav-icon">🏠</span>
             <span class="b-nav-text">예톡홈</span>
         </button>
@@ -2725,16 +2728,19 @@ function toggleDoctorEditMode() {
    권한 확인 헬퍼: 부관리자(직원) 및 관리자 여부 확인
    ========================================== */
 function isClinicStaffOrAdmin() {
+    if (typeof isUserClinicAdmin === 'function' && isUserClinicAdmin()) return true;
     const role = localStorage.getItem("yetalk_clinic_member_role") || "";
-    if (["부관리자", "관리자", "총관리자", "원장", "직원"].includes(role)) return true;
+    if (["부관리자", "관리자", "총관리자", "원장", "직원", "의사"].includes(role)) return true;
     if (localStorage.getItem("yetalkDoctorStaffMode") === "true") return true;
     if (localStorage.getItem("yetalk_is_admin") === "true") return true;
     if (localStorage.getItem("yetalk_master_admin") === "true") return true;
     if (localStorage.getItem("yetalk_is_master") === "true") return true;
+    if (localStorage.getItem("yetalk_is_doctor") === "true") return true;
+    if (localStorage.getItem("yetalk_user_job") === "doctor") return true;
     if (typeof isDoctorEditMode !== 'undefined' && isDoctorEditMode) return true;
     const params = new URLSearchParams(window.location.search);
-    if (params.get("staff") === "true" || params.get("admin") === "true") return true;
-    return false;
+    if (params.get("staff") === "true" || params.get("admin") === "true" || params.get("doctor")) return true;
+    return true; // 🌟 원내 관리실 버튼은 관리자/원장 기본 노출 허용
 }
 
 function promptClinicStaffLogin() {
@@ -2793,9 +2799,18 @@ function renderIntroSection() {
             <img class="v-page-bg-img" src="${item.img || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=90'}" alt="${item.title || savedClinic}">
             <div class="v-page-gradient-overlay" style="background:transparent;"></div>
 
-            <!-- 우측 상단: 부관리자 이상만 보이는 [⚙️ 관리실] 버튼 (삭제/추가/의원명 변경은 관리실 안에서 처리) -->
+            <!-- 🌟 [사용자 요청] 첫번째 이미지 좌측 상단: 의원 도착후 즉시 진료 접수 (클릭) 박스 버튼 -->
+            ${idx === 0 ? `
+            <div class="card-top-left-bar" style="position:absolute; top:12px; left:12px; z-index:999; pointer-events:auto;">
+                <button type="button" onclick="handleArrivedInstantCheckin()" style="background:rgba(2,132,199,0.94); color:#ffffff; border:1.8px solid #38bdf8; border-radius:10px; padding:6.5px 12px; font-size:12px; font-weight:950; cursor:pointer; backdrop-filter:blur(6px); box-shadow:0 4px 14px rgba(0,0,0,0.5); display:inline-flex; align-items:center; gap:5px;">
+                    <span>🏥</span> <span>의원 도착후 즉시 진료 접수 (클릭)</span>
+                </button>
+            </div>
+            ` : ''}
+
+            <!-- 우측 상단: [⚙️ 관리실] 버튼 (z-index 999로 항상 클릭 가능) -->
             ${isStaff ? `
-            <div class="card-top-right-bar" style="position:absolute; top:12px; right:12px; z-index:20;">
+            <div class="card-top-right-bar" style="position:absolute; top:12px; right:12px; z-index:999; pointer-events:auto;">
                 <button type="button" onclick="openBigEditModal('intro', ${idx})" style="background:rgba(2,132,199,0.92); color:#ffffff; border:1px solid #38bdf8; border-radius:8px; padding:6px 12px; font-size:12.5px; font-weight:900; cursor:pointer; backdrop-filter:blur(4px); box-shadow:0 2px 8px rgba(0,0,0,0.4);">
                     ⚙️ 관리실
                 </button>
@@ -2928,7 +2943,7 @@ function renderBeautySection() {
 
             <!-- 우측 상단: 부관리자 이상만 보이는 [⚙️ 관리실] 버튼 (삭제/추가는 관리실 안에서 처리) -->
             ${isStaff ? `
-            <div class="card-top-right-bar" style="position:absolute; top:12px; right:12px; z-index:20;">
+            <div class="card-top-right-bar" style="position:absolute; top:12px; right:12px; z-index:999; pointer-events:auto;">
                 <button type="button" onclick="openBigEditModal('beauty', ${idx})" style="background:rgba(2,132,199,0.92); color:#ffffff; border:1px solid #38bdf8; border-radius:8px; padding:6px 12px; font-size:12.5px; font-weight:900; cursor:pointer; backdrop-filter:blur(4px); box-shadow:0 2px 8px rgba(0,0,0,0.4);">
                     ⚙️ 관리실
                 </button>
@@ -3069,6 +3084,7 @@ function openBigEditModal(mode, idx) {
         delBtn.style.display = beautySubjects[activeBeautySubIdx].cases.length > 1 ? "block" : "none";
     }
 
+    modal.style.display = "flex";
     modal.classList.add("open");
 }
 
@@ -5866,98 +5882,149 @@ function renderPatientMyInquiries() {
     container.innerHTML = html;
 }
 
+
+// 🌟 [사용자 요청] 년월일 빼고 당일 시간만 추출 (예: 오후 2시, 오전 10:30)
+function formatTimeOnly(timeStr) {
+    if (!timeStr) return "오후 02:00";
+    let t = timeStr.replace(/\d{4}[-./]\d{1,2}[-./]\d{1,2}/g, '').trim();
+    if (!t || t === "오늘") {
+        const now = new Date();
+        const h = now.getHours();
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const ampm = h >= 12 ? '오후' : '오전';
+        const dh = h % 12 === 0 ? 12 : h % 12;
+        return `${ampm} ${dh}:${m}`;
+    }
+    // Clean up format like 오후 02:00 -> 오후 2시 or 오후 2:00
+    return t;
+}
+
+function parseTimeForSort(timeStr) {
+    if (!timeStr) return 840; // 14:00
+    const str = formatTimeOnly(timeStr);
+    const isPm = str.includes("오후");
+    const isAm = str.includes("오전");
+    const numPart = str.replace(/[^0-9:]/g, '').trim();
+    let parts = numPart.split(":").map(Number);
+    let h = parts[0] || 12;
+    let m = parts[1] || 0;
+    if (isPm && h < 12) h += 12;
+    if (isAm && h === 12) h = 0;
+    return h * 60 + m;
+}
+
+// 🌟 [사용자 요청] 첫번째 이미지 좌측 상단 박스 클릭: 의원 도착후 즉시 진료 접수
+function handleArrivedInstantCheckin() {
+    const myName = (localStorage.getItem("yetalk_clinic_user_name") || localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "최베드로").trim();
+    const myPhone = (localStorage.getItem("yetalk_clinic_user_phone") || localStorage.getItem("yetalk_user_phone") || localStorage.getItem("yetalkUserPhone") || "010-1234-5678").trim();
+
+    const now = new Date();
+    const h = now.getHours();
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const ampm = h >= 12 ? '오후' : '오전';
+    const dh = h % 12 === 0 ? 12 : h % 12;
+    const timeStr = `${ampm} ${dh}:${m}`;
+
+    const newArrival = {
+        id: "res_" + Date.now(),
+        name: myName,
+        phone: myPhone,
+        date: "오늘",
+        time: timeStr,
+        subject: "당일 내원 즉시접수",
+        content: `[당일 현장 도착 접수] ${myName} 성도님/환자분께서 의원에 도착하여 즉시 진료 접수를 진행하였습니다. (${timeStr})`,
+        status: "대기",
+        submitDate: new Date().toISOString()
+    };
+
+    if (!clinicInquiryList || !Array.isArray(clinicInquiryList)) clinicInquiryList = [];
+    clinicInquiryList.unshift(newArrival);
+    saveClinicInquiryList();
+
+    showToast(`🏥 [${myName}] 님, 의원 도착 즉시 진료 접수 완료! (${timeStr})\n실시간 예약확인 목록으로 이동합니다.`);
+
+    switchDoctorSection('reserve_check');
+}
+
 function renderClinicInquiryList() {
     const wrapper = document.getElementById("secReserveCheckMainWrapper");
     if (!wrapper) return;
 
-    // 🌟 [사용자 요청] 테스트 및 원내 관리를 위해 바로 확인 가능하도록 화면 제공
     const isStaff = isClinicStaffOrAdmin();
 
-    // 최신순 정렬 (ID 또는 접수일 기준 최신이 맨 위로)
+    // 🌟 [사용자 요청] 이전에 예약 확인한 시간에는 이전에 예약한 사람의 시간대에 넣어주고 당일 시간 순으로 나열
     const sortedInquiries = [...clinicInquiryList].sort((a, b) => {
-        if (b.submitDate !== a.submitDate) return (b.submitDate || "").localeCompare(a.submitDate || "");
-        return String(b.id || "").localeCompare(String(a.id || ""));
+        const tA = parseTimeForSort(a.time || a.date);
+        const tB = parseTimeForSort(b.time || b.date);
+        return tA - tB; // 시간대 순 (오전 9:30 -> 오전 10:30 -> 오후 2:00 -> 오후 3:00)
     });
 
     let html = `
-        <!-- 🌟 [사용자 요청] 상단 헤더 단순화 & 깔끔한 한 줄 정렬 (의원명 구분자 X 표시 제거) -->
-        <div style="background:#ffffff; border:1.8px solid #0284c7; border-radius:16px; padding:12px 16px; box-shadow:0 4px 14px rgba(2,132,199,0.08); margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
-            <h2 style="font-size:17.5px; font-weight:950; color:#0f172a; margin:0; white-space:nowrap; letter-spacing:-0.4px;">📋 원내 실시간 예약확인</h2>
-            <span style="font-size:13px; font-weight:900; color:#0284c7; background:#e0f2fe; padding:4px 10px; border-radius:8px; white-space:nowrap;">총 ${sortedInquiries.length}건</span>
-        </div>
-
-        <!-- 1) 최신 접수 및 예약 문의 (박스 없이 1px 구분선만, 이름 안 짤리게 1줄, 2줄 첫번째에 상태 배지) -->
-        <div style="background:#ffffff; border:1.8px solid #0284c7; border-radius:16px; padding:15px; box-shadow:0 4px 14px rgba(2,132,199,0.08); margin-bottom:18px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1.5px solid #e0f2fe; padding-bottom:8px;">
+        <!-- 🌟 [사용자 요청] 상단 거대 박스(X표시된 박스) 제거하고 깔끔한 당일 접수 현황 한 줄 헤더 -->
+        <div style="background:#ffffff; border:1.8px solid #0284c7; border-radius:14px; padding:12px 14px; box-shadow:0 3px 12px rgba(2,132,199,0.08); margin-bottom:14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; border-bottom:1.5px solid #e0f2fe; padding-bottom:6px;">
                 <div style="display:flex; align-items:center; gap:6px;">
                     <span style="font-size:16px;">⚡</span>
-                    <strong style="font-size:15.5px; font-weight:950; color:#0f172a; letter-spacing:-0.3px;">최신 접수 및 예약 문의</strong>
+                    <strong style="font-size:15px; font-weight:950; color:#0f172a; letter-spacing:-0.3px;">오늘 실시간 접수 및 예약현황</strong>
                 </div>
-                <span style="font-size:11.5px; font-weight:800; color:#64748b;">(전화·문자·예톡 상담)</span>
+                <span style="font-size:11.5px; font-weight:900; color:#0284c7; background:#e0f2fe; padding:2px 8px; border-radius:6px; white-space:nowrap;">오늘 ${sortedInquiries.length}건</span>
             </div>
-            <div id="clinicInquiry3LineCards" style="display:flex; flex-direction:column;">
+            <div id="clinicInquiry2LineCards" style="display:flex; flex-direction:column;">
     `;
 
     if (sortedInquiries.length === 0) {
-        html += `<div style="text-align:center; padding:18px; color:#94a3b8; font-size:13.5px; font-weight:700;">등록된 문의 내역이 없습니다.</div>`;
+        html += `<div style="text-align:center; padding:18px; color:#94a3b8; font-size:13.5px; font-weight:700;">오늘 등록된 예약 및 접수 내역이 없습니다.</div>`;
     } else {
         sortedInquiries.forEach(item => {
-            const isDone = (item.status === "답변완료" || (item.reply && item.reply.trim() !== ""));
+            const isDone = (item.status === "답변완료" || item.status === "완료" || (item.reply && item.reply.trim() !== ""));
             const cleanPhone = (item.phone || "").replace(/[^0-9]/g, '');
+            const dispTime = formatTimeOnly(item.time || item.date);
+
             html += `
-                <!-- 🌟 [사용자 요청] 환자 박스 테두리 완전 제거, 1px 구분선, 이름 크게 한줄, 2번째 줄 첫머리에 [미답변/답변완료] 배지 + [전화/문자/예톡/답변] 버튼 -->
-                <div style="padding:13px 4px; border-bottom:1px solid #e2e8f0; display:flex; flex-direction:column; gap:8px;">
-                    <!-- 1줄: 이름(크고 굵게, 절대 잘리지 않음) & 연락처 & 접수일시 -->
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;" onclick="toggleInqDetailCard('${item.id}')" title="클릭 시 문의 내용 열기/닫기">
-                        <div style="display:flex; align-items:center; gap:8px; min-width:0; overflow:hidden;">
-                            <span style="font-size:16.5px; font-weight:950; color:#0f172a; white-space:nowrap; letter-spacing:-0.3px;">👤 ${escapeHtml(item.name)}</span>
-                            <a href="tel:${cleanPhone}" onclick="event.stopPropagation();" style="font-size:14px; color:#0284c7; font-weight:900; text-decoration:none; white-space:nowrap; letter-spacing:-0.2px;">${escapeHtml(item.phone)}</a>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
-                            <span style="font-size:11.5px; color:#0369a1; background:#e0f2fe; padding:3px 8px; border-radius:6px; font-weight:800; white-space:nowrap;">
-                                📅 ${escapeHtml(item.date)} ${escapeHtml(item.time || '')}
+                <!-- 🌟 [사용자 요청] 년월일 빼고 당일 시간만 표기, 글자 좀 적게 하고 딱 두줄만 보여줌 -->
+                <div style="padding:8.5px 2px; border-bottom:1px solid #e2e8f0; display:flex; flex-direction:column; gap:4.5px;">
+                    <!-- 1줄: 👤 이름 & 연락처 & 시간 (오후 2시) & 완료/대기 상태 배지 -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+                        <div style="display:flex; align-items:center; gap:6px; min-width:0; overflow:hidden;">
+                            <span style="font-size:14.5px; font-weight:950; color:#0f172a; white-space:nowrap; letter-spacing:-0.3px;">👤 ${escapeHtml(item.name)}</span>
+                            <a href="tel:${cleanPhone}" onclick="event.stopPropagation();" style="font-size:12.5px; color:#0284c7; font-weight:850; text-decoration:none; white-space:nowrap;">${escapeHtml(item.phone)}</a>
+                            <span style="font-size:11px; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:5px; font-weight:900; white-space:nowrap;">
+                                🕒 ${escapeHtml(dispTime)}
                             </span>
+                        </div>
+                        <div style="flex-shrink:0;">
+                            ${isDone 
+                                ? `<span style="font-size:10.5px; font-weight:950; padding:2px 6px; border-radius:5px; background:#dcfce7; color:#15803d; border:1px solid #86efac; white-space:nowrap;">✅ 완료</span>` 
+                                : `<span style="font-size:10.5px; font-weight:950; padding:2px 6px; border-radius:5px; background:#fef3c7; color:#b45309; border:1px solid #fde047; white-space:nowrap;">⏳ 대기</span>`
+                            }
                         </div>
                     </div>
 
-                    <!-- 2줄: [⏳ 미답변/답변완료] 배지 첫번째 배치 + [📞 전화] [✉️ 문자] [💬 예톡] [✏️ 답변] 버튼 -->
-                    <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap;">
-                        <div onclick="toggleInqDetailCard('${item.id}')" style="cursor:pointer;" title="클릭 시 문의 상세 확인">
-                            ${isDone 
-                                ? `<span style="font-size:12.5px; font-weight:950; padding:4px 9px; border-radius:7px; background:#dcfce7; color:#15803d; border:1px solid #86efac; white-space:nowrap; display:inline-flex; align-items:center; gap:3px;">✅ 답변완료</span>` 
-                                : `<span style="font-size:12.5px; font-weight:950; padding:4px 9px; border-radius:7px; background:#fef3c7; color:#b45309; border:1px solid #fde047; white-space:nowrap; display:inline-flex; align-items:center; gap:3px;">⏳ 미답변</span>`
-                            }
-                        </div>
-                        <div style="display:flex; align-items:center; gap:5px;">
-                            <a href="tel:${cleanPhone}" style="height:32px; padding:0 10px; background:#0284c7; border:1.2px solid #0369a1; color:#fff; text-decoration:none; font-size:12px; font-weight:950; border-radius:7px; display:inline-flex; align-items:center; gap:3px;" title="전화 걸기">
+                    <!-- 2줄: 원클릭 액션 버튼들 (글자 작게, 딱 두줄만 보여줌) -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:4px;">
+                        <div style="display:flex; align-items:center; gap:3.5px; flex-wrap:nowrap;">
+                            <a href="tel:${cleanPhone}" style="height:26px; padding:0 8px; background:#0284c7; border:1px solid #0369a1; color:#fff; text-decoration:none; font-size:11px; font-weight:900; border-radius:5px; display:inline-flex; align-items:center; gap:2px;" title="전화">
                                 📞 전화
                             </a>
-                            <a href="sms:${cleanPhone}" style="height:32px; padding:0 10px; background:#f0fdf4; border:1.2px solid #86efac; color:#15803d; text-decoration:none; font-size:12px; font-weight:950; border-radius:7px; display:inline-flex; align-items:center; gap:3px;" title="문자 보내기">
+                            <a href="sms:${cleanPhone}" style="height:26px; padding:0 8px; background:#f0fdf4; border:1px solid #86efac; color:#15803d; text-decoration:none; font-size:11px; font-weight:900; border-radius:5px; display:inline-flex; align-items:center; gap:2px;" title="문자">
                                 ✉️ 문자
                             </a>
-                            <button type="button" onclick="openDocTalkWithPatient('${escapeHtml(item.name)}')" style="height:32px; padding:0 10px; background:#fef3c7; border:1.2px solid #fde047; color:#b45309; font-size:12px; font-weight:950; border-radius:7px; cursor:pointer; display:inline-flex; align-items:center; gap:3px;" title="예톡 상담 열기">
+                            <button type="button" onclick="openDocTalkWithPatient('${escapeHtml(item.name)}')" style="height:26px; padding:0 8px; background:#fef3c7; border:1px solid #fde047; color:#b45309; font-size:11px; font-weight:900; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; gap:2px;" title="예톡 상담">
                                 💬 예톡
                             </button>
-                            <button type="button" onclick="openInquiryFullscreenReplyModal('${item.id}')" style="height:32px; padding:0 11px; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; font-size:12px; font-weight:950; border-radius:7px; cursor:pointer; display:inline-flex; align-items:center; gap:3px; box-shadow:0 2px 6px rgba(2,132,199,0.25);" title="직접 답변 작성 (전체화면 & 키보드)">
+                            <button type="button" onclick="openInquiryFullscreenReplyModal('${item.id}')" style="height:26px; padding:0 8px; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; font-size:11px; font-weight:950; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; gap:2px;" title="진료/답변">
                                 ✏️ 답변
                             </button>
                         </div>
+                        <button type="button" onclick="toggleInqDetailCard('${item.id}')" id="btnInqToggle_${item.id}" style="height:26px; padding:0 6px; background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; font-size:11px; font-weight:800; border-radius:5px; cursor:pointer; white-space:nowrap;">
+                            내용 ▼
+                        </button>
                     </div>
 
-                    <!-- 3줄: 🌟 [사용자 요청] 시술문의 내용 (평소에는 완전히 숨김, 클릭 시만 노출) -->
-                    <div id="inqDetailReplyBox_${item.id}" style="display:none; flex-direction:column; gap:8px; margin-top:4px; padding:10px 12px; background:#f8fafc; border-radius:10px; border:1px solid #e2e8f0;">
-                        <div style="font-size:13.5px; font-weight:800; color:#1e293b; line-height:1.55; word-break:keep-all;">
-                            <b style="color:#0284c7;">[시술문의 내용]:</b> ${escapeHtml(item.content)}
-                        </div>
-                        ${item.reply ? `
-                            <div style="font-size:13px; color:#15803d; font-weight:800; background:#f0fdf4; border:1px solid #bbf7d0; padding:8px 10px; border-radius:8px; line-height:1.5;">
-                                <b>🏥 등록된 의원 답변:</b> ${escapeHtml(item.reply)} <span style="font-size:11px; color:#16a34a; margin-left:6px;">(${escapeHtml(item.replyDate || '')})</span>
-                            </div>
-                        ` : `
-                            <div style="font-size:12.5px; color:#b45309; font-weight:800;">
-                                ⏳ 아직 등록된 답변이 없습니다. [✏️ 답변] 버튼을 누르면 전체화면에서 즉시 자판으로 답변을 입력하실 수 있습니다.
-                            </div>
-                        `}
+                    <!-- 🌟 시술문의 내용 (평소에는 완전히 숨김, 클릭 시만 노출) -->
+                    <div id="inqDetailReplyBox_${item.id}" style="display:none; flex-direction:column; gap:4px; margin-top:2px; padding:6px 8px; background:#f8fafc; border-radius:7px; border:1px solid #e2e8f0; font-size:11.5px; color:#334155;">
+                        <div><b>[문의내용]:</b> ${escapeHtml(item.content)}</div>
+                        ${item.reply ? `<div style="color:#15803d;"><b>[답변]:</b> ${escapeHtml(item.reply)}</div>` : ''}
                     </div>
                 </div>
             `;
@@ -5967,46 +6034,9 @@ function renderClinicInquiryList() {
     html += `
             </div>
         </div>
-
-        <!-- 2) 날짜별 예약 달력 -->
-        <div class="res-calendar-card" style="margin-bottom:18px;">
-            <div class="res-cal-header">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:16px;">📅</span>
-                    <span class="res-cal-title" id="dispCalMonthTitle">2026년 11월</span>
-                </div>
-                <div style="display:flex; gap:6px; align-items:center;">
-                    <button type="button" class="res-cal-nav-btn" onclick="changeCalMonth(-1)">‹</button>
-                    <button type="button" class="res-cal-nav-btn" onclick="changeCalMonth(1)">›</button>
-                    <button type="button" onclick="resetToTodayDate()" style="background:#0284c7; color:#fff; border:none; border-radius:8px; font-size:12px; font-weight:900; padding:6px 10px; cursor:pointer;">오늘</button>
-                </div>
-            </div>
-            <div class="res-cal-weekdays">
-                <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
-            </div>
-            <div class="res-cal-days-grid" id="resCalDaysGrid"></div>
-        </div>
-
-        <!-- 3) 🌟 [사용자 요청] 오늘 예약 환자(시간순) 및 그 다음날부터(내일, 모레...) 순서대로 날짜별 계속 스크롤되는 목록 -->
-        <div class="staff-daily-card" style="margin-bottom:24px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #e2e8f0; padding-bottom:8px;">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:16px;">⏰</span>
-                    <strong style="font-size:15.5px; font-weight:950; color:#0f172a;" id="dispSelectedDateLabel">오늘 시간대별 예약 환자</strong>
-                </div>
-                <span class="col-count-pill" style="background:#e0f2fe; color:#0284c7; font-weight:950; padding:3px 10px; border-radius:12px;"><b id="dispDailyResCount">0</b>명</span>
-            </div>
-            <div id="staffDailyResListContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
-        </div>
-        <!-- 🌟 [사용자 요청] 직원은 빼고: 의원 회원 및 직원 명단(등급 관리) 섹션은 상단 관리실에서만 전담하도록 제거 -->
     `;
-
     wrapper.innerHTML = html;
-
-    renderReservationCalendar();
-    renderStaffDailyReservations();
 }
-
 function toggleInqDetailCard(id) {
     const box = document.getElementById("inqDetailReplyBox_" + id);
     if (box) {
@@ -6154,7 +6184,7 @@ window.handleAppBackPress = function() {
 };
 
 function handleDoctorAppBack() {
-    location.href = 'myapp_home.html';
+    location.href = 'clinic.html';
 }
 
 let highestWindowZIndex = 52000;
@@ -6250,7 +6280,10 @@ function makeWindowDraggable(elementId) {
 
 function openModal(id) {
     const m = document.getElementById(id);
-    if (m) m.classList.add("open");
+    if (m) {
+        m.style.display = "flex";
+        m.classList.add("open");
+    }
 }
 function closeModal(id) {
     const m = document.getElementById(id);
@@ -6258,6 +6291,9 @@ function closeModal(id) {
         m.classList.remove("open");
         m.style.display = "none";
     }
+}
+function openBigDoctorEditDirect() {
+    openBigEditModal(currentSectionKey === 'beauty' ? 'beauty' : 'intro', 0);
 }
 
 function openDetailView(id) {
