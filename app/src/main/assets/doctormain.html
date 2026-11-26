@@ -2628,18 +2628,18 @@ const DEFAULT_INTRO_PAGES = [
     {
         title: "자가진피 최웅식의원",
         img: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=90",
-        desc: "오랜 임상 경험과 정밀한 자가진피재생술을 통해\n팔자주름, 깊은 이마·미간주름, 입술위주름.\n마리오네트.눈가주름 등을 수술 없이 자연스럽게\n복원합니다.\n불필요한 과잉진료 없이 1:1 맞춤 진료로 정성을\n다해 가족처럼 모시겠습니다."
+        desc: "오랜 임상 경험과 정밀한 자가진피재생술로 깊은 팔자주름, 이마·미간 주름, 입술위·눈가 주름을 수술 없이 본인 피부 살로 자연스럽게 복원합니다.\n1:1 맞춤 정밀 진료로 정성을 다해 모시겠습니다."
     },
     {
         isInvite: true,
-        title: "의원 소개 및 상담",
+        title: "섬세한 1:1 맞춤 상담 안내",
         img: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1200&q=85",
-        desc: "✨ 자가진피 주름)최웅식의원 상담 안내 ✨\n\n깊은 주름과 흉터로 고민하시는 분들을 위해 진심을 담아 상담해 드립니다.\n당일 바로 시술받지 않으셔도 괜찮으니 편안하게 내원하셔서 자세한 상담을 받아보세요!\n\n문의전화: 051-633-2478"
+        desc: "깊은 주름과 패인 흉터로 고민하시는 분들을 위해 원장 1:1 정밀 맞춤 상담을 진행합니다.\n당일 바로 시술받지 않으셔도 괜찮으니 편안하게 방문하셔서 진료 상담을 받아보세요!\n\n📞 상담 문의: 051-633-2478"
     },
     {
-        title: "진료시간 및 오시는 길",
+        title: "📍 의원 약도 및 오시는 길",
         img: "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&w=800&q=80",
-        desc: "⏰ 진료시간 안내\n평 일 : 오전 09:30 ~ 오후 06:30 (점심: 13:00~14:00)\n토요일 : 오전 09:30 ~ 오후 01:00\n일요일 및 공휴일 : 휴진\n\n📍 문의 및 예약: 051-633-2478\n부산 범일동 (자가진피 주름 전문)"
+        desc: "🚇 지하철: 1호선 범일역 1번 출구 도보 3분\n🚌 버스: 범일역·국민은행 정류장 하차\n📍 주소: 부산광역시 동구 조방로 진료센터 3층\n🚗 주차: 건물 내 지하주차장 무료 주차 지원\n📞 진료예약 및 안내: 051-633-2478"
     }
 ];
 
@@ -2777,13 +2777,17 @@ function promptClinicStaffLogout() {
 function renderIntroSection() {
     const host = document.getElementById("sec_intro");
     if (!host) return;
-    let savedClinic = localStorage.getItem("yetalkDoctorName") || "자가진피 주름)최웅식의원";
+    let savedClinic = localStorage.getItem("yetalkDoctorName") || "자가진피 최웅식의원";
     let savedPhone = localStorage.getItem("yetalkShopPhone") || "051-633-2478";
 
     host.innerHTML = "";
 
     if (!introPages || introPages.length === 0) {
         introPages = [...DEFAULT_INTRO_PAGES];
+    }
+    // 🌟 [사용자 요청] 정확히 3페이지만 유지
+    if (introPages.length > 3) {
+        introPages = introPages.slice(0, 3);
     }
 
     const isStaff = isClinicStaffOrAdmin();
@@ -2793,79 +2797,73 @@ function renderIntroSection() {
         page.className = "doc-v-page";
         page.id = `intro_page_${idx}`;
 
-        const isSecondPage = (idx === 1);
-
-        page.innerHTML = `
+        let pageHtml = `
             <img class="v-page-bg-img" src="${item.img || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=90'}" alt="${item.title || savedClinic}">
-            <div class="v-page-gradient-overlay" style="background:transparent;"></div>
+            <div class="v-page-gradient-overlay" style="background:rgba(15,23,42,0.45);"></div>
+        `;
 
-            <!-- 🌟 [사용자 요청] 첫번째 이미지 좌측 상단: 의원 도착후 즉시 진료 접수 (클릭) 박스 버튼 -->
-            ${idx === 0 ? `
+        // 🌟 [사용자 요청] 1번 사진 좌측 상단: 눈에 띄게 세로폭도 키우고 잘 보이게 두줄 접수 버튼!
+        if (idx === 0) {
+            pageHtml += `
             <div class="card-top-left-bar" style="position:absolute; top:12px; left:12px; z-index:999; pointer-events:auto;">
-                <button type="button" onclick="handleArrivedInstantCheckin()" style="background:rgba(2,132,199,0.94); color:#ffffff; border:1.8px solid #38bdf8; border-radius:10px; padding:6.5px 12px; font-size:12px; font-weight:950; cursor:pointer; backdrop-filter:blur(6px); box-shadow:0 4px 14px rgba(0,0,0,0.5); display:inline-flex; align-items:center; gap:5px;">
-                    <span>🏥</span> <span>의원 도착후 즉시 진료 접수 (클릭)</span>
+                <button type="button" onclick="handleArrivedInstantCheckin()" style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; border:2px solid #38bdf8; border-radius:12px; padding:9px 13px; cursor:pointer; backdrop-filter:blur(8px); box-shadow:0 6px 18px rgba(2,132,199,0.55); display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left; transition:all 0.15s ease;">
+                    <span style="font-size:11.5px; font-weight:900; color:#e0f2fe; display:flex; align-items:center; gap:4px;">
+                        <span>🏥</span> <span>의원 도착 완료</span>
+                    </span>
+                    <span style="font-size:14px; font-weight:950; color:#ffffff; letter-spacing:-0.2px;">
+                        ⚡ 즉시 진료 접수 (클릭)
+                    </span>
                 </button>
             </div>
-            ` : ''}
+            `;
+        }
 
-            <!-- 우측 상단: [⚙️ 관리실] 버튼 (z-index 999로 항상 클릭 가능) -->
-            ${isStaff ? `
+        // 우측 상단 관리실 버튼
+        if (isStaff) {
+            pageHtml += `
             <div class="card-top-right-bar" style="position:absolute; top:12px; right:12px; z-index:999; pointer-events:auto;">
                 <button type="button" onclick="openBigEditModal('intro', ${idx})" style="background:rgba(2,132,199,0.92); color:#ffffff; border:1px solid #38bdf8; border-radius:8px; padding:6px 12px; font-size:12.5px; font-weight:900; cursor:pointer; backdrop-filter:blur(4px); box-shadow:0 2px 8px rgba(0,0,0,0.4);">
                     ⚙️ 관리실
                 </button>
             </div>
-            ` : ''}
+            `;
+        }
 
-            <!-- 🌟 [사용자 요청] 하부 그라데이션 바탕 & 또렷한 두꺼운 흰색 글자 (위로 살짝 올려 안내글자 6줄 온전히 표출, 우측 화살표 간섭 방지) -->
-            <div style="position:absolute; bottom:0; left:0; width:100%; min-height:46%; background:linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.86) 55%, rgba(0,0,0,0.45) 85%, transparent 100%); z-index:10; padding:16px 72px 18px 18px; box-sizing:border-box; display:flex; flex-direction:column; justify-content:flex-end; color:#ffffff;">
-                <h3 style="font-size:19px; font-weight:950; color:#ffffff; margin:0 0 5px 0; text-shadow:0 2px 8px rgba(0,0,0,0.95); line-height:1.25; letter-spacing:-0.3px;">
+        // 🌟 [사용자 요청] 3번째 페이지는 약도 이미지와 그 밑에 오시는 방법 상세 안내
+        if (idx === 2) {
+            pageHtml += `
+            <div style="position:absolute; top:54px; left:12px; right:12px; z-index:10; display:flex; flex-direction:column; gap:10px;">
+                <div style="height:180px; border-radius:14px; overflow:hidden; border:2px solid #38bdf8; box-shadow:0 6px 20px rgba(0,0,0,0.5); background:#000;">
+                    <img src="${item.img}" alt="약도" style="width:100%; height:100%; object-fit:cover;">
+                </div>
+                <div style="background:rgba(15,23,42,0.92); backdrop-filter:blur(10px); border:1.5px solid rgba(56,189,248,0.4); border-radius:14px; padding:14px 16px; color:#ffffff; box-shadow:0 8px 24px rgba(0,0,0,0.6);">
+                    <h3 style="font-size:17.5px; font-weight:950; color:#38bdf8; margin:0 0 6px 0; letter-spacing:-0.3px;">
+                        ${item.title || '📍 의원 약도 및 오시는 길'}
+                    </h3>
+                    <div style="font-size:13.5px; font-weight:750; color:#f1f5f9; line-height:1.55; word-break:keep-all;">
+                        ${(item.desc || "").replace(/\n/g, '<br>')}
+                    </div>
+                </div>
+            </div>
+            `;
+        } else {
+            // 🌟 [사용자 요청] 1~2번 페이지: 글이 상단부터 크게 글 위주로 내용을 적을 수 있도록 배치
+            pageHtml += `
+            <div style="position:absolute; top:60px; left:12px; right:12px; background:rgba(15,23,42,0.85); backdrop-filter:blur(10px); border:1.5px solid rgba(56,189,248,0.35); border-radius:16px; padding:16px 18px; z-index:10; color:#ffffff; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+                <h3 style="font-size:18.5px; font-weight:950; color:#38bdf8; margin:0 0 8px 0; text-shadow:0 2px 6px rgba(0,0,0,0.8); line-height:1.25; letter-spacing:-0.3px;">
                     ${item.title || savedClinic}
                 </h3>
-                <div style="font-size:13.5px; font-weight:750; color:#f1f5f9; line-height:1.52; text-shadow:0 2px 6px rgba(0,0,0,0.95); word-break:keep-all; letter-spacing:-0.2px; max-height:165px; overflow-y:auto; scrollbar-width:none;">
+                <div style="font-size:14px; font-weight:750; color:#f8fafc; line-height:1.6; text-shadow:0 2px 6px rgba(0,0,0,0.8); word-break:keep-all; letter-spacing:-0.2px;">
                     ${(item.desc || "").replace(/\n/g, '<br>')}
                 </div>
             </div>
-        `;
+            `;
+        }
+
+        page.innerHTML = pageHtml;
         host.appendChild(page);
     });
-
-    // 🌟 [사용자 요청] 의원소개 맨 밑: 원내 인쇄 및 환자 방문용 모바일 홈페이지 QR코드 카드
-    const qrPage = document.createElement("section");
-    qrPage.className = "doc-v-page";
-    qrPage.id = "intro_page_qr";
-    qrPage.innerHTML = `
-        <img class="v-page-bg-img" src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=90" alt="${savedClinic}">
-        <div class="v-page-gradient-overlay" style="background:transparent;"></div>
-
-        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:90%; max-width:340px; background:rgba(15,23,42,0.92); backdrop-filter:blur(10px); border:2px solid #38bdf8; border-radius:22px; padding:20px 16px; color:#fff; text-align:center; box-shadow:0 12px 34px rgba(0,0,0,0.75);">
-            <div style="font-size:12px; font-weight:900; color:#38bdf8; letter-spacing:0.5px; margin-bottom:4px;">🏥 모바일 홈페이지 바로가기</div>
-            <div style="font-size:19px; font-weight:950; color:#ffffff; margin-bottom:2px;">${savedClinic}</div>
-            <div style="font-size:12.5px; font-weight:800; color:#cbd5e1; margin-bottom:12px;">주름·흉터 자가진피재생술 전문</div>
-
-            <div style="background:#ffffff; border-radius:16px; padding:10px; display:inline-block; box-shadow:0 6px 18px rgba(0,0,0,0.3); border:2px solid #38bdf8;">
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=https%3A%2F%2Fyetalk.cc%2Fdoctormain.html" alt="${savedClinic} QR코드" style="width:165px; height:165px; display:block;">
-            </div>
-
-            <div style="font-size:13px; color:#f1f5f9; font-weight:750; line-height:1.6; margin-top:12px; word-break:keep-all;">
-                스마트폰 기본 카메라로 비추시면<br>
-                <b style="color:#38bdf8;">시술안내 · 예약문의 · 답변확인</b>이 가능한<br>
-                의원 모바일 페이지로 즉시 연결됩니다.
-            </div>
-
-            <div style="margin-top:12px; padding-top:10px; border-top:1px dashed #475569; display:flex; flex-direction:column; gap:8px;">
-                <button type="button" onclick="printClinicQrNotice()" style="width:100%; height:44px; background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; border:none; border-radius:12px; font-size:14px; font-weight:950; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 12px rgba(2,132,199,0.35);">
-                    <span>🖨️</span> <span>원내 비치용 QR코드 인쇄하기</span>
-                </button>
-                <a href="tel:${savedPhone.replace(/[^0-9]/g, '')}" style="font-size:13px; font-weight:900; color:#38bdf8; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:4px;">
-                    <span>📞</span> <span>전화문의: ${savedPhone}</span>
-                </a>
-            </div>
-        </div>
-    `;
-    host.appendChild(qrPage);
 }
-
 function addNewIntroPageDirect(afterIdx) {
     if (!isClinicStaffOrAdmin()) {
         showToast("🔒 부관리자 이상만 페이지를 추가할 수 있습니다.");
@@ -2904,13 +2902,12 @@ function deleteIntroPageDirect(idx) {
 function renderBeautySection() {
     const chipsBar = document.getElementById("beautySubjectChipsBar");
     const casesHost = document.getElementById("beautyCasesList");
-
-    if (activeBeautySubIdx >= beautySubjects.length) activeBeautySubIdx = 0;
+    if (!beautySubjects || beautySubjects.length === 0) {
+        beautySubjects = [...DEFAULT_BEAUTY_DATA];
+    }
+    const isStaff = isClinicStaffOrAdmin();
     const curSub = beautySubjects[activeBeautySubIdx];
 
-    const isStaff = isClinicStaffOrAdmin();
-
-    // 과목 칩 바
     if (chipsBar) {
         chipsBar.innerHTML = beautySubjects.map((s, idx) => `
             <button type="button" class="tab-chip ${idx === activeBeautySubIdx ? 'active' : ''}" onclick="switchBeautySub(${idx})">
@@ -2928,49 +2925,48 @@ function renderBeautySection() {
 
     const cases = curSub.cases || [];
     cases.forEach((c, idx) => {
-        const step = caseSlideSteps[`${activeBeautySubIdx}_${idx}`] || 1;
-        const hasImg2 = !!c.img2;
-        const currentImg = (step === 2 && hasImg2) ? c.img2 : c.img1;
-        const stepLabel = step === 2 ? '시술 후 (After) 2/2' : '시술 전 (Before) 1/2';
+        // 🌟 [사용자 요청] 시술 전후(Before/After) 의료법 위반 방지: Before/After 비교 금지, 좌우 화살표 완전 제거,
+        // 시술 설명 그림과 글만 이쁘게 배치, 글이 위로 올라오도록 구성!
+        const card = document.createElement("div");
+        card.style.cssText = "background:#ffffff; border:1.5px solid #e2e8f0; border-radius:16px; padding:16px; box-shadow:0 3px 12px rgba(0,0,0,0.06); display:flex; flex-direction:column; gap:10px; position:relative;";
 
-        const page = document.createElement("section");
-        page.className = "doc-v-page";
-        page.id = `beauty_case_${idx}`;
-
-        page.innerHTML = `
-            <img class="v-page-bg-img" id="img_case_${idx}" src="${currentImg}" alt="${c.title}">
-            <div class="v-page-gradient-overlay" style="background:transparent;"></div>
-
-            <!-- 우측 상단: 부관리자 이상만 보이는 [⚙️ 관리실] 버튼 (삭제/추가는 관리실 안에서 처리) -->
-            ${isStaff ? `
-            <div class="card-top-right-bar" style="position:absolute; top:12px; right:12px; z-index:999; pointer-events:auto;">
-                <button type="button" onclick="openBigEditModal('beauty', ${idx})" style="background:rgba(2,132,199,0.92); color:#ffffff; border:1px solid #38bdf8; border-radius:8px; padding:6px 12px; font-size:12.5px; font-weight:900; cursor:pointer; backdrop-filter:blur(4px); box-shadow:0 2px 8px rgba(0,0,0,0.4);">
+        card.innerHTML = `
+            <!-- 상단 헤더: 시술 제목 & 관리실 버튼 -->
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                <h3 style="font-size:18px; font-weight:950; color:#0f172a; margin:0; letter-spacing:-0.3px; line-height:1.3;">
+                    ${escapeHtml(c.title)}
+                </h3>
+                ${isStaff ? `
+                <button type="button" onclick="openBigEditModal('beauty', ${idx})" style="background:rgba(2,132,199,0.92); color:#ffffff; border:1px solid #38bdf8; border-radius:8px; padding:5px 11px; font-size:12px; font-weight:900; cursor:pointer; flex-shrink:0;">
                     ⚙️ 관리실
                 </button>
+                ` : ''}
             </div>
-            ` : ''}
 
-            <!-- 사진 위 Before / After 전환 태그 & 화살표 -->
-            ${hasImg2 ? `
-            <span class="case-step-tag" id="pill_case_${idx}">${stepLabel}</span>
-            <button type="button" class="case-nav-arrow left" onclick="toggleCaseSlide(${idx}, 1)" title="시술 전 (Before)">❮</button>
-            <button type="button" class="case-nav-arrow right" onclick="toggleCaseSlide(${idx}, 2)" title="시술 후 (After)">❯</button>
-            ` : ''}
+            <!-- 🌟 [사용자 요청] 글이 위로 올라와야 함: 상세 설명 텍스트 상단 배치 -->
+            <div style="font-size:13.5px; font-weight:750; color:#334155; line-height:1.6; word-break:keep-all;">
+                ${escapeHtml(c.desc || '').replace(/\n/g, '<br>')}
+            </div>
 
-            <!-- 🌟 [사용자 요청] 하부 그라데이션 바탕 & 또렷한 두꺼운 흰색 글자 (위로 살짝 올려 안내글자 6줄 온전히 표출, 우측 화살표 간섭 방지) -->
-            <div style="position:absolute; bottom:0; left:0; width:100%; min-height:46%; background:linear-gradient(to top, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.86) 55%, rgba(0,0,0,0.45) 85%, transparent 100%); z-index:10; padding:16px 72px 18px 18px; box-sizing:border-box; display:flex; flex-direction:column; justify-content:flex-end; color:#ffffff;">
-                <h3 style="font-size:19px; font-weight:950; color:#ffffff; margin:0 0 5px 0; text-shadow:0 2px 8px rgba(0,0,0,0.95); line-height:1.25; letter-spacing:-0.3px;">
-                    ${c.title}
-                </h3>
-                <div style="font-size:13.5px; font-weight:750; color:#f1f5f9; line-height:1.52; text-shadow:0 2px 6px rgba(0,0,0,0.95); word-break:keep-all; letter-spacing:-0.2px; max-height:165px; overflow-y:auto; scrollbar-width:none;">
-                    ${(c.desc || "").replace(/\n/g, '<br>')}
-                </div>
+            <!-- 시술 설명 단정하고 심플한 이미지 (전후 사진 아님, 단일 설명 이미지) -->
+            <div style="width:100%; height:200px; border-radius:12px; overflow:hidden; border:1px solid #cbd5e1; background:#0f172a;">
+                <img src="${c.img1 || 'https://images.unsplash.com/photo-1512290903672-d798546722f4?auto=format&fit=crop&w=800&q=80'}" alt="${escapeHtml(c.title)}" style="width:100%; height:100%; object-fit:cover;">
             </div>
         `;
-        casesHost.appendChild(page);
-    });
-}
 
+        casesHost.appendChild(card);
+    });
+
+    // 🌟 [사용자 요청] 창이 여러개 밑으로 열리도록 맨 마지막에 + 두고
+    const addBtnBox = document.createElement("div");
+    addBtnBox.style.cssText = "padding:8px 0 20px 0;";
+    addBtnBox.innerHTML = `
+        <button type="button" onclick="addNewBeautyCaseDirect(${cases.length - 1})" style="width:100%; height:48px; background:linear-gradient(135deg, #0284c7, #0369a1); color:#ffffff; border:none; border-radius:14px; font-size:15px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 14px rgba(2,132,199,0.25);">
+            <span style="font-size:18px;">＋</span> <span>새 시술안내 항목 추가하기</span>
+        </button>
+    `;
+    casesHost.appendChild(addBtnBox);
+}
 function switchBeautySub(idx) {
     activeBeautySubIdx = idx;
     renderBeautySection();
@@ -5925,23 +5921,34 @@ function handleArrivedInstantCheckin() {
     const dh = h % 12 === 0 ? 12 : h % 12;
     const timeStr = `${ampm} ${dh}:${m}`;
 
-    const newArrival = {
-        id: "res_" + Date.now(),
-        name: myName,
-        phone: myPhone,
-        date: "오늘",
-        time: timeStr,
-        subject: "당일 내원 즉시접수",
-        content: `[당일 현장 도착 접수] ${myName} 성도님/환자분께서 의원에 도착하여 즉시 진료 접수를 진행하였습니다. (${timeStr})`,
-        status: "대기",
-        submitDate: new Date().toISOString()
-    };
-
     if (!clinicInquiryList || !Array.isArray(clinicInquiryList)) clinicInquiryList = [];
-    clinicInquiryList.unshift(newArrival);
-    saveClinicInquiryList();
 
-    showToast(`🏥 [${myName}] 님, 의원 도착 즉시 진료 접수 완료! (${timeStr})\n실시간 예약확인 목록으로 이동합니다.`);
+    // 🌟 [사용자 요청] 똑같은 사람 중복 등록 방지: 기존 등록되어 있다면 시간 갱신
+    const existingIdx = clinicInquiryList.findIndex(item => item.name === myName);
+    if (existingIdx >= 0) {
+        clinicInquiryList[existingIdx].time = timeStr;
+        clinicInquiryList[existingIdx].isArrival = true;
+        clinicInquiryList[existingIdx].status = "도착";
+        clinicInquiryList[existingIdx].submitDate = new Date().toISOString();
+        saveClinicInquiryList();
+        showToast(`🏥 [${myName}] 님은 이미 접수되어 있습니다.\n도착 시각이 [${timeStr}]로 갱신되었습니다.`);
+    } else {
+        const newArrival = {
+            id: "res_" + Date.now(),
+            name: myName,
+            phone: myPhone,
+            date: "오늘",
+            time: timeStr,
+            subject: "당일 내원 즉시접수",
+            content: `[당일 현장 도착 접수] ${myName} 성도님/환자분께서 의원에 도착하여 즉시 진료 접수를 진행하였습니다. (${timeStr})`,
+            isArrival: true,
+            status: "도착",
+            submitDate: new Date().toISOString()
+        };
+        clinicInquiryList.unshift(newArrival);
+        saveClinicInquiryList();
+        showToast(`🏥 [${myName}] 님, 의원 도착 즉시 진료 접수 완료! (${timeStr})\n실시간 예약확인 목록으로 이동합니다.`);
+    }
 
     switchDoctorSection('reserve_check');
 }
@@ -5950,81 +5957,73 @@ function renderClinicInquiryList() {
     const wrapper = document.getElementById("secReserveCheckMainWrapper");
     if (!wrapper) return;
 
-    const isStaff = isClinicStaffOrAdmin();
-
-    // 🌟 [사용자 요청] 이전에 예약 확인한 시간에는 이전에 예약한 사람의 시간대에 넣어주고 당일 시간 순으로 나열
+    // 🌟 [사용자 요청] 시간 순서대로 정렬
     const sortedInquiries = [...clinicInquiryList].sort((a, b) => {
         const tA = parseTimeForSort(a.time || a.date);
         const tB = parseTimeForSort(b.time || b.date);
-        return tA - tB; // 시간대 순 (오전 9:30 -> 오전 10:30 -> 오후 2:00 -> 오후 3:00)
+        return tA - tB;
     });
 
+    // 🌟 [사용자 요청] 전체적으로 좁으니까 외부 박스는 다 없애줘: 외부 테두리 박스 완전 제거!
     let html = `
-        <!-- 🌟 [사용자 요청] 상단 거대 박스(X표시된 박스) 제거하고 깔끔한 당일 접수 현황 한 줄 헤더 -->
-        <div style="background:#ffffff; border:1.8px solid #0284c7; border-radius:14px; padding:12px 14px; box-shadow:0 3px 12px rgba(2,132,199,0.08); margin-bottom:14px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; border-bottom:1.5px solid #e0f2fe; padding-bottom:6px;">
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:16px;">⚡</span>
-                    <strong style="font-size:15px; font-weight:950; color:#0f172a; letter-spacing:-0.3px;">오늘 실시간 접수 및 예약현황</strong>
-                </div>
+        <div style="padding:4px 4px 120px 4px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1.5px solid #e0f2fe; padding-bottom:6px;">
+                <strong style="font-size:15px; font-weight:950; color:#0f172a; letter-spacing:-0.3px;">⚡ 오늘 실시간 접수 및 예약현황</strong>
                 <span style="font-size:11.5px; font-weight:900; color:#0284c7; background:#e0f2fe; padding:2px 8px; border-radius:6px; white-space:nowrap;">오늘 ${sortedInquiries.length}건</span>
             </div>
-            <div id="clinicInquiry2LineCards" style="display:flex; flex-direction:column;">
+            <div id="clinicInquiryListContainer" style="display:flex; flex-direction:column;">
     `;
 
     if (sortedInquiries.length === 0) {
         html += `<div style="text-align:center; padding:18px; color:#94a3b8; font-size:13.5px; font-weight:700;">오늘 등록된 예약 및 접수 내역이 없습니다.</div>`;
     } else {
         sortedInquiries.forEach(item => {
-            const isDone = (item.status === "답변완료" || item.status === "완료" || (item.reply && item.reply.trim() !== ""));
+            const isArrived = (item.isArrival === true || item.status === "도착" || (item.content && item.content.includes("현장 도착")));
             const cleanPhone = (item.phone || "").replace(/[^0-9]/g, '');
             const dispTime = formatTimeOnly(item.time || item.date);
 
             html += `
-                <!-- 🌟 [사용자 요청] 년월일 빼고 당일 시간만 표기, 글자 좀 적게 하고 딱 두줄만 보여줌 -->
-                <div style="padding:8.5px 2px; border-bottom:1px solid #e2e8f0; display:flex; flex-direction:column; gap:4.5px;">
-                    <!-- 1줄: 👤 이름 & 연락처 & 시간 (오후 2시) & 완료/대기 상태 배지 -->
+                <!-- 🌟 [사용자 요청] 박스 없이 1px 구분선, 제일 앞에 시간과 환자 이름, 맨 마지막은 도착 시 빨간 테두리, 미도착 시 파랑 테두리 -->
+                <div style="padding:9px 2px; border-bottom:1px solid #e2e8f0; display:flex; flex-direction:column; gap:5px;">
+                    <!-- 1줄: [🕒 시간] + 👤 환자명 & 연락처 + [도착(빨간테두리) / 예약(파랑테두리)] -->
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
                         <div style="display:flex; align-items:center; gap:6px; min-width:0; overflow:hidden;">
-                            <span style="font-size:14.5px; font-weight:950; color:#0f172a; white-space:nowrap; letter-spacing:-0.3px;">👤 ${escapeHtml(item.name)}</span>
-                            <a href="tel:${cleanPhone}" onclick="event.stopPropagation();" style="font-size:12.5px; color:#0284c7; font-weight:850; text-decoration:none; white-space:nowrap;">${escapeHtml(item.phone)}</a>
                             <span style="font-size:11px; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:5px; font-weight:900; white-space:nowrap;">
                                 🕒 ${escapeHtml(dispTime)}
                             </span>
+                            <span style="font-size:15px; font-weight:950; color:#0f172a; white-space:nowrap; letter-spacing:-0.3px;">👤 ${escapeHtml(item.name)}</span>
+                            <a href="tel:${cleanPhone}" onclick="event.stopPropagation();" style="font-size:12.5px; color:#0284c7; font-weight:800; text-decoration:none; white-space:nowrap;">${escapeHtml(item.phone)}</a>
                         </div>
                         <div style="flex-shrink:0;">
-                            ${isDone 
-                                ? `<span style="font-size:10.5px; font-weight:950; padding:2px 6px; border-radius:5px; background:#dcfce7; color:#15803d; border:1px solid #86efac; white-space:nowrap;">✅ 완료</span>` 
-                                : `<span style="font-size:10.5px; font-weight:950; padding:2px 6px; border-radius:5px; background:#fef3c7; color:#b45309; border:1px solid #fde047; white-space:nowrap;">⏳ 대기</span>`
+                            ${isArrived 
+                                ? `<span style="font-size:11.5px; font-weight:950; padding:2px 8px; border-radius:6px; background:#fef2f2; color:#dc2626; border:1.8px solid #ef4444; white-space:nowrap; box-shadow:0 1px 4px rgba(239,68,68,0.2);">도착</span>` 
+                                : `<span style="font-size:11.5px; font-weight:950; padding:2px 8px; border-radius:6px; background:#f0f9ff; color:#0284c7; border:1.8px solid #0284c7; white-space:nowrap; box-shadow:0 1px 4px rgba(2,132,199,0.15);">예약</span>`
                             }
                         </div>
                     </div>
 
-                    <!-- 2줄: 원클릭 액션 버튼들 (글자 작게, 딱 두줄만 보여줌) -->
+                    <!-- 2줄: 전화, 문자, 답변만 하고 예톡은 빼줌, 맨 마지막에 진료내용 버튼 -->
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:4px;">
-                        <div style="display:flex; align-items:center; gap:3.5px; flex-wrap:nowrap;">
-                            <a href="tel:${cleanPhone}" style="height:26px; padding:0 8px; background:#0284c7; border:1px solid #0369a1; color:#fff; text-decoration:none; font-size:11px; font-weight:900; border-radius:5px; display:inline-flex; align-items:center; gap:2px;" title="전화">
+                        <div style="display:flex; align-items:center; gap:4px; flex-wrap:nowrap;">
+                            <a href="tel:${cleanPhone}" style="height:26px; padding:0 9px; background:#0284c7; border:1px solid #0369a1; color:#fff; text-decoration:none; font-size:11px; font-weight:900; border-radius:5px; display:inline-flex; align-items:center; gap:2px;" title="전화">
                                 📞 전화
                             </a>
-                            <a href="sms:${cleanPhone}" style="height:26px; padding:0 8px; background:#f0fdf4; border:1px solid #86efac; color:#15803d; text-decoration:none; font-size:11px; font-weight:900; border-radius:5px; display:inline-flex; align-items:center; gap:2px;" title="문자">
+                            <a href="sms:${cleanPhone}" style="height:26px; padding:0 9px; background:#f0fdf4; border:1px solid #86efac; color:#15803d; text-decoration:none; font-size:11px; font-weight:900; border-radius:5px; display:inline-flex; align-items:center; gap:2px;" title="문자">
                                 ✉️ 문자
                             </a>
-                            <button type="button" onclick="openDocTalkWithPatient('${escapeHtml(item.name)}')" style="height:26px; padding:0 8px; background:#fef3c7; border:1px solid #fde047; color:#b45309; font-size:11px; font-weight:900; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; gap:2px;" title="예톡 상담">
-                                💬 예톡
-                            </button>
-                            <button type="button" onclick="openInquiryFullscreenReplyModal('${item.id}')" style="height:26px; padding:0 8px; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; font-size:11px; font-weight:950; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; gap:2px;" title="진료/답변">
+                            <button type="button" onclick="openInquiryFullscreenReplyModal('${item.id}')" style="height:26px; padding:0 9px; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; font-size:11px; font-weight:950; border-radius:5px; cursor:pointer; display:inline-flex; align-items:center; gap:2px;" title="답변">
                                 ✏️ 답변
                             </button>
                         </div>
-                        <button type="button" onclick="toggleInqDetailCard('${item.id}')" id="btnInqToggle_${item.id}" style="height:26px; padding:0 6px; background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; font-size:11px; font-weight:800; border-radius:5px; cursor:pointer; white-space:nowrap;">
-                            내용 ▼
+                        <button type="button" onclick="toggleInqDetailCard('${item.id}')" id="btnInqToggle_${item.id}" style="height:26px; padding:0 8px; background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; font-size:11px; font-weight:850; border-radius:5px; cursor:pointer; white-space:nowrap;">
+                            진료내용 ▼
                         </button>
                     </div>
 
-                    <!-- 🌟 시술문의 내용 (평소에는 완전히 숨김, 클릭 시만 노출) -->
-                    <div id="inqDetailReplyBox_${item.id}" style="display:none; flex-direction:column; gap:4px; margin-top:2px; padding:6px 8px; background:#f8fafc; border-radius:7px; border:1px solid #e2e8f0; font-size:11.5px; color:#334155;">
-                        <div><b>[문의내용]:</b> ${escapeHtml(item.content)}</div>
-                        ${item.reply ? `<div style="color:#15803d;"><b>[답변]:</b> ${escapeHtml(item.reply)}</div>` : ''}
+                    <!-- 🌟 진료내용 상세 (평소에는 완전히 숨김, 클릭 시만 노출) -->
+                    <div id="inqDetailReplyBox_${item.id}" style="display:none; flex-direction:column; gap:4px; margin-top:3px; padding:8px 10px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0; font-size:12px; color:#334155;">
+                        <div><b>[진료내용]:</b> ${escapeHtml(item.content)}</div>
+                        ${item.reply ? `<div style="color:#15803d; margin-top:2px;"><b>[원내 답변]:</b> ${escapeHtml(item.reply)}</div>` : ''}
                     </div>
                 </div>
             `;
