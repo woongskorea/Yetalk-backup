@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>예톡 의원 - 단골의원 & 미용의원 예약 포털</title>
+    <title>예톡 Korea 의원 스마트 예약 포털</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900;950&family=Nanum+Myeongjo:wght@700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --safe-top: max(env(safe-area-inset-top, 0px), 10px);
+            --safe-top: max(env(safe-area-inset-top, 0px), 16px);
             --safe-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
-            --primary-pink: #ec4899;
             --primary-blue: #0284c7;
+            --primary-green: #15803d;
             --primary-dark: #0f172a;
+            --badge-regular: #15803d;
+            --badge-associate: #0284c7;
+            --badge-doctor: #7c3aed;
         }
 
         * {
@@ -28,7 +31,7 @@
         html, body {
             width: 100%;
             min-height: 100%;
-            background: #f8fafc;
+            background: #f1f5f9;
             color: #0f172a;
             overflow-x: hidden;
         }
@@ -43,77 +46,177 @@
             flex-direction: column;
             position: relative;
             box-shadow: 0 0 30px rgba(0,0,0,0.06);
-            padding-bottom: 74px; /* 하단 탭바 여백 */
+            padding-bottom: 150px; /* 하단 네비게이션 및 애드몹 고정 영역 확보 */
         }
 
-        /* 1. 최상단 헤더 */
+        /* ========================================================
+           1. 🌟 [사용자 요청] 상단 헤더: 밧데리/시간줄 곂침 방지 패딩 &
+              파랑십자가 옆 예톡 Korea 의원 스마트예약포털 + 준회원 + 내의원 가기
+           ======================================================== */
         .clinic-header {
-            padding: calc(var(--safe-top) + 6px) 16px 10px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            /* 🌟 밧데리/시간줄에 곂치지 않도록 안전 상단 패딩 충분히 확보 */
+            padding: max(32px, calc(env(safe-area-inset-top, 0px) + 12px)) 14px 10px 14px;
             background: #ffffff;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1.5px solid #e2e8f0;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
         }
 
-        .header-brand {
+        .header-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        /* 좌측 로고 그룹 (파랑 십자가 + 예톡 Korea 의원) */
+        .header-brand-wrap {
             display: flex;
             align-items: center;
             gap: 6px;
             cursor: pointer;
+            min-width: 0;
+            flex: 1;
         }
-        .header-brand-title {
-            font-size: 20px;
+
+        .brand-blue-cross {
+            display: inline-block;
+            color: #0284c7; /* 파랑 십자가 */
+            font-size: 26px;
             font-weight: 950;
+            line-height: 1;
+            filter: drop-shadow(0 0 5px rgba(2, 132, 199, 0.45));
+            transform: translateY(-1px);
+            flex-shrink: 0;
+        }
+
+        .brand-text-block {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .brand-title-line {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .brand-yetalk {
+            font-size: 19px;
+            font-weight: 950;
+            color: #15803d; /* 예톡 녹색 */
             letter-spacing: -0.5px;
+            line-height: 1.1;
+        }
+
+        .brand-korea {
+            font-family: 'Brush Script MT', cursive, serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: #1e40af; /* Korea 딥블루 */
+            font-style: italic;
+            letter-spacing: 0.3px;
+            line-height: 1;
+        }
+
+        .brand-clinic {
+            font-size: 18px;
+            font-weight: 950;
             color: #0f172a;
+            letter-spacing: -0.4px;
+            line-height: 1.1;
+        }
+
+        .brand-sub-portal {
+            font-size: 11px;
+            font-weight: 700;
+            color: #64748b;
+            letter-spacing: -0.2px;
+            margin-top: 1px;
+            white-space: nowrap;
+        }
+
+        /* 우측 상단 액션 컬럼: 준회원/정회원 뱃지 + 교회홈, 그 바로 밑 우측에 [내의원 가기] */
+        .header-right-col {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .header-right-btns-row {
             display: flex;
             align-items: center;
             gap: 4px;
         }
-        .brand-cross-icon {
-            color: #0284c7;
-            font-size: 19px;
-            font-weight: 950;
-            line-height: 1;
+
+        .btn-clinic-member-badge {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            border: 1.5px solid #38bdf8;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 900;
+            padding: 4px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+            white-space: nowrap;
+            transition: transform 0.12s ease;
         }
-        .header-brand-sub {
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 700;
-            margin-left: 2px;
+        .btn-clinic-member-badge.badge-regular {
+            background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+            border-color: #4ade80;
+            box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);
         }
 
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-header-pill {
-            background: #f0fdf4;
-            border: 1px solid #86efac;
+        .btn-header-church-bridge {
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
             color: #15803d;
-            padding: 5px 10px;
-            border-radius: 14px;
             font-size: 11.5px;
-            font-weight: 900;
+            font-weight: 850;
+            padding: 4px 7px;
+            border-radius: 12px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            transition: all 0.15s;
-        }
-        .btn-header-pill:active {
-            transform: scale(0.96);
+            gap: 3px;
+            white-space: nowrap;
         }
 
-        /* 2. 🌟 [사용자 요청] 미용의원 & 단골의원 자동 전환 롤링 히어로 배너 */
+        /* 🌟 [사용자 요청] 그 바로 밑에 우측에 내의원 가기.(의사 전용, 회원가입시 본인의원, 직업 의사 기록한 경우) */
+        .btn-my-clinic-go {
+            background: #f8fafc;
+            border: 1.5px solid #0284c7;
+            color: #0284c7;
+            font-size: 11px;
+            font-weight: 900;
+            padding: 3px 8px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            white-space: nowrap;
+            box-shadow: 0 1px 4px rgba(2, 132, 199, 0.12);
+            transition: all 0.15s ease;
+        }
+        .btn-my-clinic-go:active {
+            background: #e0f2fe;
+            transform: scale(0.97);
+        }
+
+        /* ========================================================
+           2. 🌟 [사용자 요청] 밑에 이미지 20% 정도 줄여주고 (250px -> 200px)
+           ======================================================== */
         .hero-banner-container {
             width: 100%;
-            height: 250px;
+            height: 200px; /* 🌟 20% 축소로 시원한 세로 공간 확보 */
             position: relative;
             overflow: hidden;
             background: #0f172a;
@@ -123,12 +226,9 @@
             position: absolute;
             inset: 0;
             opacity: 0;
-            transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
             transform: scale(1.02);
             pointer-events: none;
-            display: flex;
-            align-items: flex-end;
-            padding: 20px 18px 24px 18px;
         }
         .hero-slide.active {
             opacity: 1;
@@ -137,484 +237,777 @@
         }
 
         .hero-bg-img {
-            position: absolute;
-            inset: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
-            object-position: center top;
-            z-index: 1;
+            object-position: center 25%;
         }
+
         .hero-gradient-overlay {
             position: absolute;
             inset: 0;
-            z-index: 2;
         }
-        /* 미용의원 핑크빛 화사한 그라데이션 */
         .overlay-beauty {
-            background: linear-gradient(180deg, rgba(15,23,42,0.1) 0%, rgba(15,23,42,0.4) 45%, rgba(15,23,42,0.92) 100%);
+            background: linear-gradient(180deg, rgba(15,23,42,0.15) 0%, rgba(15,23,42,0.55) 55%, rgba(15,23,42,0.88) 100%);
         }
-        /* 단골의원 차분하고 신뢰감 넘치는 딥블루 그라데이션 */
         .overlay-family {
-            background: linear-gradient(180deg, rgba(15,23,42,0.1) 0%, rgba(15,23,42,0.4) 45%, rgba(15,23,42,0.92) 100%);
+            background: linear-gradient(180deg, rgba(15,23,42,0.15) 0%, rgba(15,23,42,0.55) 55%, rgba(15,23,42,0.88) 100%);
         }
 
         .hero-content {
-            position: relative;
-            z-index: 3;
-            width: 100%;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 14px;
+            color: #ffffff;
+            z-index: 2;
         }
 
         .hero-tag-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 900;
-            margin-bottom: 6px;
-            backdrop-filter: blur(8px);
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 999px;
+            font-size: 10.5px;
+            font-weight: 850;
+            margin-bottom: 4px;
+            backdrop-filter: blur(6px);
         }
-        .pill-beauty {
-            background: rgba(236, 72, 153, 0.25);
-            border: 1px solid rgba(244, 114, 182, 0.6);
-            color: #fbcfe8;
-        }
-        .pill-family {
-            background: rgba(2, 132, 199, 0.25);
-            border: 1px solid rgba(56, 189, 248, 0.6);
-            color: #bae6fd;
-        }
+        .pill-beauty { background: rgba(236, 72, 153, 0.85); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.4); }
+        .pill-family { background: rgba(2, 132, 199, 0.85); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.4); }
 
         .hero-main-title {
-            font-size: 21px;
+            font-size: 17px;
             font-weight: 950;
-            color: #ffffff;
             line-height: 1.25;
-            letter-spacing: -0.5px;
-            margin-bottom: 4px;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            letter-spacing: -0.4px;
+            margin-bottom: 3px;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.6);
         }
+
         .hero-sub-title {
-            font-size: 12.5px;
-            color: #cbd5e1;
+            font-size: 11px;
             font-weight: 600;
-            margin-bottom: 10px;
-            line-height: 1.4;
+            color: #cbd5e1;
+            margin-bottom: 5px;
+            letter-spacing: -0.2px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.7);
         }
 
         .hero-badges-row {
             display: flex;
-            gap: 6px;
-            align-items: center;
-            font-size: 11px;
-            color: #e2e8f0;
-            font-weight: 800;
-        }
-        .badge-check-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-            background: rgba(255,255,255,0.14);
-            padding: 3px 8px;
-            border-radius: 8px;
+            gap: 5px;
+            flex-wrap: wrap;
         }
 
-        /* 슬라이드 인디케이터 도트 */
+        .badge-check-item {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1.5px 5px;
+            border-radius: 4px;
+            backdrop-filter: blur(4px);
+        }
+
         .slider-dots {
             position: absolute;
-            top: 14px;
-            right: 14px;
-            z-index: 10;
+            top: 10px;
+            right: 12px;
             display: flex;
             gap: 5px;
-            background: rgba(0,0,0,0.4);
-            padding: 4px 8px;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 3px 6px;
             border-radius: 12px;
-            backdrop-filter: blur(6px);
         }
         .dot {
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.4);
+            background: rgba(255, 255, 255, 0.5);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
         .dot.active {
-            width: 18px;
+            background: #ffffff;
+            width: 14px;
             border-radius: 4px;
-            background: #ffffff;
         }
 
-        /* 3. 🌟 [1년 전 시안 양식 완벽 구현] 2대 핵심 진료 예약 카드 */
-        .action-cards-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            padding: 14px 14px 8px 14px;
+        /* ========================================================
+           3. 🌟 [사용자 요청] 단골의원 방문하기 버튼 길게 만들어주고
+              누르면 자기 구 의원 리스트 펼쳐져서 보임
+              (리스트 보기 / 진료과별 보기, 별 누르면 단골 등록,
+               정회원+단골 1등, 정회원 2등, 단골 3등, 일반 4등)
+           ======================================================== */
+        .favorite-clinic-banner-section {
+            padding: 10px 14px 4px 14px;
         }
 
-        .entry-action-card {
-            border-radius: 16px;
-            padding: 14px 12px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 96px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-            transition: all 0.16s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .entry-action-card:active {
-            transform: scale(0.97);
-        }
-
-        /* 좌측: 피부 · 성형 예약하기 (화사한 핑크) */
-        .card-beauty-track {
-            background: linear-gradient(135deg, #f43f5e 0%, #ec4899 100%);
-            color: #ffffff;
-        }
-        /* 우측: 검사 · 수술 예약하기 (깔끔한 화이트/블루) */
-        .card-family-track {
-            background: #ffffff;
-            border: 1.8px solid #0284c7;
-            color: #0f172a;
-        }
-
-        .card-top-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 6px;
-        }
-        .card-icon-box {
-            font-size: 22px;
-            line-height: 1;
-        }
-        .card-action-title {
-            font-size: 15.5px;
-            font-weight: 950;
-            letter-spacing: -0.4px;
-        }
-        .card-action-sub {
-            font-size: 11.5px;
-            font-weight: 600;
-            opacity: 0.9;
-            line-height: 1.35;
-        }
-
-        /* 4. 5대 퀵 액션 메뉴 그리드 */
-        .quick-nav-section {
-            padding: 8px 14px 12px 14px;
-        }
-        .quick-nav-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 6px;
-            text-align: center;
-        }
-        .btn-quick-item {
-            background: none;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            padding: 6px 2px;
-            border-radius: 12px;
-            transition: all 0.12s;
-        }
-        .btn-quick-item:active {
-            background: #f1f5f9;
-            transform: scale(0.95);
-        }
-        .quick-item-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 13px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-        }
-        .quick-item-label {
-            font-size: 11.5px;
-            font-weight: 800;
-            color: #334155;
-            letter-spacing: -0.3px;
-        }
-        .quick-item-sub {
-            font-size: 9.5px;
-            color: #94a3b8;
-            font-weight: 600;
-        }
-
-        /* 섹션 구분선 */
-        .section-divider {
-            height: 8px;
-            background: #f1f5f9;
+        .btn-favorite-clinic-long {
             width: 100%;
-        }
-
-        /* 5. 최근 방문 / 나의 단골 의원 섹션 */
-        .content-section {
-            padding: 16px 14px;
-        }
-        .section-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-        .section-title {
-            font-size: 16.5px;
-            font-weight: 950;
-            color: #0f172a;
-            letter-spacing: -0.4px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn-view-all {
-            font-size: 12px;
-            color: #64748b;
-            font-weight: 700;
-            background: none;
-            border: none;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            border: 2px solid #38bdf8;
+            border-radius: 16px;
+            padding: 12px 16px;
+            color: #ffffff;
             cursor: pointer;
-            text-decoration: none;
-        }
-
-        .clinic-cards-list {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .clinic-item-card {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 12px 14px;
-            display: flex;
-            align-items: center;
             justify-content: space-between;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            transition: all 0.15s ease;
-        }
-        .clinic-item-card:active {
-            background: #f8fafc;
-            border-color: #cbd5e1;
-        }
-        .clinic-left-info {
-            display: flex;
             align-items: center;
-            gap: 10px;
-            flex: 1;
-            min-width: 0;
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
+            transition: transform 0.12s ease;
         }
-        .clinic-avatar {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            flex-shrink: 0;
+        .btn-favorite-clinic-long:active {
+            transform: scale(0.985);
         }
-        .avatar-pink { background: #ffe4e6; color: #f43f5e; }
-        .avatar-blue { background: #e0f2fe; color: #0284c7; }
-        .avatar-green { background: #dcfce7; color: #16a34a; }
 
-        .clinic-meta {
-            flex: 1;
-            min-width: 0;
+        .long-btn-content {
+            text-align: left;
         }
-        .clinic-name-row {
+
+        .long-btn-main {
             display: flex;
             align-items: center;
             gap: 6px;
         }
-        .clinic-name {
-            font-size: 15px;
+        .long-btn-icon {
+            font-size: 20px;
+            color: #fde047;
+            filter: drop-shadow(0 0 4px rgba(253, 224, 71, 0.8));
+        }
+        .long-btn-title {
+            font-size: 18.5px;
             font-weight: 950;
-            color: #0f172a;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            letter-spacing: -0.4px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.25);
         }
-        .badge-verified {
-            background: #eff6ff;
-            color: #2563eb;
-            font-size: 9.5px;
-            font-weight: 900;
-            padding: 1px 5px;
-            border-radius: 4px;
-        }
-        .clinic-detail-desc {
-            font-size: 11.5px;
-            color: #64748b;
-            margin-top: 3px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .long-btn-district-badge {
+            background: rgba(255, 255, 255, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            font-size: 11px;
+            font-weight: 850;
+            padding: 2px 7px;
+            border-radius: 10px;
+            margin-left: 2px;
         }
 
-        .btn-reserve-action {
+        .long-btn-sub {
+            font-size: 11.5px;
+            font-weight: 600;
+            color: #e0f2fe;
+            margin-top: 3px;
+            letter-spacing: -0.2px;
+        }
+
+        .long-btn-arrow {
+            font-size: 14px;
+            color: #ffffff;
+            font-weight: 900;
+            transition: transform 0.2s ease;
+        }
+
+        /* 펼쳐지는 의원 목록 패널 */
+        .favorite-clinic-list-panel {
+            margin-top: 8px;
+            background: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 16px;
+            padding: 12px 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+        }
+
+        .clinic-filter-controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 0 4px;
+        }
+
+        .district-select-chip {
             background: #ffffff;
             border: 1.5px solid #0284c7;
             color: #0284c7;
-            font-size: 12.5px;
-            font-weight: 900;
-            padding: 6px 14px;
+            font-size: 11.5px;
+            font-weight: 850;
+            padding: 4px 9px;
             border-radius: 10px;
             cursor: pointer;
-            flex-shrink: 0;
-            transition: all 0.15s;
-        }
-        .btn-reserve-action:active {
-            background: #0284c7;
-            color: #ffffff;
-        }
-        .btn-reserve-pink {
-            border-color: #ec4899;
-            color: #ec4899;
-        }
-        .btn-reserve-pink:active {
-            background: #ec4899;
-            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        /* 6. 주요 예약 항목 (8대 카테고리) */
-        .categories-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-        }
-        .category-chip-box {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 10px 4px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.12s;
-        }
-        .category-chip-box:active {
+        .view-mode-tabs {
+            display: flex;
+            gap: 4px;
             background: #e2e8f0;
-            transform: scale(0.96);
-        }
-        .cat-icon {
-            font-size: 22px;
-            margin-bottom: 4px;
-        }
-        .cat-title {
-            font-size: 11.5px;
-            font-weight: 800;
-            color: #334155;
-            letter-spacing: -0.3px;
+            padding: 2px;
+            border-radius: 8px;
         }
 
-        /* 7. 최하단 고정 구글 애드몹 배너 (320 × 100) */
-        .clinic-admob-slot {
-            margin: 8px 14px 16px 14px;
-            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-            border: 1.5px dashed #cbd5e1;
-            border-radius: 14px;
-            height: 98px;
+        .btn-view-tab {
+            background: transparent;
+            border: none;
+            font-size: 11px;
+            font-weight: 800;
+            color: #475569;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .btn-view-tab.active {
+            background: #ffffff;
+            color: #0284c7;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            font-weight: 950;
+        }
+
+        /* 진료과별 칩 선택 바 */
+        .dept-chips-scroll-bar {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            padding: 4px 2px 8px 2px;
+            scrollbar-width: none;
+        }
+        .dept-chips-scroll-bar::-webkit-scrollbar { display: none; }
+
+        .dept-chip {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            font-size: 11px;
+            font-weight: 750;
+            padding: 3px 8px;
+            border-radius: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .dept-chip.active {
+            background: #0284c7;
+            border-color: #0284c7;
+            color: #ffffff;
+            font-weight: 900;
+        }
+
+        /* 의원 카드 리스트 */
+        .clinic-items-container {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 6px 12px;
-            text-align: center;
+            gap: 8px;
+            max-height: 380px;
+            overflow-y: auto;
+            padding-right: 2px;
         }
-        .admob-title-blue {
+
+        .clinic-row-card {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .clinic-row-card:active {
+            background: #f1f5f9;
+        }
+        .clinic-row-card.is-fav {
+            border-color: #facc15;
+            background: #fefce8;
+        }
+        .clinic-row-card.is-reg {
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.08);
+        }
+
+        .clinic-card-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
+        }
+
+        /* 별표 단골 토글 버튼 */
+        .btn-star-fav {
+            background: transparent;
+            border: none;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            color: #cbd5e1;
+            padding: 2px;
+            transition: transform 0.15s ease, color 0.15s ease;
+            flex-shrink: 0;
+        }
+        .btn-star-fav.starred {
+            color: #eab308; /* 황금색 별표 */
+            filter: drop-shadow(0 0 3px rgba(234, 179, 8, 0.6));
+            transform: scale(1.1);
+        }
+
+        .clinic-info-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .clinic-title-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .clinic-name-txt {
+            font-size: 14.5px;
+            font-weight: 950;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .badge-reg-member {
+            background: linear-gradient(135deg, #15803d, #166534);
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 1.5px 5px;
+            border-radius: 4px;
+            letter-spacing: -0.2px;
+            flex-shrink: 0;
+        }
+
+        .badge-fav-tag {
+            background: #fef08a;
+            color: #854d0e;
+            border: 1px solid #fde047;
+            font-size: 9.5px;
+            font-weight: 900;
+            padding: 1px 4px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .clinic-sub-info {
+            font-size: 11px;
+            font-weight: 600;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .btn-card-reserve {
+            background: #0284c7;
+            border: none;
+            color: #ffffff;
+            font-size: 11.5px;
+            font-weight: 850;
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            box-shadow: 0 1px 4px rgba(2, 132, 199, 0.25);
+        }
+        .btn-card-reserve:active {
+            background: #0369a1;
+        }
+
+        /* ========================================================
+           4. 🌟 [사용자 요청] 단골의원 방문예약 // 의사 회원 가입
+              박스 두개를 좌우로 해서 배치하고 (얇게)
+           ======================================================== */
+        .clinic-two-boxes-section {
+            padding: 8px 14px 4px 14px;
+        }
+
+        .two-boxes-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .thin-feature-box {
+            flex: 1;
+            min-height: 86px;
+            border-radius: 14px;
+            padding: 9px 11px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.14s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            position: relative;
+            overflow: hidden;
+        }
+        .thin-feature-box:active {
+            transform: scale(0.98);
+        }
+
+        /* 좌측 박스: 단골의원 방문예약 */
+        .box-fav-reserve {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border: 1.5px solid #86efac;
+        }
+        /* 우측 박스: 의사 회원 가입 */
+        .box-doctor-join {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1.5px solid #7dd3fc;
+        }
+
+        .thin-box-top-tag {
+            font-size: 9.5px;
+            font-weight: 850;
+            display: inline-block;
+            margin-bottom: 2px;
+        }
+        .tag-green { color: #166534; }
+        .tag-blue { color: #0369a1; }
+
+        .thin-box-title {
+            font-size: 14px;
+            font-weight: 950;
+            color: #0f172a;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+
+        .thin-box-desc-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5px;
+            margin-top: 3px;
+        }
+
+        .thin-box-line {
+            font-size: 10px;
+            font-weight: 700;
+            color: #475569;
+            line-height: 1.25;
+            word-break: keep-all;
+            letter-spacing: -0.2px;
+        }
+        .thin-box-line.accent {
+            color: #0284c7;
+            font-weight: 800;
+        }
+
+        /* ========================================================
+           5. 🌟 [사용자 요청] 신규 회원 실시간 30개 스트림:
+              정, 준, 의 (정회원, 준회원, 의사회원 약자)
+              가장 최근 가입이 제일 위로, 30개까지 보여주고 신규가 살아있는듯!
+           ======================================================== */
+        .live-members-section {
+            padding: 10px 14px 10px 14px;
+        }
+
+        .live-stream-card {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 11px 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+        }
+
+        .live-stream-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 6px;
+        }
+
+        .live-title-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .live-pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #22c55e;
+            animation: pulseDot 1.4s infinite ease-in-out;
+        }
+        @keyframes pulseDot {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.35); opacity: 0.6; }
+        }
+
+        .live-stream-heading {
             font-size: 13.5px;
             font-weight: 950;
-            color: #0284c7;
+            color: #0f172a;
             letter-spacing: -0.3px;
         }
 
-        /* 8. 최하단 모바일 탭 바 */
-        .bottom-nav-bar {
+        .live-stream-badge-info {
+            font-size: 10.5px;
+            font-weight: 750;
+            color: #64748b;
+        }
+
+        .live-items-scroll-box {
+            max-height: 175px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-right: 2px;
+        }
+
+        .live-member-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4.5px 6px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s ease;
+            font-size: 12px;
+        }
+        .live-member-row.is-new {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+            animation: slideDownFade 0.4s ease-out;
+        }
+        @keyframes slideDownFade {
+            0% { opacity: 0; transform: translateY(-8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .live-row-left {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        /* [정], [준], [의] 원형 뱃지 */
+        .member-role-badge {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10.5px;
+            font-weight: 950;
+            color: #ffffff;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .role-정 { background: #15803d; box-shadow: 0 1px 3px rgba(21,128,61,0.3); } /* 정회원: 녹색 */
+        .role-준 { background: #0284c7; box-shadow: 0 1px 3px rgba(2,132,199,0.3); } /* 준회원: 파랑 */
+        .role-의 { background: #7c3aed; box-shadow: 0 1px 3px rgba(124,58,237,0.3); } /* 의사회원: 보라 */
+
+        .member-name-text {
+            font-weight: 850;
+            color: #1e293b;
+            letter-spacing: -0.2px;
+        }
+
+        .member-region-text {
+            color: #64748b;
+            font-weight: 600;
+            font-size: 11px;
+            letter-spacing: -0.2px;
+        }
+
+        .member-time-text {
+            color: #94a3b8;
+            font-size: 10.5px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        /* ========================================================
+           6. 🌟 [사용자 요청] 맨밑에 애드몹 100짜리 상시로 보여주면 됨
+              고정 하단 네비게이션 바로 위에 영구 고정
+           ======================================================== */
+        .fixed-bottom-zone {
             position: fixed;
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
             width: 100%;
             max-width: 480px;
+            z-index: 90;
             background: #ffffff;
-            border-top: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-around;
-            padding: 6px 8px calc(var(--safe-bottom) + 2px) 8px;
-            z-index: 100;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+            box-shadow: 0 -3px 12px rgba(0, 0, 0, 0.06);
         }
-        .nav-tab-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
+
+        .admob-fixed-100 {
+            width: 100%;
+            height: 98px;
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            border-top: 1px dashed #cbd5e1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 3px;
+            justify-content: center;
+            padding: 6px 12px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .admob-badge-chip {
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 900;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        .admob-label-line {
+            font-size: 10px;
+            font-weight: 800;
+            color: #64748b;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .admob-big-title {
+            font-size: 14px;
+            font-weight: 950;
+            color: #0284c7;
+            letter-spacing: -0.3px;
+        }
+
+        .admob-sponsor-sub {
+            font-size: 10.5px;
+            color: #64748b;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* 하단 탭 바 (홈, 검색, 예약내역, 단골의원, 교회홈) */
+        .clinic-tab-bar {
+            height: 52px;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 4px;
+        }
+
+        .tab-bar-btn {
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
             color: #64748b;
             font-size: 10.5px;
-            font-weight: 800;
+            font-weight: 750;
+            cursor: pointer;
             flex: 1;
-            padding: 4px 0;
-            transition: color 0.12s;
         }
-        .nav-tab-btn.active {
+        .tab-bar-btn.active {
             color: #0284c7;
+            font-weight: 900;
         }
-        .nav-icon {
-            font-size: 18px;
+        .tab-icon {
+            font-size: 17px;
             line-height: 1;
+        }
+
+        /* 공통 토스트 안내 */
+        #clinicToast {
+            position: fixed;
+            bottom: 165px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.92);
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12.5px;
+            font-weight: 800;
+            z-index: 99999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            white-space: nowrap;
         }
     </style>
 </head>
 <body>
 
 <div class="app-viewport">
-    <!-- 1. 최상단 헤더 -->
+
+    <!-- ========================================================
+         1. 🌟 [사용자 요청] 최상단 헤더:
+            파랑십자가 옆에 [예톡 Korea 의원 스마트 예약 포털]
+            우측에 [준회원(또는 정회원)]
+            그 바로밑 우측에 [🩺 내의원 가기] (의사 전용)
+         ======================================================== -->
     <header class="clinic-header">
-        <div class="header-brand" onclick="location.reload()" title="예톡 의원 홈">
-            <span class="brand-cross-icon">✚</span>
-            <div class="header-brand-title">
-                <span>예톡 의원</span>
-                <span class="header-brand-sub">스마트 예약 포털</span>
+        <div class="header-top-row">
+            <!-- 좌측: 파랑 십자가 + 예톡 Korea 의원 / 스마트 예약 포털 -->
+            <div class="header-brand-wrap" onclick="location.reload()" title="예톡 Korea 의원 스마트 예약 포털">
+                <span class="brand-blue-cross">✚</span>
+                <div class="brand-text-block">
+                    <div class="brand-title-line">
+                        <span class="brand-yetalk">예톡</span>
+                        <span class="brand-korea">Korea</span>
+                        <span class="brand-clinic">의원</span>
+                    </div>
+                    <div class="brand-sub-portal">스마트 예약 포털</div>
+                </div>
             </div>
-        </div>
-        <div class="header-actions">
-            <!-- 🌟 [사용자 요청] 예톡 교회로 상호 전환 버튼 -->
-            <button type="button" class="btn-header-pill" onclick="location.href='index.html'" title="예톡 교회앱으로 전환">
-                <span>⛪</span>
-                <span>교회홈 가기</span>
-            </button>
+
+            <!-- 우측 액션: [준회원/정회원] + [교회홈] / 그 바로 밑에 [🩺 내의원 가기] -->
+            <div class="header-right-col">
+                <div class="header-right-btns-row">
+                    <button type="button" id="btnClinicMemberStatus" class="btn-clinic-member-badge" onclick="handleClinicMemberStatusClick()">
+                        준회원
+                    </button>
+                    <button type="button" class="btn-header-church-bridge" onclick="location.href='index.html'" title="예톡 교회 메인으로 이동">
+                        <span>⛪</span>
+                        <span>교회홈</span>
+                    </button>
+                </div>
+                <!-- 🌟 [사용자 요청] 그 바로밑에 우측에 내의원 가기.(의사 전용, 회원가입시 본인의원, 직업 의사 기록한 경우) -->
+                <button type="button" id="btnMyClinicGo" class="btn-my-clinic-go" onclick="handleMyClinicGoClick()" title="의사 전용: 본인 의원 관리로 이동">
+                    <span>🩺 내의원 가기</span>
+                </button>
+            </div>
         </div>
     </header>
 
-    <!-- 2. 🌟 [사용자 요청] 미용의원 & 단골의원 자동 롤링 히어로 배너 (몇 초 간격으로 살 바꾸어줌) -->
+    <!-- ========================================================
+         2. 🌟 [사용자 요청] 밑에 이미지 20% 정도 줄여주고 (250px -> 200px)
+         ======================================================== -->
     <div class="hero-banner-container" id="heroBanner">
-        <!-- 슬라이드 인디케이터 도트 -->
         <div class="slider-dots">
             <div class="dot active" id="dot0" onclick="goToSlide(0)"></div>
             <div class="dot" id="dot1" onclick="goToSlide(1)"></div>
         </div>
 
-        <!-- 슬라이드 1: 🌸 미용 의원 (예쁜 여성 모델 이미지) -->
-        <div class="hero-slide active" id="slide0" onclick="handleTrackClick('beauty')">
+        <!-- 슬라이드 1: 🌸 미용 의원 -->
+        <div class="hero-slide active" id="slide0" onclick="scrollToClinicsByDept('피부·성형')">
             <img class="hero-bg-img" src="images/clinic_beauty_model.jpg" alt="미용 의원 피부 성형 뷰티">
             <div class="hero-gradient-overlay overlay-beauty"></div>
             <div class="hero-content">
@@ -625,15 +1018,15 @@
                 </h2>
                 <p class="hero-sub-title">보톡스 · 리프팅 · 레이저 · 필러 · 자가진피 사전예약 OK</p>
                 <div class="hero-badges-row">
-                    <span class="badge-check-item">✓ 간편한 모바일 예약</span>
-                    <span class="badge-check-item">✓ 안심 시술</span>
+                    <span class="badge-check-item">✓ 모바일 간편예약</span>
+                    <span class="badge-check-item">✓ 전문의 안심시술</span>
                     <span class="badge-check-item">✓ 전국 어디서나</span>
                 </div>
             </div>
         </div>
 
-        <!-- 슬라이드 2: 🏥 단골 의원 (따뜻한 부부 / 가족 건강 모델 이미지) -->
-        <div class="hero-slide" id="slide1" onclick="handleTrackClick('family')">
+        <!-- 슬라이드 2: 🏥 단골 의원 -->
+        <div class="hero-slide" id="slide1" onclick="scrollToClinicsByDept('내과·검진')">
             <img class="hero-bg-img" src="images/clinic_family_model.jpg" alt="단골 의원 가족 주치의">
             <div class="hero-gradient-overlay overlay-family"></div>
             <div class="hero-content">
@@ -645,215 +1038,255 @@
                 <p class="hero-sub-title">내과 · 건강검진 · 만성질환 · 초음파 · 수술 편안한 사전예약</p>
                 <div class="hero-badges-row">
                     <span class="badge-check-item">✓ 1:1 가족 주치의</span>
-                    <span class="badge-check-item">✓ 기다림 없는 예약</span>
+                    <span class="badge-check-item">✓ 대기 없는 빠른 예약</span>
                     <span class="badge-check-item">✓ 평생 건강관리</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 3. 🌟 [1년 전 시안 양식 완벽 구현] 2대 핵심 진료 예약 카드 -->
-    <section class="action-cards-grid">
-        <!-- 🌸 피부 · 성형 예약하기 -->
-        <div class="entry-action-card card-beauty-track" onclick="handleTrackClick('beauty')">
-            <div class="card-top-row">
-                <span class="card-icon-box">🧖‍♀️</span>
-                <span class="card-action-title">피부 · 성형 예약하기</span>
-            </div>
-            <div class="card-action-sub">보톡스 · 리프팅 · 레이저 · 필러</div>
-        </div>
-
-        <!-- 🩺 검사 · 수술 예약하기 -->
-        <div class="entry-action-card card-family-track" onclick="handleTrackClick('family')">
-            <div class="card-top-row">
-                <span class="card-icon-box" style="color:#0284c7;">🩺</span>
-                <span class="card-action-title" style="color:#0284c7;">검사 · 수술 예약하기</span>
-            </div>
-            <div class="card-action-sub" style="color:#64748b;">내시경 · 초음파 · 수술 · 검진</div>
-        </div>
-    </section>
-
-    <!-- 4. 5대 퀵 액션 메뉴 그리드 -->
-    <nav class="quick-nav-section">
-        <div class="quick-nav-grid">
-            <button type="button" class="btn-quick-item" onclick="openClinicQuickAction('history')">
-                <div class="quick-item-icon">📅</div>
-                <div class="quick-item-label">최근 예약</div>
-                <div class="quick-item-sub">바로 확인</div>
-            </button>
-            <button type="button" class="btn-quick-item" onclick="openClinicQuickAction('favorite')">
-                <div class="quick-item-icon">⭐</div>
-                <div class="quick-item-label">단골 의원</div>
-                <div class="quick-item-sub">빠른 예약</div>
-            </button>
-            <button type="button" class="btn-quick-item" onclick="openClinicQuickAction('search')">
-                <div class="quick-item-icon">📍</div>
-                <div class="quick-item-label">의원 찾기</div>
-                <div class="quick-item-sub">지역·진료과</div>
-            </button>
-            <button type="button" class="btn-quick-item" onclick="openClinicQuickAction('notice')">
-                <div class="quick-item-icon">🔔</div>
-                <div class="quick-item-label">예약 알림</div>
-                <div class="quick-item-sub">확인·변경</div>
-            </button>
-            <button type="button" class="btn-quick-item" onclick="openClinicQuickAction('mypage')">
-                <div class="quick-item-icon">👤</div>
-                <div class="quick-item-label">마이페이지</div>
-                <div class="quick-item-sub">예약 관리</div>
-            </button>
-        </div>
-    </nav>
-
-    <div class="section-divider"></div>
-
-    <!-- 5. 최근 방문 / 나의 단골 의원 섹션 -->
-    <section class="content-section">
-        <div class="section-header-row">
-            <h3 class="section-title">
-                <span>⭐</span>
-                <span>나의 단골 의원 & 추천 의원</span>
-            </h3>
-            <button type="button" class="btn-view-all" onclick="alert('전체 등록 의원 목록을 준비 중입니다.')">전체 보기 ➔</button>
-        </div>
-
-        <div class="clinic-cards-list">
-            <!-- 🌟 자가진피 최웅식의원 (클릭 시 doctormain.html 상세 이동) -->
-            <div class="clinic-item-card" onclick="location.href='doctormain.html'">
-                <div class="clinic-left-info">
-                    <div class="clinic-avatar avatar-pink">✨</div>
-                    <div class="clinic-meta">
-                        <div class="clinic-name-row">
-                            <span class="clinic-name">자가진피 최웅식의원</span>
-                            <span class="badge-verified">인증의원</span>
-                        </div>
-                        <div class="clinic-detail-desc">성형외과 · 피부과 | 자가진피 동안 시술 전문</div>
-                    </div>
+    <!-- ========================================================
+         3. 🌟 [사용자 요청] 단골의원 방문하기 버튼 길게 만들어주고
+            누르면 자기 구에 있는 의원 리스트 펼쳐져서 보임
+            (리스트 보기 / 진료과별 보기, 별 누르면 단골 등록,
+             정회원+단골 1등, 정회원 2등, 단골 3등, 일반 4등)
+         ======================================================== -->
+    <section class="favorite-clinic-banner-section" id="sectionFavoriteClinics">
+        <button type="button" class="btn-favorite-clinic-long" onclick="toggleFavoriteClinicList()">
+            <div class="long-btn-content">
+                <div class="long-btn-main">
+                    <span class="long-btn-icon">⭐</span>
+                    <span class="long-btn-title">단골의원 방문예약</span>
+                    <span class="long-btn-district-badge" id="dispCurrentDistrictLabel">부산시 중구</span>
                 </div>
-                <button type="button" class="btn-reserve-action btn-reserve-pink" onclick="event.stopPropagation(); location.href='doctormain.html?tab=reserve_inquiry';">
-                    예약하기
+                <div class="long-btn-sub">과별 진료: 피부 · 성형 · 시술 · 검사 · 수술</div>
+            </div>
+            <span class="long-btn-arrow" id="arrowFavoriteToggle">▲</span>
+        </button>
+
+        <!-- 펼쳐지는 의원 리스트 패널 -->
+        <div class="favorite-clinic-list-panel" id="favoriteClinicListPanel">
+            <div class="clinic-filter-controls-row">
+                <!-- 지역 선택 칩 (터치 시 구 변경) -->
+                <button type="button" class="district-select-chip" onclick="cycleDistrict()">
+                    <span>📍</span>
+                    <span id="txtActiveDistrict">부산시 중구</span>
+                    <span style="font-size:10px;">▾</span>
                 </button>
+
+                <!-- 리스트 보기 / 진료과별 보기 전환 탭 -->
+                <div class="view-mode-tabs">
+                    <button type="button" class="btn-view-tab active" id="tabViewList" onclick="switchClinicViewMode('list')">
+                        📋 리스트 보기
+                    </button>
+                    <button type="button" class="btn-view-tab" id="tabViewDept" onclick="switchClinicViewMode('dept')">
+                        🩺 진료과별 보기
+                    </button>
+                </div>
             </div>
 
-            <!-- 예톡 연세내과의원 -->
-            <div class="clinic-item-card" onclick="alert('예톡 연세내과의원 상세 정보로 연결됩니다.')">
-                <div class="clinic-left-info">
-                    <div class="clinic-avatar avatar-blue">🩺</div>
-                    <div class="clinic-meta">
-                        <div class="clinic-name-row">
-                            <span class="clinic-name">예톡 연세내과의원</span>
-                            <span class="badge-verified">단골의원</span>
-                        </div>
-                        <div class="clinic-detail-desc">내과 · 건강검진 | 위·대장 내시경, 만성질환 케어</div>
-                    </div>
-                </div>
-                <button type="button" class="btn-reserve-action" onclick="event.stopPropagation(); alert('예약 접수 창이 열립니다.');">
-                    예약하기
-                </button>
+            <!-- 진료과별 보기 선택 시 노출되는 가로 스크롤 칩 바 -->
+            <div class="dept-chips-scroll-bar" id="deptChipsBar" style="display:none;">
+                <button type="button" class="dept-chip active" onclick="filterByDept('all')">전체</button>
+                <button type="button" class="dept-chip" onclick="filterByDept('피부·성형')">피부·성형</button>
+                <button type="button" class="dept-chip" onclick="filterByDept('내과·검진')">내과·검진</button>
+                <button type="button" class="dept-chip" onclick="filterByDept('정형외과')">정형외과</button>
+                <button type="button" class="dept-chip" onclick="filterByDept('이비인후과')">이비인후과</button>
+                <button type="button" class="dept-chip" onclick="filterByDept('안과')">안과</button>
+                <button type="button" class="dept-chip" onclick="filterByDept('치과')">치과</button>
             </div>
 
-            <!-- 서울튼튼 정형외과의원 -->
-            <div class="clinic-item-card" onclick="alert('서울튼튼 정형외과의원 상세 정보로 연결됩니다.')">
-                <div class="clinic-left-info">
-                    <div class="clinic-avatar avatar-green">🦴</div>
-                    <div class="clinic-meta">
-                        <div class="clinic-name-row">
-                            <span class="clinic-name">서울튼튼 정형외과의원</span>
-                            <span class="badge-verified">단골의원</span>
-                        </div>
-                        <div class="clinic-detail-desc">정형외과 · 통증의학과 | 척추관절, 도수·물리치료</div>
-                    </div>
-                </div>
-                <button type="button" class="btn-reserve-action" onclick="event.stopPropagation(); alert('예약 접수 창이 열립니다.');">
-                    예약하기
-                </button>
+            <!-- 정렬 규칙 적용된 의원 카드 리스트 -->
+            <div class="clinic-items-container" id="clinicItemsContainer">
+                <!-- 자바스크립트 렌더링 -->
             </div>
         </div>
     </section>
 
-    <div class="section-divider"></div>
+    <!-- ========================================================
+         4. 🌟 [사용자 요청] 단골의원 방문예약 // 의사 회원 가입
+            박스 두개를 좌우로 해서 배치하고 (얇게)
+         ======================================================== -->
+    <section class="clinic-two-boxes-section">
+        <div class="two-boxes-row">
+            <!-- 좌측 박스: 단골의원 방문예약 (얇고 알찬 구성) -->
+            <div class="thin-feature-box box-fav-reserve" onclick="scrollToFavoriteSection()">
+                <div>
+                    <span class="thin-box-top-tag tag-green">⭐ 단골 전문의원</span>
+                    <div class="thin-box-title">단골의원 방문예약</div>
+                </div>
+                <div class="thin-box-desc-lines">
+                    <div class="thin-box-line">피부 · 성형 시술 · 검사 · 수술</div>
+                    <div class="thin-box-line accent">1:1 맞춤 모바일 사전예약 ➔</div>
+                </div>
+            </div>
 
-    <!-- 6. 주요 예약 항목 (8대 카테고리) -->
-    <section class="content-section">
-        <div class="section-header-row">
-            <h3 class="section-title">
-                <span>📋</span>
-                <span>주요 진료 · 시술 예약 항목</span>
-            </h3>
-        </div>
-
-        <div class="categories-grid">
-            <div class="category-chip-box" onclick="handleTrackClick('beauty')">
-                <div class="cat-icon">💉</div>
-                <div class="cat-title">보톡스/필러</div>
-            </div>
-            <div class="category-chip-box" onclick="handleTrackClick('beauty')">
-                <div class="cat-icon">🧖‍♀️</div>
-                <div class="cat-title">리프팅</div>
-            </div>
-            <div class="category-chip-box" onclick="handleTrackClick('beauty')">
-                <div class="cat-icon">✨</div>
-                <div class="cat-title">레이저/피부</div>
-            </div>
-            <div class="category-chip-box" onclick="handleTrackClick('family')">
-                <div class="cat-icon">🫁</div>
-                <div class="cat-title">내시경검사</div>
-            </div>
-            <div class="category-chip-box" onclick="handleTrackClick('family')">
-                <div class="cat-icon">🖥️</div>
-                <div class="cat-title">초음파검사</div>
-            </div>
-            <div class="category-chip-box" onclick="handleTrackClick('beauty')">
-                <div class="cat-icon">🔬</div>
-                <div class="cat-title">수술/시술</div>
-            </div>
-            <div class="category-chip-box" onclick="handleTrackClick('family')">
-                <div class="cat-icon">📋</div>
-                <div class="cat-title">건강검진</div>
-            </div>
-            <div class="category-chip-box" onclick="handleTrackClick('family')">
-                <div class="cat-icon">🩺</div>
-                <div class="cat-title">만성질환케어</div>
+            <!-- 우측 박스: 의사 회원 가입 (의원앱, 홈페이지 무상 지원, 유지비 제로, 예약 서비스, 지역 환자 연결) -->
+            <div class="thin-feature-box box-doctor-join" onclick="openDoctorJoinModal()">
+                <div>
+                    <span class="thin-box-top-tag tag-blue">🩺 원장님 전용 혜택</span>
+                    <div class="thin-box-title">의사 회원 가입</div>
+                </div>
+                <div class="thin-box-desc-lines">
+                    <div class="thin-box-line">의원앱 + 홈페이지 무상 지원 (유지비 0원)</div>
+                    <div class="thin-box-line accent">예약 서비스 · 지역 환자 연결 케어 ➔</div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- 7. 구글 애드몹 공식 슬롯 (320 × 100) -->
-    <div class="clinic-admob-slot">
-        <div style="font-size:10px; font-weight:800; color:#64748b; margin-bottom:2px;">
-            <span style="background:#0284c7; color:#fff; padding:1px 4px; border-radius:3px; font-size:9px;">AD</span>
-            Google AdMob 공식 스폰서 슬롯 (320 × 100)
+    <!-- ========================================================
+         5. 🌟 [사용자 요청] 신규 회원 가입 현황:
+            정. 준, 의 (정회원, 준회원, 의사회원 약자)
+            가장 최근 가입이 제일 위로, 30개까지만 계속 보여주고 신규가 살아있는듯
+         ======================================================== -->
+    <section class="live-members-section">
+        <div class="live-stream-card">
+            <div class="live-stream-header-row">
+                <div class="live-title-group">
+                    <div class="live-pulse-dot"></div>
+                    <span class="live-stream-heading">신규 회원 가입 현황</span>
+                </div>
+                <span class="live-stream-badge-info">실시간 30명 연속 스트림</span>
+            </div>
+
+            <div class="live-items-scroll-box" id="liveMembersListBox">
+                <!-- 자바스크립트 30명 실시간 자동 생성 -->
+            </div>
         </div>
-        <div class="admob-title-blue">Google AdMob Large Banner</div>
-        <div style="font-size:11px; color:#64748b; margin-top:2px;">대한민국 소상공인 · 병의원 · 교회 공식 지원 스폰서</div>
+    </section>
+
+    <!-- ========================================================
+         6. 🌟 [사용자 요청] 맨밑에 애드몹 100짜리 상시로 보여주면 됨
+            (320 × 100 고정 슬롯) + 하단 탭 바
+         ======================================================== -->
+    <div class="fixed-bottom-zone">
+        <!-- Google AdMob 100px 상시 고정 배너 -->
+        <div class="admob-fixed-100">
+            <div class="admob-label-line">
+                <span class="admob-badge-chip">AD</span>
+                <span>Google AdMob 공식 스폰서 슬롯 (320 × 100)</span>
+            </div>
+            <div class="admob-big-title">Google AdMob Large Banner</div>
+            <div class="admob-sponsor-sub">대한민국 소상공인 · 병의원 · 교회 공식 지원 스폰서</div>
+        </div>
+
+        <!-- 하단 탭 바 -->
+        <nav class="clinic-tab-bar">
+            <button type="button" class="tab-bar-btn active" onclick="location.reload()">
+                <span class="tab-icon">🏠</span>
+                <span>홈</span>
+            </button>
+            <button type="button" class="tab-bar-btn" onclick="scrollToFavoriteSection()">
+                <span class="tab-icon">⭐</span>
+                <span>단골의원</span>
+            </button>
+            <button type="button" class="tab-bar-btn" onclick="openDoctorJoinModal()">
+                <span class="tab-icon">🩺</span>
+                <span>의사등록</span>
+            </button>
+            <button type="button" class="tab-bar-btn" onclick="handleClinicMemberStatusClick()">
+                <span class="tab-icon">👤</span>
+                <span>내정보</span>
+            </button>
+            <button type="button" class="tab-bar-btn" onclick="location.href='index.html'" style="color:#15803d;">
+                <span class="tab-icon">⛪</span>
+                <span>교회홈</span>
+            </button>
+        </nav>
     </div>
+
 </div>
 
-<!-- 8. 최하단 모바일 탭 바 -->
-<nav class="bottom-nav-bar">
-    <button type="button" class="nav-tab-btn active" onclick="location.reload()">
-        <span class="nav-icon">🏠</span>
-        <span>홈</span>
-    </button>
-    <button type="button" class="nav-tab-btn" onclick="openClinicQuickAction('search')">
-        <span class="nav-icon">🔍</span>
-        <span>검색</span>
-    </button>
-    <button type="button" class="nav-tab-btn" onclick="openClinicQuickAction('history')">
-        <span class="nav-icon">📅</span>
-        <span>예약내역</span>
-    </button>
-    <button type="button" class="nav-tab-btn" onclick="openClinicQuickAction('favorite')">
-        <span class="nav-icon">⭐</span>
-        <span>단골의원</span>
-    </button>
-    <button type="button" class="nav-tab-btn" onclick="location.href='index.html'" style="color:#15803d;">
-        <span class="nav-icon">⛪</span>
-        <span>교회홈</span>
-    </button>
-</nav>
+<!-- 토스트 안내 알림창 -->
+<div id="clinicToast"></div>
 
 <script>
-    // 🌟 [사용자 요청] 몇 초 간격으로 살 바꾸어주는 롤링 히어로 배너 (4.5초 간격)
+    // ==========================================
+    // 1. 헤더 회원 상태 & 의사 전용 [내의원 가기] 처리
+    // ==========================================
+    function initClinicHeaderUI() {
+        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
+        const userChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || "").trim();
+        const userPastor = (localStorage.getItem("yetalk_pastor_name") || "").trim();
+        const isChurchRegular = !!(uName && userChurch && (userPastor || uName.includes("최베드로") || userChurch.includes("부산제일")));
+        const clinicRole = localStorage.getItem("yetalk_clinic_member_role");
+
+        // 🌟 사용자 규칙: 교회 정회원은 의원에서도 정회원, 의원에서 정식 가입한 사람도 정회원
+        const isRegular = isChurchRegular || (clinicRole === "정회원");
+
+        const btnBadge = document.getElementById("btnClinicMemberStatus");
+        if (btnBadge) {
+            if (isRegular) {
+                btnBadge.innerText = "정회원";
+                btnBadge.classList.add("badge-regular");
+            } else {
+                btnBadge.innerText = "준회원";
+                btnBadge.classList.remove("badge-regular");
+            }
+        }
+    }
+
+    function handleClinicMemberStatusClick() {
+        const btnBadge = document.getElementById("btnClinicMemberStatus");
+        const isRegular = btnBadge && btnBadge.innerText.includes("정회원");
+        if (isRegular) {
+            showToast("✅ 현재 [정회원]으로 인증되어 모든 단골 의원 VIP 예약이 가능합니다.");
+        } else {
+            const ans = confirm("현재 [준회원] 상태입니다.\n정회원으로 등록하시면 단골의원 우선예약 및 맞춤 진료 혜택이 제공됩니다.\n\n정회원으로 등록하시겠습니까?");
+            if (ans) {
+                localStorage.setItem("yetalk_clinic_member_role", "정회원");
+                initClinicHeaderUI();
+                showToast("🎉 예톡 의원 정회원으로 승급되었습니다!");
+                renderClinicCards();
+            }
+        }
+    }
+
+    // 🌟 [사용자 요청] 그 바로밑에 우측에 내의원 가기.(의사 전용, 회원가입시 본인의원, 직업 의사 기록한 경우)
+    function handleMyClinicGoClick() {
+        const isDoctor = localStorage.getItem("yetalk_user_job") === "doctor" || 
+                         localStorage.getItem("yetalk_is_doctor") === "true" ||
+                         localStorage.getItem("yetalk_clinic_name");
+
+        if (isDoctor) {
+            const clinicName = localStorage.getItem("yetalk_clinic_name") || "자가진피 최웅식의원";
+            showToast(`🩺 ${clinicName} 원장님 전용 페이지로 이동합니다.`);
+            setTimeout(() => {
+                location.href = "doctormain.html";
+            }, 400);
+        } else {
+            const ans = confirm("🩺 [내의원 가기]는 의사 원장님 전용 메뉴입니다.\n\n원장님이신가요? 의사 회원으로 가입/등록하시면 본인 의원 앱과 홈페이지를 무상으로 관리하실 수 있습니다.\n\n의사 회원 등록 창을 여시겠습니까?");
+            if (ans) {
+                openDoctorJoinModal();
+            }
+        }
+    }
+
+    function openDoctorJoinModal() {
+        const clinicName = prompt("🏥 원장님의 병의원 이름을 입력해주세요:", "예톡 아름다운의원");
+        if (!clinicName) return;
+        const doctorName = prompt("👨‍⚕️ 원장님 성함을 입력해주세요:", "김원장");
+        if (!doctorName) return;
+
+        localStorage.setItem("yetalk_user_job", "doctor");
+        localStorage.setItem("yetalk_is_doctor", "true");
+        localStorage.setItem("yetalk_clinic_name", clinicName);
+        localStorage.setItem("yetalk_doctor_name", doctorName);
+        localStorage.setItem("yetalk_clinic_member_role", "의사회원");
+
+        // 신규 회원 목록 상단에도 추가
+        addNewLiveMemberItem("의", doctorName, "부산시 중구", "방금 전");
+
+        showToast(`🎉 ${clinicName} (${doctorName} 원장님) 등록 완료!\n의원앱·홈페이지가 무상 개설되었습니다.`);
+        setTimeout(() => {
+            location.href = "doctormain.html";
+        }, 800);
+    }
+
+    // ==========================================
+    // 2. 롤링 히어로 배너 (4.5초 간격)
+    // ==========================================
     let currentSlideIdx = 0;
     const totalSlides = 2;
     let autoSlideTimer = null;
@@ -882,34 +1315,393 @@
 
     function resetAutoSlideTimer() {
         if (autoSlideTimer) clearInterval(autoSlideTimer);
-        autoSlideTimer = setInterval(nextSlide, 4500); // 🌟 4.5초마다 부드럽게 자동 전환
+        autoSlideTimer = setInterval(nextSlide, 4500);
     }
 
-    // 🌟 트랙 클릭 (미용의원 / 단골의원)
-    function handleTrackClick(track) {
-        if (track === 'beauty') {
-            // 미용 성형 시술 안내 / 최웅식의원 뷰티 상세로 이동
-            location.href = 'doctormain.html?tab=beauty';
-        } else {
-            // 단골의원 검사·수술 예약 안내로 이동
-            location.href = 'doctormain.html?tab=reserve_inquiry';
+    // ==========================================
+    // 3. 🌟 [사용자 요청] 단골의원 리스트 및 정렬 시스템
+    //    1) 정회원 + 단골(별표) : 1등 (제일 위)
+    //    2) 정회원 (비단골)     : 2등
+    //    3) 단골 (비정회원)     : 3등 (정회원 바로 밑)
+    //    4) 일반 의원           : 4등
+    // ==========================================
+    const DISTRICT_LIST = ["부산시 중구", "부산시 해운대구", "부산시 부산진구", "서울시 서초구", "서울시 강남구", "대구시 수성구"];
+    let currentDistrictIdx = 0;
+
+    const CLINIC_MASTER_DATA = [
+        {
+            id: "c1",
+            name: "자가진피 최웅식의원",
+            dept: "피부·성형",
+            district: "부산시 중구",
+            address: "부산시 중구 중앙대로 123",
+            desc: "성형외과 · 피부과 | 자가진피 주름·동안시술 전문",
+            isRegularMember: true,
+            link: "doctormain.html"
+        },
+        {
+            id: "c2",
+            name: "예톡 연세내과의원",
+            dept: "내과·검진",
+            district: "부산시 중구",
+            address: "부산시 중구 대청로 45",
+            desc: "내과 · 건강검진 | 5대암 검진, 위·대장 내시경",
+            isRegularMember: true,
+            link: "doctormain.html?tab=reserve_inquiry"
+        },
+        {
+            id: "c3",
+            name: "중구 서울튼튼 정형외과의원",
+            dept: "정형외과",
+            district: "부산시 중구",
+            address: "부산시 중구 남포길 18",
+            desc: "정형외과 · 통증의학과 | 척추관절, 도수·물리치료",
+            isRegularMember: false,
+            link: "doctormain.html?tab=reserve_inquiry"
+        },
+        {
+            id: "c4",
+            name: "부산밝은 안과의원",
+            dept: "안과",
+            district: "부산시 중구",
+            address: "부산시 중구 광복로 77",
+            desc: "안과 | 백내장, 녹내장, 시력교정, 안구건조증 케어",
+            isRegularMember: false,
+            link: "doctormain.html?tab=reserve_inquiry"
+        },
+        {
+            id: "c5",
+            name: "미소이비인후과의원",
+            dept: "이비인후과",
+            district: "부산시 중구",
+            address: "부산시 중구 자갈치로 12",
+            desc: "이비인후과 | 알레르기 비염, 축농증, 중이염 클리닉",
+            isRegularMember: false,
+            link: "doctormain.html?tab=reserve_inquiry"
+        },
+        {
+            id: "c6",
+            name: "센텀예톡 피부과의원",
+            dept: "피부·성형",
+            district: "부산시 해운대구",
+            address: "부산시 해운대구 센텀중앙로 48",
+            desc: "피부과 | 리프팅, 색소레이저, 여드름 케어",
+            isRegularMember: true,
+            link: "doctormain.html"
+        },
+        {
+            id: "c7",
+            name: "해운대 참편한 내과의원",
+            dept: "내과·검진",
+            district: "부산시 해운대구",
+            address: "부산시 해운대구 해운대로 550",
+            desc: "내과 | 당뇨, 고혈압 만성질환 주치의 케어",
+            isRegularMember: false,
+            link: "doctormain.html?tab=reserve_inquiry"
+        },
+        {
+            id: "c8",
+            name: "서초프라임 성형외과의원",
+            dept: "피부·성형",
+            district: "서울시 서초구",
+            address: "서울시 서초구 강남대로 381",
+            desc: "성형외과 | 눈·코 성형, 안면거상, 쁘띠시술",
+            isRegularMember: true,
+            link: "doctormain.html"
+        },
+        {
+            id: "c9",
+            name: "서초바른 정형외과의원",
+            dept: "정형외과",
+            district: "서울시 서초구",
+            address: "서울시 서초구 반포대로 102",
+            desc: "정형외과 | 관절 비수술 재생치료, 체외충격파",
+            isRegularMember: false,
+            link: "doctormain.html?tab=reserve_inquiry"
+        },
+        {
+            id: "c10",
+            name: "강남탑 성형외과의원",
+            dept: "피부·성형",
+            district: "서울시 강남구",
+            address: "서울시 강남구 테헤란로 115",
+            desc: "성형외과 · 피부과 | 자가진피 동안센터",
+            isRegularMember: true,
+            link: "doctormain.html"
+        }
+    ];
+
+    let currentViewMode = "list"; // "list" | "dept"
+    let currentDeptFilter = "all";
+
+    function getFavoriteClinics() {
+        try {
+            return JSON.parse(localStorage.getItem("yetalk_favorite_clinics") || "[\"c1\"]");
+        } catch(e) {
+            return ["c1"];
         }
     }
 
-    function openClinicQuickAction(action) {
-        if (action === 'favorite') {
-            alert('⭐ 등록된 나의 단골 의원: [자가진피 최웅식의원]');
-        } else if (action === 'history') {
-            location.href = 'doctormain.html?tab=reserve_check';
-        } else if (action === 'notice') {
-            location.href = 'doctormain.html?tab=notice';
+    function saveFavoriteClinics(favs) {
+        localStorage.setItem("yetalk_favorite_clinics", JSON.stringify(favs));
+    }
+
+    function toggleStarFavorite(clinicId, event) {
+        if (event) event.stopPropagation();
+        let favs = getFavoriteClinics();
+        const idx = favs.indexOf(clinicId);
+        const clinic = CLINIC_MASTER_DATA.find(c => c.id === clinicId);
+        const name = clinic ? clinic.name : "의원";
+
+        if (idx >= 0) {
+            favs.splice(idx, 1);
+            showToast(`☆ [${name}] 단골 해제되었습니다.`);
         } else {
-            location.href = 'doctormain.html';
+            favs.push(clinicId);
+            showToast(`⭐ [${name}] 단골 의원으로 등록되었습니다!`);
+        }
+        saveFavoriteClinics(favs);
+        renderClinicCards();
+    }
+
+    function cycleDistrict() {
+        currentDistrictIdx = (currentDistrictIdx + 1) % DISTRICT_LIST.length;
+        const cur = DISTRICT_LIST[currentDistrictIdx];
+        document.getElementById("dispCurrentDistrictLabel").innerText = cur;
+        document.getElementById("txtActiveDistrict").innerText = cur;
+        showToast(`📍 [${cur}] 지역으로 의원 목록을 변경합니다.`);
+        renderClinicCards();
+    }
+
+    function switchClinicViewMode(mode) {
+        currentViewMode = mode;
+        const tabList = document.getElementById("tabViewList");
+        const tabDept = document.getElementById("tabViewDept");
+        const deptBar = document.getElementById("deptChipsBar");
+
+        if (mode === 'dept') {
+            tabList.classList.remove('active');
+            tabDept.classList.add('active');
+            deptBar.style.display = 'flex';
+        } else {
+            tabList.classList.add('active');
+            tabDept.classList.remove('active');
+            deptBar.style.display = 'none';
+            currentDeptFilter = "all";
+        }
+        renderClinicCards();
+    }
+
+    function filterByDept(dept) {
+        currentDeptFilter = dept;
+        document.querySelectorAll(".dept-chip").forEach(chip => {
+            if (chip.innerText.includes(dept) || (dept === 'all' && chip.innerText === '전체')) {
+                chip.classList.add("active");
+            } else {
+                chip.classList.remove("active");
+            }
+        });
+        renderClinicCards();
+    }
+
+    function scrollToClinicsByDept(dept) {
+        scrollToFavoriteSection();
+        switchClinicViewMode('dept');
+        filterByDept(dept);
+    }
+
+    function toggleFavoriteClinicList() {
+        const panel = document.getElementById("favoriteClinicListPanel");
+        const arrow = document.getElementById("arrowFavoriteToggle");
+        if (panel.style.display === "none") {
+            panel.style.display = "block";
+            arrow.innerText = "▲";
+        } else {
+            panel.style.display = "none";
+            arrow.innerText = "▼";
         }
     }
 
-    // 페이지 진입 시 타이머 구동
-    window.addEventListener('DOMContentLoaded', () => {
+    function scrollToFavoriteSection() {
+        const sec = document.getElementById("sectionFavoriteClinics");
+        const panel = document.getElementById("favoriteClinicListPanel");
+        const arrow = document.getElementById("arrowFavoriteToggle");
+        if (panel) panel.style.display = "block";
+        if (arrow) arrow.innerText = "▲";
+        if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // 🌟 [사용자 요청 정렬 핵심 알고리즘]
+    // 1) 정회원 + 단골(별표) : 1등
+    // 2) 정회원 (비단골)     : 2등
+    // 3) 단골 (비정회원)     : 3등 (정회원 바로 밑)
+    // 4) 일반 의원           : 4등
+    function renderClinicCards() {
+        const container = document.getElementById("clinicItemsContainer");
+        if (!container) return;
+
+        const currentDistrict = DISTRICT_LIST[currentDistrictIdx];
+        const favs = getFavoriteClinics();
+
+        let filtered = CLINIC_MASTER_DATA.filter(c => c.district === currentDistrict);
+        if (filtered.length === 0) {
+            // 다른 지역이면 샘플로 몇 개 매칭
+            filtered = CLINIC_MASTER_DATA.slice(0, 4);
+        }
+
+        if (currentViewMode === 'dept' && currentDeptFilter !== 'all') {
+            filtered = filtered.filter(c => c.dept.includes(currentDeptFilter));
+        }
+
+        // 정렬 수행
+        filtered.sort((a, b) => {
+            const aFav = favs.includes(a.id);
+            const bFav = favs.includes(b.id);
+            const aReg = !!a.isRegularMember;
+            const bReg = !!b.isRegularMember;
+
+            // 1순위: 정회원이면서 단골
+            const aT1 = (aReg && aFav) ? 1 : 0;
+            const bT1 = (bReg && bFav) ? 1 : 0;
+            if (aT1 !== bT1) return bT1 - aT1;
+
+            // 2순위: 정회원 (비단골)
+            const aT2 = (aReg && !aFav) ? 1 : 0;
+            const bT2 = (bReg && !bFav) ? 1 : 0;
+            if (aT2 !== bT2) return bT2 - aT2;
+
+            // 3순위: 단골 (비정회원) - 정회원 바로 밑에 배치!
+            const aT3 = (!aReg && aFav) ? 1 : 0;
+            const bT3 = (!bReg && bFav) ? 1 : 0;
+            if (aT3 !== bT3) return bT3 - aT3;
+
+            // 4순위: 일반 의원
+            return a.name.localeCompare(b.name);
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:20px; font-size:12px; color:#64748b;">선택하신 진료과의 의원이 없습니다.</div>`;
+            return;
+        }
+
+        container.innerHTML = filtered.map(item => {
+            const isFav = favs.includes(item.id);
+            const isReg = !!item.isRegularMember;
+
+            return `
+                <div class="clinic-row-card ${isFav ? 'is-fav' : ''} ${isReg ? 'is-reg' : ''}" onclick="location.href='${item.link}'">
+                    <div class="clinic-card-left">
+                        <!-- 별표 단골 버튼 -->
+                        <button type="button" class="btn-star-fav ${isFav ? 'starred' : ''}" onclick="toggleStarFavorite('${item.id}', event)" title="터치 시 단골 의원 등록/해제">
+                            ${isFav ? '★' : '☆'}
+                        </button>
+                        <div class="clinic-info-block">
+                            <div class="clinic-title-row">
+                                <span class="clinic-name-txt">${item.name}</span>
+                                ${isReg ? `<span class="badge-reg-member">정회원</span>` : ''}
+                                ${isFav ? `<span class="badge-fav-tag">⭐ 단골</span>` : ''}
+                            </div>
+                            <div class="clinic-sub-info">${item.desc}</div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-card-reserve" onclick="event.stopPropagation(); location.href='${item.link}'">
+                        예약하기
+                    </button>
+                </div>
+            `;
+        }).join("");
+    }
+
+    // ==========================================
+    // 4. 🌟 [사용자 요청] 신규 회원 실시간 30개 스트림:
+    //    정. 준, 의 (정회원, 준회원, 의사회원 약자)
+    //    가장 최근 가입이 제일 위로, 30개까지 보여주고 신규가 살아있는듯
+    // ==========================================
+    const SAMPLE_REGIONS = [
+        "서울시 서초구", "서울시 강남구", "서울시 송파구", "서울시 종로구",
+        "부산시 중구", "부산시 해운대구", "부산시 부산진구", "부산시 수영구",
+        "대구시 수성구", "대구시 중구", "인천시 연수구", "광주시 동구", "대전시 유성구"
+    ];
+
+    const SAMPLE_NAMES = [
+        "이XX", "김XX", "최XX", "박XX", "정XX", "강XX", "조XX", "윤XX", "장XX", "임XX",
+        "한XX", "오XX", "서XX", "신XX", "권XX", "황XX", "안XX", "송XX", "류XX", "홍XX"
+    ];
+
+    const ROLE_TYPES = ["정", "준", "의"];
+
+    let liveMembersData = [];
+
+    function initLiveMembersData() {
+        liveMembersData = [];
+        const baseTimes = ["방금 전", "1분 전", "2분 전", "3분 전", "5분 전", "7분 전", "9분 전", "12분 전", "15분 전", "18분 전"];
+        for (let i = 0; i < 30; i++) {
+            const role = i % 3 === 0 ? "정" : (i % 3 === 1 ? "준" : "의");
+            const name = SAMPLE_NAMES[i % SAMPLE_NAMES.length];
+            const region = SAMPLE_REGIONS[i % SAMPLE_REGIONS.length];
+            const timeText = i < baseTimes.length ? baseTimes[i] : `${Math.floor(i * 1.5 + 20)}분 전`;
+            liveMembersData.push({ role, name, region, timeText });
+        }
+        renderLiveMembers();
+    }
+
+    function renderLiveMembers() {
+        const box = document.getElementById("liveMembersListBox");
+        if (!box) return;
+
+        box.innerHTML = liveMembersData.slice(0, 30).map((m, idx) => `
+            <div class="live-member-row ${idx === 0 ? 'is-new' : ''}">
+                <div class="live-row-left">
+                    <span class="member-role-badge role-${m.role}">${m.role}</span>
+                    <span class="member-name-text">${m.name}</span>
+                    <span class="member-region-text">${m.region}</span>
+                </div>
+                <span class="member-time-text">${m.timeText}</span>
+            </div>
+        `).join("");
+    }
+
+    // 🌟 새로운 가입자가 들어오면 최상단에 쏙 올라오고 30개로 유지!
+    function addNewLiveMemberItem(role, name, region, timeText) {
+        liveMembersData.unshift({
+            role: role || ROLE_TYPES[Math.floor(Math.random() * ROLE_TYPES.length)],
+            name: name || SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)],
+            region: region || SAMPLE_REGIONS[Math.floor(Math.random() * SAMPLE_REGIONS.length)],
+            timeText: timeText || "방금 전"
+        });
+        if (liveMembersData.length > 30) {
+            liveMembersData.pop();
+        }
+        renderLiveMembers();
+    }
+
+    // 4.5초마다 새로운 회원 가입 실시간 생동감 연출
+    setInterval(() => {
+        addNewLiveMemberItem();
+    }, 4500);
+
+    // ==========================================
+    // 토스트 알림 함수
+    // ==========================================
+    let toastTimer = null;
+    function showToast(msg) {
+        const t = document.getElementById("clinicToast");
+        if (!t) return;
+        t.innerText = msg;
+        t.style.opacity = "1";
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            t.style.opacity = "0";
+        }, 2200);
+    }
+
+    // ==========================================
+    // 초기화
+    // ==========================================
+    document.addEventListener("DOMContentLoaded", () => {
+        initClinicHeaderUI();
+        renderClinicCards();
+        initLiveMembersData();
         resetAutoSlideTimer();
     });
 </script>
