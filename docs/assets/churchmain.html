@@ -446,14 +446,9 @@
         <button type="button" class="c-nav-chip" id="chip_10" onclick="handleChurchNavTab(10)">보물창고</button>
     </nav>
 
-    <!-- 예배 클릭 시 노출되는 6대 서브 칩 메뉴 -->
+    <!-- 예배 클릭 시 노출되는 서브 칩 메뉴 (일반 교회 6대 vs 사역앱 3대 심플 메뉴) -->
     <div class="worship-sub-menu-bar" id="worshipSubMenuBar">
-        <button type="button" class="w-sub-chip active" onclick="switchWorshipSubTab('welcome')">환영인사</button>
-        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('vision')">교회비전</button>
-        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('servants')">섬기는 이</button>
-        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('ministry')">부서사역</button>
-        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('missionary')">파송선교사</button>
-        <button type="button" class="w-sub-chip" onclick="switchWorshipSubTab('history')">교회역사</button>
+        <!-- JS 동적 렌더링 -->
     </div>
 
     <!-- 고정 서브 액션 바: 관리자 전용 숨김 처리하여 메인 카드 세로 공간 최대화 -->
@@ -1209,6 +1204,37 @@
 
     let activeWorshipSubKey = "welcome";
 
+    function isMinistryAppMode() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get("mode");
+        if (mode === "ministry") return true;
+        if (mode === "home") return false;
+        const curMode = localStorage.getItem("yetalk_current_church_mode");
+        if (curMode === "ministry") return true;
+        const home = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_home_church_name") || "부산제일감리교회").trim();
+        const cur = (sessionStorage.getItem("yetalk_viewing_church") || localStorage.getItem("yetalkChurchName") || "").trim();
+        if (cur && cur !== home && (cur.includes("청년") || cur.includes("사역") || cur.includes("부서"))) return true;
+        return false;
+    }
+
+    function renderWorshipSubMenuBar() {
+        const bar = document.getElementById("worshipSubMenuBar");
+        if (!bar) return;
+        if (isMinistryAppMode()) {
+            const role = (localStorage.getItem("yetalk_ministry_leader") || "").includes("전도사") ? "전도사" : "부목사";
+            bar.innerHTML = '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'welcome' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'welcome\')">환영인사</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'servants' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'servants\')">' + role + '</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'ministry' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'ministry\')">부서소개</button>';
+        } else {
+            bar.innerHTML = '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'welcome' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'welcome\')">환영인사</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'vision' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'vision\')">교회비전</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'servants' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'servants\')">섬기는 이</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'ministry' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'ministry\')">부서사역</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'missionary' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'missionary\')">파송선교사</button>' +
+                '<button type="button" class="w-sub-chip ' + (activeWorshipSubKey === 'history' ? 'active' : '') + '" onclick="switchWorshipSubTab(\'history\')">교회역사</button>';
+        }
+    }
+
     function getDailyGraceVerse() {
         const h = new Date().getHours();
         if (h >= 5 && h < 11) {
@@ -1238,7 +1264,31 @@
         }
     }
 
+    function isCurrentChurchRegularMember() {
+        const churchName = sessionStorage.getItem("yetalk_viewing_church") || localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
+        const myHomeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || "부산제일감리교회").trim();
+        return Boolean(uName && myHomeChurch && (myHomeChurch === churchName || localStorage.getItem("yetalk_is_regular_member_" + churchName) === "true"));
+    }
+    window.isCurrentChurchRegularMember = isCurrentChurchRegularMember;
+
     function handleChurchNavTab(index) {
+        const churchName = sessionStorage.getItem("yetalk_viewing_church") || localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        const isRegular = isCurrentChurchRegularMember();
+        const isAssociate = Boolean(localStorage.getItem("yetalk_church_member_grade_" + churchName) === "준회원");
+
+        // 🌟 [사용자 요청] 준회원은 교회(0), 예배(1) 메뉴만 볼 수 있도록 엄격 제한!
+        if (!isRegular && index > 1) {
+            if (isAssociate) {
+                alert(`🔒 [${churchName} 준회원 이용 안내]\n\n준회원 성도님은 [교회] 소개와 [예배] 영상 메뉴만 이용하실 수 있습니다.\n\n주보 및 교우 전용 공간은 본교회 '정회원'에게 제공됩니다.`);
+            } else {
+                if (confirm(`🔒 [${churchName} 준회원 가입 안내]\n\n해당 메뉴는 본교회 정회원 전용 공간입니다.\n상단 [성도가입]을 통해 [준회원]으로 가입하시면 [교회]와 [예배] 소식을 자유롭게 누리실 수 있습니다.\n\n준회원으로 가입하시겠습니까?`)) {
+                    openSimpleMemberJoinModal();
+                }
+            }
+            return;
+        }
+
         document.querySelectorAll("#churchNavBar .c-nav-chip").forEach((chip, i) => {
             chip.classList.toggle("active", i === index);
         });
@@ -1510,21 +1560,35 @@
         if (!btn) return;
 
         if (isRegular) {
-            btn.innerHTML = `<span>👤</span> ${uName} <small style="font-size:10px; font-weight:950; background:#065f46; color:#a7f3d0; padding:1px 5px; border-radius:4px; margin-left:2px;">정회원</small>`;
-            btn.title = `[${churchName}] 본교회 정회원 상태`;
+            btn.innerHTML = `정회원`;
+            btn.title = `[${churchName}] 본교회 정회원 상태 (클릭 시 회원정보 확인 및 수정)`;
             btn.style.background = "#047857";
             btn.style.borderColor = "#10b981";
+            btn.style.color = "#ffffff";
+            btn.style.fontWeight = "950";
+            btn.style.padding = "5px 12px";
+            btn.style.borderRadius = "20px";
+            btn.style.fontSize = "12px";
         } else if (isAssociate) {
-            const displayName = uName || localStorage.getItem("yetalk_associate_name_" + churchName) || "새가족";
-            btn.innerHTML = `<span>👤</span> ${displayName} <small style="font-size:10px; font-weight:950; background:#1e3a8a; color:#bfdbfe; padding:1px 5px; border-radius:4px; margin-left:2px;">준회원</small>`;
-            btn.title = `[${churchName}] 준회원 상태`;
+            btn.innerHTML = `준회원`;
+            btn.title = `[${churchName}] 준회원 상태 (클릭 시 회원정보 확인 및 수정)`;
             btn.style.background = "#2563eb";
             btn.style.borderColor = "#60a5fa";
+            btn.style.color = "#ffffff";
+            btn.style.fontWeight = "950";
+            btn.style.padding = "5px 12px";
+            btn.style.borderRadius = "20px";
+            btn.style.fontSize = "12px";
         } else {
-            btn.innerHTML = `<span>⛪</span> 성도가입 <small style="font-size:9.5px; opacity:0.95;">(준회원)</small>`;
-            btn.title = "준회원 가입 안내";
-            btn.style.background = "#059669";
-            btn.style.borderColor = "#34d399";
+            btn.innerHTML = `준회원`;
+            btn.title = "준회원 상태 (클릭 시 가입 및 정회원 등록)";
+            btn.style.background = "#2563eb";
+            btn.style.borderColor = "#60a5fa";
+            btn.style.color = "#ffffff";
+            btn.style.fontWeight = "950";
+            btn.style.padding = "5px 12px";
+            btn.style.borderRadius = "20px";
+            btn.style.fontSize = "12px";
 
             // 🌟 초청 링크(from=invite)로 처음 들어온 경우 준회원 가입 모달 자동 안내
             const urlParams = new URLSearchParams(window.location.search);
@@ -1533,34 +1597,27 @@
                 setTimeout(() => { openSimpleMemberJoinModal(); }, 600);
             }
         }
+
+        // 🌟 [사용자 요청] 준회원/방문자는 교회(0), 예배(1)만 볼 수 있도록 시각적 표시
+        const chips = document.querySelectorAll("#churchNavBar .c-nav-chip");
+        chips.forEach((chip, i) => {
+            if (i > 1) {
+                if (!isRegular) {
+                    chip.style.opacity = "0.65";
+                    chip.title = "정회원 전용 공간 (준회원은 [교회]·[예배] 이용 가능)";
+                } else {
+                    chip.style.opacity = "1.0";
+                    chip.title = "";
+                }
+            } else {
+                chip.style.opacity = "1.0";
+            }
+        });
     }
 
-    /* 🌟 성도가입 클릭 시 원클릭 등록 분기: 정회원 vs 준회원 */
+    /* 🌟 [사용자 요청] 준회원이든 정회원이든 누르면 경고/확인창 없이 바로 회원정보 확인 및 수정창 오픈 */
     function handleChurchMemberJoinClick() {
-        const churchName = sessionStorage.getItem("yetalk_viewing_church") || localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
-        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
-        const myHomeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || "").trim();
-        
-        const isRegular = Boolean(uName && myHomeChurch && (myHomeChurch === churchName || localStorage.getItem("yetalk_is_regular_member_" + churchName) === "true"));
-        const isAssociate = Boolean(localStorage.getItem("yetalk_church_member_grade_" + churchName) === "준회원");
-
-        if (isRegular) {
-            if (confirm(`✅ [${uName}] 성도님은 [${churchName}] 본교회 교우로 등록된 '정회원' 상태입니다.\n\n회원정보 확인 및 수정을 위해 예톡 홈으로 이동하시겠습니까?`)) {
-                location.href = "index.html";
-            }
-            return;
-        }
-
-        if (isAssociate) {
-            const displayName = uName || localStorage.getItem("yetalk_associate_name_" + churchName) || "새가족";
-            if (confirm(`👤 [${displayName}] 님은 현재 [${churchName}] '준회원' 상태입니다.\n\n본교회 '정회원'으로 등록하시려면 예톡 홈에서 본교회 교우로 가입해 주세요.\n\n예톡 홈으로 이동하시겠습니까?`)) {
-                location.href = "index.html";
-            }
-            return;
-        }
-
-        // 본 교회 교인이 아니고 초청 등으로 처음 온 경우: 준회원 가입 안내 모달 오픈
-        openSimpleMemberJoinModal();
+        openMyProfileModalDirect();
     }
 
     let mySelectedJob = '담임목사';
@@ -1988,6 +2045,7 @@
         // 2. 초청으로 왔거나 본교회 미등록자: 준회원 가입 안내 (예/아니오)
         updateChurchHeaderMemberUI(churchName);
 
+        renderWorshipSubMenuBar();
         initRollingVerses();
         loadPcPopupData();
         checkPcChurchPopup();

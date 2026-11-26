@@ -18719,35 +18719,47 @@ ${inviteUrl}`;
         }
     }
 
+    window.isLiveWorshipOpen = false;
+
     // 🌟 [사용자 요청] 안드로이드 시스템 뒤로가기 버튼 연동 (MainActivity.kt)
     // 모달이나 서브 화면에서 하단 '<' 뒤로가기 터치 시 앱이 종료되거나 바탕화면으로 가지 않고, 반드시 예톡 홈으로 복귀하도록 완벽 제어
     window.handleAppBackPress = function() {
-        // 🌟 [사용자 요청] 0. 기타 교회 드롭다운 목록이 열려 있으면 목록 닫기
-        const otherDrop = document.getElementById('dropdownOtherChurchesList');
-        if (otherDrop && (otherDrop.style.display === 'flex' || otherDrop.style.display === 'block')) {
-            otherDrop.style.display = 'none';
-            return true;
-        }
+        try {
+            // 🌟 [사용자 요청] 0. 기타 교회 드롭다운 목록이 열려 있으면 목록 닫기
+            const otherDrop = document.getElementById('dropdownOtherChurchesList');
+            if (otherDrop && (otherDrop.style.display === 'flex' || otherDrop.style.display === 'block')) {
+                otherDrop.style.display = 'none';
+                return true;
+            }
 
-        // 🌟 [사용자 요청] 0-1. 기타 교회 추가 모달이 열려 있으면 닫기
-        const addChurchModal = document.getElementById('modalAdminAddOtherChurches');
-        if (addChurchModal && (addChurchModal.style.display === 'flex' || addChurchModal.style.display === 'block')) {
-            addChurchModal.style.display = 'none';
-            return true;
-        }
+            // 🌟 [사용자 요청] 0-1. 기타 교회 추가 모달이 열려 있으면 닫기
+            const addChurchModal = document.getElementById('modalAdminAddOtherChurches');
+            if (addChurchModal && (addChurchModal.style.display === 'flex' || addChurchModal.style.display === 'block')) {
+                addChurchModal.style.display = 'none';
+                return true;
+            }
 
-        // 🌟 [사용자 요청] 0-2. 예톡교회 라이브 관리 모달이 열려 있으면 닫기
-        const yetalkLiveModal = document.getElementById('modalYetalkChurchLive');
-        if (yetalkLiveModal && (yetalkLiveModal.style.display === 'flex' || yetalkLiveModal.style.display === 'block')) {
-            yetalkLiveModal.style.display = 'none';
-            return true;
-        }
+            // 🌟 [사용자 요청] 0-2. 예톡교회 라이브 관리 모달이 열려 있으면 닫기
+            const yetalkLiveModal = document.getElementById('modalYetalkChurchLive');
+            if (yetalkLiveModal && (yetalkLiveModal.style.display === 'flex' || yetalkLiveModal.style.display === 'block')) {
+                yetalkLiveModal.style.display = 'none';
+                return true;
+            }
 
-        // 🌟 [사용자 요청] 0-3. 실시간 라이브 예배 전체화면(검은 화면)에서 뒤로가기 시 앱이 종료되지 않고 예톡 메인(홈)으로 안전하게 복귀!
-        const liveSec = document.getElementById('liveWorshipContainer');
-        if (isLiveWorshipOpen || (liveSec && liveSec.style.display !== 'none')) {
-            closeLiveWorshipView();
-            return true; // 🌟 안드로이드 종료 차단 및 홈 복귀 성공
+            // 🌟 [사용자 요청] 0-3. 실시간 라이브 예배 전체화면(검은 화면)에서 뒤로가기 시 앱이 종료되지 않고 예톡 메인(홈)으로 안전하게 복귀!
+            const liveSec = document.getElementById('liveWorshipContainer');
+            const isLiveActive = Boolean(window.isLiveWorshipOpen || (liveSec && liveSec.style.display && liveSec.style.display !== 'none') || document.body.classList.contains('live-worship-fullscreen-mode'));
+            if (isLiveActive) {
+                if (typeof closeLiveWorshipView === 'function') {
+                    closeLiveWorshipView();
+                } else if (liveSec) {
+                    liveSec.style.display = 'none';
+                    document.body.classList.remove('live-worship-fullscreen-mode');
+                }
+                return true; // 🌟 안드로이드 종료 차단 및 홈 복귀 성공
+            }
+        } catch(e) {
+            console.error('handleAppBackPress error:', e);
         }
 
         try {
@@ -20967,7 +20979,7 @@ https://woongskorea.github.io/Yetalk-backup/`;
         }
         const repentInp1 = document.getElementById("inpAdminRepentVideoUrl1");
         if (repentInp1) {
-            repentInp1.value = localStorage.getItem("yetalk_admin_prayer_music_url_1") || localStorage.getItem("yetalk_admin_prayer_music_url") || "https://www.youtube.com/watch?v=kJQP7kiw5Fk";
+            repentInp1.value = localStorage.getItem("yetalk_admin_prayer_music_url_1") || localStorage.getItem("yetalk_admin_prayer_music_url") || "https://www.youtube.com/watch?v=92oktJl3-Fo";
         }
         const repentInp2 = document.getElementById("inpAdminRepentVideoUrl2");
         if (repentInp2) {
@@ -21123,7 +21135,7 @@ https://woongskorea.github.io/Yetalk-backup/`;
     }
 
     
-    let isLiveWorshipOpen = false;
+    window.isLiveWorshipOpen = false;
     let liveClockTimer = null;
     let currentLiveChannelKey = 'our_church';
     let currentLivePlayerSpeed = 1.0;
@@ -21132,13 +21144,13 @@ https://woongskorea.github.io/Yetalk-backup/`;
 
     // 🌟 [사용자 요청] 준회원 등록 교회 기본 목록 (실제 라이브 안 할 때는 가상으로 켜지 않고 설교영상/준비중 회색 처리)
     const associateChurchesLiveList = [
-        { name: '여의도순복음교회', title: '주일 실시간 생중계 대예배 (이영훈 담임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=kJQP7kiw5Fk' },
-        { name: '사랑의교회', title: '주일 사랑의예배 실시간 생중계 (오정현 담임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=5McizITPY1I' },
-        { name: '새에덴교회', title: '생명의 말씀 주일 대예배 (소강석 담임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=5McizITPY1I' },
-        { name: '영락교회', title: '주일 온세대 연합예배 실황 (김운성 담임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=kJQP7kiw5Fk' },
-        { name: '지구촌교회', title: '은혜와 진리의 주일예배 실황 (최성은 담임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=5McizITPY1I' },
-        { name: '온누리교회', title: '주일 열린예배 설교 실황 (이재훈 위임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=kJQP7kiw5Fk' },
-        { name: '명성교회', title: '주일 찬양과 말씀 예배 실황 (김하나 담임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=5McizITPY1I' }
+        { name: '여의도순복음교회', title: '주일 실시간 생중계 대예배 (이영훈 담임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' },
+        { name: '사랑의교회', title: '주일 사랑의예배 실시간 생중계 (오정현 담임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' },
+        { name: '새에덴교회', title: '생명의 말씀 주일 대예배 (소강석 담임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' },
+        { name: '영락교회', title: '주일 온세대 연합예배 실황 (김운성 담임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' },
+        { name: '지구촌교회', title: '은혜와 진리의 주일예배 실황 (최성은 담임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' },
+        { name: '온누리교회', title: '주일 열린예배 설교 실황 (이재훈 위임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' },
+        { name: '명성교회', title: '주일 찬양과 말씀 예배 실황 (김하나 담임목사)', isLive: false, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' }
     ];
 
     let liveControlsHideTimer = null;
@@ -21159,7 +21171,10 @@ https://woongskorea.github.io/Yetalk-backup/`;
             btmEl.style.opacity = '0';
             btmEl.style.pointerEvents = 'none';
         }
-        if (toggleBtn) toggleBtn.style.display = 'inline-flex';
+        if (toggleBtn) {
+            toggleBtn.innerHTML = '<span>📺</span> <span>직전 방송 메뉴</span>';
+            toggleBtn.style.display = 'inline-flex';
+        }
         if (drop) drop.style.display = 'none';
     }
     window.hideLiveWorshipOverlays = hideLiveWorshipOverlays;
@@ -21239,7 +21254,9 @@ https://woongskorea.github.io/Yetalk-backup/`;
         else if (url.includes('v=')) ytId = url.split('v=')[1].split('&')[0];
         else if (url.length === 11 && !url.includes('/') && !url.includes('.')) ytId = url;
         if (ytId) {
-            return `https://www.youtube.com/embed/${ytId.trim()}?autoplay=1&mute=0&rel=0&playsinline=1&enablejsapi=1`;
+            if (ytId === 'kJQP7kiw5Fk' || ytId === '5McizITPY1I') ytId = '92oktJl3-Fo';
+            const originStr = encodeURIComponent(window.location.origin || 'https://yetalk.cc');
+            return `https://www.youtube.com/embed/${ytId.trim()}?autoplay=1&mute=0&controls=1&rel=0&playsinline=1&enablejsapi=1&origin=${originStr}`;
         }
         return url;
     }
@@ -21296,7 +21313,7 @@ https://woongskorea.github.io/Yetalk-backup/`;
         joinedNames.forEach(name => {
             const customMatch = customList.find(c => c.name === name);
             const defaultMatch = associateChurchesLiveList.find(c => c.name === name);
-            const ytUrl = customMatch ? (customMatch.yt || customMatch.url) : (defaultMatch ? defaultMatch.yt : 'https://www.youtube.com/watch?v=kJQP7kiw5Fk');
+            const ytUrl = customMatch ? (customMatch.yt || customMatch.url) : (defaultMatch ? defaultMatch.yt : 'https://www.youtube.com/watch?v=92oktJl3-Fo');
             const isLive = customMatch ? !!customMatch.isLive : (defaultMatch ? !!defaultMatch.isLive : false);
             const title = customMatch ? customMatch.title : (defaultMatch ? defaultMatch.title : '주일 예배 실황');
             joinedItems.push({
@@ -21492,7 +21509,7 @@ https://woongskorea.github.io/Yetalk-backup/`;
         let targetUrl = '';
 
         if (channelKey === 'yetalk') {
-            const ytUrl = localStorage.getItem('yetalk_live_yetalk_church_url') || 'https://www.youtube.com/watch?v=kJQP7kiw5Fk';
+            const ytUrl = localStorage.getItem('yetalk_live_yetalk_church_url') || 'https://www.youtube.com/watch?v=92oktJl3-Fo';
             const title = localStorage.getItem('yetalk_live_yetalk_church_title') || '[예톡교회] 주일 연합 실시간 라이브 예배';
 
             if (btnYetalk) {
@@ -21502,14 +21519,17 @@ https://woongskorea.github.io/Yetalk-backup/`;
             targetUrl = toEmbedLiveUrl(ytUrl);
             if (titleEl) titleEl.innerText = `${isYetalkLive ? '🔴 LIVE ' : ''}${title}`;
         } else if (channelKey === 'our_church') {
-            const ytUrl = localStorage.getItem('yetalk_live_our_church_url') || 'https://www.youtube.com/watch?v=kJQP7kiw5Fk';
+            let ytUrl = (localStorage.getItem('yetalk_live_our_church_url') || '').trim();
+            if (!ytUrl || ytUrl.includes('kJQP7kiw5Fk') || ytUrl.includes('5McizITPY1I')) {
+                ytUrl = 'https://www.youtube.com/watch?v=92oktJl3-Fo';
+            }
 
             if (btnOurChurch) {
                 btnOurChurch.style.background = isOurChurchLive ? 'rgba(185, 28, 28, 0.45)' : 'rgba(30, 41, 59, 0.9)';
                 btnOurChurch.style.border = isOurChurchLive ? '1.5px solid #ef4444' : '1.5px solid rgba(255, 255, 255, 0.6)';
             }
             targetUrl = toEmbedLiveUrl(ytUrl);
-            if (titleEl) titleEl.innerText = `${isOurChurchLive ? '🔴 LIVE ' : ''}[${myChurch}] 주일 예배 영상`;
+            if (titleEl) titleEl.innerText = `${isOurChurchLive ? '🔴 LIVE ' : ''}[${myChurch}] 주일 예배 실황 영상`;
         } else if (channelKey === 'other_church' && customObj) {
             const isLive = !!customObj.isLive;
             if (btnOther) {
@@ -21569,7 +21589,7 @@ https://woongskorea.github.io/Yetalk-backup/`;
                     <span style="font-size:13px; color:#cbd5e1; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ch.title || '마지막 주일예배 실황'}</span>
                 </div>
                 <span style="font-size:12px; font-weight:950; padding:5px 12px; border-radius:8px; flex-shrink:0; ${ch.isLive ? 'background:#ef4444; color:#ffffff; box-shadow:0 2px 8px rgba(239,68,68,0.5);' : 'background:rgba(255,255,255,0.12); color:#cbd5e1; border:1px solid rgba(255,255,255,0.2);'}">
-                    ${ch.isLive ? '🔴 라이브 ON' : '▶ 예배영상'}
+                    ${ch.isLive ? '🔴 라이브 ON' : '▶ 마지막 예배영상'}
                 </span>
             </div>
         `).join('');
@@ -21644,7 +21664,7 @@ https://woongskorea.github.io/Yetalk-backup/`;
         const inpUrl = document.getElementById('inpYetalkChurchLiveUrl');
         const inpTitle = document.getElementById('inpYetalkChurchLiveTitle');
         if (inpUrl) {
-            inpUrl.value = localStorage.getItem('yetalk_live_yetalk_church_url') || 'https://www.youtube.com/watch?v=kJQP7kiw5Fk';
+            inpUrl.value = localStorage.getItem('yetalk_live_yetalk_church_url') || 'https://www.youtube.com/watch?v=92oktJl3-Fo';
             inpUrl.style.color = '#94a3b8'; // 🌟 [사용자 요청] 바로 복붙할 수 있도록 희미하게 표시
             setTimeout(() => { inpUrl.focus(); inpUrl.select(); }, 120);
         }
@@ -23023,7 +23043,7 @@ window.openLiveWorshipView = openLiveWorshipView;
     let modalEditingTrack = 1;
 
     // 🌟 대표님께서 깔아두신 기본 은혜 기도 배경음악 4가지
-    const DEFAULT_DAILY_REPENT_BGM_URL_1 = "https://www.youtube.com/watch?v=kJQP7kiw5Fk";
+    const DEFAULT_DAILY_REPENT_BGM_URL_1 = "https://www.youtube.com/watch?v=92oktJl3-Fo";
     const DEFAULT_DAILY_REPENT_BGM_URL_2 = "https://www.youtube.com/watch?v=s93B_MfqjV8";
     const DEFAULT_DAILY_REPENT_BGM_URL_3 = "https://www.youtube.com/watch?v=92oktJl3-Fo";
     const DEFAULT_DAILY_REPENT_BGM_URL_4 = "https://www.youtube.com/watch?v=0bAEv9j9w5k";

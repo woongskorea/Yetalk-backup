@@ -194,8 +194,10 @@ class MainActivity : AppCompatActivity() {
             private var lastBackTime: Long = 0
 
             override fun handleOnBackPressed() {
-                webView.evaluateJavascript("javascript:(function(){ if (window.handleAppBackPress && window.handleAppBackPress()) return 'handled'; return 'not_handled'; })()") { result ->
-                    if (result == "\"handled\"" || result == "handled") {
+                val script = "(function(){ try { if (window.handleAppBackPress && window.handleAppBackPress()) return 'handled'; return 'not_handled'; } catch(e){ return 'not_handled'; } })()"
+                webView.evaluateJavascript(script) { result ->
+                    val cleanRes = result?.replace("\"", "")?.trim() ?: "not_handled"
+                    if (cleanRes == "handled") {
                         return@evaluateJavascript
                     }
 
