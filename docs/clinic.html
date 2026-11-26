@@ -2023,7 +2023,7 @@
 
         let html = "";
 
-        // 🌟 1. [사용자 요청] 내가 예톡 이름으로 전체 공지글을 가장 위에 올릴 수 있게 해줌 (예톡 본부 전체 공지)
+        // 🌟 1. [사용자 요청] 예톡 공식 공지 (검은 바탕 필요 없이 동일하게 2줄 리스트로 최상단 배치)
         let hqNotices = [];
         try {
             const rawHq = localStorage.getItem("yetalk_hq_official_notices_v1");
@@ -2034,7 +2034,7 @@
             hqNotices = [
                 {
                     id: "hq_def",
-                    title: "📢 [예톡 Korea 공식] 대한민국 병의원 스마트 예약 포털 서비스 개시 및 안심 진료 안내",
+                    title: "[예톡 Korea 공식] 대한민국 병의원 스마트 예약 포털 서비스 개시 및 안심 진료 안내",
                     content: "대한민국 소상공인 병의원과 성도·지역 주민을 직접 연결하는 안심 예약 서비스를 제공합니다. 과장 광고 및 불법 시술 전후 비교를 철저히 금지하며, 정직하고 신뢰할 수 있는 단골의원 방문 예약 환경을 만듭니다.",
                     author: "예톡 Korea 본부",
                     time: "오늘",
@@ -2043,31 +2043,41 @@
             ];
         }
 
-        // 예톡 공식 최상단 카드 렌더링
+        // 예톡 공식 최상단 2줄 리스트 항목
         hqNotices.forEach(hq => {
+            const snippet = hq.content.replace(/\n/g, ' ').slice(0, 50) + (hq.content.length > 50 ? '...' : '');
             html += `
-                <div style="background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border:2px solid #0284c7; border-radius:16px; padding:16px; box-shadow:0 6px 20px rgba(15,23,42,0.3); color:#ffffff; display:flex; flex-direction:column; gap:8px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="background:#0284c7; color:#ffffff; font-size:11.5px; font-weight:950; padding:3px 9px; border-radius:6px; letter-spacing:-0.2px;">
-                            📌 예톡 Korea 공식 전체 공지
-                        </span>
-                        <span style="font-size:12px; color:#94a3b8; font-weight:700;">${hq.time}</span>
+                <div class="notice-list-row-item" onclick="toggleNoticeDetail('${hq.id}')" style="padding:13px 16px; border-bottom:1px solid #e2e8f0; background:#f8fafc; cursor:pointer; display:flex; flex-direction:column; gap:5px; transition:background 0.15s ease;">
+                    <!-- 1줄: 배지 + 제목 + 시간 -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:6px; min-width:0;">
+                            <span style="background:#0284c7; color:#ffffff; font-size:10.5px; font-weight:950; padding:2px 6px; border-radius:4px; flex-shrink:0;">📌 예톡공지</span>
+                            <span style="font-size:15px; font-weight:950; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${hq.title}</span>
+                        </div>
+                        <span style="font-size:11.5px; color:#64748b; font-weight:700; flex-shrink:0;">${hq.time}</span>
                     </div>
-                    <h3 style="font-size:16.5px; font-weight:950; color:#38bdf8; margin:4px 0 2px 0; line-height:1.35; letter-spacing:-0.3px;">
-                        ${hq.title}
-                    </h3>
-                    <div style="font-size:13.5px; color:#f1f5f9; line-height:1.65; word-break:keep-all;">
-                        ${hq.content.replace(/\n/g, '<br>')}
+
+                    <!-- 2줄: 요약 글 미리보기 (말줄임) + 더보기 화살표 -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                        <div style="font-size:13px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">
+                            ${snippet}
+                        </div>
+                        <span id="arrow_notice_${hq.id}" style="font-size:11px; color:#94a3b8; flex-shrink:0;">▼</span>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; padding-top:8px; border-top:1px solid #334155; font-size:12px; color:#94a3b8;">
-                        <span>발행처: <b>${hq.author}</b></span>
-                        <span style="color:#38bdf8; font-weight:800;">전체 공지사항</span>
+
+                    <!-- 클릭 시 펼쳐지는 전체 글 본문 -->
+                    <div id="detail_notice_${hq.id}" style="display:none; margin-top:8px; padding-top:10px; border-top:1px dashed #cbd5e1; font-size:13.5px; color:#1e293b; line-height:1.7; word-break:keep-all;">
+                        <div>${hq.content.replace(/\n/g, '<br>')}</div>
+                        <div style="margin-top:8px; font-size:11.5px; color:#0284c7; font-weight:800; display:flex; justify-content:space-between;">
+                            <span>발행처: ${hq.author}</span>
+                            <span>전체 공지사항</span>
+                        </div>
                     </div>
                 </div>
             `;
         });
 
-        // 🌟 2. 단골의원(별표) 공지사항 및 지역 이벤트 알림 불러오기
+        // 🌟 2. 단골의원 및 지역 이벤트 공지 불러오기 (박스 없이 1px 가로선으로 구분된 2줄 리스트)
         const starredClinics = CLINIC_MASTER_DATA.filter(c => c.isStar);
         const starredNames = starredClinics.map(c => c.name);
 
@@ -2098,6 +2108,24 @@
                     region: "부산시 동구",
                     time: "진행중",
                     isEvent: true
+                },
+                {
+                    id: "ev_3",
+                    title: "가족 주치의 건강검진 및 독감 예방접종 사전예약 안내",
+                    content: "환절기 건강관리를 위한 백신 접종 및 만성질환 1:1 진료를 진행합니다.",
+                    clinicName: "서울 연세내과의원",
+                    region: "서울시 서초구",
+                    time: "어제",
+                    isEvent: false
+                },
+                {
+                    id: "ev_4",
+                    title: "[이벤트] 직장인 및 어르신 수액 테라피 20% 특별 지원",
+                    content: "기력 회복과 면역력 증진을 위한 고농축 비타민 수액 케어 프로그램을 지원합니다.",
+                    clinicName: "강남 스마트클리닉",
+                    region: "서울시 강남구",
+                    time: "3일 전",
+                    isEvent: true
                 }
             ];
         }
@@ -2112,25 +2140,39 @@
             const isEv = item.isEvent === true;
             const clinic = item.clinicName || "부산 최웅식의원";
             const region = item.region || "부산시 동구";
+            const bodyTxt = item.content || item.body || "";
+            const snippet = bodyTxt.replace(/\n/g, ' ').slice(0, 48) + (bodyTxt.length > 48 ? '...' : '');
+
             html += `
-                <div style="background:#ffffff; border:${isEv ? '1.8px solid #f43f5e' : '1.5px solid #0284c7'}; border-radius:16px; padding:15px; box-shadow:0 3px 12px rgba(0,0,0,0.06); display:flex; flex-direction:column; gap:8px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:11.5px; font-weight:950; padding:3px 8px; border-radius:6px; ${isEv ? 'background:#ffe4e6; color:#e11d48; border:1px solid #fecdd3;' : 'background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd;'}">
-                            ${isEv ? '🎉 지역 이벤트 특가 알림' : '⭐ 내 단골의원 공지'}
-                        </span>
-                        <span style="font-size:12px; color:#64748b; font-weight:700;">${item.time || item.date || '방금 전'}</span>
+                <div class="notice-list-row-item" onclick="toggleNoticeDetail('${item.id}')" style="padding:13px 16px; border-bottom:1px solid #e2e8f0; background:#ffffff; cursor:pointer; display:flex; flex-direction:column; gap:5px; transition:background 0.15s ease;">
+                    <!-- 1줄: 배지 + 제목 + 시간 -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:6px; min-width:0;">
+                            <span style="font-size:10.5px; font-weight:950; padding:2px 6px; border-radius:4px; flex-shrink:0; ${isEv ? 'background:#ffe4e6; color:#e11d48;' : 'background:#e0f2fe; color:#0284c7;'}">
+                                ${isEv ? '🎉 이벤트' : '⭐ 단골소식'}
+                            </span>
+                            <span style="font-size:15px; font-weight:950; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.title}</span>
+                        </div>
+                        <span style="font-size:11.5px; color:#64748b; font-weight:700; flex-shrink:0;">${item.time || item.date || '방금 전'}</span>
                     </div>
-                    <h3 style="font-size:16px; font-weight:950; color:#0f172a; line-height:1.35; margin:2px 0;">
-                        ${item.title}
-                    </h3>
-                    <div style="font-size:13.5px; color:#334155; line-height:1.65; word-break:keep-all;">
-                        ${(item.content || item.body || '').replace(/\n/g, '<br>')}
+
+                    <!-- 2줄: 의원명 + 요약 미리보기 (말줄임) + 더보기 화살표 -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                        <div style="font-size:13px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">
+                            <b style="color:#0284c7;">${clinic}</b> · ${snippet}
+                        </div>
+                        <span id="arrow_notice_${item.id}" style="font-size:11px; color:#94a3b8; flex-shrink:0;">▼</span>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px; padding-top:8px; border-top:1px dashed #e2e8f0;">
-                        <span style="font-size:12.5px; font-weight:900; color:#0284c7;">🏥 ${clinic} (${region})</span>
-                        <button type="button" onclick="location.href='doctormain.html'" style="background:linear-gradient(135deg, #0284c7, #2563eb); color:#fff; border:none; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:950; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.3);">
-                            의원 바로가기 ➔
-                        </button>
+
+                    <!-- 클릭 시 펼쳐지는 전체 글 본문 -->
+                    <div id="detail_notice_${item.id}" style="display:none; margin-top:8px; padding-top:10px; border-top:1px dashed #cbd5e1; font-size:13.5px; color:#1e293b; line-height:1.7; word-break:keep-all;">
+                        <div>${bodyTxt.replace(/\n/g, '<br>')}</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:8px; border-top:1px solid #f1f5f9;">
+                            <span style="font-size:12px; font-weight:900; color:#0284c7;">🏥 ${clinic} (${region})</span>
+                            <button type="button" onclick="event.stopPropagation(); location.href='doctormain.html'" style="background:linear-gradient(135deg, #0284c7, #2563eb); color:#fff; border:none; border-radius:8px; padding:6px 12px; font-size:12px; font-weight:950; cursor:pointer;">
+                                의원 바로가기 ➔
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -2138,13 +2180,28 @@
 
         host.innerHTML = html;
     }
+
+    // 🌟 [사용자 요청] 클릭 시 전체 글 아코디언 토글
+    function toggleNoticeDetail(id) {
+        const detail = document.getElementById('detail_notice_' + id);
+        const arrow = document.getElementById('arrow_notice_' + id);
+        if (!detail) return;
+        if (detail.style.display === 'none' || detail.style.display === '') {
+            detail.style.display = 'block';
+            if (arrow) arrow.innerText = '▲';
+        } else {
+            detail.style.display = 'none';
+            if (arrow) arrow.innerText = '▼';
+        }
+    }
 </script>
 
 
 <!-- 🌟 [사용자 요청] 박스 없는 풀스크린 공지알림 리스트 화면 (최상단 예톡 공식 공지 + 단골/지역 이벤트) -->
 <div id="viewClinicFullscreenNotices" style="display:none; position:fixed; inset:0; z-index:99999; background:#f8fafc; flex-direction:column; overflow:hidden;">
     <!-- 풀스크린 네비게이션 헤더 -->
-    <header style="height:56px; background:#0f172a; color:#ffffff; display:flex; align-items:center; justify-content:space-between; padding:0 16px; border-bottom:1.5px solid #1e293b; flex-shrink:0;">
+    <!-- 🌟 [사용자 요청] 최상단 시계/배터리선 겹침 방지를 위해 safe-area 및 padding-top(38px) 여유 공간 적용 -->
+    <header style="padding-top:max(38px, env(safe-area-inset-top, 38px)); padding-bottom:14px; padding-left:16px; padding-right:16px; background:#0f172a; color:#ffffff; display:flex; align-items:center; justify-content:space-between; border-bottom:1.5px solid #1e293b; flex-shrink:0;">
         <div style="display:flex; align-items:center; gap:8px;">
             <button type="button" onclick="closeFavoriteNoticeModal()" style="background:none; border:none; color:#ffffff; font-size:24px; cursor:pointer; line-height:1; padding:4px 8px; display:inline-flex; align-items:center;">←</button>
             <div style="display:flex; flex-direction:column;">
@@ -2159,7 +2216,7 @@
     </header>
 
     <!-- 풀스크린 공지 리스트 본문 (스크롤) -->
-    <div id="favoriteNoticeListContainer" style="padding:14px; overflow-y:auto; display:flex; flex-direction:column; gap:12px; flex:1;">
+    <div id="favoriteNoticeListContainer" style="padding:0; overflow-y:auto; display:flex; flex-direction:column; flex:1; background:#ffffff;">
         <!-- 자바스크립트로 동적 렌더링 -->
     </div>
 </div>
