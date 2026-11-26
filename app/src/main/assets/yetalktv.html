@@ -12922,24 +12922,53 @@ function replayCurrentShortsVideo() {
     }
 }
 
+// 🌟 [사용자 요청] 영상 재생 중에는 맨 밑 3번째 줄(예톡홈,영상올리기,보내기,화면고정)만 상시 노출,
+// 상위 2개 층(1번째 줄: 찬양/회개/간증/천국/확대, 2번째 줄: 말씀/기도/쇼츠/애국/속도)은 숨김! 영상 중지 시에만 나타남
+let isShortsPlaying = true;
+function setShortsPlayState(isPlaying) {
+    isShortsPlaying = !!isPlaying;
+    if (isPlaying) {
+        document.body.classList.add("is-video-playing");
+        document.body.classList.remove("is-video-paused");
+    } else {
+        document.body.classList.remove("is-video-playing");
+        document.body.classList.add("is-video-paused");
+    }
+    const tier1 = document.getElementById('shortsMenuTier1');
+    const tier2 = document.getElementById('shortsMenuTier2');
+    if (tier1) {
+        tier1.style.setProperty('display', isPlaying ? 'none' : 'flex', 'important');
+    }
+    if (tier2) {
+        tier2.style.setProperty('display', isPlaying ? 'none' : 'flex', 'important');
+    }
+}
+
 // 🌟 유튜브 플레이어 메시지 감지:
-// 1. 영상 재생 시작 감지 -> 포스터 즉각 제거
-// 2. 영상 종료(Ended: playerState 0) 감지 -> 즉시 자동 리플레이!
+// 1. 영상 재생 시작 감지 -> 포스터 즉각 제거 및 상위 2줄 메뉴 자동 숨김
+// 2. 영상 일시정지/종료 감지 -> 상위 2줄 메뉴 즉각 복원
+// 3. 영상 종료(Ended: playerState 0) 감지 -> 즉시 자동 리플레이!
 window.addEventListener('message', (e) => {
     try {
         const data = (typeof e.data === 'string') ? JSON.parse(e.data) : e.data;
         if (!data) return;
 
-        // 1. 재생 시작 시 포스터 쉴드 부드럽게 제거
+        // 1. 재생 시작 시 포스터 쉴드 부드럽게 제거 및 재생 상태 반영
         if (data.event === 'onReady' || (data.info && (data.info.playerState === 1 || data.info.playerState === 3))) {
             dismissShortsPosterAt(currentShortsIndex);
+            setShortsPlayState(true);
         }
 
-        // 2. 🌟 [사용자 요청] 영상 끝나면 즉시 자동 리플레이!
+        // 2. 상태 변경 감지
         const state = (data.info && typeof data.info.playerState !== 'undefined') 
             ? data.info.playerState 
             : (data.event === 'onStateChange' ? data.info : null);
-        if (state === 0) {
+        if (state === 1) { // PLAYING
+            setShortsPlayState(true);
+        } else if (state === 2) { // PAUSED
+            setShortsPlayState(false);
+        } else if (state === 0) { // ENDED
+            setShortsPlayState(false);
             replayCurrentShortsVideo();
         }
     } catch(err) {}
@@ -13083,27 +13112,24 @@ function handleShortsTouchShieldClick(e) {
 }
 
 // 🌟 터치 방패: 화면 터치 시 자체 재생/일시정지 토글 (화면고정 중에는 동작 안 함!)
-let isShortsPlaying = true;
 function toggleCurrentShortsPlayPause() {
     if (isTvScreenLocked) {
         showToast('🔒 화면이 완전 고정되어 있습니다. (해제 시 빨간 화면고정 버튼 터치)');
         return;
     }
-    const iframe = document.getElementById(`ytIframe_${currentShortsIndex}`);
+    const iframe = document.getElementById('ytIframe_' + currentShortsIndex);
     if (!iframe || !iframe.contentWindow) return;
 
     if (isShortsPlaying) {
-        iframe.contentWindow.postMessage('{\"event\":\"command\",\"func\":\"pauseVideo\",\"args\":\"\"}', '*');
-        isShortsPlaying = false;
+        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+        setShortsPlayState(false);
         showToast('⏸️ 영상을 일시정지했습니다.');
     } else {
-        iframe.contentWindow.postMessage('{\"event\":\"command\",\"func\":\"playVideo\",\"args\":\"\"}', '*');
-        isShortsPlaying = true;
+        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        setShortsPlayState(true);
         showToast('▶️ 영상을 다시 재생합니다.');
     }
 }
-
-// 🌟 화면 확대/축소 (확대 1, 2, 3 -> 축소 80%, 60% 총 5단계)
 function cycleShortsZoomLevel() {
     currentShortsZoomIdx = (currentShortsZoomIdx + 1) % SHORTS_ZOOM_CONFIGS.length;
     const cfg = SHORTS_ZOOM_CONFIGS[currentShortsZoomIdx];
