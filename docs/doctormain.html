@@ -1548,11 +1548,9 @@
     <!-- 1) 의원소개 탭 컨테이너 -->
     <main class="doc-tab-container active" id="sec_intro" style="display:block;"></main>
 
-    <!-- 2) 진료(시술)안내 탭 컨테이너 -->
-    <main class="doc-tab-container" id="sec_beauty">
-        <!-- 과목 선택 서브 칩 바 -->
-        <nav class="doctor-tabs-bar" id="beautySubjectChipsBar" style="background:#fff; border-radius:12px; margin-bottom:8px; border:1px solid #cbd5e1;"></nav>
-        <!-- 해당 과목의 세로 시술 사례 목록 -->
+    <!-- 2) 진료(시술)안내 탭 컨테이너 (1개 시술이 1페이지에 꽉 차고 탁탁 스냅 넘김) -->
+    <main class="doc-tab-container" id="sec_beauty" style="scroll-snap-type:y mandatory; overflow-y:scroll; -webkit-overflow-scrolling:touch; padding:12px 14px calc(var(--bottom-ad-h) + 60px) 14px;">
+        <!-- 해당 과목의 세로 시술 사례 목록 (과목칩바 삭제) -->
         <div id="beautyCasesList" style="display:flex; flex-direction:column; gap:16px;"></div>
     </main>
 
@@ -1671,7 +1669,8 @@
 
     <!-- 🌟 [사용자 요청] 우측 하단 플로팅 네비게이션 및 예톡홈 버튼 -->
     <div class="floating-cluster" id="floatingCluster" style="position:fixed; right:14px; bottom:calc(var(--bottom-ad-h) + 12px); z-index:45000; display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-        <button type="button" class="btn-float-single-right" onclick="handleFloatingRight()" title="다음 메뉴로 이동">→</button>
+        <!-- 🌟 [사용자 요청] 화살표 대신 + 추가하여 시술 항목 추가하기 쉽게 지원 -->
+        <button type="button" class="btn-float-single-right" id="btnFloatingAction" onclick="handleFloatingAction()" title="새 항목 추가" style="font-size:24px; font-weight:950;">＋</button>
         <!-- 🌟 [사용자 요청] 나가기 클릭 시 해당 의원의 첫 페이지로 이동 (서브탭일 경우 첫페이지, 첫페이지일 경우 의원포털 이동) -->
         <button type="button" id="btnFloatingYetalkHome" onclick="handleClinicExitOrHome()" title="의원 첫 화면 및 의원홈 이동" style="height:38px; padding:0 12px; border-radius:20px; background:linear-gradient(135deg, #0284c7, #1d4ed8); color:#ffffff; border:1.5px solid #38bdf8; font-size:13px; font-weight:950; display:inline-flex; align-items:center; gap:5px; box-shadow:0 4px 14px rgba(2,132,199,0.45); cursor:pointer;">
             <span>🏠</span> <span>의원홈</span>
@@ -2674,6 +2673,7 @@ function switchDoctorSection(key) {
 
     if (key === 'intro') renderIntroSection();
     if (key === 'beauty') renderBeautySection();
+    syncFloatingButtonIcon();
     if (key === 'reserve_inquiry') initClinicInquiryForm();
     if (key === 'reserve_check') renderClinicInquiryList();
     if (key === 'notice') renderNoticeBoardData();
@@ -2694,6 +2694,16 @@ function toggleDoctorEditMode() {
 /* ==========================================
    권한 확인 헬퍼: 부관리자(직원) 및 관리자 여부 확인
    ========================================== */
+function isStaffOrAdmin() {
+    const role = localStorage.getItem("yetalk_clinic_member_role") || "";
+    if (["원장", "총관리자", "관리자", "부관리자", "정직원", "직원", "의사"].includes(role)) return true;
+    if (localStorage.getItem("yetalkDoctorStaffMode") === "true") return true;
+    if (localStorage.getItem("yetalk_is_admin") === "true") return true;
+    if (localStorage.getItem("yetalk_is_doctor") === "true") return true;
+    if (typeof isUserClinicAdmin === 'function' && isUserClinicAdmin()) return true;
+    return false;
+}
+
 function isClinicStaffOrAdmin() {
     if (typeof isUserClinicAdmin === 'function' && isUserClinicAdmin()) return true;
     const role = localStorage.getItem("yetalk_clinic_member_role") || "";
@@ -2909,98 +2919,73 @@ function deleteIntroPageDirect(idx) {
    4. 진료(시술)안내 렌더링 (단독 세로 1페이지 스냅 스크롤)
    ========================================== */
 function renderBeautySection() {
-    const chipsBar = document.getElementById("beautySubjectChipsBar");
     const casesHost = document.getElementById("beautyCasesList");
     if (!beautySubjects || beautySubjects.length === 0) {
         beautySubjects = [...DEFAULT_BEAUTY_SUBJECTS];
     }
 
-    // 🌟 치과 체어 사진 캐시 자동 교체
-    if (beautySubjects[0] && beautySubjects[0].cases) {
-        beautySubjects[0].cases.forEach(c => {
-            if (c.img1 && c.img1.includes("photo-1629909613654-28e377c37b09")) {
-                c.img1 = "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=85";
-            }
-        });
-    }
-
     const isStaff = isClinicStaffOrAdmin();
-    const curSub = beautySubjects[activeBeautySubIdx];
-
-    if (chipsBar) {
-        chipsBar.innerHTML = beautySubjects.map((s, idx) => `
-            <button type="button" class="tab-chip ${idx === activeBeautySubIdx ? 'active' : ''}" onclick="switchBeautySub(${idx})">
-                ${s.title}
-            </button>
-        `).join("") + (isStaff ? `
-            <button type="button" class="tab-chip" style="background:#f1f5f9; border-color:#cbd5e1; color:#0284c7; font-weight:900;" onclick="promptAddNewSubject()">
-                ＋ 과목 추가
-            </button>
-        ` : '');
-    }
+    const isStaffMember = isStaffOrAdmin(); // 🌟 정직원 이상 확인
+    const curSub = beautySubjects[0]; // 🌟 과목 선택 없이 단독 통합 안내
 
     if (!curSub || !casesHost) return;
     casesHost.innerHTML = "";
 
-    // 🌟 [사용자 요청] 진료시술안내 상단 의료법 준수 필수 공지
-    const complianceBox = document.createElement("div");
-    complianceBox.style.cssText = "padding:10px 14px; background:#fff1f2; border:1.5px solid #fecdd3; border-radius:12px; display:flex; align-items:center; gap:8px; box-shadow:0 2px 6px rgba(225,29,72,0.06); margin-bottom:2px;";
-    complianceBox.innerHTML = `
-        <span style="font-size:16px; flex-shrink:0;">⚠️</span>
-        <div style="font-size:12.5px; font-weight:950; color:#be123c; line-height:1.4; word-break:keep-all;">
-            [의료법 준수] 시술 전후(Before/After) 사진 게시 및 과장·허위 광고 절대 금지
-        </div>
-    `;
-    casesHost.appendChild(complianceBox);
+    // 🌟 [사용자 요청] 의료법 준수 경고는 정직원 이상에게만 보이고 크게 강조강조 (적발시 징계, 벌금)
+    // 고객(일반 환자)은 절대 볼 수 없음!
+    if (isStaffMember) {
+        const complianceBox = document.createElement("div");
+        complianceBox.style.cssText = "margin:0 0 14px 0; padding:14px 16px; background:#fff1f2; border:2px solid #e11d48; border-radius:14px; box-shadow:0 4px 14px rgba(225,29,72,0.12); display:flex; flex-direction:column; gap:6px;";
+        complianceBox.innerHTML = `
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:22px;">🚨</span>
+                <strong style="font-size:15.5px; font-weight:950; color:#be123c; letter-spacing:-0.3px;">
+                    [의료법 준수 엄수 안내 - 정직원·의료진 필독]
+                </strong>
+            </div>
+            <div style="font-size:13.5px; font-weight:850; color:#9f1239; line-height:1.55; word-break:keep-all;">
+                시술 전후(Before/After) 비교 사진 및 과장·허위 광고 게시를 철저히 금지합니다.<br>
+                <span style="color:#e11d48; font-weight:950;">※ 위반 적발 시 의료법에 따른 형사 고발 및 원내 중징계, 과태료·벌금이 부과됩니다.</span>
+            </div>
+        `;
+        casesHost.appendChild(complianceBox);
+    }
 
     const cases = curSub.cases || [];
     cases.forEach((c, idx) => {
+        // 🌟 [사용자 요청] 한 개의 시술이 한 페이지에 꽉 차고 탁탁 올릴 수 있도록 스냅 적용!
         const card = document.createElement("div");
-        card.style.cssText = "background:#ffffff; border:1.5px solid #e2e8f0; border-radius:16px; padding:16px; box-shadow:0 3px 12px rgba(0,0,0,0.06); display:flex; flex-direction:column; gap:10px; position:relative;";
+        card.style.cssText = "min-height:calc(100vh - 120px - var(--bottom-ad-h)); scroll-snap-align:start; scroll-snap-stop:always; background:#ffffff; border:1.8px solid #cbd5e1; border-radius:18px; padding:20px 18px; box-shadow:0 4px 16px rgba(0,0,0,0.06); display:flex; flex-direction:column; margin-bottom:16px; box-sizing:border-box;";
 
         card.innerHTML = `
-            <!-- 상단 헤더: 시술 제목 & 수정 버튼 -->
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
-                <h3 style="font-size:18px; font-weight:950; color:#0f172a; margin:0; letter-spacing:-0.3px; line-height:1.3;">
-                    ${escapeHtml(c.title)}
-                </h3>
-                ${isStaff ? `
-                <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
-                    <button type="button" onclick="openClinicMemberModal()" style="background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; border:1px solid #38bdf8; border-radius:8px; padding:5px 10px; font-size:12px; font-weight:900; cursor:pointer;">
-                        ⚙️ 관리실
-                    </button>
-                    <button type="button" onclick="openBigEditModal('beauty', ${idx})" style="background:rgba(2,132,199,0.92); color:#ffffff; border:1px solid #38bdf8; border-radius:8px; padding:5px 10px; font-size:12px; font-weight:900; cursor:pointer;">
-                        ✏️ 수정
-                    </button>
-                </div>
-                ` : ''}
-            </div>
+            <!-- 🌟 [사용자 요청] 하나의 시술명은 한 줄로 조금 더 크게 단독 배치! -->
+            <h2 style="font-size:22px; font-weight:950; color:#0f172a; margin:0; line-height:1.25; letter-spacing:-0.4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                ${escapeHtml(c.title)}
+            </h2>
 
-            <!-- 🌟 [사용자 요청] 상세 설명 텍스트 상단 배치 -->
-            <div style="font-size:13.5px; font-weight:750; color:#334155; line-height:1.65; word-break:keep-all;">
+            <!-- 🌟 [사용자 요청] 관리실, 수정은 한 칸 밑 우측에 나란히 위치 (고객은 못 봄) -->
+            ${isStaff ? `
+            <div style="display:flex; justify-content:flex-end; align-items:center; gap:6px; margin-top:8px;">
+                <button type="button" onclick="openClinicMemberModal()" style="background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; border:1px solid #38bdf8; border-radius:8px; padding:6px 12px; font-size:12.5px; font-weight:900; cursor:pointer;">
+                    ⚙️ 관리실
+                </button>
+                <button type="button" onclick="openBigEditModal('beauty', ${idx})" style="background:rgba(2,132,199,0.92); color:#ffffff; border:1px solid #38bdf8; border-radius:8px; padding:6px 12px; font-size:12.5px; font-weight:900; cursor:pointer;">
+                    ✏️ 수정
+                </button>
+            </div>
+            ` : ''}
+
+            <!-- 🌟 [사용자 요청] 이미지는 완전 삭제, 글자 크기 조금 더 키우고(15.5px) 글로써 정갈하게 설명! -->
+            <div style="flex:1; margin-top:14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:20px 18px; font-size:15.5px; font-weight:750; color:#1e293b; line-height:1.85; word-break:keep-all; overflow-y:auto; -webkit-overflow-scrolling:touch;">
                 ${escapeHtml(c.desc || '').replace(/\n/g, '<br>')}
-            </div>
-
-            <!-- 단일 대표 안내 사진 (전후 비교 사진 아님, 1장만 깔끔하게) -->
-            <div style="width:100%; height:200px; border-radius:12px; overflow:hidden; border:1px solid #cbd5e1; background:#0f172a;">
-                <img src="${c.img1 || 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1200&q=85'}" alt="${escapeHtml(c.title)}" style="width:100%; height:100%; object-fit:cover;">
             </div>
         `;
 
         casesHost.appendChild(card);
     });
 
-    // 🌟 [사용자 요청] 창이 여러개 밑으로 열리도록 맨 마지막에 + 두고 (관리자/원장 전용)
-    if (isStaff) {
-        const addBtnBox = document.createElement("div");
-        addBtnBox.style.cssText = "padding:8px 0 20px 0;";
-        addBtnBox.innerHTML = `
-            <button type="button" onclick="addNewBeautyCaseDirect(${cases.length - 1})" style="width:100%; height:48px; background:linear-gradient(135deg, #0284c7, #0369a1); color:#ffffff; border:none; border-radius:14px; font-size:15px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 14px rgba(2,132,199,0.25);">
-                <span style="font-size:18px;">＋</span> <span>새 시술안내 항목 추가하기</span>
-            </button>
-        `;
-        casesHost.appendChild(addBtnBox);
-    }
+    // 플로팅 버튼 상태 동기화 (진료안내 탭에서는 ＋ 표시)
+    syncFloatingButtonIcon();
 }
 function switchBeautySub(idx) {
     activeBeautySubIdx = idx;
@@ -3574,6 +3559,33 @@ function renderEmbeddedClinicMembers(query) {
 /* ==========================================
    6. 플로팅 우측 화살표 (→ 하나만 유지)
    ========================================== */
+
+function syncFloatingButtonIcon() {
+    const btn = document.getElementById("btnFloatingAction");
+    if (!btn) return;
+    if (typeof currentSectionKey !== 'undefined' && currentSectionKey === 'beauty') {
+        btn.innerText = "＋";
+        btn.title = "새 시술 항목 추가";
+        btn.style.display = isClinicStaffOrAdmin() ? "flex" : "none";
+    } else {
+        btn.innerText = "→";
+        btn.title = "다음 메뉴로 이동";
+        btn.style.display = "flex";
+    }
+}
+
+function handleFloatingAction() {
+    if (typeof currentSectionKey !== 'undefined' && currentSectionKey === 'beauty') {
+        if (!isClinicStaffOrAdmin()) {
+            showToast("🔒 의료진 및 관리자만 시술 항목을 추가할 수 있습니다.");
+            return;
+        }
+        addNewBeautyCaseDirect(beautySubjects[0].cases.length - 1);
+    } else {
+        handleFloatingRight();
+    }
+}
+
 function handleFloatingRight() {
     const curIdx = DOCTOR_SECTIONS.indexOf(currentSectionKey);
     const nextIdx = (curIdx + 1) % DOCTOR_SECTIONS.length;
