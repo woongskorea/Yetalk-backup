@@ -797,6 +797,10 @@ function setupSectionObserver() {
             });
 
             if (closestIdx !== activeSecId && closestIdx >= 0 && closestIdx < MENU_DEFINITIONS.length) {
+                if (!isCurrentChurchRegularMember() && closestIdx > 1) {
+                    scrollToCard(1);
+                    return;
+                }
                 activeSecId = closestIdx;
                 try { sessionStorage.setItem("church_last_active_card_idx", closestIdx.toString()); } catch(e){}
                 updateChipsBar(closestIdx);
@@ -849,8 +853,32 @@ function updateChipsBar(idx, instant = false) {
 
 let programmaticTimer = null;
 
+function isCurrentChurchRegularMember() {
+    const churchName = sessionStorage.getItem("yetalk_viewing_church") || localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+    const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
+    const myHomeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || "부산제일감리교회").trim();
+    return Boolean(uName && myHomeChurch && (myHomeChurch === churchName || localStorage.getItem("yetalk_is_regular_member_" + churchName) === "true"));
+}
+
 function scrollToCard(index) {
     if (index < 0 || index >= MENU_DEFINITIONS.length) return;
+
+    // 🌟 [사용자 요청] 준회원은 교회(0), 예배(1) 메뉴만 볼 수 있도록 제한
+    if (!isCurrentChurchRegularMember() && index > 1) {
+        const churchName = sessionStorage.getItem("yetalk_viewing_church") || localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        const isAssociate = Boolean(localStorage.getItem("yetalk_church_member_grade_" + churchName) === "준회원");
+        if (isAssociate) {
+            alert(`🔒 [${churchName} 준회원 이용 안내]\n\n준회원 성도님은 [교회] 소개와 [예배] 영상 메뉴만 이용하실 수 있습니다.\n\n주보 및 교우 전용 공간은 본교회 '정회원'에게 제공됩니다.`);
+        } else {
+            if (confirm(`🔒 [${churchName} 성도 전용 안내]\n\n해당 메뉴는 본교회 정회원 전용 공간입니다.\n상단 [성도가입]을 누르시면 [준회원]으로 가입되어 [교회]와 [예배] 소식을 자유롭게 누리실 수 있습니다.\n준회원으로 가입하시겠습니까?`)) {
+                if (typeof openSimpleMemberJoinModal === "function") openSimpleMemberJoinModal();
+            }
+        }
+        index = Math.min(activeSecId, 1);
+        updateChipsBar(index);
+        return;
+    }
+
     activeSecId = index;
     try { sessionStorage.setItem("church_last_active_card_idx", index.toString()); } catch(e){}
     updateChipsBar(index);

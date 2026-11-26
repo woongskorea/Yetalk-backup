@@ -1264,7 +1264,31 @@
         }
     }
 
+    function isCurrentChurchRegularMember() {
+        const churchName = sessionStorage.getItem("yetalk_viewing_church") || localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
+        const myHomeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || "부산제일감리교회").trim();
+        return Boolean(uName && myHomeChurch && (myHomeChurch === churchName || localStorage.getItem("yetalk_is_regular_member_" + churchName) === "true"));
+    }
+    window.isCurrentChurchRegularMember = isCurrentChurchRegularMember;
+
     function handleChurchNavTab(index) {
+        const churchName = sessionStorage.getItem("yetalk_viewing_church") || localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
+        const isRegular = isCurrentChurchRegularMember();
+        const isAssociate = Boolean(localStorage.getItem("yetalk_church_member_grade_" + churchName) === "준회원");
+
+        // 🌟 [사용자 요청] 준회원은 교회(0), 예배(1) 메뉴만 볼 수 있도록 엄격 제한!
+        if (!isRegular && index > 1) {
+            if (isAssociate) {
+                alert(`🔒 [${churchName} 준회원 이용 안내]\n\n준회원 성도님은 [교회] 소개와 [예배] 영상 메뉴만 이용하실 수 있습니다.\n\n주보 및 교우 전용 공간은 본교회 '정회원'에게 제공됩니다.`);
+            } else {
+                if (confirm(`🔒 [${churchName} 준회원 가입 안내]\n\n해당 메뉴는 본교회 정회원 전용 공간입니다.\n상단 [성도가입]을 통해 [준회원]으로 가입하시면 [교회]와 [예배] 소식을 자유롭게 누리실 수 있습니다.\n\n준회원으로 가입하시겠습니까?`)) {
+                    openSimpleMemberJoinModal();
+                }
+            }
+            return;
+        }
+
         document.querySelectorAll("#churchNavBar .c-nav-chip").forEach((chip, i) => {
             chip.classList.toggle("active", i === index);
         });
@@ -1537,13 +1561,13 @@
 
         if (isRegular) {
             btn.innerHTML = `<span>👤</span> ${uName} <small style="font-size:10px; font-weight:950; background:#065f46; color:#a7f3d0; padding:1px 5px; border-radius:4px; margin-left:2px;">정회원</small>`;
-            btn.title = `[${churchName}] 본교회 정회원 상태`;
+            btn.title = `[${churchName}] 본교회 정회원 상태 (모든 메뉴 이용 가능)`;
             btn.style.background = "#047857";
             btn.style.borderColor = "#10b981";
         } else if (isAssociate) {
             const displayName = uName || localStorage.getItem("yetalk_associate_name_" + churchName) || "새가족";
             btn.innerHTML = `<span>👤</span> ${displayName} <small style="font-size:10px; font-weight:950; background:#1e3a8a; color:#bfdbfe; padding:1px 5px; border-radius:4px; margin-left:2px;">준회원</small>`;
-            btn.title = `[${churchName}] 준회원 상태`;
+            btn.title = `[${churchName}] 준회원 상태 ([교회]·[예배] 메뉴 이용 가능)`;
             btn.style.background = "#2563eb";
             btn.style.borderColor = "#60a5fa";
         } else {
@@ -1559,6 +1583,22 @@
                 setTimeout(() => { openSimpleMemberJoinModal(); }, 600);
             }
         }
+
+        // 🌟 [사용자 요청] 준회원/방문자는 교회(0), 예배(1)만 볼 수 있도록 시각적 표시
+        const chips = document.querySelectorAll("#churchNavBar .c-nav-chip");
+        chips.forEach((chip, i) => {
+            if (i > 1) {
+                if (!isRegular) {
+                    chip.style.opacity = "0.65";
+                    chip.title = "정회원 전용 공간 (준회원은 [교회]·[예배] 이용 가능)";
+                } else {
+                    chip.style.opacity = "1.0";
+                    chip.title = "";
+                }
+            } else {
+                chip.style.opacity = "1.0";
+            }
+        });
     }
 
     /* 🌟 성도가입 클릭 시 원클릭 등록 분기: 정회원 vs 준회원 */
