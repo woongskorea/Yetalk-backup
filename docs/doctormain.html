@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -5524,7 +5524,18 @@ function updateTopHeaderJoinBtn() {
         btn.style.border = "1.5px solid #fbbf24";
         btn.style.boxShadow = "0 2px 8px rgba(245, 158, 11, 0.45)";
     } else {
-        const myRole = localStorage.getItem("yetalk_clinic_member_role");
+        let myRole = localStorage.getItem("yetalk_clinic_member_role");
+        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id") || localStorage.getItem("yetalkUserName") || "").trim();
+        const userChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "").trim();
+        const userPastor = (localStorage.getItem("yetalk_pastor_name") || "").trim();
+        const isChurchRegular = !!(uName && userChurch && (userPastor || uName.includes("최베드로") || userChurch.includes("부산제일")));
+
+        // 🌟 [사용자 요청] 예톡메인교회에서 정회원인 사람은 예톡의원메인에도 자동으로 정회원!
+        if (!myRole && isChurchRegular) {
+            myRole = "정회원";
+            localStorage.setItem("yetalk_clinic_member_role", "정회원");
+        }
+
         if (myRole === "부관리자") {
             btn.innerHTML = `<span>🌟</span> 부관리자`;
             btn.title = "원내 직원(부관리자) 모드";
@@ -5554,7 +5565,18 @@ function handleTopRightBtnClick() {
     if (isUserClinicAdmin()) {
         openBigDoctorEditDirect();
     } else {
-        const myRole = localStorage.getItem("yetalk_clinic_member_role");
+        let myRole = localStorage.getItem("yetalk_clinic_member_role");
+        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id") || localStorage.getItem("yetalkUserName") || "").trim();
+        const userChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "").trim();
+        const userPastor = (localStorage.getItem("yetalk_pastor_name") || "").trim();
+        const isChurchRegular = !!(uName && userChurch && (userPastor || uName.includes("최베드로") || userChurch.includes("부산제일")));
+
+        // 🌟 [사용자 요청] 예톡메인교회에서 정회원인 사람은 예톡의원메인에도 자동으로 정회원!
+        if (!myRole && isChurchRegular) {
+            myRole = "정회원";
+            localStorage.setItem("yetalk_clinic_member_role", "정회원");
+        }
+
         if (myRole === "부관리자") {
             openClinicMemberModal();
         } else if (myRole === "우수회원") {
