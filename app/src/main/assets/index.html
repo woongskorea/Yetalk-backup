@@ -5754,9 +5754,9 @@
 
     <!-- 2. 퀵 메뉴 바: [사용자 요청] 상단 내앱, 교회이름, 교우초청까지 상단 고정! (상단 예톡과의 적정 터치 간격 확보) -->
     <nav class="quick-nav-bar" style="padding:7px 12px 6px 12px; margin-top:0; border-bottom:1.5px solid #e2e8f0; box-shadow:0 2px 6px rgba(0,0,0,0.03); flex-shrink:0; z-index:40; background:#ffffff;">
-        <button type="button" class="btn-quick-chip" id="chipTabPersonal" onclick="handleChristianNav('personal')" style="font-size:14.5px; font-weight:900; padding:7px 4px; text-align:center;">내앱</button>
+        <button type="button" class="btn-quick-chip" id="chipTabLiveWorship" onclick="handleChristianNav('live_worship')" style="font-size:14.5px; font-weight:950; padding:7px 4px; text-align:center; color:#ef4444;">라이브예배</button>
         <button type="button" class="btn-quick-chip btn-quick-ourchurch active" id="chipTabOurChurch" onclick="handleChristianNav('our_church')" style="font-size:16px; font-weight:950; padding:7px 4px; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">부산제일감리교회</button>
-        <button type="button" class="btn-quick-chip" id="chipTabInvite" onclick="handleChristianNav('invite')" style="font-size:14px; font-weight:900; padding:7px 4px; text-align:center;">교우초청</button>
+        <button type="button" class="btn-quick-chip" id="chipTabPersonal" onclick="handleChristianNav('personal')" style="font-size:14.5px; font-weight:900; padding:7px 4px; text-align:center;">내앱</button>
     </nav>
 
     <!-- 3. 포털 메인 스크롤 화면 (Screen A) -->
@@ -5798,6 +5798,86 @@
         </section>
 
         <!-- 말씀 / 좋은 말씀 카드: [사용자 요청] 세로폭 여유있게 늘리고 글자 1PX 크게 정돈 (시간대 제목은 한줄로 깔끔 표출) -->
+        
+        <!-- 🌟 [사용자 요청] 라이브 예배 전용 뷰 (3시간 말씀 위치, 최대한 가로 세로 크게 + 상단 큰 시계 + 좌중우 3개 버튼 + 영상 + 하단 고정 애드몹 100) -->
+        <section id="liveWorshipContainer" style="display:none; width:100%; box-sizing:border-box; margin-bottom:12px;">
+            <div style="background:#ffffff; border:1.8px solid #ef4444; border-radius:18px; padding:12px; box-shadow:0 4px 20px rgba(239,68,68,0.12); display:flex; flex-direction:column; gap:10px;">
+                <!-- 1. 상단 실시간 시계 (좀 크게) -->
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 12px;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#ef4444; box-shadow:0 0 8px #ef4444;"></span>
+                        <strong style="font-size:13px; color:#0f172a; font-weight:950;">📡 실시간 라이브 예배</strong>
+                    </div>
+                    <div id="liveWorshipClock" style="font-size:16px; font-weight:950; color:#ef4444; letter-spacing:-0.3px; font-family:'Pretendard', sans-serif;">
+                        00:00:00
+                    </div>
+                </div>
+
+                <!-- 2. 좌·중·우 3개 선택 버튼 (예톡 예배 / 우리교회 라이브 / 기타 교회 예배) -->
+                <div style="display:grid; grid-template-columns:1fr 1.2fr 1.1fr; gap:6px; width:100%;">
+                    <!-- 1) 예톡 예배 -->
+                    <button type="button" id="btnLiveYetalk" onclick="selectLiveWorshipStream('yetalk')" style="padding:10px 4px; border-radius:12px; font-size:13px; font-weight:950; cursor:pointer; border:1.5px solid #cbd5e1; background:#f8fafc; color:#334155; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; transition:all 0.15s ease;">
+                        <span style="font-size:11px; font-weight:800; opacity:0.8;">예톡TV</span>
+                        <span>예톡 예배</span>
+                        <span class="live-status-pill" id="pillLiveYetalk" style="font-size:9.5px; padding:1px 6px; border-radius:8px; background:#e2e8f0; color:#64748b; font-weight:900;">준비중</span>
+                    </button>
+
+                    <!-- 2) 우리교회 라이브 -->
+                    <button type="button" id="btnLiveOurChurch" onclick="selectLiveWorshipStream('our_church')" style="padding:10px 4px; border-radius:12px; font-size:13.5px; font-weight:950; cursor:pointer; border:1.5px solid #ef4444; background:linear-gradient(135deg, #ef4444, #dc2626); color:#ffffff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; box-shadow:0 3px 10px rgba(239,68,68,0.35); transition:all 0.15s ease;">
+                        <span style="font-size:11px; font-weight:800; opacity:0.9;" id="dispLiveOurChurchName">부산제일감리교회</span>
+                        <span>우리교회 라이브</span>
+                        <span class="live-status-pill" id="pillLiveOurChurch" style="font-size:9.5px; padding:1px 6px; border-radius:8px; background:#ffffff; color:#dc2626; font-weight:950; box-shadow:0 1px 4px rgba(0,0,0,0.2);">🔴 라이브 ON</span>
+                    </button>
+
+                    <!-- 3) 기타 교회 예배 -->
+                    <button type="button" id="btnLiveOtherChurches" onclick="toggleOtherChurchesDropdown()" style="padding:10px 4px; border-radius:12px; font-size:13px; font-weight:950; cursor:pointer; border:1.5px solid #cbd5e1; background:#f8fafc; color:#334155; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; transition:all 0.15s ease;">
+                        <span style="font-size:11px; font-weight:800; opacity:0.8;">준회원 교회</span>
+                        <span id="dispLiveOtherChurchLabel">기타교회 ▼</span>
+                        <span class="live-status-pill" id="pillLiveOtherChurch" style="font-size:9.5px; padding:1px 6px; border-radius:8px; background:#e2e8f0; color:#64748b; font-weight:900;">선택</span>
+                    </button>
+                </div>
+
+                <!-- 🌟 기타 교회 선택 드롭다운 리스트 (준회원 가입된 교회들 목록) -->
+                <div id="dropdownOtherChurchesList" style="display:none; background:#f1f5f9; border:1.5px solid #cbd5e1; border-radius:12px; padding:10px; flex-direction:column; gap:6px;">
+                    <div style="font-size:11.5px; font-weight:900; color:#475569; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>📋 준회원 등록 교회 라이브 목록 (터치 시 즉시 시청)</span>
+                        <button type="button" onclick="toggleOtherChurchesDropdown()" style="background:none; border:none; font-size:13px; color:#64748b; font-weight:900; cursor:pointer;">닫기 ✕</button>
+                    </div>
+                    <div id="dispAssociateChurchesItems" style="display:flex; flex-direction:column; gap:6px; max-height:180px; overflow-y:auto;">
+                        <!-- JS 렌더링 -->
+                    </div>
+                </div>
+
+                <!-- 3. 실시간 영상 플레이어 (예톡TV 스타일, 최대한 가로 세로 크게) -->
+                <div style="width:100%; position:relative; background:#000000; border-radius:14px; overflow:hidden; aspect-ratio:16/9; min-height:220px; box-shadow:0 4px 16px rgba(0,0,0,0.25);">
+                    <iframe id="liveWorshipPlayerIframe" style="width:100%; height:100%; border:none;" src="https://www.youtube.com/embed/92oktJl3-Fo?autoplay=1&mute=0&rel=0&playsinline=1" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+
+                <!-- 현재 재생 중인 예배 안내 바 & 닫기(복귀) -->
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:2px 4px;">
+                    <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
+                        <span id="badgeCurrentLiveTag" style="background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; font-size:11px; font-weight:950; padding:2px 8px; border-radius:8px; flex-shrink:0;">🔴 LIVE</span>
+                        <span id="dispCurrentLiveTitle" style="font-size:13px; font-weight:900; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">[부산제일감리교회] 주일 실시간 생방송 라이브 예배</span>
+                    </div>
+                    <button type="button" onclick="closeLiveWorshipView()" style="background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; font-size:11.5px; font-weight:900; padding:4px 10px; border-radius:8px; cursor:pointer; flex-shrink:0;">
+                        일반화면 닫기
+                    </button>
+                </div>
+            </div>
+
+            <!-- 4. 그 밑에 애드몹 100 고정 슬롯 -->
+            <div style="width:100%; margin-top:10px;">
+                <div style="width:100%; height:100px; background:linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); border:1.5px dashed #cbd5e1; border-radius:14px; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:6px 12px; text-align:center; box-sizing:border-box;">
+                    <div style="font-size:10px; font-weight:800; color:#64748b; margin-bottom:2px; display:flex; align-items:center; gap:4px;">
+                        <span style="background:#0284c7; color:#ffffff; font-size:9px; font-weight:900; padding:1px 4px; border-radius:3px;">AD</span>
+                        <span>Google AdMob 공식 스폰서 슬롯 (320 × 100)</span>
+                    </div>
+                    <div style="font-size:14px; font-weight:950; color:#0284c7; letter-spacing:-0.3px;">Google AdMob Large Banner</div>
+                    <div style="font-size:11px; color:#64748b; font-weight:600; margin-top:2px;">대한민국 소상공인 · 병의원 · 교회 공식 지원 스폰서</div>
+                </div>
+            </div>
+        </section>
+
         <article class="goodnews-large-card" id="goodnewsCard">
             <div class="goodnews-header" style="margin-bottom:8px;">
                 <button type="button" class="goodnews-badge" id="gnBadge" onclick="showBiblicalTimeExplModal()" style="width:100%; box-sizing:border-box; background:#047857; color:#ffffff; font-size:13px; font-weight:950; padding:8px 8px; border-radius:10px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(4,120,87,0.25); user-select:none; -webkit-user-select:none; touch-action:manipulation; white-space:nowrap; overflow:hidden;" title="터치 시 성경 시간대 설명 보기">
@@ -6261,6 +6341,13 @@
                     <div style="flex:1; min-width:0;">
                         <strong style="font-size:16.5px; font-weight:950; color:#0f172a; display:block; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="drawerUserProfileName">예톡 성도님</strong>
                         <div style="font-size:14px; color:#15803d; font-weight:950; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="drawerUserProfileRole">부산제일감리교회 장로</div>
+                    <!-- 🌟 [사용자 요청] 본인 이름·직분 바로 밑에 [교우초청] 버튼 배치 -->
+                    <div style="margin-top:6px; margin-bottom:4px;">
+                        <button type="button" id="btnDrawerInviteMember" onclick="openChristianFriendsModal(); closeDrawer();" style="width:100%; box-sizing:border-box; background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color:#ffffff; border:1.2px solid #334155; border-radius:10px; padding:8px 12px; font-size:13.5px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 6px rgba(0,0,0,0.15); transition:transform 0.1s;">
+                            <span style="font-size:16px;">💌</span>
+                            <span>교우초청 (카톡 초대장 보내기)</span>
+                        </button>
+                    </div>
                     </div>
                     <div style="display:flex; align-items:center; gap:5px; flex-shrink:0;">
                         <!-- 🌟 [사용자 요청] 네줄 햄버거 메뉴 우측 상단 [문의보기] 버튼 & 미확인 숫자 뱃지 -->
@@ -20647,19 +20734,217 @@ https://woongskorea.github.io/Yetalk-backup/`;
         openSuperAdminDeskModal();
     }
 
+    
+    let isLiveWorshipOpen = false;
+    let liveClockTimer = null;
+    let currentLiveChannelKey = 'our_church';
+
+    // 🌟 [사용자 요청] 준회원 등록 교회 라이브 목록 (라이브 ON / 준비중 실시간 상태 표시)
+    const associateChurchesLiveList = [
+        { name: '여의도순복음교회', title: '주일 실시간 생중계 대예배', isLive: true, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' },
+        { name: '사랑의교회', title: '주일 사랑의예배 실시간 중계', isLive: true, yt: 'https://www.youtube.com/watch?v=0bAEv9j9w5k' },
+        { name: '새에덴교회', title: '생명의 말씀 주일 예배', isLive: false, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' },
+        { name: '영락교회', title: '주일 온세대 연합예배', isLive: false, yt: 'https://www.youtube.com/watch?v=0bAEv9j9w5k' },
+        { name: '지구촌교회', title: '은혜와 진리의 주일예배', isLive: false, yt: 'https://www.youtube.com/watch?v=92oktJl3-Fo' }
+    ];
+
+    function updateLiveWorshipClock() {
+        const clockEl = document.getElementById('liveWorshipClock');
+        if (!clockEl) return;
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const date = String(now.getDate()).padStart(2, '0');
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        const dayName = dayNames[now.getDay()];
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        clockEl.innerText = `${month}월 ${date}일(${dayName}) ${hours}:${minutes}:${seconds}`;
+    }
+
+    function openLiveWorshipView() {
+        isLiveWorshipOpen = true;
+        const liveSec = document.getElementById('liveWorshipContainer');
+        const gnCard = document.getElementById('goodnewsCard');
+        if (liveSec) liveSec.style.display = 'block';
+        if (gnCard) gnCard.style.display = 'none';
+
+        // 시계 타이머 가동
+        updateLiveWorshipClock();
+        if (liveClockTimer) clearInterval(liveClockTimer);
+        liveClockTimer = setInterval(updateLiveWorshipClock, 1000);
+
+        // 교회 이름 세팅
+        const myChurch = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalk_registered_home_church') || '부산제일감리교회').trim();
+        const dispEl = document.getElementById('dispLiveOurChurchName');
+        if (dispEl) dispEl.innerText = myChurch;
+
+        renderAssociateChurchesList();
+        selectLiveWorshipStream('our_church');
+
+        // 상단으로 부드럽게 스크롤
+        liveSec?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function closeLiveWorshipView() {
+        isLiveWorshipOpen = false;
+        const liveSec = document.getElementById('liveWorshipContainer');
+        const gnCard = document.getElementById('goodnewsCard');
+        if (liveSec) liveSec.style.display = 'none';
+        if (gnCard) gnCard.style.display = 'flex';
+
+        if (liveClockTimer) {
+            clearInterval(liveClockTimer);
+            liveClockTimer = null;
+        }
+
+        // 오디오 정지
+        const iframe = document.getElementById('liveWorshipPlayerIframe');
+        if (iframe) iframe.src = '';
+
+        document.getElementById('chipTabLiveWorship')?.classList.remove('active');
+        document.getElementById('chipTabOurChurch')?.classList.add('active');
+    }
+
+    function selectLiveWorshipStream(channelKey, customObj = null) {
+        currentLiveChannelKey = channelKey;
+        const myChurch = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalk_registered_home_church') || '부산제일감리교회').trim();
+
+        const btnYetalk = document.getElementById('btnLiveYetalk');
+        const btnOurChurch = document.getElementById('btnLiveOurChurch');
+        const btnOther = document.getElementById('btnLiveOtherChurches');
+
+        const pillYetalk = document.getElementById('pillLiveYetalk');
+        const pillOur = document.getElementById('pillLiveOurChurch');
+        const pillOther = document.getElementById('pillLiveOtherChurch');
+
+        const iframe = document.getElementById('liveWorshipPlayerIframe');
+        const badgeTag = document.getElementById('badgeCurrentLiveTag');
+        const titleEl = document.getElementById('dispCurrentLiveTitle');
+
+        // 버튼 스타일 초기화
+        [btnYetalk, btnOurChurch, btnOther].forEach(btn => {
+            if (btn) {
+                btn.style.background = '#f8fafc';
+                btn.style.color = '#334155';
+                btn.style.border = '1.5px solid #cbd5e1';
+                btn.style.boxShadow = 'none';
+            }
+        });
+
+        let targetUrl = 'https://www.youtube.com/embed/92oktJl3-Fo?autoplay=1&mute=0&rel=0&playsinline=1';
+        let isLiveOn = true;
+
+        if (channelKey === 'yetalk') {
+            if (btnYetalk) {
+                btnYetalk.style.background = 'linear-gradient(135deg, #0284c7, #0369a1)';
+                btnYetalk.style.color = '#ffffff';
+                btnYetalk.style.border = '1.5px solid #0284c7';
+                btnYetalk.style.boxShadow = '0 3px 10px rgba(2,132,199,0.35)';
+            }
+            if (pillYetalk) {
+                pillYetalk.innerText = '방송중';
+                pillYetalk.style.background = '#e0f2fe';
+                pillYetalk.style.color = '#0284c7';
+            }
+            targetUrl = 'https://www.youtube.com/embed/0bAEv9j9w5k?autoplay=1&mute=0&rel=0&playsinline=1';
+            if (badgeTag) { badgeTag.innerText = '📡 예톡방송'; badgeTag.style.background = '#e0f2fe'; badgeTag.style.color = '#0284c7'; badgeTag.style.borderColor = '#7dd3fc'; }
+            if (titleEl) titleEl.innerText = '[예톡 공식 예배] 실시간 찬양과 은혜의 말씀 방송';
+        } else if (channelKey === 'our_church') {
+            if (btnOurChurch) {
+                btnOurChurch.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+                btnOurChurch.style.color = '#ffffff';
+                btnOurChurch.style.border = '1.5px solid #ef4444';
+                btnOurChurch.style.boxShadow = '0 3px 10px rgba(239,68,68,0.35)';
+            }
+            if (pillOur) {
+                pillOur.innerText = '🔴 라이브 ON';
+                pillOur.style.background = '#ffffff';
+                pillOur.style.color = '#dc2626';
+            }
+            targetUrl = 'https://www.youtube.com/embed/92oktJl3-Fo?autoplay=1&mute=0&rel=0&playsinline=1';
+            if (badgeTag) { badgeTag.innerText = '🔴 LIVE'; badgeTag.style.background = '#fee2e2'; badgeTag.style.color = '#ef4444'; badgeTag.style.borderColor = '#fca5a5'; }
+            if (titleEl) titleEl.innerText = `[${myChurch}] 주일 실시간 생방송 라이브 예배`;
+        } else if (channelKey === 'other_church' && customObj) {
+            if (btnOther) {
+                btnOther.style.background = customObj.isLive ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'linear-gradient(135deg, #475569, #334155)';
+                btnOther.style.color = '#ffffff';
+                btnOther.style.border = customObj.isLive ? '1.5px solid #ef4444' : '1.5px solid #475569';
+                btnOther.style.boxShadow = customObj.isLive ? '0 3px 10px rgba(239,68,68,0.35)' : 'none';
+            }
+            const labelEl = document.getElementById('dispLiveOtherChurchLabel');
+            if (labelEl) labelEl.innerText = customObj.name;
+            if (pillOther) {
+                pillOther.innerText = customObj.isLive ? '🔴 라이브' : '준비중';
+                pillOther.style.background = '#ffffff';
+                pillOther.style.color = customObj.isLive ? '#dc2626' : '#64748b';
+            }
+            targetUrl = customObj.yt.replace('watch?v=', 'embed/') + '?autoplay=1&mute=0&rel=0&playsinline=1';
+            if (badgeTag) {
+                badgeTag.innerText = customObj.isLive ? '🔴 LIVE' : '대기중';
+                badgeTag.style.background = customObj.isLive ? '#fee2e2' : '#f1f5f9';
+                badgeTag.style.color = customObj.isLive ? '#ef4444' : '#475569';
+                badgeTag.style.borderColor = customObj.isLive ? '#fca5a5' : '#cbd5e1';
+            }
+            if (titleEl) titleEl.innerText = `[${customObj.name}] ${customObj.title}`;
+        }
+
+        if (iframe) iframe.src = targetUrl;
+    }
+
+    function toggleOtherChurchesDropdown() {
+        const drop = document.getElementById('dropdownOtherChurchesList');
+        if (!drop) return;
+        drop.style.display = (drop.style.display === 'none' || !drop.style.display) ? 'flex' : 'none';
+    }
+
+    function renderAssociateChurchesList() {
+        const container = document.getElementById('dispAssociateChurchesItems');
+        if (!container) return;
+        container.innerHTML = associateChurchesLiveList.map((ch, idx) => `
+            <div onclick="selectAssociateChurchLive(${idx})" style="display:flex; justify-content:space-between; align-items:center; background:#ffffff; border:1px solid ${ch.isLive ? '#fca5a5' : '#e2e8f0'}; border-radius:10px; padding:8px 10px; cursor:pointer; transition:background 0.15s;">
+                <div style="display:flex; align-items:center; gap:6px; min-width:0; flex:1;">
+                    <span style="font-size:14px;">⛪</span>
+                    <strong style="font-size:13px; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ch.name}</strong>
+                    <span style="font-size:11px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ch.title}</span>
+                </div>
+                <span style="font-size:10px; font-weight:950; padding:2px 8px; border-radius:6px; ${ch.isLive ? 'background:#ef4444; color:#ffffff;' : 'background:#e2e8f0; color:#64748b;'}">
+                    ${ch.isLive ? '🔴 라이브 ON' : '예배준비'}
+                </span>
+            </div>
+        `).join('');
+    }
+
+    function selectAssociateChurchLive(idx) {
+        const ch = associateChurchesLiveList[idx];
+        if (!ch) return;
+        toggleOtherChurchesDropdown();
+        selectLiveWorshipStream('other_church', ch);
+    }
+
+    window.openLiveWorshipView = openLiveWorshipView;
+    window.closeLiveWorshipView = closeLiveWorshipView;
+    window.selectLiveWorshipStream = selectLiveWorshipStream;
+    window.toggleOtherChurchesDropdown = toggleOtherChurchesDropdown;
+    window.selectAssociateChurchLive = selectAssociateChurchLive;
+
     function handleChristianNav(tab) {
         document.querySelectorAll(".quick-nav-bar .btn-quick-chip").forEach(btn => btn.classList.remove("active"));
-        if (tab === 'personal' || tab === 'my') {
-            document.getElementById("chipTabPersonal")?.classList.add("active");
-            location.href = "onemain.html";
+                if (tab === 'live_worship' || tab === 'live') {
+            document.getElementById('chipTabLiveWorship')?.classList.add('active');
+            openLiveWorshipView();
         } else if (tab === 'our_church' || tab === 'church') {
-            document.getElementById("chipTabOurChurch")?.classList.add("active");
-            // 🌟 [사용자 요청] 현재 활성화된 교회(본교회 또는 사역앱)의 실제 명칭으로 직행!
-            const myChurch = (localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || localStorage.getItem("yetalk_registered_home_church") || "부산제일감리교회").trim();
-            location.href = "churchmain.html?churchName=" + encodeURIComponent(myChurch);
-        } else if (tab === 'invite' || tab === 'friends') {
-            document.getElementById("chipTabInvite")?.classList.add("active");
-            openChristianFriendsModal();
+            document.getElementById('chipTabOurChurch')?.classList.add('active');
+            if (isLiveWorshipOpen) {
+                closeLiveWorshipView();
+            } else {
+                const myChurch = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalk_registered_home_church') || '부산제일감리교회').trim();
+                location.href = 'churchmain.html?churchName=' + encodeURIComponent(myChurch);
+            }
+        } else if (tab === 'personal' || tab === 'my') {
+            document.getElementById('chipTabPersonal')?.classList.add('active');
+            location.href = 'onemain.html';
         }
     }
 
