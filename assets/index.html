@@ -19,6 +19,37 @@
     <!-- 유튜브 IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
+        /* 🌟 [사용자 요청] 라이브 예배 모드: 상단 메뉴/헤더 다 숨기고 창 꽉 차게, 영상 가로 세로 하단 애드몹 빼고 꽉 채움! */
+        body.live-worship-fullscreen-mode .top-app-header,
+        body.live-worship-fullscreen-mode .quick-nav-bar,
+        body.live-worship-fullscreen-mode .portal-category-tabs,
+        body.live-worship-fullscreen-mode .church-free-promo-banner,
+        body.live-worship-fullscreen-mode .portal-four-action-bar,
+        body.live-worship-fullscreen-mode #thanksgivingContainer,
+        body.live-worship-fullscreen-mode #goodnewsCard,
+        body.live-worship-fullscreen-mode #portalScrollTopBtn,
+        body.live-worship-fullscreen-mode .yetalk-home-footer-info {
+            display: none !important;
+        }
+        body.live-worship-fullscreen-mode .portal-scroll-body {
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+            height: calc(100dvh - 114px) !important;
+            max-height: calc(100dvh - 114px) !important;
+            flex: 1 1 auto !important;
+            background: #000000 !important;
+        }
+        body.live-worship-fullscreen-mode #liveWorshipContainer {
+            display: block !important;
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            position: relative !important;
+            overflow: hidden !important;
+            background: #000000 !important;
+        }
         :root {
             --primary-blue: #0284c7;
             --primary-dark: #0f172a;
@@ -5799,88 +5830,87 @@
 
         <!-- 말씀 / 좋은 말씀 카드: [사용자 요청] 세로폭 여유있게 늘리고 글자 1PX 크게 정돈 (시간대 제목은 한줄로 깔끔 표출) -->
         
-        <!-- 🌟 [사용자 요청] 라이브 예배 전용 뷰 (상단 로고 위치까지 올려 거의 풀스크린 + 박스 제거 + 실시간 라이브 예배 / 날짜시간 빨강줄 / 시계 옆 교회 추가 + 3버튼 + 영상 + 4대 도구바 [예톡홈·속도·확대·화면고정] + 중복 애드몹 제거) -->
-        <section id="liveWorshipContainer" style="display:none; width:100%; box-sizing:border-box; margin-bottom:8px; padding:2px 0 8px 0;">
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <!-- 1. 상단: 1줄 [📡 실시간 라이브 예배] + 2줄 [날짜/시간 빨강줄 + 시계 옆 +교회추가 버튼] (박스 없음) -->
-                <div style="text-align:center; padding:4px 4px 6px 4px; display:flex; flex-direction:column; align-items:center; gap:4px;">
-                    <div style="font-size:15.5px; font-weight:950; color:#0f172a; letter-spacing:-0.4px;">
-                        📡 실시간 라이브 예배
+        <!-- 🌟 [사용자 요청] 라이브 예배 전용 뷰: 상단 메뉴/헤더 다 숨기고 창 꽉 차게, 영상 가로 세로 하단 애드몹 안전간격 빼고 꽉 채우며, 컨트롤 버튼은 반투명 배경으로 최상단/하단 오버레이 -->
+        <section id="liveWorshipContainer" style="display:none; width:100%; height:100%; position:relative; overflow:hidden; background:#000000; box-sizing:border-box;">
+            <!-- 1. 비디오 플레이어 (화면 가로 세로 꽉 채움) -->
+            <div id="liveWorshipPlayerContainer" style="position:absolute; inset:0; width:100%; height:100%; background:#000000; overflow:hidden; z-index:1;">
+                <iframe id="liveWorshipPlayerIframe" style="width:100%; height:100%; border:none; object-fit:cover;" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <!-- 화면 고정 오버레이 쉴드 -->
+                <div id="liveWorshipScreenLockShield" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.01); z-index:50;"></div>
+            </div>
+
+            <!-- 2. 상단 투명 컨트롤 바 (버튼이 영상에 방해 안 되도록 반투명 배경으로 최상단 배치) -->
+            <div class="live-worship-top-overlay" style="position:absolute; top:0; left:0; right:0; z-index:30; background:linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 75%, transparent 100%); padding:max(10px, env(safe-area-inset-top)) 10px 18px 10px; display:flex; flex-direction:column; gap:6px; pointer-events:auto;">
+                <!-- 상단 1줄: 라이브 라벨 & 시계 & 교회추가 & 닫기 -->
+                <div style="display:flex; justify-content:space-between; align-items:center; color:#ffffff;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#ef4444; box-shadow:0 0 8px #ef4444;"></span>
+                        <span style="font-size:13.5px; font-weight:950; letter-spacing:-0.3px; text-shadow:0 1px 3px rgba(0,0,0,0.8);">실시간 라이브 예배</span>
+                        <span id="liveWorshipClock" style="font-size:13px; font-weight:900; color:#fca5a5; margin-left:4px; font-family:'Pretendard', sans-serif; text-shadow:0 1px 3px rgba(0,0,0,0.8);">12:17:27</span>
                     </div>
-                    <div style="display:inline-flex; align-items:center; justify-content:center; gap:8px;">
-                        <span id="liveWorshipClock" style="font-size:15px; font-weight:950; color:#dc2626; letter-spacing:-0.3px; border-bottom:2px solid #dc2626; padding-bottom:1px; font-family:'Pretendard', sans-serif;">
-                            11월 26일(목) 12:00:00
-                        </span>
-                        <!-- 🌟 [사용자 요청] 시계 옆 나만 볼 수 있는 교회 유튜브 주소 추가 박스 (최대 3개) -->
-                        <button type="button" id="btnAdminAddOtherChurch" onclick="openAdminAddOtherChurchModal()" style="background:#fee2e2; border:1px solid #f87171; color:#b91c1c; font-size:11px; font-weight:950; padding:2.5px 7.5px; border-radius:6px; cursor:pointer;" title="나만 볼 수 있는 교회 유튜브 주소 추가">+ 교회 추가</button>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <button type="button" id="btnAdminAddOtherChurch" onclick="openAdminAddOtherChurchModal()" style="background:rgba(239,68,68,0.35); border:1px solid rgba(239,68,68,0.6); color:#fecaca; font-size:11px; font-weight:950; padding:2px 7px; border-radius:6px; cursor:pointer;" title="나만 볼 수 있는 교회 유튜브 주소 추가">+ 교회추가</button>
+                        <button type="button" onclick="closeLiveWorshipView()" style="background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.3); color:#ffffff; font-size:11.5px; font-weight:950; padding:2px 8px; border-radius:6px; cursor:pointer;" title="일반화면으로 돌아가기">✕ 닫기</button>
                     </div>
                 </div>
 
-                <!-- 2. 좌·중·우 3개 선택 버튼 (예톡 예배 / 우리교회 라이브 / 기타 교회 예배) -->
+                <!-- 상단 2줄: 좌·중·우 3개 선택 버튼 (투명한 반투명 유리 블러 배경으로 영상 방해 최소화) -->
                 <div style="display:grid; grid-template-columns:1fr 1.25fr 1.15fr; gap:6px; width:100%;">
                     <!-- 1) 예톡 예배 -->
-                    <button type="button" id="btnLiveYetalk" onclick="selectLiveWorshipStream('yetalk')" style="padding:10px 4px; border-radius:12px; font-size:13px; font-weight:950; cursor:pointer; border:1.5px solid #cbd5e1; background:#f8fafc; color:#334155; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; transition:all 0.15s ease;">
-                        <span style="font-size:11px; font-weight:800; opacity:0.8;">예톡TV</span>
+                    <button type="button" id="btnLiveYetalk" onclick="selectLiveWorshipStream('yetalk')" style="padding:6px 4px; border-radius:10px; font-size:12px; font-weight:950; cursor:pointer; border:1px solid rgba(255,255,255,0.25); background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); color:#ffffff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:all 0.15s ease;">
+                        <span style="font-size:10px; font-weight:800; opacity:0.85;">예톡TV</span>
                         <span>예톡 예배</span>
-                        <span class="live-status-pill" id="pillLiveYetalk" style="font-size:9.5px; padding:1px 6px; border-radius:8px; background:#e2e8f0; color:#64748b; font-weight:900;">설교영상</span>
+                        <span class="live-status-pill" id="pillLiveYetalk" style="font-size:9px; padding:1px 5px; border-radius:6px; background:rgba(255,255,255,0.2); color:#e2e8f0; font-weight:900;">설교영상</span>
                     </button>
 
                     <!-- 2) 우리교회 라이브 -->
-                    <button type="button" id="btnLiveOurChurch" onclick="selectLiveWorshipStream('our_church')" style="padding:10px 4px; border-radius:12px; font-size:13.5px; font-weight:950; cursor:pointer; border:1.5px solid #cbd5e1; background:#f8fafc; color:#334155; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; transition:all 0.15s ease;">
-                        <span style="font-size:11px; font-weight:800; opacity:0.9;" id="dispLiveOurChurchName">부산제일감리교회</span>
+                    <button type="button" id="btnLiveOurChurch" onclick="selectLiveWorshipStream('our_church')" style="padding:6px 4px; border-radius:10px; font-size:12px; font-weight:950; cursor:pointer; border:1px solid rgba(255,255,255,0.25); background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); color:#ffffff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:all 0.15s ease;">
+                        <span style="font-size:10px; font-weight:800; opacity:0.85;" id="dispLiveOurChurchName">부산제일감리교회</span>
                         <span>우리교회 라이브</span>
-                        <span class="live-status-pill" id="pillLiveOurChurch" style="font-size:9.5px; padding:1px 6px; border-radius:8px; background:#e2e8f0; color:#64748b; font-weight:900;">설교영상</span>
+                        <span class="live-status-pill" id="pillLiveOurChurch" style="font-size:9px; padding:1px 5px; border-radius:6px; background:rgba(255,255,255,0.2); color:#e2e8f0; font-weight:900;">설교영상</span>
                     </button>
 
                     <!-- 3) 기타 교회 예배 -->
-                    <button type="button" id="btnLiveOtherChurches" onclick="toggleOtherChurchesDropdown()" style="padding:10px 4px; border-radius:12px; font-size:13px; font-weight:950; cursor:pointer; border:1.5px solid #cbd5e1; background:#f8fafc; color:#334155; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; transition:all 0.15s ease;">
-                        <span style="font-size:11px; font-weight:800; opacity:0.8;">준회원 교회</span>
+                    <button type="button" id="btnLiveOtherChurches" onclick="toggleOtherChurchesDropdown()" style="padding:6px 4px; border-radius:10px; font-size:12px; font-weight:950; cursor:pointer; border:1px solid rgba(255,255,255,0.25); background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); color:#ffffff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; transition:all 0.15s ease;">
+                        <span style="font-size:10px; font-weight:800; opacity:0.85;">준회원 교회</span>
                         <span id="dispLiveOtherChurchLabel">기타교회 ▼</span>
-                        <span class="live-status-pill" id="pillLiveOtherChurch" style="font-size:9.5px; padding:1px 6px; border-radius:8px; background:#e2e8f0; color:#64748b; font-weight:900;">선택</span>
+                        <span class="live-status-pill" id="pillLiveOtherChurch" style="font-size:9px; padding:1px 5px; border-radius:6px; background:rgba(255,255,255,0.2); color:#e2e8f0; font-weight:900;">선택</span>
                     </button>
                 </div>
+            </div>
 
-                <!-- 🌟 기타 교회 선택 드롭다운 리스트 (준회원 등록 교회 및 대표님 추가 교회 목록) -->
-                <div id="dropdownOtherChurchesList" style="display:none; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:12px; padding:10px; flex-direction:column; gap:6px;">
-                    <div style="font-size:11.5px; font-weight:900; color:#475569; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
-                        <span>📋 등록 교회 라이브/설교 목록 (터치 시 즉시 시청)</span>
-                        <button type="button" onclick="toggleOtherChurchesDropdown()" style="background:none; border:none; font-size:13px; color:#64748b; font-weight:900; cursor:pointer;">닫기 ✕</button>
-                    </div>
-                    <div id="dispAssociateChurchesItems" style="display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto;">
-                        <!-- JS 렌더링 -->
-                    </div>
+            <!-- 🌟 기타 교회 드롭다운 오버레이 -->
+            <div id="dropdownOtherChurchesList" style="display:none; position:absolute; top:88px; left:10px; right:10px; z-index:40; background:rgba(15,23,42,0.92); backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.25); border-radius:12px; padding:10px; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto;">
+                <div style="font-size:11.5px; font-weight:900; color:#94a3b8; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>📋 등록 교회 라이브/설교 목록</span>
+                    <button type="button" onclick="toggleOtherChurchesDropdown()" style="background:none; border:none; font-size:13px; color:#ffffff; font-weight:900; cursor:pointer;">닫기 ✕</button>
+                </div>
+                <div id="dispAssociateChurchesItems" style="display:flex; flex-direction:column; gap:6px;">
+                    <!-- JS 렌더링 -->
+                </div>
+            </div>
+
+            <!-- 3. 하단 투명 컨트롤 바 (제목 및 예톡홈·속도·확대·화면고정 4대 버튼) -->
+            <div style="position:absolute; bottom:0; left:0; right:0; z-index:30; background:linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 75%, transparent 100%); padding:14px 10px 8px 10px; display:flex; flex-direction:column; gap:5px; pointer-events:auto;">
+                <!-- 현재 영상 제목 -->
+                <div style="font-size:12px; font-weight:850; color:#ffffff; padding:0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 3px rgba(0,0,0,0.9);" id="dispCurrentLiveTitle">
+                    [부산제일감리교회] 주일 실시간 생방송 라이브 예배
                 </div>
 
-                <!-- 3. 실시간 영상 플레이어 (박스 없이 시원하게 꽉 찬 와이드 화면) -->
-                <div id="liveWorshipPlayerContainer" style="width:100%; position:relative; background:#000000; border-radius:10px; overflow:hidden; aspect-ratio:16/9; min-height:230px; box-shadow:0 3px 12px rgba(0,0,0,0.2);">
-                    <iframe id="liveWorshipPlayerIframe" style="width:100%; height:100%; border:none;" src="" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    <!-- 화면 고정 오버레이 쉴드 -->
-                    <div id="liveWorshipScreenLockShield" style="display:none; position:absolute; inset:0; background:rgba(0,0,0,0.01); z-index:20;"></div>
-                </div>
-
-                <!-- 4. 🌟 [사용자 요청] 영상 맨 밑에 한줄로 예톡홈 · 속도 · 확대 · 화면고정 버튼만 배치 -->
-                <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-top:2px; width:100%;">
-                    <!-- 1) 예톡홈 -->
-                    <button type="button" onclick="closeLiveWorshipView()" style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:9px; padding:8px 4px; font-size:12.5px; font-weight:950; color:#0f172a; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                <!-- 4대 도구 버튼 (반투명 유리 버튼) -->
+                <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; width:100%;">
+                    <button type="button" onclick="closeLiveWorshipView()" style="background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.25); border-radius:8px; padding:7px 4px; font-size:11.5px; font-weight:950; color:#ffffff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:3px;">
                         <span>🏠</span> <span>예톡홈</span>
                     </button>
-                    <!-- 2) 속도 -->
-                    <button type="button" id="btnLivePlayerSpeed" onclick="cycleLivePlayerSpeed()" style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:9px; padding:8px 4px; font-size:12.5px; font-weight:950; color:#0f172a; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <button type="button" id="btnLivePlayerSpeed" onclick="cycleLivePlayerSpeed()" style="background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.25); border-radius:8px; padding:7px 4px; font-size:11.5px; font-weight:950; color:#ffffff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:3px;">
                         <span>⚡</span> <span id="txtLivePlayerSpeed">속도 1</span>
                     </button>
-                    <!-- 3) 확대 -->
-                    <button type="button" onclick="toggleLivePlayerFullscreen()" style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:9px; padding:8px 4px; font-size:12.5px; font-weight:950; color:#0f172a; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <button type="button" onclick="toggleLivePlayerFullscreen()" style="background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.25); border-radius:8px; padding:7px 4px; font-size:11.5px; font-weight:950; color:#ffffff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:3px;">
                         <span>🔍</span> <span>확대</span>
                     </button>
-                    <!-- 4) 화면고정 -->
-                    <button type="button" id="btnLiveScreenLock" onclick="toggleLiveScreenLock()" style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:9px; padding:8px 4px; font-size:12.5px; font-weight:950; color:#0f172a; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:4px; box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+                    <button type="button" id="btnLiveScreenLock" onclick="toggleLiveScreenLock()" style="background:rgba(15,23,42,0.6); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.25); border-radius:8px; padding:7px 4px; font-size:11.5px; font-weight:950; color:#ffffff; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:3px;">
                         <span id="iconLiveScreenLock">🔓</span> <span id="txtLiveScreenLock">화면고정</span>
                     </button>
-                </div>
-
-                <!-- 현재 영상 제목 안내 -->
-                <div style="font-size:12px; font-weight:800; color:#64748b; margin-top:2px; padding:0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="dispCurrentLiveTitle">
-                    [부산제일감리교회] 주일 실시간 생방송 라이브 예배
                 </div>
             </div>
         </section>
@@ -20804,9 +20834,18 @@ https://woongskorea.github.io/Yetalk-backup/`;
         document.body.classList.add('live-worship-fullscreen-mode');
 
         const liveSec = document.getElementById('liveWorshipContainer');
-        const gnCard = document.getElementById('goodnewsCard');
         if (liveSec) liveSec.style.display = 'block';
-        if (gnCard) gnCard.style.display = 'none';
+
+        // 🌟 [사용자 요청] 포털 본문 내부의 다른 모든 요소(카테고리 탭, 말씀 카드 등) 즉각 숨김
+        const portalBody = document.getElementById('portalBody');
+        if (portalBody) {
+            Array.from(portalBody.children).forEach(child => {
+                if (child.id !== 'liveWorshipContainer') {
+                    child.dataset.prevDisplay = child.style.display || '';
+                    child.style.display = 'none';
+                }
+            });
+        }
 
         // 시계 타이머 가동
         updateLiveWorshipClock();
@@ -20821,18 +20860,25 @@ https://woongskorea.github.io/Yetalk-backup/`;
         renderAssociateChurchesList();
         selectLiveWorshipStream('our_church');
 
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: 'auto' });
     }
 
-    // 🌟 [사용자 요청] 라이브 예배 뷰 닫기 (메인 포털 홈으로 복귀)
     function closeLiveWorshipView() {
         isLiveWorshipOpen = false;
         document.body.classList.remove('live-worship-fullscreen-mode');
 
         const liveSec = document.getElementById('liveWorshipContainer');
-        const gnCard = document.getElementById('goodnewsCard');
         if (liveSec) liveSec.style.display = 'none';
-        if (gnCard) gnCard.style.display = 'flex';
+
+        // 🌟 포털 본문 다른 요소들 복원
+        const portalBody = document.getElementById('portalBody');
+        if (portalBody) {
+            Array.from(portalBody.children).forEach(child => {
+                if (child.id !== 'liveWorshipContainer') {
+                    child.style.display = child.dataset.prevDisplay !== undefined ? child.dataset.prevDisplay : '';
+                }
+            });
+        }
 
         if (liveClockTimer) {
             clearInterval(liveClockTimer);
@@ -20847,9 +20893,7 @@ https://woongskorea.github.io/Yetalk-backup/`;
         document.getElementById('chipTabOurChurch')?.classList.add('active');
     }
 
-    // 🌟 [사용자 요청] 스트림 선택 (예톡예배 / 우리교회 / 기타교회)
-    // 기타교회 리스트가 열려있을 때 예톡예배나 우리교회로 가면 자동으로 닫힘!
-    function selectLiveWorshipStream(channelKey, customObj = null) {
+        function selectLiveWorshipStream(channelKey, customObj = null) {
         currentLiveChannelKey = channelKey;
         const myChurch = (localStorage.getItem('yetalk_church_name') || localStorage.getItem('yetalkChurchName') || localStorage.getItem('yetalk_registered_home_church') || '부산제일감리교회').trim();
 
