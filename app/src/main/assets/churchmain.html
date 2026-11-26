@@ -1560,21 +1560,35 @@
         if (!btn) return;
 
         if (isRegular) {
-            btn.innerHTML = `<span>👤</span> ${uName} <small style="font-size:10px; font-weight:950; background:#065f46; color:#a7f3d0; padding:1px 5px; border-radius:4px; margin-left:2px;">정회원</small>`;
-            btn.title = `[${churchName}] 본교회 정회원 상태 (모든 메뉴 이용 가능)`;
+            btn.innerHTML = `정회원`;
+            btn.title = `[${churchName}] 본교회 정회원 상태 (클릭 시 회원정보 확인 및 수정)`;
             btn.style.background = "#047857";
             btn.style.borderColor = "#10b981";
+            btn.style.color = "#ffffff";
+            btn.style.fontWeight = "950";
+            btn.style.padding = "5px 12px";
+            btn.style.borderRadius = "20px";
+            btn.style.fontSize = "12px";
         } else if (isAssociate) {
-            const displayName = uName || localStorage.getItem("yetalk_associate_name_" + churchName) || "새가족";
-            btn.innerHTML = `<span>👤</span> ${displayName} <small style="font-size:10px; font-weight:950; background:#1e3a8a; color:#bfdbfe; padding:1px 5px; border-radius:4px; margin-left:2px;">준회원</small>`;
-            btn.title = `[${churchName}] 준회원 상태 ([교회]·[예배] 메뉴 이용 가능)`;
+            btn.innerHTML = `준회원`;
+            btn.title = `[${churchName}] 준회원 상태 (클릭 시 회원정보 확인 및 수정)`;
             btn.style.background = "#2563eb";
             btn.style.borderColor = "#60a5fa";
+            btn.style.color = "#ffffff";
+            btn.style.fontWeight = "950";
+            btn.style.padding = "5px 12px";
+            btn.style.borderRadius = "20px";
+            btn.style.fontSize = "12px";
         } else {
-            btn.innerHTML = `<span>⛪</span> 성도가입 <small style="font-size:9.5px; opacity:0.95;">(준회원)</small>`;
-            btn.title = "준회원 가입 안내";
-            btn.style.background = "#059669";
-            btn.style.borderColor = "#34d399";
+            btn.innerHTML = `준회원`;
+            btn.title = "준회원 상태 (클릭 시 가입 및 정회원 등록)";
+            btn.style.background = "#2563eb";
+            btn.style.borderColor = "#60a5fa";
+            btn.style.color = "#ffffff";
+            btn.style.fontWeight = "950";
+            btn.style.padding = "5px 12px";
+            btn.style.borderRadius = "20px";
+            btn.style.fontSize = "12px";
 
             // 🌟 초청 링크(from=invite)로 처음 들어온 경우 준회원 가입 모달 자동 안내
             const urlParams = new URLSearchParams(window.location.search);
@@ -1601,32 +1615,9 @@
         });
     }
 
-    /* 🌟 성도가입 클릭 시 원클릭 등록 분기: 정회원 vs 준회원 */
+    /* 🌟 [사용자 요청] 준회원이든 정회원이든 누르면 경고/확인창 없이 바로 회원정보 확인 및 수정창 오픈 */
     function handleChurchMemberJoinClick() {
-        const churchName = sessionStorage.getItem("yetalk_viewing_church") || localStorage.getItem("yetalkChurchName") || "예톡행복한교회";
-        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
-        const myHomeChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || "").trim();
-        
-        const isRegular = Boolean(uName && myHomeChurch && (myHomeChurch === churchName || localStorage.getItem("yetalk_is_regular_member_" + churchName) === "true"));
-        const isAssociate = Boolean(localStorage.getItem("yetalk_church_member_grade_" + churchName) === "준회원");
-
-        if (isRegular) {
-            if (confirm(`✅ [${uName}] 성도님은 [${churchName}] 본교회 교우로 등록된 '정회원' 상태입니다.\n\n회원정보 확인 및 수정을 위해 예톡 홈으로 이동하시겠습니까?`)) {
-                location.href = "index.html";
-            }
-            return;
-        }
-
-        if (isAssociate) {
-            const displayName = uName || localStorage.getItem("yetalk_associate_name_" + churchName) || "새가족";
-            if (confirm(`👤 [${displayName}] 님은 현재 [${churchName}] '준회원' 상태입니다.\n\n본교회 '정회원'으로 등록하시려면 예톡 홈에서 본교회 교우로 가입해 주세요.\n\n예톡 홈으로 이동하시겠습니까?`)) {
-                location.href = "index.html";
-            }
-            return;
-        }
-
-        // 본 교회 교인이 아니고 초청 등으로 처음 온 경우: 준회원 가입 안내 모달 오픈
-        openSimpleMemberJoinModal();
+        openMyProfileModalDirect();
     }
 
     let mySelectedJob = '담임목사';

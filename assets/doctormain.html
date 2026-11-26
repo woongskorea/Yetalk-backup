@@ -1520,9 +1520,9 @@
                 </a>
             </div>
             <div class="header-right-box" style="display:flex; align-items:center; gap:6px;">
-                <!-- 🌟 [사용자 요청] 관리자(원장님)는 [👑 관리자], 방문자는 [👤 가입] ➔ 가입 후 [👤 정회원] -->
-                <button type="button" id="btnTopJoinOrAdmin" class="btn-header-join-only" onclick="handleTopRightBtnClick()" title="회원 가입 및 관리" style="font-size:14px; font-weight:950; padding:6px 14px; border-radius:10px; background:#10b981; color:#ffffff; border:none; box-shadow:0 2px 8px rgba(16,185,129,0.35); white-space:nowrap; cursor:pointer;">
-                    <span>👤</span> 가입
+                <!-- 🌟 [사용자 요청] 우측 상단에는 이름/아이디 없이 깔끔하게 [정회원] 또는 [준회원]만 노출 -->
+                <button type="button" id="btnTopJoinOrAdmin" class="btn-header-join-only" onclick="handleTopRightBtnClick()" title="회원 가입 및 관리" style="font-size:12px; font-weight:950; padding:5px 12px; border-radius:20px; background:#047857; color:#ffffff; border:1.5px solid #10b981; box-shadow:0 2px 8px rgba(4,120,87,0.35); white-space:nowrap; cursor:pointer;">
+                    정회원
                 </button>
             </div>
         </div>
@@ -5512,80 +5512,57 @@ function isUserClinicAdmin() {
     return false;
 }
 
-// 🌟 [사용자 요청] 우측 상단 버튼 UI 동기화 (관리자 모드 / 정회원 / VIP / 가입)
+// 🌟 [사용자 요청] 우측 상단 버튼 UI: 이름/아이디 없이 깔끔하게 [정회원] / [준회원]만 노출
 function updateTopHeaderJoinBtn() {
     const btn = document.getElementById("btnTopJoinOrAdmin");
     if (!btn) return;
 
-    if (isUserClinicAdmin()) {
-        btn.innerHTML = `<span>👑</span> 관리자`;
-        btn.title = "원장님/관리자 모드 (클릭 시 원내 관리실 열림)";
-        btn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
-        btn.style.border = "1.5px solid #fbbf24";
-        btn.style.boxShadow = "0 2px 8px rgba(245, 158, 11, 0.45)";
+    const isAdmin = isUserClinicAdmin();
+    let myRole = localStorage.getItem("yetalk_clinic_member_role");
+    const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id") || localStorage.getItem("yetalkUserName") || "").trim();
+    const userChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "").trim();
+    const userPastor = (localStorage.getItem("yetalk_pastor_name") || "").trim();
+    const isChurchRegular = !!(uName && userChurch && (userPastor || uName.includes("최베드로") || userChurch.includes("부산제일")));
+
+    // 🌟 [사용자 요청] 예톡메인교회에서 정회원인 사람은 예톡의원메인에도 자동으로 정회원!
+    if (!myRole && isChurchRegular) {
+        myRole = "정회원";
+        localStorage.setItem("yetalk_clinic_member_role", "정회원");
+    }
+
+    const isRegular = isAdmin || myRole === "정회원" || myRole === "우수회원" || myRole === "부관리자";
+
+    if (isRegular) {
+        btn.innerHTML = `정회원`;
+        btn.title = "의원 정회원 상태 (클릭 시 회원정보 확인 및 수정)";
+        btn.style.background = "#047857";
+        btn.style.border = "1.5px solid #10b981";
+        btn.style.color = "#ffffff";
+        btn.style.fontWeight = "950";
+        btn.style.fontSize = "12px";
+        btn.style.padding = "5px 12px";
+        btn.style.borderRadius = "20px";
+        btn.style.boxShadow = "0 2px 8px rgba(4, 120, 87, 0.35)";
     } else {
-        let myRole = localStorage.getItem("yetalk_clinic_member_role");
-        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id") || localStorage.getItem("yetalkUserName") || "").trim();
-        const userChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "").trim();
-        const userPastor = (localStorage.getItem("yetalk_pastor_name") || "").trim();
-        const isChurchRegular = !!(uName && userChurch && (userPastor || uName.includes("최베드로") || userChurch.includes("부산제일")));
-
-        // 🌟 [사용자 요청] 예톡메인교회에서 정회원인 사람은 예톡의원메인에도 자동으로 정회원!
-        if (!myRole && isChurchRegular) {
-            myRole = "정회원";
-            localStorage.setItem("yetalk_clinic_member_role", "정회원");
-        }
-
-        if (myRole === "부관리자") {
-            btn.innerHTML = `<span>🌟</span> 부관리자`;
-            btn.title = "원내 직원(부관리자) 모드";
-            btn.style.background = "linear-gradient(135deg, #0284c7, #2563eb)";
-            btn.style.border = "1.5px solid #38bdf8";
-        } else if (myRole === "우수회원") {
-            btn.innerHTML = `<span>✨</span> VIP회원`;
-            btn.title = "VIP 우수회원";
-            btn.style.background = "linear-gradient(135deg, #7c3aed, #9333ea)";
-            btn.style.border = "1.5px solid #a855f7";
-        } else if (myRole === "정회원") {
-            btn.innerHTML = `<span>👤</span> 정회원`;
-            btn.title = "의원 정회원";
-            btn.style.background = "linear-gradient(135deg, #0284c7, #0369a1)";
-            btn.style.border = "1.5px solid #38bdf8";
-        } else {
-            btn.innerHTML = `<span>👤</span> 가입`;
-            btn.title = "의원 고객 간편 가입";
-            btn.style.background = "#10b981";
-            btn.style.border = "none";
-            btn.style.boxShadow = "0 2px 8px rgba(16,185,129,0.35)";
-        }
+        btn.innerHTML = `준회원`;
+        btn.title = "준회원 상태 (클릭 시 간편 가입 및 정보 수정)";
+        btn.style.background = "#2563eb";
+        btn.style.border = "1.5px solid #60a5fa";
+        btn.style.color = "#ffffff";
+        btn.style.fontWeight = "950";
+        btn.style.fontSize = "12px";
+        btn.style.padding = "5px 12px";
+        btn.style.borderRadius = "20px";
+        btn.style.boxShadow = "0 2px 8px rgba(37, 99, 235, 0.35)";
     }
 }
 
+// 🌟 [사용자 요청] 준회원이든 정회원이든 누르면 alert 경고창 없이 바로 정보 수정/가입창 오픈
 function handleTopRightBtnClick() {
     if (isUserClinicAdmin()) {
         openBigDoctorEditDirect();
     } else {
-        let myRole = localStorage.getItem("yetalk_clinic_member_role");
-        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalk_user_id") || localStorage.getItem("yetalkUserName") || "").trim();
-        const userChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || localStorage.getItem("yetalkChurchName") || "").trim();
-        const userPastor = (localStorage.getItem("yetalk_pastor_name") || "").trim();
-        const isChurchRegular = !!(uName && userChurch && (userPastor || uName.includes("최베드로") || userChurch.includes("부산제일")));
-
-        // 🌟 [사용자 요청] 예톡메인교회에서 정회원인 사람은 예톡의원메인에도 자동으로 정회원!
-        if (!myRole && isChurchRegular) {
-            myRole = "정회원";
-            localStorage.setItem("yetalk_clinic_member_role", "정회원");
-        }
-
-        if (myRole === "부관리자") {
-            openClinicMemberModal();
-        } else if (myRole === "우수회원") {
-            alert("✨ 자가진피 최웅식의원 VIP 우수회원입니다.\n원내 상담 및 예약 시 VIP 우선 혜택이 적용됩니다.");
-        } else if (myRole === "정회원") {
-            alert("👤 자가진피 최웅식의원 정회원으로 등록되어 있습니다.\n시술 안내 및 예약 서비스를 편리하게 이용하세요.");
-        } else {
-            openPatientJoinModal();
-        }
+        openPatientJoinModal();
     }
 }
 
