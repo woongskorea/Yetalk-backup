@@ -23228,6 +23228,67 @@ window.openLiveWorshipView = openLiveWorshipView;
     // 🌟 [사용자 요청] 기도 타이머: 켠 이후 자동으로 경과 기도시간(1분, 2분... 분별 자동 증가) 및 현재 시각 표출
     let _prayerTimerInterval = null;
     let _prayerStartTime = null;
+    let _lastPrayerMilestoneChimeMins = 0;
+
+    // 🔔 [사용자 요청] 30분, 한시간, 한시간30분 지날 때마다 기도음악 끊김 없이 크게 울리는 거룩한 대성당 "딩-동" 차임벨
+    function playPrayerMilestoneChime(mins) {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            if (ctx.state === 'suspended') {
+                ctx.resume();
+            }
+
+            // 1음 "딩~": 맑고 은혜로운 고음 (E5 659.25Hz + 배음)
+            const dingTime = ctx.currentTime;
+            [659.25, 783.99, 1318.5].forEach((freq, idx) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = idx === 0 ? 'sine' : 'triangle';
+                osc.frequency.setValueAtTime(freq, dingTime);
+                const vol = idx === 0 ? 0.75 : 0.35;
+                gain.gain.setValueAtTime(0, dingTime);
+                gain.gain.linearRampToValueAtTime(vol, dingTime + 0.04);
+                gain.gain.exponentialRampToValueAtTime(0.001, dingTime + 1.8);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(dingTime);
+                osc.stop(dingTime + 1.8);
+            });
+
+            // 2음 "동~": 0.65초 후 깊고 장엄한 베이스 울림 (C5 523.25Hz + 베이스 C4 261.63Hz)
+            const dongTime = ctx.currentTime + 0.65;
+            [261.63, 523.25, 1046.5].forEach((freq, idx) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = idx === 1 ? 'sine' : 'triangle';
+                osc.frequency.setValueAtTime(freq, dongTime);
+                const vol = idx === 1 ? 0.85 : 0.4;
+                gain.gain.setValueAtTime(0, dongTime);
+                gain.gain.linearRampToValueAtTime(vol, dongTime + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, dongTime + 2.5);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(dongTime);
+                osc.stop(dongTime + 2.5);
+            });
+
+            // 타이머 뱃지 골드/레드 펄스 시각 효과
+            const elElapsed = document.getElementById("dispPrayerElapsedMinutes");
+            if (elElapsed) {
+                elElapsed.style.transition = "all 0.5s ease";
+                elElapsed.style.transform = "scale(1.25)";
+                elElapsed.style.boxShadow = "0 0 16px rgba(220,38,38,0.75)";
+                setTimeout(() => {
+                    elElapsed.style.transform = "scale(1)";
+                    elElapsed.style.boxShadow = "0 1px 3px rgba(220,38,38,0.12)";
+                }, 2200);
+            }
+        } catch (e) {
+            console.warn("Prayer chime error:", e);
+        }
+    }
 
     function updatePrayerTimerHourMinute() {
         const el = document.getElementById("prayerCurrentHourMinute");
@@ -23252,11 +23313,18 @@ window.openLiveWorshipView = openLiveWorshipView;
             } else {
                 elElapsed.innerText = `${mins}분`;
             }
+
+            // 🌟 [사용자 요청] 30분, 한시간(60분), 한시간30분(90분)... 지날 때마다 "딩동" 소리 크게 울림 (기도음악 지속 재생)
+            if (mins > 0 && mins % 30 === 0 && _lastPrayerMilestoneChimeMins !== mins) {
+                _lastPrayerMilestoneChimeMins = mins;
+                playPrayerMilestoneChime(mins);
+            }
         }
     }
 
     function startPrayerTimer() {
         _prayerStartTime = Date.now();
+        _lastPrayerMilestoneChimeMins = 0;
         updatePrayerTimerHourMinute();
         if (_prayerTimerInterval) clearInterval(_prayerTimerInterval);
         _prayerTimerInterval = setInterval(updatePrayerTimerHourMinute, 1000);
@@ -24270,7 +24338,25 @@ window.openLiveWorshipView = openLiveWorshipView;
             </div>
 
             <!-- 본문 스크롤 영역: flex: 1; min-height: 0; overflow-y: auto; (상단 마진 및 패딩 축소로 공간 최적화) -->
-            <div style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:12px 16px 45px 16px; display:flex; flex-direction:column; background:#ffffff;">
+            <div style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:12px 16px 45px 16px; display:flex; flex-direction:column; background:#ffffff; position:relative;">
+
+                <!-- 🌟 [사용자 요청] 화면의 반 정도 크기로 기도문 뒤에 항상 떠 있는 거룩한 하얀 십자가 배경 워터마크 -->
+                <div id="prayerHolyWhiteCrossWatermark" style="position:fixed; top:58%; left:50%; transform:translate(-50%, -50%); width:min(70vw, 320px); height:min(50vh, 460px); pointer-events:none; z-index:1; display:flex; align-items:center; justify-content:center; opacity:0.20; user-select:none;">
+                    <svg viewBox="0 0 100 150" style="width:100%; height:100%; filter:drop-shadow(0 0 16px rgba(37,99,235,0.25)) drop-shadow(0 4px 20px rgba(0,0,0,0.12));">
+                        <defs>
+                            <linearGradient id="prayerHolyCrossGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ffffff" />
+                                <stop offset="50%" stop-color="#f8fafc" />
+                                <stop offset="100%" stop-color="#e2e8f0" />
+                            </linearGradient>
+                        </defs>
+                        <!-- 성경적 황금비율 하얀 십자가 형상 -->
+                        <path d="M 40,0 L 60,0 L 60,35 L 98,35 L 98,55 L 60,55 L 60,150 L 40,150 L 40,55 L 2,55 L 2,35 L 40,35 Z" 
+                              fill="url(#prayerHolyCrossGrad)" 
+                              stroke="#cbd5e1" 
+                              stroke-width="1.2" />
+                    </svg>
+                </div>
 
                 <!-- 🌟 [사용자 요청] 첫줄: 타이머 자동 표시 (기도실 켠 이후 분별 1분, 2분... 자동 증가 타이머 & 현재 시각 컴팩트 배치) -->
                 <div id="prayerClockTimerCard" style="background:linear-gradient(135deg, #eff6ff 0%, #ffffff 100%); border:1.5px solid #93c5fd; border-radius:12px; padding:7px 12px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1.5px 6px rgba(37,99,235,0.06);">
@@ -24318,7 +24404,7 @@ window.openLiveWorshipView = openLiveWorshipView;
                 <div id="dailyRepentYtHost" style="display:none; width:1px; height:1px; position:absolute; left:-9999px;"></div>
 
                 <!-- 기도문 본문: [사용자 요청] 새로 수정·추가해주신 강력한 회개기도문 전문 완벽 반영 -->
-                <div style="font-size:16.5px; font-weight:800; color:#1e293b; line-height:1.95; word-break:keep-all;">
+                <div style="font-size:16.5px; font-weight:800; color:#1e293b; line-height:1.95; word-break:keep-all; position:relative; z-index:2;">
                     <p style="margin:0 0 20px 0;">
                         만군의 여호와 하나님, 온 우주 만물의 주관자이시며 나의 참된 아버지이신 주님을 찬양합니다! 예수 그리스도께서 십자가 위에서 "다 이루었다" 선포하시며 모든 어둠의 정사와 권세를 완전히 박살 내시고 저를 구원하사 하나님 자녀 삼아주셔서 감사합니다. 이제는 오직 주님만이 나의 유일한 구주이시며, 내 영혼과 가정, 일터의 절대적인 인도자 되심을 고백합니다.
                     </p>
