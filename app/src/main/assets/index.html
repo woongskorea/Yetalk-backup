@@ -13369,36 +13369,35 @@ const BIBLICAL_TIME_SLOTS = [
         const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
         const savedTongdok = (localStorage.getItem("yetalk_tongdok_book") || "").trim();
         const lastTestament = localStorage.getItem("yetalk_last_testament") || "NT";
-        const lastReadDate = localStorage.getItem("yetalk_last_read_date") || "";
-        const todayStr = getTodayDateStr();
 
-        let baseBook = (isTongdokActive && savedTongdok) ? savedTongdok : (localStorage.getItem("yetalk_user_bible_book") || (lastTestament === "OT" ? "창세기" : "마태복음"));
-        let baseCh = parseInt(localStorage.getItem("yetalk_user_bible_ch"), 10) || 1;
+        const mealPace = (typeof getMealBiblePace === 'function') ? getMealBiblePace() : 1;
+        const dailyCount = mealPace * 3;
 
-        // 🌟 [사용자 요청] 마지막에 신약 읽었으면 다음날 신약 고정으로 다음 장에서 시작되게 (날짜 변경 시 +1장 자동 전진)
-        if (lastReadDate && lastReadDate !== todayStr) {
-            const meta = getBibleBookMeta(baseBook);
-            let nextCh = baseCh + 1;
-            let nextBook = baseBook;
-            if (nextCh > meta.totalCh) {
-                // 책의 마지막 장이 끝나면 66권 순환 다음 성경 1장으로 자동 전진
-                const curIdx = BIBLE_66_BOOKS.findIndex(b => b.name === meta.name);
-                const nextMeta = BIBLE_66_BOOKS[(curIdx + 1) % BIBLE_66_BOOKS.length];
-                nextBook = nextMeta.name;
-                nextCh = 1;
+        let baseBook, baseCh;
+
+        // 🌟 [사용자 요청 핵심 원칙]
+        // 어떤 성경을 통독 고정했으면, 중간에 다른 성경을 찾아 읽었더라도
+        // 앱을 열 때와 오전/오후/저녁/내일/모레는 통독 고정한 성경의 스케줄 순서대로 연속 진행!
+        if (isTongdokActive && savedTongdok) {
+            const anchor = getTongdokAnchor();
+            const progress = calculate66ContinuousProgress(savedTongdok, anchor.anchorDate, dailyCount, true);
+            currentUserTodayChList = progress.primaryTodayCh;
+            window.currentUserTodayChapters = progress.todayChapters;
+
+            // 만약 날짜 경과로 책이 다음 권으로 자연 승계되었으면 통독 책도 자동 갱신
+            if (progress.currentBook && progress.currentBook.name !== savedTongdok) {
+                localStorage.setItem("yetalk_tongdok_book", progress.currentBook.name);
             }
-            baseBook = nextBook;
-            baseCh = nextCh;
 
-            localStorage.setItem("yetalk_user_bible_book", baseBook);
-            localStorage.setItem("yetalk_user_bible_ch", String(baseCh));
-            localStorage.setItem("yetalk_last_read_date", todayStr);
-            const nextMetaInfo = getBibleBookMeta(baseBook);
-            localStorage.setItem("yetalk_last_testament", nextMetaInfo.type || "NT");
-            if (isTongdokActive) {
-                localStorage.setItem("yetalk_tongdok_book", baseBook);
-                setTongdokAnchor(baseBook, baseCh, todayStr);
-            }
+            // 현재 시간대(오전 / 오후 / 저녁)에 맞는 통독 장수 자동 지정
+            const slotInfo = getCurrentTimeSlotInfo();
+            currentUserSlotIdx = slotInfo.slotIdx;
+            baseBook = slotInfo.book;
+            baseCh = slotInfo.ch;
+        } else {
+            // 통독 고정이 아닐 때(자유 읽기)에만 최근 열람 성경 복원
+            baseBook = localStorage.getItem("yetalk_user_bible_book") || (lastTestament === "OT" ? "창세기" : "마태복음");
+            baseCh = parseInt(localStorage.getItem("yetalk_user_bible_ch"), 10) || 1;
         }
 
         currentUserBibleBook = baseBook;
@@ -13448,19 +13447,8 @@ const BIBLICAL_TIME_SLOTS = [
         localStorage.setItem("yetalk_user_bible_book", book);
         localStorage.setItem("yetalk_user_bible_ch", "1");
 
+        // 🌟 [사용자 요청] 다른 성경을 임의로 찾아 읽더라도 통독 고정한 성경의 스케줄은 절대 덮어쓰거나 훼손하지 않음 (독립 유지)
         const isTongdokActive = (localStorage.getItem("yetalk_tongdok_active") === "true");
-        // 만약 통독 고정 상태라면 클릭한 성경으로 통독 책도 함께 일치시키고 새 앵커 세팅
-        if (isTongdokActive) {
-            localStorage.setItem("yetalk_tongdok_book", book);
-            localStorage.setItem("yetalk_tongdok_start_date", new Date().toISOString());
-            setTongdokAnchor(book, 1, getTodayDateStr());
-        }
-
-        const mealPace = (typeof getMealBiblePace === 'function') ? getMealBiblePace() : 1;
-        const dailyCount = mealPace * 3;
-        const progress = calculate66ContinuousProgress(book, getTodayDateStr(), dailyCount, isTongdokActive);
-        currentUserTodayChList = progress.primaryTodayCh;
-        window.currentUserTodayChapters = progress.todayChapters;
 
         const meta = getBibleBookMeta(book);
         currentHomeTestament = meta.type || "OT";
@@ -13581,12 +13569,6 @@ const BIBLICAL_TIME_SLOTS = [
                 tabOT.classList.toggle("active", isOT);
                 tabNT.classList.toggle("active", !isOT);
             }
-        }
-
-        // 🌟 [사용자 요청] 통독 고정 상태인 경우 앵커도 현재 장으로 동기화 (풀림/재시작 오류 방지)
-        if (localStorage.getItem("yetalk_tongdok_active") === "true") {
-            localStorage.setItem("yetalk_tongdok_book", currentUserBibleBook);
-            setTongdokAnchor(currentUserBibleBook, currentUserBibleCh, getTodayDateStr());
         }
 
         // 시간대 버튼 갱신
