@@ -8656,6 +8656,106 @@
         </div>
     </div>
 
+    <!-- 13-1. 🌟 [사용자 요청] 관리자 전용 예톡 본부 전체 공지 ([예톡공지]) 작성/수정 모달 -->
+    <div class="modal-overlay" id="modalMasterNoticeEditor" style="z-index:70000; display:none;">
+        <div class="modal-card" style="max-width:440px; width:92%; max-height:90vh; overflow-y:auto; background:#ffffff; border-radius:18px; padding:20px; box-sizing:border-box; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #e0f2fe; padding-bottom:12px; margin-bottom:14px;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:18px;">👑</span>
+                    <strong style="font-size:17px; color:#0f172a;" id="txtMasterNoticeModalTitle">예톡 본부 전체 공지 작성</strong>
+                </div>
+                <button type="button" onclick="closeMasterNoticeEditorModal()" style="background:none; border:none; font-size:22px; color:#94a3b8; cursor:pointer;">✕</button>
+            </div>
+            
+            <input type="hidden" id="inpMasterNoticeEditId" value="">
+
+            <!-- 태그 안내 -->
+            <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:10px 12px; font-size:12.5px; color:#1e40af; font-weight:800; margin-bottom:14px; line-height:1.5;">
+                💡 등록된 공지는 <b>전국 모든 회원의 공지알림 1번 최상단</b>에 <span style="background:#1e40af; color:#fff; padding:1px 6px; border-radius:4px; font-size:11px;">[예톡공지]</span> 뱃지로 노출됩니다.
+            </div>
+
+            <!-- 공지 제목 -->
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13.5px; font-weight:900; color:#0f172a; display:block; margin-bottom:5px;">📢 공지 제목</label>
+                <input type="text" id="inpMasterNoticeTitle" placeholder="공지 제목을 입력하세요 (예: [예톡공지] 2026년 특별 알림)" style="width:100%; height:44px; border:1.5px solid #cbd5e1; border-radius:10px; padding:0 12px; font-size:14px; font-weight:750; box-sizing:border-box; outline:none;">
+            </div>
+
+            <!-- 공지 내용 -->
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13.5px; font-weight:900; color:#0f172a; display:block; margin-bottom:5px;">📝 공지 상세 내용</label>
+                <textarea id="inpMasterNoticeContent" rows="6" placeholder="전국 회원에게 알릴 공지 내용을 상세히 작성하세요." style="width:100%; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px 12px; font-size:14px; font-weight:750; box-sizing:border-box; resize:none; line-height:1.6; outline:none;"></textarea>
+            </div>
+
+            <!-- 사진 파일 첨부 (초절약 JPG 압축 엔진 자동 연동) -->
+            <div style="margin-bottom:14px;">
+                <label style="font-size:13.5px; font-weight:900; color:#0f172a; display:block; margin-bottom:5px;">📷 그림/사진 첨부 (선택)</label>
+                <div style="display:flex; align-items:center; justify-content:space-between; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:8px 12px;">
+                    <label style="background:#e0f2fe; color:#0284c7; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:900; cursor:pointer;">
+                        <span>🖼️ 사진 선택</span>
+                        <input type="file" id="inpMasterNoticePhoto" accept="image/*" style="display:none;" onchange="handleMasterNoticePhoto(event)">
+                    </label>
+                    <span id="txtMasterNoticePhotoStatus" style="font-size:12px; color:#64748b; font-weight:700;">선택된 사진 없음</span>
+                </div>
+                <div id="previewMasterNoticePhotoBox" style="display:none; margin-top:8px; max-height:180px; overflow:hidden; border-radius:10px; border:1px solid #cbd5e1; position:relative;">
+                    <img id="imgMasterNoticePreview" src="" style="width:100%; height:100%; object-fit:cover;">
+                    <button type="button" onclick="removeMasterNoticePhoto()" style="position:absolute; top:6px; right:6px; background:rgba(0,0,0,0.6); color:#fff; border:none; border-radius:50%; width:24px; height:24px; font-size:12px; cursor:pointer;">✕</button>
+                </div>
+            </div>
+
+            <!-- 버튼 행 (저장 / 삭제 / 닫기) -->
+            <div style="display:flex; gap:8px;">
+                <button type="button" id="btnDeleteMasterNotice" onclick="deleteCurrentMasterNotice()" style="display:none; height:46px; background:#fee2e2; border:1px solid #fecdd3; color:#b91c1c; font-size:14px; font-weight:900; border-radius:10px; cursor:pointer; padding:0 14px;">
+                    🗑️ 삭제
+                </button>
+                <button type="button" onclick="saveMasterNotice()" style="flex:1; height:46px; background:linear-gradient(135deg, #1d4ed8, #0284c7); border:none; color:#ffffff; font-size:15px; font-weight:950; border-radius:10px; cursor:pointer; box-shadow:0 3px 10px rgba(29,78,216,0.25);">
+                    📢 공지 등록하기
+                </button>
+                <button type="button" onclick="closeMasterNoticeEditorModal()" style="height:46px; background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; font-size:14px; font-weight:850; border-radius:10px; cursor:pointer; padding:0 16px;">
+                    닫기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 13-2. 🌟 [사용자 요청] 예톡 본부 전체 공지 ([예톡공지]) 상세 보기 모달 -->
+    <div class="modal-overlay" id="modalMasterNoticeDetail" style="z-index:71000; display:none;">
+        <div class="modal-card" style="max-width:440px; width:92%; max-height:90vh; overflow-y:auto; background:#ffffff; border-radius:18px; padding:20px; box-sizing:border-box; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #e2e8f0; padding-bottom:12px; margin-bottom:14px;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:11px; font-weight:950; background:linear-gradient(135deg, #1e40af, #2563eb); color:#ffffff; padding:2px 8px; border-radius:6px;">예톡공지</span>
+                    <strong style="font-size:15px; color:#0f172a;" id="viewMasterNoticeAuthor">예톡 본부</strong>
+                </div>
+                <button type="button" onclick="closeMasterNoticeDetailModal()" style="background:none; border:none; font-size:22px; color:#94a3b8; cursor:pointer;">✕</button>
+            </div>
+            
+            <h3 style="font-size:17px; font-weight:950; color:#0f172a; margin:0 0 10px 0; line-height:1.45; word-break:keep-all;" id="viewMasterNoticeTitle"></h3>
+            
+            <div style="font-size:12px; color:#64748b; margin-bottom:14px;" id="viewMasterNoticeDate"></div>
+            
+            <!-- 첨부 사진 -->
+            <div id="viewMasterNoticeImgBox" style="display:none; margin-bottom:14px; border-radius:12px; overflow:hidden; border:1px solid #cbd5e1;">
+                <img id="viewMasterNoticeImg" src="" style="width:100%; max-height:280px; object-fit:cover;">
+            </div>
+
+            <!-- 본문 내용 -->
+            <div style="font-size:14.5px; font-weight:750; color:#334155; line-height:1.65; white-space:pre-line; word-break:keep-all; margin-bottom:20px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px;" id="viewMasterNoticeContent"></div>
+
+            <!-- 관리자 전용 수정/삭제 버튼 바 -->
+            <div id="adminMasterNoticeActionRow" style="display:none; gap:8px; margin-bottom:10px;">
+                <button type="button" onclick="editCurrentMasterNoticeFromDetail()" style="flex:1; height:42px; background:#eff6ff; border:1.2px solid #3b82f6; color:#1d4ed8; font-size:13.5px; font-weight:900; border-radius:10px; cursor:pointer;">
+                    ✏️ 이 공지 수정
+                </button>
+                <button type="button" onclick="deleteCurrentMasterNoticeFromDetail()" style="height:42px; background:#fee2e2; border:1px solid #fecdd3; color:#b91c1c; font-size:13.5px; font-weight:900; border-radius:10px; cursor:pointer; padding:0 14px;">
+                    🗑️ 삭제
+                </button>
+            </div>
+
+            <button type="button" onclick="closeMasterNoticeDetailModal()" style="width:100%; height:44px; background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; font-size:14.5px; font-weight:850; border-radius:10px; cursor:pointer;">
+                닫기
+            </button>
+        </div>
+    </div>
+
 <!-- 🌟 [사용자 요청] 성경 66권 전체(1,189장 31,102절) 및 요한복음 무결점 성경 통독 데이터 로드 -->
 <script src="bible_john.js"></script>
 <script src="bible_data.js"></script>
@@ -17742,6 +17842,252 @@ const BIBLICAL_TIME_SLOTS = [
         }
     }
 
+    /* =========================================================================
+       🌟 [사용자 요청] 예톡메인 본부 전체 공지 ([예톡공지]) 관리자 전용 작성/수정/삭제 로직
+       ========================================================================= */
+    let tempMasterNoticePhotoBase64 = "";
+    let currentViewingMasterNoticeId = "";
+
+    function isMasterNoticeAdmin() {
+        const isAdmin = localStorage.getItem("yetalk_is_admin") === "true";
+        if (isAdmin) return true;
+        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || localStorage.getItem("yetalk_login_user") || "").trim();
+        const uRole = (localStorage.getItem("yetalk_member_role") || localStorage.getItem("yetalk_user_role") || "").trim();
+        if (["관리자", "총관리자", "목회자", "원장", "대표"].includes(uRole)) return true;
+        if (uName.includes("최웅식") || uName.includes("최베드로") || uName.includes("최용식") || uName.toLowerCase().includes("admin") || uName.includes("관리자")) return true;
+        return false;
+    }
+    window.isMasterNoticeAdmin = isMasterNoticeAdmin;
+
+    function getMasterGlobalNotices() {
+        try {
+            const raw = localStorage.getItem("yetalk_master_global_notices_v2");
+            if (raw) return JSON.parse(raw);
+        } catch(e) {}
+        return [];
+    }
+    window.getMasterGlobalNotices = getMasterGlobalNotices;
+
+    function saveMasterGlobalNotices(list) {
+        try {
+            localStorage.setItem("yetalk_master_global_notices_v2", JSON.stringify(list));
+        } catch(e) {}
+    }
+
+    function openMasterNoticeEditorModal(editId) {
+        const modal = document.getElementById("modalMasterNoticeEditor");
+        if (!modal) return;
+        tempMasterNoticePhotoBase64 = "";
+
+        const titleEl = document.getElementById("txtMasterNoticeModalTitle");
+        const inpId = document.getElementById("inpMasterNoticeEditId");
+        const inpTitle = document.getElementById("inpMasterNoticeTitle");
+        const inpContent = document.getElementById("inpMasterNoticeContent");
+        const pBox = document.getElementById("previewMasterNoticePhotoBox");
+        const pImg = document.getElementById("imgMasterNoticePreview");
+        const pTxt = document.getElementById("txtMasterNoticePhotoStatus");
+        const btnDel = document.getElementById("btnDeleteMasterNotice");
+
+        if (editId) {
+            const list = getMasterGlobalNotices();
+            const item = list.find(n => n.id === editId);
+            if (item) {
+                if (titleEl) titleEl.innerText = "예톡 본부 전체 공지 수정";
+                if (inpId) inpId.value = item.id;
+                if (inpTitle) inpTitle.value = item.title.replace(/^📢\s*\[예톡공지\]\s*/, '').replace(/^\[예톡공지\]\s*/, '');
+                if (inpContent) inpContent.value = item.content || '';
+                if (item.img) {
+                    tempMasterNoticePhotoBase64 = item.img;
+                    if (pImg) pImg.src = item.img;
+                    if (pBox) pBox.style.display = "block";
+                    if (pTxt) pTxt.innerText = "⚡ 등록된 사진 있음";
+                } else {
+                    if (pBox) pBox.style.display = "none";
+                    if (pTxt) pTxt.innerText = "선택된 사진 없음";
+                }
+                if (btnDel) btnDel.style.display = "block";
+            }
+        } else {
+            if (titleEl) titleEl.innerText = "예톡 본부 전체 공지 작성";
+            if (inpId) inpId.value = "";
+            if (inpTitle) inpTitle.value = "";
+            if (inpContent) inpContent.value = "";
+            if (pBox) pBox.style.display = "none";
+            if (pTxt) pTxt.innerText = "선택된 사진 없음";
+            if (btnDel) btnDel.style.display = "none";
+        }
+
+        modal.style.display = "flex";
+    }
+    window.openMasterNoticeEditorModal = openMasterNoticeEditorModal;
+
+    function closeMasterNoticeEditorModal() {
+        const modal = document.getElementById("modalMasterNoticeEditor");
+        if (modal) modal.style.display = "none";
+    }
+    window.closeMasterNoticeEditorModal = closeMasterNoticeEditorModal;
+
+    function handleMasterNoticePhoto(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        compressImageFileToJpg(file, function(jpgDataUrl) {
+            tempMasterNoticePhotoBase64 = jpgDataUrl;
+            const pBox = document.getElementById("previewMasterNoticePhotoBox");
+            const pImg = document.getElementById("imgMasterNoticePreview");
+            const pTxt = document.getElementById("txtMasterNoticePhotoStatus");
+            if (pImg) pImg.src = jpgDataUrl;
+            if (pBox) pBox.style.display = "block";
+            if (pTxt) pTxt.innerText = "⚡ 초절약 사진 첨부됨";
+        });
+        event.target.value = "";
+    }
+    window.handleMasterNoticePhoto = handleMasterNoticePhoto;
+
+    function removeMasterNoticePhoto() {
+        tempMasterNoticePhotoBase64 = "";
+        const pBox = document.getElementById("previewMasterNoticePhotoBox");
+        const pImg = document.getElementById("imgMasterNoticePreview");
+        const pTxt = document.getElementById("txtMasterNoticePhotoStatus");
+        if (pImg) pImg.src = "";
+        if (pBox) pBox.style.display = "none";
+        if (pTxt) pTxt.innerText = "선택된 사진 없음";
+    }
+    window.removeMasterNoticePhoto = removeMasterNoticePhoto;
+
+    function saveMasterNotice() {
+        const inpId = document.getElementById("inpMasterNoticeEditId")?.value || "";
+        let rawTitle = (document.getElementById("inpMasterNoticeTitle")?.value || "").trim();
+        const content = (document.getElementById("inpMasterNoticeContent")?.value || "").trim();
+
+        if (!rawTitle) {
+            alert("공지 제목을 입력해주세요.");
+            document.getElementById("inpMasterNoticeTitle")?.focus();
+            return;
+        }
+        if (!content) {
+            alert("공지 상세 내용을 입력해주세요.");
+            document.getElementById("inpMasterNoticeContent")?.focus();
+            return;
+        }
+
+        // 🌟 [사용자 요청] 1번에 예톡공지라고 해서 등록
+        const fullTitle = rawTitle.startsWith("[예톡공지]") ? rawTitle : `[예톡공지] ${rawTitle}`;
+
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+
+        let list = getMasterGlobalNotices();
+
+        if (inpId) {
+            // 수정
+            const idx = list.findIndex(n => n.id === inpId);
+            if (idx >= 0) {
+                list[idx].title = fullTitle;
+                list[idx].content = content;
+                list[idx].dateText = "공지";
+                list[idx].date = dateStr;
+                if (tempMasterNoticePhotoBase64) {
+                    list[idx].img = tempMasterNoticePhotoBase64;
+                }
+            }
+        } else {
+            // 새 공지 등록
+            const newNotice = {
+                id: "master_" + Date.now(),
+                tagText: "예톡공지",
+                title: fullTitle,
+                content: content,
+                sender: "예톡 본부",
+                author: "예톡 본부",
+                dateText: "공지",
+                date: dateStr,
+                img: tempMasterNoticePhotoBase64,
+                isMaster: true
+            };
+            list.unshift(newNotice);
+        }
+
+        saveMasterGlobalNotices(list);
+        closeMasterNoticeEditorModal();
+        renderUnifiedNotices();
+        alert("🎉 [예톡공지]가 등록되었습니다!\n전국 모든 성도와 회원의 공지알림 맨 위 1번에 실시간으로 노출됩니다.");
+    }
+    window.saveMasterNotice = saveMasterNotice;
+
+    function deleteCurrentMasterNotice() {
+        const inpId = document.getElementById("inpMasterNoticeEditId")?.value || "";
+        if (!inpId) return;
+        if (!confirm("이 [예톡공지]를 삭제하시겠습니까?")) return;
+
+        let list = getMasterGlobalNotices();
+        list = list.filter(n => n.id !== inpId);
+        saveMasterGlobalNotices(list);
+        closeMasterNoticeEditorModal();
+        renderUnifiedNotices();
+        alert("🗑️ [예톡공지]가 삭제되었습니다.");
+    }
+    window.deleteCurrentMasterNotice = deleteCurrentMasterNotice;
+
+    function openMasterNoticeDetailModal(id) {
+        const list = getMasterGlobalNotices();
+        const item = list.find(n => n.id === id);
+        if (!item) return;
+
+        currentViewingMasterNoticeId = id;
+
+        const modal = document.getElementById("modalMasterNoticeDetail");
+        if (!modal) return;
+
+        document.getElementById("viewMasterNoticeTitle").innerText = item.title;
+        document.getElementById("viewMasterNoticeAuthor").innerText = item.author || "예톡 본부";
+        document.getElementById("viewMasterNoticeDate").innerText = (item.date || "공지") + " • 전국 공지";
+        document.getElementById("viewMasterNoticeContent").innerText = item.content;
+
+        const imgBox = document.getElementById("viewMasterNoticeImgBox");
+        const imgEl = document.getElementById("viewMasterNoticeImg");
+        if (item.img) {
+            if (imgEl) imgEl.src = item.img;
+            if (imgBox) imgBox.style.display = "block";
+        } else {
+            if (imgBox) imgBox.style.display = "none";
+        }
+
+        const actionRow = document.getElementById("adminMasterNoticeActionRow");
+        if (actionRow) {
+            actionRow.style.display = isMasterNoticeAdmin() ? "flex" : "none";
+        }
+
+        modal.style.display = "flex";
+    }
+    window.openMasterNoticeDetailModal = openMasterNoticeDetailModal;
+
+    function closeMasterNoticeDetailModal() {
+        const modal = document.getElementById("modalMasterNoticeDetail");
+        if (modal) modal.style.display = "none";
+    }
+    window.closeMasterNoticeDetailModal = closeMasterNoticeDetailModal;
+
+    function editCurrentMasterNoticeFromDetail() {
+        const id = currentViewingMasterNoticeId;
+        closeMasterNoticeDetailModal();
+        if (id) openMasterNoticeEditorModal(id);
+    }
+    window.editCurrentMasterNoticeFromDetail = editCurrentMasterNoticeFromDetail;
+
+    function deleteCurrentMasterNoticeFromDetail() {
+        const id = currentViewingMasterNoticeId;
+        if (!id) return;
+        if (!confirm("이 [예톡공지]를 삭제하시겠습니까?")) return;
+
+        let list = getMasterGlobalNotices();
+        list = list.filter(n => n.id !== id);
+        saveMasterGlobalNotices(list);
+        closeMasterNoticeDetailModal();
+        renderUnifiedNotices();
+        alert("🗑️ [예톡공지]가 삭제되었습니다.");
+    }
+    window.deleteCurrentMasterNoticeFromDetail = deleteCurrentMasterNoticeFromDetail;
+
     // 🌟 [사용자 요청] 공지알림은 본인 교회의 공지알림만 뜨도록 엄격 제어
     function renderUnifiedNotices() {
         const container = document.getElementById("unifiedNoticePanel");
@@ -17787,8 +18133,6 @@ const BIBLICAL_TIME_SLOTS = [
             const churchDailyWordList = [];
 
             // 🌟 [사용자 요청] 예수동행: 예톡홈 공지부분에 매일 항상 올라옴!
-            // 10시 전에 수정 안 하면 '공식'은 빼고 교회 이름으로 ([부산제일감리교회] 행복한 예수동행),
-            // 목사님께서 수정하셨으면 목사님 이름으로 ([정찬석 담임목사의 행복한 예수동행])!
             let sScripture = "오직 여호와를 앙망하는 자는 새 힘을 얻으리니 독수리가 날개치며 올라감 같을 것이요 달음박질하여도 곤비하지 아니하겠고 걸어가도 피곤하지 아니하리로다 (이사야 40:31)";
             let sMeditation = "성도 여러분, 오늘도 주님과 손잡고 걸어가는 복된 하루 되시기를 축복합니다.\n마음의 무거운 짐을 주님께 모두 맡겨드리고, 약속의 말씀을 굳게 붙잡아 평안과 감사가 넘치시기를 소망합니다.";
             if (storedWord && storedWord.scripture) {
@@ -17849,9 +18193,13 @@ const BIBLICAL_TIME_SLOTS = [
                 }
             ];
 
-            notices = [...churchDailyWordList, ...customNotices, ...defaultChurchNotices];
+            // 🌟 [사용자 요청] 전체 공지를 내가 내릴 때: 1번에 예톡공지 배치!
+            const masterNotices = getMasterGlobalNotices();
+            notices = [...masterNotices, ...churchDailyWordList, ...customNotices, ...defaultChurchNotices];
         } else {
+            const masterNotices = getMasterGlobalNotices();
             notices = [
+                ...masterNotices,
                 {
                     id: "notice_register_guide",
                     tagType: "church",
@@ -17869,25 +18217,43 @@ const BIBLICAL_TIME_SLOTS = [
         if (badgeCount) badgeCount.innerText = notices.length;
 
         const headerTitle = churchName ? `🔔 [${churchName}] 공지알림` : `🔔 출석교회 공지알림`;
+        const isAdmin = (typeof isMasterNoticeAdmin === 'function' && isMasterNoticeAdmin());
+
+        // 🌟 [사용자 요청] 옆에 관리자공지 버튼 (나만 보이는 것) 두어서 거기서 바로 적게 처리!
         const headerHtml = `
-            <div style="display:flex; align-items:center; gap:6px; padding:6px 4px 10px 4px; border-bottom:1.5px solid #e2e8f0; margin-bottom:8px;">
-                <span style="font-size:14.5px; font-weight:950; color:#0f172a; white-space:nowrap;">${headerTitle}</span>
-                <span style="background:#059669; color:#fff; font-size:11px; font-weight:900; padding:1px 7px; border-radius:10px;">${notices.length}</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 4px 10px 4px; border-bottom:1.5px solid #e2e8f0; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:14.5px; font-weight:950; color:#0f172a; white-space:nowrap;">${headerTitle}</span>
+                    <span style="background:#059669; color:#fff; font-size:11px; font-weight:900; padding:1px 7px; border-radius:10px;">${notices.length}</span>
+                </div>
+                ${isAdmin ? `
+                    <button type="button" onclick="openMasterNoticeEditorModal()" style="background:#eff6ff; border:1.2px solid #3b82f6; border-radius:8px; padding:3px 10px; font-size:11.8px; font-weight:900; color:#1d4ed8; cursor:pointer; display:inline-flex; align-items:center; gap:3px; box-shadow:0 1.5px 4px rgba(37,99,235,0.1);" title="예톡본부 전체 공지 작성 (나만 보이는 관리자 공지)">
+                        <span>📢</span> <span>관리자공지</span>
+                    </button>
+                ` : ''}
             </div>
         `;
 
-        // 🌟 [사용자 요청] 공지알림 버튼 누르면 교회앱속에 그 공지글이 바로 연결되어 열리게 처리!
+        // 🌟 [사용자 요청] 1번에 예톡공지라고 해서 노출 (터치 시 상세 모달, 수정/삭제 가능)
         const itemsHtml = notices.map(n => {
-            const target = n.targetUrl ? n.targetUrl : (`churchnotice.html?noticeId=${encodeURIComponent(n.id)}`);
+            const isMaster = (n.isMaster === true || n.tagText === "예톡공지");
+            const target = isMaster ? "" : (n.targetUrl ? n.targetUrl : (`churchnotice.html?noticeId=${encodeURIComponent(n.id)}`));
+            const clickAttr = isMaster ? `onclick="openMasterNoticeDetailModal('${n.id}')"` : `onclick="location.href='${target}'"`;
+            const tagBadgeStyle = isMaster 
+                ? "background:linear-gradient(135deg, #1e40af, #2563eb); color:#ffffff; font-weight:950;" 
+                : "background:#dcfce7; color:#15803d; font-weight:900;";
+            const cardBg = isMaster ? "background:#f0f7ff; border:1.5px solid #bfdbfe;" : "background:#ffffff; border:1px solid #e2e8f0;";
+
             return `
-                <div onclick="location.href='${target}'" style="display:flex; justify-content:space-between; align-items:center; padding:11px 12px; background:#ffffff; border-radius:10px; margin-bottom:6px; border:1px solid #e2e8f0; cursor:pointer; box-shadow:0 1.5px 3px rgba(0,0,0,0.03); transition:all 0.15s ease;">
+                <div ${clickAttr} style="display:flex; justify-content:space-between; align-items:center; padding:11px 12px; border-radius:10px; margin-bottom:6px; ${cardBg} cursor:pointer; box-shadow:0 1.5px 3px rgba(0,0,0,0.03); transition:all 0.15s ease;">
                     <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
-                        <span style="flex-shrink:0; font-size:11px; font-weight:900; background:#dcfce7; color:#15803d; padding:2px 7px; border-radius:6px;">${n.tagText}</span>
+                        <span style="flex-shrink:0; font-size:11px; ${tagBadgeStyle} padding:2px 7px; border-radius:6px;">${n.tagText}</span>
                         <strong style="font-size:13.5px; font-weight:850; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${n.title}</strong>
+                        ${n.img ? `<span style="font-size:10px; color:#0284c7; background:#e0f2fe; padding:1px 4px; border-radius:4px; font-weight:900; flex-shrink:0;">📷</span>` : ''}
                     </div>
                     <div style="display:flex; align-items:center; gap:6px; flex-shrink:0; margin-left:8px;">
                         <span style="font-size:11px; color:#94a3b8; font-weight:700;">${n.dateText}</span>
-                        <span style="color:#059669; font-size:13px; font-weight:900;">➔</span>
+                        <span style="color:${isMaster ? '#1d4ed8' : '#059669'}; font-size:13px; font-weight:900;">➔</span>
                     </div>
                 </div>
             `;
