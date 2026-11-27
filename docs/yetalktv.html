@@ -4573,7 +4573,7 @@
         }
 </style>
 </head>
-<body>
+<body class="is-video-playing">
 
 <div class="pc-theater-wrapper">
 
@@ -5287,9 +5287,16 @@
         </div>
 
         <!-- 🌟 풀스크린 하단 도구바: [사용자 요청] 3줄 메뉴 개편 -->
+        <!-- 🌟 [사용자 요청] 영상 중지(일시정지) 시 화면 중앙 안내 배지 (재생 시 숨김) -->
+        <div id="tvShortsPauseBadge" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:24000; pointer-events:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(15, 23, 42, 0.82); backdrop-filter:blur(8px); border:1.5px solid rgba(255, 255, 255, 0.25); border-radius:20px; padding:18px 24px; box-shadow:0 8px 32px rgba(0,0,0,0.6); text-align:center;">
+            <div style="width:52px; height:52px; border-radius:50%; background:rgba(255,255,255,0.22); display:flex; align-items:center; justify-content:center; font-size:26px; color:#ffffff; padding-left:4px; margin:0 auto;">▶</div>
+            <span style="font-size:14px; font-weight:900; color:#ffffff; letter-spacing:-0.2px;">영상 일시정지됨</span>
+            <span style="font-size:11.5px; font-weight:700; color:#94a3b8;">화면을 터치하면 다시 재생됩니다</span>
+        </div>
+
         <div class="tv-shorts-bottom-overlay" id="tvShortsBottomOverlay">
             <!-- 1번째 줄: [🎵 찬양] [💧 회개] [✨ 간증] [🌈 천국] + 맨 우측 [확대 1] (총 5개) -->
-            <div class="shorts-row-layout shorts-menu-tier1" id="shortsMenuTier1">
+            <div class="shorts-row-layout shorts-menu-tier1" id="shortsMenuTier1" style="display:none !important;">
                 <div class="shorts-row-left-4">
                     <button type="button" class="btn-shorts-cat active" id="btnShortsCat_찬양" onclick="openChannelScriptureModal('찬양')">
                         <span>🎵 찬양</span>
@@ -5310,7 +5317,7 @@
             </div>
 
             <!-- 2번째 줄: [📖 말씀] [🔥 기도] [⚡ 쇼츠] [🇰🇷 애국] + 맨 우측 [속도 1] (총 5개) -->
-            <div class="shorts-row-layout shorts-menu-tier2" id="shortsMenuTier2">
+            <div class="shorts-row-layout shorts-menu-tier2" id="shortsMenuTier2" style="display:none !important;">
                 <div class="shorts-row-left-4">
                     <button type="button" class="btn-shorts-cat" id="btnShortsCat_말씀" onclick="openChannelScriptureModal('말씀')">
                         <span>📖 말씀</span>
@@ -12424,6 +12431,7 @@ function initYetalkTvVerticalAccordion() {
     buildShortsFeedList();
     setupShortsFeedScrollListener();
     setShortsMode(0); // 🌟 켜자마자 바로 시원한 영상 전체화면 재생!
+    setShortsPlayState(true);
     syncFixedChannelsFromCloud();
     updateShortsAdminDeleteButtonUI();
 }
@@ -12710,6 +12718,7 @@ function startShortsFromSlot(chKey, slotIdx) {
     let foundIdx = shortsFeedList.findIndex(item => item.chKey === chKey && item.slotIdx === slotIdx);
     if (foundIdx === -1) foundIdx = 0;
     setShortsMode(foundIdx);
+    setShortsPlayState(true);
 }
 
 // 🌟 [사용자 요청] 찬양 등 현재 활성 카테고리 1번째 줄 메뉴 밝게 표시
@@ -12878,6 +12887,7 @@ function activateShortsSlide(idx) {
 
     // 🌟 [지체 완전 제거] 현재 영상만 100% 우선순위로 즉각 로드 및 자동재생!
     loadShortsPlayerAt(idx, true);
+    setShortsPlayState(true); // 🌟 [사용자 요청] 재생 시 상위 2줄 메뉴 자동 숨김
 
     // 🌟 인접 영상은 2.5초 뒤 메인 영상 버퍼링이 끝난 후 유휴 시간에 조용히 준비 (대역폭 독점 방지)
     setTimeout(() => {
@@ -12894,6 +12904,7 @@ function activateShortsSlide(idx) {
 
 // 🌟 [사용자 요청] 검은 화면 & 회전 동그라미(버퍼링 스피너) 완전 은폐 후 즉각 부드러운 전환
 function handleShortsIframeLoaded(idx) {
+    setShortsPlayState(true); // 🌟 [사용자 요청] 로드 즉시 상위 2줄 메뉴 자동 숨김
     setTimeout(() => {
         dismissShortsPosterAt(idx);
     }, 450);
@@ -12941,6 +12952,10 @@ function setShortsPlayState(isPlaying) {
     }
     if (tier2) {
         tier2.style.setProperty('display', isPlaying ? 'none' : 'flex', 'important');
+    }
+    const pauseBadge = document.getElementById('tvShortsPauseBadge');
+    if (pauseBadge) {
+        pauseBadge.style.setProperty('display', isPlaying ? 'none' : 'flex', 'important');
     }
 }
 
@@ -13121,11 +13136,21 @@ function toggleCurrentShortsPlayPause() {
     if (!iframe || !iframe.contentWindow) return;
 
     if (isShortsPlaying) {
-        iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+        if (iframe && iframe.contentWindow) {
+            try {
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*');
+                iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+            } catch(e){}
+        }
         setShortsPlayState(false);
-        showToast('⏸️ 영상을 일시정지했습니다.');
+        showToast('⏸️ 영상을 일시정지했습니다. (메뉴 표시됨 / 화면 터치 시 재생)');
     } else {
-        iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+        if (iframe && iframe.contentWindow) {
+            try {
+                iframe.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*');
+                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+            } catch(e){}
+        }
         setShortsPlayState(true);
         showToast('▶️ 영상을 다시 재생합니다.');
     }
