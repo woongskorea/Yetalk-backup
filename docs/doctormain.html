@@ -1966,13 +1966,46 @@
                 <input type="text" id="inpJoinPatientBirth" placeholder="예: 1980.01.01 (또는 6자리)" style="width:100%; height:44px; border:1.5px solid #cbd5e1; border-radius:8px; padding:0 12px; font-size:14.5px; font-weight:800; box-sizing:border-box; outline:none;">
             </div>
 
+            <!-- 🌟 [사용자 요청] 필수 체크 위에 의사 회원 (추가 정보입력 시 앱·홈페이지 이용 가능, 무료제작, 모든 관리비 제로) -->
+            <div style="background:#eff6ff; border:1.5px solid #93c5fd; border-radius:12px; padding:12px; margin-top:2px;">
+                <label style="display:flex; align-items:flex-start; gap:8px; cursor:pointer;">
+                    <input type="checkbox" id="chkJoinDoctorMember" onchange="toggleJoinDoctorMemberFields(this.checked)" style="width:18px; height:18px; margin-top:2px; accent-color:#2563eb; cursor:pointer;">
+                    <div style="font-size:13.5px; font-weight:950; color:#1e40af; line-height:1.4;">
+                        🩺 <span>의사 회원</span>
+                        <div style="font-size:11.5px; font-weight:750; color:#2563eb; margin-top:2px;">
+                            (추가 정보입력시 앱·홈페이지 이용 가능합니다. <span style="color:#d97706; font-weight:950;">무료 제작, 모든 관리비 제로</span>)
+                        </div>
+                    </div>
+                </label>
+
+                <!-- 의사 회원 추가 입력 필드 (의원명, 의원 전화번호) -->
+                <div id="boxDoctorJoinExtraFields" style="display:none; margin-top:10px; padding-top:10px; border-top:1px dashed #bfdbfe; flex-direction:column; gap:8px;">
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:900; color:#1e3a8a; margin-bottom:4px;">🏥 의원명</label>
+                        <input type="text" id="inpJoinDoctorClinicName" placeholder="예: 부산 최웅식의원" style="width:100%; height:40px; border:1.5px solid #93c5fd; border-radius:8px; padding:0 10px; font-size:13.5px; font-weight:800; box-sizing:border-box; outline:none; background:#ffffff;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-size:12px; font-weight:900; color:#1e3a8a; margin-bottom:4px;">📞 의원 전화번호</label>
+                        <input type="tel" id="inpJoinDoctorClinicPhone" placeholder="예: 051-633-2478" style="width:100%; height:40px; border:1.5px solid #93c5fd; border-radius:8px; padding:0 10px; font-size:13.5px; font-weight:800; box-sizing:border-box; outline:none; background:#ffffff;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 필수 체크 -->
+            <div style="padding:4px 2px; margin-top:2px;">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12.5px; font-weight:850; color:#334155;">
+                    <input type="checkbox" id="chkJoinAgreeRequired" checked style="width:17px; height:17px; accent-color:#0284c7; cursor:pointer;">
+                    <span>개인정보 수집 및 의원 서비스 이용약관 동의 <strong style="color:#dc2626;">(필수)</strong></span>
+                </label>
+            </div>
+
             <!-- 확인 질문 카드 -->
             <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:12px; padding:12px; text-align:center; margin-top:2px;">
                 <div style="font-size:15px; font-weight:950; color:#166534; margin-bottom:3px;">
                     "지금 가입하시겠습니까?"
                 </div>
                 <div style="font-size:11.5px; color:#475569; font-weight:700;">
-                    * 가입 시 의원의 정회원으로 등록되어 예약 및 상담 알림을 편리하게 이용하실 수 있습니다.
+                    * 일반 고객은 정회원, 의사 회원은 우수회원으로 자동 등급업되어 모든 혜택을 이용하실 수 있습니다.
                 </div>
             </div>
 
@@ -5619,7 +5652,18 @@ function updateTopHeaderJoinBtn() {
 
     const isRegular = isAdmin || myRole === "정회원" || myRole === "우수회원" || myRole === "부관리자";
 
-    if (isRegular) {
+    if (myRole === "우수회원") {
+        btn.innerHTML = `✨ 우수회원`;
+        btn.title = "의사 회원 (우수회원) 상태";
+        btn.style.background = "linear-gradient(135deg, #7c3aed, #9333ea)";
+        btn.style.border = "1.5px solid #c084fc";
+        btn.style.color = "#ffffff";
+        btn.style.fontWeight = "950";
+        btn.style.fontSize = "12px";
+        btn.style.padding = "5px 12px";
+        btn.style.borderRadius = "20px";
+        btn.style.boxShadow = "0 2px 8px rgba(124, 58, 237, 0.4)";
+    } else if (isRegular) {
         btn.innerHTML = `정회원`;
         btn.title = "의원 정회원 상태 (클릭 시 회원정보 확인 및 수정)";
         btn.style.background = "#047857";
@@ -5653,16 +5697,37 @@ function handleTopRightBtnClick() {
     }
 }
 
+function toggleJoinDoctorMemberFields(isChecked) {
+    const box = document.getElementById("boxDoctorJoinExtraFields");
+    if (box) box.style.display = isChecked ? "flex" : "none";
+}
+window.toggleJoinDoctorMemberFields = toggleJoinDoctorMemberFields;
+
 function openPatientJoinModal() {
     const myName = localStorage.getItem("yetalk_patient_pay_name") || localStorage.getItem("yetalk_registered_patient_name") || localStorage.getItem("yetalkUserName") || localStorage.getItem("yetalk_user_name") || "";
     const myPhone = localStorage.getItem("yetalk_patient_phone") || localStorage.getItem("yetalk_registered_patient_phone") || localStorage.getItem("yetalk_user_phone") || localStorage.getItem("yetalkUserPhone") || "";
     const myBirth = localStorage.getItem("yetalk_patient_birth") || "";
+    const isDoc = localStorage.getItem("yetalk_is_doctor_member") === "true";
+    const docClinicName = localStorage.getItem("yetalk_doctor_clinic_name") || "";
+    const docClinicPhone = localStorage.getItem("yetalk_doctor_clinic_phone") || "";
+
     const nameEl = document.getElementById("inpJoinPatientName");
     const phoneEl = document.getElementById("inpJoinPatientPhone");
     const birthEl = document.getElementById("inpJoinPatientBirth");
+    const chkDoc = document.getElementById("chkJoinDoctorMember");
+    const clinicNameEl = document.getElementById("inpJoinDoctorClinicName");
+    const clinicPhoneEl = document.getElementById("inpJoinDoctorClinicPhone");
+
     if (nameEl) nameEl.value = myName;
     if (phoneEl) phoneEl.value = myPhone;
     if (birthEl) birthEl.value = myBirth;
+    if (chkDoc) {
+        chkDoc.checked = isDoc;
+        toggleJoinDoctorMemberFields(isDoc);
+    }
+    if (clinicNameEl) clinicNameEl.value = docClinicName;
+    if (clinicPhoneEl) clinicPhoneEl.value = docClinicPhone;
+
     const modal = document.getElementById("modalPatientJoin");
     if (modal) {
         modal.style.display = "flex";
@@ -5674,6 +5739,10 @@ function confirmPatientJoinAction() {
     const name = document.getElementById("inpJoinPatientName")?.value.trim() || "";
     const phone = document.getElementById("inpJoinPatientPhone")?.value.trim() || "";
     const birth = document.getElementById("inpJoinPatientBirth")?.value.trim() || "";
+    const isDoctor = document.getElementById("chkJoinDoctorMember")?.checked || false;
+    const clinicName = document.getElementById("inpJoinDoctorClinicName")?.value.trim() || "";
+    const clinicPhone = document.getElementById("inpJoinDoctorClinicPhone")?.value.trim() || "";
+    const agreeReq = document.getElementById("chkJoinAgreeRequired")?.checked ?? true;
 
     if (!name) {
         alert("이름(성함)을 입력해 주세요.");
@@ -5685,6 +5754,23 @@ function confirmPatientJoinAction() {
         document.getElementById("inpJoinPatientPhone")?.focus();
         return;
     }
+    if (!agreeReq) {
+        alert("개인정보 수집 및 의원 서비스 이용약관 (필수) 항목에 동의해 주세요.");
+        return;
+    }
+
+    if (isDoctor) {
+        if (!clinicName) {
+            alert("의사 회원은 의원명을 입력해 주세요.\n(예: 부산 최웅식의원)");
+            document.getElementById("inpJoinDoctorClinicName")?.focus();
+            return;
+        }
+        if (!clinicPhone) {
+            alert("의원 전화번호를 입력해 주세요.\n(예: 051-633-2478)");
+            document.getElementById("inpJoinDoctorClinicPhone")?.focus();
+            return;
+        }
+    }
 
     localStorage.setItem("yetalk_patient_pay_name", name);
     localStorage.setItem("yetalk_patient_phone", phone);
@@ -5692,49 +5778,105 @@ function confirmPatientJoinAction() {
     localStorage.setItem("yetalkUserName", name);
     localStorage.setItem("yetalk_is_registered", "true");
 
-    // 🌟 [사용자 요청] 의원에서 가입한 환자는 의원의 정회원으로 등록, 예톡 전체에서는 준회원 (복음 메시지 미발송)
-    localStorage.setItem("yetalk_clinic_member_role", "정회원");
-    localStorage.setItem("yetalk_user_grade", "준회원");
-    localStorage.setItem("yetalkMemberGrade", "준회원");
-    localStorage.setItem("yetalkUserRole", "준회원");
+    if (isDoctor) {
+        // 🌟 [사용자 요청] 의사 회원은 우수회원으로 등급업 자동 처리!
+        localStorage.setItem("yetalk_is_doctor_member", "true");
+        localStorage.setItem("yetalk_doctor_clinic_name", clinicName);
+        localStorage.setItem("yetalk_doctor_clinic_phone", clinicPhone);
 
-    // 🌟 [사용자 요청] 의원 회원 명단(yetalk_clinic_members_v2)에도 정회원으로 자동 등록
-    try {
-        let memberList = loadClinicMemberList();
-        const exists = memberList.find(m => m.phone === phone || m.name === name);
-        if (!exists) {
-            memberList.unshift({
-                id: "m_" + Date.now(),
-                name: name,
-                phone: phone,
-                role: "정회원",
-                joinDate: new Date().toLocaleDateString('ko-KR').replace(/\.$/, ''),
-                note: "환자"
-            });
+        localStorage.setItem("yetalk_clinic_member_role", "우수회원");
+        localStorage.setItem("yetalk_user_grade", "우수회원");
+        localStorage.setItem("yetalkMemberGrade", "우수회원");
+        localStorage.setItem("yetalkUserRole", "우수회원");
+
+        // 의원 회원 명단(yetalk_clinic_members_v2)에도 우수회원으로 자동 등록
+        try {
+            let memberList = loadClinicMemberList();
+            const exists = memberList.find(m => m.phone === phone || m.name === name);
+            if (exists) {
+                exists.role = "우수회원";
+                exists.note = "의사 회원 (" + clinicName + ")";
+            } else {
+                memberList.unshift({
+                    id: "m_" + Date.now(),
+                    name: name,
+                    phone: phone,
+                    role: "우수회원",
+                    joinDate: new Date().toLocaleDateString('ko-KR').replace(/\.$/, ''),
+                    note: "의사 회원 (" + clinicName + ")"
+                });
+            }
             saveClinicMemberList(memberList);
-        }
-    } catch(e) {}
+        } catch(e) {}
 
-    // doctoradmin 환자 명단에도 자동 반영
-    try {
-        let pList = JSON.parse(localStorage.getItem("yetalk_patients_list_v1")) || [];
-        const exists = pList.find(p => p.phone === phone || p.name === name);
-        if (!exists) {
-            pList.unshift({
-                id: Date.now(),
-                name: name,
-                phone: phone,
-                role: "정회원",
-                birth: birth,
-                lastVisit: new Date().toLocaleDateString('ko-KR').replace(/\.$/, '')
-            });
+        // doctoradmin 환자 명단에도 우수회원으로 등록
+        try {
+            let pList = JSON.parse(localStorage.getItem("yetalk_patients_list_v1")) || [];
+            const exists = pList.find(p => p.phone === phone || p.name === name);
+            if (exists) {
+                exists.role = "우수회원";
+            } else {
+                pList.unshift({
+                    id: Date.now(),
+                    name: name,
+                    phone: phone,
+                    role: "우수회원",
+                    birth: birth,
+                    lastVisit: new Date().toLocaleDateString('ko-KR').replace(/\.$/, '')
+                });
+            }
             localStorage.setItem("yetalk_patients_list_v1", JSON.stringify(pList));
-        }
-    } catch(e) {}
+        } catch(e) {}
 
-    closeModal("modalPatientJoin");
-    if (typeof updateTopHeaderJoinBtn === "function") updateTopHeaderJoinBtn();
-    alert(`🎉 [${name}님] 부산 최웅식의원 고객(의원 정회원) 가입이 완료되었습니다!\n예약 및 시술 문의를 편리하게 이용하실 수 있습니다.`);
+        closeModal("modalPatientJoin");
+        if (typeof updateTopHeaderJoinBtn === "function") updateTopHeaderJoinBtn();
+        alert(`🎉 [${name} 원장님/선생님] 의사 회원(우수회원) 등록이 완료되었습니다!\n\n의원명: ${clinicName}\n전화번호: ${clinicPhone}\n\n* 앱·홈페이지 무료 제작 및 모든 관리비 제로 혜택이 적용됩니다.`);
+    } else {
+        localStorage.setItem("yetalk_is_doctor_member", "false");
+        // 일반 환자는 의원의 정회원으로 등록, 예톡 전체에서는 준회원 (복음 메시지 미발송)
+        localStorage.setItem("yetalk_clinic_member_role", "정회원");
+        localStorage.setItem("yetalk_user_grade", "준회원");
+        localStorage.setItem("yetalkMemberGrade", "준회원");
+        localStorage.setItem("yetalkUserRole", "준회원");
+
+        // 의원 회원 명단(yetalk_clinic_members_v2)에도 정회원으로 자동 등록
+        try {
+            let memberList = loadClinicMemberList();
+            const exists = memberList.find(m => m.phone === phone || m.name === name);
+            if (!exists) {
+                memberList.unshift({
+                    id: "m_" + Date.now(),
+                    name: name,
+                    phone: phone,
+                    role: "정회원",
+                    joinDate: new Date().toLocaleDateString('ko-KR').replace(/\.$/, ''),
+                    note: "환자"
+                });
+                saveClinicMemberList(memberList);
+            }
+        } catch(e) {}
+
+        // doctoradmin 환자 명단에도 자동 반영
+        try {
+            let pList = JSON.parse(localStorage.getItem("yetalk_patients_list_v1")) || [];
+            const exists = pList.find(p => p.phone === phone || p.name === name);
+            if (!exists) {
+                pList.unshift({
+                    id: Date.now(),
+                    name: name,
+                    phone: phone,
+                    role: "정회원",
+                    birth: birth,
+                    lastVisit: new Date().toLocaleDateString('ko-KR').replace(/\.$/, '')
+                });
+                localStorage.setItem("yetalk_patients_list_v1", JSON.stringify(pList));
+            }
+        } catch(e) {}
+
+        closeModal("modalPatientJoin");
+        if (typeof updateTopHeaderJoinBtn === "function") updateTopHeaderJoinBtn();
+        alert(`🎉 [${name}님] 부산 최웅식의원 고객(의원 정회원) 가입이 완료되었습니다!\n예약 및 시술 문의를 편리하게 이용하실 수 있습니다.`);
+    }
 }
 
 /* =========================================================================
