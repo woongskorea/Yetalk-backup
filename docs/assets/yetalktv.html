@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -5868,8 +5868,8 @@
                 <button type="button" style="background:#1e293b; border:1px solid #475569; color:#f8fafc; font-size:16px; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="closeModal('studioModal')">✕</button>
             </div>
 
-            <!-- 🌟 [사용자 요청] 상단 8개 메뉴 선택 그리드 (2줄 4열) -->
-            <div style="margin-bottom:14px;">
+            <!-- 🌟 [사용자 요청] 상단 8개 메뉴 선택 그리드 (대표 관리자 전용 / 일반 회원은 완전 숨김) -->
+            <div id="studioCategorySection" style="margin-bottom:14px;">
                 <div style="font-size:13px; color:#38bdf8; font-weight:900; margin-bottom:6px;">은혜 영상 분류 선택 (터치)</div>
                 <div id="studioCategoryGrid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;">
                     <button type="button" class="btn-studio-cat active" data-cat="찬양" onclick="selectUploadModalCategory('찬양')">찬양</button>
@@ -5885,22 +5885,22 @@
                 <span id="currentUploadChannelLabel" style="display:none;">찬양</span>
             </div>
 
-            <!-- 1. 유튜브 링크 주소 (필수) -->
-            <div style="margin-bottom:12px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                    <label style="color:#38bdf8; font-size:13px; font-weight:900; margin:0;">1. 유튜브 링크 주소 (필수)</label>
-                    <span style="font-size:11px; color:#38bdf8; font-weight:700;">* 터치 시 바로 붙여넣기</span>
+            <!-- 1. 유튜브 링크 주소 (필수) - 일반 회원도 필수 노출 -->
+            <div id="studioUrlSection" style="margin-bottom:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <label id="lblStudioUrlTitle" style="color:#38bdf8; font-size:13.5px; font-weight:950; margin:0;">유튜브 링크 주소 (터치 시 바로 붙여넣기)</label>
+                    <button type="button" onclick="clearInputAndFocus('ytInpUrl')" style="background:transparent; border:none; color:#94a3b8; font-size:11.5px; font-weight:900; cursor:pointer;">✕ 지우기</button>
                 </div>
                 <div style="position:relative; display:flex; align-items:center;">
-                    <input type="text" id="ytInpUrl" class="modal-input" placeholder="유튜브 링크를 붙여넣으세요" onclick="handleYtUrlFocusAndPaste(this)" onfocus="this.select()" style="width:100%; padding:10px 75px 10px 12px; font-size:13.5px; font-weight:800; background:#0b1120; color:#64748b; border:1.5px solid #334155; border-radius:8px; box-sizing:border-box; transition:all 0.2s ease;">
-                    <button type="button" onclick="pasteClipboardToInput('ytInpUrl')" style="position:absolute; right:6px; background:#1e293b; border:1.2px solid #38bdf8; color:#38bdf8; border-radius:6px; font-size:11.5px; font-weight:900; padding:4px 8px; cursor:pointer;">
+                    <input type="text" id="ytInpUrl" class="modal-input" placeholder="유튜브 링크를 붙여넣으세요" onclick="handleYtUrlFocusAndPaste(this)" onfocus="this.select()" style="width:100%; padding:12px 85px 12px 14px; font-size:14px; font-weight:800; background:#0b1120; color:#38bdf8; border:1.8px solid #38bdf8; border-radius:10px; box-sizing:border-box; transition:all 0.2s ease;">
+                    <button type="button" onclick="pasteClipboardToInput('ytInpUrl')" style="position:absolute; right:6px; background:linear-gradient(135deg, #0284c7, #2563eb); border:none; color:#ffffff; border-radius:8px; font-size:12px; font-weight:950; padding:7px 10px; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.3);">
                         📋 붙여넣기
                     </button>
                 </div>
             </div>
 
-            <!-- 2. 은혜 나눔 (선택 사항) -->
-            <div style="margin-bottom:12px;">
+            <!-- 2. 은혜 나눔 (선택 사항) - 대표 관리자 전용 / 일반 회원은 숨김 -->
+            <div id="studioTitleSection" style="margin-bottom:12px;">
                 <label style="color:#facc15; font-size:13px; font-weight:900; display:block; margin-bottom:5px;">2. 한마디 은혜 나눔 (선택 사항)</label>
                 <input type="text" id="ytInpTitle" class="modal-input" placeholder="함께 나눌 은혜의 한마디를 적어주세요 (선택)" style="width:100%; padding:10px 12px; font-size:13px; font-weight:800; background:#0b1120; color:#e2e8f0; border:1.2px solid #334155; border-radius:8px; box-sizing:border-box;">
             </div>
@@ -9401,10 +9401,17 @@
 
     function openStudioModal() {
         const isMaster = (typeof isMasterAdminUser === 'function') && isMasterAdminUser();
+        
+        // 🌟 [사용자 요청] 다른 회원이 올릴 때는 다른 것은 안 보이고 유튜브 링크 주소(빈 공간에 복붙) + 영상 올리기 버튼만 아주 심플하게 노출
+        const catSec = document.getElementById('studioCategorySection');
+        const titleSec = document.getElementById('studioTitleSection');
         const pinWrap = document.getElementById('studioPinOptionWrap');
-        if (pinWrap) {
-            pinWrap.style.display = isMaster ? 'block' : 'none';
-        }
+        const headerTitle = document.getElementById('studioModalHeaderTitle');
+
+        if (catSec) catSec.style.display = isMaster ? 'block' : 'none';
+        if (titleSec) titleSec.style.display = isMaster ? 'block' : 'none';
+        if (pinWrap) pinWrap.style.display = isMaster ? 'block' : 'none';
+        if (headerTitle) headerTitle.innerText = isMaster ? '영상 올리기 (관리자)' : '은혜 영상 올리기';
 
         const defaultCat = currentShortsChannelKey || '찬양';
         selectUploadModalCategory(defaultCat);
@@ -9412,7 +9419,11 @@
 
         const urlInp = document.getElementById('ytInpUrl');
         const titleInp = document.getElementById('ytInpTitle');
-        if (urlInp) urlInp.value = '';
+        if (urlInp) {
+            urlInp.value = '';
+            urlInp.placeholder = '유튜브 링크를 붙여넣으세요';
+            setTimeout(() => { urlInp.focus(); }, 150);
+        }
         if (titleInp) titleInp.value = '';
 
         openModal('studioModal');
@@ -12734,10 +12745,31 @@ function updateActiveCategoryButtonUI(chKey) {
     });
 }
 
-// 🌟 [사용자 요청] 영상 링크 주소 희미하게 표시 & 커서 올리면 지우지 않고 바로 붙이기
+// 🌟 [사용자 요청] 입력창 즉시 지우고 포커스
+function clearInputAndFocus(inputId) {
+    const inputEl = document.getElementById(inputId);
+    if (!inputEl) return;
+    inputEl.value = '';
+    inputEl.focus();
+    if (typeof showToast === 'function') showToast('입력창이 비워졌습니다. 링크를 붙여넣으세요.');
+}
+window.clearInputAndFocus = clearInputAndFocus;
+
+// 🌟 [사용자 요청] 영상 링크 주소 터치 시 바로 붙여넣기
 async function handleYtUrlFocusAndPaste(inputEl) {
     if (!inputEl) return;
-    inputEl.select(); // 기존 글자 즉시 전체 선택 (백스페이스로 지울 필요 없이 붙여넣으면 즉시 대체!)
+    try {
+        if (window.AndroidBridge && typeof window.AndroidBridge.getClipboardText === 'function') {
+            const bridgeText = window.AndroidBridge.getClipboardText();
+            if (bridgeText && (bridgeText.includes('youtu.be') || bridgeText.includes('youtube.com') || bridgeText.includes('shorts'))) {
+                inputEl.value = bridgeText.trim();
+                inputEl.style.color = '#38bdf8';
+                inputEl.style.borderColor = '#38bdf8';
+                showToast('📋 복사한 유튜브 링크가 즉시 붙여넣어졌습니다!');
+                return;
+            }
+        }
+    } catch(e){}
     try {
         if (navigator.clipboard && navigator.clipboard.readText) {
             const clipText = await navigator.clipboard.readText();
@@ -12750,17 +12782,33 @@ async function handleYtUrlFocusAndPaste(inputEl) {
             }
         }
     } catch(e) {}
+    inputEl.select();
 }
 
 async function pasteClipboardToInput(inputId) {
     const inputEl = document.getElementById(inputId);
     if (!inputEl) return;
     inputEl.focus();
-    inputEl.select();
+
+    // 1. AndroidBridge에서 즉시 가져오기 (100% 신뢰성)
+    try {
+        if (window.AndroidBridge && typeof window.AndroidBridge.getClipboardText === 'function') {
+            const bridgeText = window.AndroidBridge.getClipboardText();
+            if (bridgeText && bridgeText.trim()) {
+                inputEl.value = bridgeText.trim();
+                inputEl.style.color = '#38bdf8';
+                inputEl.style.borderColor = '#38bdf8';
+                showToast('📋 복사한 유튜브 링크가 즉시 붙여넣어졌습니다!');
+                return;
+            }
+        }
+    } catch(e){}
+
+    // 2. 브라우저 Clipboard API
     try {
         if (navigator.clipboard && navigator.clipboard.readText) {
             const clipText = await navigator.clipboard.readText();
-            if (clipText) {
+            if (clipText && clipText.trim()) {
                 inputEl.value = clipText.trim();
                 inputEl.style.color = '#38bdf8';
                 inputEl.style.borderColor = '#38bdf8';
@@ -12769,7 +12817,9 @@ async function pasteClipboardToInput(inputId) {
             }
         }
     } catch(e){}
-    showToast('입력창을 길게 눌러 [붙여넣기]를 선택하세요.');
+
+    inputEl.select();
+    showToast('📋 링크를 길게 눌러 [붙여넣기]를 선택하세요.');
 }
 
 // 🌟 [사용자 요청] 본교회 라이브 예배 슬라이드로 즉시 이동

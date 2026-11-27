@@ -748,6 +748,22 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        // 🌟 [사용자 요청] 유튜브 주소 원클릭 즉시 복붙 브릿지 (지우거나 엉키지 않고 바로 가져오기)
+        @JavascriptInterface
+        fun getClipboardText(): String {
+            return try {
+                var text = ""
+                val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+                if (clipboard != null && clipboard.hasPrimaryClip()) {
+                    val item = clipboard.primaryClip?.getItemAt(0)
+                    text = item?.text?.toString() ?: ""
+                }
+                text
+            } catch (e: Exception) {
+                ""
+            }
+        }
     }
 
     private fun launchInstalledAppOrMarket(packageName: String) {
