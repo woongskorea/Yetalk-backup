@@ -2630,6 +2630,52 @@ function escapeHtml(str) {
 }
 window.escapeHtml = escapeHtml;
 
+// 🌟 [서버 비용 초절약] 모든 사용자 업로드 이미지 초경량 JPG 자동 압축 엔진
+function compressImageFileToJpg(file, callback) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const rawUrl = e.target.result;
+        const img = new Image();
+        img.onload = function() {
+            let maxDim = 900;
+            let w = img.width, h = img.height;
+            if (w > maxDim || h > maxDim) {
+                if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                else { w = Math.round((w * maxDim) / h); h = maxDim; }
+            }
+            let canvas = document.createElement("canvas");
+            canvas.width = w;
+            canvas.height = h;
+            let ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            let jpgData = canvas.toDataURL("image/jpeg", 0.72);
+            if (jpgData.length > 240000) {
+                maxDim = 720;
+                if (w > maxDim || h > maxDim) {
+                    if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                    else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                }
+                canvas.width = w;
+                canvas.height = h;
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, w, h);
+                ctx.drawImage(img, 0, 0, w, h);
+                jpgData = canvas.toDataURL("image/jpeg", 0.65);
+            }
+            if (typeof callback === "function") callback(jpgData);
+        };
+        img.onerror = function() {
+            if (typeof callback === "function") callback(rawUrl);
+        };
+        img.src = rawUrl;
+    };
+    reader.readAsDataURL(file);
+}
+window.compressImageFileToJpg = compressImageFileToJpg;
+
 // 요일별 7개 문장 순환 좋은 글 데이터 (사용자 제공 원문 100% 반영)
 const WEEKLY_GOOD_QUOTES = {
     1: { // 월요일
@@ -3351,31 +3397,19 @@ function handleCommonPhotoSelected(e, photoNum) {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-        const img = new Image();
-        img.onload = function() {
-            const canvas = document.createElement("canvas");
-            let w = img.width, h = img.height;
-            const maxW = 1000;
-            if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
-            canvas.width = w; canvas.height = h;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, w, h);
-            const base64 = canvas.toDataURL("image/jpeg", 0.88);
-
-            if (photoNum === 1) {
-                tempImg1Base64 = base64;
-                document.getElementById("dispBigEditPhotoPreview1").src = base64;
-            } else {
-                tempImg2Base64 = base64;
-                document.getElementById("dispBigEditPhotoPreview2").src = base64;
-            }
-            showToast("📷 사진이 준비되었습니다. 저장 완료를 눌러주세요.");
-        };
-        img.src = evt.target.result;
-    };
-    reader.readAsDataURL(file);
+    compressImageFileToJpg(file, function(jpgBase64) {
+        if (photoNum === 1) {
+            tempImg1Base64 = jpgBase64;
+            const p1 = document.getElementById("dispBigEditPhotoPreview1");
+            if (p1) p1.src = jpgBase64;
+        } else {
+            tempImg2Base64 = jpgBase64;
+            const p2 = document.getElementById("dispBigEditPhotoPreview2");
+            if (p2) p2.src = jpgBase64;
+        }
+        showToast("⚡ 초절약 JPG로 최적화 준비되었습니다. [저장 완료]를 눌러주세요.");
+    });
+    e.target.value = "";
 }
 
 function saveBigDoctorPageEdit() {
@@ -4664,17 +4698,30 @@ let tempDirectNoticePhotoBase64 = "";
 function handleDirectNoticePhoto(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        tempDirectNoticePhotoBase64 = e.target.result;
+    compressImageFileToJpg(file, (jpgData) => {
+        tempDirectNoticePhotoBase64 = jpgData;
         const pImg = document.getElementById("imgDirectNoticePhotoPreview");
         const pBox = document.getElementById("previewDirectNoticePhotoBox");
         const pTxt = document.getElementById("txtDirectNoticePhotoStatus");
         if (pImg) pImg.src = tempDirectNoticePhotoBase64;
         if (pBox) pBox.style.display = "block";
-        if (pTxt) pTxt.innerText = "📷 사진 1장 첨부됨";
-    };
-    reader.readAsDataURL(file);
+        if (pTxt) pTxt.innerText = "⚡ 초절약 JPG 사진 첨부됨";
+    });
+    event.target.value = "";
+}
+
+let tempFullNoticePhotoBase64 = "";
+function handleNoticeImgFile(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    compressImageFileToJpg(file, (jpgData) => {
+        tempFullNoticePhotoBase64 = jpgData;
+        showToast("⚡ 초절약 JPG 사진이 준비되었습니다.");
+    });
+    event.target.value = "";
+}
+function handleDoctorBigPhotoUpload(event) {
+    handleNoticeImgFile(event);
 }
 
 function submitDirectClinicNotice() {
@@ -5550,23 +5597,22 @@ function sendDocTalkKakaoMsg() {
 function handleDocTalkImgUpload(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
+    compressImageFileToJpg(file, (jpgData) => {
         const now = new Date();
         const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
         docTalkChatMessages.push({
             id: Date.now(),
             author: "나 (원장)",
             text: "",
-            img: e.target.result,
+            img: jpgData,
             time: timeStr,
             mine: true
         });
         saveDocTalkChatData();
         renderDocTalkChatMessages();
-        showToast("📷 사진이 전송되었습니다.");
-    };
-    reader.readAsDataURL(file);
+        showToast("📷 초절약 JPG 사진이 전송되었습니다.");
+    });
+    event.target.value = "";
 }
 
 function openGlobalYouTubeModal(videoId) {
@@ -5800,22 +5846,21 @@ function deleteClinicMsg(idx) {
 function handleChatImgUpload(event) {
     const file = event.target.files && event.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
+    compressImageFileToJpg(file, (jpgData) => {
         const now = new Date();
         const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
         clinicChatMessages.push({
             id: Date.now(),
             text: "",
-            img: e.target.result,
+            img: jpgData,
             time: timeStr,
             mine: true
         });
         saveClinicChatData();
         renderClinicChatMessages();
-        showToast("📷 사진이 전송되었습니다.");
-    };
-    reader.readAsDataURL(file);
+        showToast("📷 초절약 JPG 사진이 전송되었습니다.");
+    });
+    event.target.value = "";
 }
 
 // 🌟 [사용자 요청] 관리자(원장님) 여부 자동 판별 함수

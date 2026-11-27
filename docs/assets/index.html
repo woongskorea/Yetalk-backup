@@ -6,9 +6,9 @@
     <meta property="og:site_name" content="예톡 (Yetalk)">
     <meta property="og:title" content="예톡 (Yetalk) - 스마트 포털 & 예톡TV">
     <meta property="og:description" content="교회와 성도의 모바일 연결망, 예톡! 무료로 교회 홈페이지와 모든 성도들에게 모바일 앱을 제공합니다.">
-    <meta property="og:image" content="https://yetalk.cc/logo/yetalklogo.png">
+    <meta property="og:image" content="https://yetalk.cc/logo/yetalklogo1.jpg">
     <meta property="og:url" content="https://yetalk.cc">
-    <link rel="icon" type="image/png" href="https://yetalk.cc/logo/yetalklogo.png">
+    <link rel="icon" type="image/jpeg" href="https://yetalk.cc/logo/yetalklogo1.jpg">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="referrer" content="origin">
     <title>예톡 (Yetalk) - 스마트 포털 & 예톡TV</title>
@@ -5906,8 +5906,8 @@
                 </div>
             </div>
 
-            <!-- 3. 하단 투명 컨트롤 바 (애드몹 위로 온전히 올라와 짤림 방지, 재생 시 자동 숨김) -->
-            <div id="liveWorshipBottomOverlay" style="position:absolute; bottom:6px; left:8px; right:8px; z-index:40; background:linear-gradient(0deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.65) 75%, transparent 100%); padding:12px 10px 8px 10px; border-radius:14px; display:flex; flex-direction:column; gap:6px; pointer-events:auto; transition:opacity 0.35s ease;">
+            <!-- 3. 하단 투명 컨트롤 바 (애드몹 위로 온전히 올라와 짤림 방지 및 넉넉한 터치 안전 간격 20px 확보) -->
+            <div id="liveWorshipBottomOverlay" style="position:absolute; bottom:20px; left:8px; right:8px; z-index:40; background:linear-gradient(0deg, rgba(0,0,0,0.94) 0%, rgba(0,0,0,0.7) 75%, transparent 100%); padding:12px 10px 10px 10px; border-radius:14px; display:flex; flex-direction:column; gap:6px; pointer-events:auto; transition:opacity 0.35s ease; box-shadow:0 4px 16px rgba(0,0,0,0.4);">
                 <!-- 현재 영상 제목 -->
                 <div style="font-size:13px; font-weight:950; color:#ffffff; padding:0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 3px rgba(0,0,0,0.9);" id="dispCurrentLiveTitle">
                     [부산제일감리교회] 주일 실시간 생방송 라이브 예배
@@ -6152,7 +6152,7 @@
                 <!-- 2. 상단 16:9 롱폼 비디오 플레이어 영역 (포스터 터치 시 즉시 재생 & 인라인 iframe 재생) -->
                 <div id="hymnPlayerFrameBox" onclick="toggleHymnVideoPlayback()" style="width:100%; border-radius:10px; overflow:hidden; background:#0f172a; position:relative; padding-top:56.25%; box-shadow:0 1px 6px rgba(0,0,0,0.18); cursor:pointer;">
                     <div id="hymnPlayerPoster" style="position:absolute; inset:0; background:#0f172a; cursor:pointer; z-index:5; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                        <img id="hymnPosterImg" src="https://i.ytimg.com/vi/SfUoRQy-LH4/hqdefault.jpg" onerror="this.src='https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80'" style="width:100%; height:100%; object-fit:cover; opacity:0.88;" alt="찬양 썸네일">
+                        <img id="hymnPosterImg" src="https://i.ytimg.com/vi/SfUoRQy-LH4/hqdefault.jpg" onerror="this.src='images/church_hero_heaven.jpg'" style="width:100%; height:100%; object-fit:cover; opacity:0.88;" alt="찬양 썸네일">
                         <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%);"></div>
                         <div id="hymnPosterPlayBtn" style="position:absolute; width:58px; height:58px; background:rgba(220,38,38,0.95); border:2.5px solid #ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:22px; padding-left:4px; box-shadow:0 4px 16px rgba(0,0,0,0.5); z-index:6;">
                             ▶
@@ -11885,26 +11885,90 @@ const BIBLICAL_TIME_SLOTS = [
         performChurchBibleWordSearch(query);
     }
 
-    // 🌟 [사용자 요청] 문의자가 사진 첨부할 때의 핸들러
+    /* 🌟 [사용자 요청] 서버 비용 초절약: 모든 사용자 업로드 이미지를 초경량 JPG (최대 900px, 72% 품질)로 자동 압축 변환 */
+    function compressImageFileToJpg(file, callback) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const rawUrl = e.target.result;
+            const img = new Image();
+            img.onload = function() {
+                let maxDim = 900;
+                let w = img.width;
+                let h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    if (w > h) {
+                        h = Math.round((h * maxDim) / w);
+                        w = maxDim;
+                    } else {
+                        w = Math.round((w * maxDim) / h);
+                        h = maxDim;
+                    }
+                }
+                let canvas = document.createElement("canvas");
+                canvas.width = w;
+                canvas.height = h;
+                let ctx = canvas.getContext("2d");
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, w, h);
+                ctx.drawImage(img, 0, 0, w, h);
+
+                let quality = 0.72; // 초경량 고화질 JPG
+                let jpgDataUrl = canvas.toDataURL("image/jpeg", quality);
+
+                if (jpgDataUrl.length > 240000) {
+                    maxDim = 720;
+                    w = img.width;
+                    h = img.height;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) {
+                            h = Math.round((h * maxDim) / w);
+                            w = maxDim;
+                        } else {
+                            w = Math.round((w * maxDim) / h);
+                            h = maxDim;
+                        }
+                    }
+                    canvas.width = w;
+                    canvas.height = h;
+                    ctx = canvas.getContext("2d");
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    jpgDataUrl = canvas.toDataURL("image/jpeg", 0.65);
+                }
+
+                callback(jpgDataUrl);
+            };
+            img.onerror = function() {
+                callback(rawUrl);
+            };
+            img.src = rawUrl;
+        };
+        reader.onerror = function() {
+            alert("이미지 파일을 읽는 중 오류가 발생했습니다.");
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // 🌟 [사용자 요청] 문의자가 사진 첨부할 때의 핸들러 (초경량 JPG 자동 변환)
     let adminInqAttachedPhoto = "";
 
     function handleAdminInqUserPhoto(inputEl) {
         if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
         const file = inputEl.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            adminInqAttachedPhoto = e.target.result;
+        compressImageFileToJpg(file, function(jpgDataUrl) {
+            adminInqAttachedPhoto = jpgDataUrl;
             const preview = document.getElementById("adminInqPhotoPreview");
             if (preview) {
                 preview.innerHTML = `
                     <div style="position:relative; display:inline-block; margin-top:6px;">
-                        <img src="${e.target.result}" style="max-height:100px; max-width:180px; border-radius:8px; border:1.5px solid #059669; box-shadow:0 2px 6px rgba(0,0,0,0.12); object-fit:cover;">
+                        <img src="${jpgDataUrl}" style="max-height:100px; max-width:180px; border-radius:8px; border:1.5px solid #059669; box-shadow:0 2px 6px rgba(0,0,0,0.12); object-fit:cover;">
                         <button type="button" onclick="removeAdminInqUserPhoto()" style="position:absolute; top:-7px; right:-7px; background:#ef4444; color:#fff; border:none; border-radius:50%; width:22px; height:22px; font-size:13px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.2);">✕</button>
                     </div>
                 `;
             }
-        };
-        reader.readAsDataURL(file);
+        });
     }
 
     function removeAdminInqUserPhoto() {
@@ -12021,20 +12085,18 @@ const BIBLICAL_TIME_SLOTS = [
     function handleInquiryReplyPhoto(inqId, inputEl) {
         if (!inputEl || !inputEl.files || !inputEl.files[0]) return;
         const file = inputEl.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            attachedReplyPhotos[inqId] = e.target.result;
+        compressImageFileToJpg(file, function(jpgDataUrl) {
+            attachedReplyPhotos[inqId] = jpgDataUrl;
             const preview = document.getElementById("photoPreview_" + inqId);
             if (preview) {
                 preview.innerHTML = `
                     <div style="position:relative; display:inline-block; margin-top:8px;">
-                        <img src="${e.target.result}" style="max-height:100px; max-width:180px; border-radius:8px; border:1.5px solid #0284c7; box-shadow:0 2px 6px rgba(0,0,0,0.12); object-fit:cover;">
+                        <img src="${jpgDataUrl}" style="max-height:100px; max-width:180px; border-radius:8px; border:1.5px solid #0284c7; box-shadow:0 2px 6px rgba(0,0,0,0.12); object-fit:cover;">
                         <button type="button" onclick="removeInquiryReplyPhoto('${inqId}')" style="position:absolute; top:-7px; right:-7px; background:#ef4444; color:#fff; border:none; border-radius:50%; width:22px; height:22px; font-size:13px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.2);">✕</button>
                     </div>
                 `;
             }
-        };
-        reader.readAsDataURL(file);
+        });
     }
 
     function removeInquiryReplyPhoto(inqId) {
@@ -12650,7 +12712,7 @@ const BIBLICAL_TIME_SLOTS = [
             const safeTitle = (v.title || '').replace(/'/g, "\\'");
             return `<div class="hymn-video-card-item${isActive}" id="hymnCard_${idx}" onclick="selectHymnVideoItem('${v.vId}', '${safeTitle}', ${idx}, true)">
                 <div class="hymn-card-thumb-wrap">
-                    <img src="https://i.ytimg.com/vi/${v.vId}/hqdefault.jpg" onerror="this.src='https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=400&q=80'" alt="썸네일">
+                    <img src="https://i.ytimg.com/vi/${v.vId}/hqdefault.jpg" onerror="this.src='images/church_hero_heaven.jpg'" alt="썸네일">
                     <span class="hymn-card-play-icon">▶</span>
                 </div>
                 <div class="hymn-card-desc-wrap">
@@ -12722,7 +12784,7 @@ const BIBLICAL_TIME_SLOTS = [
         if (playerBox && (!poster || !iframe)) {
             playerBox.innerHTML = `
                 <div id="hymnPlayerPoster" style="position:absolute; inset:0; background:#0f172a; cursor:pointer; z-index:5; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                    <img id="hymnPosterImg" src="https://i.ytimg.com/vi/${vId}/hqdefault.jpg" onerror="this.src='https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=600&q=80'" style="width:100%; height:100%; object-fit:cover; opacity:0.88;" alt="찬양 썸네일">
+                    <img id="hymnPosterImg" src="https://i.ytimg.com/vi/${vId}/hqdefault.jpg" onerror="this.src='images/church_hero_heaven.jpg'" style="width:100%; height:100%; object-fit:cover; opacity:0.88;" alt="찬양 썸네일">
                     <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 60%);"></div>
                     <div id="hymnPosterPlayBtn" style="position:absolute; width:58px; height:58px; background:rgba(220,38,38,0.95); border:2.5px solid #ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:22px; padding-left:4px; box-shadow:0 4px 16px rgba(0,0,0,0.5); z-index:6;">
                         ▶
@@ -16833,20 +16895,14 @@ const BIBLICAL_TIME_SLOTS = [
         const file = event.target.files && event.target.files[0];
         if (!file) return;
 
-        if (file.size > 3 * 1024 * 1024) {
-            alert("사진 용량은 3MB 이하로 선택해 주세요.");
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            currentCafeAttachedPhoto = e.target.result;
+        compressImageFileToJpg(file, function(jpgDataUrl) {
+            currentCafeAttachedPhoto = jpgDataUrl;
             const box = document.getElementById("cafePhotoPreviewBox");
             const img = document.getElementById("imgCafePhotoPreview");
             if (img) img.src = currentCafeAttachedPhoto;
             if (box) box.style.display = "flex";
-        };
-        reader.readAsDataURL(file);
+        });
+        event.target.value = "";
     }
 
     function removeCafePhoto() {
@@ -17134,17 +17190,12 @@ const BIBLICAL_TIME_SLOTS = [
     function handleCommentPhotoSelect(event) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
-        if (file.size > 3 * 1024 * 1024) {
-            alert("사진 용량은 3MB 이하로 선택해 주세요.");
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            currentCommentAttachedPhoto = e.target.result;
+        compressImageFileToJpg(file, function(jpgDataUrl) {
+            currentCommentAttachedPhoto = jpgDataUrl;
             const badge = document.getElementById("commentPhotoAttachedBadge");
             if (badge) badge.style.display = "flex";
-        };
-        reader.readAsDataURL(file);
+        });
+        event.target.value = "";
     }
 
     function cancelCommentPhoto() {
@@ -17158,17 +17209,12 @@ const BIBLICAL_TIME_SLOTS = [
     function handleReplyPhotoSelect(event, commentId) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
-        if (file.size > 3 * 1024 * 1024) {
-            alert("사진 용량은 3MB 이하로 선택해 주세요.");
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            currentReplyAttachedPhotos[commentId] = e.target.result;
+        compressImageFileToJpg(file, function(jpgDataUrl) {
+            currentReplyAttachedPhotos[commentId] = jpgDataUrl;
             const badge = document.getElementById("replyPhotoBadge_" + commentId);
             if (badge) badge.style.display = "flex";
-        };
-        reader.readAsDataURL(file);
+        });
+        event.target.value = "";
     }
 
     function cancelReplyPhoto(commentId) {
@@ -17540,9 +17586,7 @@ const BIBLICAL_TIME_SLOTS = [
     function handleDetailQuickPhotoUpload(event) {
         const file = event.target.files && event.target.files[0];
         if (!file || !currentViewingPost) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const dataUrl = e.target.result;
+        compressImageFileToJpg(file, function(dataUrl) {
             currentViewingPost.photo = dataUrl;
 
             let saved = [];
@@ -17565,9 +17609,9 @@ const BIBLICAL_TIME_SLOTS = [
                 photoWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
             renderFullscreenBoard();
-            alert("🖼️ 사진이 성공적으로 등록되었습니다!");
-        };
-        reader.readAsDataURL(file);
+            alert("⚡ 초절약 JPG로 사진이 성공적으로 등록되었습니다!");
+        });
+        event.target.value = "";
     }
 
     // 🌟 [사용자 요청] 공지알림 아코디언 토글: 평소에는 제목만 박스, 클릭 시 상세 내역+바로가기 열림 (하나 열면 앞의 것은 자동 닫힘)

@@ -1133,18 +1133,39 @@ function handleFirstCardFile(event) {
     reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
-            const canvas = document.createElement("canvas");
+            let maxDim = 900;
             let w = img.width, h = img.height;
-            if (w > 1600) { h = Math.round((h * 1600) / w); w = 1600; }
+            if (w > maxDim || h > maxDim) {
+                if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                else { w = Math.round((w * maxDim) / h); h = maxDim; }
+            }
+            const canvas = document.createElement("canvas");
             canvas.width = w; canvas.height = h;
-            canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-            tempEditImgBase64 = canvas.toDataURL("image/jpeg", 0.92);
+            const ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            let jpgData = canvas.toDataURL("image/jpeg", 0.72);
+            if (jpgData.length > 240000) {
+                maxDim = 720;
+                if (w > maxDim || h > maxDim) {
+                    if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                    else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                }
+                canvas.width = w; canvas.height = h;
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, w, h);
+                ctx.drawImage(img, 0, 0, w, h);
+                jpgData = canvas.toDataURL("image/jpeg", 0.65);
+            }
+            tempEditImgBase64 = jpgData;
             document.getElementById("prevFirstCardImg").src = tempEditImgBase64;
-            showToast("📷 사진 준비 완료. [저장하기]를 누르세요.");
+            showToast("📷 초경량 JPG로 최적화 준비 완료. [저장하기]를 누르세요.");
         };
         img.src = e.target.result;
     };
     reader.readAsDataURL(file);
+    event.target.value = "";
 }
 
 function saveCurrentCardData() {

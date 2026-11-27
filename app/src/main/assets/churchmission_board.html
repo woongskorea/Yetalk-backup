@@ -1622,15 +1622,55 @@
         renderDeptComments();
     }
 
-    function handleCommentPhotoSelected(e) {
-        const file = e.target.files[0];
+    // 🌟 [서버 비용 초절약] 이미지 초경량 JPG 자동 압축 엔진
+    function compressImageFileToJpg(file, callback) {
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = ev => {
-            commentAttachedPhoto = ev.target.result;
-            document.getElementById("commentPhotoBadge").style.display = "flex";
+        reader.onload = function(e) {
+            const rawUrl = e.target.result;
+            const img = new Image();
+            img.onload = function() {
+                let maxDim = 900;
+                let w = img.width, h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                    else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                }
+                const canvas = document.createElement("canvas");
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, w, h);
+                ctx.drawImage(img, 0, 0, w, h);
+                let jpgData = canvas.toDataURL("image/jpeg", 0.72);
+                if (jpgData.length > 240000) {
+                    maxDim = 720;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                        else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                    }
+                    canvas.width = w; canvas.height = h;
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    jpgData = canvas.toDataURL("image/jpeg", 0.65);
+                }
+                if (typeof callback === "function") callback(jpgData);
+            };
+            img.onerror = function() { if (typeof callback === "function") callback(rawUrl); };
+            img.src = rawUrl;
         };
         reader.readAsDataURL(file);
+    }
+
+    function handleCommentPhotoSelected(e) {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        compressImageFileToJpg(file, function(jpgData) {
+            commentAttachedPhoto = jpgData;
+            document.getElementById("commentPhotoBadge").style.display = "flex";
+        });
+        e.target.value = "";
     }
 
     function cancelCommentPhoto() {
@@ -1704,15 +1744,14 @@
     }
 
     function handleWritePhotoSelected(e) {
-        const file = e.target.files[0];
+        const file = e.target.files && e.target.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = ev => {
-            writeAttachedPhoto = ev.target.result;
+        compressImageFileToJpg(file, function(jpgData) {
+            writeAttachedPhoto = jpgData;
             document.getElementById("writePhotoPreviewImg").src = writeAttachedPhoto;
             document.getElementById("writePhotoPreviewWrap").style.display = "block";
-        };
-        reader.readAsDataURL(file);
+        });
+        e.target.value = "";
     }
 
     function cancelWritePhoto() {

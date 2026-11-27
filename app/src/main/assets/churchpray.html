@@ -1541,12 +1541,51 @@
         input.focus();
     }
 
+    // 🌟 [서버 비용 초절약] 이미지 초경량 JPG 자동 압축 엔진
+    function compressImageFileToJpg(file, callback) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const rawUrl = e.target.result;
+            const img = new Image();
+            img.onload = function() {
+                let maxDim = 900;
+                let w = img.width, h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                    else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                }
+                const canvas = document.createElement("canvas");
+                canvas.width = w; canvas.height = h;
+                const ctx = canvas.getContext("2d");
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, w, h);
+                ctx.drawImage(img, 0, 0, w, h);
+                let jpgData = canvas.toDataURL("image/jpeg", 0.72);
+                if (jpgData.length > 240000) {
+                    maxDim = 720;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                        else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                    }
+                    canvas.width = w; canvas.height = h;
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    jpgData = canvas.toDataURL("image/jpeg", 0.65);
+                }
+                if (typeof callback === "function") callback(jpgData);
+            };
+            img.onerror = function() { if (typeof callback === "function") callback(rawUrl); };
+            img.src = rawUrl;
+        };
+        reader.readAsDataURL(file);
+    }
+
     function handlePrayPhotoSelected(input) {
         if (!input.files || !input.files[0]) return;
         const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const dataUrl = e.target.result;
+        compressImageFileToJpg(file, function(dataUrl) {
             const newPost = {
                 id: "p_" + Date.now(),
                 author: "나",
@@ -1558,9 +1597,8 @@
             prayPosts.push(newPost);
             savePrayPosts();
             renderChatFeed();
-            showToast("📷 사진이 전송되었습니다.");
-        };
-        reader.readAsDataURL(file);
+            showToast("📷 초절약 JPG 사진이 전송되었습니다.");
+        });
         input.value = "";
     }
 
@@ -3048,13 +3086,12 @@
     function handlePrayCommentPhotoSelect(event) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            currentPrayCommentPhotoBase64 = e.target.result;
+        compressImageFileToJpg(file, function(jpgData) {
+            currentPrayCommentPhotoBase64 = jpgData;
             const badge = document.getElementById('prayCommentPhotoBadge');
             if (badge) badge.style.display = 'flex';
-        };
-        reader.readAsDataURL(file);
+        });
+        event.target.value = "";
     }
 
     function cancelPrayCommentPhoto() {
@@ -3198,17 +3235,16 @@
     function handleEditPrayPhotoUpload(event) {
         const file = event.target.files && event.target.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            currentEditPrayPhotoBase64 = e.target.result;
+        compressImageFileToJpg(file, function(jpgData) {
+            currentEditPrayPhotoBase64 = jpgData;
             const previewBox = document.getElementById('editPrayPhotoPreviewBox');
             const previewImg = document.getElementById('imgEditPrayPreview');
             if (previewBox && previewImg) {
                 previewImg.src = currentEditPrayPhotoBase64;
                 previewBox.style.display = 'block';
             }
-        };
-        reader.readAsDataURL(file);
+        });
+        event.target.value = "";
     }
 
     function removeEditPrayPhoto() {

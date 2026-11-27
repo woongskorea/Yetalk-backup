@@ -6171,40 +6171,25 @@
         const file = event.target.files && event.target.files[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement("canvas");
-                let w = img.width, h = img.height;
-                const maxW = 1000;
-                if (w > maxW) { h = Math.round((h * maxW) / w); w = maxW; }
-                canvas.width = w; canvas.height = h;
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(img, 0, 0, w, h);
-                const finalBase64 = canvas.toDataURL("image/jpeg", 0.88);
-
-                if (directImageTarget) {
-                    const { sec, idx } = directImageTarget;
-                    if (sectionData[sec] && sectionData[sec][idx]) {
-                        sectionData[sec][idx].img = finalBase64;
-                        saveSectionData();
-                        if (sec === "photo") renderPhotoSection();
-                        if (sec === "biz") renderBizSection();
-                        showToast("✨ 사진이 성공적으로 교체되었습니다!");
-                    }
-                    directImageTarget = null;
-                } else {
-                    tempEditImgBase64 = finalBase64;
-                    // 대형 모달 미리보기에 즉시 반영
-                    const previewEl = document.getElementById("dispBigEditPhotoPreview");
-                    if (previewEl) previewEl.src = tempEditImgBase64;
-                    showToast("📷 사진이 준비되었습니다! '수정 저장 완료'를 누르세요.");
+        compressImageFileToJpg(file, function(finalBase64) {
+            if (directImageTarget) {
+                const { sec, idx } = directImageTarget;
+                if (sectionData[sec] && sectionData[sec][idx]) {
+                    sectionData[sec][idx].img = finalBase64;
+                    saveSectionData();
+                    if (sec === "photo") renderPhotoSection();
+                    if (sec === "biz") renderBizSection();
+                    showToast("⚡ 초절약 JPG로 사진이 교체되었습니다!");
                 }
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
+                directImageTarget = null;
+            } else {
+                tempEditImgBase64 = finalBase64;
+                const previewEl = document.getElementById("dispBigEditPhotoPreview");
+                if (previewEl) previewEl.src = tempEditImgBase64;
+                showToast("⚡ 초절약 JPG로 사진이 준비되었습니다! '수정 저장 완료'를 누르세요.");
+            }
+        });
+        event.target.value = "";
     }
 
     function saveSectionData() {
