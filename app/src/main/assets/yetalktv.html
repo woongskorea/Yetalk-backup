@@ -5324,9 +5324,7 @@
 
         <!-- 🌟 풀스크린 하단 도구바: [사용자 요청] 3줄 메뉴 개편 -->
         <!-- 🌟 [사용자 요청] 영상 중지(일시정지) 시 화면 중앙 안내 배지 (재생 시 숨김) -->
-        <div id="tvShortsPauseBadge" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); z-index:24000; pointer-events:none; align-items:center; justify-content:center;">
-            <div style="width:68px; height:68px; border-radius:50%; background:rgba(0,0,0,0.45); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; font-size:32px; color:#ffffff; padding-left:5px; box-shadow:0 4px 18px rgba(0,0,0,0.5);">▶</div>
-        </div>
+        
 
         <div class="tv-shorts-bottom-overlay" id="tvShortsBottomOverlay">
             <!-- 1번째 줄: [찬양] [회개] [간증] [천국] (이모티콘 없음, 글자 16px 볼드) -->
@@ -12847,6 +12845,9 @@ function playNextShortsVideo() {
 function jumpToShortsSlide(idx) {
     if (idx < 0 || idx >= shortsFeedList.length) idx = 0;
     currentShortsIndex = idx;
+    if (typeof stopAllOtherShortsPlayers === 'function') {
+        stopAllOtherShortsPlayers(idx);
+    }
     const container = document.getElementById('tvShortsFeedContainer');
     if (container) {
         const h = container.clientHeight || window.innerHeight;
@@ -12854,6 +12855,25 @@ function jumpToShortsSlide(idx) {
     }
 
     activateShortsSlide(idx);
+}
+
+// 🌟 [사용자 요청] 슬라이드 이동 시 이전 영상 소리/재생 즉시 100% 완전 정지 (음성 중복 절대 방지)
+function stopAllOtherShortsPlayers(activeIdx) {
+    const boxes = document.querySelectorAll('.tv-shorts-video-box');
+    boxes.forEach(b => {
+        const bIdx = parseInt(b.id.replace('shortsVideoBox_', ''));
+        if (bIdx !== activeIdx) {
+            const ifr = b.querySelector('iframe');
+            if (ifr && ifr.contentWindow) {
+                try {
+                    ifr.contentWindow.postMessage('{"event":"command","func":"mute","args":""}', '*');
+                    ifr.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
+                    ifr.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
+                } catch(e){}
+            }
+            b.innerHTML = '';
+        }
+    });
 }
 
 function activateShortsSlide(idx) {
@@ -12866,7 +12886,10 @@ function activateShortsSlide(idx) {
     currentShortsSlotIndex = item.slotIdx;
     currentEditingSlot = { chKey: item.chKey, slotIdx: item.slotIdx };
 
-    // 🌟 [최우선] 현재 영상 즉각 로드 및 자동 재생! (어떤 보조 UI 에러에도 방해받지 않고 100% 최우선 실행)
+    // 🌟 [음성 중복 원천 차단] 현재 영상 외 다른 모든 영상 즉시 음소거 & 완전 중지!
+    stopAllOtherShortsPlayers(idx);
+
+    // 🌟 [최우선] 현재 영상만 100% 단독 로드 및 자동 재생!
     loadShortsPlayerAt(idx, true);
     setShortsPlayState(true);
 
@@ -12888,18 +12911,6 @@ function activateShortsSlide(idx) {
     try {
         renderShortsTopAdBanner();
     } catch(e){}
-
-    // 인접 다음 영상(idx + 1) 백그라운드 프리로드 (2.5초 뒤)
-    setTimeout(() => {
-        if (currentTvMode === 'shorts' && currentShortsIndex === idx) {
-            if (idx + 1 < shortsFeedList.length) {
-                const nextBox = document.getElementById(`shortsVideoBox_${idx + 1}`);
-                if (nextBox && !nextBox.hasChildNodes()) {
-                    loadShortsPlayerAt(idx + 1, false);
-                }
-            }
-        }
-    }, 2500);
 }
 
 // 🌟 [사용자 요청] 검은 화면 및 회전 동그라미 원천 차단 & 소리 100% 켜기 & 1080p 최고화질 자동 즉시 재생
@@ -12961,10 +12972,7 @@ function setShortsPlayState(isPlaying) {
     if (tier2) {
         tier2.style.setProperty('display', isPlaying ? 'none' : 'grid', 'important');
     }
-    const pauseBadge = document.getElementById('tvShortsPauseBadge');
-    if (pauseBadge) {
-        pauseBadge.style.setProperty('display', isPlaying ? 'none' : 'flex', 'important');
-    }
+// tvShortsPauseBadge 제거됨 (중복 삼각형 방지)
 }
 
 // 🌟 [사용자 요청] 유튜브 첫 프레임 실제 재생 시점에 포스터 걷어내어 검은 화면/버퍼링 원천 은폐 & 소리 100% 켜기 & 종료 시 아래로 연속 재생
@@ -12991,11 +12999,13 @@ window.addEventListener('message', (e) => {
             ? data.info.playerState 
             : (data.event === 'onStateChange' ? data.info : null);
 
-        // 🌟 [핵심] state 1(PLAYING): 비디오가 첫 프레임을 디코딩하여 실제로 화면이 움직이는 순간에 포스터 제거 & 소리 100% 보장!
+        // 🌟 [핵심] state 1(PLAYING): 비디오가 첫 프레임을 디코딩하여 화면에 완전히 그릴 때까지 400ms 대기 후 포스터를 부드럽게 페이드아웃 (검은 화면 100% 원천 차단!)
         if (state === 1) { 
-            dismissShortsPosterAt(currentShortsIndex);
             setShortsPlayState(true);
             ensureCurrentShortsUnmuted();
+            setTimeout(() => {
+                dismissShortsPosterAt(currentShortsIndex);
+            }, 400);
         } else if (state === 2) { // PAUSED
             setShortsPlayState(false);
         } else if (state === 0) { // ENDED -> 다음 영상으로 스크롤 & 연속 재생!
@@ -13021,7 +13031,7 @@ function loadShortsPlayerAt(idx, shouldAutoplay) {
 
     // 🌟 [사용자 요청] 버그 유발하는 loop=1&playlist 파라미터 완전 제거 및 즉각 재생 보장
     const iframeHtml = `
-        <div class="tv-shorts-poster-shield" id="shortsPoster_${idx}" style="position:absolute; inset:0; width:100%; height:100%; background:#000000 url('${posterUrl}') center center / cover no-repeat; z-index:3; pointer-events:none; transition:opacity 0.25s ease;"></div>
+        <div class="tv-shorts-poster-shield" id="shortsPoster_${idx}" style="position:absolute; inset:0; width:100%; height:100%; background:#000000 url('${posterUrl}') center center / ${isCover ? 'cover' : 'contain'} no-repeat; z-index:3; pointer-events:none; transition:opacity 0.3s ease;"></div>
         <iframe id="ytIframe_${idx}"
             src="https://www.youtube.com/embed/${vid}?autoplay=${shouldAutoplay ? 1 : 0}&mute=0&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&vq=hd1080${originParam}&disablekb=1&fs=0&iv_load_policy=3"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
