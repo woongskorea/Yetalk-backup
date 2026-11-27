@@ -3608,6 +3608,9 @@
     /* 📸 나만의 사진(최대 5장) & 묵상글 스토리지 키 */
     const STORAGE_KEY_PERSONAL_PHOTOS = "yetalk_personal_photos_v1";
 
+    /* 🌟 [사용자 요청] 외부 Unsplash 네트워크 호출 완전 제거: 0KB 초경량 인라인 SVG 아바타 */
+    const DEFAULT_SAFE_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23e0f2fe'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='20'%3E👤%3C/text%3E%3C/svg%3E";
+
     // 🌟 [사용자 요청] 기본 공지알림 데이터 (TDZ 에러 원천 방지를 위해 최상단 선언)
     const ONEMAIN_DEFAULT_WEEKLY_NOTICES = [
         {
@@ -4172,16 +4175,16 @@
         }
     }
 
-    function handlePersonalPhotoSelected(event) {
-        const file = event.target.files && event.target.files[0];
+    /* 🌟 [사용자 요청] 서버 및 저장소 용량 최소화: 모든 이미지를 초경량 JPG (최대 900px, 72% 품질)로 자동 압축 변환 */
+    function compressImageFileToJpg(file, callback) {
         if (!file) return;
-
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = function(e) {
             const rawUrl = e.target.result;
             const img = new Image();
-            img.onload = () => {
-                const maxDim = 1080;
+            img.onload = function() {
+                // 1단계: 기본 최대 해상도 900px
+                let maxDim = 900;
                 let w = img.width;
                 let h = img.height;
                 if (w > maxDim || h > maxDim) {
@@ -4193,23 +4196,69 @@
                         h = maxDim;
                     }
                 }
-                const canvas = document.createElement("canvas");
+                let canvas = document.createElement("canvas");
                 canvas.width = w;
                 canvas.height = h;
-                const ctx = canvas.getContext("2d");
+                let ctx = canvas.getContext("2d");
+                // PNG 투명 배경 까맣게 변함 방지: 흰색 배경 채움
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, w, h);
                 ctx.drawImage(img, 0, 0, w, h);
-                currentUploadPhotoDataUrl = canvas.toDataURL("image/jpeg", 0.82);
 
-                const prevImg = document.getElementById("imgAddPhotoPreview");
-                if (prevImg) prevImg.src = currentUploadPhotoDataUrl;
-                const memoInp = document.getElementById("inpAddPhotoMemo");
-                if (memoInp) memoInp.value = "";
+                let quality = 0.72; // 초경량 고화질 JPG
+                let jpgDataUrl = canvas.toDataURL("image/jpeg", quality);
 
-                openModal("modalAddPersonalPhoto");
+                // 만약 크기가 여전히 180KB를 초과하면 2단계 초절약 압축 (720px, 품질 0.65)
+                if (jpgDataUrl.length > 240000) {
+                    maxDim = 720;
+                    w = img.width;
+                    h = img.height;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) {
+                            h = Math.round((h * maxDim) / w);
+                            w = maxDim;
+                        } else {
+                            w = Math.round((w * maxDim) / h);
+                            h = maxDim;
+                        }
+                    }
+                    canvas.width = w;
+                    canvas.height = h;
+                    ctx = canvas.getContext("2d");
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    jpgDataUrl = canvas.toDataURL("image/jpeg", 0.65);
+                }
+
+                callback(jpgDataUrl);
+            };
+            img.onerror = function() {
+                callback(rawUrl);
             };
             img.src = rawUrl;
         };
+        reader.onerror = function() {
+            showToast("⚠️ 이미지 파일을 읽는 데 실패했습니다.");
+        };
         reader.readAsDataURL(file);
+    }
+
+    function handlePersonalPhotoSelected(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        compressImageFileToJpg(file, function(jpgDataUrl) {
+            currentUploadPhotoDataUrl = jpgDataUrl;
+
+            const prevImg = document.getElementById("imgAddPhotoPreview");
+            if (prevImg) prevImg.src = currentUploadPhotoDataUrl;
+            const memoInp = document.getElementById("inpAddPhotoMemo");
+            if (memoInp) memoInp.value = "";
+
+            openModal("modalAddPersonalPhoto");
+            event.target.value = "";
+        });
     }
 
     function submitAddPersonalPhoto() {
@@ -4376,7 +4425,7 @@
                 status: "예톡 단골친구 등록 완료 🤝",
                 isFav: true,
                 phone: "",
-                avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+                avatar: DEFAULT_SAFE_AVATAR,
                 badge: "NEW"
             });
             localStorage.setItem(STORAGE_KEY_FRIENDS, JSON.stringify(myFriends));
@@ -4430,7 +4479,7 @@
                 status: "예톡 준회원 친구 등록 🤝",
                 isFav: true,
                 phone: "",
-                avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+                avatar: DEFAULT_SAFE_AVATAR,
                 badge: "NEW"
             });
             localStorage.setItem(STORAGE_KEY_FRIENDS, JSON.stringify(myFriends));
@@ -7189,7 +7238,7 @@
                     id: "inq_friend_" + Date.now(),
                     name: targetName,
                     phone: targetPhone,
-                    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+                    avatar: DEFAULT_SAFE_AVATAR,
                     status: "개인 문의 고객",
                     isFav: true,
                     starLevel: 1
@@ -7319,7 +7368,7 @@
                 id: "inq_friend_" + Date.now(),
                 name: name || "문의고객",
                 phone: phone || "",
-                avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+                avatar: DEFAULT_SAFE_AVATAR,
                 status: "개인 문의 회원",
                 isFav: true,
                 starLevel: 1
@@ -7777,7 +7826,7 @@
             card.innerHTML = `
                 <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
                     <div style="position:relative; flex-shrink:0;">
-                        <img src="${f.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}" style="width:40px; height:40px; border-radius:12px; object-fit:cover; border:1px solid #e2e8f0;" alt="${escapeHtml(f.name)}">
+                        <img src="${f.avatar || DEFAULT_SAFE_AVATAR}" style="width:40px; height:40px; border-radius:12px; object-fit:cover; border:1px solid #e2e8f0;" alt="${escapeHtml(f.name)}">
                         <span style="position:absolute; bottom:-3px; right:-3px; font-size:12px; line-height:1;">⭐</span>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
@@ -7880,7 +7929,7 @@
                         cleanPhone: cleanPhone,
                         isFav: starLevel > 0,
                         starLevel: starLevel,
-                        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+                        avatar: DEFAULT_SAFE_AVATAR,
                         badge: ""
                     });
                 });
@@ -7940,7 +7989,7 @@
         const friend = myFriends.find(f => f.id === friendId) || {
             id: friendId,
             name: "친구",
-            avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+            avatar: DEFAULT_SAFE_AVATAR,
             phone: ""
         };
 
@@ -7994,7 +8043,7 @@
         winEl.innerHTML = `
             <div class="chat-win-header" id="winHdr_${friendId}">
                 <div class="chat-win-title-box">
-                    <img src="${friend.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}" class="chat-win-avatar" alt="${escapeHtml(friend.name)}">
+                    <img src="${friend.avatar || DEFAULT_SAFE_AVATAR}" class="chat-win-avatar" alt="${escapeHtml(friend.name)}">
                     <span class="chat-win-name">${escapeHtml(friend.name)}</span>
                     <button type="button" class="btn-win-tool" onclick="window.location.href='tel:${friend.phone || ''}'" title="일반 전화 연결" style="pointer-events:auto;">📞</button>
                 </div>
@@ -8054,7 +8103,7 @@
 
     /* 🌟 [사용자 요청] 대화 메시지 렌더링 (상단 빈 공간 스페이서 추가로 카톡처럼 하단 입력창 바로 위에 안착) */
     function renderFloatingChatMessages(friendId) {
-        const friend = myFriends.find(f => f.id === friendId) || { id: friendId, name: "친구", avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80" };
+        const friend = myFriends.find(f => f.id === friendId) || { id: friendId, name: "친구", avatar: DEFAULT_SAFE_AVATAR };
         const host = document.getElementById(`chatWinBody_${friendId}`);
         if (!host) return;
         host.innerHTML = "";
@@ -8089,7 +8138,7 @@
                 `;
             } else {
                 row.innerHTML = `
-                    <img src="${friend.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80'}" style="width:30px; height:30px; border-radius:10px; object-fit:cover; flex-shrink:0;" alt="">
+                    <img src="${friend.avatar || DEFAULT_SAFE_AVATAR}" style="width:30px; height:30px; border-radius:10px; object-fit:cover; flex-shrink:0;" alt="">
                     <div style="display:flex; flex-direction:column; max-width:82%;">
                         <span style="font-size:11px; font-weight:800; color:#475569; margin-bottom:2px;">${escapeHtml(friend.name)}</span>
                         <div style="background:#ffffff; color:#0f172a; padding:8px 12px; border-radius:14px; border-top-left-radius:2px; font-size:14px; font-weight:600; word-break:break-word; white-space:pre-wrap; box-shadow:0 1px 2px rgba(0,0,0,0.08); border:1px solid #e2e8f0;">${escapeHtml(m.text)}</div>
@@ -8181,7 +8230,7 @@
             status: status ? status.trim() : "새로운 친구",
             isFav: false,
             phone: "010-1234-5678",
-            avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+            avatar: DEFAULT_SAFE_AVATAR,
             badge: "1"
         };
         myFriends.push(newF);
@@ -8374,9 +8423,7 @@
         const file = event.target.files && event.target.files[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const base64Data = e.target.result;
+        compressImageFileToJpg(file, function(jpgDataUrl) {
             if (!currentChatFriend) return;
             const now = new Date();
             const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
@@ -8387,14 +8434,17 @@
             msgs.push({
                 sender: "my",
                 type: "photo",
-                img: base64Data,
+                img: jpgDataUrl,
                 time: timeStr
             });
-            localStorage.setItem(storageKey, JSON.stringify(msgs));
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(msgs));
+            } catch(e) {
+                showToast("⚠️ 저장 공간이 부족합니다.");
+            }
             renderKakaoChatMessages();
             showToast("📷 사진이 성공적으로 전송되었습니다!");
-        };
-        reader.readAsDataURL(file);
+        });
         event.target.value = "";
     }
 
