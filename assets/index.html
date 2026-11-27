@@ -23212,18 +23212,38 @@ window.openLiveWorshipView = openLiveWorshipView;
     const DEFAULT_DAILY_REPENT_BGM_URL_3 = "https://www.youtube.com/watch?v=92oktJl3-Fo";
     const DEFAULT_DAILY_REPENT_BGM_URL_4 = "https://www.youtube.com/watch?v=0bAEv9j9w5k";
 
-    // 🌟 [사용자 요청] 기도 타이머 (누르면 자동으로 보이고 현재 시간과 분만 표출)
+    // 🌟 [사용자 요청] 기도 타이머: 켠 이후 자동으로 경과 기도시간(1분, 2분... 분별 자동 증가) 및 현재 시각 표출
     let _prayerTimerInterval = null;
+    let _prayerStartTime = null;
+
     function updatePrayerTimerHourMinute() {
         const el = document.getElementById("prayerCurrentHourMinute");
-        if (!el) return;
-        const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        el.innerText = `${hours}:${minutes}`;
+        if (el) {
+            const now = new Date();
+            const h = now.getHours();
+            const ampm = (h >= 12) ? 'PM' : 'AM';
+            const hours = String(h).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            el.innerText = `${ampm} ${hours}:${minutes}`;
+        }
+
+        // 🌟 [사용자 요청] 기도실 켠 이후 1분, 2분 등 분별로 자동 증가하는 경과 시간
+        const elElapsed = document.getElementById("dispPrayerElapsedMinutes");
+        if (elElapsed && _prayerStartTime) {
+            const elapsedSec = Math.floor((Date.now() - _prayerStartTime) / 1000);
+            const mins = Math.floor(elapsedSec / 60);
+            if (mins >= 60) {
+                const h = Math.floor(mins / 60);
+                const m = mins % 60;
+                elElapsed.innerText = `${h}시간 ${m}분`;
+            } else {
+                elElapsed.innerText = `${mins}분`;
+            }
+        }
     }
 
     function startPrayerTimer() {
+        _prayerStartTime = Date.now();
         updatePrayerTimerHourMinute();
         if (_prayerTimerInterval) clearInterval(_prayerTimerInterval);
         _prayerTimerInterval = setInterval(updatePrayerTimerHourMinute, 1000);
@@ -23234,6 +23254,7 @@ window.openLiveWorshipView = openLiveWorshipView;
             clearInterval(_prayerTimerInterval);
             _prayerTimerInterval = null;
         }
+        _prayerStartTime = null;
     }
     window.startPrayerTimer = startPrayerTimer;
     window.stopPrayerTimer = stopPrayerTimer;
@@ -24230,8 +24251,8 @@ window.openLiveWorshipView = openLiveWorshipView;
                 <button type="button" onclick="closeDailyRepentVictoryModal()" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:20px; color:#1e293b; font-size:15px; font-weight:950; cursor:pointer; display:inline-flex; align-items:center; gap:6px; padding:9px 16px; min-height:42px; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,0.08); touch-action:manipulation;">
                     <span style="font-size:16px;">←</span> <span>뒤로</span>
                 </button>
-                <div style="font-size:16.5px; font-weight:950; color:#1e3a8a; letter-spacing:-0.3px;">
-                    매일 기도 &amp; 매일 승리
+                <div style="font-size:16.5px; font-weight:1000; color:#dc2626; letter-spacing:-0.3px;">
+                    기도실
                 </div>
                 <button type="button" onclick="closeDailyRepentVictoryModal()" style="width:42px; height:42px; border-radius:50%; background:#f1f5f9; border:1px solid #cbd5e1; color:#334155; font-size:20px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 4px rgba(0,0,0,0.08); touch-action:manipulation;" title="닫기">✕</button>
             </div>
@@ -24239,16 +24260,16 @@ window.openLiveWorshipView = openLiveWorshipView;
             <!-- 본문 스크롤 영역: flex: 1; min-height: 0; overflow-y: auto; (사용자 요청: 시원한 무한 스크롤 & 박스 없는 텍스트 단락) -->
             <div style="flex:1; min-height:0; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:22px 20px 24px 20px; display:flex; flex-direction:column; background:#ffffff;">
 
-                                <!-- 🌟 [사용자 요청] 첫줄: 타이머 자동 표시 (현재 시간과 분만 있도록 시, 분 표출) -->
+                <!-- 🌟 [사용자 요청] 첫줄: 타이머 자동 표시 (기도실 켠 이후 분별 1분, 2분... 자동 증가 타이머 & 현재 시각) -->
                 <div id="prayerClockTimerCard" style="background:linear-gradient(135deg, #eff6ff 0%, #ffffff 100%); border:1.8px solid #93c5fd; border-radius:14px; padding:10px 16px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 8px rgba(37,99,235,0.08);">
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#2563eb; box-shadow:0 0 8px #2563eb;"></span>
+                    <div style="display:flex; align-items:center; gap:7px;">
+                        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ef4444; box-shadow:0 0 8px #ef4444;"></span>
                         <span style="font-size:14.5px; font-weight:950; color:#1e3a8a;">⏱️ 기도 시간</span>
+                        <span id="dispPrayerElapsedMinutes" style="font-size:14px; font-weight:1000; color:#dc2626; background:#fff1f2; border:1.5px solid #fecaca; padding:2px 8px; border-radius:10px; letter-spacing:-0.2px; box-shadow:0 1px 3px rgba(220,38,38,0.12);" title="기도실 입장 후 경과된 기도시간 (1분, 2분... 자동 증가)">0분</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <span style="font-size:12px; font-weight:800; color:#64748b;">현재 시각</span>
-                        <span id="prayerCurrentHourMinute" style="font-size:23px; font-weight:950; color:#1d4ed8; letter-spacing:-0.5px; font-family:'Pretendard', sans-serif;">
-                            --:--
+                    <div style="display:flex; align-items:center;">
+                        <span id="prayerCurrentHourMinute" style="font-size:14px; font-weight:950; color:#1d4ed8; letter-spacing:-0.3px; background:#ffffff; border:1.2px solid #bfdbfe; padding:3px 8px; border-radius:8px; white-space:nowrap; box-shadow:0 1px 3px rgba(37,99,235,0.08);">
+                            PM --:--
                         </span>
                     </div>
                 </div>
