@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -12849,51 +12849,36 @@ function activateShortsSlide(idx) {
     if (idx < 0 || idx >= shortsFeedList.length) return;
     currentShortsIndex = idx;
     const item = shortsFeedList[idx];
+    if (!item) return;
+
     currentShortsChannelKey = item.chKey;
     currentShortsSlotIndex = item.slotIdx;
     currentEditingSlot = { chKey: item.chKey, slotIdx: item.slotIdx };
 
-    // 하단 정보 즉시 업데이트
-    const iconEl = document.getElementById('shortsChIcon');
-    const chTitleEl = document.getElementById('shortsChTitle');
-    const slotTitleEl = document.getElementById('shortsSlotTitle');
-
-    if (iconEl) iconEl.innerText = item.icon || '📺';
-    if (chTitleEl) chTitleEl.innerText = item.chTitle || '';
-    if (slotTitleEl) slotTitleEl.innerText = `${item.slotLabel} - ${item.slotTitle}`;
-    // 🌟 [사용자 요청] 찬양 등 현재 재생 중인 카테고리 1번째 줄 메뉴 밝게 표시!
-    updateActiveCategoryButtonUI(item.chKey);
-
-    // 🌟 대표 관리자 전용 삭제 버튼 가시성 업데이트
-    updateShortsAdminDeleteButtonUI();
-
-    // 🌟 [총관리자 전용] 상단 광고 배너 렌더링 (설정 시에만 표시)
-    renderShortsTopAdBanner();
-
-    // 🌟 [총관리자 전용] 상단 광고 배너 렌더링 (설정 시에만 표시)
-    renderShortsTopAdBanner();
-
-    // 🌟 [사용자 요청] 성도마음껏TV 재생 시: 성도영상+ 녹색 버튼 & 성도가 마음껏 올리는 공간
-    const isCommTv = (item.chKey === '성도마음껏 참여TV' || (item.chKey && item.chKey.includes('성도')));
-    const btnAddEl = document.getElementById('btnShortsAddAction');
-    const textAddEl = document.getElementById('dispShortsAddBtnText');
-    if (btnAddEl) {
-        if (isCommTv) {
-            btnAddEl.classList.add('community-mode');
-            if (textAddEl) textAddEl.innerText = '🎬 성도영상+';
-            btnAddEl.title = '성도 은혜 영상 올리기 (누구나 자유 업로드)';
-        } else {
-            btnAddEl.classList.remove('community-mode');
-            if (textAddEl) textAddEl.innerText = '👑 영상+';
-            btnAddEl.title = '영상 등록/변경 (대표님 전용)';
-        }
-    }
-
-    // 🌟 [지체 완전 제거] 현재 영상만 100% 우선순위로 즉각 로드 및 자동재생!
+    // 🌟 [최우선] 현재 영상 즉각 로드 및 자동 재생! (어떤 보조 UI 에러에도 방해받지 않고 100% 최우선 실행)
     loadShortsPlayerAt(idx, true);
-    setShortsPlayState(true); // 🌟 [사용자 요청] 재생 시 상위 2줄 메뉴 자동 숨김
+    setShortsPlayState(true);
 
-    // 🌟 인접 영상은 2.5초 뒤 메인 영상 버퍼링이 끝난 후 유휴 시간에 조용히 준비 (대역폭 독점 방지)
+    try {
+        const iconEl = document.getElementById('shortsChIcon');
+        const chTitleEl = document.getElementById('shortsChTitle');
+        const slotTitleEl = document.getElementById('shortsSlotTitle');
+
+        if (iconEl) iconEl.innerText = item.icon || '📺';
+        if (chTitleEl) chTitleEl.innerText = item.chTitle || '';
+        if (slotTitleEl) slotTitleEl.innerText = `${item.slotLabel} - ${item.slotTitle}`;
+        updateActiveCategoryButtonUI(item.chKey);
+    } catch(e){}
+
+    try {
+        updateShortsAdminDeleteButtonUI();
+    } catch(e){}
+
+    try {
+        renderShortsTopAdBanner();
+    } catch(e){}
+
+    // 인접 다음 영상(idx + 1) 백그라운드 프리로드 (2.5초 뒤)
     setTimeout(() => {
         if (currentTvMode === 'shorts' && currentShortsIndex === idx) {
             if (idx + 1 < shortsFeedList.length) {
@@ -12906,7 +12891,7 @@ function activateShortsSlide(idx) {
     }, 2500);
 }
 
-// 🌟 [사용자 요청] 검은 화면 & 회전 동그라미(버퍼링 스피너) 완전 은폐 후 즉각 부드러운 전환
+// 🌟 [사용자 요청] 유튜브 포스터 은폐 해제 및 자동 재생
 function handleShortsIframeLoaded(idx) {
     const iframe = document.getElementById(`ytIframe_${idx}`);
     if (iframe && iframe.contentWindow) {
@@ -12917,7 +12902,7 @@ function handleShortsIframeLoaded(idx) {
     }
     setTimeout(() => {
         dismissShortsPosterAt(idx);
-    }, 280);
+    }, 250);
 }
 
 function dismissShortsPosterAt(idx) {
@@ -12928,23 +12913,11 @@ function dismissShortsPosterAt(idx) {
             if (poster && poster.parentNode) {
                 poster.parentNode.removeChild(poster);
             }
-        }, 200);
+        }, 220);
     }
 }
 
-// 🌟 [사용자 요청] 영상 끝나면 즉시 처음부터 다시 자동 무한 리플레이
-function replayCurrentShortsVideo() {
-    const iframe = document.getElementById(`ytIframe_${currentShortsIndex}`);
-    if (iframe && iframe.contentWindow) {
-        try {
-            iframe.contentWindow.postMessage('{"event":"command","func":"seekTo","args":[0,true]}', '*');
-            iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-        } catch(e) {}
-    }
-}
-
-// 🌟 [사용자 요청] 영상 재생 중에는 맨 밑 3번째 줄(예톡홈,영상올리기,보내기,화면고정)만 상시 노출,
-// 상위 2개 층(1번째 줄: 찬양/회개/간증/천국/확대, 2번째 줄: 말씀/기도/쇼츠/애국/속도)은 숨김! 영상 중지 시에만 나타남
+// 🌟 [사용자 요청] 영상 재생 시 상위 2줄 메뉴(찬양/회개/간증/천국, 말씀/기도/쇼츠/애국) 자동 숨김, 일시정지 시 복원
 let isShortsPlaying = true;
 function setShortsPlayState(isPlaying) {
     isShortsPlaying = !!isPlaying;
@@ -12958,10 +12931,10 @@ function setShortsPlayState(isPlaying) {
     const tier1 = document.getElementById('shortsMenuTier1');
     const tier2 = document.getElementById('shortsMenuTier2');
     if (tier1) {
-        tier1.style.setProperty('display', isPlaying ? 'none' : 'flex', 'important');
+        tier1.style.setProperty('display', isPlaying ? 'none' : 'grid', 'important');
     }
     if (tier2) {
-        tier2.style.setProperty('display', isPlaying ? 'none' : 'flex', 'important');
+        tier2.style.setProperty('display', isPlaying ? 'none' : 'grid', 'important');
     }
     const pauseBadge = document.getElementById('tvShortsPauseBadge');
     if (pauseBadge) {
@@ -12969,10 +12942,7 @@ function setShortsPlayState(isPlaying) {
     }
 }
 
-// 🌟 유튜브 플레이어 메시지 감지:
-// 1. 영상 재생 시작 감지 -> 포스터 즉각 제거 및 상위 2줄 메뉴 자동 숨김
-// 2. 영상 일시정지/종료 감지 -> 상위 2줄 메뉴 즉각 복원
-// 3. 영상 종료(Ended: playerState 0) 감지 -> 즉시 자동 리플레이!
+// 🌟 유튜브 플레이어 상태 메시지 감지 및 [사용자 요청] 영상 끝나면 아래로 연속 재생
 window.addEventListener('message', (e) => {
     try {
         const data = (typeof e.data === 'string') ? JSON.parse(e.data) : e.data;
@@ -12989,10 +12959,11 @@ window.addEventListener('message', (e) => {
             ? data.info.playerState 
             : (data.event === 'onStateChange' ? data.info : null);
         if (state === 1) { // PLAYING
+            dismissShortsPosterAt(currentShortsIndex);
             setShortsPlayState(true);
         } else if (state === 2) { // PAUSED
             setShortsPlayState(false);
-        } else if (state === 0) { // ENDED
+        } else if (state === 0) { // ENDED -> 다음 영상으로 스크롤 & 연속 재생!
             setShortsPlayState(false);
             playNextShortsVideo();
         }
@@ -13009,12 +12980,15 @@ function loadShortsPlayerAt(idx, shouldAutoplay) {
     const cfg = SHORTS_ZOOM_CONFIGS[currentShortsZoomIdx];
     const isCover = cfg && cfg.isCover;
     const posterUrl = `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`;
+    const originParam = (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin.startsWith('http')) 
+        ? `&origin=${encodeURIComponent(window.location.origin)}` 
+        : '&origin=https://yetalk.cc';
 
     // 🌟 [사용자 요청] 버그 유발하는 loop=1&playlist 파라미터 완전 제거 및 즉각 재생 보장
     const iframeHtml = `
         <div class="tv-shorts-poster-shield" id="shortsPoster_${idx}" style="position:absolute; inset:0; width:100%; height:100%; background:#000000 url('${posterUrl}') center center / cover no-repeat; z-index:3; pointer-events:none; transition:opacity 0.25s ease;"></div>
         <iframe id="ytIframe_${idx}"
-            src="https://www.youtube.com/embed/${vid}?autoplay=${shouldAutoplay ? 1 : 0}&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&disablekb=1&fs=0&iv_load_policy=3"
+            src="https://www.youtube.com/embed/${vid}?autoplay=${shouldAutoplay ? 1 : 0}&controls=0&modestbranding=1&rel=0&playsinline=1&enablejsapi=1${originParam}&disablekb=1&fs=0&iv_load_policy=3"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             loading="eager"
             fetchpriority="high"
@@ -13024,6 +12998,11 @@ function loadShortsPlayerAt(idx, shouldAutoplay) {
     `;
 
     box.innerHTML = iframeHtml;
+
+    // 🌟 [안전 타이머] iframe onload가 지연되거나 postMessage가 누락되어도 포스터가 화면을 가리지 않도록 500ms 뒤 자동 페이드아웃
+    setTimeout(() => {
+        dismissShortsPosterAt(idx);
+    }, 500);
 }
 
 function stopAllShortsPlayers() {
@@ -13373,6 +13352,99 @@ function handleCurrentShortsDelete() {
 function openChannelScriptureModal(chKey) {
     // 🌟 [사용자 요청] 하얀 12개 모달 제거하고 즉각 연속 재생!
     selectAndPlayCategoryDirectly(chKey);
+}
+
+// 🌟 [대표님 전용] 영상 삭제 버튼 가시성 제어
+function updateShortsAdminDeleteButtonUI() {
+    const isMaster = (typeof isMasterAdminUser === 'function') && isMasterAdminUser();
+    const btnTopDel = document.getElementById('btnTopAdminDelete');
+    if (btnTopDel) {
+        btnTopDel.style.setProperty('display', isMaster ? 'inline-flex' : 'none', 'important');
+    }
+}
+
+// 🌟 [대표님 전용] 현재 영상 삭제 핸들러
+function handleAdminDeleteAction() {
+    const currentSlide = shortsFeedList[currentShortsIndex];
+    if (!currentSlide) {
+        showToast('삭제할 영상이 없습니다.');
+        return;
+    }
+
+    const titleStr = currentSlide.slotTitle || currentSlide.slotLabel || '현재 영상';
+    if (!confirm(`🗑️ [영상 영구 삭제]\n\n현재 재생 중인 영상:\n"${titleStr}"\n\n이 영상을 완전히 삭제하시겠습니까?\n(앱을 다시 켜도 절대 다시 나타나지 않도록 영구 삭제됩니다)`)) {
+        return;
+    }
+
+    deleteVideoFromAllLocations(currentSlide.videoId, titleStr);
+    showToast('🗑️ 영상이 영구적으로 완전 삭제되었습니다.');
+}
+
+function deleteCurrentShortsVideoDirect(slide) {
+    if (!slide || !slide.videoId) return;
+    try {
+        deleteVideoFromAllLocations(slide.videoId);
+        alert('영상이 두 군데(슬롯 및 전체 영상)에서 모두 성공적으로 삭제되었습니다.');
+    } catch(e) {
+        alert('삭제 처리 중 오류가 발생했습니다: ' + e.message);
+    }
+}
+
+function openAdminAllVideosManageModal() {
+    let feeds = [];
+    try {
+        feeds = JSON.parse(localStorage.getItem('yetalkSavedCustomFeeds') || '[]');
+    } catch(e){}
+
+    if (confirm(`🗑️ [대표 관리자 전체 삭제]\n\n현재 등록된 성도/회원 영상 총 ${feeds.length}개를 모두 초기화(전체 삭제)하시겠습니까?\n\n※ 확인을 누르면 전체 영상이 완전히 비워집니다.`)) {
+        localStorage.removeItem('yetalkSavedCustomFeeds');
+        localStorage.removeItem('yetalkPinnedCommunityVideo');
+        alert('등록된 전체 영상이 모두 깨끗하게 삭제되었습니다.');
+        buildShortsFeedList();
+        renderShortsSlides();
+        jumpToShortsSlide(0);
+    }
+}
+
+function saveAdminSlotLabelAndTitleOnly() {
+    if (!currentEditingSlot) return;
+    const { chKey, slotIdx } = currentEditingSlot;
+    const ch = fixedChannelsData[chKey];
+    if (!ch || !ch.slots || !ch.slots[slotIdx]) return;
+    const slot = ch.slots[slotIdx];
+
+    const inpLabel = document.getElementById('inpAdminSlotLabel');
+    const inpTitle = document.getElementById('inpAdminSlotTitle');
+    const inpUrl = document.getElementById('inpAdminSlotYtUrl');
+
+    const newLabel = (inpLabel ? inpLabel.value.trim() : '') || slot.label;
+    const newTitle = (inpTitle ? inpTitle.value.trim() : '') || newLabel;
+    const rawUrl = inpUrl ? inpUrl.value.trim() : '';
+
+    slot.label = newLabel;
+    slot.title = newTitle;
+
+    if (rawUrl) {
+        const vid = extractYouTubeVideoId(rawUrl) || rawUrl;
+        if (vid) slot.videoId = vid;
+    }
+
+    const vList = ensureSlotVideos(slot);
+    if (vList.length > 0) {
+        vList[0].title = newTitle;
+        if (slot.videoId) vList[0].videoId = slot.videoId;
+    }
+
+    saveFixedChannelsToStorageAndCloud();
+    renderAdminSlotTabs();
+    renderAdminSlotVideosList();
+    buildShortsFeedList();
+    renderCategoryListView();
+    showToast(`✅ '${newLabel}' 버튼 이름과 영상 제목이 성공적으로 저장되었습니다!`);
+}
+
+function saveAdminSlotLabelOnly() {
+    saveAdminSlotLabelAndTitleOnly();
 }
 
 function closeTvScriptureModal() {
