@@ -1640,22 +1640,20 @@
     </div>
 
     <!-- 3층 🌟 [신규 디자인] 심플 & 럭셔리 순백색 5대 탭 네비게이션 바 -->
-    <nav class="doctor-nav-bar" id="doctorNavBar" style="position:sticky; top:calc(48px + var(--safe-top)); z-index:95; background:#ffffff; border-bottom:1.5px solid #e2e8f0; padding:8px 12px; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch; box-shadow:0 2px 8px rgba(0,0,0,0.02);">
-        <button type="button" class="tab-chip active" id="chip_home" onclick="switchDoctorSection('home')" style="flex:1; min-width:62px; height:38px; border-radius:20px; font-size:13.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease;">
+    <!-- 3층 🌟 [사용자 요청] 4대 핵심 탭: 홈 · 의원안내 · 시술안내 · 대기 -->
+    <nav class="doctor-nav-bar" id="doctorNavBar" style="position:sticky; top:calc(48px + var(--safe-top)); z-index:95; background:#ffffff; border-bottom:1.5px solid #e2e8f0; padding:8px 10px; display:grid; grid-template-columns:1fr 1fr 1fr 1.05fr; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,0.02);">
+        <button type="button" class="tab-chip active" id="chip_home" onclick="switchDoctorSection('home')" style="height:38px; border-radius:12px; font-size:13.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease;">
             <span>🏠</span> <span>홈</span>
         </button>
-        <button type="button" class="tab-chip" id="chip_reserve_inquiry" onclick="switchDoctorSection('reserve_inquiry')" style="flex:1.2; min-width:80px; height:38px; border-radius:20px; font-size:13.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease;">
-            <span>📅</span> <span>예약하기</span>
-        </button>
-        <button type="button" class="tab-chip" id="chip_reserve_check" onclick="switchDoctorSection('reserve_check')" style="flex:1.2; min-width:80px; height:38px; border-radius:20px; font-size:13.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease;">
-            <span>📋</span> <span>예약확인</span>
-        </button>
-        <button type="button" class="tab-chip" id="chip_intro" onclick="switchDoctorSection('intro')" style="flex:1.2; min-width:80px; height:38px; border-radius:20px; font-size:13.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease;">
+        <button type="button" class="tab-chip" id="chip_intro" onclick="switchDoctorSection('intro')" style="height:38px; border-radius:12px; font-size:13.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease;">
             <span>🏥</span> <span>의원안내</span>
         </button>
-        <button type="button" class="tab-chip" id="chip_notice" onclick="switchDoctorSection('notice')" style="flex:1.1; min-width:74px; height:38px; border-radius:20px; font-size:13.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease;">
-            <span>📢</span> <span>공지</span>
-            <span id="badgeNavNoticeCount" style="background:#ef4444; color:#ffffff; font-size:9px; font-weight:900; padding:1px 5px; border-radius:8px;">3</span>
+        <button type="button" class="tab-chip" id="chip_beauty" onclick="switchDoctorSection('beauty')" style="height:38px; border-radius:12px; font-size:13.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease;">
+            <span>🩺</span> <span>시술안내</span>
+        </button>
+        <button type="button" class="tab-chip" id="chip_reserve_check" onclick="switchDoctorSection('reserve_check')" style="height:38px; border-radius:12px; font-size:13.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease;">
+            <span>⏳</span> <span>대기</span>
+            <span id="badgeNavWaitingCount" style="background:#dc2626; color:#ffffff; font-size:9.5px; font-weight:900; padding:1px 5px; border-radius:8px;">0</span>
         </button>
     </nav>
 
@@ -2724,7 +2722,7 @@ let currentQuoteIndex = 0;
 let quoteRollingTimer = null;
 
 // 가로 메뉴 순서 (🌟 5대 메뉴: 의원소개, 진료(시술)안내, 예약문의, 예약확인, 공지알림)
-const DOCTOR_SECTIONS = ["home", "reserve_inquiry", "reserve_check", "intro", "notice"];
+const DOCTOR_SECTIONS = ["home", "intro", "beauty", "reserve_check", "reserve_inquiry", "notice"];
 let currentSectionKey = "home";
 let isDoctorEditMode = false;
 
@@ -3031,20 +3029,7 @@ function renderHomeSection() {
             </button>
         </div>
 
-        <!-- 4. 내 실시간 예약 / 접수 현황 카드 (에스플랜 스타일) -->
-        <div style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:18px; padding:18px 16px; margin-bottom:14px; box-shadow:0 2px 10px rgba(0,0,0,0.03);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span style="font-size:14.5px; font-weight:950; color:#0f172a; display:flex; align-items:center; gap:5px;">
-                    📋 <span>내 예약 / 접수 현황</span>
-                </span>
-                <button type="button" onclick="switchDoctorSection('reserve_check')" style="background:none; border:none; color:#0284c7; font-size:12.5px; font-weight:900; cursor:pointer;">
-                    전체보기 &gt;
-                </button>
-            </div>
-            ${appointmentStatusHtml}
-        </div>
-
-        <!-- 5. 원내 직통 전화 & 오시는 길 퀵 링크 카드 -->
+        <!-- 4. 원내 직통 전화 & 오시는 길 퀵 링크 카드 -->
         <div style="background:#ffffff; border:1.5px solid #e2e8f0; border-radius:18px; padding:14px; margin-bottom:16px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <a href="tel:${savedPhone}" style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:12px 10px; text-decoration:none; display:flex; flex-direction:column; align-items:center; gap:3px; text-align:center;">
                 <span style="font-size:20px;">📞</span>
@@ -6412,30 +6397,43 @@ function renderClinicInquiryList() {
     } else {
         sortedInquiries.forEach(item => {
             const isArrived = (item.isArrival === true || item.status === "도착" || (item.content && item.content.includes("현장 도착")));
+            const isDone = item.isDone || item.status === "완료";
             const cleanPhone = (item.phone || "").replace(/[^0-9]/g, '');
             const dispTime = formatTimeOnly(item.time || item.date);
 
+            // 🌟 [사용자 요청] 즉시 접수는 검은색 글자, 미리 예약 환자는 선명한 파란색 글자로 구분 파악!
+            const timeBadgeBg = isArrived ? "#000000" : "#e0f2fe";
+            const timeBadgeColor = isArrived ? "#ffffff" : "#0284c7";
+            const timeBadgeBorder = isArrived ? "#000000" : "#38bdf8";
+
+            const nameColor = isDone ? "#94a3b8" : (isArrived ? "#000000" : "#0284c7");
+            const typeBadgeBg = isArrived ? "#f1f5f9" : "#eff6ff";
+            const typeBadgeColor = isArrived ? "#000000" : "#1d4ed8";
+            const typeBadgeBorder = isArrived ? "#000000" : "#3b82f6";
+            const typeBadgeText = isArrived ? "⚡ 즉시도착" : "📅 사전예약";
+
             html += `
-                <!-- 🌟 [사용자 요청] 박스 없이 1px 구분선, 제일 앞에 시간과 환자 이름, 맨 마지막은 도착 시 빨간 테두리, 미도착 시 파랑 테두리 -->
-                <div style="padding:9px 2px; border-bottom:1px solid #e2e8f0; display:flex; flex-direction:column; gap:5px;">
-                    <!-- 1줄: [🕒 시간] + 👤 환자명 & 연락처 + [도착(빨간테두리) / 예약(파랑테두리)] -->
+                <!-- 🌟 [사용자 요청] 즉시접수: 검은색 / 사전예약: 파란색 색상 구분 -->
+                <div style="padding:11px 4px; border-bottom:1.5px solid #e2e8f0; display:flex; flex-direction:column; gap:6px; background:${isArrived ? '#fafafa' : '#ffffff'}; opacity:${isDone ? 0.6 : 1};">
+                    <!-- 1줄: [시간대] + 환자명(색상 구분) + [구분 배지: 즉시도착(검정) / 사전예약(파랑)] -->
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
-                        <div style="display:flex; align-items:center; gap:6px; min-width:0; overflow:hidden;">
-                            <span style="font-size:11px; color:#0369a1; background:#e0f2fe; padding:2px 6px; border-radius:5px; font-weight:900; white-space:nowrap;">
+                        <div style="display:flex; align-items:center; gap:7px; min-width:0; overflow:hidden;">
+                            <span style="font-size:11.5px; color:${timeBadgeColor}; background:${timeBadgeBg}; border:1.5px solid ${timeBadgeBorder}; padding:2px 7px; border-radius:6px; font-weight:950; white-space:nowrap;">
                                 🕒 ${escapeHtml(dispTime)}
                             </span>
-                            <span style="font-size:15px; font-weight:950; color:#0f172a; white-space:nowrap; letter-spacing:-0.3px;">👤 ${escapeHtml(item.name)}</span>
-                            <a href="tel:${cleanPhone}" onclick="event.stopPropagation();" style="font-size:12.5px; color:#0284c7; font-weight:800; text-decoration:none; white-space:nowrap;">${escapeHtml(item.phone)}</a>
+                            <strong style="font-size:16px; font-weight:950; color:${nameColor}; white-space:nowrap; letter-spacing:-0.3px;">
+                                👤 ${escapeHtml(item.name)}
+                            </strong>
+                            <a href="tel:${cleanPhone}" onclick="event.stopPropagation();" style="font-size:12px; color:#64748b; font-weight:800; text-decoration:none; white-space:nowrap;">${escapeHtml(item.phone)}</a>
                         </div>
-                        <div style="flex-shrink:0;">
-                            ${isArrived 
-                                ? `<span style="font-size:11.5px; font-weight:950; padding:2px 8px; border-radius:6px; background:#fef2f2; color:#dc2626; border:1.8px solid #ef4444; white-space:nowrap; box-shadow:0 1px 4px rgba(239,68,68,0.2);">도착</span>` 
-                                : `<span style="font-size:11.5px; font-weight:950; padding:2px 8px; border-radius:6px; background:#f0f9ff; color:#0284c7; border:1.8px solid #0284c7; white-space:nowrap; box-shadow:0 1px 4px rgba(2,132,199,0.15);">예약</span>`
-                            }
+                        <div style="flex-shrink:0; display:flex; align-items:center; gap:4px;">
+                            <span style="font-size:11.5px; font-weight:950; padding:2px 8px; border-radius:6px; background:${typeBadgeBg}; color:${typeBadgeColor}; border:1.5px solid ${typeBadgeBorder}; white-space:nowrap; box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+                                ${typeBadgeText}
+                            </span>
                         </div>
                     </div>
 
-                    <!-- 2줄: 전화, 문자, 답변만 하고 예톡은 빼줌, 맨 마지막에 진료내용 버튼 -->
+                    <!-- 2줄: 전화 / 문자 / 답변 / 진료상태 버튼 -->
                     <div style="display:flex; justify-content:space-between; align-items:center; gap:4px;">
                         <div style="display:flex; align-items:center; gap:4px; flex-wrap:nowrap;">
                             <a href="tel:${cleanPhone}" style="height:26px; padding:0 9px; background:#0284c7; border:1px solid #0369a1; color:#fff; text-decoration:none; font-size:11px; font-weight:900; border-radius:5px; display:inline-flex; align-items:center; gap:2px;" title="전화">
@@ -6448,14 +6446,21 @@ function renderClinicInquiryList() {
                                 ✏️ 답변
                             </button>
                         </div>
-                        <button type="button" onclick="toggleInqDetailCard('${item.id}')" id="btnInqToggle_${item.id}" style="height:26px; padding:0 8px; background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; font-size:11px; font-weight:850; border-radius:5px; cursor:pointer; white-space:nowrap;">
-                            진료내용 ▼
-                        </button>
+                        <div style="display:flex; align-items:center; gap:4px;">
+                            ${!isDone ? `
+                                <button type="button" onclick="markPcNurseItemDone('${item.id}')" style="height:26px; padding:0 8px; background:#059669; color:#ffffff; border:none; border-radius:5px; font-size:11px; font-weight:950; cursor:pointer;">
+                                    진료완료
+                                </button>
+                            ` : `<span style="font-size:11px; color:#64748b; font-weight:900; padding:2px 6px;">✅완료</span>`}
+                            <button type="button" onclick="toggleInqDetailCard('${item.id}')" id="btnInqToggle_${item.id}" style="height:26px; padding:0 8px; background:#f1f5f9; border:1px solid #cbd5e1; color:#475569; font-size:11px; font-weight:850; border-radius:5px; cursor:pointer; white-space:nowrap;">
+                                상세 ▼
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- 🌟 진료내용 상세 (평소에는 완전히 숨김, 클릭 시만 노출) -->
+                    <!-- 진료내용 상세 (토글) -->
                     <div id="inqDetailReplyBox_${item.id}" style="display:none; flex-direction:column; gap:4px; margin-top:3px; padding:8px 10px; background:#f8fafc; border-radius:8px; border:1px solid #e2e8f0; font-size:12px; color:#334155;">
-                        <div><b>[진료내용]:</b> ${escapeHtml(item.content)}</div>
+                        <div><b>[진료/문의내용]:</b> ${escapeHtml(item.content)}</div>
                         ${item.reply ? `<div style="color:#15803d; margin-top:2px;"><b>[원내 답변]:</b> ${escapeHtml(item.reply)}</div>` : ''}
                     </div>
                 </div>
@@ -7838,6 +7843,12 @@ function renderPcNurseLiveList() {
         loadClinicInquiryList();
     }
 
+    const navWaitBadge = document.getElementById("badgeNavWaitingCount");
+    if (navWaitBadge) {
+        const count = clinicInquiryList ? clinicInquiryList.length : 0;
+        navWaitBadge.innerText = count;
+        navWaitBadge.style.display = count > 0 ? 'inline-block' : 'none';
+    }
     const countDisp = document.getElementById("dispPcNurseTotalCount");
     if (countDisp) {
         countDisp.innerText = `오늘 ${clinicInquiryList.length}건`;
@@ -7859,24 +7870,30 @@ function renderPcNurseLiveList() {
         const isDone = item.isDone || item.status === "완료";
         const isArrival = item.isArrival || item.status === "도착";
 
-        const badgeBg = isDone ? "#f1f5f9" : (isArrival ? "#fef08a" : "#e0f2fe");
-        const badgeColor = isDone ? "#64748b" : (isArrival ? "#854d0e" : "#0369a1");
-        const badgeBorder = isDone ? "#cbd5e1" : (isArrival ? "#eab308" : "#7dd3fc");
-        const badgeText = isDone ? "✅ 진료완료" : (isArrival ? "⚡ 도착 즉시접수" : "📅 날짜 예약");
+        // 🌟 [사용자 요청] 즉시 접수는 검은색, 미리 예약은 파란색으로 환자 구분
+        const timeBadgeBg = isArrival ? "#000000" : "#e0f2fe";
+        const timeBadgeColor = isArrival ? "#ffffff" : "#0284c7";
+        const timeBadgeBorder = isArrival ? "#000000" : "#38bdf8";
+
+        const nameColor = isDone ? "#94a3b8" : (isArrival ? "#000000" : "#0284c7");
+        const typeBadgeBg = isArrival ? "#f1f5f9" : "#eff6ff";
+        const typeBadgeColor = isArrival ? "#000000" : "#1d4ed8";
+        const typeBadgeBorder = isArrival ? "#000000" : "#3b82f6";
+        const typeBadgeText = isArrival ? "⚡ 즉시도착" : "📅 사전예약";
 
         html += `
-            <div style="background:${isDone ? '#f8fafc' : '#ffffff'}; border:1.5px solid ${isDone ? '#e2e8f0' : (isArrival ? '#fde047' : '#bae6fd')}; border-radius:12px; padding:10px 12px; box-shadow:0 2px 6px rgba(0,0,0,0.03); opacity:${isDone ? 0.65 : 1};">
+            <div style="background:${isDone ? '#f8fafc' : (isArrival ? '#fafafa' : '#ffffff')}; border:1.8px solid ${isDone ? '#e2e8f0' : (isArrival ? '#000000' : '#38bdf8')}; border-radius:12px; padding:10px 12px; box-shadow:0 2px 6px rgba(0,0,0,0.03); opacity:${isDone ? 0.65 : 1}; margin-bottom:8px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                    <span style="font-size:11px; font-weight:900; background:${badgeBg}; color:${badgeColor}; border:1px solid ${badgeBorder}; padding:2px 7px; border-radius:6px;">
-                        ${badgeText}
+                    <span style="font-size:11px; font-weight:950; background:${typeBadgeBg}; color:${typeBadgeColor}; border:1.5px solid ${typeBadgeBorder}; padding:2px 7px; border-radius:6px;">
+                        ${typeBadgeText}
                     </span>
-                    <span style="font-size:12px; font-weight:900; color:#0284c7;">
-                        ${item.time || item.date || ''}
+                    <span style="font-size:12px; font-weight:950; color:${timeBadgeColor}; background:${timeBadgeBg}; border:1px solid ${timeBadgeBorder}; padding:1px 6px; border-radius:5px;">
+                        🕒 ${item.time || item.date || ''}
                     </span>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <strong style="font-size:14.5px; font-weight:950; color:#0f172a;">${item.name || '환자'}</strong>
+                        <strong style="font-size:15px; font-weight:950; color:${nameColor};">👤 ${item.name || '환자'}</strong>
                         <span style="font-size:12px; color:#64748b; margin-left:4px;">${item.phone || ''}</span>
                     </div>
                     <div style="display:flex; gap:4px;">
@@ -7884,7 +7901,7 @@ function renderPcNurseLiveList() {
                             <button type="button" onclick="markPcNurseItemDone('${item.id}')" style="background:#059669; color:#ffffff; border:none; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:900; cursor:pointer;">
                                 진료완료
                             </button>
-                        ` : ''}
+                        ` : '<span style="font-size:11px; color:#64748b; font-weight:900;">✅완료</span>'}
                         <button type="button" onclick="deleteClinicInquiry('${item.id}')" style="background:#f1f5f9; color:#dc2626; border:1px solid #fecdd3; border-radius:6px; padding:4px 7px; font-size:11px; font-weight:900; cursor:pointer;" title="삭제">
                             🗑️
                         </button>
