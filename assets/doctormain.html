@@ -606,21 +606,53 @@
             box-shadow: 0 1px 2px rgba(0,0,0,0.03);
         }
 
-        /* 2. 가로 메뉴 탭 바 (화사한 화이트 테마) */
-        .doctor-tabs-bar {
+        /* 2. 가로 메뉴 탭 바 (화사한 화이트 테마 - 이모티콘/박스 없는 심플 텍스트 탭) */
+        .doctor-tabs-bar, .doctor-nav-bar {
             height: var(--tabs-h); background: #ffffff; border-bottom: 1.5px solid #e2e8f0;
-            display: flex; gap: 6px; overflow-x: auto; white-space: nowrap; padding: 0 10px; align-items: center;
+            display: flex; gap: 0; padding: 0 4px; align-items: center;
             flex-shrink: 0; scrollbar-width: none; z-index: 99;
         }
-        .doctor-tabs-bar::-webkit-scrollbar { display: none; }
+        .doctor-tabs-bar::-webkit-scrollbar, .doctor-nav-bar::-webkit-scrollbar { display: none; }
         .tab-chip {
-            background: #ffffff; border: 1.5px solid #cbd5e1; color: #475569; font-size: 13.5px; font-weight: 900;
-            padding: 6px 14px; border-radius: 12px; cursor: pointer; flex-shrink: 0; transition: all 0.15s; position: relative;
+            background: transparent; border: none; border-bottom: 3px solid transparent;
+            color: #64748b; font-size: 14px; font-weight: 800;
+            padding: 8px 4px; border-radius: 0; cursor: pointer; flex: 1; text-align: center;
+            transition: all 0.15s; position: relative; white-space: nowrap;
+            display: flex; align-items: center; justify-content: center; gap: 3px; height: 100%; box-sizing: border-box;
         }
-        .tab-chip.active { background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border-color: #0284c7; font-weight: 950; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25); }
+        .tab-chip.active {
+            background: transparent; color: #0284c7; border-bottom: 3px solid #0284c7;
+            font-weight: 950; box-shadow: none;
+        }
+        .tab-reserve-badge {
+            background: #ef4444; color: #ffffff; font-size: 10px; font-weight: 900;
+            padding: 1px 5px; border-radius: 10px; line-height: 14px; min-width: 14px; text-align: center;
+        }
         .badge-notice-count {
-            position: absolute; top: -4px; right: -2px; background: #ef4444; color: #ffffff; font-size: 10px; font-weight: 900;
+            position: absolute; top: 4px; right: 4px; background: #ef4444; color: #ffffff; font-size: 10px; font-weight: 900;
             min-width: 17px; height: 17px; border-radius: 9px; display: flex; align-items: center; justify-content: center; border: 1.5px solid #ffffff;
+        }
+
+        /* 🌟 맨 밑 고정 3대 버튼 바: [🏠 의원홈] · [🏥 예톡의원홈] · [⛪ 예톡홈] */
+        .doctor-bottom-triple-dock {
+            position: fixed; left: 0; right: 0; bottom: var(--bottom-ad-h); height: 44px;
+            background: #0f172a; border-top: 1.5px solid rgba(56, 189, 248, 0.3);
+            display: grid; grid-template-columns: repeat(3, 1fr); z-index: 44000;
+            box-shadow: 0 -3px 12px rgba(0,0,0,0.25);
+        }
+        .doctor-bottom-triple-dock .btn-dock-item {
+            background: transparent; border: none; color: #ffffff; display: flex;
+            align-items: center; justify-content: center; gap: 6px; font-size: 13.5px;
+            font-weight: 950; cursor: pointer; transition: background 0.15s, opacity 0.15s;
+        }
+        .doctor-bottom-triple-dock .btn-dock-item:active {
+            background: rgba(255,255,255,0.12);
+        }
+        .doctor-bottom-triple-dock .btn-dock-item .dock-icon {
+            font-size: 15px;
+        }
+        .doctor-bottom-triple-dock .btn-dock-item .dock-label {
+            letter-spacing: -0.3px;
         }
 
         /* 🌟 메뉴 밑 한 줄: 고객가입, 닥톡, 원내톡, 관리실, 수정을 한 줄로 나열 */
@@ -1594,7 +1626,6 @@
                 </div>
             </div>
             <div class="header-right-box" style="display:flex; align-items:center; gap:6px;">
-                <button type="button" class="btn-top-church-app" onclick="location.href='index.html'" title="예톡 교회 메인으로 이동" style="font-size:11.5px; font-weight:900; padding:4px 9px; border-radius:16px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; cursor:pointer;">교회앱</button>
                 <!-- 🌟 [사용자 요청] 원장님과 부관리자만 보이는 관리실 버튼 -->
                 <button type="button" id="btnTopHeaderAdminHub" onclick="openClinicMemberModal()" title="의원 관리실" style="display:none; font-size:12px; font-weight:950; padding:5px 11px; border-radius:20px; background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; border:1.5px solid #38bdf8; box-shadow:0 2px 8px rgba(2,132,199,0.3); white-space:nowrap; cursor:pointer; align-items:center; gap:3px;">
                     ⚙️ 관리실
@@ -1640,25 +1671,25 @@
     </div>
 
     <!-- 3층 🌟 [신규 디자인] 심플 & 럭셔리 순백색 5대 탭 네비게이션 바 -->
-    <!-- 3층 🌟 [사용자 요청] 4대 핵심 탭: 홈 · 의원안내 · 시술안내 · 대기 -->
-    <nav class="doctor-nav-bar" id="doctorNavBar" style="position:sticky; top:calc(48px + var(--safe-top)); z-index:95; background:#ffffff; border-bottom:1.5px solid #e2e8f0; padding:8px 10px; display:grid; grid-template-columns:1fr 1fr 1fr 1.05fr; gap:6px; box-shadow:0 2px 8px rgba(0,0,0,0.02);">
-        <button type="button" class="tab-chip active" id="chip_home" onclick="switchDoctorSection('home')" style="height:38px; border-radius:12px; font-size:13.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease;">
-            <span>🏠</span> <span>홈</span>
+    <!-- 3층 🌟 [사용자 요청] 4대 핵심 텍스트 탭: 홈 · 의원안내 · 시술안내 · 예약 (이모티콘/박스 없는 심플 텍스트) -->
+    <nav class="doctor-nav-bar" id="doctorNavBar" style="position:sticky; top:calc(48px + var(--safe-top)); z-index:95; background:#ffffff; border-bottom:1.5px solid #e2e8f0; padding:0 8px; display:grid; grid-template-columns:repeat(4, 1fr); gap:2px; height:42px; box-shadow:0 1px 4px rgba(0,0,0,0.03);">
+        <button type="button" class="tab-chip active" id="chip_home" onclick="switchDoctorSection('home')">
+            <span>홈</span>
         </button>
-        <button type="button" class="tab-chip" id="chip_intro" onclick="switchDoctorSection('intro')" style="height:38px; border-radius:12px; font-size:13.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease;">
-            <span>🏥</span> <span>의원안내</span>
+        <button type="button" class="tab-chip" id="chip_intro" onclick="switchDoctorSection('intro')">
+            <span>의원안내</span>
         </button>
-        <button type="button" class="tab-chip" id="chip_beauty" onclick="switchDoctorSection('beauty')" style="height:38px; border-radius:12px; font-size:13.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease;">
-            <span>🩺</span> <span>시술안내</span>
+        <button type="button" class="tab-chip" id="chip_beauty" onclick="switchDoctorSection('beauty')">
+            <span>시술안내</span>
         </button>
-        <button type="button" class="tab-chip" id="chip_reserve_check" onclick="switchDoctorSection('reserve_check')" style="height:38px; border-radius:12px; font-size:13.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:4px; cursor:pointer; white-space:nowrap; transition:all 0.15s ease;">
-            <span>⏳</span> <span>대기</span>
-            <span id="badgeNavWaitingCount" style="background:#dc2626; color:#ffffff; font-size:9.5px; font-weight:900; padding:1px 5px; border-radius:8px;">0</span>
+        <button type="button" class="tab-chip" id="chip_reserve_check" onclick="switchDoctorSection('reserve_check')">
+            <span>예약</span>
+            <span id="badgeNavWaitingCount" class="tab-reserve-badge">0</span>
         </button>
     </nav>
 
     <!-- 0) 홈 탭 컨테이너 (심플 & 럭셔리 순백색 카드형 메인 홈) -->
-    <main class="doc-tab-container active" id="sec_home" style="display:block; padding:16px 16px calc(var(--bottom-ad-h) + 40px) 16px; background:#ffffff; overflow:visible;">
+    <main class="doc-tab-container active" id="sec_home" style="display:block; padding:14px 14px calc(var(--bottom-ad-h) + 70px) 14px; width:100%; box-sizing:border-box; background:#ffffff; overflow:visible;">
         <div id="homeMainStreamWrapper"></div>
     </main>
 
@@ -1666,13 +1697,13 @@
     <main class="doc-tab-container active" id="sec_intro" style="display:block;"></main>
 
     <!-- 2) 진료(시술)안내 탭 컨테이너 (1개 시술이 1페이지에 꽉 차고 탁탁 스냅 넘김) -->
-    <main class="doc-tab-container" id="sec_beauty" style="overflow-y:visible !important; scroll-snap-type:none !important; -webkit-overflow-scrolling:touch; padding:12px 14px calc(var(--bottom-ad-h) + 60px) 14px;">
+    <main class="doc-tab-container" id="sec_beauty" style="overflow-y:visible !important; scroll-snap-type:none !important; -webkit-overflow-scrolling:touch; padding:14px 14px calc(var(--bottom-ad-h) + 70px) 14px; width:100%; box-sizing:border-box;">
         <!-- 해당 과목의 세로 시술 사례 목록 (과목칩바 삭제) -->
         <div id="beautyCasesList" style="display:flex; flex-direction:column; gap:16px;"></div>
     </main>
 
     <!-- 3) 예약문의 탭 컨테이너 (스크롤 스냅 해제 & 자연스러운 세로 스크롤) -->
-    <main class="doc-tab-container" id="sec_reserve_inquiry" style="display:none; padding:16px calc(var(--bottom-ad-h) + 40px) 16px; overflow:visible; background:#ffffff;">
+    <main class="doc-tab-container" id="sec_reserve_inquiry" style="display:none; padding:14px 14px calc(var(--bottom-ad-h) + 70px) 14px; width:100%; box-sizing:border-box; overflow:visible; background:#ffffff;">
         <div style="background:#ffffff; border:1.8px solid #0284c7; border-radius:18px; padding:20px 18px; box-shadow:0 4px 16px rgba(2,132,199,0.1); margin-bottom:18px;">
             <div style="margin-bottom:14px; border-bottom:1.5px solid #e0f2fe; padding-bottom:10px;">
                 <div style="font-size:12px; font-weight:800; color:#0284c7; margin-bottom:4px;">🏥 부산 최웅식의원</div>
@@ -1729,12 +1760,12 @@
     </main>
 
     <!-- 4) 예약확인 탭 컨테이너 (스크롤 스냅 해제 & 자연스러운 세로 스크롤) -->
-    <main class="doc-tab-container" id="sec_reserve_check" style="display:none; padding:16px calc(var(--bottom-ad-h) + 40px) 16px; overflow:visible; background:#ffffff;">
+    <main class="doc-tab-container" id="sec_reserve_check" style="display:none; padding:14px 14px calc(var(--bottom-ad-h) + 70px) 14px; width:100%; box-sizing:border-box; overflow:visible; background:#ffffff;">
         <div id="secReserveCheckMainWrapper"></div>
     </main>
 
     <!-- 5) 공지알림 탭 컨테이너 (스크롤 스냅 해제 & 자연스러운 세로 스크롤) -->
-    <main class="doc-tab-container" id="sec_notice" style="display:none; padding:16px calc(var(--bottom-ad-h) + 40px) 16px; overflow:visible; background:#ffffff;">
+    <main class="doc-tab-container" id="sec_notice" style="display:none; padding:14px 14px calc(var(--bottom-ad-h) + 70px) 14px; width:100%; box-sizing:border-box; overflow:visible; background:#ffffff;">
         <div style="background:#ffffff; border-radius:16px; border:1.5px solid var(--border); padding:14px 16px; box-shadow:0 2px 8px rgba(0,0,0,0.04); margin-bottom:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
@@ -1790,13 +1821,25 @@
         </section>
     </main>
 
-    <!-- 🌟 [사용자 요청] 우측 하단 플로팅 네비게이션 및 예톡홈 버튼 -->
-    <div class="floating-cluster" id="floatingCluster" style="position:fixed; right:14px; bottom:calc(var(--bottom-ad-h) + 12px); z-index:45000; display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+    <!-- 🌟 [사용자 요청] 우측 하단 플로팅 + 버튼 -->
+    <div class="floating-cluster" id="floatingCluster" style="position:fixed; right:14px; bottom:calc(var(--bottom-ad-h) + 54px); z-index:45000; display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
         <!-- 🌟 [사용자 요청] 화살표 대신 + 추가하여 시술 항목 추가하기 쉽게 지원 -->
         <button type="button" class="btn-float-single-right" id="btnFloatingAction" onclick="handleFloatingAction()" title="새 항목 추가" style="font-size:24px; font-weight:950;">＋</button>
-        <!-- 🌟 [사용자 요청] 나가기 클릭 시 해당 의원의 첫 페이지로 이동 (서브탭일 경우 첫페이지, 첫페이지일 경우 의원포털 이동) -->
-        <button type="button" id="btnFloatingYetalkHome" onclick="handleClinicExitOrHome()" title="의원 첫 화면 및 의원홈 이동" style="height:38px; padding:0 12px; border-radius:20px; background:linear-gradient(135deg, #0284c7, #1d4ed8); color:#ffffff; border:1.5px solid #38bdf8; font-size:13px; font-weight:950; display:inline-flex; align-items:center; gap:5px; box-shadow:0 4px 14px rgba(2,132,199,0.45); cursor:pointer;">
-            <span>🏠</span> <span>의원홈</span>
+    </div>
+
+    <!-- 🌟 [사용자 요청] 맨 밑 고정 3대 버튼 바: [🏠 의원홈] · [🏥 예톡의원홈] · [⛪ 예톡홈] -->
+    <div class="doctor-bottom-triple-dock" id="doctorBottomTripleDock">
+        <button type="button" class="btn-dock-item" onclick="goToClinicHome()" title="현재 의원 홈으로 이동">
+            <span class="dock-icon">🏠</span>
+            <span class="dock-label">의원홈</span>
+        </button>
+        <button type="button" class="btn-dock-item" onclick="location.href='clinic.html'" title="전국 예톡의원 메인으로 이동">
+            <span class="dock-icon">🏥</span>
+            <span class="dock-label">예톡의원홈</span>
+        </button>
+        <button type="button" class="btn-dock-item" onclick="location.href='index.html'" title="예톡 메인 홈으로 이동">
+            <span class="dock-icon">⛪</span>
+            <span class="dock-label">예톡홈</span>
         </button>
     </div>
 
@@ -2841,12 +2884,16 @@ function switchDoctorSection(key) {
     if (!DOCTOR_SECTIONS.includes(key)) return;
     currentSectionKey = key;
 
+    // 🌟 [사용자 요청] 최상단 의원명부터 보이도록 스크롤 즉시 초기화
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
     // 칩 활성화
     document.querySelectorAll(".tab-chip").forEach(c => c.classList.remove("active"));
     const activeChip = document.getElementById(`chip_${key}`);
     if (activeChip) {
         activeChip.classList.add("active");
-        activeChip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
 
     // 컨테이너 노출/숨김
@@ -2856,7 +2903,7 @@ function switchDoctorSection(key) {
             if (k === key) {
                 sec.classList.add("active");
                 sec.style.display = "block";
-                sec.scrollTo({ top: 0, behavior: 'smooth' });
+                sec.scrollTop = 0;
             } else {
                 sec.classList.remove("active");
                 sec.style.display = "none";
@@ -6841,14 +6888,25 @@ function goToReservationHQ() {
     showToast("📅 당일 예약 명단 및 월별 예약 달력으로 이동했습니다.");
 }
 
+/* 🌟 [사용자 요청] 의원홈 버튼 클릭 시 최상단 의원명부터 깨끗하게 표출 */
+function goToClinicHome() {
+    const hero = document.getElementById("heroBanner");
+    if (hero) hero.style.display = "none";
+    switchDoctorSection("home");
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    setTimeout(() => {
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+    }, 40);
+}
+window.goToClinicHome = goToClinicHome;
+
 /* 🌟 [사용자 요청] 상호의원명 클릭 시 의원의 첫 메인 페이지로 복귀 */
 function goToClinicFirstMainPage() {
-    const hero = document.getElementById("heroBanner");
-    if (hero) {
-        hero.style.display = (hero.style.display === "none") ? "block" : "none";
-    }
-    switchDoctorSection("home");
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    goToClinicHome();
     showToast("🏠 의원 메인 첫 화면으로 이동했습니다.");
 }
 
