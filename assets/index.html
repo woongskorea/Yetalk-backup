@@ -21273,8 +21273,8 @@ https://woongskorea.github.io/Yetalk-backup/`;
         if (!ytId || ytId === 'kJQP7kiw5Fk' || ytId === '5McizITPY1I') {
             ytId = '92oktJl3-Fo';
         }
-        const safeOrigin = 'https%3A%2F%2Fyetalk.cc';
-        return `https://www.youtube.com/embed/${ytId.trim()}?autoplay=1&mute=0&controls=1&rel=0&playsinline=1&enablejsapi=1&origin=${safeOrigin}`;
+        // 🌟 [핵심] 인코딩된 origin 파라미터로 인한 유튜브 API Cross-Origin 에러 및 검은 화면 원천 차단
+        return `https://www.youtube.com/embed/${ytId.trim()}?autoplay=1&mute=0&controls=1&rel=0&playsinline=1&enablejsapi=1`;
     }
 
     // 🌟 [사용자 요청] 성도들이 실제로 준회원으로 가입한 타교회 목록 수집
@@ -21429,9 +21429,13 @@ https://woongskorea.github.io/Yetalk-backup/`;
         renderAssociateChurchesList();
         
         // 🌟 [사용자 요청] 우리교회 라이브가 열려 있으면 최우선(#1)으로 즉시 열리고,
-        // 평소에는 마지막(최신) 영상이 기본으로 뜨며, 주소가 없으면 예톡TV가 자동 재생되어 검은 화면 절대 방지!
+        // 평소에 라이브가 없으면 예톡TV(또는 설정된 기본 말씀)가 바로 재생되어 검은 화면 원천 차단!
         const isOurChurchLive = localStorage.getItem('yetalk_live_our_church_islive') === 'true';
-        selectLiveWorshipStream('our_church');
+        if (isOurChurchLive) {
+            selectLiveWorshipStream('our_church');
+        } else {
+            selectLiveWorshipStream('yetalk');
+        }
 
         window.scrollTo({ top: 0, behavior: 'auto' });
     }
@@ -21596,7 +21600,37 @@ https://woongskorea.github.io/Yetalk-backup/`;
             if (titleEl) titleEl.innerText = `${isLive ? '🔴 LIVE ' : ''}[${customObj.name}] ${customObj.title || '마지막 주일예배 실황'}`;
         }
 
-        if (iframe && targetUrl) {
+        const container = document.getElementById('liveWorshipPlayerContainer');
+        if (container && targetUrl) {
+            container.innerHTML = `
+                <iframe id="liveWorshipPlayerIframe"
+                    src="${targetUrl}"
+                    style="width:100%; height:100%; border:none; object-fit:cover;"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen>
+                </iframe>
+                <div id="liveWorshipScreenLockShield" style="display:${typeof isLiveScreenLocked !== 'undefined' && isLiveScreenLocked ? 'block' : 'none'}; position:absolute; inset:0; background:rgba(0,0,0,0.01); z-index:50;"></div>
+            `;
+            setTimeout(() => {
+                const ifr = document.getElementById('liveWorshipPlayerIframe');
+                if (ifr && ifr.contentWindow) {
+                    try {
+                        ifr.contentWindow.postMessage('{"event":"listening","id":1}', '*');
+                        ifr.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                        ifr.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+                    } catch(e){}
+                }
+            }, 500);
+            setTimeout(() => {
+                const ifr = document.getElementById('liveWorshipPlayerIframe');
+                if (ifr && ifr.contentWindow) {
+                    try {
+                        ifr.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
+                        ifr.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+                    } catch(e){}
+                }
+            }, 1200);
+        } else if (iframe && targetUrl) {
             iframe.src = targetUrl;
         }
 
@@ -21810,10 +21844,11 @@ https://woongskorea.github.io/Yetalk-backup/`;
     function openAdminAddOtherChurchModal() {
         const modal = document.getElementById('modalAdminAddOtherChurches');
         
-        // 1) 예톡TV 예배 영상 주소 바인딩
+        // 1) 예톡TV 예배 영상 주소 바인딩 (복붙 좋게 희미한 색상 기본 적용)
         const inpYetalk = document.getElementById('inpAdminYetalkLiveUrl');
         if (inpYetalk) {
             inpYetalk.value = localStorage.getItem('yetalk_live_yetalk_church_url') || '';
+            inpYetalk.style.color = '#94a3b8';
         }
 
         // 2) 추가 3개 교회 바인딩
@@ -21828,12 +21863,41 @@ https://woongskorea.github.io/Yetalk-backup/`;
             const nameEl = document.getElementById('inpCustomChurchName' + i);
             const urlEl = document.getElementById('inpCustomChurchUrl' + i);
             if (nameEl) nameEl.value = item.name || '';
-            if (urlEl) urlEl.value = item.url || item.yt || '';
+            if (urlEl) {
+                urlEl.value = item.url || item.yt || '';
+                urlEl.style.color = '#94a3b8';
+            }
         }
 
         if (modal) modal.style.display = 'flex';
     }
     window.openAdminAddOtherChurchModal = openAdminAddOtherChurchModal;
+
+    // 🌟 [사용자 요청] 관리실 주소 복붙 좋게 클립보드 붙여넣기 헬퍼 함수
+    async function pasteUrlToInput(inputId) {
+        const el = document.getElementById(inputId);
+        if (!el) return;
+        try {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                const text = await navigator.clipboard.readText();
+                if (text && text.trim()) {
+                    el.value = text.trim();
+                    el.style.color = '#0f172a';
+                    if (typeof showBibleToast === 'function') showBibleToast('📋 주소가 붙여넣어졌습니다!');
+                    return;
+                }
+            }
+        } catch(err) {}
+        el.focus();
+        el.select();
+        const pasted = prompt('유튜브 주소를 입력(붙여넣기)해주세요:', el.value || '');
+        if (pasted !== null) {
+            el.value = pasted.trim();
+            el.style.color = '#0f172a';
+            if (typeof showBibleToast === 'function') showBibleToast('📋 주소가 입력되었습니다!');
+        }
+    }
+    window.pasteUrlToInput = pasteUrlToInput;
 
     function closeAdminAddOtherChurchModal() {
         const modal = document.getElementById('modalAdminAddOtherChurches');
@@ -21875,9 +21939,9 @@ https://woongskorea.github.io/Yetalk-backup/`;
         closeAdminAddOtherChurchModal();
         renderAssociateChurchesList();
 
-        // 현재 라이브 화면이 열려있으면 즉시 새로고침 반영
+        // 🌟 [사용자 요청] 관리실에서 주소 등록/저장 시 예톡TV 예배로 즉시 전환되어 새로 등록된 영상이 바로 재생되도록 반영!
         if (isLiveWorshipOpen) {
-            selectLiveWorshipStream(currentLiveChannelKey || 'yetalk');
+            selectLiveWorshipStream('yetalk');
         }
 
         showBibleToast('💾 관리실 설정이 안전하게 저장되었습니다!');
@@ -24026,7 +24090,7 @@ window.openLiveWorshipView = openLiveWorshipView;
             </div>
             <div style="padding:16px; overflow-y:auto; display:flex; flex-direction:column; gap:14px;">
                 <!-- 1. 예톡TV 예배 영상 -->
-                <div style="background:#eff6ff; border:1.8px solid #93c5fd; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:6px;">
+                <div style="background:#eff6ff; border:1.8px solid #93c5fd; border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:8px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <strong style="font-size:14px; color:#1e40af; font-weight:950;">📺 예톡TV 예배 영상</strong>
                         <span style="font-size:11px; background:#dbeafe; color:#1e40af; font-weight:900; padding:2px 8px; border-radius:6px;">기본 말씀 반복</span>
@@ -24034,7 +24098,17 @@ window.openLiveWorshipView = openLiveWorshipView;
                     <p style="margin:0; font-size:11.5px; color:#3b82f6; font-weight:700; line-height:1.4;">
                         주소를 올리시면 예톡TV 예배에 연결되어 기본 말씀으로 계속 반복 재생됩니다.
                     </p>
-                    <input type="text" id="inpAdminYetalkLiveUrl" placeholder="유튜브 주소 (https://www.youtube.com/watch?v=... 또는 라이브 링크)" style="width:100%; box-sizing:border-box; border:1.5px solid #93c5fd; border-radius:8px; padding:9px 10px; font-size:12.5px; font-weight:800; background:#ffffff; color:#0f172a; outline:none;">
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <input type="text" id="inpAdminYetalkLiveUrl" 
+                            placeholder="유튜브 주소 (https://... 또는 공유 링크)" 
+                            onclick="this.select();" 
+                            onfocus="this.select(); this.style.color='#0f172a';" 
+                            onblur="if(this.value){ this.style.color='#94a3b8'; }" 
+                            oninput="this.style.color='#0f172a';" 
+                            style="flex:1; min-width:0; box-sizing:border-box; border:1.5px solid #93c5fd; border-radius:8px; padding:9px 10px; font-size:12.5px; font-weight:700; background:#ffffff; color:#94a3b8; outline:none; transition:color 0.2s;">
+                        <button type="button" onclick="pasteUrlToInput('inpAdminYetalkLiveUrl')" style="flex-shrink:0; background:#2563eb; color:#ffffff; border:none; border-radius:8px; padding:9px 12px; font-size:11.5px; font-weight:950; cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:0 1px 3px rgba(37,99,235,0.3);">📋 붙여넣기</button>
+                    </div>
+                    <div style="font-size:11px; color:#64748b; font-weight:700;">💡 주소를 터치하면 전체 선택되어 새 주소를 바로 붙여넣을 수 있습니다.</div>
                 </div>
 
                 <!-- 2. 추가 교회 3개 (준회원교회 목록 마지막에 추가) -->
@@ -24043,20 +24117,47 @@ window.openLiveWorshipView = openLiveWorshipView;
                     
                     <!-- 1번째 교회 -->
                     <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
-                        <input type="text" id="inpCustomChurchName1" placeholder="1️⃣ 첫 번째 교회 이름 (예: 제자광성교회)" style="width:100%; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12.5px; font-weight:800;">
-                        <input type="text" id="inpCustomChurchUrl1" placeholder="유튜브 주소 (https://...)" style="width:100%; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12px; font-weight:800;">
+                        <input type="text" id="inpCustomChurchName1" placeholder="1️⃣ 첫 번째 교회 이름 (예: 서울 은혜교회)" style="width:100%; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12.5px; font-weight:800;">
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <input type="text" id="inpCustomChurchUrl1" 
+                                placeholder="유튜브 주소 (https://...)" 
+                                onclick="this.select();" 
+                                onfocus="this.select(); this.style.color='#0f172a';" 
+                                onblur="if(this.value){ this.style.color='#94a3b8'; }" 
+                                oninput="this.style.color='#0f172a';" 
+                                style="flex:1; min-width:0; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12px; font-weight:700; color:#94a3b8; outline:none;">
+                            <button type="button" onclick="pasteUrlToInput('inpCustomChurchUrl1')" style="flex-shrink:0; background:#475569; color:#ffffff; border:none; border-radius:6px; padding:7px 10px; font-size:11px; font-weight:900; cursor:pointer;">📋 붙여넣기</button>
+                        </div>
                     </div>
 
                     <!-- 2번째 교회 -->
                     <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
                         <input type="text" id="inpCustomChurchName2" placeholder="2️⃣ 두 번째 교회 이름" style="width:100%; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12.5px; font-weight:800;">
-                        <input type="text" id="inpCustomChurchUrl2" placeholder="유튜브 주소" style="width:100%; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12px; font-weight:800;">
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <input type="text" id="inpCustomChurchUrl2" 
+                                placeholder="유튜브 주소" 
+                                onclick="this.select();" 
+                                onfocus="this.select(); this.style.color='#0f172a';" 
+                                onblur="if(this.value){ this.style.color='#94a3b8'; }" 
+                                oninput="this.style.color='#0f172a';" 
+                                style="flex:1; min-width:0; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12px; font-weight:700; color:#94a3b8; outline:none;">
+                            <button type="button" onclick="pasteUrlToInput('inpCustomChurchUrl2')" style="flex-shrink:0; background:#475569; color:#ffffff; border:none; border-radius:6px; padding:7px 10px; font-size:11px; font-weight:900; cursor:pointer;">📋 붙여넣기</button>
+                        </div>
                     </div>
 
                     <!-- 3번째 교회 -->
                     <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px;">
                         <input type="text" id="inpCustomChurchName3" placeholder="3️⃣ 세 번째 교회 이름" style="width:100%; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12.5px; font-weight:800;">
-                        <input type="text" id="inpCustomChurchUrl3" placeholder="유튜브 주소" style="width:100%; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12px; font-weight:800;">
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <input type="text" id="inpCustomChurchUrl3" 
+                                placeholder="유튜브 주소" 
+                                onclick="this.select();" 
+                                onfocus="this.select(); this.style.color='#0f172a';" 
+                                onblur="if(this.value){ this.style.color='#94a3b8'; }" 
+                                oninput="this.style.color='#0f172a';" 
+                                style="flex:1; min-width:0; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:6px; padding:7px 9px; font-size:12px; font-weight:700; color:#94a3b8; outline:none;">
+                            <button type="button" onclick="pasteUrlToInput('inpCustomChurchUrl3')" style="flex-shrink:0; background:#475569; color:#ffffff; border:none; border-radius:6px; padding:7px 10px; font-size:11px; font-weight:900; cursor:pointer;">📋 붙여넣기</button>
+                        </div>
                     </div>
                 </div>
 
