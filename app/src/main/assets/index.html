@@ -5671,6 +5671,12 @@
                     <span id="headerLogoRegion" style="display:none;">Korea</span>
                 </span>
 
+                <!-- 🌟 [사용자 요청] korea 글과 같은 높이에 korea와 조금 우측으로 떨어지게 배치된 작은 카톡 모양 초청 버튼 -->
+                <button type="button" id="btnHeaderKakaoInvite" onclick="sendHeaderKakaoInviteToMe()" style="margin-left:10px; background:#fee500; border:1px solid #eab308; border-radius:12px; color:#191919; font-size:12px; font-weight:950; padding:3.5px 9px; display:inline-flex; align-items:center; justify-content:center; gap:3.5px; cursor:pointer; box-shadow:0 1.5px 4px rgba(0,0,0,0.12); line-height:1; white-space:nowrap; transition:transform 0.1s ease; flex-shrink:0; vertical-align:middle;" title="카톡으로 초청장 보내기 (클릭 시 내용 복사 & 카톡 나에게 보내기)">
+                    <span style="font-size:13px; display:inline-block; line-height:1;">💬</span>
+                    <span>초청</span>
+                </button>
+
             </div>
         </div>
         <div class="header-right-actions" style="display:flex; align-items:center; gap:4px; align-self:flex-end; padding-bottom:2px; flex-shrink:0;">
@@ -24964,6 +24970,75 @@ https://woongskorea.github.io/Yetalk-backup/clinic.html
             alert("복사에 실패했습니다. 아래 문구를 복사해주세요:\n\n" + text);
         }
         document.body.removeChild(ta);
+    }
+
+    // 🌟 [사용자 요청] korea 우측 작은 카톡 모양 초청 버튼: 내용 복사 + 카톡 나에게 보내기 완료
+    function sendHeaderKakaoInviteToMe() {
+        const inviteText = `“예톡으로 초대합니다.”
+플레이스토어에서 우리교회앱 예톡 다운 받으세요.
+
+👉 예톡 바로가기:
+https://woongskorea.github.io/Yetalk-backup/`;
+
+        // 1. 클립보드에 초청 문구 복사
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(inviteText).catch(() => {});
+        } else {
+            try {
+                const ta = document.createElement("textarea");
+                ta.value = inviteText;
+                ta.style.position = "fixed";
+                ta.style.left = "-9999px";
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+            } catch(e) {}
+        }
+
+        // 토스트 알림
+        if (typeof showFloatingToast === 'function') {
+            showFloatingToast("💬 초청장이 복사되었습니다!\n카카오톡 [나에게 보내기]로 이동합니다.");
+        } else if (typeof showToast === 'function') {
+            showToast("💬 초청장이 복사되었습니다!\n카카오톡 [나에게 보내기]로 이동합니다.");
+        } else {
+            alert("💬 초청장이 복사되었습니다!\n카카오톡 [나에게 보내기]나 지인에게 붙여넣기하세요.");
+        }
+
+        // 2. 카카오톡 실행 (AndroidBridge -> Android Intent -> kakaolink / kakaotalk 스킴)
+        if (window.AndroidBridge && typeof window.AndroidBridge.shareToKakaoTalk === "function") {
+            try {
+                window.AndroidBridge.shareToKakaoTalk(inviteText);
+                return;
+            } catch(e) {}
+        }
+        if (window.AndroidBridge && typeof window.AndroidBridge.shareToKakaoFriends === "function") {
+            try {
+                window.AndroidBridge.shareToKakaoFriends(inviteText);
+                return;
+            } catch(e) {}
+        }
+
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        if (isAndroid) {
+            try {
+                window.location.href = "intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=" + encodeURIComponent(inviteText) + ";package=com.kakao.talk;end";
+                return;
+            } catch(e) {}
+        }
+
+        try {
+            window.location.href = "kakaolink://send?text=" + encodeURIComponent(inviteText);
+        } catch(e) {
+            if (navigator.share) {
+                navigator.share({
+                    title: "예톡 초청",
+                    text: inviteText,
+                    url: "https://woongskorea.github.io/Yetalk-backup/"
+                }).catch(() => {});
+            }
+        }
     }
 </script>
 </body>
