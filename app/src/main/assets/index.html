@@ -23861,20 +23861,21 @@ window.openLiveWorshipView = openLiveWorshipView;
 
     function updatePrayerMusicButtonsUI() {
         const statusIcon = document.getElementById("iconDailyRepentAudioStatus");
-        const styleInactive = "padding:9px 6px; font-size:13.5px; font-weight:900; border-radius:9px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:inline-flex; align-items:center; justify-content:center; gap:5px;";
-        const styleActiveRed = "padding:9px 6px; font-size:13.5px; font-weight:950; border-radius:9px; border:2px solid #b91c1c; background:#dc2626; color:#ffffff; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 3px 10px rgba(220,38,38,0.35); display:inline-flex; align-items:center; justify-content:center; gap:5px;";
+        const styleInactive = "padding:10px 6px; font-size:13.5px; font-weight:950; border-radius:9px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:inline-flex; align-items:center; justify-content:center; gap:5px;";
+        const styleActiveRed = "padding:10px 6px; font-size:13.5px; font-weight:950; border-radius:9px; border:2px solid #b91c1c; background:#dc2626; color:#ffffff; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 3px 10px rgba(220,38,38,0.35); display:inline-flex; align-items:center; justify-content:center; gap:5px;";
 
-        const icons = ["", "🎵", "🎶", "🌿", "🕊️"];
-        for (let i = 1; i <= 4; i++) {
+        const icons = ["", "🎵", "🎶"];
+        const names = ["", "한국 · 방언기도", "방언기도"];
+        for (let i = 1; i <= 2; i++) {
             const btn = document.getElementById("btnSelectMusicTrack" + i);
             if (!btn) continue;
             if (isDailyRepentPlaying && selectedPrayerTrack === i) {
                 btn.style.cssText = styleActiveRed;
-                btn.innerHTML = `<span>${icons[i]}</span> <span>기도음악 ${i}</span>`;
+                btn.innerHTML = `<span>${icons[i]}</span> <span>${names[i]}</span>`;
                 if (statusIcon) statusIcon.innerText = icons[i];
             } else {
                 btn.style.cssText = styleInactive;
-                btn.innerHTML = `<span>${icons[i]}</span> <span>기도음악 ${i}</span>`;
+                btn.innerHTML = `<span>${icons[i]}</span> <span>${names[i]}</span>`;
             }
         }
     }
@@ -23990,13 +23991,14 @@ window.openLiveWorshipView = openLiveWorshipView;
     }
     window.toggleRepentVideoFold = toggleRepentVideoFold;
 
-    // 🌟 [사용자 요청] 기도음악 변경 모달 (음악 1 / 음악 2 탭 전환 지원)
+    // 🌟 [사용자 요청] 기도음악 변경 모달 (한국 · 방언기도 / 방언기도 탭 전환 지원)
     function switchModalMusicTrackTab(trackNum) {
         modalEditingTrack = trackNum;
         const txtCurrent = document.getElementById("txtCurrentPrayerMusicStatus");
         const inp = document.getElementById("inpAdminPrayerMusicInput");
+        const trackNames = ["", "한국 · 방언기도", "방언기도"];
 
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 2; i++) {
             const tab = document.getElementById("tabModalMusicTrack" + i);
             if (!tab) continue;
             if (i === trackNum) {
@@ -24011,16 +24013,17 @@ window.openLiveWorshipView = openLiveWorshipView;
         }
 
         const myCustom = (localStorage.getItem("yetalk_my_prayer_music_url_" + trackNum) || (trackNum === 1 ? localStorage.getItem("yetalk_my_prayer_music_url") : "") || "").trim();
+        const tName = trackNames[trackNum] || `음악 ${trackNum}`;
         if (txtCurrent) {
             if (myCustom) {
-                txtCurrent.innerHTML = `[음악 ${trackNum}] 현재: <strong style='color:#2563eb;'>내가 지정한 나만의 기도음악</strong> 사용 중`;
+                txtCurrent.innerHTML = `[${tName}] 현재: <strong style='color:#2563eb;'>내가 등록한 나만의 기도음악</strong> 사용 중`;
             } else {
-                txtCurrent.innerHTML = `[음악 ${trackNum}] 현재: <strong style='color:#059669;'>대표님 추천 기본 은혜 음악</strong> 사용 중`;
+                txtCurrent.innerHTML = `[${tName}] 현재: <strong style='color:#059669;'>기본 은혜 기도음악</strong> 사용 중`;
             }
         }
         if (inp) {
             inp.value = "";
-            inp.placeholder = `[기도음악 ${trackNum}] 유튜브 주소를 붙여넣어 주세요`;
+            inp.placeholder = `[${tName}] 유튜브 주소를 길게 눌러 붙여넣으세요`;
         }
     }
     window.switchModalMusicTrackTab = switchModalMusicTrackTab;
@@ -24028,13 +24031,19 @@ window.openLiveWorshipView = openLiveWorshipView;
     function openAdminChangePrayerMusicModal() {
         const modal = document.getElementById("modalDailyRepentMusicChange");
         switchModalMusicTrackTab(selectedPrayerTrack || 1);
-        if (modal) modal.style.display = "flex";
+        if (modal) {
+            modal.style.setProperty("display", "flex", "important");
+            modal.classList.add("show");
+        }
     }
     window.openAdminChangePrayerMusicModal = openAdminChangePrayerMusicModal;
 
     function closeAdminChangePrayerMusicModal() {
         const modal = document.getElementById("modalDailyRepentMusicChange");
-        if (modal) modal.style.display = "none";
+        if (modal) {
+            modal.style.setProperty("display", "none", "important");
+            modal.classList.remove("show");
+        }
     }
     window.closeAdminChangePrayerMusicModal = closeAdminChangePrayerMusicModal;
 
@@ -24043,8 +24052,10 @@ window.openLiveWorshipView = openLiveWorshipView;
         if (e) e.preventDefault();
         const inp = document.getElementById("inpAdminPrayerMusicInput");
         const newUrl = (inp ? inp.value : "").trim();
+        const trackNames = ["", "한국 · 방언기도", "방언기도"];
+        const tName = trackNames[modalEditingTrack] || `음악 ${modalEditingTrack}`;
         if (!newUrl) {
-            alert(`[기도음악 ${modalEditingTrack}] 변경하실 유튜브 주소를 붙여넣어 주세요.`);
+            alert(`[${tName}] 변경하실 유튜브 주소를 붙여넣어 주세요.`);
             return;
         }
 
@@ -24054,19 +24065,21 @@ window.openLiveWorshipView = openLiveWorshipView;
         }
 
         closeAdminChangePrayerMusicModal();
-        showBibleToast(`✅ [기도음악 ${modalEditingTrack}] 나만의 음악이 등록되었습니다.`);
+        showBibleToast(`✅ [${tName}] 나만의 기도음악이 등록되었습니다.`);
         selectPrayerMusicTrack(modalEditingTrack);
     }
     window.saveAdminPrayerMusicFromModal = saveAdminPrayerMusicFromModal;
 
     // 🌟 [사용자 요청] 기본 음악으로 초기화/되돌리기
     function resetToDefaultPrayerMusic() {
+        const trackNames = ["", "한국 · 방언기도", "방언기도"];
+        const tName = trackNames[modalEditingTrack] || `음악 ${modalEditingTrack}`;
         localStorage.removeItem("yetalk_my_prayer_music_url_" + modalEditingTrack);
         if (modalEditingTrack === 1) {
             localStorage.removeItem("yetalk_my_prayer_music_url");
         }
         closeAdminChangePrayerMusicModal();
-        showBibleToast(`🔄 [기도음악 ${modalEditingTrack}] 기본 은혜 음악으로 복원되었습니다!`);
+        showBibleToast(`🔄 [${tName}] 기본 은혜 기도음악으로 복원되었습니다!`);
         selectPrayerMusicTrack(modalEditingTrack);
     }
     window.resetToDefaultPrayerMusic = resetToDefaultPrayerMusic;
@@ -24797,44 +24810,50 @@ window.openLiveWorshipView = openLiveWorshipView;
         </div>
     </div>
 
-    <div class="modal-overlay" id="modalDailyRepentMusicChange" style="position:fixed !important; inset:0 !important; width:100vw !important; height:100vh !important; background:rgba(0,0,0,0.65) !important; z-index:100000 !important; display:none; align-items:center !important; justify-content:center !important; padding:16px !important; box-sizing:border-box !important;">
-        <div style="background:#ffffff; border-radius:20px; width:100%; max-width:440px; box-shadow:0 12px 36px rgba(0,0,0,0.3); overflow:hidden; display:flex; flex-direction:column; box-sizing:border-box;">
-            <div style="background:linear-gradient(135deg, #1e3a8a, #2563eb); color:#ffffff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
+    <!-- 🌟 [사용자 요청] 나만의 은혜 기도음악 설정 모달 (z-index 100020으로 기도실 100005 위로 확실히 띄움) -->
+    <div class="modal-overlay" id="modalDailyRepentMusicChange" style="position:fixed !important; inset:0 !important; width:100% !important; height:100% !important; background:rgba(0,0,0,0.65) !important; z-index:100020 !important; display:none; align-items:center !important; justify-content:center !important; padding:16px !important; box-sizing:border-box !important;">
+        <div style="background:#ffffff; border-radius:18px; width:100%; max-width:390px; margin:auto; box-shadow:0 12px 36px rgba(0,0,0,0.35); overflow:hidden; display:flex; flex-direction:column; box-sizing:border-box;">
+            <div style="background:linear-gradient(135deg, #1e3a8a, #2563eb); color:#ffffff; padding:14px 16px; display:flex; justify-content:space-between; align-items:center; box-sizing:border-box;">
                 <div style="display:flex; align-items:center; gap:8px; font-size:16px; font-weight:950;">
-                    <span>🎵</span> <span>은혜의 기도 배경음악 설정</span>
+                    <span>🎵</span> <span>기도음악 주소 변경</span>
                 </div>
-                <button type="button" onclick="closeAdminChangePrayerMusicModal()" style="background:transparent; border:none; color:#ffffff; font-size:20px; font-weight:900; cursor:pointer; line-height:1;">✕</button>
+                <button type="button" onclick="closeAdminChangePrayerMusicModal()" style="background:transparent; border:none; color:#ffffff; font-size:20px; font-weight:900; cursor:pointer; line-height:1; padding:2px 6px;">✕</button>
             </div>
-            <div style="padding:20px; display:flex; flex-direction:column; gap:12px;">
+            <div style="padding:16px 14px; display:flex; flex-direction:column; gap:11px; box-sizing:border-box; width:100%;">
                 <p style="margin:0; font-size:13.5px; font-weight:800; color:#334155; line-height:1.5;">
-                    대표님이 깔아두신 기본 찬양 2가지 중 원하는 트랙을 선택해 나만의 유튜브 기도음악으로 자유롭게 바꾸실 수 있습니다.
+                    원하시는 기도음악을 선택하신 후, 복사해 온 유튜브 주소를 붙여넣고 우측의 <strong>[저장하기]</strong>를 눌러주세요.
                 </p>
 
-                <!-- 트랙 1 ~ 4 선택 탭 -->
-                <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:5px;">
-                    <button type="button" id="tabModalMusicTrack1" onclick="switchModalMusicTrackTab(1)" style="padding:8px 4px; border-radius:8px; border:2px solid #2563eb; background:#2563eb; color:#ffffff; font-size:12px; font-weight:950; cursor:pointer;">음악 1</button>
-                    <button type="button" id="tabModalMusicTrack2" onclick="switchModalMusicTrackTab(2)" style="padding:8px 4px; border-radius:8px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; font-size:12px; font-weight:950; cursor:pointer;">음악 2</button>
-                    <button type="button" id="tabModalMusicTrack3" onclick="switchModalMusicTrackTab(3)" style="padding:8px 4px; border-radius:8px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; font-size:12px; font-weight:950; cursor:pointer;">음악 3</button>
-                    <button type="button" id="tabModalMusicTrack4" onclick="switchModalMusicTrackTab(4)" style="padding:8px 4px; border-radius:8px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; font-size:12px; font-weight:950; cursor:pointer;">음악 4</button>
+                <!-- 트랙 1, 2 선택 탭 -->
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+                    <button type="button" id="tabModalMusicTrack1" onclick="switchModalMusicTrackTab(1)" style="padding:9px 6px; border-radius:9px; border:2px solid #2563eb; background:#2563eb; color:#ffffff; font-size:13px; font-weight:950; cursor:pointer;">🎵 한국 · 방언기도</button>
+                    <button type="button" id="tabModalMusicTrack2" onclick="switchModalMusicTrackTab(2)" style="padding:9px 6px; border-radius:9px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; font-size:13px; font-weight:950; cursor:pointer;">🎶 방언기도</button>
                 </div>
 
-                <div id="txtCurrentPrayerMusicStatus" style="font-size:12.5px; font-weight:850; color:#0369a1; background:#e0f2fe; padding:7px 12px; border-radius:8px;">
-                    현재: <strong style="color:#059669;">대표님 추천 기본 은혜 음악</strong> 사용 중
+                <div id="txtCurrentPrayerMusicStatus" style="font-size:12.5px; font-weight:850; color:#0369a1; background:#e0f2fe; padding:8px 12px; border-radius:8px;">
+                    현재: <strong style="color:#059669;">기본 은혜 기도음악</strong> 사용 중
                 </div>
-                <div style="position:relative;">
-                    <input type="text" id="inpAdminPrayerMusicInput" placeholder="변경할 유튜브 주소를 붙여넣어 주세요" onkeydown="if(event.key==='Enter') saveAdminPrayerMusicFromModal()" style="width:100%; box-sizing:border-box; border:2px solid #3b82f6; border-radius:12px; padding:12px 38px 12px 14px; font-size:14px; font-weight:800; color:#0f172a; outline:none; background:#f8fafc;">
-                    <button type="button" onclick="document.getElementById('inpAdminPrayerMusicInput').value=''; document.getElementById('inpAdminPrayerMusicInput').focus();" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:#94a3b8; font-size:16px; cursor:pointer;" title="내용 지우기">✕</button>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-top:6px; flex-wrap:wrap;">
-                    <button type="button" onclick="resetToDefaultPrayerMusic()" style="background:#f1f5f9; border:1px solid #94a3b8; color:#0f172a; font-size:12.5px; font-weight:900; padding:9px 12px; border-radius:9px; cursor:pointer;" title="대표님이 깔아두신 기본 음악으로 되돌리기">
-                        🔄 기본 음악 복원
+
+                <!-- 🌟 [사용자 요청] 희미한 창에 유튜브 주소 복붙 후 우측 저장하기 즉시 터치 -->
+                <div style="display:flex; gap:8px; align-items:center; width:100%; box-sizing:border-box;">
+                    <div style="position:relative; flex:1; min-width:0;">
+                        <input type="text" id="inpAdminPrayerMusicInput" placeholder="유튜브 주소를 길게 눌러 붙여넣으세요" onkeydown="if(event.key==='Enter') saveAdminPrayerMusicFromModal()" style="width:100%; min-width:0; box-sizing:border-box; border:1.5px solid #cbd5e1; border-radius:10px; padding:10px 32px 10px 11px; font-size:13px; font-weight:800; color:#0f172a; outline:none; background:#f8fafc; user-select:text; -webkit-user-select:text; cursor:text;" onfocus="this.style.background='#ffffff'; this.style.borderColor='#2563eb';" onblur="this.style.background='#f8fafc'; this.style.borderColor='#cbd5e1';">
+                        <button type="button" onclick="document.getElementById('inpAdminPrayerMusicInput').value=''; document.getElementById('inpAdminPrayerMusicInput').focus();" style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:transparent; border:none; color:#94a3b8; font-size:15px; cursor:pointer;" title="내용 지우기">✕</button>
+                    </div>
+                    <button type="button" onclick="saveAdminPrayerMusicFromModal()" style="flex-shrink:0; height:40px; background:linear-gradient(135deg, #2563eb, #1d4ed8); border:none; color:#ffffff; font-size:13px; font-weight:950; padding:0 12px; border-radius:10px; cursor:pointer; box-shadow:0 2px 6px rgba(37,99,235,0.25); display:inline-flex; align-items:center; gap:4px; white-space:nowrap;">
+                        <span>💾</span> <span>저장하기</span>
                     </button>
-                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                        <button type="button" onclick="saveAdminPrayerMusicForEveryone()" style="background:#eff6ff; border:1.5px solid #93c5fd; color:#1d4ed8; font-size:12.5px; font-weight:950; padding:9px 12px; border-radius:9px; cursor:pointer;" title="관리자용: 모든 전체 회원에게 기본 영상으로 배포">
-                            🌐 전체 회원 기본영상 배포
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-top:4px;">
+                    <button type="button" onclick="resetToDefaultPrayerMusic()" style="background:#f1f5f9; border:1px solid #cbd5e1; color:#334155; font-size:12px; font-weight:900; padding:7px 10px; border-radius:8px; cursor:pointer; white-space:nowrap;" title="원래 기본 은혜음악으로 되돌리기">
+                        🔄 기본음악 복원
+                    </button>
+                    <div style="display:flex; gap:5px; align-items:center;">
+                        <button type="button" onclick="saveAdminPrayerMusicForEveryone()" style="background:#eff6ff; border:1.2px solid #93c5fd; color:#1d4ed8; font-size:12px; font-weight:950; padding:7px 10px; border-radius:8px; cursor:pointer; white-space:nowrap;" title="관리자용: 모든 전체 회원에게 기본 영상으로 배포">
+                            🌐 전체 배포
                         </button>
-                        <button type="button" onclick="closeAdminChangePrayerMusicModal()" style="background:#f8fafc; border:1px solid #cbd5e1; color:#475569; font-size:13px; font-weight:900; padding:9px 14px; border-radius:9px; cursor:pointer;">취소</button>
-                        <button type="button" onclick="saveAdminPrayerMusicFromModal()" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); border:none; color:#ffffff; font-size:13px; font-weight:950; padding:9px 16px; border-radius:9px; cursor:pointer; box-shadow:0 2px 8px rgba(37,99,235,0.35);">💾 나만의 영상 저장</button>
+                        <button type="button" onclick="closeAdminChangePrayerMusicModal()" style="background:#f8fafc; border:1px solid #cbd5e1; color:#475569; font-size:12px; font-weight:900; padding:7px 12px; border-radius:8px; cursor:pointer; white-space:nowrap;">닫기</button>
                     </div>
                 </div>
             </div>
@@ -24849,9 +24868,9 @@ window.openLiveWorshipView = openLiveWorshipView;
             <div style="padding-top: max(16px, calc(env(safe-area-inset-top) + 8px)); padding-bottom: 10px; padding-left: 16px; padding-right: 16px; background:#ffffff; border-bottom:1.5px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; box-sizing:border-box;">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <span style="font-size:18.5px; font-weight:1000; color:#dc2626; letter-spacing:-0.4px;">기도실</span>
-                    <button type="button" onclick="openAdminChangePrayerMusicModal()" style="background:#f1f5f9; border:1.2px solid #cbd5e1; border-radius:8px; font-size:12px; font-weight:900; color:#475569; padding:4px 9px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; box-shadow:0 1px 2px rgba(0,0,0,0.05); transition:background 0.15s ease;" title="음악 주소 변경">
-                        <span id="iconDailyRepentAudioStatus" style="font-size:12.5px; line-height:1;">🎵</span>
-                        <span>음악변경</span>
+                    <button type="button" onclick="openAdminChangePrayerMusicModal()" style="background:#f1f5f9; border:1.5px solid #cbd5e1; border-radius:9px; font-size:13px; font-weight:950; color:#334155; padding:5px 11px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; box-shadow:0 1px 3px rgba(0,0,0,0.06); transition:all 0.15s ease;" title="기도음악 주소 변경">
+                        <span id="iconDailyRepentAudioStatus" style="font-size:13.5px; line-height:1;">🎵</span>
+                        <span>기도음악 변경</span>
                     </button>
                 </div>
                 <button type="button" onclick="closeDailyRepentVictoryModal()" style="width:38px; height:38px; border-radius:50%; background:#f1f5f9; border:1px solid #cbd5e1; color:#334155; font-size:19px; font-weight:950; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 4px rgba(0,0,0,0.08); touch-action:manipulation;" title="닫기">✕</button>
@@ -24879,36 +24898,27 @@ window.openLiveWorshipView = openLiveWorshipView;
                 </div>
 
                 <!-- 🌟 [사용자 요청] 첫줄: 타이머 자동 표시 (기도실 켠 이후 분별 1분, 2분... 자동 증가 타이머 & 현재 시각 컴팩트 배치) -->
-                <div id="prayerClockTimerCard" style="background:linear-gradient(135deg, #eff6ff 0%, #ffffff 100%); border:1.5px solid #93c5fd; border-radius:12px; padding:7px 12px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1.5px 6px rgba(37,99,235,0.06);">
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#ef4444; box-shadow:0 0 6px #ef4444;"></span>
-                        <span style="font-size:14px; font-weight:950; color:#1e3a8a;">⏱️ 기도 시간</span>
-                        <span id="dispPrayerElapsedMinutes" style="font-size:13.5px; font-weight:1000; color:#dc2626; background:#fff1f2; border:1.5px solid #fecaca; padding:1.5px 7px; border-radius:9px; letter-spacing:-0.2px; box-shadow:0 1px 3px rgba(220,38,38,0.12);" title="기도실 입장 후 경과된 기도시간 (1분, 2분... 자동 증가)">0분</span>
+                <div id="prayerClockTimerCard" style="background:linear-gradient(135deg, #eff6ff 0%, #ffffff 100%); border:1.5px solid #93c5fd; border-radius:12px; padding:8px 12px; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 1.5px 6px rgba(37,99,235,0.06);">
+                    <div style="display:flex; align-items:center; gap:7px;">
+                        <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#ef4444; box-shadow:0 0 6px #ef4444;"></span>
+                        <span style="font-size:15px; font-weight:950; color:#1e3a8a;">⏱️ 기도 시간</span>
+                        <span id="dispPrayerElapsedMinutes" style="font-size:16px; font-weight:1000; color:#dc2626; background:#fff1f2; border:1.8px solid #fecaca; padding:2px 10px; border-radius:10px; letter-spacing:-0.2px; box-shadow:0 1px 3px rgba(220,38,38,0.12);" title="기도실 입장 후 경과된 기도시간 (1분, 2분... 자동 증가)">0분</span>
                     </div>
                     <div style="display:flex; align-items:center;">
-                        <span id="prayerCurrentHourMinute" style="font-size:13.5px; font-weight:950; color:#1d4ed8; letter-spacing:-0.3px; background:#ffffff; border:1.2px solid #bfdbfe; padding:2.5px 8px; border-radius:7px; white-space:nowrap; box-shadow:0 1px 3px rgba(37,99,235,0.06);">
+                        <span id="prayerCurrentHourMinute" style="font-size:15px; font-weight:950; color:#1d4ed8; letter-spacing:-0.3px; background:#ffffff; border:1.5px solid #bfdbfe; padding:3px 10px; border-radius:8px; white-space:nowrap; box-shadow:0 1px 3px rgba(37,99,235,0.06);">
                             PM --:--
                         </span>
                     </div>
                 </div>
 
-                <!-- 🌟 [사용자 요청] 기도음악 변경 헤더줄(한칸) 완전 제거하고 4개 기도음악 버튼만 컴팩트 배치 -->
+                <!-- 🌟 [사용자 요청] 기도음악 2개 버튼 배치: 한국 · 방언기도 / 방언기도 -->
                 <div style="background:linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%); border:1.5px solid #bfdbfe; border-radius:12px; padding:7px 8px; margin-bottom:12px; box-shadow:0 1.5px 6px rgba(37,99,235,0.06);">
-                    <!-- 2줄 4개 그리드 배치 -->
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                        <!-- 1번째 줄: 기도음악 1, 기도음악 2 -->
-                        <button type="button" id="btnSelectMusicTrack1" onclick="clickPrayerMusicTrack(1)" style="padding:9px 6px; font-size:13px; font-weight:900; border-radius:8px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:inline-flex; align-items:center; justify-content:center; gap:5px;">
-                            <span>🎵</span> <span>기도음악 1</span>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:7px;">
+                        <button type="button" id="btnSelectMusicTrack1" onclick="clickPrayerMusicTrack(1)" style="padding:10px 6px; font-size:13.5px; font-weight:950; border-radius:9px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:inline-flex; align-items:center; justify-content:center; gap:5px;">
+                            <span>🎵</span> <span>한국 · 방언기도</span>
                         </button>
-                        <button type="button" id="btnSelectMusicTrack2" onclick="clickPrayerMusicTrack(2)" style="padding:9px 6px; font-size:13px; font-weight:900; border-radius:8px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:inline-flex; align-items:center; justify-content:center; gap:5px;">
-                            <span>🎶</span> <span>기도음악 2</span>
-                        </button>
-                        <!-- 2번째 줄: 기도음악 3, 기도음악 4 -->
-                        <button type="button" id="btnSelectMusicTrack3" onclick="clickPrayerMusicTrack(3)" style="padding:9px 6px; font-size:13px; font-weight:900; border-radius:8px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:inline-flex; align-items:center; justify-content:center; gap:5px;">
-                            <span>🌿</span> <span>기도음악 3</span>
-                        </button>
-                        <button type="button" id="btnSelectMusicTrack4" onclick="clickPrayerMusicTrack(4)" style="padding:9px 6px; font-size:13px; font-weight:900; border-radius:8px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:inline-flex; align-items:center; justify-content:center; gap:5px;">
-                            <span>🕊️</span> <span>기도음악 4</span>
+                        <button type="button" id="btnSelectMusicTrack2" onclick="clickPrayerMusicTrack(2)" style="padding:10px 6px; font-size:13.5px; font-weight:950; border-radius:9px; border:1.5px solid #cbd5e1; background:#ffffff; color:#475569; cursor:pointer; text-align:center; transition:all 0.15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.05); display:inline-flex; align-items:center; justify-content:center; gap:5px;">
+                            <span>🎶</span> <span>방언기도</span>
                         </button>
                     </div>
                 </div>
