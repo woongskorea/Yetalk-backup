@@ -884,10 +884,17 @@
             <div class="yt-player-box" id="ytPlayerBox">
                 <div class="yt-player-inner" id="ytPlayerInner">
                     <iframe id="mainWorshipIframe"
-                        src="https://www.youtube.com/embed/92oktJl3-Fo?autoplay=0&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3"
+                        src=""
+                        style="display:none;"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         sandbox="allow-scripts allow-same-origin allow-presentation">
                     </iframe>
+                    <!-- 🌟 [사용자 요청] 등록된 영상이 없을 때 깔끔한 대기 화면 -->
+                    <div id="worshipEmptyPlaceholder" style="display:flex; position:absolute; inset:0; background:linear-gradient(135deg, #0b1329 0%, #060b14 100%); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; z-index:4;">
+                        <div style="font-size:38px; margin-bottom:8px;">⛪</div>
+                        <div style="font-size:15px; font-weight:900; color:#38bdf8; margin-bottom:4px;">등록된 예배 영상이 없습니다</div>
+                        <div style="font-size:12px; color:#94a3b8; line-height:1.4;">관리자이시면 상단 <strong style="color:#fde047;">[⚙️ 관리]</strong> 버튼을 눌러<br>유튜브 주소를 등록해 주세요.</div>
+                    </div>
                 </div>
                 <div class="yt-touch-shield" id="ytTouchShield" onclick="handleVideoTouch()">
                     <div id="videoPlayPauseIndicator" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.75); color:#ffffff; font-size:32px; padding:12px 20px; border-radius:50%; pointer-events:none; z-index:20; border:1.5px solid rgba(255,255,255,0.25);">⏸️</div>
@@ -1055,7 +1062,7 @@
         <div class="admin-input-group">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <label class="admin-input-label" style="color:#38bdf8;">5. 유튜브 영상 주소</label>
-                <span style="font-size:10.5px; color:#fde047;">★ 복사 후 손쉽게 붙여넣기</span>
+                <span style="font-size:10.5px; color:#fde047;">★ 붙여넣기 후 바로 [등록] 터치</span>
             </div>
             <div class="yt-input-row" style="display:flex; gap:6px; align-items:center;">
                 <div style="position:relative; flex:1;">
@@ -1067,8 +1074,9 @@
                     <button type="button" onclick="clearAndFocusYtInput()" title="주소 지우기"
                             style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:#334155; border:none; border-radius:50%; width:22px; height:22px; color:#94a3b8; font-size:11px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
                 </div>
-                <button type="button" class="btn-paste-clipboard" onclick="pasteClipboardToYt()" style="white-space:nowrap; flex-shrink:0;">
-                    📋 붙여넣기
+                <!-- 🌟 [사용자 요청] 붙여넣기 후 바로 옆에서 등록·저장 원터치 완료 -->
+                <button type="button" class="btn-paste-clipboard" onclick="saveAdminData()" style="white-space:nowrap; flex-shrink:0; background:linear-gradient(135deg, #0284c7 0%, #2563eb 100%); color:#ffffff; font-weight:950; font-size:13.5px; padding:0 16px; border:none; border-radius:10px; height:42px; cursor:pointer; box-shadow:0 3px 10px rgba(2,132,199,0.4);" title="주소 붙여넣고 바로 등록">
+                    💾 등록
                 </button>
             </div>
         </div>
@@ -1140,21 +1148,15 @@
         }
     }
 
+    // 🌟 [사용자 요청] 샘플 조용기 목사 영상/설교 기본값 완전 삭제 -> 실제 등록된 것만 표출 및 저장
     const DEFAULT_DATA = {
-        sunday: { tabName: "주일예배", title: "하나님의 언약을 굳게 붙들라", bible: "요한복음 3장 16절 ~ 18절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "" },
-        wednesday: { tabName: "수요예배", title: "믿음으로 순종하는 삶", bible: "창세기 12장 1절 ~ 4절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "" },
-        friday: { tabName: "금요기도회", title: "성령의 임재와 회복의 은혜", bible: "사도행전 1장 8절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "" },
-        dawn: { tabName: "새벽기도회", title: "주의 인도하심을 따라", bible: "시편 23편 1절 ~ 6절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "" },
-        special: { tabName: "특별예배", title: "복음의 능력으로 부흥하는 교회", bible: "에베소서 4장 11절 ~ 16절", preacher: "초청강사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "" },
-        praise: { tabName: "찬양모음", title: "온 맘 다해 주 찬양하라", bible: "시편 150편 1절 ~ 6절", preacher: "할렐루야 찬양대", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "" }
+        sunday: { tabName: "주일예배", title: "주일 대예배", bible: "본문 말씀", preacher: "담임목사", yt: "", date: "" },
+        wednesday: { tabName: "수요예배", title: "수요 기도예배", bible: "본문 말씀", preacher: "담임목사", yt: "", date: "" },
+        friday: { tabName: "금요기도회", title: "금요 성령기도회", bible: "본문 말씀", preacher: "담임목사", yt: "", date: "" },
+        dawn: { tabName: "새벽기도회", title: "새벽 기도회", bible: "본문 말씀", preacher: "담임목사", yt: "", date: "" },
+        special: { tabName: "특별예배", title: "특별 부흥예배", bible: "본문 말씀", preacher: "초청강사", yt: "", date: "" },
+        praise: { tabName: "찬양모음", title: "은혜의 찬양모음", bible: "시편 찬양", preacher: "찬양대", yt: "", date: "" }
     };
-
-    // 지난 주 기본 설교 데이터
-    const PAST_DEFAULT_DATA = [
-        { tabName: "주일예배", title: "오직 믿음으로 살리라", bible: "로마서 1장 16절 ~ 17절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 10일 (11월 2주 주일)" },
-        { tabName: "수요예배", title: "기도의 능력과 응답의 확신", bible: "예레미야 33장 3절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 13일 (수요예배)" },
-        { tabName: "금요기도회", title: "성령의 불길 타오르게 하소서", bible: "누가복음 12장 49절", preacher: "정찬석 담임목사", yt: "https://www.youtube.com/watch?v=92oktJl3-Fo", date: "11월 8일 (금요기도회)" }
-    ];
 
     let activeWorshipIndex = 0;
     let worshipData = {};
@@ -1380,10 +1382,19 @@
         const headerBadge = document.getElementById("headerWorshipKindBadge");
         if (headerBadge) headerBadge.innerText = `🎙️ ${item.tabName}`;
 
-        // 2. 플레이어 iframe
+        // 2. 플레이어 iframe & 등록 대기 안내
         const iframe = document.getElementById("mainWorshipIframe");
+        const placeholder = document.getElementById("worshipEmptyPlaceholder");
         if (iframe) {
-            iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3`;
+            if (ytId && ytId !== '92oktJl3-Fo') {
+                iframe.style.display = "block";
+                iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3`;
+                if (placeholder) placeholder.style.display = "none";
+            } else {
+                iframe.style.display = "none";
+                iframe.src = "";
+                if (placeholder) placeholder.style.display = "flex";
+            }
         }
 
         // 3. 1번째 줄 알약 정보 (설교제목 + 연한 날짜/담임목사/본문)
@@ -1501,23 +1512,41 @@
             thisList.appendChild(card);
         });
 
-        // 지난 주 설교 피드
+        // 지난 주 설교 피드 (실제 올린 설교만 보관 및 표출)
         pastList.innerHTML = "";
         let pastSermons = [];
         try {
             pastSermons = JSON.parse(localStorage.getItem(TREASURE_ARCHIVE_KEY) || "[]");
         } catch(e) {}
-        if (!pastSermons || pastSermons.length === 0) {
-            pastSermons = PAST_DEFAULT_DATA;
+        // 샘플 조용기 목사 영상 및 기본 더미 데이터 제외
+        pastSermons = (pastSermons || []).filter(itm => itm && itm.yt && !itm.yt.includes("92oktJl3-Fo") && !itm.title.includes("오직 믿음으로"));
+        localStorage.setItem(TREASURE_ARCHIVE_KEY, JSON.stringify(pastSermons));
+
+        if (pastSermons.length === 0) {
+            const emptyNotice = document.createElement("div");
+            emptyNotice.style.cssText = "padding:24px 16px; text-align:center; color:#94a3b8; font-size:13px; font-weight:750; background:rgba(15,23,42,0.6); border:1px dashed rgba(56,189,248,0.25); border-radius:12px; margin:4px 0 10px 0;";
+            emptyNotice.innerHTML = `
+                <div style="font-size:26px; margin-bottom:6px;">📦</div>
+                <div style="font-size:14px; font-weight:900; color:#38bdf8; margin-bottom:3px;">보관된 지난 설교가 없습니다</div>
+                <div style="font-size:11.8px; color:#64748b; line-height:1.45;">새로운 예배 설교를 등록하시면<br>이전 설교가 이곳 보물창고에 은혜롭게 누적 보관됩니다.</div>
+            `;
+            pastList.appendChild(emptyNotice);
+            return;
         }
+
         pastSermons.forEach(itm => {
             const ytId = extractYoutubeVideoId(itm.yt);
             const card = document.createElement("div");
             card.className = "sermon-video-card";
             card.onclick = () => {
                 const iframe = document.getElementById("mainWorshipIframe");
+                const placeholder = document.getElementById("worshipEmptyPlaceholder");
                 if (iframe) {
-                    iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3`;
+                    if (ytId && ytId !== '92oktJl3-Fo') {
+                        iframe.style.display = "block";
+                        iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3`;
+                        if (placeholder) placeholder.style.display = "none";
+                    }
                 }
                 isWorshipVideoPaused = false;
                 const kindBadge = document.getElementById("sermonKindBadge");
@@ -1534,7 +1563,7 @@
             };
             card.innerHTML = `
                 <div class="card-thumb-wrap">
-                    <img class="card-thumb-img" src="https://img.youtube.com/vi/${ytId}/mqdefault.jpg" alt="${itm.title}" onerror="this.src='https://img.youtube.com/vi/92oktJl3-Fo/mqdefault.jpg'">
+                    <img class="card-thumb-img" src="https://img.youtube.com/vi/${ytId}/mqdefault.jpg" alt="${itm.title}">
                     <div class="card-play-icon" style="background:rgba(124,58,237,0.85);">▶</div>
                 </div>
                 <div class="card-info-wrap">
@@ -1694,7 +1723,7 @@
         if (!title) { alert("설교 제목을 입력해주세요."); return; }
         if (!bible) { alert("성경 본문을 입력해주세요."); return; }
         if (!preacher) { alert("설교자를 입력해주세요."); return; }
-        if (!yt) yt = "https://www.youtube.com/watch?v=92oktJl3-Fo";
+        if (!yt) { alert("유튜브 영상 주소를 입력해주세요."); return; }
 
         archiveCurrentToTreasure(key, worshipData[key]);
 
@@ -1711,7 +1740,7 @@
             localStorage.setItem('yetalk_live_our_church_url', yt);
             localStorage.setItem('yetalk_live_our_church_last_url', yt);
         } catch(e){}
-        showToast(`✅ [${worshipData[key].tabName}] 영상 정보가 저장되고 보배창고에 등록되었습니다!`);
+        showToast(`✅ [${worshipData[key].tabName}] 영상 정보가 등록·저장되었습니다!`);
         switchWorship(adminSelectedKeyIndex);
         renderFeeds();
         closeAdminModal();
@@ -1720,13 +1749,14 @@
     function deleteCurrentWorshipVideo() {
         const key = WORSHIP_KEYS[adminSelectedKeyIndex];
         const item = worshipData[key] || DEFAULT_DATA[key];
-        if (!confirm(`[${item.tabName}] 예배 영상을 삭제하고 기본 샘플로 초기화하시겠습니까?`)) return;
+        if (!confirm(`[${item.tabName}] 예배 영상을 삭제하고 초기화하시겠습니까?`)) return;
         worshipData[key] = Object.assign({}, DEFAULT_DATA[key], {
             preacher: getChurchPastor(),
-            date: getAutoWorshipDate(key)
+            date: getAutoWorshipDate(key),
+            yt: ""
         });
         localStorage.setItem(SHARED_WORSHIP_KEY, JSON.stringify(worshipData));
-        showToast(`🗑️ [${item.tabName}] 영상이 삭제되고 초기화되었습니다.`);
+        showToast(`🗑️ [${item.tabName}] 영상이 삭제되었습니다.`);
         selectAdminWorshipTab(adminSelectedKeyIndex);
         switchWorship(adminSelectedKeyIndex);
         renderFeeds();
@@ -1734,10 +1764,10 @@
     }
 
     function archiveCurrentToTreasure(key, currentItem) {
-        if (!currentItem || !currentItem.title) return;
+        if (!currentItem || !currentItem.title || !currentItem.yt || currentItem.yt.includes("92oktJl3-Fo")) return;
         try {
             let list = JSON.parse(localStorage.getItem(TREASURE_ARCHIVE_KEY) || "[]");
-            list = list.filter(x => x.title !== currentItem.title);
+            list = list.filter(x => x && x.title !== currentItem.title && x.yt && !x.yt.includes("92oktJl3-Fo") && !x.title.includes("오직 믿음으로"));
             list.unshift({
                 tabName: currentItem.tabName,
                 title: currentItem.title,
@@ -1849,6 +1879,11 @@
                 WORSHIP_KEYS.forEach(k => {
                     if (!worshipData[k] || !worshipData[k].title || worshipData[k].title === "주일 대예배 실황") {
                         worshipData[k] = Object.assign({}, DEFAULT_DATA[k]);
+                        changed = true;
+                    }
+                    // 🌟 [사용자 요청] 샘플 조용기 목사 영상 청소
+                    if (worshipData[k].yt && worshipData[k].yt.includes("92oktJl3-Fo")) {
+                        worshipData[k].yt = "";
                         changed = true;
                     }
                     if (!worshipData[k].preacher || worshipData[k].preacher.includes("이은혜") || worshipData[k].preacher === "담임목사") {

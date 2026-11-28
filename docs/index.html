@@ -2411,7 +2411,7 @@
         .notice-flow-list {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 0;
             width: 100%;
         }
         .notice-flow-item {
@@ -18158,26 +18158,28 @@ const BIBLICAL_TIME_SLOTS = [
             </div>
         `;
 
-        // 🌟 [사용자 요청] 1번에 예톡공지라고 해서 노출 (터치 시 상세 모달, 수정/삭제 가능)
-        const itemsHtml = notices.map(n => {
+        // 🌟 [사용자 요청] 박스 없애고 1px 글 사이 구분선만, 글자 크기 1px 확대
+        const itemsHtml = notices.map((n, idx) => {
             const isMaster = (n.isMaster === true || n.tagText === "예톡공지");
             const target = isMaster ? "" : (n.targetUrl ? n.targetUrl : (`churchnotice.html?noticeId=${encodeURIComponent(n.id)}`));
             const clickAttr = isMaster ? `onclick="openMasterNoticeDetailModal('${n.id}')"` : `onclick="location.href='${target}'"`;
             const tagBadgeStyle = isMaster 
                 ? "background:linear-gradient(135deg, #1e40af, #2563eb); color:#ffffff; font-weight:950;" 
                 : "background:#dcfce7; color:#15803d; font-weight:900;";
-            const cardBg = isMaster ? "background:#f0f7ff; border:1.5px solid #bfdbfe;" : "background:#ffffff; border:1px solid #e2e8f0;";
+            const isLast = (idx === notices.length - 1);
+            const borderDivider = isLast ? "" : "border-bottom:1px solid #e2e8f0;";
+            const itemBg = isMaster ? "background:#f0f7ff; border-radius:8px; margin:2px 0;" : "background:transparent;";
 
             return `
-                <div ${clickAttr} style="display:flex; justify-content:space-between; align-items:center; padding:11px 12px; border-radius:10px; margin-bottom:6px; ${cardBg} cursor:pointer; box-shadow:0 1.5px 3px rgba(0,0,0,0.03); transition:all 0.15s ease;">
+                <div ${clickAttr} style="display:flex; justify-content:space-between; align-items:center; padding:12px 6px; ${borderDivider} ${itemBg} cursor:pointer; transition:background 0.15s ease;">
                     <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
-                        <span style="flex-shrink:0; font-size:11px; ${tagBadgeStyle} padding:2px 7px; border-radius:6px;">${n.tagText}</span>
-                        <strong style="font-size:13.5px; font-weight:850; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${n.title}</strong>
-                        ${n.img ? `<span style="font-size:10px; color:#0284c7; background:#e0f2fe; padding:1px 4px; border-radius:4px; font-weight:900; flex-shrink:0;">📷</span>` : ''}
+                        <span style="flex-shrink:0; font-size:12px; ${tagBadgeStyle} padding:2.5px 8px; border-radius:6px;">${n.tagText}</span>
+                        <strong style="font-size:14.5px; font-weight:850; color:#0f172a; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${n.title}</strong>
+                        ${n.img ? `<span style="font-size:11px; color:#0284c7; background:#e0f2fe; padding:1px 5px; border-radius:4px; font-weight:900; flex-shrink:0;">📷</span>` : ''}
                     </div>
                     <div style="display:flex; align-items:center; gap:6px; flex-shrink:0; margin-left:8px;">
-                        <span style="font-size:11px; color:#94a3b8; font-weight:700;">${n.dateText}</span>
-                        <span style="color:${isMaster ? '#1d4ed8' : '#059669'}; font-size:13px; font-weight:900;">➔</span>
+                        <span style="font-size:12px; color:#94a3b8; font-weight:700;">${n.dateText}</span>
+                        <span style="color:${isMaster ? '#1d4ed8' : '#059669'}; font-size:14px; font-weight:900;">➔</span>
                     </div>
                 </div>
             `;
@@ -21620,19 +21622,24 @@ https://woongskorea.github.io/Yetalk-backup/`;
     window.extractYtVideoId = extractYtVideoId;
 
     // 🌟 [사용자 요청] 다음 영상으로 넘어가 자동 재생되게 해서 하루 종일 반복
+    // 1개면 1개 자동 무한 반복, 2개면 1->2->1->2 무한 반복, 3개면 1->2->3->1->2->3 무한 반복
     function playNextYetalkVideo() {
         if (!currentYetalkPlaylistIds || currentYetalkPlaylistIds.length === 0) return;
         currentYetalkVideoIndex = (currentYetalkVideoIndex + 1) % currentYetalkPlaylistIds.length;
         const nextId = currentYetalkPlaylistIds[currentYetalkVideoIndex];
         const iframe = document.getElementById('liveWorshipPlayerIframe');
         if (iframe) {
-            iframe.src = `https://www.youtube.com/embed/${nextId}?autoplay=1&playlist=${currentYetalkPlaylistIds.join(',')}&loop=1&mute=0&controls=1&playsinline=1&enablejsapi=1`;
+            if (currentYetalkPlaylistIds.length === 1) {
+                iframe.src = `https://www.youtube.com/embed/${nextId}?autoplay=1&loop=1&playlist=${nextId}&mute=0&controls=1&rel=0&playsinline=1&enablejsapi=1`;
+            } else {
+                iframe.src = `https://www.youtube.com/embed/${nextId}?autoplay=1&mute=0&controls=1&rel=0&playsinline=1&enablejsapi=1`;
+            }
         }
         const titleEl = document.getElementById('dispCurrentLiveTitle');
         const title = localStorage.getItem('yetalk_live_yetalk_church_title') || '[예톡교회] 주일 연합 실시간 라이브 예배';
         const isYetalkLive = localStorage.getItem('yetalk_live_yetalk_church_islive') === 'true';
         if (titleEl) {
-            const numText = currentYetalkPlaylistIds.length > 1 ? ` (${currentYetalkVideoIndex + 1}/${currentYetalkPlaylistIds.length}부 연속방송)` : '';
+            const numText = currentYetalkPlaylistIds.length > 1 ? ` (${currentYetalkVideoIndex + 1}/${currentYetalkPlaylistIds.length}부 연속순환)` : '';
             titleEl.innerText = `${isYetalkLive ? '🔴 LIVE ' : ''}${title}${numText}`;
         }
     }
@@ -21643,8 +21650,14 @@ https://woongskorea.github.io/Yetalk-backup/`;
         if (!e.data || typeof e.data !== 'string') return;
         try {
             const msg = JSON.parse(e.data);
-            if (msg.event === 'infoDelivery' && msg.info && msg.info.playerState === 0) {
-                if (currentLiveChannelKey === 'yetalk' && currentYetalkPlaylistIds && currentYetalkPlaylistIds.length > 1) {
+            let state = -99;
+            if (msg.event === 'infoDelivery' && msg.info && typeof msg.info.playerState !== 'undefined') {
+                state = msg.info.playerState;
+            } else if (msg.event === 'onStateChange' && typeof msg.info !== 'undefined') {
+                state = msg.info;
+            }
+            if (state === 0) { // 0 = YT.PlayerState.ENDED
+                if (currentLiveChannelKey === 'yetalk' && currentYetalkPlaylistIds && currentYetalkPlaylistIds.length > 0) {
                     playNextYetalkVideo();
                 }
             }
@@ -21981,8 +21994,12 @@ https://woongskorea.github.io/Yetalk-backup/`;
                 btnYetalk.style.border = isYetalkLive ? '2px solid #ef4444' : '2px solid #38bdf8';
                 btnYetalk.style.boxShadow = '0 0 12px rgba(56, 189, 248, 0.4)';
             }
-            // 🌟 [사용자 요청] 유튜브 embed playlist & loop 파라미터로 2개든 3개든 무한 자동 연속 재생
-            targetUrl = `https://www.youtube.com/embed/${currentYtId}?autoplay=1&playlist=${ytIds.join(',')}&loop=1&mute=0&controls=1&playsinline=1&enablejsapi=1`;
+            // 🌟 [사용자 요청] 1개면 1개 무한 자동 반복, 2개 이상이면 당사 자동 순환 엔진으로 1->2->1 무한 반복
+            if (ytIds.length === 1) {
+                targetUrl = `https://www.youtube.com/embed/${currentYtId}?autoplay=1&loop=1&playlist=${currentYtId}&mute=0&controls=1&rel=0&playsinline=1&enablejsapi=1`;
+            } else {
+                targetUrl = `https://www.youtube.com/embed/${currentYtId}?autoplay=1&mute=0&controls=1&rel=0&playsinline=1&enablejsapi=1`;
+            }
             if (titleEl) {
                 const numText = ytIds.length > 1 ? ` (${currentYetalkVideoIndex + 1}/${ytIds.length}부 연속순환)` : '';
                 titleEl.innerText = `${isYetalkLive ? '🔴 LIVE ' : ''}${title}${numText}`;
@@ -24687,7 +24704,7 @@ window.openLiveWorshipView = openLiveWorshipView;
                             onblur="if(this.value){ this.style.color='#94a3b8'; }" 
                             oninput="this.style.color='#0f172a';" 
                             style="flex:1; min-width:0; height:42px; box-sizing:border-box; border:1.8px solid #93c5fd; border-radius:10px; padding:0 12px; font-size:13px; font-weight:800; background:#ffffff; color:#94a3b8; outline:none; transition:border-color 0.2s;">
-                        <button type="button" onclick="pasteUrlToInput('inpAdminYetalkLiveUrl1')" style="height:42px; flex-shrink:0; background:#2563eb; color:#ffffff; border:none; border-radius:10px; padding:0 14px; font-size:12.5px; font-weight:950; cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(37,99,235,0.25);">📋 붙여넣기</button>
+                        <button type="button" onclick="saveAdminYetalkUrlsOnly()" title="붙여넣기 후 바로 등록·저장" style="height:42px; flex-shrink:0; background:linear-gradient(135deg, #1d4ed8, #2563eb); color:#ffffff; border:none; border-radius:10px; padding:0 16px; font-size:13px; font-weight:950; cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(37,99,235,0.25);">💾 등록</button>
                     </div>
 
                     <!-- 2번 영상 -->
@@ -24699,7 +24716,7 @@ window.openLiveWorshipView = openLiveWorshipView;
                             onblur="if(this.value){ this.style.color='#94a3b8'; }" 
                             oninput="this.style.color='#0f172a';" 
                             style="flex:1; min-width:0; height:42px; box-sizing:border-box; border:1.8px solid #93c5fd; border-radius:10px; padding:0 12px; font-size:13px; font-weight:800; background:#ffffff; color:#94a3b8; outline:none; transition:border-color 0.2s;">
-                        <button type="button" onclick="pasteUrlToInput('inpAdminYetalkLiveUrl2')" style="height:42px; flex-shrink:0; background:#2563eb; color:#ffffff; border:none; border-radius:10px; padding:0 14px; font-size:12.5px; font-weight:950; cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(37,99,235,0.25);">📋 붙여넣기</button>
+                        <button type="button" onclick="saveAdminYetalkUrlsOnly()" title="붙여넣기 후 바로 등록·저장" style="height:42px; flex-shrink:0; background:linear-gradient(135deg, #1d4ed8, #2563eb); color:#ffffff; border:none; border-radius:10px; padding:0 16px; font-size:13px; font-weight:950; cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(37,99,235,0.25);">💾 등록</button>
                     </div>
 
                     <!-- 3번 영상 -->
@@ -24711,7 +24728,7 @@ window.openLiveWorshipView = openLiveWorshipView;
                             onblur="if(this.value){ this.style.color='#94a3b8'; }" 
                             oninput="this.style.color='#0f172a';" 
                             style="flex:1; min-width:0; height:42px; box-sizing:border-box; border:1.8px solid #93c5fd; border-radius:10px; padding:0 12px; font-size:13px; font-weight:800; background:#ffffff; color:#94a3b8; outline:none; transition:border-color 0.2s;">
-                        <button type="button" onclick="pasteUrlToInput('inpAdminYetalkLiveUrl3')" style="height:42px; flex-shrink:0; background:#2563eb; color:#ffffff; border:none; border-radius:10px; padding:0 14px; font-size:12.5px; font-weight:950; cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(37,99,235,0.25);">📋 붙여넣기</button>
+                        <button type="button" onclick="saveAdminYetalkUrlsOnly()" title="붙여넣기 후 바로 등록·저장" style="height:42px; flex-shrink:0; background:linear-gradient(135deg, #1d4ed8, #2563eb); color:#ffffff; border:none; border-radius:10px; padding:0 16px; font-size:13px; font-weight:950; cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(37,99,235,0.25);">💾 등록</button>
                     </div>
 
                     <!-- 🌟 [사용자 요청] 예톡tv영상 밑에도 저장 버튼 두고! -->
@@ -24737,7 +24754,7 @@ window.openLiveWorshipView = openLiveWorshipView;
                                 onblur="if(this.value){ this.style.color='#94a3b8'; }" 
                                 oninput="this.style.color='#0f172a';" 
                                 style="flex:1; min-width:0; height:38px; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:8px; padding:0 10px; font-size:12.5px; font-weight:700; color:#94a3b8; outline:none;">
-                            <button type="button" onclick="pasteUrlToInput('inpCustomChurchUrl1')" style="height:38px; flex-shrink:0; background:#475569; color:#ffffff; border:none; border-radius:8px; padding:0 12px; font-size:11.5px; font-weight:950; cursor:pointer; display:flex; align-items:center; gap:4px;">📋 붙여넣기</button>
+                            <button type="button" onclick="saveAdminCustomChurchesOnly()" title="붙여넣기 후 바로 등록·저장" style="height:38px; flex-shrink:0; background:linear-gradient(135deg, #1e293b, #334155); color:#38bdf8; border:1px solid #0284c7; border-radius:8px; padding:0 14px; font-size:12px; font-weight:950; cursor:pointer; display:flex; align-items:center; gap:4px;">💾 등록</button>
                         </div>
                     </div>
 
@@ -24752,7 +24769,7 @@ window.openLiveWorshipView = openLiveWorshipView;
                                 onblur="if(this.value){ this.style.color='#94a3b8'; }" 
                                 oninput="this.style.color='#0f172a';" 
                                 style="flex:1; min-width:0; height:38px; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:8px; padding:0 10px; font-size:12.5px; font-weight:700; color:#94a3b8; outline:none;">
-                            <button type="button" onclick="pasteUrlToInput('inpCustomChurchUrl2')" style="height:38px; flex-shrink:0; background:#475569; color:#ffffff; border:none; border-radius:8px; padding:0 12px; font-size:11.5px; font-weight:950; cursor:pointer; display:flex; align-items:center; gap:4px;">📋 붙여넣기</button>
+                            <button type="button" onclick="saveAdminCustomChurchesOnly()" title="붙여넣기 후 바로 등록·저장" style="height:38px; flex-shrink:0; background:linear-gradient(135deg, #1e293b, #334155); color:#38bdf8; border:1px solid #0284c7; border-radius:8px; padding:0 14px; font-size:12px; font-weight:950; cursor:pointer; display:flex; align-items:center; gap:4px;">💾 등록</button>
                         </div>
                     </div>
 
@@ -24767,7 +24784,7 @@ window.openLiveWorshipView = openLiveWorshipView;
                                 onblur="if(this.value){ this.style.color='#94a3b8'; }" 
                                 oninput="this.style.color='#0f172a';" 
                                 style="flex:1; min-width:0; height:38px; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:8px; padding:0 10px; font-size:12.5px; font-weight:700; color:#94a3b8; outline:none;">
-                            <button type="button" onclick="pasteUrlToInput('inpCustomChurchUrl3')" style="height:38px; flex-shrink:0; background:#475569; color:#ffffff; border:none; border-radius:8px; padding:0 12px; font-size:11.5px; font-weight:950; cursor:pointer; display:flex; align-items:center; gap:4px;">📋 붙여넣기</button>
+                            <button type="button" onclick="saveAdminCustomChurchesOnly()" title="붙여넣기 후 바로 등록·저장" style="height:38px; flex-shrink:0; background:linear-gradient(135deg, #1e293b, #334155); color:#38bdf8; border:1px solid #0284c7; border-radius:8px; padding:0 14px; font-size:12px; font-weight:950; cursor:pointer; display:flex; align-items:center; gap:4px;">💾 등록</button>
                         </div>
                     </div>
 
