@@ -1222,7 +1222,7 @@
                     </div>
                 </div>
                 <button type="button" id="btnDoctorBoxMyClinic" class="btn-box-my-clinic" onclick="handleMyClinicGoClick()" title="의사 원장님 전용 관리 페이지">
-                    <span id="txtDoctorBoxMyClinic">🩺 내의원 가기</span>
+                    <span id="txtDoctorBoxMyClinic">🩺 나의 의원앱 가기</span>
                 </button>
             </div>
         </div>
@@ -1334,6 +1334,31 @@
                 <input type="tel" id="inpClinicRegPhone" class="clinic-input-control" placeholder="휴대폰 번호 (예: 010-1234-5678)">
             </div>
 
+            <!-- 🌟 [사용자 요청] 의사회원 가입 (무료 앱, 홈페이지 제공) - 선택 사항 -->
+            <div style="margin-top:14px; padding:13px 14px; background:#f0fdf4; border:1.5px solid #86efac; border-radius:12px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                    <span style="font-size:13.5px; font-weight:800; color:#166534;">🩺 의사회원 가입 <span style="font-size:11px; font-weight:800; color:#15803d; background:#dcfce7; padding:2px 7px; border-radius:4px; border:1px solid #bbf7d0;">무료 앱 · 홈페이지 제공</span></span>
+                    <span style="font-size:11.5px; font-weight:800; color:#dc2626;">(선택 사항)</span>
+                </div>
+                <div style="font-size:11.5px; color:#166534; line-height:1.45; margin-bottom:10px;">
+                    💡 <b>일반 회원은 비워두셔도 됩니다.</b> 의사 원장님께서는 아래 의원 정보를 입력해 주시면 전용 의원앱과 모바일 홈페이지를 무료로 제작·제공해 드립니다.
+                </div>
+
+                <div class="clinic-input-group" style="margin-bottom:8px;">
+                    <label class="clinic-input-label" for="inpClinicRegDoctorClinic" style="font-size:12px; color:#334155;">
+                        <span>의원명 <small style="color:#64748b; font-weight:600;">(원장님 선택)</small></span>
+                    </label>
+                    <input type="text" id="inpClinicRegDoctorClinic" class="clinic-input-control" placeholder="의원명 입력 (예: 서울 예톡의원)">
+                </div>
+
+                <div class="clinic-input-group" style="margin-bottom:0;">
+                    <label class="clinic-input-label" for="inpClinicRegDoctorPhone" style="font-size:12px; color:#334155;">
+                        <span>의원 전화번호 <small style="color:#64748b; font-weight:600;">(원장님 선택)</small></span>
+                    </label>
+                    <input type="tel" id="inpClinicRegDoctorPhone" class="clinic-input-control" placeholder="의원 대표 전화 (예: 02-123-4567)">
+                </div>
+            </div>
+
             <label class="clinic-privacy-box" for="chkClinicRegAgree">
                 <input type="checkbox" id="chkClinicRegAgree" style="width:18px; height:18px; margin-top:2px; accent-color:#0284c7; cursor:pointer;" checked>
                 <div style="font-size:12px; color:#334155; line-height:1.35;">
@@ -1403,7 +1428,7 @@
         const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
         const userChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || "").trim();
         const userPastor = (localStorage.getItem("yetalk_pastor_name") || "").trim();
-        const isChurchRegular = !!(uName && userChurch && (userPastor || uName.includes("최베드로") || userChurch.includes("부산제일")));
+        const isChurchRegular = !!(uName && userChurch && (userPastor  || userChurch.includes("부산제일")));
         const clinicRole = localStorage.getItem("yetalk_clinic_member_role");
 
         const isRegular = isChurchRegular || (clinicRole === "정회원");
@@ -1474,8 +1499,10 @@
     function openClinicMemberModalDirect() {
         const modal = document.getElementById("modalClinicMemberJoin");
         if (!modal) return;
-        const name = localStorage.getItem("yetalk_clinic_user_name") || localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "";
-        const id = localStorage.getItem("yetalk_clinic_user_id") || localStorage.getItem("yetalk_user_id") || name || "";
+        let name = (localStorage.getItem("yetalk_clinic_user_name") || localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
+        if (name.includes("최베드로") || name.includes("최웅식")) name = "";
+        let id = (localStorage.getItem("yetalk_clinic_user_id") || localStorage.getItem("yetalk_user_id") || name || "").trim();
+        if (id.includes("최베드로") || id.includes("최웅식")) id = "";
         const addr = localStorage.getItem("yetalk_clinic_user_address") || localStorage.getItem("yetalk_user_address") || localStorage.getItem("yetalkUserAddress") || "";
         const phone = localStorage.getItem("yetalk_clinic_user_phone") || localStorage.getItem("yetalk_user_phone") || localStorage.getItem("yetalkUserPhone") || "";
         const agree = localStorage.getItem("yetalk_clinic_privacy_agree") !== "false";
@@ -1485,12 +1512,19 @@
         const inpAddr = document.getElementById("inpClinicRegAddress");
         const inpPhone = document.getElementById("inpClinicRegPhone");
         const chkAgree = document.getElementById("chkClinicRegAgree");
+        const inpDocC = document.getElementById("inpClinicRegDoctorClinic");
+        const inpDocP = document.getElementById("inpClinicRegDoctorPhone");
+
+        const savedClinic = (localStorage.getItem("yetalk_clinic_name") || localStorage.getItem("yetalkDoctorName") || "").trim();
+        const savedClinicPhone = (localStorage.getItem("yetalk_clinic_phone") || localStorage.getItem("yetalkShopPhone") || "").trim();
 
         if (inpName) inpName.value = name;
         if (inpId) inpId.value = id;
         if (inpAddr) inpAddr.value = addr;
         if (inpPhone) inpPhone.value = phone;
         if (chkAgree) chkAgree.checked = agree;
+        if (inpDocC) inpDocC.value = (!savedClinic.includes("최웅식")) ? savedClinic : "";
+        if (inpDocP) inpDocP.value = savedClinicPhone;
 
         modal.classList.add("open");
     }
@@ -1541,6 +1575,24 @@
         if (addr) localStorage.setItem("yetalk_user_address", addr);
         if (phone) localStorage.setItem("yetalk_user_phone", phone);
 
+        // 🌟 [사용자 요청] 의사회원 가입 (선택사항) 입력 시 의사 회원 및 의원앱 자동 연동
+        const inpDocC = document.getElementById("inpClinicRegDoctorClinic");
+        const inpDocP = document.getElementById("inpClinicRegDoctorPhone");
+        const docClinicName = inpDocC ? inpDocC.value.trim() : "";
+        const docClinicPhone = inpDocP ? inpDocP.value.trim() : "";
+
+        if (docClinicName) {
+            localStorage.setItem("yetalk_user_job", "doctor");
+            localStorage.setItem("yetalk_is_doctor", "true");
+            localStorage.setItem("yetalk_clinic_name", docClinicName);
+            localStorage.setItem("yetalkDoctorName", docClinicName);
+            if (docClinicPhone) {
+                localStorage.setItem("yetalk_clinic_phone", docClinicPhone);
+                localStorage.setItem("yetalkShopPhone", docClinicPhone);
+            }
+            updateDoctorBoxClinicBtnText();
+        }
+
         closeClinicMemberModalDirect();
         initClinicHeaderUI();
         renderClinicCards();
@@ -1563,8 +1615,8 @@
     function openDoctorJoinModalClean() {
         const modal = document.getElementById("modalDoctorJoinClean");
         if (!modal) return;
-        const savedClinic = localStorage.getItem("yetalk_clinic_name") || localStorage.getItem("yetalkDoctorName") || "부산 최웅식의원";
-        const savedDoctor = localStorage.getItem("yetalk_doctor_name") || "최웅식 원장";
+        const savedClinic = localStorage.getItem("yetalk_clinic_name") || localStorage.getItem("yetalkDoctorName") || "부산 예톡의원";
+        const savedDoctor = localStorage.getItem("yetalk_doctor_name") || "예톡 원장";
         const savedPhone = localStorage.getItem("yetalk_clinic_phone") || localStorage.getItem("yetalkShopPhone") || "051-633-2478";
 
         const inpC = document.getElementById("inpDocJoinClinicName");
@@ -1588,8 +1640,8 @@
         const inpD = document.getElementById("inpDocJoinDoctorName");
         const inpP = document.getElementById("inpDocJoinPhone");
 
-        const clinicName = inpC ? (inpC.value.trim() || "부산 최웅식의원") : "부산 최웅식의원";
-        const doctorName = inpD ? (inpD.value.trim() || "최웅식 원장") : "최웅식 원장";
+        const clinicName = inpC ? (inpC.value.trim() || "부산 예톡의원") : "부산 예톡의원";
+        const doctorName = inpD ? (inpD.value.trim() || "예톡 원장") : "예톡 원장";
         const phone = inpP ? (inpP.value.trim() || "051-633-2478") : "051-633-2478";
 
         localStorage.setItem("yetalk_user_job", "doctor");
@@ -1619,8 +1671,8 @@
                          localStorage.getItem("yetalk_clinic_name");
 
         if (isDoctor) {
-            const clinicName = localStorage.getItem("yetalk_clinic_name") || localStorage.getItem("yetalkDoctorName") || "부산 최웅식의원";
-            const doctorName = localStorage.getItem("yetalk_doctor_name") || "최웅식 원장";
+            const clinicName = localStorage.getItem("yetalk_clinic_name") || localStorage.getItem("yetalkDoctorName") || "부산 예톡의원";
+            const doctorName = localStorage.getItem("yetalk_doctor_name") || "예톡 원장";
             const phone = localStorage.getItem("yetalk_clinic_phone") || localStorage.getItem("yetalkShopPhone") || "051-633-2478";
             showToast(`🩺 ${clinicName} (${doctorName} / 📞 ${phone})\n원장님 전용 페이지로 즉시 이동합니다.`);
             setTimeout(() => {
@@ -1672,7 +1724,7 @@
     const CLINIC_MASTER_DATA = [
         {
             id: "c1",
-            name: "부산 최웅식의원",
+            name: "부산 예톡의원",
             dept: "피부·성형",
             desc: "성형외과 · 피부과 | 자가진피 주름·동안시술 전문",
             isRegularMember: true,
@@ -2105,7 +2157,7 @@
                     id: "ev_1",
                     title: "1:1 맞춤 진료 및 정밀 상담 안내",
                     content: "오랜 임상 경험을 바탕으로 1:1 맞춤 정밀 진료 상담을 진행합니다. 편안하게 [예약문의]를 통해 방문 일정을 남겨주세요.",
-                    clinicName: "부산 최웅식의원",
+                    clinicName: "부산 예톡의원",
                     region: "부산시 동구",
                     time: "오늘",
                     isEvent: false
@@ -2114,7 +2166,7 @@
                     id: "ev_2",
                     title: "[이벤트] 부산시 동구 단골의원 봄맞이 무료 피부 검진 혜택",
                     content: "우리 동네 단골 환자분들을 위해 봄맞이 피부 건강 및 주름 정밀 검진 상담을 전액 무료 지원합니다.",
-                    clinicName: "부산 최웅식의원",
+                    clinicName: "부산 예톡의원",
                     region: "부산시 동구",
                     time: "진행중",
                     isEvent: true
@@ -2141,14 +2193,14 @@
         }
 
         const filtered = allNotices.filter(n => {
-            const isMyStarred = starredNames.some(sn => (n.clinicName && n.clinicName.includes(sn)) || (n.sender && n.sender.includes(sn)) || sn.includes("최웅식"));
+            const isMyStarred = starredNames.some(sn => (n.clinicName && n.clinicName.includes(sn)) || (n.sender && n.sender.includes(sn)) || sn.includes("예톡"));
             const isEvent = n.isEvent === true;
             return isMyStarred || isEvent;
         });
 
         filtered.forEach(item => {
             const isEv = item.isEvent === true;
-            const clinic = item.clinicName || "부산 최웅식의원";
+            const clinic = item.clinicName || "부산 예톡의원";
             const region = item.region || "부산시 동구";
             const bodyTxt = item.content || item.body || "";
             const snippet = bodyTxt.replace(/\n/g, ' ').slice(0, 48) + (bodyTxt.length > 48 ? '...' : '');
