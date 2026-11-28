@@ -1160,7 +1160,7 @@
          3. 🌟 단골의원 방문 예약
          ======================================================== -->
     <section class="favorite-clinic-banner-section" id="sectionFavoriteClinics">
-        <!-- 🌟 [사용자 요청] 단골의원 방문예약을 두 개로 분할: 좌측 [단골 알림], 우측 [단골 라스트 예약] -->
+        <!-- 🌟 [사용자 요청] 단골의원 방문예약을 두 개로 분할: 좌측 [단골 알림], 우측 [단골 리스트 예약] -->
         <div style="display:flex; gap:8px; width:100%;">
             <button type="button" id="btnFavoriteNoticeAlert" onclick="openFavoriteNoticeModal()" style="flex:1; height:46px; background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border:1.8px solid #86efac; border-radius:12px; color:#15803d; font-size:14.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:5px; cursor:pointer; box-shadow:0 2px 8px rgba(22,101,52,0.12); transition:all 0.15s ease;">
                 <span style="font-size:16px;">🔔</span>
@@ -1169,7 +1169,7 @@
             </button>
             <button type="button" id="btnFavoriteClinicToggle" onclick="toggleFavoriteClinicList()" style="flex:1.25; height:46px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border:none; border-radius:12px; color:#ffffff; font-size:14.5px; font-weight:950; display:flex; align-items:center; justify-content:center; gap:5px; cursor:pointer; box-shadow:0 3px 10px rgba(2,132,199,0.25); transition:all 0.15s ease;">
                 <span style="font-size:16px;">⭐</span>
-                <span>단골 라스트 예약</span>
+                <span>단골 리스트 예약</span>
                 <span id="arrowFavoriteToggle" style="font-size:13px; font-weight:900; margin-left:2px;">▼</span>
             </button>
         </div>
@@ -1479,15 +1479,10 @@
 
     // 🌟 [사용자 요청] 가입시 의원 이름으로 내의원 가기 바꾸어줌
     function updateDoctorBoxClinicBtnText() {
-        const userClinicName = (localStorage.getItem("yetalk_clinic_name") || localStorage.getItem("yetalkDoctorName") || "").trim();
         const txtBtn = document.getElementById("txtDoctorBoxMyClinic");
-        if (!txtBtn) return;
-
-        if (userClinicName) {
-            const shortName = userClinicName.replace("자가진피 ", "");
-            txtBtn.innerText = `🩺 ${shortName} 가기`;
-        } else {
-            txtBtn.innerText = "🩺 내의원 가기";
+        if (txtBtn) {
+            // 🌟 [사용자 요청] 병원명 노출 없이 항상 '나의 의원 가기'로 고정
+            txtBtn.innerText = "🩺 나의 의원 가기";
         }
     }
 
@@ -1888,7 +1883,7 @@
             const isFav = favs.includes(item.id);
 
             return `
-                <div class="clinic-row-card ${isFav ? 'is-fav' : ''}" onclick="location.href='${item.link}'" style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:#ffffff; border:1.5px solid #e2e8f0; border-radius:12px; margin-bottom:8px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
+                <div class="clinic-row-card ${isFav ? 'is-fav' : ''}" onclick="openClinicPreparingModal('${item.name}')" style="display:flex; justify-content:space-between; align-items:center; padding:12px 14px; background:#ffffff; border:1.5px solid #e2e8f0; border-radius:12px; margin-bottom:8px; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
                     <div style="display:flex; align-items:center; gap:10px; min-width:0;">
                         <button type="button" class="btn-star-fav ${isFav ? 'starred' : ''}" onclick="toggleStarFavorite('${item.id}', event)" title="단골 등록/해제" style="background:none; border:none; font-size:22px; color:${isFav ? '#eab308' : '#cbd5e1'}; cursor:pointer; padding:0; flex-shrink:0; line-height:1;">
                             ${isFav ? '★' : '☆'}
@@ -1897,7 +1892,7 @@
                             ${item.name}
                         </span>
                     </div>
-                    <button type="button" class="btn-card-reserve" onclick="event.stopPropagation(); location.href='${item.link}'" style="height:36px; padding:0 16px; background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; border:none; border-radius:10px; font-size:13.5px; font-weight:950; cursor:pointer; flex-shrink:0; box-shadow:0 3px 8px rgba(2,132,199,0.3);">
+                    <button type="button" class="btn-card-reserve" onclick="event.stopPropagation(); openClinicPreparingModal('${item.name}')" style="height:36px; padding:0 16px; background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; border:none; border-radius:10px; font-size:13.5px; font-weight:950; cursor:pointer; flex-shrink:0; box-shadow:0 3px 8px rgba(2,132,199,0.3);">
                         예약하기
                     </button>
                 </div>
@@ -2265,6 +2260,25 @@
             if (arrow) arrow.innerText = '▼';
         }
     }
+
+    // 🌟 [사용자 요청] 단골 리스트 의원 예약 클릭 시 준비중 안내 팝업
+    function openClinicPreparingModal(clinicName) {
+        const titleEl = document.getElementById("preparingClinicTitle");
+        if (titleEl) {
+            titleEl.innerText = clinicName || "단골의원";
+        }
+        const modal = document.getElementById("modalClinicPreparing");
+        if (modal) {
+            modal.style.display = "flex";
+        }
+    }
+
+    function closeClinicPreparingModal() {
+        const modal = document.getElementById("modalClinicPreparing");
+        if (modal) {
+            modal.style.display = "none";
+        }
+    }
 </script>
 
 
@@ -2312,6 +2326,20 @@
                 📢 예톡 공식 최상단 공지 즉시 등록
             </button>
         </div>
+    </div>
+</div>
+<!-- 🌟 [사용자 요청] 스마트 모바일 예약 서비스 준비 중 팝업 모달 -->
+<div class="clinic-modal-backdrop" id="modalClinicPreparing" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.55); align-items:center; justify-content:center; backdrop-filter:blur(3px);" onclick="if(event.target===this) closeClinicPreparingModal()">
+    <div class="clinic-modal-card" style="max-width:340px; width:88%; border-radius:20px; overflow:hidden; padding:24px 20px; background:#ffffff; box-shadow:0 16px 36px rgba(0,0,0,0.25); text-align:center;">
+        <div style="font-size:42px; line-height:1; margin-bottom:12px;">🏥</div>
+        <div id="preparingClinicTitle" style="font-size:17px; font-weight:950; color:#0f172a; margin-bottom:8px; letter-spacing:-0.3px;">단골의원</div>
+        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:10px 12px; margin-bottom:16px;">
+            <div style="font-size:14px; font-weight:950; color:#15803d; margin-bottom:4px;">스마트 모바일 예약 준비 중</div>
+            <div style="font-size:12px; color:#475569; line-height:1.45;">원장님 모바일 예약 참여 후<br>정식 예약이 오픈됩니다.</div>
+        </div>
+        <button type="button" onclick="closeClinicPreparingModal()" style="width:100%; height:44px; background:linear-gradient(135deg, #0284c7, #2563eb); color:#ffffff; border:none; border-radius:12px; font-size:15px; font-weight:950; cursor:pointer; box-shadow:0 4px 12px rgba(2,132,199,0.35);">
+            확인
+        </button>
     </div>
 </div>
 </body>
