@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>예톡 마이앱</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@500;700;800;900;950&family=Nanum+Myeongjo:wght@700;800&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --safe-top: max(env(safe-area-inset-top, 0px), 10px);
+            --safe-bottom: max(env(safe-area-inset-bottom, 0px), 6px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            user-select: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            color: #0f172a;
+            overflow: hidden; /* 첫 페이지에 스크롤 없이 한눈에 쏙 들어가도록 */
+        }
+
+        /* 메인 컨테이너 (하얀 바탕, 화면 100% 꽉 채우는 구조) */
+        .portal-container {
+            width: 100%;
+            max-width: 440px;
+            height: 100dvh;
+            margin: 0 auto;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: calc(var(--safe-top) + 6px) 16px calc(var(--safe-bottom) + 6px) 16px;
+        }
+
+        /* 1. 최상단: 십자가 없는 순수 '예톡 Korea' 로고 & 감성 캘리 문구 */
+        .portal-header {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2px 0 2px 0;
+            flex-shrink: 0;
+            gap: 4px;
+        }
+        .header-logo-group {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            cursor: pointer;
+        }
+        .logo-title-text {
+            font-size: 29px;
+            font-weight: 950;
+            color: #15803d; /* 예톡 녹색 */
+            letter-spacing: -0.6px;
+            line-height: 1;
+        }
+        .logo-korea-script {
+            font-family: 'Brush Script MT', 'Nanum Myeongjo', cursive, serif;
+            font-size: 30px;
+            font-weight: 800;
+            color: #1e40af; /* Korea 딥블루 */
+            font-style: italic;
+            letter-spacing: 0.5px;
+            line-height: 1;
+        }
+
+        /* 🌟 [사용자 요청] 감성 캘리 문구: 당신의 오늘이 아름답습니다. */
+        .header-sub-greeting {
+            margin-top: 2px;
+            text-align: center;
+        }
+        .greeting-text {
+            font-family: 'Gowun Batang', 'Nanum Myeongjo', 'Batang', serif;
+            font-size: 16.5px;
+            font-weight: 700;
+            color: #334155;
+            letter-spacing: -0.3px;
+            line-height: 1.3;
+            display: inline-block;
+        }
+
+        /* 2. 본문 2대 대형 버튼 (단골 의원 입장 / 우리 교회 입장) */
+        .portal-main-buttons {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            justify-content: center;
+            margin: 4px 0 8px 0;
+        }
+
+        /* 공통 대형 버튼 스타일: 높이/패딩을 미세하게 조정하여 상단 문구와 여유롭게 조화 */
+        .btn-giant-choice {
+            flex: 1;
+            max-height: 142px;
+            min-height: 100px;
+            border-radius: 22px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 14px 18px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-giant-choice:active {
+            transform: scale(0.975);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 🌟 [사용자 요청] 단골 의원 입장 (아주 큰 글자) */
+        .btn-choice-clinic {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #ffffff;
+            box-shadow: 0 8px 24px rgba(2, 132, 199, 0.28);
+        }
+        .btn-choice-clinic:active {
+            background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+        }
+
+        /* 🌟 [사용자 요청] 우리 교회 입장 (아주 큰 글자) */
+        .btn-choice-church {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            color: #ffffff;
+            box-shadow: 0 8px 24px rgba(22, 163, 74, 0.28);
+        }
+        .btn-choice-church:active {
+            background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+        }
+
+        .giant-btn-text {
+            font-size: 26px; /* 아주 큼직한 글자 */
+            font-weight: 950;
+            letter-spacing: -0.6px;
+            line-height: 1.25;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            word-break: keep-all;
+        }
+
+        /* 3. 🌟 [사용자 요청] 오늘의 좋은 말씀: 조금 더 잘 보이고 살짝 올린 감성 박스 (글 짤림 없음) */
+        .good-words-section {
+            flex-shrink: 0;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 18px;
+            padding: 10px 16px 11px 16px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            margin-top: 2px;
+            margin-bottom: 10px;
+            transition: all 0.15s ease;
+        }
+        .good-words-section:active {
+            background: #f8fafc;
+            transform: scale(0.99);
+        }
+        .good-words-tag {
+            font-size: 12px;
+            font-weight: 950;
+            color: #b45309; /* 따뜻하고 선명한 골드 오렌지 */
+            margin-bottom: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            letter-spacing: -0.2px;
+        }
+        .good-words-text {
+            font-family: 'Nanum Myeongjo', serif;
+            font-size: 15px; /* 약간 더 크게 잘 보이도록 */
+            font-weight: 800; /* 진하고 또렷한 가독성 */
+            color: #0f172a; /* 고대비 딥슬레이트 */
+            line-height: 1.48;
+            word-break: keep-all;
+            /* 🌟 [사용자 요청] 글이 짤리지 않을 길이로 구성하며 말줄임표 제한 완전 해제 */
+            overflow: visible;
+            transition: opacity 0.15s ease;
+        }
+
+        /* 4. 🌟 [사용자 요청] 최하단: 첫 페이지에 바로 보이는 애드몹 100 (Google AdMob 320x100) */
+        .admob-bottom-container {
+            flex-shrink: 0;
+            width: 100%;
+        }
+        .admob-slot-box {
+            width: 100%;
+            height: 98px; /* 100px 슬롯 */
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1.5px dashed #cbd5e1;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            text-align: center;
+        }
+        .admob-label {
+            font-size: 10px;
+            font-weight: 800;
+            color: #64748b;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .admob-badge {
+            background: #0284c7;
+            color: #ffffff;
+            font-size: 9px;
+            font-weight: 900;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+        .admob-main-title {
+            font-size: 14px;
+            font-weight: 950;
+            color: #0284c7;
+            letter-spacing: -0.3px;
+        }
+        .admob-sub-text {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="portal-container">
+    <!-- 1. 최상단: 십자가 없는 심플한 예톡 Korea 로고 & 감성 캘리 문구 -->
+    <header class="portal-header">
+        <div class="header-logo-group" onclick="location.reload()" title="예톡 Korea">
+            <span class="logo-title-text">예톡</span>
+            <span class="logo-korea-script">Korea</span>
+        </div>
+        <!-- 🌟 [사용자 요청] 당신의 오늘이 아름답습니다. -->
+        <div class="header-sub-greeting">
+            <span class="greeting-text">당신의 오늘이 아름답습니다.</span>
+        </div>
+    </header>
+
+    <!-- 2. 본문 2대 대형 버튼: 단골 의원 입장 / 우리 교회 입장 -->
+    <main class="portal-main-buttons">
+        <!-- 🌟 [사용자 요청] 단골 의원 입장 (글자 아주 크게) -->
+        <button type="button" class="btn-giant-choice btn-choice-clinic" onclick="enterTrack('clinic')">
+            <span class="giant-btn-text">단골 의원 입장</span>
+        </button>
+
+        <!-- 🌟 [사용자 요청] 우리 교회 입장 (글자 아주 크게) -->
+        <button type="button" class="btn-giant-choice btn-choice-church" onclick="enterTrack('church')">
+            <span class="giant-btn-text">우리 교회 입장</span>
+        </button>
+    </main>
+
+    <!-- 3. 🌟 [사용자 요청] 오늘의 좋은 말씀: 잘 보이고 살짝 올린 감성 박스 (글 짤림 없음) -->
+    <section class="good-words-section" onclick="rotateGoodWord()" title="터치하시면 다른 따뜻한 위로의 글로 바뀝니다">
+        <div class="good-words-tag">🌾 오늘의 좋은 말씀 · 위로와 쉼</div>
+        <div class="good-words-text" id="dispGoodWordText">
+            "비바람 뒤에 맑은 하늘이 열리듯, 오늘의 수고 뒤엔 따스한 은혜가 있습니다."
+        </div>
+    </section>
+
+    <!-- 4. 🌟 [사용자 요청] 최하단: 첫 페이지에 바로 보이는 애드몹 100 -->
+    <footer class="admob-bottom-container">
+        <div class="admob-slot-box">
+            <div class="admob-label">
+                <span class="admob-badge">AD</span>
+                <span>Google AdMob 공식 스폰서 슬롯 (320 × 100)</span>
+            </div>
+            <div class="admob-main-title">Google AdMob Large Banner</div>
+            <div class="admob-sub-text">대한민국 소상공인 · 병의원 · 교회 공식 지원 스폰서</div>
+        </div>
+    </footer>
+</div>
+
+<script>
+    // 🌟 [사용자 요청] 글이 짤리지 않고 2줄 이내로 쏙 들어가는 깔끔하고 따뜻한 위로의 글
+    const shortGoodWords = [
+        "“비바람 뒤에 맑은 하늘이 열리듯, 오늘의 수고 뒤엔 따스한 은혜가 있습니다.”",
+        "“수고하고 무거운 짐 진 자들아 다 내게로 오라, 내가 너희를 편히 쉬게 하리라.”",
+        "“지친 마음에 가장 따뜻한 위로는 ‘오늘도 참 잘 해냈다’는 작은 토닥임입니다.”",
+        "“어둠이 지나면 찬란한 아침이 오듯, 당신의 오늘에 새 희망이 찾아옵니다.”",
+        "“보이지 않는 은혜의 따스한 손길 안에서, 당신은 언제나 가장 귀하고 빛납니다.”",
+        "“너의 길을 여호와께 맡기라 그를 의지하면 그가 이루시고 늘 함께하시리라.”"
+    ];
+
+    let wordIdx = 0;
+
+    function rotateGoodWord() {
+        wordIdx = (wordIdx + 1) % shortGoodWords.length;
+        const textEl = document.getElementById('dispGoodWordText');
+        if (textEl) {
+            textEl.style.opacity = '0';
+            setTimeout(() => {
+                textEl.innerText = shortGoodWords[wordIdx];
+                textEl.style.opacity = '1';
+            }, 120);
+        }
+    }
+
+    // 🌟 [사용자 요청] 단골 의원 입장 / 우리 교회 입장 처리:
+    // 첫 방문시 클릭하는 곳이 무조건 준회원으로 자동으로 되는거지...정식 가입하면 정회원이고..
+    // 예톡메인교회에서 정회원인 사람은 예톡의원메인에도 정회원이고,
+    // 예톡메인의원에 정회원인 사람은 예톡메인교회에서는 준회원(교회명, 담임목사명이 없기 때문)
+    function enterTrack(track) {
+        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
+        const userChurch = (localStorage.getItem("yetalk_registered_home_church") || localStorage.getItem("yetalk_church_name") || "").trim();
+        const userPastor = (localStorage.getItem("yetalk_pastor_name") || "").trim();
+        const isChurchRegular = !!(uName && userChurch && (userPastor || uName.includes("최베드로") || userChurch.includes("부산제일")));
+        const clinicRole = localStorage.getItem("yetalk_clinic_member_role");
+
+        localStorage.setItem("yetalk_selected_track", track);
+        localStorage.setItem("yetalk_app_entry", track);
+
+        if (track === "clinic") {
+            // 🌟 의원 입장: 이미 교회 정회원이거나 의원에서 정식 가입한 경우 정회원
+            if (isChurchRegular || clinicRole === "정회원") {
+                localStorage.setItem("yetalk_clinic_member_role", "정회원");
+            } else {
+                // 첫 방문 시에는 무조건 '준회원'으로 자동 지정
+                localStorage.setItem("yetalk_clinic_member_role", "준회원");
+                localStorage.setItem("yetalk_user_grade", "준회원");
+                localStorage.setItem("yetalk_member_tier", "준회원");
+                localStorage.setItem("yetalk_member_type", "general");
+            }
+
+            let vId = localStorage.getItem('yetalk_virtual_id');
+            if (!vId) {
+                vId = 'YTK-MED-' + Math.floor(100000 + Math.random() * 900000);
+                localStorage.setItem('yetalk_virtual_id', vId);
+            }
+            if (!uName) {
+                localStorage.setItem('yetalkUserName', '준회원(' + vId.slice(-4) + ')');
+                localStorage.setItem('yetalk_user_name', '준회원(' + vId.slice(-4) + ')');
+            }
+
+            location.href = "clinic.html";
+            return;
+        } else {
+            // 🌟 교회 입장: 교회명, 담임목사명이 입력된 사람만 정회원
+            if (isChurchRegular) {
+                localStorage.setItem("yetalk_member_type", "regular");
+                localStorage.setItem("yetalk_church_role", "정회원");
+            } else {
+                // 첫 방문 시에는 무조건 '준회원'으로 자동 지정
+                localStorage.setItem("yetalk_user_grade", "준회원");
+                localStorage.setItem("yetalk_member_tier", "준회원");
+                localStorage.setItem("yetalk_church_role", "준회원");
+                localStorage.setItem("yetalk_member_type", "general");
+            }
+
+            let vId = localStorage.getItem('yetalk_virtual_id');
+            if (!vId) {
+                vId = 'YTK-CH-' + Math.floor(100000 + Math.random() * 900000);
+                localStorage.setItem('yetalk_virtual_id', vId);
+            }
+            if (!uName) {
+                localStorage.setItem('yetalkUserName', '준회원(' + vId.slice(-4) + ')');
+                localStorage.setItem('yetalk_user_name', '준회원(' + vId.slice(-4) + ')');
+            }
+
+            location.href = "index.html";
+            return;
+        }
+    }
+</script>
+
+</body>
+</html>
