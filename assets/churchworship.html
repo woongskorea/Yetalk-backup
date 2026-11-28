@@ -844,24 +844,43 @@
 
 <div class="worship-shell">
 
-    <!-- 🌟 상단 플로팅 헤더 (뒤로가기 화살표 + 예배 종류 선택 알약) -->
+    <!-- 🌟 상단 플로팅 헤더 (뒤로가기 화살표 + 예배 종류 선택 알약 + 우측 [⚙️ 관리] 버튼) -->
     <header class="worship-top-floating-bar">
-        <button type="button" class="btn-clean-back" onclick="goBackToMain()" title="교회 메인으로 돌아가기">
-            ←
-        </button>
-        <button type="button" class="worship-selector-pill" onclick="openDropdownModal()" title="예배 종류 선택">
-            <span id="headerWorshipKindBadge">🎙️ 주일예배</span>
-            <span style="font-size:10px; color:#38bdf8;">▼</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <button type="button" class="btn-clean-back" onclick="goBackToMain()" title="교회 메인으로 돌아가기">
+                ←
+            </button>
+            <button type="button" class="worship-selector-pill" onclick="openDropdownModal()" title="예배 종류 선택">
+                <span id="headerWorshipKindBadge">🎙️ 주일예배</span>
+                <span style="font-size:10px; color:#38bdf8;">▼</span>
+            </button>
+        </div>
+        <!-- 🌟 [사용자 요청] 최상단 헤더 우측 [⚙️ 관리] 버튼 (부관리자 이상만 노출) -->
+        <button type="button" id="btnTopWorshipAdmin" class="btn-compact-admin" onclick="openAdminModal()" style="display:none; padding:7px 13px; font-size:12.5px; border-radius:18px; box-shadow:0 2px 8px rgba(0,0,0,0.5); pointer-events:auto;" title="예배 관리실">
+            ⚙️ 관리
         </button>
     </header>
 
     <!-- 🌟 메인 스크롤 영역 -->
     <main class="worship-scroll-container" id="worshipScrollContainer">
 
-        <!-- 🌟 1. 첫 페이지 단독 뷰: 영상과 2줄 메뉴만 화면 전체에 꽉 채워 배치 (피드가 첫 화면에 절대 보이지 않음) -->
+        <!-- 🌟 1. 첫 페이지 단독 뷰: 설교제목(위) -> 영상 -> 도구바 순서 배치 -->
         <div class="worship-first-page-view" id="worshipFirstPageView">
 
-            <!-- 🌟 유튜브 플레이어 박스: 확대 시 세로 높이도 함께 유연하게 확장되어 아래위가 절대 짤리지 않음 -->
+            <!-- 🌟 [사용자 요청] 설교제목·본문 박스를 영상 위로 배치 (헤더 바로 밑) -->
+            <div class="controls-row-info" style="margin:4px 10px 8px 10px; width:calc(100% - 20px); border-radius:12px; background:rgba(15,23,42,0.92); border:1.2px solid rgba(56,189,248,0.28); box-shadow:0 3px 12px rgba(0,0,0,0.5);">
+                <div class="info-content-left" onclick="openSermonModal()" title="설교 상세 정보 보기 (터치)" style="width:100%;">
+                    <div class="info-line-title" style="display:flex; align-items:center; gap:6px;">
+                        <span class="worship-kind-tag" id="sermonKindBadge">🎙️ 주일예배</span>
+                        <strong class="sermon-main-title" id="sermonRealTitle" style="font-size:15px; font-weight:950; color:#ffffff; letter-spacing:-0.3px;">하나님의 언약을 굳게 붙들라</strong>
+                    </div>
+                    <div class="info-line-sub" id="sermonSubDetail" style="font-size:12px; color:#94a3b8; font-weight:800; margin-top:2px;">
+                        11월 17일 (11월 3주 주일) • 정찬석 담임목사 • 요한복음 3:16~18
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🌟 유튜브 플레이어 박스: 터치 시 확실한 일시정지/재생 토글 & 중앙 인디케이터 -->
             <div class="yt-player-box" id="ytPlayerBox">
                 <div class="yt-player-inner" id="ytPlayerInner">
                     <iframe id="mainWorshipIframe"
@@ -870,29 +889,13 @@
                         sandbox="allow-scripts allow-same-origin allow-presentation">
                     </iframe>
                 </div>
-                <div class="yt-touch-shield" id="ytTouchShield" onclick="handleVideoTouch()"></div>
+                <div class="yt-touch-shield" id="ytTouchShield" onclick="handleVideoTouch()">
+                    <div id="videoPlayPauseIndicator" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.75); color:#ffffff; font-size:32px; padding:12px 20px; border-radius:50%; pointer-events:none; z-index:20; border:1.5px solid rgba(255,255,255,0.25);">⏸️</div>
+                </div>
             </div>
 
-            <!-- 🌟 [사용자 요청] 예톡TV와 동일한 검은 바탕색에 두줄 메뉴 -->
-            <div class="worship-two-row-controls">
-
-                <!-- 1번째 줄: 실제 설교 제목 + 날짜/담임목사 연한 글씨 + 오른쪽 작은 [⚙️ 관리] 버튼 -->
-                <div class="controls-row-info">
-                    <div class="info-content-left" onclick="openSermonModal()" title="설교 상세 정보 보기 (터치)">
-                        <div class="info-line-title">
-                            <span class="worship-kind-tag" id="sermonKindBadge">🎙️ 주일예배</span>
-                            <strong class="sermon-main-title" id="sermonRealTitle">하나님의 언약을 굳게 붙들라</strong>
-                        </div>
-                        <div class="info-line-sub" id="sermonSubDetail">
-                            11월 17일 (11월 3주 주일) • 정찬석 담임목사 • 요한복음 3:16~18
-                        </div>
-                    </div>
-                    <button type="button" class="btn-compact-admin" onclick="openAdminModal()" title="예배 관리실">
-                        ⚙️ 관리
-                    </button>
-                </div>
-
-                <!-- 2번째 줄: 도구 버튼 바 [❤️] [✝️] [확대 1] [속도 1] [화면고정(빨강 테두리)] [보내기] -->
+            <!-- 🌟 [사용자 요청] 도구 버튼 바 [❤️] [✝️] [확대 1] [속도 1] [화면고정] [보내기] -->
+            <div class="worship-two-row-controls" style="margin-top:6px; padding:4px 10px 8px 10px;">
                 <div class="controls-row-tools">
                     <div style="display:flex; gap:5px; align-items:center;">
                         <button type="button" class="mini-tool-pill mini-heart-pill" onclick="spawnHeartSwarmFX()" title="사랑의 하트">
@@ -917,7 +920,6 @@
                         </button>
                     </div>
                 </div>
-
             </div>
         </div>
 
@@ -1053,13 +1055,19 @@
         <div class="admin-input-group">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <label class="admin-input-label" style="color:#38bdf8;">5. 유튜브 영상 주소</label>
-                <span style="font-size:10.5px; color:#fde047;">★ 터치 시 전체선택</span>
+                <span style="font-size:10.5px; color:#fde047;">★ 복사 후 손쉽게 붙여넣기</span>
             </div>
-            <div class="yt-input-row">
-                <input type="text" class="admin-input-text" id="inpAdminYt"
-                       placeholder="https://youtu.be/... 또는 watch?v=..."
-                       onfocus="this.select()" onclick="this.select()">
-                <button type="button" class="btn-paste-clipboard" onclick="pasteClipboardToYt()">
+            <div class="yt-input-row" style="display:flex; gap:6px; align-items:center;">
+                <div style="position:relative; flex:1;">
+                    <input type="text" class="admin-input-text" id="inpAdminYt"
+                           placeholder="https://youtu.be/... 또는 watch?v=..."
+                           autocorrect="off" autocapitalize="none" spellcheck="false"
+                           style="padding-right:34px; box-sizing:border-box;"
+                           onfocus="this.select()" onclick="this.select()">
+                    <button type="button" onclick="clearAndFocusYtInput()" title="주소 지우기"
+                            style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:#334155; border:none; border-radius:50%; width:22px; height:22px; color:#94a3b8; font-size:11px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+                </div>
+                <button type="button" class="btn-paste-clipboard" onclick="pasteClipboardToYt()" style="white-space:nowrap; flex-shrink:0;">
                     📋 붙여넣기
                 </button>
             </div>
@@ -1248,17 +1256,18 @@
         showToast(`⚡ ${SPEED_LABELS[currentSpeedIndex]} 적용 (속도: ${rate}x)`);
     }
 
-    /* 🌟 [사용자 요청] 화면 고정 토글: 빨간색 테두리 강조 & 스크롤/터치 완전 잠금 */
+    let isWorshipVideoPaused = false;
+    let playPauseIndicatorTimer = null;
+
+    /* 🌟 [사용자 요청] 화면 고정 토글: 빨간색 테두리 강조 & 스크롤 완전 잠금 */
     function toggleScreenLock() {
         isScreenLocked = !isScreenLocked;
         const container = document.getElementById("worshipScrollContainer");
-        const shield = document.getElementById("ytTouchShield");
         const btn = document.getElementById("btnLock");
         const textSpan = document.getElementById("lockTextSpan");
 
         if (isScreenLocked) {
             if (container) container.classList.add("locked-scroll");
-            if (shield) shield.style.display = "block";
             if (btn) {
                 btn.classList.add("locked");
                 textSpan.innerText = "🔒 고정ON";
@@ -1266,7 +1275,6 @@
             showToast("🔒 화면 보호 ON: 터치와 스크롤이 차단되었습니다.");
         } else {
             if (container) container.classList.remove("locked-scroll");
-            if (shield) shield.style.display = "none";
             if (btn) {
                 btn.classList.remove("locked");
                 textSpan.innerText = "화면고정";
@@ -1275,9 +1283,40 @@
         }
     }
 
+    /* 🌟 [사용자 요청] 영상 터치 시 확실한 일시정지 / 재생 토글 및 시각적 안내 */
     function handleVideoTouch() {
         if (isScreenLocked) {
             showToast("🔒 화면이 고정되어 있습니다. 아래 [고정ON] 버튼을 눌러 해제하세요.");
+            return;
+        }
+
+        const iframe = document.getElementById("mainWorshipIframe");
+        if (!iframe || !iframe.contentWindow) return;
+
+        isWorshipVideoPaused = !isWorshipVideoPaused;
+        const command = isWorshipVideoPaused ? 'pauseVideo' : 'playVideo';
+
+        try {
+            iframe.contentWindow.postMessage(JSON.stringify({
+                event: 'command',
+                func: command,
+                args: []
+            }), '*');
+
+            // 화면 중앙 인디케이터 표시
+            const ind = document.getElementById("videoPlayPauseIndicator");
+            if (ind) {
+                ind.innerText = isWorshipVideoPaused ? "⏸️" : "▶️";
+                ind.style.display = "block";
+                clearTimeout(playPauseIndicatorTimer);
+                playPauseIndicatorTimer = setTimeout(() => {
+                    if (ind) ind.style.display = "none";
+                }, 750);
+            }
+
+            showToast(isWorshipVideoPaused ? "⏸️ 영상이 일시 정지되었습니다." : "▶️ 영상을 재생합니다.");
+        } catch(e) {
+            console.error("handleVideoTouch error:", e);
         }
     }
 
@@ -1328,6 +1367,9 @@
     function switchWorship(idx) {
         if (idx < 0 || idx >= WORSHIP_KEYS.length) return;
         activeWorshipIndex = idx;
+        isWorshipVideoPaused = false;
+        updateWorshipAdminVisibility();
+
         const key = WORSHIP_KEYS[idx];
         const item = worshipData[key] || DEFAULT_DATA[key];
         const ytId = extractYoutubeVideoId(item.yt);
@@ -1477,6 +1519,7 @@
                 if (iframe) {
                     iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1&iv_load_policy=3`;
                 }
+                isWorshipVideoPaused = false;
                 const kindBadge = document.getElementById("sermonKindBadge");
                 const realTitle = document.getElementById("sermonRealTitle");
                 const subDetail = document.getElementById("sermonSubDetail");
@@ -1555,16 +1598,88 @@
         document.getElementById("adminModal").classList.remove("open");
     }
 
-    function pasteClipboardToYt() {
-        if (navigator.clipboard && navigator.clipboard.readText) {
-            navigator.clipboard.readText().then(txt => {
-                if (txt) {
-                    document.getElementById("inpAdminYt").value = txt.trim();
-                    showToast("📋 클립보드 주소가 입력되었습니다.");
+    /* 🌟 [사용자 요청] 유튜브 주소 원터치 지우기 및 포커스 */
+    function clearAndFocusYtInput() {
+        const inp = document.getElementById("inpAdminYt");
+        if (inp) {
+            inp.value = "";
+            inp.focus();
+            showToast("💡 기존 주소가 지워졌습니다. 링크를 붙여넣으세요.");
+        }
+    }
+
+    /* 🌟 [사용자 요청] 클립보드 원터치 붙여넣기 */
+    async function pasteClipboardToYt() {
+        const inp = document.getElementById("inpAdminYt");
+        if (!inp) return;
+
+        // 1. Android 네이티브 클립보드 인터페이스 지원 시
+        if (window.Android && typeof window.Android.getClipboard === "function") {
+            try {
+                const clip = window.Android.getClipboard();
+                if (clip && clip.trim()) {
+                    inp.value = clip.trim();
+                    showToast("📋 클립보드 주소가 입력되었습니다!");
+                    return;
                 }
-            }).catch(() => {
-                showToast("직접 입력창을 터치하여 붙여넣어 주세요.");
-            });
+            } catch(e) {}
+        }
+
+        // 2. 브라우저 Clipboard API
+        if (navigator.clipboard && navigator.clipboard.readText) {
+            try {
+                const txt = await navigator.clipboard.readText();
+                if (txt && txt.trim()) {
+                    inp.value = txt.trim();
+                    showToast("📋 클립보드 주소가 입력되었습니다!");
+                    return;
+                }
+            } catch(e) {}
+        }
+
+        // 3. 브라우저 보안으로 차단된 경우: 주소창을 비우고 커서를 올려 롱프레스 유도
+        inp.value = "";
+        inp.focus();
+        showToast("👉 입력창을 1초간 꾹 눌러 [붙여넣기]를 터치하세요.");
+    }
+
+    /* 🌟 [사용자 요청] 부관리자 이상만 예배 관리 버튼 노출 */
+    function canManageChurchWorship() {
+        // 1. 관리자 인증 플래그
+        if (localStorage.getItem("yetalk_admin_auth") === "true" ||
+            localStorage.getItem("yetalk_is_admin") === "true" ||
+            localStorage.getItem("yetalk_index_admin_on") === "true") {
+            return true;
+        }
+
+        // 2. 직분/등급
+        const role = (
+            localStorage.getItem("yetalk_church_role") ||
+            localStorage.getItem("yetalkChurchRole") ||
+            localStorage.getItem("yetalk_user_role") ||
+            localStorage.getItem("yetalkUserRole") ||
+            localStorage.getItem("yetalk_user_grade") ||
+            localStorage.getItem("yetalkMemberGrade") ||
+            ""
+        ).trim();
+
+        // 부관리자 이상: 담임목사, 목사, 부목사, 전도사, 강도사, 장로, 시무장로, 총관리자, 관리자, 부관리자, 원장, 대표, 간사 등
+        const adminRoles = ["담임목사", "목사", "부목사", "전도사", "강도사", "장로", "시무장로", "총관리자", "관리자", "부관리자", "원장", "대표", "간사"];
+        if (adminRoles.some(r => role.includes(r))) return true;
+
+        // 관리자/대표님 이름 매칭
+        const uName = (localStorage.getItem("yetalk_user_name") || localStorage.getItem("yetalkUserName") || "").trim();
+        if (uName.toLowerCase().includes("admin") || uName.includes("관리자") || uName.includes("최웅식") || uName.includes("최베드로") || uName.includes("최용식")) {
+            return true;
+        }
+
+        return false;
+    }
+
+    function updateWorshipAdminVisibility() {
+        const btn = document.getElementById("btnTopWorshipAdmin");
+        if (btn) {
+            btn.style.display = canManageChurchWorship() ? "inline-flex" : "none";
         }
     }
 
